@@ -12,6 +12,7 @@
 #include "macros.h"
 #include "sysinfo.h"
 
+namespace benchmark {
 namespace walltime {
 namespace {
 const double kMaxErrorInterval = 100e-6;
@@ -77,9 +78,9 @@ void Initialize() {
   max_interval_cycles = static_cast<int64_t>(
       cycles_per_second * kMaxErrorInterval);
   do {
-    base_cycletime = CycleClock::Now();
+    base_cycletime = cycleclock::Now();
     base_walltime = Slow();
-  } while (CycleClock::Now() - base_cycletime > max_interval_cycles);
+  } while (cycleclock::Now() - base_cycletime > max_interval_cycles);
   // We are now sure that "base_walltime" and "base_cycletime" were produced
   // within kMaxErrorInterval of one another.
 
@@ -97,7 +98,7 @@ WallTime Now() {
   int64_t ct = 0;
   uint32_t top_bits = 0;
   do {
-    ct = CycleClock::Now();
+    ct = cycleclock::Now();
     int64_t cycle_delta = ct - base_cycletime;
     result = base_walltime + cycle_delta * seconds_per_cycle;
 
@@ -109,7 +110,7 @@ WallTime Now() {
     }
 
     now = Slow();
-  } while (CycleClock::Now() - ct > max_interval_cycles);
+  } while (cycleclock::Now() - ct > max_interval_cycles);
   // We are now sure that "now" and "result" were produced within
   // kMaxErrorInterval of one another.
 
@@ -135,3 +136,4 @@ const char* Print(WallTime time, const char *format, bool local,
     return storage;
 }
 }  // end namespace walltime
+}  // end namespace benchmark

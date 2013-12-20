@@ -5,6 +5,7 @@
 #include <iostream>
 #include <limits>
 
+namespace benchmark {
 template <typename VType, typename NumType>
 class Stat1;
 
@@ -302,5 +303,6 @@ inline std::ostream& operator <<(std::ostream& out,
       << " max = " << s.Max() << "}";
   return out;
 }
+}  // end namespace benchmark
 
 #endif  // BENCHMARK_STAT_H_

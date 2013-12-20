@@ -6,6 +6,7 @@
 
 DECLARE_bool(color_print);
 
+namespace benchmark {
 namespace {
 #ifdef OS_WINDOWS
 typedef WORD PlatformColorCode;
@@ -78,5 +79,5 @@ void ColorPrintf(LogColor color, const char* fmt, ...) {
 #endif
   va_end(args);
 }
-
+}  // end namespace benchmark
 

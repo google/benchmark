@@ -24,7 +24,6 @@
     std::string FLAG(name) = (default_val)
 
 namespace benchmark {
-
 // Parses 'str' for a 32-bit signed integer.  If successful, writes the result
 // to *value and returns true; otherwise leaves *value unchanged and returns
 // false.

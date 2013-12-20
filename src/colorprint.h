@@ -1,6 +1,7 @@
 #ifndef BENCHMARK_COLORPRINT_H_
 #define BENCHMARK_COLORPRINT_H_
 
+namespace benchmark {
 enum LogColor {
   COLOR_DEFAULT,
   COLOR_RED,
@@ -13,5 +14,6 @@ enum LogColor {
 };
 
 void ColorPrintf(LogColor color, const char* fmt, ...);
+}  // end namespace benchmark
 
 #endif  // BENCHMARK_COLORPRINT_H_

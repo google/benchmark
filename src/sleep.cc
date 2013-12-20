@@ -3,6 +3,7 @@
 #include <time.h>
 #include <errno.h>
 
+namespace benchmark {
 #ifdef OS_WINDOWS
 
 // Window's _sleep takes milliseconds argument.
@@ -37,6 +38,5 @@ void SleepForSeconds(double seconds) {
 }
 
 #endif  // OS_WINDOWS
-
-
+}  // end namespace benchmark
 

@@ -80,10 +80,10 @@ static const char kBigIECUnits[] = "KMGTPEZY";
 static const char kSmallSIUnits[] = "munpfazy";
 
 // We require that all three arrays have the same size.
-STATIC_ASSERT(arraysize(kBigSIUnits) == arraysize(kBigIECUnits),
-              SI_and_IEC_unit_arrays_must_be_the_same_size);
-STATIC_ASSERT(arraysize(kSmallSIUnits) == arraysize(kBigSIUnits),
-              Small_SI_and_Big_SI_unit_arrays_must_be_the_same_size);
+static_assert(arraysize(kBigSIUnits) == arraysize(kBigIECUnits),
+              "SI and IEC unit arrays must be the same size");
+static_assert(arraysize(kSmallSIUnits) == arraysize(kBigSIUnits),
+              "Small SI and Big SI unit arrays must be the same size");
 static const int kUnitsSize = arraysize(kBigSIUnits);
 
 void ToExponentAndMantissa(double val, double thresh,
@@ -428,11 +428,11 @@ void UseRealTime() {
 
 void PrintUsageAndExit() {
   fprintf(stdout, "benchmark [--benchmark_filter=<regex>]\n"
-                  "          [--benchmark_min_iters=<min_iters>]\n"
-                  "          [--benchmark_max_iters=<max_iters>]\n"
-                  "          [--benchmark_min_time=<min_time>]\n"
+// TODO           "          [--benchmark_min_iters=<min_iters>]\n"
+// TODO           "          [--benchmark_max_iters=<max_iters>]\n"
+// TODO           "          [--benchmark_min_time=<min_time>]\n"
 //                "          [--benchmark_memory_usage]\n"
-                  "          [--benchmark_repetitions=<num_repetitions>]\n"
+// TODO           "          [--benchmark_repetitions=<num_repetitions>]\n"
                   "          [--color_print={true|false}]\n"
                   "          [--v=<verbosity>]\n");
   exit(0);
@@ -442,6 +442,7 @@ void ParseCommandLineFlags(int* argc, const char** argv) {
   for (int i = 1; i < *argc; ++i) {
     if (ParseStringFlag(argv[i], "benchmark_filter",
                         &FLAGS_benchmark_filter) ||
+        /* TODO(dominic)
         ParseInt32Flag(argv[i], "benchmark_min_iters",
                        &FLAGS_benchmark_min_iters) ||
         ParseInt32Flag(argv[i], "benchmark_max_iters",
@@ -453,6 +454,7 @@ void ParseCommandLineFlags(int* argc, const char** argv) {
 //                      &FLAGS_gbenchmark_memory_usage) ||
         ParseInt32Flag(argv[i], "benchmark_repetitions",
                        &FLAGS_benchmark_repetitions) ||
+                       */
         ParseBoolFlag(argv[i], "color_print", &FLAGS_color_print) ||
         ParseInt32Flag(argv[i], "v", &FLAGS_v)) {
       for (int j = i; j != *argc; ++j)
@@ -1189,9 +1191,8 @@ void Initialize(int* argc, const char** argv) {
   pthread_key_create(&thread_stats_key, DeleteThreadStats);
   thread_stats = new internal::Benchmark::ThreadStats();
   walltime::Initialize();
-  internal::Benchmark::MeasureOverhead();
   internal::ParseCommandLineFlags(argc, argv); 
+  internal::Benchmark::MeasureOverhead();
 }
-
 
 }  // end namespace benchmark

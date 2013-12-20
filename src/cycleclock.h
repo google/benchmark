@@ -44,7 +44,8 @@ extern "C" uint64_t __rdtsc();
 //    http://peter.kuscsik.com/wordpress/?p=14
 // with modifications by m3b.  See also
 //    https://setisvn.ssl.berkeley.edu/svn/lib/fftw-3.0.1/kernel/cycle.h
-struct CycleClock {
+namespace benchmark {
+namespace cycleclock {
   // This should return the number of cycles since power-on.  Thread-safe.
   static inline int64_t Now() {
 #if defined(OS_MACOSX)
@@ -124,6 +125,7 @@ struct CycleClock {
 #error You need to define CycleTimer for your OS and CPU
 #endif
   }
-};
+}  // end namespace cycleclock
+}  // end namespace benchmark
 
 #endif  // BENCHMARK_CYCLECLOCK_H_

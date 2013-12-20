@@ -1,6 +1,7 @@
 #ifndef BENCHMARK_WALLTIME_H_
 #define BENCHMARK_WALLTIME_H_
 
+namespace benchmark {
 typedef double WallTime;
 
 namespace walltime {
@@ -15,5 +16,6 @@ WallTime Now();
 const char* Print(WallTime time, const char *format, bool local,
                   char* storage, int *remainder_us);
 }  // end namespace walltime
+}  // end namespace benchmark
 
 #endif  // BENCHMARK_WALLTIME_H_

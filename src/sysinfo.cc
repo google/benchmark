@@ -18,6 +18,7 @@
 #include "mutex_lock.h"
 #include "sleep.h"
 
+namespace benchmark {
 namespace {
 pthread_once_t cpuinfo_init = PTHREAD_ONCE_INIT;
 double cpuinfo_cycles_per_second = 1.0;
@@ -30,9 +31,9 @@ int64_t EstimateCyclesPerSecond(const int estimate_time_ms) {
   CHECK(estimate_time_ms > 0);
   double multiplier = 1000.0 / (double)estimate_time_ms;  // scale by this much
 
-  const int64_t start_ticks = CycleClock::Now();
+  const int64_t start_ticks = cycleclock::Now();
   SleepForMilliseconds(estimate_time_ms);
-  const int64_t guess = int64_t(multiplier * (CycleClock::Now() - start_ticks));
+  const int64_t guess = int64_t(multiplier * (cycleclock::Now() - start_ticks));
   return guess;
 }
 
@@ -334,4 +335,4 @@ int NumCPUs(void) {
   pthread_once(&cpuinfo_init, &InitializeSystemInfo);
   return cpuinfo_num_cpus;
 }
-
+}  // end namespace benchmark
