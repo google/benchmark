@@ -19,6 +19,7 @@
 #endif
 
 #include <algorithm>
+#include <atomic>
 #include <iostream>
 #include <memory>
 #include <sstream>
@@ -474,7 +475,6 @@ class State::FastClock {
   enum Type { REAL_TIME, CPU_TIME };
   explicit FastClock(Type type)
       : type_(type), approx_time_(NowMicros()) {
-
     sem_init(&bg_done_, 0, 0);
     pthread_create(&bg_, NULL, &BGThreadWrapper, this);
   }
@@ -488,7 +488,7 @@ class State::FastClock {
   // Returns true if the current time is guaranteed to be past "when_micros".
   // This method is very fast.
   inline bool HasReached(int64_t when_micros) {
-    return approx_time_ >= when_micros;
+    return std::atomic_load(&approx_time_) >= when_micros;
     // NOTE: this is the same as we're dealing with an int64_t
     //return (base::subtle::NoBarrier_Load(&approx_time_) >= when_micros);
   }
@@ -511,14 +511,14 @@ class State::FastClock {
   // function starts running - see UseRealTime).
   void InitType(Type type) {
     type_ = type;
-    approx_time_ = NowMicros();
+    std::atomic_store(&approx_time_, NowMicros());
     // NOTE: This is the same barring a memory barrier
     // base::subtle::Release_Store(&approx_time_, NowMicros());
   }
 
  private:
   Type type_;
-  int64_t approx_time_;  // Last time measurement taken by bg_
+  std::atomic<int64_t> approx_time_;  // Last time measurement taken by bg_
   pthread_t bg_;  // Background thread that updates last_time_ once every ms
 
   sem_t bg_done_;
@@ -532,7 +532,7 @@ class State::FastClock {
     int done = 0;
     do {
       SleepForMicroseconds(1000);
-      approx_time_ = NowMicros();
+      std::atomic_store(&approx_time_, NowMicros());
       // NOTE: same code but no memory barrier. think on it.
       //base::subtle::Release_Store(&approx_time_, NowMicros());
       sem_getvalue(&bg_done_, &done);
@@ -577,6 +577,11 @@ struct State::SharedState {
 
   SharedState(const internal::Benchmark::Instance* b, int t)
       : instance(b), starting(0), stopping(0), threads(t) {
+    pthread_mutex_init(&mu, nullptr);
+  }
+
+  ~SharedState() {
+    pthread_mutex_destroy(&mu);
   }
   DISALLOW_COPY_AND_ASSIGN(SharedState);
 };
@@ -587,7 +592,7 @@ Benchmark::Benchmark(const char* name, BenchmarkFunction f)
     : name_(name), function_(f) {
   mutex_lock l(&benchmark_mutex);
   if (families == nullptr)
-    families = new std::vector<Benchmark*>;
+    families = new std::vector<Benchmark*>();
   registration_index_ = families->size();
   families->push_back(this);
 }
