@@ -39,15 +39,17 @@ extern "C" uint64_t __rdtsc();
 #endif
 #include <sys/time.h>
 
+#include "benchmark/macros.h"
+
+namespace benchmark {
 // NOTE: only i386 and x86_64 have been well tested.
 // PPC, sparc, alpha, and ia64 are based on
 //    http://peter.kuscsik.com/wordpress/?p=14
 // with modifications by m3b.  See also
 //    https://setisvn.ssl.berkeley.edu/svn/lib/fftw-3.0.1/kernel/cycle.h
-namespace benchmark {
 namespace cycleclock {
   // This should return the number of cycles since power-on.  Thread-safe.
-  static inline int64_t Now() {
+  inline ATTRIBUTE_ALWAYS_INLINE int64_t Now() {
 #if defined(OS_MACOSX)
     // this goes at the top because we need ALL Macs, regardless of
     // architecture, to return the number of "mach time units" that

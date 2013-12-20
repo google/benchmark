@@ -8,8 +8,8 @@
 #include <atomic>
 #include <limits>
 
+#include "benchmark/macros.h"
 #include "cycleclock.h"
-#include "macros.h"
 #include "sysinfo.h"
 
 namespace benchmark {

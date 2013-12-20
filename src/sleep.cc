@@ -5,22 +5,14 @@
 
 namespace benchmark {
 #ifdef OS_WINDOWS
-
 // Window's _sleep takes milliseconds argument.
 void SleepForMilliseconds(int milliseconds) {
   _sleep(milliseconds);
 }
 void SleepForSeconds(double seconds) {
-  SleepForMilliseconds(static_cast<int>(seconds * 1000));
+  SleepForMilliseconds(static_cast<int>(kNumMillisPerSecond * seconds));
 }
-
 #else  // OS_WINDOWS
-
-static const int64_t kNumMillisPerSecond = 1000LL;
-static const int64_t kNumMicrosPerMilli = 1000LL;
-static const int64_t kNumMicrosPerSecond = kNumMillisPerSecond * 1000LL;
-static const int64_t kNumNanosPerMicro = 1000LL;
-
 void SleepForMicroseconds(int64_t microseconds) {
   struct timespec sleep_time;
   sleep_time.tv_sec = microseconds / kNumMicrosPerSecond;
@@ -36,7 +28,6 @@ void SleepForMilliseconds(int milliseconds) {
 void SleepForSeconds(double seconds) {
   SleepForMicroseconds(static_cast<int64_t>(seconds * kNumMicrosPerSecond));
 }
-
 #endif  // OS_WINDOWS
 }  // end namespace benchmark
 

@@ -30,11 +30,9 @@ DEFINE_string(benchmark_filter, ".",
               "If this flag is the string \"all\", all benchmarks linked "
               "into the process are run.");
 
-DEFINE_int32(benchmark_min_iters, 100,
-             "Minimum number of iterations per benchmark");
-
-DEFINE_int32(benchmark_max_iters, 1000000000,
-             "Maximum number of iterations per benchmark");
+DEFINE_int32(benchmark_iterations, 0,
+             "Total number of iterations per benchmark. 0 means the benchmarks "
+             "are time-based.");
 
 DEFINE_double(benchmark_min_time, 0.5,
               "Minimum number of seconds we should run benchmark before "
@@ -70,15 +68,13 @@ DECLARE_string(heap_check);
     : NULL )
 
 namespace benchmark {
-
 namespace {
-
 // kilo, Mega, Giga, Tera, Peta, Exa, Zetta, Yotta.
-static const char kBigSIUnits[] = "kMGTPEZY";
+const char kBigSIUnits[] = "kMGTPEZY";
 // Kibi, Mebi, Gibi, Tebi, Pebi, Exbi, Zebi, Yobi.
-static const char kBigIECUnits[] = "KMGTPEZY";
+const char kBigIECUnits[] = "KMGTPEZY";
 // milli, micro, nano, pico, femto, atto, zepto, yocto.
-static const char kSmallSIUnits[] = "munpfazy";
+const char kSmallSIUnits[] = "munpfazy";
 
 // We require that all three arrays have the same size.
 static_assert(arraysize(kBigSIUnits) == arraysize(kBigIECUnits),
@@ -274,8 +270,9 @@ void ComputeStats(const std::vector<BenchmarkRunData>& reports,
   // Accumulators.
   Stat1_d real_accumulated_time_stat;
   Stat1_d cpu_accumulated_time_stat;
-  Stat1_d bytes_per_second_stat;
   Stat1_d items_per_second_stat;
+  Stat1_d bytes_per_second_stat;
+  Stat1_d iterations_stat;
   Stat1MinMax_d max_heapbytes_used_stat;
   int total_iters = 0;
 
@@ -283,20 +280,20 @@ void ComputeStats(const std::vector<BenchmarkRunData>& reports,
   for (std::vector<BenchmarkRunData>::const_iterator it = reports.begin();
        it != reports.end(); ++it) {
     CHECK_EQ(reports[0].benchmark_name, it->benchmark_name);
-    total_iters += it->iterations;
     real_accumulated_time_stat +=
         Stat1_d(it->real_accumulated_time/it->iterations, it->iterations);
     cpu_accumulated_time_stat +=
         Stat1_d(it->cpu_accumulated_time/it->iterations, it->iterations);
     items_per_second_stat += Stat1_d(it->items_per_second, it->iterations);
     bytes_per_second_stat += Stat1_d(it->bytes_per_second, it->iterations);
+    iterations_stat += Stat1_d(it->iterations, it->iterations);
     max_heapbytes_used_stat += Stat1MinMax_d(it->max_heapbytes_used,
                                              it->iterations);
   }
 
   // Get the data from the accumulator to BenchmarkRunData's.
   mean_data->benchmark_name = reports[0].benchmark_name + "_mean";
-  mean_data->iterations = total_iters;
+  mean_data->iterations = iterations_stat.Mean();
   mean_data->real_accumulated_time = real_accumulated_time_stat.Sum();
   mean_data->cpu_accumulated_time = cpu_accumulated_time_stat.Sum();
   mean_data->bytes_per_second = bytes_per_second_stat.Mean();
@@ -314,7 +311,7 @@ void ComputeStats(const std::vector<BenchmarkRunData>& reports,
 
   stddev_data->benchmark_name = reports[0].benchmark_name + "_stddev";
   stddev_data->report_label = mean_data->report_label;
-  stddev_data->iterations = total_iters;
+  stddev_data->iterations = iterations_stat.StdDev();
   // We multiply by total_iters since PrintRunData expects a total time.
   stddev_data->real_accumulated_time =
       real_accumulated_time_stat.StdDev() * total_iters;
@@ -428,11 +425,10 @@ void UseRealTime() {
 
 void PrintUsageAndExit() {
   fprintf(stdout, "benchmark [--benchmark_filter=<regex>]\n"
-// TODO           "          [--benchmark_min_iters=<min_iters>]\n"
-// TODO           "          [--benchmark_max_iters=<max_iters>]\n"
-// TODO           "          [--benchmark_min_time=<min_time>]\n"
+                  "          [--benchmark_iterations=<iterations>]\n"
+                  "          [--benchmark_min_time=<min_time>]\n"
 //                "          [--benchmark_memory_usage]\n"
-// TODO           "          [--benchmark_repetitions=<num_repetitions>]\n"
+                  "          [--benchmark_repetitions=<num_repetitions>]\n"
                   "          [--color_print={true|false}]\n"
                   "          [--v=<verbosity>]\n");
   exit(0);
@@ -442,11 +438,8 @@ void ParseCommandLineFlags(int* argc, const char** argv) {
   for (int i = 1; i < *argc; ++i) {
     if (ParseStringFlag(argv[i], "benchmark_filter",
                         &FLAGS_benchmark_filter) ||
-        /* TODO(dominic)
-        ParseInt32Flag(argv[i], "benchmark_min_iters",
-                       &FLAGS_benchmark_min_iters) ||
-        ParseInt32Flag(argv[i], "benchmark_max_iters",
-                       &FLAGS_benchmark_max_iters) ||
+        ParseInt32Flag(argv[i], "benchmark_iterations",
+                       &FLAGS_benchmark_iterations) ||
         ParseDoubleFlag(argv[i], "benchmark_min_time",
                         &FLAGS_benchmark_min_time) ||
         // TODO(dominic)
@@ -454,7 +447,6 @@ void ParseCommandLineFlags(int* argc, const char** argv) {
 //                      &FLAGS_gbenchmark_memory_usage) ||
         ParseInt32Flag(argv[i], "benchmark_repetitions",
                        &FLAGS_benchmark_repetitions) ||
-                       */
         ParseBoolFlag(argv[i], "color_print", &FLAGS_color_print) ||
         ParseInt32Flag(argv[i], "v", &FLAGS_v)) {
       for (int j = i; j != *argc; ++j)
@@ -504,7 +496,7 @@ class State::FastClock {
         t = MyCPUUsage() + ChildrenCPUUsage();
         break;
     }
-    return static_cast<int64_t>(t * 1e6);
+    return static_cast<int64_t>(t * kNumMicrosPerSecond);
   }
 
   // Reinitialize if necessary (since clock type may be change once benchmark
@@ -912,13 +904,17 @@ State::State(FastClock* clock, SharedState* s, int t)
       pause_time_(0.0),
       total_iterations_(0),
       interval_micros_(
-          static_cast<int64_t>(1e6 * FLAGS_benchmark_min_time /
+          static_cast<int64_t>(kNumMicrosPerSecond * FLAGS_benchmark_min_time /
                                FLAGS_benchmark_repetitions)) {
+  CHECK(clock != nullptr);
+  CHECK(s != nullptr);
 }
 
 bool State::KeepRunning() {
   // Fast path
-  if (!clock_->HasReached(stop_time_micros_ + pause_time_)) {
+  if ((FLAGS_benchmark_iterations == 0 &&
+       !clock_->HasReached(stop_time_micros_ + pause_time_)) ||
+      iterations_ < FLAGS_benchmark_iterations) {
     ++iterations_;
     return true;
   }
@@ -1034,12 +1030,12 @@ void State::NewInterval() {
 }
 
 bool State::FinishInterval() {
-  if (iterations_ < FLAGS_benchmark_min_iters / FLAGS_benchmark_repetitions &&
-      interval_micros_ < 5000000) {
+  if (FLAGS_benchmark_iterations != 0 &&
+      iterations_ < FLAGS_benchmark_iterations / FLAGS_benchmark_repetitions) {
     interval_micros_ *= 2;
 #ifdef DEBUG
-    std::cout << "Interval was too short; trying again for "
-              << interval_micros_ << " useconds.\n";
+    std::cout << "Not enough iterations in interval; "
+              << "Trying again for " << interval_micros_ << " useconds.\n";
 #endif
     is_continuation_ = false;
     NewInterval();
@@ -1063,11 +1059,25 @@ bool State::FinishInterval() {
   bool keep_going = false;
   {
     mutex_lock l(&shared_->mu);
+
+    // Either replace the last or add a new data point.
     if (is_continuation_)
       shared_->runs.back() = data;
     else
       shared_->runs.push_back(data);
-    keep_going = RunAnotherInterval();
+
+    if (FLAGS_benchmark_iterations != 0) {
+      // If we need more iterations, run another interval as a continuation.
+      keep_going = total_iterations_ < FLAGS_benchmark_iterations;
+      is_continuation_ = keep_going;
+    } else {
+      // If this is a repetition, run another interval as a new data point.
+      keep_going =
+          shared_->runs.size() <
+              static_cast<size_t>(FLAGS_benchmark_repetitions);
+      is_continuation_ = !keep_going;
+    }
+
     if (!keep_going) {
       ++shared_->stopping;
       if (shared_->stopping < shared_->threads) {
@@ -1081,21 +1091,9 @@ bool State::FinishInterval() {
     }
   }
 
-  if (state_ == STATE_RUNNING) {
-    is_continuation_ = true;
+  if (state_ == STATE_RUNNING)
     NewInterval();
-  }
   return keep_going;
-}
-
-bool State::RunAnotherInterval() const {
-  if (total_iterations_ < FLAGS_benchmark_min_iters)
-    return true;
-  if (total_iterations_ > FLAGS_benchmark_max_iters)
-    return false;
-  if (static_cast<int>(shared_->runs.size()) >= FLAGS_benchmark_repetitions)
-    return false;
-  return true;
 }
 
 bool State::MaybeStop() {

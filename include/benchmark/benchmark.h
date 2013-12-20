@@ -233,7 +233,6 @@ class State {
   bool MaybeStop();
   void NewInterval();
   bool AllStarting();
-  bool RunAnotherInterval() const;
 
   void Run();
 
