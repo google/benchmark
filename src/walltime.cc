@@ -119,21 +119,22 @@ WallTime Now() {
   return now;
 }
 
-const char* Print(WallTime time, const char *format, bool local,
-                  char* storage, int *remainder_us) {
-    struct tm split;
-    double subsecond;
-    if (!SplitTimezone(time, local, &split, &subsecond)) {
-      snprintf(storage, sizeof(storage), "Invalid time: %f", time);
-    } else {
-      if (remainder_us != NULL) {
-        *remainder_us = static_cast<int>((subsecond * 1000000) + 0.5);
-        if (*remainder_us > 999999) *remainder_us = 999999;
-        if (*remainder_us < 0)      *remainder_us = 0;
-      }
-      strftime(storage, sizeof(storage), format, &split);
+std::string Print(WallTime time, const char *format, bool local,
+                  int *remainder_us) {
+  char storage[32];
+  struct tm split;
+  double subsecond;
+  if (!SplitTimezone(time, local, &split, &subsecond)) {
+    snprintf(storage, sizeof(storage), "Invalid time: %f", time);
+  } else {
+    if (remainder_us != NULL) {
+      *remainder_us = static_cast<int>((subsecond * 1000000) + 0.5);
+      if (*remainder_us > 999999) *remainder_us = 999999;
+      if (*remainder_us < 0)      *remainder_us = 0;
     }
-    return storage;
+    strftime(storage, sizeof(storage), format, &split);
+  }
+  return std::string(storage);
 }
 }  // end namespace walltime
 }  // end namespace benchmark

@@ -341,10 +341,9 @@ bool ConsoleReporter::ReportContext(const BenchmarkContextData& context) {
             << ((context.num_cpus > 1) ? "s" : "") << "\n";
 
   int remainder_ms;
-  char time_buf[32];
   std::cout << walltime::Print(walltime::Now(), "%Y/%m/%d-%H:%M:%S",
                                true,   // use local timezone
-                               time_buf, &remainder_ms) << "\n"; 
+                               &remainder_ms) << "\n"; 
 
   // Show details of CPU model, caches, TLBs etc.
 //  if (!context.cpu_info.empty())
