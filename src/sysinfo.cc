@@ -13,8 +13,8 @@
 #include <iostream>
 #include <limits>
 
+#include "benchmark/macros.h"
 #include "cycleclock.h"
-#include "macros.h"
 #include "mutex_lock.h"
 #include "sleep.h"
 
