@@ -269,8 +269,9 @@ void ComputeStats(const std::vector<BenchmarkRunData>& reports,
   // Accumulators.
   Stat1_d real_accumulated_time_stat;
   Stat1_d cpu_accumulated_time_stat;
-  Stat1_d bytes_per_second_stat;
   Stat1_d items_per_second_stat;
+  Stat1_d bytes_per_second_stat;
+  Stat1_d iterations_stat;
   Stat1MinMax_d max_heapbytes_used_stat;
   int total_iters = 0;
 
@@ -278,20 +279,20 @@ void ComputeStats(const std::vector<BenchmarkRunData>& reports,
   for (std::vector<BenchmarkRunData>::const_iterator it = reports.begin();
        it != reports.end(); ++it) {
     CHECK_EQ(reports[0].benchmark_name, it->benchmark_name);
-    total_iters += it->iterations;
     real_accumulated_time_stat +=
         Stat1_d(it->real_accumulated_time/it->iterations, it->iterations);
     cpu_accumulated_time_stat +=
         Stat1_d(it->cpu_accumulated_time/it->iterations, it->iterations);
     items_per_second_stat += Stat1_d(it->items_per_second, it->iterations);
     bytes_per_second_stat += Stat1_d(it->bytes_per_second, it->iterations);
+    iterations_stat += Stat1_d(it->iterations, it->iterations);
     max_heapbytes_used_stat += Stat1MinMax_d(it->max_heapbytes_used,
                                              it->iterations);
   }
 
   // Get the data from the accumulator to BenchmarkRunData's.
   mean_data->benchmark_name = reports[0].benchmark_name + "_mean";
-  mean_data->iterations = total_iters;
+  mean_data->iterations = iterations_stat.Mean();
   mean_data->real_accumulated_time = real_accumulated_time_stat.Sum();
   mean_data->cpu_accumulated_time = cpu_accumulated_time_stat.Sum();
   mean_data->bytes_per_second = bytes_per_second_stat.Mean();
@@ -309,7 +310,7 @@ void ComputeStats(const std::vector<BenchmarkRunData>& reports,
 
   stddev_data->benchmark_name = reports[0].benchmark_name + "_stddev";
   stddev_data->report_label = mean_data->report_label;
-  stddev_data->iterations = total_iters;
+  stddev_data->iterations = iterations_stat.StdDev();
   // We multiply by total_iters since PrintRunData expects a total time.
   stddev_data->real_accumulated_time =
       real_accumulated_time_stat.StdDev() * total_iters;
@@ -426,7 +427,7 @@ void PrintUsageAndExit() {
                   "          [--benchmark_iterations=<iterations>]\n"
                   "          [--benchmark_min_time=<min_time>]\n"
 //                "          [--benchmark_memory_usage]\n"
-// TODO           "          [--benchmark_repetitions=<num_repetitions>]\n"
+                  "          [--benchmark_repetitions=<num_repetitions>]\n"
                   "          [--color_print={true|false}]\n"
                   "          [--v=<verbosity>]\n");
   exit(0);
@@ -443,10 +444,8 @@ void ParseCommandLineFlags(int* argc, const char** argv) {
         // TODO(dominic)
 //        ParseBoolFlag(argv[i], "gbenchmark_memory_usage",
 //                      &FLAGS_gbenchmark_memory_usage) ||
-                      /*
         ParseInt32Flag(argv[i], "benchmark_repetitions",
                        &FLAGS_benchmark_repetitions) ||
-                       */
         ParseBoolFlag(argv[i], "color_print", &FLAGS_color_print) ||
         ParseInt32Flag(argv[i], "v", &FLAGS_v)) {
       for (int j = i; j != *argc; ++j)
