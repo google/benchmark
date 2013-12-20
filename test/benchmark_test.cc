@@ -57,7 +57,7 @@ static void BM_CalculatePiRange(benchmark::State& state) {
   state.SetLabel(ss.str());
 }
 BENCHMARK_RANGE(BM_CalculatePiRange, 1, 1024 * 1024);
-
+/*
 static void BM_CalculatePi(benchmark::State& state) {
   static const int depth = 1024;
   double pi ATTRIBUTE_UNUSED = 0.0;
@@ -68,7 +68,7 @@ static void BM_CalculatePi(benchmark::State& state) {
 BENCHMARK(BM_CalculatePi)->Threads(8);
 BENCHMARK(BM_CalculatePi)->ThreadRange(1, 32);
 BENCHMARK(BM_CalculatePi)->ThreadPerCpu();
-
+*/
 static void BM_SetInsert(benchmark::State& state) {
   while (state.KeepRunning()) {
     state.PauseTiming();

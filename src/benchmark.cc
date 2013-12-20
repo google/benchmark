@@ -647,7 +647,7 @@ Benchmark* Benchmark::Apply(void (*custom_arguments)(Benchmark* benchmark)) {
   custom_arguments(this);
   return this;
 }
-
+/*
 Benchmark* Benchmark::Threads(int t) {
   CHECK_GT(t, 0);
   mutex_lock l(&benchmark_mutex);
@@ -669,7 +669,7 @@ Benchmark* Benchmark::ThreadPerCpu() {
   thread_counts_.push_back(kNumCpuMarker);
   return this;
 }
-
+*/
 void Benchmark::AddRange(std::vector<int>* dst, int lo, int hi, int mult) {
   CHECK_GE(lo, 0);
   CHECK_GE(hi, lo);

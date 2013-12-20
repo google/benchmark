@@ -345,7 +345,7 @@ class Benchmark {
   // of some piece of code.
 
   // Run one instance of this benchmark concurrently in t threads.
-  // TODO(dominic)
+  // TODO(dominic): Allow multithreaded benchmarks
   //Benchmark* Threads(int t);
 
   // Pick a set of values T from [min_threads,max_threads].
@@ -360,13 +360,12 @@ class Benchmark {
   //    Foo in 4 threads
   //    Foo in 8 threads
   //    Foo in 16 threads
-  Benchmark* ThreadRange(int min_threads, int max_threads);
+  // Benchmark* ThreadRange(int min_threads, int max_threads);
 
   // Equivalent to ThreadRange(NumCPUs(), NumCPUs())
-  Benchmark* ThreadPerCpu();
+  //Benchmark* ThreadPerCpu();
 
   // TODO(dominic): Control whether or not real-time is used for this benchmark
-  // TODO(dominic): Control the default number of iterations
 
   // -------------------------------
   // Following methods are not useful for clients
