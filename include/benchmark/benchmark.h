@@ -21,14 +21,14 @@ BENCHMARK(BM_StringCopy);
 
 // Augment the main() program to invoke benchmarks if specified
 // via the --benchmarks command line flag.  E.g.,
-//       my_unittest --benchmarks=all
-//       my_unittest --benchmarks=BM_StringCreation
-//       my_unittest --benchmarks=String
-//       my_unittest --benchmarks='Copy|Creation'
+//       my_unittest --benchmark_filter=all
+//       my_unittest --benchmark_filter=BM_StringCreation
+//       my_unittest --benchmark_filter=String
+//       my_unittest --benchmark_filter='Copy|Creation'
 int main(int argc, char** argv) {
-  Initialize(&argc, argv);
-
-  RunSpecifiedBenchmarks();
+  benchmark::Initialize(&argc, argv);
+  benchmark::RunSpecifiedBenchmarks();
+  return 0;
 }
 
 // Sometimes a family of microbenchmarks can be implemented with
@@ -345,7 +345,8 @@ class Benchmark {
   // of some piece of code.
 
   // Run one instance of this benchmark concurrently in t threads.
-  Benchmark* Threads(int t);
+  // TODO(dominic)
+  //Benchmark* Threads(int t);
 
   // Pick a set of values T from [min_threads,max_threads].
   // min_threads and max_threads are always included in T.  Run this
@@ -364,8 +365,8 @@ class Benchmark {
   // Equivalent to ThreadRange(NumCPUs(), NumCPUs())
   Benchmark* ThreadPerCpu();
 
-  // TODO(dominich): Control whether or not real-time is used for this benchmark
-  // TODO(dominich): Control the default number of iterations
+  // TODO(dominic): Control whether or not real-time is used for this benchmark
+  // TODO(dominic): Control the default number of iterations
 
   // -------------------------------
   // Following methods are not useful for clients
