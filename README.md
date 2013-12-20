@@ -3,13 +3,13 @@ benchmark
 A library to support the benchmarking of functions, similar to unit-tests.
 
 Example usage:
-    // Define a function that executes the code to be measured a
-    // specified number of times:
+Define a function that executes the code to be measured a
+specified number of times:
+
     static void BM_StringCreation(benchmark::State& state) {
       while (state.KeepRunning())
         std::string empty_string;
     }
-
     // Register the function as a benchmark
     BENCHMARK(BM_StringCreation);
 
@@ -55,11 +55,13 @@ The preceding code is quite repetitive, and can be replaced with the
 following short-hand.  The following invocation will pick a few
 appropriate arguments in the specified range and will generate a
 microbenchmark for each such argument.
+
     BENCHMARK(BM_memcpy)->Range(8, 8<<10);
 
 You might have a microbenchmark that depends on two inputs.  For
 example, the following code defines a family of microbenchmarks for
 measuring the speed of set insertion.
+
     static void BM_SetInsert(benchmark::State& state) {
       while (state.KeepRunning()) {
         state.PauseTiming();
@@ -83,6 +85,7 @@ The preceding code is quite repetitive, and can be replaced with
 the following short-hand.  The following macro will pick a few
 appropriate arguments in the product of the two specified ranges
 and will generate a microbenchmark for each such pair.
+
     BENCHMARK(BM_SetInsert)->RangePair(1<<10, 8<<10, 1, 512);
 
 For more complex patterns of inputs, passing a custom function
@@ -90,6 +93,7 @@ to Apply allows programmatic specification of an
 arbitrary set of arguments to run the microbenchmark on.
 The following example enumerates a dense range on one parameter,
 and a sparse range on the second.
+
     static benchmark::internal::Benchmark* CustomArguments(
         benchmark::internal::Benchmark* b) {
       for (int i = 0; i <= 10; ++i)
@@ -102,6 +106,7 @@ and a sparse range on the second.
 Templated microbenchmarks work the same way:
 Produce then consume 'size' messages 'iters' times
 Measures throughput in the absence of multiprogramming.
+
     template <class Q> int BM_Sequential(benchmark::State& state) {
       Q q;
       typename Q::value_type v;
