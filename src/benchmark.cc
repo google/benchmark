@@ -423,7 +423,7 @@ void UseRealTime() {
 
 void PrintUsageAndExit() {
   fprintf(stdout, "benchmark [--benchmark_filter=<regex>]\n"
-// TODO           "          [--benchmark_iterations=<iterations>]\n"
+                  "          [--benchmark_iterations=<iterations>]\n"
                   "          [--benchmark_min_time=<min_time>]\n"
 //                "          [--benchmark_memory_usage]\n"
 // TODO           "          [--benchmark_repetitions=<num_repetitions>]\n"
@@ -436,10 +436,8 @@ void ParseCommandLineFlags(int* argc, const char** argv) {
   for (int i = 1; i < *argc; ++i) {
     if (ParseStringFlag(argv[i], "benchmark_filter",
                         &FLAGS_benchmark_filter) ||
-        /* TODO
         ParseInt32Flag(argv[i], "benchmark_iterations",
                        &FLAGS_benchmark_iterations) ||
-                       */
         ParseDoubleFlag(argv[i], "benchmark_min_time",
                         &FLAGS_benchmark_min_time) ||
         // TODO(dominic)
