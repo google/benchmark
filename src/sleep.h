@@ -4,6 +4,11 @@
 #include <stdint.h>
 
 namespace benchmark {
+const int64_t kNumMillisPerSecond = 1000LL;
+const int64_t kNumMicrosPerMilli = 1000LL;
+const int64_t kNumMicrosPerSecond = kNumMillisPerSecond * 1000LL;
+const int64_t kNumNanosPerMicro = 1000LL;
+
 void SleepForMicroseconds(int64_t microseconds);
 void SleepForMilliseconds(int milliseconds);
 void SleepForSeconds(double seconds);
