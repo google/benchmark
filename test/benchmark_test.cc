@@ -79,6 +79,8 @@ static void BM_SetInsert(benchmark::State& state) {
     for (int j = 0; j < state.range_y(); ++j)
       data.insert(rand());
   }
+  state.SetItemsProcessed(state.iterations() * state.range_y());
+  state.SetBytesProcessed(state.iterations() * state.range_y() * sizeof(int));
 }
 BENCHMARK(BM_SetInsert)->RangePair(1<<10,8<<10, 1,10);
 
