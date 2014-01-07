@@ -138,3 +138,4 @@ wrapped in a check against the thread index:
         // Teardown code here.
       }
     }
+    BENCHMARK(BM_MultiThreaded)->Threads(2);
