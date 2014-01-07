@@ -245,16 +245,15 @@ void ComputeStats(const std::vector<BenchmarkRunData>& reports,
   Stat1_d bytes_per_second_stat;
   Stat1_d iterations_stat;
   Stat1MinMax_d max_heapbytes_used_stat;
-  int total_iters = 0;
 
   // Populate the accumulators.
   for (std::vector<BenchmarkRunData>::const_iterator it = reports.begin();
        it != reports.end(); ++it) {
     CHECK_EQ(reports[0].benchmark_name, it->benchmark_name);
     real_accumulated_time_stat +=
-        Stat1_d(it->real_accumulated_time/it->iterations, it->iterations);
+        Stat1_d(it->real_accumulated_time, it->iterations);
     cpu_accumulated_time_stat +=
-        Stat1_d(it->cpu_accumulated_time/it->iterations, it->iterations);
+        Stat1_d(it->cpu_accumulated_time, it->iterations);
     items_per_second_stat += Stat1_d(it->items_per_second, it->iterations);
     bytes_per_second_stat += Stat1_d(it->bytes_per_second, it->iterations);
     iterations_stat += Stat1_d(it->iterations, it->iterations);
@@ -265,8 +264,8 @@ void ComputeStats(const std::vector<BenchmarkRunData>& reports,
   // Get the data from the accumulator to BenchmarkRunData's.
   mean_data->benchmark_name = reports[0].benchmark_name + "_mean";
   mean_data->iterations = iterations_stat.Mean();
-  mean_data->real_accumulated_time = real_accumulated_time_stat.Sum();
-  mean_data->cpu_accumulated_time = cpu_accumulated_time_stat.Sum();
+  mean_data->real_accumulated_time = real_accumulated_time_stat.Mean();
+  mean_data->cpu_accumulated_time = cpu_accumulated_time_stat.Mean();
   mean_data->bytes_per_second = bytes_per_second_stat.Mean();
   mean_data->items_per_second = items_per_second_stat.Mean();
   mean_data->max_heapbytes_used = max_heapbytes_used_stat.Max();
@@ -283,11 +282,8 @@ void ComputeStats(const std::vector<BenchmarkRunData>& reports,
   stddev_data->benchmark_name = reports[0].benchmark_name + "_stddev";
   stddev_data->report_label = mean_data->report_label;
   stddev_data->iterations = iterations_stat.StdDev();
-  // We multiply by total_iters since PrintRunData expects a total time.
-  stddev_data->real_accumulated_time =
-      real_accumulated_time_stat.StdDev() * total_iters;
-  stddev_data->cpu_accumulated_time =
-      cpu_accumulated_time_stat.StdDev() * total_iters;
+  stddev_data->real_accumulated_time = real_accumulated_time_stat.StdDev();
+  stddev_data->cpu_accumulated_time = cpu_accumulated_time_stat.StdDev();
   stddev_data->bytes_per_second = bytes_per_second_stat.StdDev();
   stddev_data->items_per_second = items_per_second_stat.StdDev();
   stddev_data->max_heapbytes_used = max_heapbytes_used_stat.StdDev();
@@ -965,32 +961,19 @@ bool State::StartRunning() {
     is_continuation_ = false;
     CHECK_LT(shared_->starting, shared_->threads);
     ++shared_->starting;
-#ifdef DEBUG
-    std::cout << "[" << thread_index << "] "
-              << shared_->starting << "/" << shared_->threads << " starting\n";
-#endif
     last_thread = shared_->starting == shared_->threads;
   }
   
   if (last_thread) {
     clock_->InitType(
         use_real_time ? FastClock::REAL_TIME : FastClock::CPU_TIME);
-#ifdef DEBUG
-    std::cout << "[" << thread_index << "] unlocking\n";
-#endif
     {
       mutex_lock l(&starting_mutex);
       pthread_cond_broadcast(&starting_cv);
     }
   } else {
-#ifdef DEBUG
-    std::cout << "[" << thread_index << "] waiting\n";
-#endif
     mutex_lock l(&starting_mutex);
     pthread_cond_wait(&starting_cv, &starting_mutex);
-#ifdef DEBUG
-    std::cout << "[" << thread_index << "] unlocked\n";
-#endif
   }
   CHECK_EQ(state_, STATE_STARTING);
   state_ = STATE_RUNNING;
