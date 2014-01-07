@@ -341,10 +341,8 @@ void ConsoleReporter::ReportRuns(const std::vector<BenchmarkRunData>& reports) {
   BenchmarkRunData stddev_data;
   internal::ComputeStats(reports, &mean_data, &stddev_data);
 
-  // Output using PrintRun.
   PrintRunData(mean_data);
   PrintRunData(stddev_data);
-  fprintf(stdout, "\n");
 }
 
 void ConsoleReporter::PrintRunData(const BenchmarkRunData& result) {
@@ -1141,16 +1139,9 @@ void RunMatchingBenchmarks(const std::string& spec,
   context.cpu_scaling_enabled = CpuScalingEnabled();
   context.name_field_width = name_field_width;
 
-  if (reporter->ReportContext(context)) {
-    for (internal::Benchmark::Instance& benchmark : benchmarks) {
-      //std::unique_ptr<thread::ThreadPool> pool;
-      //if (benchmark.threads > 0) {
-      //  pool = new thread::ThreadPool(benchmark.threads);
-      //  pool->StartWorkers();
-      //}
-      Benchmark::RunInstance(/*pool, */benchmark, reporter);
-    }
-  }
+  if (reporter->ReportContext(context))
+    for (internal::Benchmark::Instance& benchmark : benchmarks)
+      Benchmark::RunInstance(benchmark, reporter);
 }
 
 void FindMatchingBenchmarkNames(const std::string& spec,
