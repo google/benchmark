@@ -3,6 +3,7 @@
 #include <math.h>
 #include <stdint.h>
 
+#include <iostream>
 #include <limits>
 #include <list>
 #include <map>
@@ -33,7 +34,8 @@ std::set<int> ConstructRandomSet(int size) {
   return s;
 }
 
-static std::vector<int>* test_vector = NULL;
+pthread_mutex_t test_vector_mu;
+std::vector<int>* test_vector = nullptr;
 
 }  // end namespace
 
@@ -57,7 +59,7 @@ static void BM_CalculatePiRange(benchmark::State& state) {
   state.SetLabel(ss.str());
 }
 BENCHMARK_RANGE(BM_CalculatePiRange, 1, 1024 * 1024);
-/*
+
 static void BM_CalculatePi(benchmark::State& state) {
   static const int depth = 1024;
   double pi ATTRIBUTE_UNUSED = 0.0;
@@ -68,7 +70,7 @@ static void BM_CalculatePi(benchmark::State& state) {
 BENCHMARK(BM_CalculatePi)->Threads(8);
 BENCHMARK(BM_CalculatePi)->ThreadRange(1, 32);
 BENCHMARK(BM_CalculatePi)->ThreadPerCpu();
-*/
+
 static void BM_SetInsert(benchmark::State& state) {
   while (state.KeepRunning()) {
     state.PauseTiming();
@@ -107,16 +109,27 @@ static void BM_StringCompare(benchmark::State& state) {
 BENCHMARK(BM_StringCompare)->Range(1, 1<<20);
 
 static void BM_SetupTeardown(benchmark::State& state) {
-  if (state.thread_index == 0)
+  if (state.thread_index == 0) {
+    pthread_mutex_init(&test_vector_mu, nullptr);
+    // No need to lock test_vector_mu here as this is running single-threaded.
     test_vector = new std::vector<int>();
-  while (state.KeepRunning())
-    test_vector->push_back(0);
+  }
+  int i = 0;
+  while (state.KeepRunning()) {
+    pthread_mutex_lock(&test_vector_mu);
+    if (i%2 == 0)
+      test_vector->push_back(i);
+    else
+      test_vector->pop_back();
+    pthread_mutex_unlock(&test_vector_mu);
+    ++i;
+  }
   if (state.thread_index == 0) {
     delete test_vector;
-    test_vector = NULL;
+    pthread_mutex_destroy(&test_vector_mu);
   }
 }
-BENCHMARK(BM_SetupTeardown);
+BENCHMARK(BM_SetupTeardown)->ThreadPerCpu();
 
 static void BM_LongTest(benchmark::State& state) {
   double tracker = 0.0;

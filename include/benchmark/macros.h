@@ -36,6 +36,7 @@ char (&ArraySizeHelper(const T (&array)[N]))[N];
 
 #define CHECK(b) do { if (!(b)) assert(false); } while(0)
 #define CHECK_EQ(a, b) CHECK((a) == (b))
+#define CHECK_NE(a, b) CHECK((a) != (b))
 #define CHECK_GE(a, b) CHECK((a) >= (b))
 #define CHECK_LE(a, b) CHECK((a) <= (b))
 #define CHECK_GT(a, b) CHECK((a) > (b))

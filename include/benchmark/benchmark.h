@@ -129,6 +129,7 @@ static void BM_MultiThreaded(benchmark::State& state) {
     // Teardown code here.
   }
 }
+BENCHMARK(BM_MultiThreaded)->Threads(4);
 */
 
 #ifndef BENCHMARK_BENCHMARK_H_
@@ -137,6 +138,7 @@ static void BM_MultiThreaded(benchmark::State& state) {
 #include <stdint.h>
 
 #include <functional>
+#include <memory>
 #include <string>
 #include <vector>
 
@@ -226,6 +228,7 @@ class State {
  private:
   class FastClock;
   struct SharedState;
+  struct ThreadStats;
 
   State(FastClock* clock, SharedState* s, int t);
   bool StartRunning();
@@ -234,7 +237,10 @@ class State {
   void NewInterval();
   bool AllStarting();
 
+  static void* RunWrapper(void* arg);
   void Run();
+  void RunAsThread();
+  void Wait();
 
   enum EState {
     STATE_INITIAL,  // KeepRunning hasn't been called
@@ -242,13 +248,17 @@ class State {
     STATE_RUNNING,  // Running and being timed
     STATE_STOPPING, // Not being timed but waiting for other threads
     STATE_STOPPED,  // Stopped
-  } state_;
+  };
+
+  EState state_;
 
   FastClock* clock_;
 
   // State shared by all BenchmarkRun objects that belong to the same
   // BenchmarkInstance
   SharedState* shared_;
+
+  pthread_t thread_;
 
   // Custom label set by the user.
   std::string label_;
@@ -273,6 +283,8 @@ class State {
 
   // True if the current interval is the continuation of a previous one.
   bool is_continuation_;
+
+  std::unique_ptr<ThreadStats> stats_;
 
   friend class internal::Benchmark;
   DISALLOW_COPY_AND_ASSIGN(State);
@@ -345,8 +357,7 @@ class Benchmark {
   // of some piece of code.
 
   // Run one instance of this benchmark concurrently in t threads.
-  // TODO(dominic): Allow multithreaded benchmarks
-  //Benchmark* Threads(int t);
+  Benchmark* Threads(int t);
 
   // Pick a set of values T from [min_threads,max_threads].
   // min_threads and max_threads are always included in T.  Run this
@@ -360,10 +371,10 @@ class Benchmark {
   //    Foo in 4 threads
   //    Foo in 8 threads
   //    Foo in 16 threads
-  // Benchmark* ThreadRange(int min_threads, int max_threads);
+  Benchmark* ThreadRange(int min_threads, int max_threads);
 
   // Equivalent to ThreadRange(NumCPUs(), NumCPUs())
-  //Benchmark* ThreadPerCpu();
+  Benchmark* ThreadPerCpu();
 
   // TODO(dominic): Control whether or not real-time is used for this benchmark
 
@@ -372,7 +383,6 @@ class Benchmark {
 
   // Used inside the benchmark implementation
   struct Instance;
-  struct ThreadStats;
 
   // Extract the list of benchmark instances that match the specified
   // regular expression.
