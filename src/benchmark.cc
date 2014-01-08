@@ -373,13 +373,14 @@ void ConsoleReporter::PrintRunData(const BenchmarkReporter::Run& result) const {
               (result.cpu_accumulated_time * 1e9) /
                   (static_cast<double>(result.iterations)));
   ColorPrintf(COLOR_CYAN, "%10lld", result.iterations);
-  ColorPrintf(COLOR_DEFAULT, "%*s %*s %s%s\n",
-              16, rate.c_str(),
+  ColorPrintf(COLOR_DEFAULT, "%*s %*s %s %s\n",
+              13, rate.c_str(),
               18, items.c_str(),
               result.report_label.c_str(),
               PrintMemoryUsage(result.max_heapbytes_used).c_str());
 }
 
+/* TODO(dominic)
 void MemoryUsage() {
   //if (benchmark_mc) {
   //  benchmark_mc->Reset();
@@ -387,6 +388,7 @@ void MemoryUsage() {
     get_memory_usage = true;
   //}
 }
+*/
 
 void UseRealTime() {
   use_real_time = true;

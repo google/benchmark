@@ -158,13 +158,14 @@ void RunSpecifiedBenchmarks(const BenchmarkReporter* reporter = nullptr);
 
 //
 // REQUIRES: a benchmark is currently executing
-extern void SetLabel(const std::string& label);
+void SetLabel(const std::string& label);
 
 // If this routine is called, peak memory allocation past this point in the
 // benchmark is reported at the end of the benchmark report line. (It is
 // computed by running the benchmark once with a single iteration and a memory
 // tracer.)
-extern void MemoryUsage();
+// TODO(dominic)
+//void MemoryUsage();
 
 // If a particular benchmark is I/O bound, or if for some reason CPU
 // timings are not representative, call this method from within the
@@ -172,7 +173,7 @@ extern void MemoryUsage();
 // control how many iterations are run, and in the printing of
 // items/second or MB/seconds values.  If not called, the cpu time
 // used by the benchmark will be used.
-extern void UseRealTime();
+void UseRealTime();
 
 namespace internal {
 class Benchmark;
@@ -435,8 +436,6 @@ class Benchmark {
 
   // Equivalent to ThreadRange(NumCPUs(), NumCPUs())
   Benchmark* ThreadPerCpu();
-
-  // TODO(dominic): Control whether or not real-time is used for this benchmark
 
   // -------------------------------
   // Following methods are not useful for clients
