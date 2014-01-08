@@ -4,3 +4,4 @@ Makefile
 bin/
 cmake_install.cmake
 lib/
+tags
