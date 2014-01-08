@@ -229,15 +229,11 @@ static bool CpuScalingEnabled() {
   return false;
 }
 
-}  // namespace
-
-namespace internal {
-
-BenchmarkReporter::~BenchmarkReporter() {}
-
-void ComputeStats(const std::vector<BenchmarkRunData>& reports,
-                  BenchmarkRunData* mean_data,
-                  BenchmarkRunData* stddev_data) {
+// Given a collection of reports, computes their mean and stddev.
+// REQUIRES: all runs in "reports" must be from the same benchmark.
+void ComputeStats(const std::vector<BenchmarkReporter::Run>& reports,
+                  BenchmarkReporter::Run* mean_data,
+                  BenchmarkReporter::Run* stddev_data) {
   // Accumulators.
   Stat1_d real_accumulated_time_stat;
   Stat1_d cpu_accumulated_time_stat;
@@ -247,7 +243,7 @@ void ComputeStats(const std::vector<BenchmarkRunData>& reports,
   Stat1MinMax_d max_heapbytes_used_stat;
 
   // Populate the accumulators.
-  for (std::vector<BenchmarkRunData>::const_iterator it = reports.begin();
+  for (std::vector<BenchmarkReporter::Run>::const_iterator it = reports.begin();
        it != reports.end(); ++it) {
     CHECK_EQ(reports[0].benchmark_name, it->benchmark_name);
     real_accumulated_time_stat +=
@@ -289,7 +285,11 @@ void ComputeStats(const std::vector<BenchmarkRunData>& reports,
   stddev_data->max_heapbytes_used = max_heapbytes_used_stat.StdDev();
 }
 
-std::string ConsoleReporter::PrintMemoryUsage(double bytes) {
+}  // namespace
+
+namespace internal {
+
+std::string ConsoleReporter::PrintMemoryUsage(double bytes) const {
   if (!get_memory_usage || bytes < 0.0)
     return "";
 
@@ -298,7 +298,8 @@ std::string ConsoleReporter::PrintMemoryUsage(double bytes) {
   return ss.str();
 }
 
-bool ConsoleReporter::ReportContext(const BenchmarkContextData& context) {
+bool ConsoleReporter::ReportContext(
+    const BenchmarkReporter::Context& context) const {
   name_field_width_ = context.name_field_width;
 
   std::cout << "Benchmarking on " << context.num_cpus << " X "
@@ -326,8 +327,9 @@ bool ConsoleReporter::ReportContext(const BenchmarkContextData& context) {
   return true;
 }
 
-void ConsoleReporter::ReportRuns(const std::vector<BenchmarkRunData>& reports) {
-  for (std::vector<BenchmarkRunData>::const_iterator it = reports.begin();
+void ConsoleReporter::ReportRuns(
+    const std::vector<BenchmarkReporter::Run>& reports) const {
+  for (std::vector<BenchmarkReporter::Run>::const_iterator it = reports.begin();
        it != reports.end(); ++it) {
     CHECK_EQ(reports[0].benchmark_name, it->benchmark_name);
     PrintRunData(*it);
@@ -337,15 +339,15 @@ void ConsoleReporter::ReportRuns(const std::vector<BenchmarkRunData>& reports) {
   if (reports.size() < 2)
     return;
 
-  BenchmarkRunData mean_data;
-  BenchmarkRunData stddev_data;
-  internal::ComputeStats(reports, &mean_data, &stddev_data);
+  BenchmarkReporter::Run mean_data;
+  BenchmarkReporter::Run stddev_data;
+  ComputeStats(reports, &mean_data, &stddev_data);
 
   PrintRunData(mean_data);
   PrintRunData(stddev_data);
 }
 
-void ConsoleReporter::PrintRunData(const BenchmarkRunData& result) {
+void ConsoleReporter::PrintRunData(const BenchmarkReporter::Run& result) const {
   // Format bytes per second
   std::string rate;
   if (result.bytes_per_second > 0) {
@@ -546,7 +548,7 @@ struct State::SharedState {
   int stopping;  // Number of threads that have entered STOPPING state
   int threads;   // Number of total threads that are running concurrently
   ThreadStats stats;
-  std::vector<internal::BenchmarkRunData> runs;  // accumulated runs
+  std::vector<BenchmarkReporter::Run> runs;  // accumulated runs
   std::string label;
 
   explicit SharedState(const internal::Benchmark::Instance* b)
@@ -776,7 +778,7 @@ void Benchmark::MeasureOverhead() {
 #endif
 }
 
-void Benchmark::RunInstance(const Instance& b, BenchmarkReporter* br) {
+void Benchmark::RunInstance(const Instance& b, const BenchmarkReporter* br) {
   use_real_time = false;
   running_benchmark = true;
   // get_memory_usage = FLAGS_gbenchmark_memory_usage;
@@ -821,7 +823,7 @@ void Benchmark::RunInstance(const Instance& b, BenchmarkReporter* br) {
 */
   running_benchmark = false;
 
-  for (internal::BenchmarkRunData& report : state.runs) {
+  for (BenchmarkReporter::Run& report : state.runs) {
     double seconds = (use_real_time ? report.real_accumulated_time :
                                       report.cpu_accumulated_time);
     report.benchmark_name = b.name;
@@ -1014,8 +1016,7 @@ bool State::FinishInterval() {
     return true;
   }
 
-  internal::BenchmarkRunData data;
-  data.thread_index = thread_index;
+  BenchmarkReporter::Run data;
   data.iterations = iterations_;
   data.thread_index = thread_index;
 
@@ -1106,8 +1107,7 @@ void* State::RunWrapper(void* arg) {
 namespace internal {
 
 void RunMatchingBenchmarks(const std::string& spec,
-                           BenchmarkReporter* reporter) {
-  CHECK(reporter != NULL);
+                           const BenchmarkReporter* reporter) {
   if (spec.empty()) return;
 
   std::vector<internal::Benchmark::Instance> benchmarks;
@@ -1134,7 +1134,7 @@ void RunMatchingBenchmarks(const std::string& spec,
   }
 
   // Print header here
-  BenchmarkContextData context;
+  BenchmarkReporter::Context context;
   context.num_cpus = NumCPUs();
   context.mhz_per_cpu =  CyclesPerSecond() / 1000000.0f;
 //  context.cpu_info = base::CompactCPUIDInfoString();
@@ -1158,12 +1158,12 @@ void FindMatchingBenchmarkNames(const std::string& spec,
 
 }  // end namespace internal
 
-void RunSpecifiedBenchmarks() {
+void RunSpecifiedBenchmarks(const BenchmarkReporter* reporter /*= nullptr*/) {
   std::string spec = FLAGS_benchmark_filter;
   if (spec.empty() || spec == "all")
     spec = ".";         // Regexp that matches all benchmarks
   internal::ConsoleReporter default_reporter;
-  internal::RunMatchingBenchmarks(spec, &default_reporter);
+  internal::RunMatchingBenchmarks(spec, reporter == nullptr ? &default_reporter : reporter);
   pthread_cond_destroy(&starting_cv);
   pthread_mutex_destroy(&starting_mutex);
   pthread_mutex_destroy(&benchmark_mutex);

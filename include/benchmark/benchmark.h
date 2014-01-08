@@ -145,11 +145,13 @@ BENCHMARK(BM_MultiThreaded)->Threads(4);
 #include "macros.h"
 
 namespace benchmark {
-// If the --benchmarks flag is empty, do nothing.
-//
-// Otherwise, run all benchmarks specified by the --benchmarks flag,
+class BenchmarkReporter;
+
+void Initialize(int* argc, const char** argv);
+
+// Otherwise, run all benchmarks specified by the --benchmark_filter flag,
 // and exit after running the benchmarks.
-extern void RunSpecifiedBenchmarks();
+void RunSpecifiedBenchmarks(const BenchmarkReporter* reporter = nullptr);
 
 // ------------------------------------------------------
 // Routines that can be called from within a benchmark
@@ -290,15 +292,73 @@ class State {
   DISALLOW_COPY_AND_ASSIGN(State);
 };
 
+// Interface for custom benchmark result printers.
+// By default, benchmark reports are printed to stdout. However an application
+// can control the destination of the reports by calling
+// RunSpecifiedBenchmarks and passing it a custom reporter object.
+// The reporter object must implement the following interface.
+class BenchmarkReporter {
+ public:
+  struct Context {
+    int num_cpus;
+    double mhz_per_cpu;
+    //std::string cpu_info;
+    bool cpu_scaling_enabled;
+
+    // The number of chars in the longest benchmark name.
+    int name_field_width;
+  };
+
+  struct Run {
+    Run() :
+        thread_index(-1),
+        iterations(1),
+        real_accumulated_time(0),
+        cpu_accumulated_time(0),
+        bytes_per_second(0),
+        items_per_second(0),
+        max_heapbytes_used(0) {}
+
+    std::string benchmark_name;
+    std::string report_label;
+    int thread_index;
+    int64_t iterations;
+    double real_accumulated_time;
+    double cpu_accumulated_time;
+
+    // Zero if not set by benchmark.
+    double bytes_per_second;
+    double items_per_second;
+
+    // This is set to 0.0 if memory tracing is not enabled.
+    double max_heapbytes_used;
+  };
+
+  // Called once for every suite of benchmarks run.
+  // The parameter "context" contains information that the
+  // reporter may wish to use when generating its report, for example the
+  // platform under which the benchmarks are running. The benchmark run is
+  // never started if this function returns false, allowing the reporter
+  // to skip runs based on the context information.
+  virtual bool ReportContext(const Context& context) const = 0;
+
+  // Called once for each group of benchmark runs, gives information about
+  // cpu-time and heap memory usage during the benchmark run.
+  // Note that all the grouped benchmark runs should refer to the same
+  // benchmark, thus have the same name.
+  virtual void ReportRuns(const std::vector<Run>& report) const = 0;
+
+  virtual ~BenchmarkReporter() {}
+};
+
 namespace internal {
-class BenchmarkReporter;
 
 typedef std::function<void(State&)> BenchmarkFunction;
 
 // Run all benchmarks whose name is a partial match for the regular
 // expression in "spec". The results of benchmark runs are fed to "reporter".
 void RunMatchingBenchmarks(const std::string& spec,
-                           BenchmarkReporter* reporter);
+                           const BenchmarkReporter* reporter);
 
 // Extract the list of benchmark names that match the specified regular
 // expression.
@@ -411,101 +471,34 @@ class Benchmark {
 
   static void AddRange(std::vector<int>* dst, int lo, int hi, int mult);
   static double MeasurePeakHeapMemory(const Instance& b);
-  static void RunInstance(const Instance& b, BenchmarkReporter* br);
+  static void RunInstance(const Instance& b, const BenchmarkReporter* br);
   friend class ::benchmark::State;
   friend struct ::benchmark::internal::Benchmark::Instance;
   friend void ::benchmark::internal::RunMatchingBenchmarks(
-      const std::string&, BenchmarkReporter*);
+      const std::string&, const BenchmarkReporter*);
   DISALLOW_COPY_AND_ASSIGN(Benchmark);
 };
 
 // ------------------------------------------------------
 // Benchmarks reporter interface + data containers.
 
-struct BenchmarkContextData {
-  int num_cpus;
-  double mhz_per_cpu;
-  //std::string cpu_info;
-  bool cpu_scaling_enabled;
-
-  // The number of chars in the longest benchmark name.
-  int name_field_width;
-};
-
-struct BenchmarkRunData {
-  BenchmarkRunData() :
-      thread_index(-1),
-      iterations(1),
-      real_accumulated_time(0),
-      cpu_accumulated_time(0),
-      bytes_per_second(0),
-      items_per_second(0),
-      max_heapbytes_used(0) {}
-
-  std::string benchmark_name;
-  std::string report_label;
-  int thread_index;
-  int64_t iterations;
-  double real_accumulated_time;
-  double cpu_accumulated_time;
-
-  // Zero if not set by benchmark.
-  double bytes_per_second;
-  double items_per_second;
-
-  // This is set to 0.0 if memory tracing is not enabled.
-  double max_heapbytes_used;
-};
-
-// Interface for custom benchmark result printers.
-// By default, benchmark reports are printed to stdout. However an application
-// can control the destination of the reports by calling
-// RunMatchingBenchmarks and passing it a custom reporter object.
-// The reporter object must implement the following interface.
-class BenchmarkReporter {
- public:
-  // Called once for every suite of benchmarks run.
-  // The parameter "context" contains information that the
-  // reporter may wish to use when generating its report, for example the
-  // platform under which the benchmarks are running. The benchmark run is
-  // never started if this function returns false, allowing the reporter
-  // to skip runs based on the context information.
-  virtual bool ReportContext(const BenchmarkContextData& context) = 0;
-
-  // Called once for each group of benchmark runs, gives information about
-  // cpu-time and heap memory usage during the benchmark run.
-  // Note that all the grouped benchmark runs should refer to the same
-  // benchmark, thus have the same name.
-  virtual void ReportRuns(const std::vector<BenchmarkRunData>& report) = 0;
-
-  virtual ~BenchmarkReporter();
-};
-
-
 // ------------------------------------------------------
 // Internal implementation details follow; please ignore
-
-// Given a collection of reports, computes their mean and stddev.
-// REQUIRES: all runs in "reports" must be from the same benchmark.
-void ComputeStats(const std::vector<BenchmarkRunData>& reports,
-                  BenchmarkRunData* mean_data,
-                  BenchmarkRunData* stddev_data);
 
 // Simple reporter that outputs benchmark data to the console. This is the
 // default reporter used by RunSpecifiedBenchmarks().
 class ConsoleReporter : public BenchmarkReporter {
  public:
-  virtual bool ReportContext(const BenchmarkContextData& context);
-  virtual void ReportRuns(const std::vector<BenchmarkRunData>& reports);
+  virtual bool ReportContext(const Context& context) const;
+  virtual void ReportRuns(const std::vector<Run>& reports) const;
+
  private:
-  std::string PrintMemoryUsage(double bytes);
-  virtual void PrintRunData(const BenchmarkRunData& report);
-  int name_field_width_;
+  std::string PrintMemoryUsage(double bytes) const;
+  virtual void PrintRunData(const Run& report) const;
+  mutable int name_field_width_;
 };
 
 }  // end namespace internal
-
-void Initialize(int* argc, const char** argv);
 }  // end namespace benchmark
 
 // ------------------------------------------------------
