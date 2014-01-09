@@ -53,7 +53,7 @@ void ColorPrintf(LogColor color, const char* fmt, ...) {
 
 #ifdef OS_WINDOWS
   const HANDLE stdout_handle = GetStdHandle(STD_OUTPUT_HANDLE);
-  
+
   // Gets the current text color.
   CONSOLE_SCREEN_BUFFER_INFO buffer_info;
   GetConsoleScreenBufferInfo(stdout_handle, &buffer_info);

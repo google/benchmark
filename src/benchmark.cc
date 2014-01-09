@@ -155,7 +155,7 @@ std::string ToBinaryStringFullySpecified(double value, double threshold,
                                          int precision) {
   std::string mantissa;
   int exponent;
-  ToExponentAndMantissa(value, threshold, precision, 1024., &mantissa,
+  ToExponentAndMantissa(value, threshold, precision, 1024.0, &mantissa,
                         &exponent);
   return mantissa + ExponentToPrefix(exponent, false);
 }
@@ -209,7 +209,7 @@ const char* Prefix() {
 // TODO
 //static internal::MallocCounter *benchmark_mc;
 
-static bool CpuScalingEnabled() {
+bool CpuScalingEnabled() {
   // On Linux, the CPUfreq subsystem exposes CPU information as files on the
   // local file system. If reading the exported files fails, then we may not be
   // running on Linux, so we silently ignore all the read errors.
@@ -523,16 +523,17 @@ namespace internal {
 // Information kept per benchmark we may want to run
 struct Benchmark::Instance {
   Instance()
-      : rangeXset(false), rangeX(kNoRange),
+      : bm(nullptr), threads(1), rangeXset(false), rangeX(kNoRange),
         rangeYset(false), rangeY(kNoRange) {}
 
   std::string name;
   Benchmark* bm;
+  int       threads;    // Number of concurrent threads to use
+
   bool      rangeXset;
   int       rangeX;
   bool      rangeYset;
   int       rangeY;
-  int       threads;    // Number of concurrent threads to use
 
   bool multithreaded() const { return !bm->thread_counts_.empty(); }
 };
@@ -682,9 +683,7 @@ std::vector<Benchmark::Instance> Benchmark::CreateBenchmarkInstances(
   const bool is_multithreaded = (!thread_counts_.empty());
   const std::vector<int>& thread_counts =
       (is_multithreaded ? thread_counts_ : one_thread);
-  for (size_t t = 0; t < thread_counts.size(); ++t) {
-    int num_threads = thread_counts[t];
-
+  for (int num_threads : thread_counts) {
     Instance instance;
     instance.name = name_;
     instance.bm = this;
@@ -1002,8 +1001,10 @@ void State::NewInterval() {
 }
 
 bool State::FinishInterval() {
-  if (FLAGS_benchmark_iterations != 0 &&
-      iterations_ < FLAGS_benchmark_iterations / FLAGS_benchmark_repetitions) {
+  if ((FLAGS_benchmark_iterations != 0 &&
+       iterations_ <
+           FLAGS_benchmark_iterations / FLAGS_benchmark_repetitions) ||
+      iterations_ < 1) {
     interval_micros_ *= 2;
 #ifdef DEBUG
     std::cout << "Not enough iterations in interval; "
@@ -1020,7 +1021,8 @@ bool State::FinishInterval() {
   data.thread_index = thread_index;
 
   const double accumulated_time = walltime::Now() - start_time_;
-  const double total_overhead = 0.0; // TODO: overhead * iterations_;
+  const double total_overhead = overhead * iterations_;
+  //const double total_overhead = 0.0;
   CHECK_LT(pause_time_, accumulated_time);
   CHECK_LT(pause_time_ + total_overhead, accumulated_time);
   data.real_accumulated_time =
