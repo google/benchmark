@@ -29,7 +29,7 @@ bool ParseInt32(const std::string& src_text, const char* str, int32_t* value) {
       // The parsed value overflows as a long.  (strtol() returns
       // LONG_MAX or LONG_MIN when the input overflows.)
       result != long_value
-      // The parsed value overflows as an Int32.
+          // The parsed value overflows as an Int32.
       ) {
     std::cerr << src_text << " is expected to be a 32-bit integer, "
               << "but actually has value \"" << str << "\", "
@@ -59,7 +59,6 @@ bool ParseDouble(const std::string& src_text, const char* str, double* value) {
   *value = double_value;
   return true;
 }
-
 
 inline const char* GetEnv(const char* name) {
 #if GTEST_OS_WINDOWS_MOBILE
@@ -95,8 +94,7 @@ static std::string FlagToEnvVar(const char* flag) {
 bool BoolFromEnv(const char* flag, bool default_value) {
   const std::string env_var = FlagToEnvVar(flag);
   const char* const string_value = GetEnv(env_var.c_str());
-  return string_value == NULL ?
-      default_value : strcmp(string_value, "0") != 0;
+  return string_value == NULL ? default_value : strcmp(string_value, "0") != 0;
 }
 
 // Reads and returns a 32-bit integer stored in the environment
@@ -111,8 +109,8 @@ int32_t Int32FromEnv(const char* flag, int32_t default_value) {
   }
 
   int32_t result = default_value;
-  if (!ParseInt32(std::string("Environment variable ") + env_var,
-                  string_value, &result)) {
+  if (!ParseInt32(std::string("Environment variable ") + env_var, string_value,
+                  &result)) {
     std::cout << "The default value " << default_value << " is used.\n";
     return default_value;
   }
@@ -133,13 +131,12 @@ const char* StringFromEnv(const char* flag, const char* default_value) {
 // part can be omitted.
 //
 // Returns the value of the flag, or NULL if the parsing failed.
-const char* ParseFlagValue(const char* str,
-                           const char* flag,
+const char* ParseFlagValue(const char* str, const char* flag,
                            bool def_optional) {
   // str and flag must not be NULL.
   if (str == NULL || flag == NULL) return NULL;
 
-  // The flag must start with "--". 
+  // The flag must start with "--".
   const std::string flag_str = std::string("--") + std::string(flag);
   const size_t flag_len = flag_str.length();
   if (strncmp(str, flag_str.c_str(), flag_len) != 0) return NULL;
@@ -148,8 +145,7 @@ const char* ParseFlagValue(const char* str,
   const char* flag_end = str + flag_len;
 
   // When def_optional is true, it's OK to not have a "=value" part.
-  if (def_optional && (flag_end[0] == '\0'))
-    return flag_end;
+  if (def_optional && (flag_end[0] == '\0')) return flag_end;
 
   // If def_optional is true and there are more characters after the
   // flag name, or if def_optional is false, there must be a '=' after
@@ -180,8 +176,8 @@ bool ParseInt32Flag(const char* str, const char* flag, int32_t* value) {
   if (value_str == NULL) return false;
 
   // Sets *value to the value of the flag.
-  return ParseInt32(std::string("The value of flag --") + flag,
-                    value_str, value);
+  return ParseInt32(std::string("The value of flag --") + flag, value_str,
+                    value);
 }
 
 bool ParseDoubleFlag(const char* str, const char* flag, double* value) {
@@ -192,8 +188,8 @@ bool ParseDoubleFlag(const char* str, const char* flag, double* value) {
   if (value_str == NULL) return false;
 
   // Sets *value to the value of the flag.
-  return ParseDouble(std::string("The value of flag --") + flag,
-                     value_str, value);
+  return ParseDouble(std::string("The value of flag --") + flag, value_str,
+                     value);
 }
 
 bool ParseStringFlag(const char* str, const char* flag, std::string* value) {

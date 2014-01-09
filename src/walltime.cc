@@ -75,8 +75,8 @@ void Initialize() {
   cycles_per_second = static_cast<int64_t>(CyclesPerSecond());
   CHECK(cycles_per_second != 0);
   seconds_per_cycle = 1.0 / cycles_per_second;
-  max_interval_cycles = static_cast<int64_t>(
-      cycles_per_second * kMaxErrorInterval);
+  max_interval_cycles =
+      static_cast<int64_t>(cycles_per_second * kMaxErrorInterval);
   do {
     base_cycletime = cycleclock::Now();
     base_walltime = Slow();
@@ -90,8 +90,7 @@ void Initialize() {
 }
 
 WallTime Now() {
-  if (!std::atomic_load(&initialized))
-    return Slow();
+  if (!std::atomic_load(&initialized)) return Slow();
 
   WallTime now = 0.0;
   WallTime result = 0.0;
@@ -105,7 +104,7 @@ WallTime Now() {
     top_bits = static_cast<uint32_t>(uint64_t(ct) >> 32);
     // Recompute drift no more often than every 2^32 cycles.
     // I.e., @2GHz, ~ every two seconds
-    if (top_bits == last_adjust_time) { // don't need to recompute drift
+    if (top_bits == last_adjust_time) {  // don't need to recompute drift
       return result + GetDrift();
     }
 
@@ -119,8 +118,8 @@ WallTime Now() {
   return now;
 }
 
-std::string Print(WallTime time, const char *format, bool local,
-                  int *remainder_us) {
+std::string Print(WallTime time, const char* format, bool local,
+                  int* remainder_us) {
   char storage[32];
   struct tm split;
   double subsecond;
@@ -130,7 +129,7 @@ std::string Print(WallTime time, const char *format, bool local,
     if (remainder_us != NULL) {
       *remainder_us = static_cast<int>((subsecond * 1000000) + 0.5);
       if (*remainder_us > 999999) *remainder_us = 999999;
-      if (*remainder_us < 0)      *remainder_us = 0;
+      if (*remainder_us < 0) *remainder_us = 0;
     }
     strftime(storage, sizeof(storage), format, &split);
   }

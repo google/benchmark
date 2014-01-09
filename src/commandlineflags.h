@@ -21,7 +21,7 @@
 #define DEFINE_int64(name, default_val, doc) int64_t FLAG(name) = (default_val)
 #define DEFINE_double(name, default_val, doc) double FLAG(name) = (default_val)
 #define DEFINE_string(name, default_val, doc) \
-    std::string FLAG(name) = (default_val)
+  std::string FLAG(name) = (default_val)
 
 namespace benchmark {
 // Parses 'str' for a 32-bit signed integer.  If successful, writes the result

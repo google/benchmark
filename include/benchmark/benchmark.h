@@ -194,7 +194,7 @@ class State {
   //
   // REQUIRES: a benchmark has exited its KeepRunning loop.
   void SetBytesProcessed(int64_t bytes);
-  
+
   // If this routine is called with items > 0, then an items/s
   // label is printed on the benchmark report line for the currently
   // executing benchmark. It is typically called at the end of a processing
@@ -243,11 +243,11 @@ class State {
   void Wait();
 
   enum EState {
-    STATE_INITIAL,  // KeepRunning hasn't been called
-    STATE_STARTING, // KeepRunning called, waiting for other threads
-    STATE_RUNNING,  // Running and being timed
-    STATE_STOPPING, // Not being timed but waiting for other threads
-    STATE_STOPPED,  // Stopped
+    STATE_INITIAL,   // KeepRunning hasn't been called
+    STATE_STARTING,  // KeepRunning called, waiting for other threads
+    STATE_RUNNING,   // Running and being timed
+    STATE_STOPPING,  // Not being timed but waiting for other threads
+    STATE_STOPPED,   // Stopped
   };
 
   EState state_;
@@ -414,8 +414,8 @@ class Benchmark {
   static void RunInstance(const Instance& b, BenchmarkReporter* br);
   friend class ::benchmark::State;
   friend struct ::benchmark::internal::Benchmark::Instance;
-  friend void ::benchmark::internal::RunMatchingBenchmarks(
-      const std::string&, BenchmarkReporter*);
+  friend void ::benchmark::internal::RunMatchingBenchmarks(const std::string&,
+                                                           BenchmarkReporter*);
   DISALLOW_COPY_AND_ASSIGN(Benchmark);
 };
 
@@ -425,7 +425,7 @@ class Benchmark {
 struct BenchmarkContextData {
   int num_cpus;
   double mhz_per_cpu;
-  //std::string cpu_info;
+  // std::string cpu_info;
   bool cpu_scaling_enabled;
 
   // The number of chars in the longest benchmark name.
@@ -433,14 +433,14 @@ struct BenchmarkContextData {
 };
 
 struct BenchmarkRunData {
-  BenchmarkRunData() :
-      thread_index(-1),
-      iterations(1),
-      real_accumulated_time(0),
-      cpu_accumulated_time(0),
-      bytes_per_second(0),
-      items_per_second(0),
-      max_heapbytes_used(0) {}
+  BenchmarkRunData()
+      : thread_index(-1),
+        iterations(1),
+        real_accumulated_time(0),
+        cpu_accumulated_time(0),
+        bytes_per_second(0),
+        items_per_second(0),
+        max_heapbytes_used(0) {}
 
   std::string benchmark_name;
   std::string report_label;
@@ -481,15 +481,13 @@ class BenchmarkReporter {
   virtual ~BenchmarkReporter();
 };
 
-
 // ------------------------------------------------------
 // Internal implementation details follow; please ignore
 
 // Given a collection of reports, computes their mean and stddev.
 // REQUIRES: all runs in "reports" must be from the same benchmark.
 void ComputeStats(const std::vector<BenchmarkRunData>& reports,
-                  BenchmarkRunData* mean_data,
-                  BenchmarkRunData* stddev_data);
+                  BenchmarkRunData* mean_data, BenchmarkRunData* stddev_data);
 
 // Simple reporter that outputs benchmark data to the console. This is the
 // default reporter used by RunSpecifiedBenchmarks().
@@ -497,6 +495,7 @@ class ConsoleReporter : public BenchmarkReporter {
  public:
   virtual bool ReportContext(const BenchmarkContextData& context);
   virtual void ReportRuns(const std::vector<BenchmarkRunData>& reports);
+
  private:
   std::string PrintMemoryUsage(double bytes);
   virtual void PrintRunData(const BenchmarkRunData& report);
@@ -513,11 +512,11 @@ void Initialize(int* argc, const char** argv);
 
 // Helpers for generating unique variable names
 #define BENCHMARK_CONCAT(a, b, c) BENCHMARK_CONCAT2(a, b, c)
-#define BENCHMARK_CONCAT2(a, b, c) a ## b ## c
+#define BENCHMARK_CONCAT2(a, b, c) a##b##c
 
-#define BENCHMARK(n)                                              \
-    static ::benchmark::internal::Benchmark*                      \
-  BENCHMARK_CONCAT(__benchmark_, n, __LINE__) ATTRIBUTE_UNUSED =  \
+#define BENCHMARK(n)                                         \
+  static ::benchmark::internal::Benchmark* BENCHMARK_CONCAT( \
+      __benchmark_, n, __LINE__) ATTRIBUTE_UNUSED =          \
       (new ::benchmark::internal::Benchmark(#n, n))
 
 // Old-style macros
@@ -525,7 +524,7 @@ void Initialize(int* argc, const char** argv);
 #define BENCHMARK_WITH_ARG2(n, a1, a2) BENCHMARK(n)->ArgPair((a1), (a2))
 #define BENCHMARK_RANGE(n, lo, hi) BENCHMARK(n)->Range((lo), (hi))
 #define BENCHMARK_RANGE2(n, l1, h1, l2, h2) \
-    BENCHMARK(n)->RangePair((l1), (h1), (l2), (h2))
+  BENCHMARK(n)->RangePair((l1), (h1), (l2), (h2))
 
 // This will register a benchmark for a templatized function.  For example:
 //
@@ -535,14 +534,14 @@ void Initialize(int* argc, const char** argv);
 // BENCHMARK_TEMPLATE(BM_Foo, 1);
 //
 // will register BM_Foo<1> as a benchmark.
-#define BENCHMARK_TEMPLATE(n, a)                                  \
-    static ::benchmark::internal::Benchmark*                      \
-  BENCHMARK_CONCAT(__benchmark_, n, __LINE__) ATTRIBUTE_UNUSED =  \
+#define BENCHMARK_TEMPLATE(n, a)                             \
+  static ::benchmark::internal::Benchmark* BENCHMARK_CONCAT( \
+      __benchmark_, n, __LINE__) ATTRIBUTE_UNUSED =          \
       (new ::benchmark::internal::Benchmark(#n "<" #a ">", n<a>))
 
-#define BENCHMARK_TEMPLATE2(n, a, b)                                        \
-  static ::benchmark::internal::Benchmark*                                  \
-  BENCHMARK_CONCAT(__benchmark_, n, __LINE__) ATTRIBUTE_UNUSED =            \
+#define BENCHMARK_TEMPLATE2(n, a, b)                         \
+  static ::benchmark::internal::Benchmark* BENCHMARK_CONCAT( \
+      __benchmark_, n, __LINE__) ATTRIBUTE_UNUSED =          \
       (new ::benchmark::internal::Benchmark(#n "<" #a "," #b ">", n<a, b>))
 
 #endif  // BENCHMARK_BENCHMARK_H_

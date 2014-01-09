@@ -34,7 +34,10 @@ char (&ArraySizeHelper(const T (&array)[N]))[N];
 
 #define arraysize(array) (sizeof(ArraySizeHelper(array)))
 
-#define CHECK(b) do { if (!(b)) assert(false); } while(0)
+#define CHECK(b)             \
+  do {                       \
+    if (!(b)) assert(false); \
+  } while (0)
 #define CHECK_EQ(a, b) CHECK((a) == (b))
 #define CHECK_NE(a, b) CHECK((a) != (b))
 #define CHECK_GE(a, b) CHECK((a) >= (b))
@@ -45,14 +48,14 @@ char (&ArraySizeHelper(const T (&array)[N]))[N];
 //
 // Prevent the compiler from complaining about or optimizing away variables
 // that appear unused.
-#define ATTRIBUTE_UNUSED __attribute__ ((unused))
+#define ATTRIBUTE_UNUSED __attribute__((unused))
 
 //
 // For functions we want to force inline or not inline.
 // Introduced in gcc 3.1.
-#define ATTRIBUTE_ALWAYS_INLINE  __attribute__ ((always_inline))
+#define ATTRIBUTE_ALWAYS_INLINE __attribute__((always_inline))
 #define HAVE_ATTRIBUTE_ALWAYS_INLINE 1
-#define ATTRIBUTE_NOINLINE __attribute__ ((noinline))
+#define ATTRIBUTE_NOINLINE __attribute__((noinline))
 #define HAVE_ATTRIBUTE_NOINLINE 1
 
 #endif  // BENCHMARK_MACROS_H_

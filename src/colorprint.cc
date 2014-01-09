@@ -17,25 +17,40 @@ typedef const char* PlatformColorCode;
 PlatformColorCode GetPlatformColorCode(LogColor color) {
 #ifdef OS_WINDOWS
   switch (color) {
-    case COLOR_RED:     return FOREGROUND_RED;
-    case COLOR_GREEN:   return FOREGROUND_GREEN;
-    case COLOR_YELLOW:  return FOREGROUND_RED | FOREGROUND_GREEN;
-    case COLOR_BLUE:    return FOREGROUND_BLUE;
-    case COLOR_MAGENTA: return FOREGROUND_BLUE | FOREGROUND_RED;
-    case COLOR_CYAN:    return FOREGROUND_BLUE | FOREGROUND_GREEN;
-    case COLOR_WHITE:   // fall through to default
-    default:            return 0;
+    case COLOR_RED:
+      return FOREGROUND_RED;
+    case COLOR_GREEN:
+      return FOREGROUND_GREEN;
+    case COLOR_YELLOW:
+      return FOREGROUND_RED | FOREGROUND_GREEN;
+    case COLOR_BLUE:
+      return FOREGROUND_BLUE;
+    case COLOR_MAGENTA:
+      return FOREGROUND_BLUE | FOREGROUND_RED;
+    case COLOR_CYAN:
+      return FOREGROUND_BLUE | FOREGROUND_GREEN;
+    case COLOR_WHITE:  // fall through to default
+    default:
+      return 0;
   }
 #else
   switch (color) {
-    case COLOR_RED:     return "1";
-    case COLOR_GREEN:   return "2";
-    case COLOR_YELLOW:  return "3";
-    case COLOR_BLUE:    return "4";
-    case COLOR_MAGENTA: return "5";
-    case COLOR_CYAN:    return "6";
-    case COLOR_WHITE:   return "7";
-    default:            return NULL;
+    case COLOR_RED:
+      return "1";
+    case COLOR_GREEN:
+      return "2";
+    case COLOR_YELLOW:
+      return "3";
+    case COLOR_BLUE:
+      return "4";
+    case COLOR_MAGENTA:
+      return "5";
+    case COLOR_CYAN:
+      return "6";
+    case COLOR_WHITE:
+      return "7";
+    default:
+      return NULL;
   };
 #endif
 }
@@ -72,8 +87,7 @@ void ColorPrintf(LogColor color, const char* fmt, ...) {
   SetConsoleTextAttribute(stdout_handle, old_color_attrs);
 #else
   const char* color_code = GetPlatformColorCode(color);
-  if (color_code)
-    fprintf(stdout, "\033[0;3%sm", color_code);
+  if (color_code) fprintf(stdout, "\033[0;3%sm", color_code);
   vprintf(fmt, args);
   printf("\033[m");  // Resets the terminal to default.
 #endif

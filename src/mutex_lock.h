@@ -10,9 +10,7 @@ class mutex_lock {
     pthread_mutex_lock(mu_);
   }
 
-  ~mutex_lock() {
-    pthread_mutex_unlock(mu_);
-  }
+  ~mutex_lock() { pthread_mutex_unlock(mu_); }
 
  private:
   pthread_mutex_t* mu_;

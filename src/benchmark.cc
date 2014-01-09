@@ -58,14 +58,14 @@ DEFINE_bool(color_print, true, "Enables colorized logging.");
 DECLARE_string(heap_check);
 
 // The ""'s catch people who don't pass in a literal for "str"
-#define strliterallen(str) (sizeof("" str "")-1)
+#define strliterallen(str) (sizeof("" str "") - 1)
 
 // Must use a string literal for prefix.
-#define memprefix(str, len, prefix)                         \
-  ( (((len) >= strliterallen(prefix))                       \
-     && memcmp(str, prefix, strliterallen(prefix)) == 0)    \
-    ? str + strliterallen(prefix)                           \
-    : NULL )
+#define memprefix(str, len, prefix)                  \
+  ((((len) >= strliterallen(prefix)) &&              \
+    memcmp(str, prefix, strliterallen(prefix)) == 0) \
+       ? str + strliterallen(prefix)                 \
+       : NULL)
 
 namespace benchmark {
 namespace {
@@ -83,9 +83,8 @@ static_assert(arraysize(kSmallSIUnits) == arraysize(kBigSIUnits),
               "Small SI and Big SI unit arrays must be the same size");
 static const int kUnitsSize = arraysize(kBigSIUnits);
 
-void ToExponentAndMantissa(double val, double thresh,
-                           int precision, double one_k,
-                           std::string* mantissa, int* exponent) {
+void ToExponentAndMantissa(double val, double thresh, int precision,
+                           double one_k, std::string* mantissa, int* exponent) {
   std::stringstream mantissa_stream;
 
   if (val < 0) {
@@ -136,15 +135,13 @@ void ToExponentAndMantissa(double val, double thresh,
 }
 
 std::string ExponentToPrefix(int exponent, bool iec) {
-  if (exponent == 0)
-    return "";
+  if (exponent == 0) return "";
 
   const int index = (exponent > 0 ? exponent - 1 : -exponent - 1);
-  if (index >= kUnitsSize)
-    return "";
+  if (index >= kUnitsSize) return "";
 
-  const char *array = (exponent > 0 ? (iec ? kBigIECUnits : kBigSIUnits) :
-                       kSmallSIUnits);
+  const char* array =
+      (exponent > 0 ? (iec ? kBigIECUnits : kBigSIUnits) : kSmallSIUnits);
   if (iec)
     return array[index] + std::string("i");
   else
@@ -207,7 +204,7 @@ const char* Prefix() {
 }
 
 // TODO
-//static internal::MallocCounter *benchmark_mc;
+// static internal::MallocCounter *benchmark_mc;
 
 bool CpuScalingEnabled() {
   // On Linux, the CPUfreq subsystem exposes CPU information as files on the
@@ -218,13 +215,11 @@ bool CpuScalingEnabled() {
     ss << "/sys/devices/system/cpu/cpu" << cpu << "/cpufreq/scaling_governor";
     std::string governor_file = ss.str();
     FILE* file = fopen(governor_file.c_str(), "r");
-    if (!file)
-      break;
+    if (!file) break;
     char buff[16];
     size_t bytes_read = fread(buff, 1, sizeof(buff), file);
     fclose(file);
-    if (memprefix(buff, bytes_read, "performance") == NULL)
-      return true;
+    if (memprefix(buff, bytes_read, "performance") == NULL) return true;
   }
   return false;
 }
@@ -236,8 +231,7 @@ namespace internal {
 BenchmarkReporter::~BenchmarkReporter() {}
 
 void ComputeStats(const std::vector<BenchmarkRunData>& reports,
-                  BenchmarkRunData* mean_data,
-                  BenchmarkRunData* stddev_data) {
+                  BenchmarkRunData* mean_data, BenchmarkRunData* stddev_data) {
   // Accumulators.
   Stat1_d real_accumulated_time_stat;
   Stat1_d cpu_accumulated_time_stat;
@@ -257,8 +251,8 @@ void ComputeStats(const std::vector<BenchmarkRunData>& reports,
     items_per_second_stat += Stat1_d(it->items_per_second, it->iterations);
     bytes_per_second_stat += Stat1_d(it->bytes_per_second, it->iterations);
     iterations_stat += Stat1_d(it->iterations, it->iterations);
-    max_heapbytes_used_stat += Stat1MinMax_d(it->max_heapbytes_used,
-                                             it->iterations);
+    max_heapbytes_used_stat +=
+        Stat1MinMax_d(it->max_heapbytes_used, it->iterations);
   }
 
   // Get the data from the accumulator to BenchmarkRunData's.
@@ -268,7 +262,7 @@ void ComputeStats(const std::vector<BenchmarkRunData>& reports,
   mean_data->cpu_accumulated_time = cpu_accumulated_time_stat.Mean();
   mean_data->bytes_per_second = bytes_per_second_stat.Mean();
   mean_data->items_per_second = items_per_second_stat.Mean();
-  mean_data->max_heapbytes_used = max_heapbytes_used_stat.Max();
+  mean_data->max_heapbytes_used = max_heapbytes_used_stat.max();
 
   // Only add label to mean/stddev if it is same for all runs
   mean_data->report_label = reports[0].report_label;
@@ -290,8 +284,7 @@ void ComputeStats(const std::vector<BenchmarkRunData>& reports,
 }
 
 std::string ConsoleReporter::PrintMemoryUsage(double bytes) {
-  if (!get_memory_usage || bytes < 0.0)
-    return "";
+  if (!get_memory_usage || bytes < 0.0) return "";
 
   std::stringstream ss;
   ss << " " << HumanReadableNumber(bytes) << "B peak-mem";
@@ -307,12 +300,12 @@ bool ConsoleReporter::ReportContext(const BenchmarkContextData& context) {
 
   int remainder_ms;
   std::cout << walltime::Print(walltime::Now(), "%Y/%m/%d-%H:%M:%S",
-                               true,   // use local timezone
-                               &remainder_ms) << "\n"; 
+                               true,  // use local timezone
+                               &remainder_ms) << "\n";
 
   // Show details of CPU model, caches, TLBs etc.
-//  if (!context.cpu_info.empty())
-//    std::cout << "CPU: " << context.cpu_info.c_str();
+  //  if (!context.cpu_info.empty())
+  //    std::cout << "CPU: " << context.cpu_info.c_str();
 
   if (context.cpu_scaling_enabled) {
     std::cerr << "CPU scaling is enabled: Benchmark timings may be noisy.\n";
@@ -334,8 +327,7 @@ void ConsoleReporter::ReportRuns(const std::vector<BenchmarkRunData>& reports) {
   }
 
   // We don't report aggregated data if there was a single run.
-  if (reports.size() < 2)
-    return;
+  if (reports.size() < 2) return;
 
   BenchmarkRunData mean_data;
   BenchmarkRunData stddev_data;
@@ -379,45 +371,42 @@ void ConsoleReporter::PrintRunData(const BenchmarkRunData& result) {
 }
 
 void MemoryUsage() {
-  //if (benchmark_mc) {
+  // if (benchmark_mc) {
   //  benchmark_mc->Reset();
   //} else {
-    get_memory_usage = true;
+  get_memory_usage = true;
   //}
 }
 
-void UseRealTime() {
-  use_real_time = true;
-}
+void UseRealTime() { use_real_time = true; }
 
 void PrintUsageAndExit() {
-  fprintf(stdout, "benchmark [--benchmark_filter=<regex>]\n"
-                  "          [--benchmark_iterations=<iterations>]\n"
-                  "          [--benchmark_min_time=<min_time>]\n"
-//                "          [--benchmark_memory_usage]\n"
-                  "          [--benchmark_repetitions=<num_repetitions>]\n"
-                  "          [--color_print={true|false}]\n"
-                  "          [--v=<verbosity>]\n");
+  fprintf(stdout,
+          "benchmark [--benchmark_filter=<regex>]\n"
+          "          [--benchmark_iterations=<iterations>]\n"
+          "          [--benchmark_min_time=<min_time>]\n"
+        //"          [--benchmark_memory_usage]\n"
+          "          [--benchmark_repetitions=<num_repetitions>]\n"
+          "          [--color_print={true|false}]\n"
+          "          [--v=<verbosity>]\n");
   exit(0);
 }
 
 void ParseCommandLineFlags(int* argc, const char** argv) {
   for (int i = 1; i < *argc; ++i) {
-    if (ParseStringFlag(argv[i], "benchmark_filter",
-                        &FLAGS_benchmark_filter) ||
+    if (ParseStringFlag(argv[i], "benchmark_filter", &FLAGS_benchmark_filter) ||
         ParseInt32Flag(argv[i], "benchmark_iterations",
                        &FLAGS_benchmark_iterations) ||
         ParseDoubleFlag(argv[i], "benchmark_min_time",
                         &FLAGS_benchmark_min_time) ||
         // TODO(dominic)
-//        ParseBoolFlag(argv[i], "gbenchmark_memory_usage",
-//                      &FLAGS_gbenchmark_memory_usage) ||
+        //        ParseBoolFlag(argv[i], "gbenchmark_memory_usage",
+        //                      &FLAGS_gbenchmark_memory_usage) ||
         ParseInt32Flag(argv[i], "benchmark_repetitions",
                        &FLAGS_benchmark_repetitions) ||
         ParseBoolFlag(argv[i], "color_print", &FLAGS_color_print) ||
         ParseInt32Flag(argv[i], "v", &FLAGS_v)) {
-      for (int j = i; j != *argc; ++j)
-        argv[j] = argv[j + 1];
+      for (int j = i; j != *argc; ++j) argv[j] = argv[j + 1];
 
       --(*argc);
       --i;
@@ -431,9 +420,11 @@ void ParseCommandLineFlags(int* argc, const char** argv) {
 // A clock that provides a fast mechanism to check if we're nearly done.
 class State::FastClock {
  public:
-  enum Type { REAL_TIME, CPU_TIME };
-  explicit FastClock(Type type)
-      : type_(type), approx_time_(NowMicros()) {
+  enum Type {
+    REAL_TIME,
+    CPU_TIME
+  };
+  explicit FastClock(Type type) : type_(type), approx_time_(NowMicros()) {
     sem_init(&bg_done_, 0, 0);
     pthread_create(&bg_, NULL, &BGThreadWrapper, this);
   }
@@ -449,7 +440,7 @@ class State::FastClock {
   inline bool HasReached(int64_t when_micros) {
     return std::atomic_load(&approx_time_) >= when_micros;
     // NOTE: this is the same as we're dealing with an int64_t
-    //return (base::subtle::NoBarrier_Load(&approx_time_) >= when_micros);
+    // return (base::subtle::NoBarrier_Load(&approx_time_) >= when_micros);
   }
 
   // Returns the current time in microseconds past the epoch.
@@ -493,7 +484,7 @@ class State::FastClock {
       SleepForMicroseconds(1000);
       std::atomic_store(&approx_time_, NowMicros());
       // NOTE: same code but no memory barrier. think on it.
-      //base::subtle::Release_Store(&approx_time_, NowMicros());
+      // base::subtle::Release_Store(&approx_time_, NowMicros());
       sem_getvalue(&bg_done_, &done);
     } while (done == 0);
   }
@@ -523,17 +514,21 @@ namespace internal {
 // Information kept per benchmark we may want to run
 struct Benchmark::Instance {
   Instance()
-      : bm(nullptr), threads(1), rangeXset(false), rangeX(kNoRange),
-        rangeYset(false), rangeY(kNoRange) {}
+      : bm(nullptr),
+        threads(1),
+        rangeXset(false),
+        rangeX(kNoRange),
+        rangeYset(false),
+        rangeY(kNoRange) {}
 
   std::string name;
   Benchmark* bm;
-  int       threads;    // Number of concurrent threads to use
+  int threads;  // Number of concurrent threads to use
 
-  bool      rangeXset;
-  int       rangeX;
-  bool      rangeYset;
-  int       rangeY;
+  bool rangeXset;
+  int rangeX;
+  bool rangeYset;
+  int rangeY;
 
   bool multithreaded() const { return !bm->thread_counts_.empty(); }
 };
@@ -551,14 +546,14 @@ struct State::SharedState {
   std::string label;
 
   explicit SharedState(const internal::Benchmark::Instance* b)
-      : instance(b), starting(0), stopping(0),
+      : instance(b),
+        starting(0),
+        stopping(0),
         threads(b == nullptr ? 1 : b->threads) {
     pthread_mutex_init(&mu, nullptr);
   }
 
-  ~SharedState() {
-    pthread_mutex_destroy(&mu);
-  }
+  ~SharedState() { pthread_mutex_destroy(&mu); }
   DISALLOW_COPY_AND_ASSIGN(SharedState);
 };
 
@@ -567,8 +562,7 @@ namespace internal {
 Benchmark::Benchmark(const char* name, BenchmarkFunction f)
     : name_(name), function_(f) {
   mutex_lock l(&benchmark_mutex);
-  if (families == nullptr)
-    families = new std::vector<Benchmark*>();
+  if (families == nullptr) families = new std::vector<Benchmark*>();
   registration_index_ = families->size();
   families->push_back(this);
 }
@@ -578,8 +572,7 @@ Benchmark::~Benchmark() {
   CHECK((*families)[registration_index_] == this);
   (*families)[registration_index_] = NULL;
   // Shrink the vector if convenient.
-  while (!families->empty() && families->back() == NULL)
-    families->pop_back();
+  while (!families->empty() && families->back() == NULL) families->pop_back();
 }
 
 Benchmark* Benchmark::Arg(int x) {
@@ -593,8 +586,7 @@ Benchmark* Benchmark::Range(int start, int limit) {
   AddRange(&arglist, start, limit, kRangeMultiplier);
 
   mutex_lock l(&benchmark_mutex);
-  for (size_t i = 0; i < arglist.size(); ++i)
-    rangeX_.push_back(arglist[i]);
+  for (size_t i = 0; i < arglist.size(); ++i) rangeX_.push_back(arglist[i]);
   return this;
 }
 
@@ -602,8 +594,7 @@ Benchmark* Benchmark::DenseRange(int start, int limit) {
   CHECK_GE(start, 0);
   CHECK_LE(start, limit);
   mutex_lock l(&benchmark_mutex);
-  for (int arg = start; arg <= limit; ++arg)
-    rangeX_.push_back(arg);
+  for (int arg = start; arg <= limit; ++arg) rangeX_.push_back(arg);
   return this;
 }
 
@@ -662,14 +653,13 @@ void Benchmark::AddRange(std::vector<int>* dst, int lo, int hi, int mult) {
   dst->push_back(lo);
 
   // Now space out the benchmarks in multiples of "mult"
-  for (int32_t i = 1; i < std::numeric_limits<int32_t>::max()/mult; i *= mult) {
+  for (int32_t i = 1; i < std::numeric_limits<int32_t>::max() / mult;
+       i *= mult) {
     if (i >= hi) break;
-    if (i > lo)
-      dst->push_back(i);
+    if (i > lo) dst->push_back(i);
   }
   // Add "hi" (if different from "lo")
-  if (hi != lo)
-    dst->push_back(hi);
+  if (hi != lo) dst->push_back(hi);
 }
 
 std::vector<Benchmark::Instance> Benchmark::CreateBenchmarkInstances(
@@ -767,9 +757,10 @@ void Benchmark::MeasureOverhead() {
   State::FastClock clock(State::FastClock::CPU_TIME);
   State::SharedState state(nullptr);
   State runner(&clock, &state, 0);
-  while (runner.KeepRunning()) {}
+  while (runner.KeepRunning()) {
+  }
   overhead = state.runs[0].real_accumulated_time /
-      static_cast<double>(state.runs[0].iterations);
+             static_cast<double>(state.runs[0].iterations);
 #ifdef DEBUG
   std::cout << "Per-iteration overhead for doing nothing: " << overhead << "\n";
 #endif
@@ -796,33 +787,32 @@ void Benchmark::RunInstance(const Instance& b, BenchmarkReporter* br) {
         runners[i]->Run();
     }
     if (b.multithreaded()) {
-      for (int i = 0; i < b.threads; ++i)
-        runners[i]->Wait();
+      for (int i = 0; i < b.threads; ++i) runners[i]->Wait();
     }
   }
-/*
-  double mem_usage = 0;
-  if (get_memory_usage) {
-    // Measure memory usage
-    Notification mem_done;
-    BenchmarkRun mem_run;
-    BenchmarkRun::SharedState mem_shared(&b, 1);
-    mem_run.Init(&clock, &mem_shared, 0);
-    {
-      testing::MallocCounter mc(testing::MallocCounter::THIS_THREAD_ONLY);
-      benchmark_mc = &mc;
-      mem_run.Run(&mem_done);
-      mem_done.WaitForNotification();
-      benchmark_mc = NULL;
-      mem_usage = mc.PeakHeapGrowth();
+  /*
+    double mem_usage = 0;
+    if (get_memory_usage) {
+      // Measure memory usage
+      Notification mem_done;
+      BenchmarkRun mem_run;
+      BenchmarkRun::SharedState mem_shared(&b, 1);
+      mem_run.Init(&clock, &mem_shared, 0);
+      {
+        testing::MallocCounter mc(testing::MallocCounter::THIS_THREAD_ONLY);
+        benchmark_mc = &mc;
+        mem_run.Run(&mem_done);
+        mem_done.WaitForNotification();
+        benchmark_mc = NULL;
+        mem_usage = mc.PeakHeapGrowth();
+      }
     }
-  }
-*/
+  */
   running_benchmark = false;
 
   for (internal::BenchmarkRunData& report : state.runs) {
-    double seconds = (use_real_time ? report.real_accumulated_time :
-                                      report.cpu_accumulated_time);
+    double seconds = (use_real_time ? report.real_accumulated_time
+                                    : report.cpu_accumulated_time);
     report.benchmark_name = b.name;
     report.report_label = state.label;
     report.bytes_per_second = state.stats.bytes_processed / seconds;
@@ -836,29 +826,28 @@ void Benchmark::RunInstance(const Instance& b, BenchmarkReporter* br) {
 // Run the specified benchmark, measure its peak memory usage, and
 // return the peak memory usage.
 double Benchmark::MeasurePeakHeapMemory(const Instance& b) {
-  if (!get_memory_usage)
-    return 0.0;
+  if (!get_memory_usage) return 0.0;
   double bytes = 0.0;
- /*  TODO(dominich)
-  // Should we do multi-threaded runs?
-  const int num_threads = 1;
-  const int num_iters = 1;
-  {
-//    internal::MallocCounter mc(internal::MallocCounter::THIS_THREAD_ONLY);
-    running_benchmark = true;
-    timer_manager = new TimerManager(1, NULL);
-//    benchmark_mc = &mc;
-    timer_manager->StartTimer();
+  /*  TODO(dominich)
+   // Should we do multi-threaded runs?
+   const int num_threads = 1;
+   const int num_iters = 1;
+   {
+ //    internal::MallocCounter mc(internal::MallocCounter::THIS_THREAD_ONLY);
+     running_benchmark = true;
+     timer_manager = new TimerManager(1, NULL);
+ //    benchmark_mc = &mc;
+     timer_manager->StartTimer();
 
-    b.Run(num_iters);
+     b.Run(num_iters);
 
-    running_benchmark = false;
-    delete timer_manager;
-    timer_manager = NULL;
-//    benchmark_mc = NULL;
-//    bytes = mc.PeakHeapGrowth();
-  }
-  */
+     running_benchmark = false;
+     delete timer_manager;
+     timer_manager = NULL;
+ //    benchmark_mc = NULL;
+ //    bytes = mc.PeakHeapGrowth();
+   }
+   */
   return bytes;
 }
 
@@ -876,14 +865,13 @@ State::State(FastClock* clock, SharedState* s, int t)
       start_pause_(0.0),
       pause_time_(0.0),
       total_iterations_(0),
-      interval_micros_(
-          static_cast<int64_t>(kNumMicrosPerSecond * FLAGS_benchmark_min_time /
-                               FLAGS_benchmark_repetitions)),
+      interval_micros_(static_cast<int64_t>(kNumMicrosPerSecond *
+                                            FLAGS_benchmark_min_time /
+                                            FLAGS_benchmark_repetitions)),
       is_continuation_(false),
       stats_(new ThreadStats()) {
   CHECK(clock != nullptr);
   CHECK(s != nullptr);
-
 }
 
 bool State::KeepRunning() {
@@ -895,24 +883,27 @@ bool State::KeepRunning() {
     return true;
   }
 
-  switch(state_) {
-    case STATE_INITIAL: return StartRunning();
-    case STATE_STARTING: CHECK(false); return true;
-    case STATE_RUNNING: return FinishInterval();
-    case STATE_STOPPING: return MaybeStop();
-    case STATE_STOPPED: CHECK(false); return true;
+  switch (state_) {
+    case STATE_INITIAL:
+      return StartRunning();
+    case STATE_STARTING:
+      CHECK(false);
+      return true;
+    case STATE_RUNNING:
+      return FinishInterval();
+    case STATE_STOPPING:
+      return MaybeStop();
+    case STATE_STOPPED:
+      CHECK(false);
+      return true;
   }
   CHECK(false);
   return false;
 }
 
-void State::PauseTiming() {
-  start_pause_ = walltime::Now();
-}
+void State::PauseTiming() { start_pause_ = walltime::Now(); }
 
-void State::ResumeTiming() {
-  pause_time_ += walltime::Now() - start_pause_;
-}
+void State::ResumeTiming() { pause_time_ += walltime::Now() - start_pause_; }
 
 void State::SetBytesProcessed(int64_t bytes) {
   CHECK_EQ(STATE_STOPPED, state_);
@@ -944,10 +935,10 @@ int State::range_x() const {
 
 int State::range_y() const {
   CHECK(shared_->instance->rangeYset);
- /* <<
-      "Failed to get range_y as it was not set. Did you register your "
-      "benchmark with a range parameter?";
-      */
+  /* <<
+       "Failed to get range_y as it was not set. Did you register your "
+       "benchmark with a range parameter?";
+       */
   return shared_->instance->rangeY;
 }
 
@@ -962,10 +953,10 @@ bool State::StartRunning() {
     ++shared_->starting;
     last_thread = shared_->starting == shared_->threads;
   }
-  
+
   if (last_thread) {
-    clock_->InitType(
-        use_real_time ? FastClock::REAL_TIME : FastClock::CPU_TIME);
+    clock_->InitType(use_real_time ? FastClock::REAL_TIME
+                                   : FastClock::CPU_TIME);
     {
       mutex_lock l(&starting_mutex);
       pthread_cond_broadcast(&starting_cv);
@@ -1022,7 +1013,6 @@ bool State::FinishInterval() {
 
   const double accumulated_time = walltime::Now() - start_time_;
   const double total_overhead = overhead * iterations_;
-  //const double total_overhead = 0.0;
   CHECK_LT(pause_time_, accumulated_time);
   CHECK_LT(pause_time_ + total_overhead, accumulated_time);
   data.real_accumulated_time =
@@ -1046,9 +1036,8 @@ bool State::FinishInterval() {
       is_continuation_ = keep_going;
     } else {
       // If this is a repetition, run another interval as a new data point.
-      keep_going =
-          shared_->runs.size() <
-              static_cast<size_t>(FLAGS_benchmark_repetitions);
+      keep_going = shared_->runs.size() <
+                   static_cast<size_t>(FLAGS_benchmark_repetitions);
       is_continuation_ = !keep_going;
     }
 
@@ -1065,8 +1054,7 @@ bool State::FinishInterval() {
     }
   }
 
-  if (state_ == STATE_RUNNING)
-    NewInterval();
+  if (state_ == STATE_RUNNING) NewInterval();
   return keep_going;
 }
 
@@ -1093,9 +1081,7 @@ void State::RunAsThread() {
   CHECK_EQ(0, pthread_create(&thread_, nullptr, &State::RunWrapper, this));
 }
 
-void State::Wait() {
-  CHECK_EQ(0, pthread_join(thread_, nullptr));
-}
+void State::Wait() { CHECK_EQ(0, pthread_join(thread_, nullptr)); }
 
 // static
 void* State::RunWrapper(void* arg) {
@@ -1121,25 +1107,24 @@ void RunMatchingBenchmarks(const std::string& spec,
   for (const internal::Benchmark::Instance& benchmark : benchmarks) {
     // Add width for _stddev and threads:XX
     if (benchmark.threads > 1 && FLAGS_benchmark_repetitions > 1) {
-      name_field_width = std::max<int>(name_field_width,
-                                       benchmark.name.size() + 17);
-    } else if (benchmark.threads> 1) {
-      name_field_width = std::max<int>(name_field_width,
-                                       benchmark.name.size() + 10);
+      name_field_width =
+          std::max<int>(name_field_width, benchmark.name.size() + 17);
+    } else if (benchmark.threads > 1) {
+      name_field_width =
+          std::max<int>(name_field_width, benchmark.name.size() + 10);
     } else if (FLAGS_benchmark_repetitions > 1) {
-      name_field_width = std::max<int>(name_field_width,
-                                       benchmark.name.size() + 7);
+      name_field_width =
+          std::max<int>(name_field_width, benchmark.name.size() + 7);
     } else {
-      name_field_width = std::max<int>(name_field_width,
-                                       benchmark.name.size());
+      name_field_width = std::max<int>(name_field_width, benchmark.name.size());
     }
   }
 
   // Print header here
   BenchmarkContextData context;
   context.num_cpus = NumCPUs();
-  context.mhz_per_cpu =  CyclesPerSecond() / 1000000.0f;
-//  context.cpu_info = base::CompactCPUIDInfoString();
+  context.mhz_per_cpu = CyclesPerSecond() / 1000000.0f;
+  //  context.cpu_info = base::CompactCPUIDInfoString();
   context.cpu_scaling_enabled = CpuScalingEnabled();
   context.name_field_width = name_field_width;
 
@@ -1155,7 +1140,7 @@ void FindMatchingBenchmarkNames(const std::string& spec,
   std::vector<internal::Benchmark::Instance> benchmarks;
   internal::Benchmark::FindBenchmarks(spec, &benchmarks);
   std::transform(benchmarks.begin(), benchmarks.end(), benchmark_names->begin(),
-                 [] (const internal::Benchmark::Instance& b) { return b.name; } );
+                 [](const internal::Benchmark::Instance& b) { return b.name; });
 }
 
 }  // end namespace internal
@@ -1163,7 +1148,7 @@ void FindMatchingBenchmarkNames(const std::string& spec,
 void RunSpecifiedBenchmarks() {
   std::string spec = FLAGS_benchmark_filter;
   if (spec.empty() || spec == "all")
-    spec = ".";         // Regexp that matches all benchmarks
+    spec = ".";  // Regexp that matches all benchmarks
   internal::ConsoleReporter default_reporter;
   internal::RunMatchingBenchmarks(spec, &default_reporter);
   pthread_cond_destroy(&starting_cv);
@@ -1172,12 +1157,11 @@ void RunSpecifiedBenchmarks() {
 }
 
 void Initialize(int* argc, const char** argv) {
-  //AtomicOps_Internalx86CPUFeaturesInit();
   pthread_mutex_init(&benchmark_mutex, nullptr);
   pthread_mutex_init(&starting_mutex, nullptr);
   pthread_cond_init(&starting_cv, nullptr);
   walltime::Initialize();
-  internal::ParseCommandLineFlags(argc, argv); 
+  internal::ParseCommandLineFlags(argc, argv);
   internal::Benchmark::MeasureOverhead();
 }
 

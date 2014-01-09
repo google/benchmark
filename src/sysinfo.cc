@@ -39,7 +39,7 @@ int64_t EstimateCyclesPerSecond(const int estimate_time_ms) {
 
 // Helper function for reading an int from a file. Returns true if successful
 // and the memory location pointed to by value is set to the value read.
-bool ReadIntFromFile(const char *file, int *value) {
+bool ReadIntFromFile(const char* file, int* value) {
   bool ret = false;
   int fd = open(file, O_RDONLY);
   if (fd != -1) {
@@ -76,10 +76,10 @@ void InitializeSystemInfo() {
   // well.
   if (!saw_mhz &&
       ReadIntFromFile("/sys/devices/system/cpu/cpu0/tsc_freq_khz", &freq)) {
-      // The value is in kHz (as the file name suggests).  For example, on a
-      // 2GHz warpstation, the file contains the value "2000000".
-      cpuinfo_cycles_per_second = freq * 1000.0;
-      saw_mhz = true;
+    // The value is in kHz (as the file name suggests).  For example, on a
+    // 2GHz warpstation, the file contains the value "2000000".
+    cpuinfo_cycles_per_second = freq * 1000.0;
+    saw_mhz = true;
   }
 
   // If CPU scaling is in effect, we want to use the *maximum* frequency,
@@ -101,7 +101,7 @@ void InitializeSystemInfo() {
     if (!saw_mhz) {
       cpuinfo_cycles_per_second = EstimateCyclesPerSecond(1000);
     }
-    return;          // TODO: use generic tester instead?
+    return;  // TODO: use generic tester instead?
   }
 
   double bogo_clock = 1.0;
@@ -110,48 +110,47 @@ void InitializeSystemInfo() {
   int num_cpus = 0;
   line[0] = line[1] = '\0';
   int chars_read = 0;
-  do {   // we'll exit when the last read didn't read anything
+  do {  // we'll exit when the last read didn't read anything
     // Move the next line to the beginning of the buffer
     const int oldlinelen = strlen(line);
-    if (sizeof(line) == oldlinelen + 1)    // oldlinelen took up entire line
+    if (sizeof(line) == oldlinelen + 1)  // oldlinelen took up entire line
       line[0] = '\0';
-    else                                   // still other lines left to save
-      memmove(line, line + oldlinelen+1, sizeof(line) - (oldlinelen+1));
+    else  // still other lines left to save
+      memmove(line, line + oldlinelen + 1, sizeof(line) - (oldlinelen + 1));
     // Terminate the new line, reading more if we can't find the newline
     char* newline = strchr(line, '\n');
     if (newline == NULL) {
       const int linelen = strlen(line);
-      const int bytes_to_read = sizeof(line)-1 - linelen;
+      const int bytes_to_read = sizeof(line) - 1 - linelen;
       CHECK(bytes_to_read > 0);  // because the memmove recovered >=1 bytes
       chars_read = read(fd, line + linelen, bytes_to_read);
       line[linelen + chars_read] = '\0';
       newline = strchr(line, '\n');
     }
-    if (newline != NULL)
-      *newline = '\0';
+    if (newline != NULL) *newline = '\0';
 
     // When parsing the "cpu MHz" and "bogomips" (fallback) entries, we only
     // accept postive values. Some environments (virtual machines) report zero,
     // which would cause infinite looping in WallTime_Init.
-    if (!saw_mhz && strncasecmp(line, "cpu MHz", sizeof("cpu MHz")-1) == 0) {
+    if (!saw_mhz && strncasecmp(line, "cpu MHz", sizeof("cpu MHz") - 1) == 0) {
       const char* freqstr = strchr(line, ':');
       if (freqstr) {
-        cpuinfo_cycles_per_second = strtod(freqstr+1, &err) * 1000000.0;
+        cpuinfo_cycles_per_second = strtod(freqstr + 1, &err) * 1000000.0;
         if (freqstr[1] != '\0' && *err == '\0' && cpuinfo_cycles_per_second > 0)
           saw_mhz = true;
       }
-    } else if (strncasecmp(line, "bogomips", sizeof("bogomips")-1) == 0) {
+    } else if (strncasecmp(line, "bogomips", sizeof("bogomips") - 1) == 0) {
       const char* freqstr = strchr(line, ':');
       if (freqstr) {
-        bogo_clock = strtod(freqstr+1, &err) * 1000000.0;
+        bogo_clock = strtod(freqstr + 1, &err) * 1000000.0;
         if (freqstr[1] != '\0' && *err == '\0' && bogo_clock > 0)
           saw_bogo = true;
       }
-    } else if (strncasecmp(line, "processor", sizeof("processor")-1) == 0) {
+    } else if (strncasecmp(line, "processor", sizeof("processor") - 1) == 0) {
       num_cpus++;  // count up every time we see an "processor :" entry
       const char* freqstr = strchr(line, ':');
       if (freqstr) {
-        const int cpu_id = strtol(freqstr+1, &err, 10);
+        const int cpu_id = strtol(freqstr + 1, &err, 10);
         if (freqstr[1] != '\0' && *err == '\0' && max_cpu_id < cpu_id)
           max_cpu_id = cpu_id;
       }
@@ -181,17 +180,17 @@ void InitializeSystemInfo() {
   }
 
 #elif defined OS_FREEBSD
-  // For this sysctl to work, the machine must be configured without
-  // SMP, APIC, or APM support.  hz should be 64-bit in freebsd 7.0
-  // and later.  Before that, it's a 32-bit quantity (and gives the
-  // wrong answer on machines faster than 2^32 Hz).  See
-  //  http://lists.freebsd.org/pipermail/freebsd-i386/2004-November/001846.html
-  // But also compare FreeBSD 7.0:
-  //  http://fxr.watson.org/fxr/source/i386/i386/tsc.c?v=RELENG70#L223
-  //  231         error = sysctl_handle_quad(oidp, &freq, 0, req);
-  // To FreeBSD 6.3 (it's the same in 6-STABLE):
-  //  http://fxr.watson.org/fxr/source/i386/i386/tsc.c?v=RELENG6#L131
-  //  139         error = sysctl_handle_int(oidp, &freq, sizeof(freq), req);
+// For this sysctl to work, the machine must be configured without
+// SMP, APIC, or APM support.  hz should be 64-bit in freebsd 7.0
+// and later.  Before that, it's a 32-bit quantity (and gives the
+// wrong answer on machines faster than 2^32 Hz).  See
+//  http://lists.freebsd.org/pipermail/freebsd-i386/2004-November/001846.html
+// But also compare FreeBSD 7.0:
+//  http://fxr.watson.org/fxr/source/i386/i386/tsc.c?v=RELENG70#L223
+//  231         error = sysctl_handle_quad(oidp, &freq, 0, req);
+// To FreeBSD 6.3 (it's the same in 6-STABLE):
+//  http://fxr.watson.org/fxr/source/i386/i386/tsc.c?v=RELENG6#L131
+//  139         error = sysctl_handle_int(oidp, &freq, sizeof(freq), req);
 #if __FreeBSD__ >= 7
   uint64_t hz = 0;
 #else
@@ -199,31 +198,31 @@ void InitializeSystemInfo() {
 #endif
   size_t sz = sizeof(hz);
   const char *sysctl_path = "machdep.tsc_freq";
-  if ( sysctlbyname(sysctl_path, &hz, &sz, NULL, 0) != 0 ) {
+  if (sysctlbyname(sysctl_path, &hz, &sz, NULL, 0) != 0) {
     fprintf(stderr, "Unable to determine clock rate from sysctl: %s: %s\n",
             sysctl_path, strerror(errno));
     cpuinfo_cycles_per_second = EstimateCyclesPerSecond(1000);
   } else {
     cpuinfo_cycles_per_second = hz;
   }
-  // TODO: also figure out cpuinfo_num_cpus
+// TODO: also figure out cpuinfo_num_cpus
 
 #elif defined OS_WINDOWS
-# pragma comment(lib, "shlwapi.lib")  // for SHGetValue()
+#pragma comment(lib, "shlwapi.lib")  // for SHGetValue()
   // In NT, read MHz from the registry. If we fail to do so or we're in win9x
   // then make a crude estimate.
   OSVERSIONINFO os;
   os.dwOSVersionInfoSize = sizeof(os);
   DWORD data, data_size = sizeof(data);
-  if (GetVersionEx(&os) &&
-      os.dwPlatformId == VER_PLATFORM_WIN32_NT &&
-      SUCCEEDED(SHGetValueA(HKEY_LOCAL_MACHINE,
-                         "HARDWARE\\DESCRIPTION\\System\\CentralProcessor\\0",
-                           "~MHz", NULL, &data, &data_size)))
-    cpuinfo_cycles_per_second = (int64)data * (int64)(1000 * 1000); // was mhz
+  if (GetVersionEx(&os) && os.dwPlatformId == VER_PLATFORM_WIN32_NT &&
+      SUCCEEDED(
+          SHGetValueA(HKEY_LOCAL_MACHINE,
+                      "HARDWARE\\DESCRIPTION\\System\\CentralProcessor\\0",
+                      "~MHz", NULL, &data, &data_size)))
+    cpuinfo_cycles_per_second = (int64)data * (int64)(1000 * 1000);  // was mhz
   else
-    cpuinfo_cycles_per_second = EstimateCyclesPerSecond(500); // TODO <500?
-  // TODO: also figure out cpuinfo_num_cpus
+    cpuinfo_cycles_per_second = EstimateCyclesPerSecond(500);  // TODO <500?
+                                                               // TODO: also figure out cpuinfo_num_cpus
 
 #elif defined OS_MACOSX
   // returning "mach time units" per second. the current number of elapsed
@@ -243,10 +242,10 @@ void InitializeSystemInfo() {
 
   int num_cpus = 0;
   size_t size = sizeof(num_cpus);
-  int numcpus_name[] = { CTL_HW, HW_NCPU };
-  if (::sysctl(numcpus_name, arraysize(numcpus_name), &num_cpus, &size, 0, 0)
-      == 0
-      && (size == sizeof(num_cpus)))
+  int numcpus_name[] = {CTL_HW, HW_NCPU};
+  if (::sysctl(numcpus_name, arraysize(numcpus_name), &num_cpus, &size, 0, 0) ==
+          0 &&
+      (size == sizeof(num_cpus)))
     cpuinfo_num_cpus = num_cpus;
 
 #else
@@ -261,16 +260,16 @@ void InitializeSystemInfo() {
 static double MyCPUUsageRUsage() {
   struct rusage ru;
   if (getrusage(RUSAGE_SELF, &ru) == 0) {
-    return (static_cast<double>(ru.ru_utime.tv_sec)      +
-            static_cast<double>(ru.ru_utime.tv_usec)*1e-6 +
-            static_cast<double>(ru.ru_stime.tv_sec)      +
-            static_cast<double>(ru.ru_stime.tv_usec)*1e-6);
+    return (static_cast<double>(ru.ru_utime.tv_sec) +
+            static_cast<double>(ru.ru_utime.tv_usec) * 1e-6 +
+            static_cast<double>(ru.ru_stime.tv_sec) +
+            static_cast<double>(ru.ru_stime.tv_usec) * 1e-6);
   } else {
     return 0.0;
   }
 }
 
-static bool MyCPUUsageCPUTimeNsLocked(double *cputime) {
+static bool MyCPUUsageCPUTimeNsLocked(double* cputime) {
   static int cputime_fd = -1;
   if (cputime_fd == -1) {
     cputime_fd = open("/proc/self/cputime_ns", O_RDONLY);
@@ -281,7 +280,7 @@ static bool MyCPUUsageCPUTimeNsLocked(double *cputime) {
   }
   char buff[64];
   memset(buff, 0, sizeof(buff));
-  if (pread(cputime_fd, buff, sizeof(buff)-1, 0) <= 0) {
+  if (pread(cputime_fd, buff, sizeof(buff) - 1, 0) <= 0) {
     close(cputime_fd);
     cputime_fd = -1;
     return false;
@@ -316,10 +315,10 @@ double MyCPUUsage() {
 double ChildrenCPUUsage() {
   struct rusage ru;
   if (getrusage(RUSAGE_CHILDREN, &ru) == 0) {
-    return (static_cast<double>(ru.ru_utime.tv_sec)      +
-            static_cast<double>(ru.ru_utime.tv_usec)*1e-6 +
-            static_cast<double>(ru.ru_stime.tv_sec)      +
-            static_cast<double>(ru.ru_stime.tv_usec)*1e-6);
+    return (static_cast<double>(ru.ru_utime.tv_sec) +
+            static_cast<double>(ru.ru_utime.tv_usec) * 1e-6 +
+            static_cast<double>(ru.ru_stime.tv_sec) +
+            static_cast<double>(ru.ru_stime.tv_usec) * 1e-6);
   } else {
     return 0.0;
   }
