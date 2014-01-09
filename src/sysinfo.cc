@@ -208,7 +208,7 @@ void InitializeSystemInfo() {
   unsigned int hz = 0;
 #endif
   size_t sz = sizeof(hz);
-  const char *sysctl_path = "machdep.tsc_freq";
+  const char* sysctl_path = "machdep.tsc_freq";
   if (sysctlbyname(sysctl_path, &hz, &sz, NULL, 0) != 0) {
     fprintf(stderr, "Unable to determine clock rate from sysctl: %s: %s\n",
             sysctl_path, strerror(errno));
@@ -233,7 +233,7 @@ void InitializeSystemInfo() {
     cpuinfo_cycles_per_second = (int64)data * (int64)(1000 * 1000);  // was mhz
   else
     cpuinfo_cycles_per_second = EstimateCyclesPerSecond();
-  // TODO: also figure out cpuinfo_num_cpus
+// TODO: also figure out cpuinfo_num_cpus
 
 #elif defined OS_MACOSX
   // returning "mach time units" per second. the current number of elapsed

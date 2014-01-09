@@ -298,16 +298,15 @@ void ComputeStats(const std::vector<BenchmarkReporter::Run>& reports,
 namespace internal {
 
 std::string ConsoleReporter::PrintMemoryUsage(double bytes) const {
-  if (!get_memory_usage || bytes < 0.0)
-    return "";
+  if (!get_memory_usage || bytes < 0.0) return "";
 
   std::stringstream ss;
   ss << " " << HumanReadableNumber(bytes) << "B peak-mem";
   return ss.str();
 }
 
-bool ConsoleReporter::ReportContext(
-    const BenchmarkReporter::Context& context) const {
+bool ConsoleReporter::ReportContext(const BenchmarkReporter::Context& context)
+    const {
   name_field_width_ = context.name_field_width;
 
   std::cout << "Benchmarking on " << context.num_cpus << " X "
@@ -404,7 +403,7 @@ void PrintUsageAndExit() {
           "benchmark [--benchmark_filter=<regex>]\n"
           "          [--benchmark_iterations=<iterations>]\n"
           "          [--benchmark_min_time=<min_time>]\n"
-        //"          [--benchmark_memory_usage]\n"
+          //"          [--benchmark_memory_usage]\n"
           "          [--benchmark_repetitions=<num_repetitions>]\n"
           "          [--color_print={true|false}]\n"
           "          [--v=<verbosity>]\n");
@@ -757,15 +756,15 @@ void Benchmark::FindBenchmarks(const std::string& spec,
     } else if (family->rangeY_.empty()) {
       for (size_t x = 0; x < family->rangeX_.size(); ++x) {
         instances = family->CreateBenchmarkInstances(x, kNoRange);
-        benchmarks->insert(benchmarks->end(),
-                           instances.begin(), instances.end());
+        benchmarks->insert(benchmarks->end(), instances.begin(),
+                           instances.end());
       }
     } else {
       for (size_t x = 0; x < family->rangeX_.size(); ++x) {
         for (size_t y = 0; y < family->rangeY_.size(); ++y) {
           instances = family->CreateBenchmarkInstances(x, y);
-          benchmarks->insert(benchmarks->end(),
-                             instances.begin(), instances.end());
+          benchmarks->insert(benchmarks->end(), instances.begin(),
+                             instances.end());
         }
       }
     }
@@ -1167,7 +1166,8 @@ void RunSpecifiedBenchmarks(const BenchmarkReporter* reporter /*= nullptr*/) {
   if (spec.empty() || spec == "all")
     spec = ".";  // Regexp that matches all benchmarks
   internal::ConsoleReporter default_reporter;
-  internal::RunMatchingBenchmarks(spec, reporter == nullptr ? &default_reporter : reporter);
+  internal::RunMatchingBenchmarks(
+      spec, reporter == nullptr ? &default_reporter : reporter);
   pthread_cond_destroy(&starting_cv);
   pthread_mutex_destroy(&starting_mutex);
   pthread_mutex_destroy(&benchmark_mutex);

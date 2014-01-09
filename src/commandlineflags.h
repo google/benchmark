@@ -75,4 +75,3 @@ bool IsFlag(const char* str, const char* flag);
 }  // end namespace gbenchmark
 
 #endif  // BENCHMARK_COMMANDLINEFLAGS_H_
-

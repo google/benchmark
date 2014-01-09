@@ -62,28 +62,28 @@ class Stat1 {
     sum_squares_ = sum_ = VType();
   }
 
-  Self& operator=(const Self &stat) {
+  Self &operator=(const Self &stat) {
     sum_ = stat.sum_;
     sum_squares_ = stat.sum_squares_;
     numsamples_ = stat.numsamples_;
     return (*this);
   }
   // Merge statistics from two sample sets.
-  Self& operator+=(const Self &stat) {
+  Self &operator+=(const Self &stat) {
     sum_ += stat.sum_;
     sum_squares_ += stat.sum_squares_;
     numsamples_ += stat.numsamples_;
     return (*this);
   }
   // The operation opposite to +=
-  Self& operator-=(const Self &stat) {
+  Self &operator-=(const Self &stat) {
     sum_ -= stat.sum_;
     sum_squares_ -= stat.sum_squares_;
     numsamples_ -= stat.numsamples_;
     return (*this);
   }
   // Multiply the weight of the set of samples by a factor k
-  Self& operator*=(const VType &k) {
+  Self &operator*=(const VType &k) {
     sum_ *= k;
     sum_squares_ *= k;
     numsamples_ *= k;
@@ -91,13 +91,13 @@ class Stat1 {
   }
 
   // Merge statistics from two sample sets.
-  Self operator+(const Self& stat) const { return Self(*this) += stat; }
+  Self operator+(const Self &stat) const { return Self(*this) += stat; }
 
   // The operation opposite to +
-  Self operator-(const Self& stat) const { return Self(*this) -= stat; }
+  Self operator-(const Self &stat) const { return Self(*this) -= stat; }
 
   // Multiply the weight of the set of samples by a factor k
-  Self operator*(const VType& k) const { return Self(*this) *= k; }
+  Self operator*(const VType &k) const { return Self(*this) *= k; }
 
   // Return the total weight of this sample set
   NumType numSamples() const { return numsamples_; }
@@ -142,7 +142,9 @@ class Stat1 {
   // Template function used to square a number.
   // For a vector we square all components
   template <typename SType>
-  static inline SType Sqr(const SType &dat) { return dat * dat; }
+  static inline SType Sqr(const SType &dat) {
+    return dat * dat;
+  }
 
   template <typename SType>
   static inline Vector2<SType> Sqr(const Vector2<SType> &dat) {
@@ -189,7 +191,7 @@ class Stat1 {
 
 // Useful printing function
 template <typename VType, typename NumType>
-std::ostream& operator<<(std::ostream& out, const Stat1<VType, NumType>& s) {
+std::ostream &operator<<(std::ostream &out, const Stat1<VType, NumType> &s) {
   out << "{ avg = " << s.Mean() << " std = " << s.StdDev()
       << " nsamples = " << s.NumSamples() << "}";
   return out;
@@ -214,7 +216,7 @@ class Stat1MinMax : public Stat1<VType, NumType> {
   // and end(excluded)
   explicit Stat1MinMax(const VType *begin, const VType *end) {
     Clear();
-    for (const VType* item = begin; item < end; ++item) {
+    for (const VType *item = begin; item < end; ++item) {
       (*this) += Stat1MinMax(*item);
     }
   }
@@ -241,28 +243,28 @@ class Stat1MinMax : public Stat1<VType, NumType> {
     }
   }
 
-  Self& operator=(const Self& stat) {
+  Self &operator=(const Self &stat) {
     this->Stat1<VType, NumType>::operator=(stat);
     max_ = stat.max_;
     min_ = stat.min_;
     return (*this);
   }
   // Merge statistics from two sample sets.
-  Self& operator+=(const Self& stat) {
+  Self &operator+=(const Self &stat) {
     this->Stat1<VType, NumType>::operator+=(stat);
     if (stat.max_ > max_) max_ = stat.max_;
     if (stat.min_ < min_) min_ = stat.min_;
     return (*this);
   }
   // Multiply the weight of the set of samples by a factor k
-  Self& operator*=(const VType& stat) {
+  Self &operator*=(const VType &stat) {
     this->Stat1<VType, NumType>::operator*=(stat);
     return (*this);
   }
   // Merge statistics from two sample sets.
-  Self operator+(const Self& stat) const { return Self(*this) += stat; }
+  Self operator+(const Self &stat) const { return Self(*this) += stat; }
   // Multiply the weight of the set of samples by a factor k
-  Self operator*(const VType& k) const { return Self(*this) *= k; }
+  Self operator*(const VType &k) const { return Self(*this) *= k; }
 
   // Return the maximal value in this sample set
   VType max() const { return max_; }
@@ -273,10 +275,10 @@ class Stat1MinMax : public Stat1<VType, NumType> {
   // The - operation makes no sense with Min/Max
   // unless we keep the full list of values (but we don't)
   // make it private, and let it undefined so nobody can call it
-  Self &operator-=(const Self& stat);  // senseless. let it undefined.
+  Self &operator-=(const Self &stat);  // senseless. let it undefined.
 
   // The operation opposite to -
-  Self operator-(const Self& stat) const;  // senseless. let it undefined.
+  Self operator-(const Self &stat) const;  // senseless. let it undefined.
 
   // Let i be the index of the samples provided (using +=)
   // and weight[i],value[i] be the data of sample #i
@@ -287,8 +289,8 @@ class Stat1MinMax : public Stat1<VType, NumType> {
 
 // Useful printing function
 template <typename VType, typename NumType>
-std::ostream& operator<<(std::ostream& out,
-                         const Stat1MinMax<VType, NumType>& s) {
+std::ostream &operator<<(std::ostream &out,
+                         const Stat1MinMax<VType, NumType> &s) {
   out << "{ avg = " << s.Mean() << " std = " << s.StdDev()
       << " nsamples = " << s.NumSamples() << " min = " << s.Min()
       << " max = " << s.Max() << "}";

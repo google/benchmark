@@ -165,7 +165,7 @@ void SetLabel(const std::string& label);
 // computed by running the benchmark once with a single iteration and a memory
 // tracer.)
 // TODO(dominic)
-//void MemoryUsage();
+// void MemoryUsage();
 
 // If a particular benchmark is I/O bound, or if for some reason CPU
 // timings are not representative, call this method from within the
@@ -303,7 +303,7 @@ class BenchmarkReporter {
   struct Context {
     int num_cpus;
     double mhz_per_cpu;
-    //std::string cpu_info;
+    // std::string cpu_info;
     bool cpu_scaling_enabled;
 
     // The number of chars in the longest benchmark name.
@@ -311,14 +311,14 @@ class BenchmarkReporter {
   };
 
   struct Run {
-    Run() :
-        thread_index(-1),
-        iterations(1),
-        real_accumulated_time(0),
-        cpu_accumulated_time(0),
-        bytes_per_second(0),
-        items_per_second(0),
-        max_heapbytes_used(0) {}
+    Run()
+        : thread_index(-1),
+          iterations(1),
+          real_accumulated_time(0),
+          cpu_accumulated_time(0),
+          bytes_per_second(0),
+          items_per_second(0),
+          max_heapbytes_used(0) {}
 
     std::string benchmark_name;
     std::string report_label;
@@ -535,4 +535,3 @@ class ConsoleReporter : public BenchmarkReporter {
       (new ::benchmark::internal::Benchmark(#n "<" #a "," #b ">", n<a, b>))
 
 #endif  // BENCHMARK_BENCHMARK_H_
-
