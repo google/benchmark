@@ -4,6 +4,8 @@ benchmark
 
 A library to support the benchmarking of functions, similar to unit-tests.
 
+Discussion group: https://groups.google.com/d/forum/benchmark-discuss
+
 Example usage:
 Define a function that executes the code to be measured a
 specified number of times:
