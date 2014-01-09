@@ -1,3 +1,17 @@
+// Copyright 2014 Google Inc. All rights reserved.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 #include "sysinfo.h"
 
 #include <errno.h>
@@ -20,21 +34,18 @@
 
 namespace benchmark {
 namespace {
+const int64_t estimate_time_ms = 1000;
 pthread_once_t cpuinfo_init = PTHREAD_ONCE_INIT;
 double cpuinfo_cycles_per_second = 1.0;
 int cpuinfo_num_cpus = 1;  // Conservative guess
-static pthread_mutex_t cputimens_mutex;
+pthread_mutex_t cputimens_mutex;
 
 // Helper function estimates cycles/sec by observing cycles elapsed during
 // sleep(). Using small sleep time decreases accuracy significantly.
-int64_t EstimateCyclesPerSecond(const int estimate_time_ms) {
-  CHECK(estimate_time_ms > 0);
-  double multiplier = 1000.0 / (double)estimate_time_ms;  // scale by this much
-
+int64_t EstimateCyclesPerSecond() {
   const int64_t start_ticks = cycleclock::Now();
   SleepForMilliseconds(estimate_time_ms);
-  const int64_t guess = int64_t(multiplier * (cycleclock::Now() - start_ticks));
-  return guess;
+  return cycleclock::Now() - start_ticks;
 }
 
 // Helper function for reading an int from a file. Returns true if successful
@@ -99,9 +110,9 @@ void InitializeSystemInfo() {
   if (fd == -1) {
     perror(pname);
     if (!saw_mhz) {
-      cpuinfo_cycles_per_second = EstimateCyclesPerSecond(1000);
+      cpuinfo_cycles_per_second = EstimateCyclesPerSecond();
     }
-    return;  // TODO: use generic tester instead?
+    return;
   }
 
   double bogo_clock = 1.0;
@@ -165,7 +176,7 @@ void InitializeSystemInfo() {
       cpuinfo_cycles_per_second = bogo_clock;
     } else {
       // If we don't even have bogomips, we'll use the slow estimation.
-      cpuinfo_cycles_per_second = EstimateCyclesPerSecond(1000);
+      cpuinfo_cycles_per_second = EstimateCyclesPerSecond();
     }
   }
   if (num_cpus == 0) {
@@ -201,7 +212,7 @@ void InitializeSystemInfo() {
   if (sysctlbyname(sysctl_path, &hz, &sz, NULL, 0) != 0) {
     fprintf(stderr, "Unable to determine clock rate from sysctl: %s: %s\n",
             sysctl_path, strerror(errno));
-    cpuinfo_cycles_per_second = EstimateCyclesPerSecond(1000);
+    cpuinfo_cycles_per_second = EstimateCyclesPerSecond();
   } else {
     cpuinfo_cycles_per_second = hz;
   }
@@ -221,8 +232,8 @@ void InitializeSystemInfo() {
                       "~MHz", NULL, &data, &data_size)))
     cpuinfo_cycles_per_second = (int64)data * (int64)(1000 * 1000);  // was mhz
   else
-    cpuinfo_cycles_per_second = EstimateCyclesPerSecond(500);  // TODO <500?
-                                                               // TODO: also figure out cpuinfo_num_cpus
+    cpuinfo_cycles_per_second = EstimateCyclesPerSecond();
+  // TODO: also figure out cpuinfo_num_cpus
 
 #elif defined OS_MACOSX
   // returning "mach time units" per second. the current number of elapsed
@@ -250,7 +261,7 @@ void InitializeSystemInfo() {
 
 #else
   // Generic cycles per second counter
-  cpuinfo_cycles_per_second = EstimateCyclesPerSecond(1000);
+  cpuinfo_cycles_per_second = EstimateCyclesPerSecond();
 #endif
 }
 }  // end namespace

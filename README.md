@@ -1,6 +1,10 @@
 benchmark
 =========
+[![Build Status](https://drone.io/github.com/google/benchmark/status.png)](https://drone.io/github.com/google/benchmark/latest)
+
 A library to support the benchmarking of functions, similar to unit-tests.
+
+Discussion group: https://groups.google.com/d/forum/benchmark-discuss
 
 Example usage:
 Define a function that executes the code to be measured a
