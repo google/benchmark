@@ -507,7 +507,7 @@ class State::FastClock {
     } while (done == 0);
   }
 
-  DISALLOW_COPY_AND_ASSIGN(FastClock);
+  DISALLOW_COPY_AND_ASSIGN(FastClock)
 };
 
 struct State::ThreadStats {
@@ -572,7 +572,7 @@ struct State::SharedState {
   }
 
   ~SharedState() { pthread_mutex_destroy(&mu); }
-  DISALLOW_COPY_AND_ASSIGN(SharedState);
+  DISALLOW_COPY_AND_ASSIGN(SharedState)
 };
 
 namespace internal {
@@ -793,9 +793,9 @@ void Benchmark::RunInstance(const Instance& b, const BenchmarkReporter* br) {
   // Initialize the test runners.
   State::SharedState state(&b);
   {
-    std::unique_ptr<State> runners[b.threads];
+    std::vector<std::unique_ptr<State>> runners;
     for (int i = 0; i < b.threads; ++i)
-      runners[i].reset(new State(&clock, &state, i));
+      runners.push_back(std::unique_ptr<State>(new State(&clock, &state, i)));
 
     // Run them all.
     for (int i = 0; i < b.threads; ++i) {
