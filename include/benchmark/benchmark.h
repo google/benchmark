@@ -251,7 +251,7 @@ class State {
     STATE_STARTING,  // KeepRunning called, waiting for other threads
     STATE_RUNNING,   // Running and being timed
     STATE_STOPPING,  // Not being timed but waiting for other threads
-    STATE_STOPPED,   // Stopped
+    STATE_STOPPED    // Stopped
   };
 
   EState state_;
@@ -291,7 +291,7 @@ class State {
   std::unique_ptr<ThreadStats> stats_;
 
   friend class internal::Benchmark;
-  DISALLOW_COPY_AND_ASSIGN(State);
+  DISALLOW_COPY_AND_ASSIGN(State)
 };
 
 // Interface for custom benchmark result printers.
@@ -476,7 +476,7 @@ class Benchmark {
   friend struct ::benchmark::internal::Benchmark::Instance;
   friend void ::benchmark::internal::RunMatchingBenchmarks(
       const std::string&, const BenchmarkReporter*);
-  DISALLOW_COPY_AND_ASSIGN(Benchmark);
+  DISALLOW_COPY_AND_ASSIGN(Benchmark)
 };
 
 // ------------------------------------------------------
