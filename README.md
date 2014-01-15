@@ -49,7 +49,7 @@ of memcpy() calls of different lengths:
       while (state.KeepRunning()) {
         memcpy(dst, src, state.range_x());
       benchmark::SetBenchmarkBytesProcessed(
-          int64_t_t(state.iterations) * int64(state.range_x()));
+          int64_t(state.iterations) * int64_t(state.range_x()));
       delete[] src;
       delete[] dst;
     }
