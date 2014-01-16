@@ -5,3 +5,4 @@ bin/
 cmake_install.cmake
 lib/
 tags
+.ycm_extra_conf.pyc
