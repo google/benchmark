@@ -75,8 +75,6 @@ bool ReadIntFromFile(const char* file, int* value) {
 #endif
 
 void InitializeSystemInfo() {
-  bool saw_mhz = false;
-
   // TODO: destroy this
   pthread_mutex_init(&cputimens_mutex, NULL);
 
@@ -84,6 +82,8 @@ void InitializeSystemInfo() {
   char line[1024];
   char* err;
   int freq;
+
+  bool saw_mhz = false;
 
   // If the kernel is exporting the tsc frequency use that. There are issues
   // where cpuinfo_max_freq cannot be relied on because the BIOS may be
