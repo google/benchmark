@@ -42,6 +42,7 @@ double cpuinfo_cycles_per_second = 1.0;
 int cpuinfo_num_cpus = 1;  // Conservative guess
 pthread_mutex_t cputimens_mutex;
 
+#if !defined OS_MACOSX
 // Helper function estimates cycles/sec by observing cycles elapsed during
 // sleep(). Using small sleep time decreases accuracy significantly.
 int64_t EstimateCyclesPerSecond() {
@@ -49,7 +50,9 @@ int64_t EstimateCyclesPerSecond() {
   SleepForMilliseconds(estimate_time_ms);
   return cycleclock::Now() - start_ticks;
 }
+#endif
 
+#if defined OS_LINUX || defined OS_CYGWIN
 // Helper function for reading an int from a file. Returns true if successful
 // and the memory location pointed to by value is set to the value read.
 bool ReadIntFromFile(const char* file, int* value) {
@@ -69,6 +72,7 @@ bool ReadIntFromFile(const char* file, int* value) {
   }
   return ret;
 }
+#endif
 
 void InitializeSystemInfo() {
   bool saw_mhz = false;
