@@ -22,6 +22,7 @@
 #include "sysinfo.h"
 #include "walltime.h"
 
+#include <sys/time.h>
 #include <pthread.h>
 #include <semaphore.h>
 #include <string.h>
@@ -443,14 +444,19 @@ class State::FastClock {
     CPU_TIME
   };
   explicit FastClock(Type type) : type_(type), approx_time_(NowMicros()) {
-    sem_init(&bg_done_, 0, 0);
+    pthread_cond_init(&bg_cond_, 0);
+    pthread_mutex_init(&bg_mutex_, 0);
     pthread_create(&bg_, NULL, &BGThreadWrapper, this);
   }
 
   ~FastClock() {
-    sem_post(&bg_done_);
+    {
+      mutex_lock l(&bg_mutex_);
+      pthread_cond_signal(&bg_cond_);
+    }
     pthread_join(bg_, NULL);
-    sem_destroy(&bg_done_);
+    pthread_mutex_destroy(&bg_mutex_);
+    pthread_cond_destroy(&bg_cond_);
   }
 
   // Returns true if the current time is guaranteed to be past "when_micros".
@@ -489,7 +495,8 @@ class State::FastClock {
   std::atomic<int64_t> approx_time_;  // Last time measurement taken by bg_
   pthread_t bg_;  // Background thread that updates last_time_ once every ms
 
-  sem_t bg_done_;
+  pthread_mutex_t bg_mutex_;
+  pthread_cond_t bg_cond_;
 
   static void* BGThreadWrapper(void* that) {
     ((FastClock*)that)->BGThread();
@@ -503,7 +510,23 @@ class State::FastClock {
       std::atomic_store(&approx_time_, NowMicros());
       // NOTE: same code but no memory barrier. think on it.
       // base::subtle::Release_Store(&approx_time_, NowMicros());
-      sem_getvalue(&bg_done_, &done);
+      {
+        struct timeval tv;
+        gettimeofday(&tv, 0);
+
+        // Set timeout to 100 ms.
+        long const timeout = 100000;
+        struct timespec ts;
+        ts.tv_sec = tv.tv_sec + (timeout / 1000000);
+        ts.tv_nsec = (tv.tv_usec + (timeout % 1000000)) * 1000;
+        ts.tv_sec += ts.tv_nsec / 1000000000;
+        ts.tv_nsec %= 1000000000;
+
+        // NOTE: this should probably be platform specific.
+        mutex_lock l(&bg_mutex_);
+        if (0 == pthread_cond_timedwait(&bg_cond_, &bg_mutex_, &ts))
+          done = 1;
+      }
     } while (done == 0);
   }
 
