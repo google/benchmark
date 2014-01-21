@@ -509,7 +509,9 @@ class State::FastClock {
   }
 
   void BGThread() {
-    do {
+    mutex_lock l(&bg_mutex_);
+    while (!bg_done_)
+    {
       struct timeval tv;
       gettimeofday(&tv, nullptr);
 
@@ -523,13 +525,12 @@ class State::FastClock {
       ts.tv_nsec %= kNumNanosPerSecond;
 
       // NOTE: this should probably be platform specific.
-      mutex_lock l(&bg_mutex_);
       pthread_cond_timedwait(&bg_cond_, &bg_mutex_, &ts);
 
       std::atomic_store(&approx_time_, NowMicros());
       // NOTE: same code but no memory barrier. think on it.
       // base::subtle::Release_Store(&approx_time_, NowMicros());
-    } while (!bg_done_);
+    }
   }
 
   DISALLOW_COPY_AND_ASSIGN(FastClock)
