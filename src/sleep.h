@@ -8,6 +8,7 @@ const int64_t kNumMillisPerSecond = 1000LL;
 const int64_t kNumMicrosPerMilli = 1000LL;
 const int64_t kNumMicrosPerSecond = kNumMillisPerSecond * 1000LL;
 const int64_t kNumNanosPerMicro = 1000LL;
+const int64_t kNumNanosPerSecond = kNumNanosPerMicro * kNumMicrosPerSecond;
 
 void SleepForMicroseconds(int64_t microseconds);
 void SleepForMilliseconds(int milliseconds);
