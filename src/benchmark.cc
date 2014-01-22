@@ -467,8 +467,6 @@ class State::FastClock {
   // This method is very fast.
   inline bool HasReached(int64_t when_micros) {
     return std::atomic_load(&approx_time_) >= when_micros;
-    // NOTE: this is the same as we're dealing with an int64_t
-    // return (base::subtle::NoBarrier_Load(&approx_time_) >= when_micros);
   }
 
   // Returns the current time in microseconds past the epoch.
@@ -490,8 +488,6 @@ class State::FastClock {
   void InitType(Type type) {
     type_ = type;
     std::atomic_store(&approx_time_, NowMicros());
-    // NOTE: This is the same barring a memory barrier
-    // base::subtle::Release_Store(&approx_time_, NowMicros());
   }
 
  private:
@@ -524,12 +520,9 @@ class State::FastClock {
       ts.tv_sec += ts.tv_nsec / kNumNanosPerSecond;
       ts.tv_nsec %= kNumNanosPerSecond;
 
-      // NOTE: this should probably be platform specific.
       pthread_cond_timedwait(&bg_cond_, &bg_mutex_, &ts);
 
       std::atomic_store(&approx_time_, NowMicros());
-      // NOTE: same code but no memory barrier. think on it.
-      // base::subtle::Release_Store(&approx_time_, NowMicros());
     }
   }
 
