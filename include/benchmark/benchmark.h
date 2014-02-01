@@ -42,7 +42,7 @@ static void BM_memcpy(benchmark::State& state) {
   memset(src, 'x', state.range_x());
   while (state.KeepRunning()) {
     memcpy(dst, src, state.range_x());
-  SetBenchmarkBytesProcessed(int64_t_t(state.iterations) * int64(state.range_x()));
+  state.SetBytesProcessed(int64_t_t(state.iterations()) * int64(state.range_x()));
   delete[] src; delete[] dst;
 }
 BENCHMARK(BM_memcpy)->Arg(8)->Arg(64)->Arg(512)->Arg(1<<10)->Arg(8<<10);
@@ -61,7 +61,7 @@ static void BM_SetInsert(benchmark::State& state) {
     state.PauseTiming();
     set<int> data = ConstructRandomSet(state.range_x());
     state.ResumeTiming();
-    for (int j = 0; j < state.rangeY; ++j)
+    for (int j = 0; j < state.range_y(); ++j)
       data.insert(RandomNumber());
   }
 }
@@ -86,12 +86,11 @@ BENCHMARK(BM_SetInsert)->RangePair(1<<10, 8<<10, 1, 512);
 // arbitrary set of arguments to run the microbenchmark on.
 // The following example enumerates a dense range on
 // one parameter, and a sparse range on the second.
-static benchmark::internal::Benchmark* CustomArguments(
+static void CustomArguments(
     benchmark::internal::Benchmark* b) {
   for (int i = 0; i <= 10; ++i)
     for (int j = 32; j <= 1024*1024; j *= 8)
       b = b->ArgPair(i, j);
-  return b;
 }
 BENCHMARK(BM_SetInsert)->Apply(CustomArguments);
 

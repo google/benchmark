@@ -48,8 +48,9 @@ of memcpy() calls of different lengths:
       memset(src, 'x', state.range_x());
       while (state.KeepRunning()) {
         memcpy(dst, src, state.range_x());
-      benchmark::SetBenchmarkBytesProcessed(
-          int64_t(state.iterations) * int64_t(state.range_x()));
+      }
+      state.SetBytesProcessed(
+          int64_t(state.iterations()) * int64_t(state.range_x()));
       delete[] src;
       delete[] dst;
     }
@@ -71,7 +72,7 @@ measuring the speed of set insertion.
         state.PauseTiming();
         std::set<int> data = ConstructRandomSet(state.range_x());
         state.ResumeTiming();
-        for (int j = 0; j < state.rangeY; ++j)
+        for (int j = 0; j < state.range_y(); ++j)
           data.insert(RandomNumber());
       }
     }
@@ -98,12 +99,11 @@ arbitrary set of arguments to run the microbenchmark on.
 The following example enumerates a dense range on one parameter,
 and a sparse range on the second.
 
-    static benchmark::internal::Benchmark* CustomArguments(
+    static void CustomArguments(
         benchmark::internal::Benchmark* b) {
       for (int i = 0; i <= 10; ++i)
         for (int j = 32; j <= 1024*1024; j *= 8)
           b = b->ArgPair(i, j);
-      return b;
     }
     BENCHMARK(BM_SetInsert)->Apply(CustomArguments);
 
