@@ -1,7 +1,7 @@
 cmake_minimum_required (VERSION 2.8)
 project (benchmark)
 
-find_package(Threads)
+find_package(Threads REQUIRED)
 
 set(CMAKE_CXX_FLAGS "-Wall -Werror -pedantic-errors --std=c++0x")
 set(CMAKE_CXX_FLAGS_DEBUG "-g -O0 -DDEBUG")
