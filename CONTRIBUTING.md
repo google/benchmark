@@ -25,6 +25,14 @@ again.
 [individual CLA]: https://developers.google.com/open-source/cla/individual
 [corporate CLA]: https://developers.google.com/open-source/cla/corporate
 
+Once your CLA is submitted (or if you already submitted one for
+another Google project), make a commit adding yourself to the
+[AUTHORS][] and [CONTRIBUTORS][] files. This commit can be part
+of your first [pull request][].
+
+[AUTHORS]: AUTHORS
+[CONTRIBUTORS]: CONTRIBUTORS
+
 
 ## Submitting a patch ##
 
@@ -46,10 +54,5 @@ again.
   1. Finally, push the commits to your fork and submit a [pull request][].
 
 [forking]: https://help.github.com/articles/fork-a-repo
-[golint]: https://github.com/golang/lint
-[golint readme]: https://github.com/golang/lint/blob/master/README
-[gocov]: https://github.com/axw/gocov
-[gocov-html]: https://github.com/matm/gocov-html
 [well-formed commit messages]: http://tbaggery.com/2008/04/19/a-note-about-git-commit-messages.html
-[squash]: http://git-scm.com/book/en/Git-Tools-Rewriting-History#Squashing-Commits
 [pull request]: https://help.github.com/articles/creating-a-pull-request
