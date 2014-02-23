@@ -757,6 +757,7 @@ void Benchmark::FindBenchmarks(const std::string& spec,
   }
 
   mutex_lock l(&benchmark_mutex);
+  if (families == nullptr) return;  // There's no families.
   for (Benchmark* family : *families) {
     if (family == nullptr) continue;  // Family was deleted
 
