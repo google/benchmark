@@ -3,7 +3,7 @@ project (benchmark)
 
 find_package(Threads REQUIRED)
 
-set(CMAKE_CXX_FLAGS "-Wall -Werror -pedantic-errors --std=c++0x")
+set(CMAKE_CXX_FLAGS "-Wall -pedantic-errors --std=c++0x")
 set(CMAKE_CXX_FLAGS_DEBUG "-g -O0 -DDEBUG")
 set(CMAKE_CXX_FLAGS_RELEASE "-fno-strict-aliasing -O3 -DNDEBUG")
 
