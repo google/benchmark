@@ -863,7 +863,7 @@ void Benchmark::RunInstance(const Instance& b, const BenchmarkReporter* br) {
 
 // Run the specified benchmark, measure its peak memory usage, and
 // return the peak memory usage.
-double Benchmark::MeasurePeakHeapMemory(const Instance& b) {
+double Benchmark::MeasurePeakHeapMemory() {
   if (!get_memory_usage) return 0.0;
   double bytes = 0.0;
   /*  TODO(dominich)
