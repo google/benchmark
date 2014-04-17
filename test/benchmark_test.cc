@@ -86,12 +86,13 @@ BENCHMARK(BM_SetInsert)->RangePair(1<<10,8<<10, 1,10);
 
 template<typename Q>
 static void BM_Sequential(benchmark::State& state) {
-  Q q;
-  typename Q::value_type v;
-  while (state.KeepRunning())
+  typename Q::value_type v = 42;
+  while (state.KeepRunning()) {
+    Q q;
     for (int i = state.range_x(); --i; )
       q.push_back(v);
-  const int64_t items_processed = 
+  }
+  const int64_t items_processed =
       static_cast<int64_t>(state.iterations()) * state.range_x();
   state.SetItemsProcessed(items_processed);
   state.SetBytesProcessed(items_processed * sizeof(v));
