@@ -2,6 +2,7 @@
 #define BENCHMARK_MACROS_H_
 
 #include <assert.h>
+#include <stddef.h>
 
 #define DISALLOW_COPY_AND_ASSIGN(TypeName) \
   TypeName(const TypeName&);               \

@@ -17,6 +17,7 @@
 #include "colorprint.h"
 #include "commandlineflags.h"
 #include "mutex_lock.h"
+#include "re.h"
 #include "sleep.h"
 #include "stat.h"
 #include "sysinfo.h"
@@ -26,12 +27,6 @@
 #include <pthread.h>
 #include <semaphore.h>
 #include <string.h>
-
-#if defined OS_FREEBSD
-#include <gnuregex.h>
-#else
-#include <regex.h>
-#endif
 
 #include <algorithm>
 #include <atomic>
@@ -189,11 +184,7 @@ inline std::string HumanReadableNumber(double n) {
 // For non-dense Range, intermediate values are powers of kRangeMultiplier.
 static const int kRangeMultiplier = 8;
 
-// List of all registered benchmarks.  Note that each registered
-// benchmark identifies a family of related benchmarks to run.
 static pthread_mutex_t benchmark_mutex;
-static std::vector<internal::Benchmark*>* families = NULL;
-
 pthread_mutex_t starting_mutex;
 pthread_cond_t starting_cv;
 
@@ -297,6 +288,105 @@ void ComputeStats(const std::vector<BenchmarkReporter::Run>& reports,
 }  // namespace
 
 namespace internal {
+
+// Class for managing registered benchmarks.  Note that each registered
+// benchmark identifies a family of related benchmarks to run.
+class BenchmarkFamilies {
+ public:
+  static BenchmarkFamilies* GetInstance();
+
+  // Registers a benchmark family and returns the index assigned to it.
+  int AddBenchmark(Benchmark* family);
+
+  // Unregisters a family at the given index.
+  void RemoveBenchmark(int index);
+
+  // Extract the list of benchmark instances that match the specified
+  // regular expression.
+  void FindBenchmarks(const std::string& re,
+                      std::vector<Benchmark::Instance>* benchmarks);
+ private:
+  BenchmarkFamilies();
+  ~BenchmarkFamilies();
+
+  std::vector<Benchmark*> families_;
+};
+
+BenchmarkFamilies* BenchmarkFamilies::GetInstance() {
+  static BenchmarkFamilies instance;
+  return &instance;
+}
+
+BenchmarkFamilies::BenchmarkFamilies() { }
+
+BenchmarkFamilies::~BenchmarkFamilies() {
+  for (internal::Benchmark* family : families_) {
+    delete family;
+  }
+}
+
+int BenchmarkFamilies::AddBenchmark(Benchmark* family) {
+  mutex_lock l(&benchmark_mutex);
+  int index = families_.size();
+  families_.push_back(family);
+  return index;
+}
+
+void BenchmarkFamilies::RemoveBenchmark(int index) {
+  mutex_lock l(&benchmark_mutex);
+  families_[index] = NULL;
+
+  // Shrink the vector if convenient.
+  while (!families_.empty() && families_.back() == NULL) {
+    families_.pop_back();
+  }
+}
+
+void BenchmarkFamilies::FindBenchmarks(
+    const std::string& spec,
+    std::vector<Benchmark::Instance>* benchmarks) {
+  // Make regular expression out of command-line flag
+  Regex re;
+  std::string re_error;
+  if (!re.Init(spec, &re_error)) {
+    std::cerr << "Could not compile benchmark re: " << re_error << std::endl;
+    return;
+  }
+
+  mutex_lock l(&benchmark_mutex);
+  for (internal::Benchmark* family : families_) {
+    if (family == nullptr) continue;  // Family was deleted
+
+    // Match against filter.
+    if (!re.Match(family->name_)) {
+#ifdef DEBUG
+      std::cout << "Skipping " << family->name_ << "\n";
+#endif
+      continue;
+    }
+
+    std::vector<Benchmark::Instance> instances;
+    if (family->rangeX_.empty() && family->rangeY_.empty()) {
+      instances = family->CreateBenchmarkInstances(
+        Benchmark::kNoRange, Benchmark::kNoRange);
+      benchmarks->insert(benchmarks->end(), instances.begin(), instances.end());
+    } else if (family->rangeY_.empty()) {
+      for (size_t x = 0; x < family->rangeX_.size(); ++x) {
+        instances = family->CreateBenchmarkInstances(x, Benchmark::kNoRange);
+        benchmarks->insert(benchmarks->end(), instances.begin(),
+                           instances.end());
+      }
+    } else {
+      for (size_t x = 0; x < family->rangeX_.size(); ++x) {
+        for (size_t y = 0; y < family->rangeY_.size(); ++y) {
+          instances = family->CreateBenchmarkInstances(x, y);
+          benchmarks->insert(benchmarks->end(), instances.begin(),
+                             instances.end());
+        }
+      }
+    }
+  }
+}
 
 std::string ConsoleReporter::PrintMemoryUsage(double bytes) const {
   if (!get_memory_usage || bytes < 0.0) return "";
@@ -598,18 +688,11 @@ namespace internal {
 
 Benchmark::Benchmark(const char* name, BenchmarkFunction f)
     : name_(name), function_(f) {
-  mutex_lock l(&benchmark_mutex);
-  if (families == nullptr) families = new std::vector<Benchmark*>();
-  registration_index_ = families->size();
-  families->push_back(this);
+  registration_index_ = BenchmarkFamilies::GetInstance()->AddBenchmark(this);
 }
 
 Benchmark::~Benchmark() {
-  mutex_lock l(&benchmark_mutex);
-  CHECK((*families)[registration_index_] == this);
-  (*families)[registration_index_] = NULL;
-  // Shrink the vector if convenient.
-  while (!families->empty() && families->back() == NULL) families->pop_back();
+  BenchmarkFamilies::GetInstance()->RemoveBenchmark(registration_index_);
 }
 
 Benchmark* Benchmark::Arg(int x) {
@@ -738,57 +821,6 @@ std::vector<Benchmark::Instance> Benchmark::CreateBenchmarkInstances(
   }
 
   return instances;
-}
-
-// Extract the list of benchmark instances that match the specified
-// regular expression.
-void Benchmark::FindBenchmarks(const std::string& spec,
-                               std::vector<Instance>* benchmarks) {
-  // Make regular expression out of command-line flag
-  regex_t re;
-  int ec = regcomp(&re, spec.c_str(), REG_EXTENDED | REG_NOSUB);
-  if (ec != 0) {
-    size_t needed = regerror(ec, &re, NULL, 0);
-    char* errbuf = new char[needed];
-    regerror(ec, &re, errbuf, needed);
-    std::cerr << "Could not compile benchmark re: " << errbuf << "\n";
-    delete[] errbuf;
-    return;
-  }
-
-  mutex_lock l(&benchmark_mutex);
-  if (families == nullptr) return;  // There's no families.
-  for (Benchmark* family : *families) {
-    if (family == nullptr) continue;  // Family was deleted
-
-    // Match against filter.
-    if (regexec(&re, family->name_.c_str(), 0, NULL, 0) != 0) {
-#ifdef DEBUG
-      std::cout << "Skipping " << family->name_ << "\n";
-#endif
-      continue;
-    }
-
-    std::vector<Benchmark::Instance> instances;
-    if (family->rangeX_.empty() && family->rangeY_.empty()) {
-      instances = family->CreateBenchmarkInstances(kNoRange, kNoRange);
-      benchmarks->insert(benchmarks->end(), instances.begin(), instances.end());
-    } else if (family->rangeY_.empty()) {
-      for (size_t x = 0; x < family->rangeX_.size(); ++x) {
-        instances = family->CreateBenchmarkInstances(x, kNoRange);
-        benchmarks->insert(benchmarks->end(), instances.begin(),
-                           instances.end());
-      }
-    } else {
-      for (size_t x = 0; x < family->rangeX_.size(); ++x) {
-        for (size_t y = 0; y < family->rangeY_.size(); ++y) {
-          instances = family->CreateBenchmarkInstances(x, y);
-          benchmarks->insert(benchmarks->end(), instances.begin(),
-                             instances.end());
-        }
-      }
-    }
-  }
 }
 
 void Benchmark::MeasureOverhead() {
@@ -1135,7 +1167,7 @@ void RunMatchingBenchmarks(const std::string& spec,
   if (spec.empty()) return;
 
   std::vector<internal::Benchmark::Instance> benchmarks;
-  internal::Benchmark::FindBenchmarks(spec, &benchmarks);
+  BenchmarkFamilies::GetInstance()->FindBenchmarks(spec, &benchmarks);
 
   // Determine the width of the name field using a minimum width of 10.
   // Also determine max number of threads needed.
@@ -1174,7 +1206,7 @@ void FindMatchingBenchmarkNames(const std::string& spec,
   if (spec.empty()) return;
 
   std::vector<internal::Benchmark::Instance> benchmarks;
-  internal::Benchmark::FindBenchmarks(spec, &benchmarks);
+  BenchmarkFamilies::GetInstance()->FindBenchmarks(spec, &benchmarks);
   std::transform(benchmarks.begin(), benchmarks.end(), benchmark_names->begin(),
                  [](const internal::Benchmark::Instance& b) { return b.name; });
 }

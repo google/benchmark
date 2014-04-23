@@ -3,6 +3,20 @@ project (benchmark)
 
 find_package(Threads REQUIRED)
 
+# Import and build Google Test
+include(ExternalProject)
+set_directory_properties(properties EP_PREFIX "${CMAKE_BINARY_DIR}/third_party")
+ExternalProject_Add(googletest
+    URL "https://googletest.googlecode.com/files/gtest-1.7.0.zip"
+    URL_HASH SHA1=f85f6d2481e2c6c4a18539e391aa4ea8ab0394af
+    TLS_VERIFY on
+    SOURCE_DIR "${CMAKE_BINARY_DIR}/third_party/gtest"
+    INSTALL_COMMAND "")
+ExternalProject_Get_Property(googletest source_dir)
+include_directories(${source_dir}/include)
+ExternalProject_Get_Property(googletest binary_dir)
+link_directories(${binary_dir})
+
 set(CMAKE_CXX_FLAGS "-Wall -Werror -pedantic-errors --std=c++0x")
 set(CMAKE_CXX_FLAGS_DEBUG "-g -O0 -DDEBUG")
 set(CMAKE_CXX_FLAGS_RELEASE "-fno-strict-aliasing -O3 -DNDEBUG")
@@ -30,19 +44,6 @@ include_directories(${PROJECT_SOURCE_DIR}/include)
 include_directories(${PROJECT_SOURCE_DIR}/src)
 
 # Build the targets
-FILE(GLOB SOURCE_FILES "src/*.cc")
-add_library(benchmark STATIC ${SOURCE_FILES})
-
-add_executable(benchmark_test test/benchmark_test.cc)
-target_link_libraries(benchmark_test benchmark ${CMAKE_THREAD_LIBS_INIT})
-
-# Install target (will install the library to specified CMAKE_INSTALL_PREFIX variable)
-INSTALL(
-  TARGETS benchmark
-  ARCHIVE DESTINATION lib
-  LIBRARY DESTINATION lib
-  COMPONENT library)
-INSTALL(
-  DIRECTORY "${PROJECT_SOURCE_DIR}/include/benchmark"
-  DESTINATION include
-  FILES_MATCHING PATTERN "*.*h")
+enable_testing()
+add_subdirectory(src)
+add_subdirectory(test)

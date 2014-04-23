@@ -178,6 +178,7 @@ void UseRealTime();
 
 namespace internal {
 class Benchmark;
+class BenchmarkFamilies;
 }
 
 // State is passed to a running Benchmark and contains state for the
@@ -444,15 +445,12 @@ class Benchmark {
   // Used inside the benchmark implementation
   struct Instance;
 
-  // Extract the list of benchmark instances that match the specified
-  // regular expression.
-  static void FindBenchmarks(const std::string& re,
-                             std::vector<Instance>* benchmarks);
-
   // Measure the overhead of an empty benchmark to subtract later.
   static void MeasureOverhead();
 
  private:
+  friend class BenchmarkFamilies;
+
   std::vector<Benchmark::Instance> CreateBenchmarkInstances(int rangeXindex,
                                                             int rangeYindex);
 
