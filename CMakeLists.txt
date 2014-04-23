@@ -8,8 +8,6 @@ include(ExternalProject)
 set_directory_properties(properties EP_PREFIX "${CMAKE_BINARY_DIR}/third_party")
 ExternalProject_Add(googletest
     URL "https://googletest.googlecode.com/files/gtest-1.7.0.zip"
-    URL_HASH SHA1=f85f6d2481e2c6c4a18539e391aa4ea8ab0394af
-    TLS_VERIFY on
     SOURCE_DIR "${CMAKE_BINARY_DIR}/third_party/gtest"
     INSTALL_COMMAND "")
 ExternalProject_Get_Property(googletest source_dir)
