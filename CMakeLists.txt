@@ -30,19 +30,6 @@ include_directories(${PROJECT_SOURCE_DIR}/include)
 include_directories(${PROJECT_SOURCE_DIR}/src)
 
 # Build the targets
-FILE(GLOB SOURCE_FILES "src/*.cc")
-add_library(benchmark STATIC ${SOURCE_FILES})
-
-add_executable(benchmark_test test/benchmark_test.cc)
-target_link_libraries(benchmark_test benchmark ${CMAKE_THREAD_LIBS_INIT})
-
-# Install target (will install the library to specified CMAKE_INSTALL_PREFIX variable)
-INSTALL(
-  TARGETS benchmark
-  ARCHIVE DESTINATION lib
-  LIBRARY DESTINATION lib
-  COMPONENT library)
-INSTALL(
-  DIRECTORY "${PROJECT_SOURCE_DIR}/include/benchmark"
-  DESTINATION include
-  FILES_MATCHING PATTERN "*.*h")
+enable_testing()
+add_subdirectory(src)
+add_subdirectory(test)
