@@ -3,6 +3,20 @@ project (benchmark)
 
 find_package(Threads REQUIRED)
 
+# Import and build Google Test
+include(ExternalProject)
+set_directory_properties(properties EP_PREFIX "${CMAKE_BINARY_DIR}/third_party")
+ExternalProject_Add(googletest
+    URL "https://googletest.googlecode.com/files/gtest-1.7.0.zip"
+    URL_HASH SHA1=f85f6d2481e2c6c4a18539e391aa4ea8ab0394af
+    TLS_VERIFY on
+    SOURCE_DIR "${CMAKE_BINARY_DIR}/third_party/gtest"
+    INSTALL_COMMAND "")
+ExternalProject_Get_Property(googletest source_dir)
+include_directories(${source_dir}/include)
+ExternalProject_Get_Property(googletest binary_dir)
+link_directories(${binary_dir})
+
 set(CMAKE_CXX_FLAGS "-Wall -Werror -pedantic-errors --std=c++0x")
 set(CMAKE_CXX_FLAGS_DEBUG "-g -O0 -DDEBUG")
 set(CMAKE_CXX_FLAGS_RELEASE "-fno-strict-aliasing -O3 -DNDEBUG")
