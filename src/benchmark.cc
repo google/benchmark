@@ -577,6 +577,7 @@ class State::FastClock {
   // function starts running - see UseRealTime).
   void InitType(Type type) {
     type_ = type;
+    mutex_lock l(&bg_mutex_);
     std::atomic_store(&approx_time_, NowMicros());
   }
 
