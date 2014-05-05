@@ -184,7 +184,7 @@ inline std::string HumanReadableNumber(double n) {
 // For non-dense Range, intermediate values are powers of kRangeMultiplier.
 static const int kRangeMultiplier = 8;
 
-static pthread_mutex_t benchmark_mutex;
+static pthread_mutex_t benchmark_mutex = PTHREAD_MUTEX_INITIALIZER;
 pthread_mutex_t starting_mutex;
 pthread_cond_t starting_cv;
 
@@ -1260,11 +1260,9 @@ void RunSpecifiedBenchmarks(const BenchmarkReporter* reporter /*= nullptr*/) {
       spec, reporter == nullptr ? &default_reporter : reporter);
   pthread_cond_destroy(&starting_cv);
   pthread_mutex_destroy(&starting_mutex);
-  pthread_mutex_destroy(&benchmark_mutex);
 }
 
 void Initialize(int* argc, const char** argv) {
-  pthread_mutex_init(&benchmark_mutex, nullptr);
   pthread_mutex_init(&starting_mutex, nullptr);
   pthread_cond_init(&starting_cv, nullptr);
   walltime::Initialize();
