@@ -665,8 +665,10 @@ struct Benchmark::Instance {
 struct State::SharedState {
   const internal::Benchmark::Instance* instance;
   pthread_mutex_t mu;
+  pthread_cond_t cond;
   int starting;  // Number of threads that have entered STARTING state
   int stopping;  // Number of threads that have entered STOPPING state
+  int exited;    // Number of threads that have complete exited
   int threads;   // Number of total threads that are running concurrently
   ThreadStats stats;
   std::vector<BenchmarkReporter::Run> runs;  // accumulated runs
@@ -676,11 +678,16 @@ struct State::SharedState {
       : instance(b),
         starting(0),
         stopping(0),
+        exited(0),
         threads(b == nullptr ? 1 : b->threads) {
     pthread_mutex_init(&mu, nullptr);
+    pthread_cond_init(&cond, nullptr);
   }
 
-  ~SharedState() { pthread_mutex_destroy(&mu); }
+  ~SharedState() {
+    pthread_cond_destroy(&cond);
+    pthread_mutex_destroy(&mu);
+  }
   DISALLOW_COPY_AND_ASSIGN(SharedState)
 };
 
@@ -953,22 +960,42 @@ bool State::KeepRunning() {
     return true;
   }
 
+  // To block thread 0 until all other threads exit, we have a signal exit
+  // point for KeepRunning() to return false.  The fast path above always
+  // returns true.
+  bool ret = false;
   switch (state_) {
     case STATE_INITIAL:
-      return StartRunning();
+      ret = StartRunning();
+      break;
     case STATE_STARTING:
       CHECK(false);
-      return true;
+      ret = true;
+      break;
     case STATE_RUNNING:
-      return FinishInterval();
+      ret = FinishInterval();
+      break;
     case STATE_STOPPING:
-      return MaybeStop();
+      ret = MaybeStop();
+      break;
     case STATE_STOPPED:
       CHECK(false);
-      return true;
+      ret = true;
+      break;
   }
-  CHECK(false);
-  return false;
+
+  if (!ret && shared_->threads > 1 && thread_index == 0){
+    mutex_lock l(&shared_->mu);
+
+    // Block until all other threads have exited.  We can then safely cleanup
+    // without other threads continuing to access shared variables inside the
+    // user-provided run function.
+    while (shared_->exited < shared_->threads - 1) {
+      pthread_cond_wait(&shared_->cond, &shared_->mu);
+    }
+  }
+
+  return ret;
 }
 
 void State::PauseTiming() { start_pause_ = walltime::Now(); }
@@ -1157,6 +1184,17 @@ void* State::RunWrapper(void* arg) {
   State* that = (State*)arg;
   CHECK(that != nullptr);
   that->Run();
+
+  mutex_lock l(&that->shared_->mu);
+
+  that->shared_->exited++;
+  if (that->thread_index > 0 &&
+      that->shared_->exited == that->shared_->threads - 1) {
+    // All threads but thread 0 have exited the user-provided run function.
+    // Thread 0 can now wake up and exit.
+    pthread_cond_signal(&that->shared_->cond);
+  }
+
   return nullptr;
 }
 
