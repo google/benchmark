@@ -14,17 +14,33 @@
 
 #include "sysinfo.h"
 
+#include "port.h"
+
 #include <errno.h>
 #include <fcntl.h>
+#if defined HAVE_PTHREAD_H
 #include <pthread.h>
+#endif
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#if defined HAVE_SYS_RESOURCE_H
 #include <sys/resource.h>
+#endif
+#if defined HAVE_SYS_SYSCTL_H
 #include <sys/sysctl.h>
+#endif
+#if defined HAVE_SYS_TIME_H
 #include <sys/time.h>
+#endif
 #include <sys/types.h>
+#if defined HAVE_UNISTD_H
 #include <unistd.h>
+#endif
+#if defined OS_WINDOWS
+#include "windows/pthread.h"
+#endif
 
 #include <iostream>
 #include <limits>
@@ -236,7 +252,7 @@ void InitializeSystemInfo() {
           SHGetValueA(HKEY_LOCAL_MACHINE,
                       "HARDWARE\\DESCRIPTION\\System\\CentralProcessor\\0",
                       "~MHz", NULL, &data, &data_size)))
-    cpuinfo_cycles_per_second = (int64)data * (int64)(1000 * 1000);  // was mhz
+    cpuinfo_cycles_per_second = (int64_t)data * (int64_t)(1000 * 1000);  // was mhz
   else
     cpuinfo_cycles_per_second = EstimateCyclesPerSecond();
 // TODO: also figure out cpuinfo_num_cpus
@@ -339,6 +355,27 @@ double ChildrenCPUUsage() {
   } else {
     return 0.0;
   }
+}
+#else
+double MyCPUUsage() {
+  HANDLE h_process = GetCurrentProcess();
+  FILETIME ft_creation;
+  FILETIME ft_exit;
+  FILETIME ft_kernel;
+  FILETIME ft_user;
+  ULARGE_INTEGER kernel;
+  ULARGE_INTEGER user;
+
+  GetProcessTimes(h_process, &ft_creation, &ft_exit, &ft_kernel, &ft_user);
+  kernel.HighPart = ft_kernel.dwHighDateTime;
+  kernel.LowPart = ft_kernel.dwLowDateTime;
+  user.HighPart = ft_user.dwHighDateTime;
+  user.LowPart = ft_user.dwLowDateTime;
+  return ((double)kernel.QuadPart + (double)user.QuadPart) * 1.0E-7;
+}
+
+double ChildrenCPUUsage() {
+  return 0;
 }
 #endif  // OS_WINDOWS
 

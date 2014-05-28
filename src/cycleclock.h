@@ -21,11 +21,14 @@
 #ifndef BENCHMARK_CYCLECLOCK_H_
 #define BENCHMARK_CYCLECLOCK_H_
 
+#include "port.h"
+
 #include <stdint.h>
 
 #if defined(OS_MACOSX)
 #include <mach/mach_time.h>
 #endif
+
 // For MSVC, we want to use '_asm rdtsc' when possible (since it works
 // with even ancient MSVC compilers), and when not possible the
 // __rdtsc intrinsic, declared in <intrin.h>.  Unfortunately, in some
@@ -37,7 +40,9 @@
 extern "C" uint64_t __rdtsc();
 #pragma intrinsic(__rdtsc)
 #endif
+#if defined HAVE_SYS_TIME_H
 #include <sys/time.h>
+#endif
 
 #include "benchmark/macros.h"
 

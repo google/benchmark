@@ -17,6 +17,7 @@
 #include <stdarg.h>
 
 #include "commandlineflags.h"
+#include "port.h"
 
 DECLARE_bool(color_print);
 

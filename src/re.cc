@@ -20,6 +20,9 @@ namespace benchmark {
 Regex::Regex() : init_(false) { }
 
 bool Regex::Init(const std::string& spec, std::string* error) {
+#if defined HAVE_REGEX
+  re_ = std::regex(spec, std::regex::extended | std::regex::nosubs);
+#else
   int ec = regcomp(&re_, spec.c_str(), REG_EXTENDED | REG_NOSUB);
   if (ec != 0) {
     if (error) {
@@ -38,13 +41,16 @@ bool Regex::Init(const std::string& spec, std::string* error) {
     return false;
   }
 
+#endif
   init_ = true;
   return true;
 }
 
 Regex::~Regex() {
   if (init_) {
+#if !defined HAVE_REGEX
     regfree(&re_);
+#endif
   }
 }
 
@@ -53,7 +59,11 @@ bool Regex::Match(const std::string& str) {
     return false;
   }
 
+#if defined HAVE_REGEX
+  return std::regex_search(str, re_);
+#else
   return regexec(&re_, str.c_str(), 0, NULL, 0) == 0;
+#endif
 }
 
 }  // end namespace benchmark

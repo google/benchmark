@@ -15,10 +15,14 @@
 #ifndef BENCHMARK_RE_H_
 #define BENCHMARK_RE_H_
 
-#if defined OS_FREEBSD
+#include "port.h"
+
+#if defined HAVE_GNUREGEX_H
 #include <gnuregex.h>
-#else
+#elif defined HAVE_REGEX_H
 #include <regex.h>
+#elif defined HAVE_REGEX
+#include <regex>
 #endif
 #include <string>
 
@@ -42,7 +46,11 @@ class Regex {
  private:
   bool init_;
   // Underlying regular expression object
+#if defined HAVE_REGEX
+  std::regex re_;
+#else
   regex_t re_;
+#endif
 };
 
 }  // end namespace benchmark

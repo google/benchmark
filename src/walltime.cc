@@ -14,9 +14,13 @@
 
 #include "walltime.h"
 
+#include "port.h"
+
 #include <stdio.h>
 #include <string.h>
+#if defined HAVE_SYS_TIME_H
 #include <sys/time.h>
+#endif
 #include <time.h>
 
 #include <atomic>
