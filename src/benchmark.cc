@@ -248,9 +248,9 @@ void ComputeStats(const std::vector<BenchmarkReporter::Run>& reports,
        it != reports.end(); ++it) {
     CHECK_EQ(reports[0].benchmark_name, it->benchmark_name);
     real_accumulated_time_stat +=
-        Stat1_d(it->real_accumulated_time, it->iterations);
+        Stat1_d(it->real_accumulated_time / it->iterations, it->iterations);
     cpu_accumulated_time_stat +=
-        Stat1_d(it->cpu_accumulated_time, it->iterations);
+        Stat1_d(it->cpu_accumulated_time / it->iterations, it->iterations);
     items_per_second_stat += Stat1_d(it->items_per_second, it->iterations);
     bytes_per_second_stat += Stat1_d(it->bytes_per_second, it->iterations);
     iterations_stat += Stat1_d(it->iterations, it->iterations);
@@ -260,9 +260,9 @@ void ComputeStats(const std::vector<BenchmarkReporter::Run>& reports,
 
   // Get the data from the accumulator to BenchmarkRunData's.
   mean_data->benchmark_name = reports[0].benchmark_name + "_mean";
-  mean_data->iterations = iterations_stat.Mean();
-  mean_data->real_accumulated_time = real_accumulated_time_stat.Mean();
-  mean_data->cpu_accumulated_time = cpu_accumulated_time_stat.Mean();
+  mean_data->iterations = real_accumulated_time_stat.numSamples();
+  mean_data->real_accumulated_time = real_accumulated_time_stat.sum();
+  mean_data->cpu_accumulated_time = cpu_accumulated_time_stat.sum();
   mean_data->bytes_per_second = bytes_per_second_stat.Mean();
   mean_data->items_per_second = items_per_second_stat.Mean();
   mean_data->max_heapbytes_used = max_heapbytes_used_stat.max();
@@ -278,9 +278,13 @@ void ComputeStats(const std::vector<BenchmarkReporter::Run>& reports,
 
   stddev_data->benchmark_name = reports[0].benchmark_name + "_stddev";
   stddev_data->report_label = mean_data->report_label;
-  stddev_data->iterations = iterations_stat.StdDev();
-  stddev_data->real_accumulated_time = real_accumulated_time_stat.StdDev();
-  stddev_data->cpu_accumulated_time = cpu_accumulated_time_stat.StdDev();
+  stddev_data->iterations = real_accumulated_time_stat.numSamples();
+  // We multiply by the number of iterations since PrintRunData expects a total
+  // time.
+  stddev_data->real_accumulated_time = real_accumulated_time_stat.StdDev() *
+                                       stddev_data->iterations;
+  stddev_data->cpu_accumulated_time = cpu_accumulated_time_stat.StdDev() *
+                                      stddev_data->iterations;
   stddev_data->bytes_per_second = bytes_per_second_stat.StdDev();
   stddev_data->items_per_second = items_per_second_stat.StdDev();
   stddev_data->max_heapbytes_used = max_heapbytes_used_stat.StdDev();
