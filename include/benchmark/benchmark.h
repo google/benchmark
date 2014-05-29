@@ -276,8 +276,10 @@ class State {
   double start_time_;
   int64_t stop_time_micros_;
 
-  double start_pause_;
-  double pause_time_;
+  double start_pause_cpu_;
+  double pause_cpu_time_;
+  double start_pause_real_;
+  double pause_real_time_;
 
   // Total number of iterations for all finished runs.
   int64_t total_iterations_;
