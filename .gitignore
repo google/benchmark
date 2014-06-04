@@ -1,3 +1,7 @@
+*.a
+*.cmake
+/test/benchmark_test
+/test/re_test
 CMakeCache.txt
 CMakeFiles/
 Makefile
