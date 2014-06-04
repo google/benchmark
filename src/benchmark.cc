@@ -12,8 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <algorithm>
-
 #include "benchmark/benchmark.h"
 #include "benchmark/macros.h"
 #include "colorprint.h"
@@ -285,20 +283,20 @@ void ComputeStats(const std::vector<BenchmarkReporter::Run>& reports,
   stddev_data->benchmark_name = reports[0].benchmark_name + "_stddev";
   stddev_data->report_label = mean_data->report_label;
   stddev_data->iterations = iterations_stat.StdDev();
-  // Ugly hack here!  iterations_stat.StdDev() above may be 0 if all the
-  // repetitions have the same number of iterations.  Blindly multiplying by 0
+  // The value of iterations_stat.StdDev() above may be 0 if all the repetitions
+  // have the same number of iterations.  Blindly multiplying by 0
   // in the computation of real/cpu_accumulated_time below would lead to 0/0 in
-  // PrintRunData.  To avoid this, we set the number of iterations to something
-  // negative here, and PrintRunData prints it as 0 (see the std::max there).
-  // Thus the stddev of both the number of iterations and the times are printed
-  // correctly.
+  // PrintRunData.  So we skip the multiplication in this case and PrintRunData
+  // skips the division.
   if (stddev_data->iterations == 0) {
-    stddev_data->iterations = -1;
+    stddev_data->real_accumulated_time = real_accumulated_time_stat.StdDev();
+    stddev_data->cpu_accumulated_time = cpu_accumulated_time_stat.StdDev();
+  } else {
+    stddev_data->real_accumulated_time = real_accumulated_time_stat.StdDev() *
+                                         stddev_data->iterations;
+    stddev_data->cpu_accumulated_time = cpu_accumulated_time_stat.StdDev() *
+                                        stddev_data->iterations;
   }
-  stddev_data->real_accumulated_time = real_accumulated_time_stat.StdDev() *
-                                       stddev_data->iterations;
-  stddev_data->cpu_accumulated_time = cpu_accumulated_time_stat.StdDev() *
-                                      stddev_data->iterations;
   stddev_data->bytes_per_second = bytes_per_second_stat.StdDev();
   stddev_data->items_per_second = items_per_second_stat.StdDev();
   stddev_data->max_heapbytes_used = max_heapbytes_used_stat.StdDev();
@@ -482,13 +480,18 @@ void ConsoleReporter::PrintRunData(const BenchmarkReporter::Run& result) const {
   ColorPrintf(COLOR_DEFAULT, "%s", Prefix());
   ColorPrintf(COLOR_GREEN, "%-*s ",
               name_field_width_, result.benchmark_name.c_str());
-  ColorPrintf(COLOR_YELLOW, "%10.0f %10.0f ",
-              (result.real_accumulated_time * 1e9) /
-                  (static_cast<double>(result.iterations)),
-              (result.cpu_accumulated_time * 1e9) /
-                  (static_cast<double>(result.iterations)));
-  // See ComputeStats for why a negative value is printed as 0.
-  ColorPrintf(COLOR_CYAN, "%10lld", std::max(0LL, result.iterations));
+  if (result.iterations == 0) {
+    ColorPrintf(COLOR_YELLOW, "%10.0f %10.0f ",
+                result.real_accumulated_time * 1e9,
+                result.cpu_accumulated_time * 1e9);
+  } else {
+    ColorPrintf(COLOR_YELLOW, "%10.0f %10.0f ",
+                (result.real_accumulated_time * 1e9) /
+                    (static_cast<double>(result.iterations)),
+                (result.cpu_accumulated_time * 1e9) /
+                    (static_cast<double>(result.iterations)));
+  }
+  ColorPrintf(COLOR_CYAN, "%10lld", result.iterations);
   ColorPrintf(COLOR_DEFAULT, "%*s %*s %s %s\n",
               13, rate.c_str(),
               18, items.c_str(),
