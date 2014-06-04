@@ -955,7 +955,8 @@ State::State(FastClock* clock, SharedState* s, int t)
 bool State::KeepRunning() {
   // Fast path
   if ((FLAGS_benchmark_iterations == 0 &&
-       !clock_->HasReached(stop_time_micros_ + pause_time_)) ||
+       !clock_->HasReached(stop_time_micros_ +
+                           kNumMicrosPerSecond * pause_time_)) ||
       iterations_ < FLAGS_benchmark_iterations) {
     ++iterations_;
     return true;
@@ -996,6 +997,9 @@ bool State::KeepRunning() {
     }
   }
 
+  if (ret) {
+    ++iterations_;
+  }
   return ret;
 }
 
