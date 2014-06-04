@@ -284,8 +284,8 @@ void ComputeStats(const std::vector<BenchmarkReporter::Run>& reports,
   stddev_data->report_label = mean_data->report_label;
   stddev_data->iterations = iterations_stat.StdDev();
   // The value of iterations_stat.StdDev() above may be 0 if all the repetitions
-  // have the same number of iterations.  Blindly multiplying by 0
-  // in the computation of real/cpu_accumulated_time below would lead to 0/0 in
+  // have the same number of iterations.  Blindly multiplying by 0 in the
+  // computation of real/cpu_accumulated_time below would lead to 0/0 in
   // PrintRunData.  So we skip the multiplication in this case and PrintRunData
   // skips the division.
   if (stddev_data->iterations == 0) {
