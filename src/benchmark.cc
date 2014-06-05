@@ -962,8 +962,10 @@ State::State(FastClock* clock, SharedState* s, int t)
       start_cpu_(0.0),
       start_time_(0.0),
       stop_time_micros_(0.0),
-      start_pause_(0.0),
-      pause_time_(0.0),
+      start_pause_cpu_(0.0),
+      pause_cpu_time_(0.0),
+      start_pause_real_(0.0),
+      pause_real_time_(0.0),
       total_iterations_(0),
       interval_micros_(static_cast<int64_t>(kNumMicrosPerSecond *
                                             FLAGS_benchmark_min_time /
@@ -978,7 +980,7 @@ bool State::KeepRunning() {
   // Fast path
   if ((FLAGS_benchmark_iterations == 0 &&
        !clock_->HasReached(stop_time_micros_ +
-                           kNumMicrosPerSecond * pause_time_)) ||
+                           kNumMicrosPerSecond * pause_real_time_)) ||
       iterations_ < FLAGS_benchmark_iterations) {
     ++iterations_;
     return true;
@@ -1025,9 +1027,15 @@ bool State::KeepRunning() {
   return ret;
 }
 
-void State::PauseTiming() { start_pause_ = walltime::Now(); }
+void State::PauseTiming() {
+  start_pause_cpu_ = MyCPUUsage() + ChildrenCPUUsage();
+  start_pause_real_ = walltime::Now();
+}
 
-void State::ResumeTiming() { pause_time_ += walltime::Now() - start_pause_; }
+void State::ResumeTiming() {
+  pause_cpu_time_ += MyCPUUsage() + ChildrenCPUUsage() - start_pause_cpu_;
+  pause_real_time_ += walltime::Now() - start_pause_real_;
+}
 
 void State::SetBytesProcessed(int64_t bytes) {
   CHECK_EQ(STATE_STOPPED, state_);
@@ -1104,7 +1112,8 @@ void State::NewInterval() {
               << "\n";
 #endif
     iterations_ = 0;
-    pause_time_ = 0;
+    pause_cpu_time_ = 0;
+    pause_real_time_ = 0;
     start_cpu_ = MyCPUUsage() + ChildrenCPUUsage();
     start_time_ = walltime::Now();
   } else {
@@ -1136,11 +1145,12 @@ bool State::FinishInterval() {
 
   const double accumulated_time = walltime::Now() - start_time_;
   const double total_overhead = overhead * iterations_;
-  CHECK_LT(pause_time_, accumulated_time);
-  CHECK_LT(pause_time_ + total_overhead, accumulated_time);
+  CHECK_LT(pause_real_time_, accumulated_time);
+  CHECK_LT(pause_real_time_ + total_overhead, accumulated_time);
   data.real_accumulated_time =
-      accumulated_time - (pause_time_ + total_overhead);
-  data.cpu_accumulated_time = (MyCPUUsage() + ChildrenCPUUsage()) - start_cpu_;
+      accumulated_time - (pause_real_time_ + total_overhead);
+  data.cpu_accumulated_time = (MyCPUUsage() + ChildrenCPUUsage()) -
+                              (pause_cpu_time_ + start_cpu_);
   total_iterations_ += iterations_;
 
   bool keep_going = false;
