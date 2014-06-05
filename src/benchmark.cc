@@ -248,9 +248,9 @@ void ComputeStats(const std::vector<BenchmarkReporter::Run>& reports,
        it != reports.end(); ++it) {
     CHECK_EQ(reports[0].benchmark_name, it->benchmark_name);
     real_accumulated_time_stat +=
-        Stat1_d(it->real_accumulated_time, it->iterations);
+        Stat1_d(it->real_accumulated_time / it->iterations, it->iterations);
     cpu_accumulated_time_stat +=
-        Stat1_d(it->cpu_accumulated_time, it->iterations);
+        Stat1_d(it->cpu_accumulated_time / it->iterations, it->iterations);
     items_per_second_stat += Stat1_d(it->items_per_second, it->iterations);
     bytes_per_second_stat += Stat1_d(it->bytes_per_second, it->iterations);
     iterations_stat += Stat1_d(it->iterations, it->iterations);
@@ -258,11 +258,15 @@ void ComputeStats(const std::vector<BenchmarkReporter::Run>& reports,
         Stat1MinMax_d(it->max_heapbytes_used, it->iterations);
   }
 
-  // Get the data from the accumulator to BenchmarkRunData's.
+  // Get the data from the accumulator to BenchmarkRunData's.  In the
+  // computations below we must multiply by the number of iterations since
+  // PrintRunData will divide by it.
   mean_data->benchmark_name = reports[0].benchmark_name + "_mean";
   mean_data->iterations = iterations_stat.Mean();
-  mean_data->real_accumulated_time = real_accumulated_time_stat.Mean();
-  mean_data->cpu_accumulated_time = cpu_accumulated_time_stat.Mean();
+  mean_data->real_accumulated_time = real_accumulated_time_stat.Mean() *
+                                     mean_data->iterations;
+  mean_data->cpu_accumulated_time = cpu_accumulated_time_stat.Mean() *
+                                    mean_data->iterations;
   mean_data->bytes_per_second = bytes_per_second_stat.Mean();
   mean_data->items_per_second = items_per_second_stat.Mean();
   mean_data->max_heapbytes_used = max_heapbytes_used_stat.max();
@@ -279,8 +283,20 @@ void ComputeStats(const std::vector<BenchmarkReporter::Run>& reports,
   stddev_data->benchmark_name = reports[0].benchmark_name + "_stddev";
   stddev_data->report_label = mean_data->report_label;
   stddev_data->iterations = iterations_stat.StdDev();
-  stddev_data->real_accumulated_time = real_accumulated_time_stat.StdDev();
-  stddev_data->cpu_accumulated_time = cpu_accumulated_time_stat.StdDev();
+  // The value of iterations_stat.StdDev() above may be 0 if all the repetitions
+  // have the same number of iterations.  Blindly multiplying by 0 in the
+  // computation of real/cpu_accumulated_time below would lead to 0/0 in
+  // PrintRunData.  So we skip the multiplication in this case and PrintRunData
+  // skips the division.
+  if (stddev_data->iterations == 0) {
+    stddev_data->real_accumulated_time = real_accumulated_time_stat.StdDev();
+    stddev_data->cpu_accumulated_time = cpu_accumulated_time_stat.StdDev();
+  } else {
+    stddev_data->real_accumulated_time = real_accumulated_time_stat.StdDev() *
+                                         stddev_data->iterations;
+    stddev_data->cpu_accumulated_time = cpu_accumulated_time_stat.StdDev() *
+                                        stddev_data->iterations;
+  }
   stddev_data->bytes_per_second = bytes_per_second_stat.StdDev();
   stddev_data->items_per_second = items_per_second_stat.StdDev();
   stddev_data->max_heapbytes_used = max_heapbytes_used_stat.StdDev();
@@ -464,11 +480,17 @@ void ConsoleReporter::PrintRunData(const BenchmarkReporter::Run& result) const {
   ColorPrintf(COLOR_DEFAULT, "%s", Prefix());
   ColorPrintf(COLOR_GREEN, "%-*s ",
               name_field_width_, result.benchmark_name.c_str());
-  ColorPrintf(COLOR_YELLOW, "%10.0f %10.0f ",
-              (result.real_accumulated_time * 1e9) /
-                  (static_cast<double>(result.iterations)),
-              (result.cpu_accumulated_time * 1e9) /
-                  (static_cast<double>(result.iterations)));
+  if (result.iterations == 0) {
+    ColorPrintf(COLOR_YELLOW, "%10.0f %10.0f ",
+                result.real_accumulated_time * 1e9,
+                result.cpu_accumulated_time * 1e9);
+  } else {
+    ColorPrintf(COLOR_YELLOW, "%10.0f %10.0f ",
+                (result.real_accumulated_time * 1e9) /
+                    (static_cast<double>(result.iterations)),
+                (result.cpu_accumulated_time * 1e9) /
+                    (static_cast<double>(result.iterations)));
+  }
   ColorPrintf(COLOR_CYAN, "%10lld", result.iterations);
   ColorPrintf(COLOR_DEFAULT, "%*s %*s %s %s\n",
               13, rate.c_str(),
@@ -957,7 +979,8 @@ State::State(FastClock* clock, SharedState* s, int t)
 bool State::KeepRunning() {
   // Fast path
   if ((FLAGS_benchmark_iterations == 0 &&
-       !clock_->HasReached(stop_time_micros_ + pause_real_time_)) ||
+       !clock_->HasReached(stop_time_micros_ +
+                           kNumMicrosPerSecond * pause_real_time_)) ||
       iterations_ < FLAGS_benchmark_iterations) {
     ++iterations_;
     return true;
@@ -998,6 +1021,9 @@ bool State::KeepRunning() {
     }
   }
 
+  if (ret) {
+    ++iterations_;
+  }
   return ret;
 }
 
