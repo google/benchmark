@@ -39,7 +39,7 @@
 #include <unistd.h>
 #endif
 #if defined OS_WINDOWS
-#include "windows/pthread.h"
+#include "benchmark/windows/pthread.h"
 #endif
 
 #include <iostream>

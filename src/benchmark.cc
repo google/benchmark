@@ -41,7 +41,7 @@
 #include <sstream>
 
 #if defined OS_WINDOWS
-#include "windows/pthread.h"
+#include "benchmark/windows/pthread.h"
 #endif
 
 DEFINE_string(benchmark_filter, ".",

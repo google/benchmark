@@ -150,7 +150,7 @@ BENCHMARK(BM_MultiThreaded)->Threads(4);
 #include "macros.h"
 
 #if defined OS_WINDOWS
-#include "../src/windows/pthread.h"
+#include "windows/pthread.h"
 #endif
 
 namespace benchmark {
