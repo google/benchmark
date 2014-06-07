@@ -1,7 +1,7 @@
 #ifndef BENCHMARK_MUTEX_LOCK_H_
 #define BENCHMARK_MUTEX_LOCK_H_
 
-#include "port.h"
+#include "benchmark/port.h"
 
 #if defined HAVE_PTHREAD_H
 #include <pthread.h>

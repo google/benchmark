@@ -135,7 +135,7 @@ BENCHMARK(BM_MultiThreaded)->Threads(4);
 #ifndef BENCHMARK_BENCHMARK_H_
 #define BENCHMARK_BENCHMARK_H_
 
-#include "../src/port.h"
+#include "port.h"
 
 #include <stdint.h>
 

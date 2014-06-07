@@ -15,7 +15,7 @@
 #ifndef BENCHMARK_RE_H_
 #define BENCHMARK_RE_H_
 
-#include "port.h"
+#include "benchmark/port.h"
 
 #if defined HAVE_GNUREGEX_H
 #include <gnuregex.h>

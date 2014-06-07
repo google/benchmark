@@ -21,7 +21,7 @@
 #ifndef BENCHMARK_CYCLECLOCK_H_
 #define BENCHMARK_CYCLECLOCK_H_
 
-#include "port.h"
+#include "benchmark/port.h"
 
 #include <stdint.h>
 
