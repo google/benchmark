@@ -25,7 +25,7 @@
 template <typename T, size_t N>
 char (&ArraySizeHelper(T (&array)[N]))[N];
 
-// That gcc waents both of these prototypes seems mysterious. VC, for
+// That gcc wants both of these prototypes seems mysterious. VC, for
 // its part, can't decide which to use (another mystery). Matching of
 // template overloads: the final frontier.
 #ifndef COMPILER_MSVC
