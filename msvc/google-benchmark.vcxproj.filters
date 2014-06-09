@@ -51,7 +51,7 @@
     <ClInclude Include="..\include\benchmark\port.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\benchmark\windows\pthread.h">
+    <ClInclude Include="..\src\windows\pthread.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

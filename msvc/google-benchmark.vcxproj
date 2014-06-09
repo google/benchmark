@@ -14,7 +14,6 @@
     <ClInclude Include="..\include\benchmark\benchmark.h" />
     <ClInclude Include="..\include\benchmark\macros.h" />
     <ClInclude Include="..\include\benchmark\port.h" />
-    <ClInclude Include="..\include\benchmark\windows\pthread.h" />
     <ClInclude Include="..\src\colorprint.h" />
     <ClInclude Include="..\src\commandlineflags.h" />
     <ClInclude Include="..\src\cycleclock.h" />
@@ -24,6 +23,7 @@
     <ClInclude Include="..\src\stat.h" />
     <ClInclude Include="..\src\sysinfo.h" />
     <ClInclude Include="..\src\walltime.h" />
+    <ClInclude Include="..\src\windows\pthread.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\src\benchmark.cc" />

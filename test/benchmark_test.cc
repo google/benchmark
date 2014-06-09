@@ -10,6 +10,12 @@
 #include <set>
 #include <sstream>
 #include <vector>
+#if defined HAVE_PTHREAD_H
+#include <pthread.h>
+#endif
+#if defined OS_WINDOWS
+#include "windows/pthread.h"
+#endif
 
 namespace {
 

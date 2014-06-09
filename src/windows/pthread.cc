@@ -43,7 +43,7 @@
  * Fixes pthread_barrier_destroy() to wait for threads to exit the barrier.
  */
 
-#include "benchmark/windows/pthread.h"
+#include "pthread.h"
 
 #include <process.h>
 
