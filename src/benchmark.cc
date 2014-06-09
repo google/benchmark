@@ -343,6 +343,14 @@ BenchmarkFamilies::~BenchmarkFamilies() {
 
 int BenchmarkFamilies::AddBenchmark(Benchmark* family) {
   mutex_lock l(&benchmark_mutex);
+  // This loop attempts to reuse an entry that was previously removed to avoid
+  // unncessary growth of the vector.
+  for (int index = 0; index < families_.size(); ++index) {
+    if (families_[index] == nullptr) {
+      families_[index] = family;
+      return index;
+    }
+  }
   int index = families_.size();
   families_.push_back(family);
   return index;
@@ -351,11 +359,8 @@ int BenchmarkFamilies::AddBenchmark(Benchmark* family) {
 void BenchmarkFamilies::RemoveBenchmark(int index) {
   mutex_lock l(&benchmark_mutex);
   families_[index] = NULL;
-
-  // Shrink the vector if convenient.
-  while (!families_.empty() && families_.back() == NULL) {
-    families_.pop_back();
-  }
+  // Don't shrink families_ here, we might be called by the destructor of
+  // BenchmarkFamilies which iterates over the vector.
 }
 
 void BenchmarkFamilies::FindBenchmarks(
