@@ -48,66 +48,16 @@
 #define COMPILER_MSVC
 #endif
 
-#ifndef WIN32_LEAN_AND_MEAN
-#define WIN32_LEAN_AND_MEAN  /* We always want minimal includes */
-#endif
-
 #include <windows.h>
-#include <winsock.h>         /* for gethostname */
-#include <io.h>              /* because we so often use open/close/etc */
-#include <direct.h>          /* for _getcwd() */
-#include <process.h>         /* for _getpid() */
+#include <winsock.h>         /* for timeval */
 #include <stdio.h>           /* read in vsnprintf decl. before redifining it */
-#include <stdarg.h>          /* template_dictionary.cc uses va_copy */
-#include <string.h>          /* for _strnicmp(), strerror_s() */
 #include <time.h>            /* for localtime_s() */
 #include <Shlwapi.h>
-/* Note: the C++ #includes are all together at the bottom.  This file is
- * used by both C and C++ code, so we put all the C++ together.
- */
 
 /* 4244: otherwise we get problems when substracting two size_t's to an int
- * 4251: it's complaining about a private struct I've chosen not to dllexport
- * 4355: we use this in a constructor, but we do it safely
- * 4715: for some reason VC++ stopped realizing you can't return after abort()
- * 4800: we know we're casting ints/char*'s to bools, and we're ok with that
  * 4996: Yes, we're ok using "unsafe" functions like fopen() and strerror()
  */
-#pragma warning(disable:4244 4251 4355 4715 4800 4996)
-
-/* file I/O */
-#define PATH_MAX 1024
-#define access  _access
-#define getcwd  _getcwd
-#define open    _open
-#define read    _read
-#define write   _write
-#define lseek   _lseek
-#define close   _close
-#define popen   _popen
-#define pclose  _pclose
-#define R_OK    04           /* read-only (for access()) */
-#define S_ISDIR(m)  (((m) & _S_IFMT) == _S_IFDIR)
-#ifndef __MINGW32__
-enum { STDIN_FILENO = 0, STDOUT_FILENO = 1, STDERR_FILENO = 2 };
-#endif
-#define S_IRUSR S_IREAD
-#define S_IWUSR S_IWRITE
-
-/* Not quite as lightweight as a hard-link, but more than good enough for us. */
-#define link(oldpath, newpath)  CopyFileA(oldpath, newpath, false)
-
-#define strcasecmp   _stricmp
-#define strncasecmp  _strnicmp
-
-/* In windows-land, hash<> is called hash_compare<> (from xhash.h) */
-/* VC11 provides std::hash */
-#if defined(_MSC_VER) && (_MSC_VER < 1700)
-#define hash  hash_compare
-#endif
-
-/* Sleep is in ms, on windows */
-#define sleep(secs)  Sleep((secs) * 1000)
+#pragma warning(disable:4244 4996)
 
 /* We can't just use _vsnprintf and _snprintf as drop-in-replacements,
  * because they don't always NUL-terminate. :-(  We also can't use the
@@ -115,20 +65,6 @@ enum { STDIN_FILENO = 0, STDOUT_FILENO = 1, STDERR_FILENO = 2 };
  */
 extern int snprintf(char *str, size_t size,
                                        const char *format, ...);
-extern int safe_vsnprintf(char *str, size_t size,
-                          const char *format, va_list ap);
-#define vsnprintf(str, size, format, ap)  safe_vsnprintf(str, size, format, ap)
-
-/* Windows doesn't support specifying the number of buckets as a
- * hash_map constructor arg, so we leave this blank.
- */
-#define CTEMPLATE_SMALL_HASHTABLE
-
-#define DEFAULT_TEMPLATE_ROOTDIR  ".."
-
-// ----------------------------------- SYSTEM/PROCESS
-typedef int pid_t;
-#define getpid  _getpid
 
 inline struct tm* localtime_r(const time_t* timep, struct tm* result) {
   localtime_s(result, timep);
@@ -140,19 +76,7 @@ inline struct tm* gmtime_r(const time_t *timer, struct tm *result) {
   return result;
 }
 
-inline char* strerror_r(int errnum, char* buf, size_t buflen) {
-  strerror_s(buf, buflen, errnum);
-  return buf;
-}
-
-// Based on: http://www.google.com/codesearch/p?hl=en#dR3YEbitojA/os_win32.c&q=GetSystemTimeAsFileTime%20license:bsd
-// See COPYING for copyright information.
 extern int gettimeofday(struct timeval *tv, void* tz);
-
-#ifndef __cplusplus
-/* I don't see how to get inlining for C code in MSVC.  Ah well. */
-#define inline
-#endif
 
 // The rest of this file is a poor man's config.h.
 

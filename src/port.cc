@@ -36,25 +36,12 @@
 # error You should only be including windows/port.cc in a windows environment!
 #endif
 
-#include <stdarg.h>    // for va_list, va_start, va_end
-#include <stdint.h>
-#include <string.h>    // for strstr()
-#include <assert.h>
-#include <string>
-#include <vector>
 #include "benchmark/port.h"
 
-using std::string;
-using std::vector;
+#include <stdarg.h>    // for va_list, va_start, va_end
+#include <stdint.h>
 
-// These call the windows _vsnprintf, but always NUL-terminate.
-int safe_vsnprintf(char *str, size_t size, const char *format, va_list ap) {
-  if (size == 0)        // not even room for a \0?
-    return -1;          // not what C99 says to do, but what windows does
-  str[size-1] = '\0';
-  return _vsnprintf(str, size-1, format, ap);
-}
-
+// This calls the windows _vsnprintf, but always NUL-terminate.
 int snprintf(char *str, size_t size, const char *format, ...) {
   va_list ap;
   va_start(ap, format);
@@ -63,8 +50,7 @@ int snprintf(char *str, size_t size, const char *format, ...) {
   return r;
 }
 
-// Based on: http://www.google.com/codesearch/p?hl=en#dR3YEbitojA/os_win32.c&q=GetSystemTimeAsFileTime%20license:bsd
-// See COPYING for copyright information.
+// Based on: https://code.google.com/p/google-glog/source/browse/trunk/src/utilities.cc
 int gettimeofday(struct timeval *tv, void* tz) {
 #define EPOCHFILETIME (116444736000000000ULL)
   FILETIME ft;
