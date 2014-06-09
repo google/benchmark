@@ -1,15 +1,7 @@
 #ifndef BENCHMARK_MUTEX_LOCK_H_
 #define BENCHMARK_MUTEX_LOCK_H_
 
-#include "benchmark/port.h"
-
-#if defined HAVE_PTHREAD_H
-#include <pthread.h>
-#endif
-
-#if defined OS_WINDOWS
-#include "windows/pthread.h"
-#endif
+#include "pthread.h"
 
 namespace benchmark {
 class mutex_lock {

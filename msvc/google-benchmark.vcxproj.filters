@@ -54,6 +54,9 @@
     <ClInclude Include="..\src\windows\pthread.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="..\src\pthread.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\src\benchmark.cc">

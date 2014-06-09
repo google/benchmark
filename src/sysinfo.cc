@@ -18,9 +18,6 @@
 
 #include <errno.h>
 #include <fcntl.h>
-#if defined HAVE_PTHREAD_H
-#include <pthread.h>
-#endif
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -38,9 +35,6 @@
 #if defined HAVE_UNISTD_H
 #include <unistd.h>
 #endif
-#if defined OS_WINDOWS
-#include "windows/pthread.h"
-#endif
 
 #include <iostream>
 #include <limits>
@@ -48,6 +42,7 @@
 #include "benchmark/macros.h"
 #include "cycleclock.h"
 #include "mutex_lock.h"
+#include "pthread.h"
 #include "sleep.h"
 
 namespace benchmark {

@@ -17,6 +17,7 @@
 #include "colorprint.h"
 #include "commandlineflags.h"
 #include "mutex_lock.h"
+#include "pthread.h"
 #include "re.h"
 #include "sleep.h"
 #include "stat.h"
@@ -25,9 +26,6 @@
 
 #if defined HAVE_SYS_TIME_H
 #include <sys/time.h>
-#endif
-#if defined HAVE_PTHREAD_H
-#include <pthread.h>
 #endif
 #if defined HAVE_SEMAPHORE_H
 #include <semaphore.h>
@@ -39,10 +37,6 @@
 #include <iostream>
 #include <memory>
 #include <sstream>
-
-#if defined OS_WINDOWS
-#include "windows/pthread.h"
-#endif
 
 DEFINE_string(benchmark_filter, ".",
               "A regular expression that specifies the set of benchmarks "

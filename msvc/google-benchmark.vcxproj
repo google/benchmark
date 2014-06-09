@@ -18,6 +18,7 @@
     <ClInclude Include="..\src\commandlineflags.h" />
     <ClInclude Include="..\src\cycleclock.h" />
     <ClInclude Include="..\src\mutex_lock.h" />
+    <ClInclude Include="..\src\pthread.h" />
     <ClInclude Include="..\src\re.h" />
     <ClInclude Include="..\src\sleep.h" />
     <ClInclude Include="..\src\stat.h" />
