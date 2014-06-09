@@ -370,6 +370,8 @@ double MyCPUUsage() {
 }
 
 double ChildrenCPUUsage() {
+  // TODO(pleroy): Figure out what to do here.  It's not even clear what meaning
+  // it has on Windows.
   return 0;
 }
 #endif  // OS_WINDOWS
