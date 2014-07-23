@@ -1,7 +1,7 @@
 #ifndef BENCHMARK_MUTEX_LOCK_H_
 #define BENCHMARK_MUTEX_LOCK_H_
 
-#include <pthread.h>
+#include "pthread.h"
 
 namespace benchmark {
 class mutex_lock {

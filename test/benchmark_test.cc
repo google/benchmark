@@ -11,6 +11,8 @@
 #include <sstream>
 #include <vector>
 
+#include "pthread.h"
+
 namespace {
 
 int ATTRIBUTE_NOINLINE Factorial(uint32_t n) {

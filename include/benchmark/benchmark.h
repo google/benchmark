@@ -135,15 +135,18 @@ BENCHMARK(BM_MultiThreaded)->Threads(4);
 #ifndef BENCHMARK_BENCHMARK_H_
 #define BENCHMARK_BENCHMARK_H_
 
-#include <stdint.h>
+#include "port.h"
 
+#include <stdint.h>
 #include <functional>
 #include <memory>
-#include <pthread.h>
 #include <string>
 #include <vector>
 
 #include "macros.h"
+
+struct _pthread_v;
+typedef struct _pthread_v* pthread_t;
 
 namespace benchmark {
 class BenchmarkReporter;

@@ -14,8 +14,11 @@
 
 #include "sleep.h"
 
+#include <stdlib.h>
 #include <time.h>
 #include <errno.h>
+
+#include "benchmark/port.h"
 
 namespace benchmark {
 #ifdef OS_WINDOWS

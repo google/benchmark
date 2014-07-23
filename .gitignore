@@ -11,3 +11,10 @@ cmake_install.cmake
 lib/
 tags
 .ycm_extra_conf.pyc
+
+# Visual Studio files
+/msvc/[Dd]ebug*/
+/msvc/[Rr]elease*/
+/msvc/*.opensdf
+/msvc/*.sdf
+/msvc/*.suo
