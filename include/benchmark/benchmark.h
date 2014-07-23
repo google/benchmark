@@ -40,9 +40,9 @@ int main(int argc, char** argv) {
 static void BM_memcpy(benchmark::State& state) {
   char* src = new char[state.range_x()]; char* dst = new char[state.range_x()];
   memset(src, 'x', state.range_x());
-  while (state.KeepRunning()) {
+  while (state.KeepRunning())
     memcpy(dst, src, state.range_x());
-  SetBenchmarkBytesProcessed(int64_t_t(state.iterations) * int64(state.range_x()));
+  state.SetBytesProcessed(int64_t_t(state.iterations) * int64(state.range_x()));
   delete[] src; delete[] dst;
 }
 BENCHMARK(BM_memcpy)->Arg(8)->Arg(64)->Arg(512)->Arg(1<<10)->Arg(8<<10);
