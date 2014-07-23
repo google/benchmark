@@ -345,7 +345,7 @@ int BenchmarkFamilies::AddBenchmark(Benchmark* family) {
   mutex_lock l(&benchmark_mutex);
   // This loop attempts to reuse an entry that was previously removed to avoid
   // unncessary growth of the vector.
-  for (int index = 0; index < families_.size(); ++index) {
+  for (size_t index = 0; index < families_.size(); ++index) {
     if (families_[index] == nullptr) {
       families_[index] = family;
       return index;
