@@ -11,3 +11,9 @@ cmake_install.cmake
 lib/
 tags
 .ycm_extra_conf.pyc
+
+.ninja_deps
+.ninja_log
+build.ninja
+install_manifest.txt
+rules.ninja
