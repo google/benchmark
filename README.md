@@ -49,10 +49,9 @@ of `memcpy()` calls of different lengths:
 static void BM_memcpy(benchmark::State& state) {
   char* src = new char[state.range_x()]; char* dst = new char[state.range_x()];
   memset(src, 'x', state.range_x());
-  while (state.KeepRunning()) {
+  while (state.KeepRunning())
     memcpy(dst, src, state.range_x());
-  benchmark::SetBenchmarkBytesProcessed(
-      int64_t(state.iterations) * int64_t(state.range_x()));
+  state.SetBytesProcessed(int64_t(state.iterations) * int64_t(state.range_x()));
   delete[] src;
   delete[] dst;
 }
