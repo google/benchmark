@@ -36,13 +36,14 @@
 
 namespace benchmark {
 namespace {
-const int64_t estimate_time_ms = 1000;
 pthread_once_t cpuinfo_init = PTHREAD_ONCE_INIT;
 double cpuinfo_cycles_per_second = 1.0;
 int cpuinfo_num_cpus = 1;  // Conservative guess
 pthread_mutex_t cputimens_mutex;
 
 #if !defined OS_MACOSX
+const int64_t estimate_time_ms = 1000;
+
 // Helper function estimates cycles/sec by observing cycles elapsed during
 // sleep(). Using small sleep time decreases accuracy significantly.
 int64_t EstimateCyclesPerSecond() {

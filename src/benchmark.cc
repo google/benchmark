@@ -390,19 +390,20 @@ void BenchmarkFamilies::FindBenchmarks(
     if (family->rangeX_.empty() && family->rangeY_.empty()) {
       instances = family->CreateBenchmarkInstances(
         Benchmark::kNoRange, Benchmark::kNoRange);
-      benchmarks->insert(benchmarks->end(), instances.begin(), instances.end());
+      std::copy(instances.begin(), instances.end(),
+                std::back_inserter(*benchmarks));
     } else if (family->rangeY_.empty()) {
       for (size_t x = 0; x < family->rangeX_.size(); ++x) {
         instances = family->CreateBenchmarkInstances(x, Benchmark::kNoRange);
-        benchmarks->insert(benchmarks->end(), instances.begin(),
-                           instances.end());
+        std::copy(instances.begin(), instances.end(),
+                  std::back_inserter(*benchmarks));
       }
     } else {
       for (size_t x = 0; x < family->rangeX_.size(); ++x) {
         for (size_t y = 0; y < family->rangeY_.size(); ++y) {
           instances = family->CreateBenchmarkInstances(x, y);
-          benchmarks->insert(benchmarks->end(), instances.begin(),
-                             instances.end());
+          std::copy(instances.begin(), instances.end(),
+                    std::back_inserter(*benchmarks));
         }
       }
     }

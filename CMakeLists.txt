@@ -9,6 +9,7 @@ set_directory_properties(properties EP_PREFIX "${CMAKE_BINARY_DIR}/third_party")
 ExternalProject_Add(googletest
     URL "https://googletest.googlecode.com/files/gtest-1.7.0.zip"
     SOURCE_DIR "${CMAKE_BINARY_DIR}/third_party/gtest"
+    CMAKE_ARGS "-DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER}"
     INSTALL_COMMAND "")
 ExternalProject_Get_Property(googletest source_dir)
 include_directories(${source_dir}/include)
