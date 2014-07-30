@@ -38,9 +38,38 @@ if(${CMAKE_SYSTEM_PROCESSOR} MATCHES "x86")
 	add_definitions(-DARCH_X86)
 endif()
 
+# Read the git tags to determine the project version
+execute_process(COMMAND git describe --match "v[0-9]*.[0-9]*.[0-9]*" --abbrev=8
+    RESULT_VARIABLE status
+    OUTPUT_VARIABLE GIT_VERSION
+    ERROR_QUIET)
+if(${status})
+    set(GIT_VERSION "v0.0.0")
+else()
+    string(STRIP ${GIT_VERSION} GIT_VERSION)
+    string(REGEX REPLACE "-[0-9]+-g" "-" GIT_VERSION ${GIT_VERSION})
+endif()
+
+# Work out if the repository is dirty
+execute_process(COMMAND git update-index -q --refresh
+    OUTPUT_QUIET
+    ERROR_QUIET)
+execute_process(COMMAND git diff-index --name-only HEAD --
+    OUTPUT_VARIABLE GIT_DIFF_INDEX
+    ERROR_QUIET)
+string(COMPARE NOTEQUAL "${GIT_DIFF_INDEX}" "" GIT_DIRTY)
+if (${GIT_DIRTY})
+    string(CONCAT GIT_VERSION ${GIT_VERSION} "-dirty")
+endif()
+
+# Tell the user what versions we are using
+message("-- git Version: ${GIT_VERSION}")
+string(REGEX MATCH "[0-9]+\\.[0-9]+\\.[0-9]+" VERSION ${GIT_VERSION})
+message("-- Version: ${VERSION}")
+
 # The version of the libraries
-set(GENERIC_LIB_VERSION "0.0.0")
-set(GENERIC_LIB_SOVERSION "0")
+set(GENERIC_LIB_VERSION ${VERSION})
+string(SUBSTRING ${VERSION} 0 1 GENERIC_LIB_SOVERSION)
 
 # Set up directories
 include_directories(${PROJECT_SOURCE_DIR}/include)
