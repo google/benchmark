@@ -38,6 +38,10 @@ if(${CMAKE_SYSTEM_PROCESSOR} MATCHES "x86")
 	add_definitions(-DARCH_X86)
 endif()
 
+# The version of the libraries
+set(GENERIC_LIB_VERSION "0.0.0")
+set(GENERIC_LIB_SOVERSION "0")
+
 # Set up directories
 include_directories(${PROJECT_SOURCE_DIR}/include)
 include_directories(${PROJECT_SOURCE_DIR}/src)

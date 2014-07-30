@@ -1,4 +1,7 @@
 *.a
+*.so
+*.so.?*
+*.dylib
 *.cmake
 *~
 /test/benchmark_test

@@ -1,8 +1,17 @@
 set(SOURCE_FILES "benchmark.cc" "colorprint.cc" "commandlineflags.cc" "sleep.cc" "sysinfo.cc" "walltime.cc")
 set(RE_FILES "re.cc")
 
-add_library(benchmark_re STATIC ${RE_FILES})
-add_library(benchmark STATIC ${SOURCE_FILES} ${RE_FILES})
+add_library(benchmark_re ${RE_FILES})
+set_target_properties(benchmark_re PROPERTIES
+  VERSION ${GENERIC_LIB_VERSION}
+  SOVERSION ${GENERIC_LIB_SOVERSION}
+)
+
+add_library(benchmark ${SOURCE_FILES} ${RE_FILES})
+set_target_properties(benchmark PROPERTIES
+  VERSION ${GENERIC_LIB_VERSION}
+  SOVERSION ${GENERIC_LIB_SOVERSION}
+)
 
 # Install target (will install the library to specified CMAKE_INSTALL_PREFIX variable)
 install(
