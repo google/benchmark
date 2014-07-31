@@ -22,7 +22,47 @@ TEST(Regex, RegexSimple) {
     EXPECT_FALSE(re.Match(""));
     EXPECT_TRUE(re.Match("a"));
     EXPECT_TRUE(re.Match("aa"));
+    EXPECT_TRUE(re.Match("baa"));
     EXPECT_FALSE(re.Match("b"));
+}
+
+TEST(Regex, RegexWildcard) {
+    benchmark::Regex re;
+    EXPECT_TRUE(re.Init("^a*$", NULL));
+
+    EXPECT_TRUE(re.Match(""));
+    EXPECT_TRUE(re.Match("a"));
+    EXPECT_TRUE(re.Match("aa"));
+    EXPECT_FALSE(re.Match("baa"));
+    EXPECT_FALSE(re.Match("b"));
+}
+
+TEST(Regex, RegexAny) {
+    benchmark::Regex re;
+    EXPECT_TRUE(re.Init(".", NULL));
+
+    EXPECT_FALSE(re.Match(""));
+    EXPECT_TRUE(re.Match("a"));
+    EXPECT_TRUE(re.Match("aa"));
+}
+
+TEST(Regex, RegexExact) {
+    benchmark::Regex re;
+    EXPECT_TRUE(re.Init("^.$", NULL));
+
+    EXPECT_FALSE(re.Match(""));
+    EXPECT_TRUE(re.Match("a"));
+    EXPECT_FALSE(re.Match("aa"));
+}
+
+TEST(Regex, RegexComplicated) {
+    benchmark::Regex re;
+    EXPECT_TRUE(re.Init("([0-9]+ )?(mon|low)key(s)?", NULL));
+
+    EXPECT_TRUE(re.Match("something monkey hands"));
+    EXPECT_TRUE(re.Match("1 lowkey"));
+    EXPECT_TRUE(re.Match("19 monkeys"));
+    EXPECT_FALSE(re.Match("09 a"));
 }
 
 TEST(Regex, InvalidNoErrorMessage) {
