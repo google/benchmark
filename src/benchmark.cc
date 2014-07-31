@@ -17,7 +17,6 @@
 #include "colorprint.h"
 #include "commandlineflags.h"
 #include "mutex_lock.h"
-#include "re.h"
 #include "sleep.h"
 #include "stat.h"
 #include "sysinfo.h"
@@ -32,6 +31,7 @@
 #include <atomic>
 #include <iostream>
 #include <memory>
+#include <regex>
 #include <sstream>
 
 DEFINE_string(benchmark_filter, ".",
@@ -364,49 +364,49 @@ void BenchmarkFamilies::RemoveBenchmark(int index) {
 }
 
 void BenchmarkFamilies::FindBenchmarks(
-    const std::string& spec,
-    std::vector<Benchmark::Instance>* benchmarks) {
-  // Make regular expression out of command-line flag
-  Regex re;
-  std::string re_error;
-  if (!re.Init(spec, &re_error)) {
-    std::cerr << "Could not compile benchmark re: " << re_error << std::endl;
-    return;
-  }
+    const std::string &spec, std::vector<Benchmark::Instance> *benchmarks) {
+  try {
+    std::regex re(spec);
+    mutex_lock l(&benchmark_mutex);
+    for (internal::Benchmark *family : families_) {
+      if (family == nullptr)
+        continue; // Family was deleted
 
-  mutex_lock l(&benchmark_mutex);
-  for (internal::Benchmark* family : families_) {
-    if (family == nullptr) continue;  // Family was deleted
-
-    // Match against filter.
-    if (!re.Match(family->name_)) {
+      // Match against filter.
+      if (!std::regex_match(family->name_, re)) {
 #ifdef DEBUG
-      std::cout << "Skipping " << family->name_ << "\n";
+        std::cout << "Skipping " << family->name_ << "\n";
 #endif
-      continue;
-    }
+        continue;
+      }
 
-    std::vector<Benchmark::Instance> instances;
-    if (family->rangeX_.empty() && family->rangeY_.empty()) {
-      instances = family->CreateBenchmarkInstances(
-        Benchmark::kNoRange, Benchmark::kNoRange);
-      std::copy(instances.begin(), instances.end(),
-                std::back_inserter(*benchmarks));
-    } else if (family->rangeY_.empty()) {
-      for (size_t x = 0; x < family->rangeX_.size(); ++x) {
-        instances = family->CreateBenchmarkInstances(x, Benchmark::kNoRange);
+      std::vector<Benchmark::Instance> instances;
+      if (family->rangeX_.empty() && family->rangeY_.empty()) {
+        instances = family->CreateBenchmarkInstances(Benchmark::kNoRange,
+                                                     Benchmark::kNoRange);
         std::copy(instances.begin(), instances.end(),
                   std::back_inserter(*benchmarks));
-      }
-    } else {
-      for (size_t x = 0; x < family->rangeX_.size(); ++x) {
-        for (size_t y = 0; y < family->rangeY_.size(); ++y) {
-          instances = family->CreateBenchmarkInstances(x, y);
+      } else if (family->rangeY_.empty()) {
+        for (size_t x = 0; x < family->rangeX_.size(); ++x) {
+          instances = family->CreateBenchmarkInstances(x, Benchmark::kNoRange);
           std::copy(instances.begin(), instances.end(),
                     std::back_inserter(*benchmarks));
         }
+      } else {
+        for (size_t x = 0; x < family->rangeX_.size(); ++x) {
+          for (size_t y = 0; y < family->rangeY_.size(); ++y) {
+            instances = family->CreateBenchmarkInstances(x, y);
+            std::copy(instances.begin(), instances.end(),
+                      std::back_inserter(*benchmarks));
+          }
+        }
       }
     }
+  }
+  catch (const std::regex_error &e) {
+    std::cerr << "Invalid regular expression \"" << spec
+              << "\" in benchmark filter : " << e.what() << std::endl;
+    return;
   }
 }
 
