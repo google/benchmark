@@ -4,7 +4,7 @@ project (benchmark)
 # Make sure we can import out CMake functions
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 
-# We need threads in this project
+# Resolve dependent packages
 find_package(Threads REQUIRED)
 
 # Import and build Google Test
