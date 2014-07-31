@@ -77,6 +77,12 @@ message("-- Version: ${VERSION}")
 set(GENERIC_LIB_VERSION ${VERSION})
 string(SUBSTRING ${VERSION} 0 1 GENERIC_LIB_SOVERSION)
 
+# C++ feature checks
+include(CXXFeatureCheck)
+cxx_feature_check(STD_REGEX)
+cxx_feature_check(GNU_POSIX_REGEX)
+cxx_feature_check(POSIX_REGEX)
+
 # Set up directories
 include_directories(${PROJECT_SOURCE_DIR}/include)
 include_directories(${PROJECT_SOURCE_DIR}/src)

@@ -1,21 +1,21 @@
-# - Adds a compiler FLAG if it is supported by the compiler
+# - Adds a compiler flag if it is supported by the compiler
 #
-# This function checks that the supplied compiler FLAG is supported and then
-# adds it to the corresponding compiler FLAGs
+# This function checks that the supplied compiler flag is supported and then
+# adds it to the corresponding compiler flags
 #
-#  add_cxx_compiler_FLAG(<FLAG> [<VARIANT>])
+#  add_cxx_compiler_flag(<FLAG> [<VARIANT>])
 #
 # - Example
 #
 # include(AddCXXCompilerFlag)
-# add_cxx_compiler_FLAG(-Wall)
-# add_cxx_compiler_FLAG(-no-strict-aliasing RELEASE)
+# add_cxx_compiler_flag(-Wall)
+# add_cxx_compiler_flag(-no-strict-aliasing RELEASE)
 # Requires CMake 2.6+
 
-if(__add_cxx_compiler_FLAG)
+if(__add_cxx_compiler_flag)
   return()
 endif()
-set(__add_cxx_compiler_FLAG INCLUDED)
+set(__add_cxx_compiler_flag INCLUDED)
 
 include(CheckCXXCompilerFlag)
 
