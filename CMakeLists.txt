@@ -11,11 +11,11 @@ find_package(Threads REQUIRED)
 include(ExternalProject)
 set_directory_properties(properties EP_PREFIX "${CMAKE_BINARY_DIR}/third_party")
 ExternalProject_Add(googletest
-    URL "https://googletest.googlecode.com/files/gtest-1.7.0.zip"
-    URL_MD5 2d6ec8ccdf5c46b05ba54a9fd1d130d7
-    SOURCE_DIR "${CMAKE_BINARY_DIR}/third_party/gtest"
-    CMAKE_ARGS "-DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER}"
-    INSTALL_COMMAND "")
+  URL "https://googletest.googlecode.com/files/gtest-1.7.0.zip"
+  URL_MD5 2d6ec8ccdf5c46b05ba54a9fd1d130d7
+  SOURCE_DIR "${CMAKE_BINARY_DIR}/third_party/gtest"
+  CMAKE_ARGS "-DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER}"
+  INSTALL_COMMAND "")
 ExternalProject_Get_Property(googletest source_dir)
 include_directories(${source_dir}/include)
 ExternalProject_Get_Property(googletest binary_dir)
@@ -49,20 +49,20 @@ set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -DDEBUG")
 
 # Set OS
 if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-	add_definitions(-DOS_MACOSX)
+  add_definitions(-DOS_MACOSX)
 endif()
 
 if(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
-	add_definitions(-DOS_LINUX)
+  add_definitions(-DOS_LINUX)
 endif()
 
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-	add_definitions(-DOS_WINDOWS)
+  add_definitions(-DOS_WINDOWS)
 endif()
 
 # Set CPU
 if(${CMAKE_SYSTEM_PROCESSOR} MATCHES "x86")
-	add_definitions(-DARCH_X86)
+  add_definitions(-DARCH_X86)
 endif()
 
 # Read the git tags to determine the project version
