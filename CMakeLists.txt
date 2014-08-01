@@ -20,9 +20,43 @@ include_directories(${source_dir}/include)
 ExternalProject_Get_Property(googletest binary_dir)
 link_directories(${binary_dir})
 
-set(CMAKE_CXX_FLAGS "-Wall -Werror -pedantic-errors --std=c++0x")
-set(CMAKE_CXX_FLAGS_DEBUG "-g -O0 -DDEBUG")
-set(CMAKE_CXX_FLAGS_RELEASE "-fno-strict-aliasing -O3 -DNDEBUG")
+# Set up the compiler flags
+include(CheckCXXCompilerFlag)
+
+# Enable the latest C++ standard possible
+check_cxx_compiler_flag(--std=c++14 HAVE_FLAG_CXX_14)
+check_cxx_compiler_flag(--std=c++11 HAVE_FLAG_CXX_11)
+check_cxx_compiler_flag(--std=c++0x HAVE_FLAG_CXX_0X)
+if (HAVE_FLAG_CXX_14)
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} --std=c++14")
+elseif (HAVE_FLAG_CXX_11)
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} --std=c++11")
+elseif (HAVE_FLAG_CXX_0X)
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} --std=c++0x")
+endif()
+
+# Turn compiler warnings up to 11
+check_cxx_compiler_flag(-Wall HAVE_FLAG_WALL)
+if (HAVE_FLAG_WALL)
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall")
+endif()
+check_cxx_compiler_flag(-Werror HAVE_FLAG_WERROR)
+if (HAVE_FLAG_WERROR)
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Werror")
+endif()
+check_cxx_compiler_flag(-pedantic-errors HAVE_FLAG_PEDANTIC_ERRORS)
+if (HAVE_FLAG_PEDANTIC_ERRORS)
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pedantic-errors")
+endif()
+
+# Add a debug definition so we can make decisions in the compilation
+set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -DDEBUG")
+
+# We relax the aliasing in release
+check_cxx_compiler_flag(-fno-strict-aliasing HAVE_FLAG_NO_STRICT_ALIASING)
+if (HAVE_FLAG_NO_STRICT_ALIASING)
+  set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -fno-strict-aliasing")
+endif()
 
 # Set OS
 if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
