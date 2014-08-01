@@ -1,6 +1,10 @@
 cmake_minimum_required (VERSION 2.8)
 project (benchmark)
 
+# Make sure we can import out CMake functions
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
+
+# We need threads in this project
 find_package(Threads REQUIRED)
 
 # Import and build Google Test
@@ -39,31 +43,10 @@ if(${CMAKE_SYSTEM_PROCESSOR} MATCHES "x86")
 endif()
 
 # Read the git tags to determine the project version
-execute_process(COMMAND git describe --match "v[0-9]*.[0-9]*.[0-9]*" --abbrev=8
-    RESULT_VARIABLE status
-    OUTPUT_VARIABLE GIT_VERSION
-    ERROR_QUIET)
-if(${status})
-    set(GIT_VERSION "v0.0.0")
-else()
-    string(STRIP ${GIT_VERSION} GIT_VERSION)
-    string(REGEX REPLACE "-[0-9]+-g" "-" GIT_VERSION ${GIT_VERSION})
-endif()
-
-# Work out if the repository is dirty
-execute_process(COMMAND git update-index -q --refresh
-    OUTPUT_QUIET
-    ERROR_QUIET)
-execute_process(COMMAND git diff-index --name-only HEAD --
-    OUTPUT_VARIABLE GIT_DIFF_INDEX
-    ERROR_QUIET)
-string(COMPARE NOTEQUAL "${GIT_DIFF_INDEX}" "" GIT_DIRTY)
-if (${GIT_DIRTY})
-    string(CONCAT GIT_VERSION ${GIT_VERSION} "-dirty")
-endif()
+include(GetGitVersion)
+get_git_version(GIT_VERSION)
 
 # Tell the user what versions we are using
-message("-- git Version: ${GIT_VERSION}")
 string(REGEX MATCH "[0-9]+\\.[0-9]+\\.[0-9]+" VERSION ${GIT_VERSION})
 message("-- Version: ${VERSION}")
 
