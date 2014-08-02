@@ -1,6 +1,10 @@
 cmake_minimum_required (VERSION 2.8)
 project (benchmark)
 
+# Make sure we can import out CMake functions
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
+
+# We need threads in this project
 find_package(Threads REQUIRED)
 
 # Import and build Google Test
@@ -38,9 +42,17 @@ if(${CMAKE_SYSTEM_PROCESSOR} MATCHES "x86")
 	add_definitions(-DARCH_X86)
 endif()
 
+# Read the git tags to determine the project version
+include(GetGitVersion)
+get_git_version(GIT_VERSION)
+
+# Tell the user what versions we are using
+string(REGEX MATCH "[0-9]+\\.[0-9]+\\.[0-9]+" VERSION ${GIT_VERSION})
+message("-- Version: ${VERSION}")
+
 # The version of the libraries
-set(GENERIC_LIB_VERSION "0.0.0")
-set(GENERIC_LIB_SOVERSION "0")
+set(GENERIC_LIB_VERSION ${VERSION})
+string(SUBSTRING ${VERSION} 0 1 GENERIC_LIB_SOVERSION)
 
 # Set up directories
 include_directories(${PROJECT_SOURCE_DIR}/include)
