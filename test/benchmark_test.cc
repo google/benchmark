@@ -7,6 +7,7 @@
 #include <limits>
 #include <list>
 #include <map>
+#include <mutex>
 #include <set>
 #include <sstream>
 #include <vector>
@@ -34,7 +35,7 @@ std::set<int> ConstructRandomSet(int size) {
   return s;
 }
 
-pthread_mutex_t test_vector_mu;
+std::mutex test_vector_mu;
 std::vector<int>* test_vector = nullptr;
 
 }  // end namespace
@@ -113,23 +114,20 @@ BENCHMARK(BM_StringCompare)->Range(1, 1<<20);
 
 static void BM_SetupTeardown(benchmark::State& state) {
   if (state.thread_index == 0) {
-    pthread_mutex_init(&test_vector_mu, nullptr);
     // No need to lock test_vector_mu here as this is running single-threaded.
     test_vector = new std::vector<int>();
   }
   int i = 0;
   while (state.KeepRunning()) {
-    pthread_mutex_lock(&test_vector_mu);
+    std::lock_guard<std::mutex> l(test_vector_mu);
     if (i%2 == 0)
       test_vector->push_back(i);
     else
       test_vector->pop_back();
-    pthread_mutex_unlock(&test_vector_mu);
     ++i;
   }
   if (state.thread_index == 0) {
     delete test_vector;
-    pthread_mutex_destroy(&test_vector_mu);
   }
 }
 BENCHMARK(BM_SetupTeardown)->ThreadPerCpu();
