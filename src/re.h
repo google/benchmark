@@ -15,10 +15,14 @@
 #ifndef BENCHMARK_RE_H_
 #define BENCHMARK_RE_H_
 
-#if defined OS_FREEBSD
+#if defined(HAVE_STD_REGEX)
+#include <regex>
+#elif defined(HAVE_GNU_POSIX_REGEX)
 #include <gnuregex.h>
-#else
+#elif defined(HAVE_POSIX_REGEX)
 #include <regex.h>
+#else
+#error No regular expression backend was found!
 #endif
 #include <string>
 
@@ -42,7 +46,13 @@ class Regex {
  private:
   bool init_;
   // Underlying regular expression object
+#if defined(HAVE_STD_REGEX)
+  std::regex re_;
+#elif defined(HAVE_POSIX_REGEX) || defined(HAVE_GNU_POSIX_REGEX)
   regex_t re_;
+#else
+# error No regular expression backend implementation available
+#endif
 };
 
 }  // end namespace benchmark
