@@ -4,19 +4,18 @@
 # and adds the corresponding `HAVE_[FILENAME]` flag to the CMake
 # environment
 #
-#  add_cxx_compiler_FLAG(<FLAG> [<VARIANT>])
+#  cxx_feature_check(<FLAG> [<VARIANT>])
 #
 # - Example
 #
-# include(AddCXXCompilerFlag)
-# add_cxx_compiler_FLAG(-Wall)
-# add_cxx_compiler_FLAG(-no-strict-aliasing RELEASE)
+# include(CXXFeatureCheck)
+# cxx_feature_check(STD_REGEX)
 # Requires CMake 2.6+
 
-if(__cxx_feature_check_FLAG)
+if(__cxx_feature_check)
   return()
 endif()
-set(__cxx_feature_check_FLAG INCLUDED)
+set(__cxx_feature_check INCLUDED)
 
 function(cxx_feature_check FILE)
   string(TOLOWER ${FILE} FILE)
