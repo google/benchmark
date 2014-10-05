@@ -184,7 +184,13 @@ inline std::string HumanReadableNumber(double n) {
 // For non-dense Range, intermediate values are powers of kRangeMultiplier.
 static const int kRangeMultiplier = 8;
 
-static std::mutex benchmark_mutex;
+static std::mutex& _benchmark_mutex()
+{
+  static std::mutex mutex;
+  return mutex;
+}
+#define benchmark_mutex _benchmark_mutex()
+
 std::mutex starting_mutex;
 std::condition_variable starting_cv;
 
@@ -329,6 +335,9 @@ class BenchmarkFamilies {
 };
 
 BenchmarkFamilies* BenchmarkFamilies::GetInstance() {
+  // Ensure "benchmark_mutex" will be destroyed after "instance"
+  (void)benchmark_mutex;
+
   static BenchmarkFamilies instance;
   return &instance;
 }
