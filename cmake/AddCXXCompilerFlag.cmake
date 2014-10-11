@@ -32,7 +32,7 @@ function(add_cxx_compiler_flag FLAG)
   if(${SANITIZED_FLAG})
     string(REGEX REPLACE "[^A-Za-z_0-9]" "_" VARIANT "${VARIANT}")
     string(TOUPPER "${VARIANT}" VARIANT)
-    set(CMAKE_CXX_FLAGS${VARIANT} "${CMAKE_CXX_FLAGS}${VARIANT} ${FLAG}" PARENT_SCOPE)
+    set(CMAKE_CXX_FLAGS${VARIANT} "${CMAKE_CXX_FLAGS${VARIANT}} ${FLAG}" PARENT_SCOPE)
   endif()
 endfunction()
 
