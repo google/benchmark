@@ -184,7 +184,6 @@ inline std::string HumanReadableNumber(double n) {
 // For non-dense Range, intermediate values are powers of kRangeMultiplier.
 static const int kRangeMultiplier = 8;
 
-static std::mutex benchmark_mutex;
 std::mutex starting_mutex;
 std::condition_variable starting_cv;
 
@@ -326,6 +325,7 @@ class BenchmarkFamilies {
   ~BenchmarkFamilies();
 
   std::vector<Benchmark*> families_;
+  std::mutex mutex_;
 };
 
 BenchmarkFamilies* BenchmarkFamilies::GetInstance() {
@@ -342,7 +342,7 @@ BenchmarkFamilies::~BenchmarkFamilies() {
 }
 
 int BenchmarkFamilies::AddBenchmark(Benchmark* family) {
-  std::lock_guard<std::mutex> l(benchmark_mutex);
+  std::lock_guard<std::mutex> l(mutex_);
   // This loop attempts to reuse an entry that was previously removed to avoid
   // unncessary growth of the vector.
   for (size_t index = 0; index < families_.size(); ++index) {
@@ -357,7 +357,7 @@ int BenchmarkFamilies::AddBenchmark(Benchmark* family) {
 }
 
 void BenchmarkFamilies::RemoveBenchmark(int index) {
-  std::lock_guard<std::mutex> l(benchmark_mutex);
+  std::lock_guard<std::mutex> l(mutex_);
   families_[index] = NULL;
   // Don't shrink families_ here, we might be called by the destructor of
   // BenchmarkFamilies which iterates over the vector.
@@ -374,7 +374,7 @@ void BenchmarkFamilies::FindBenchmarks(
     return;
   }
 
-  std::lock_guard<std::mutex> l(benchmark_mutex);
+  std::lock_guard<std::mutex> l(mutex_);
   for (internal::Benchmark* family : families_) {
     if (family == nullptr) continue;  // Family was deleted
 
@@ -707,7 +707,7 @@ Benchmark::~Benchmark() {
 }
 
 Benchmark* Benchmark::Arg(int x) {
-  std::lock_guard<std::mutex> l(benchmark_mutex);
+  std::lock_guard<std::mutex> l(mutex_);
   rangeX_.push_back(x);
   return this;
 }
@@ -716,7 +716,7 @@ Benchmark* Benchmark::Range(int start, int limit) {
   std::vector<int> arglist;
   AddRange(&arglist, start, limit, kRangeMultiplier);
 
-  std::lock_guard<std::mutex> l(benchmark_mutex);
+  std::lock_guard<std::mutex> l(mutex_);
   for (size_t i = 0; i < arglist.size(); ++i) rangeX_.push_back(arglist[i]);
   return this;
 }
@@ -724,13 +724,13 @@ Benchmark* Benchmark::Range(int start, int limit) {
 Benchmark* Benchmark::DenseRange(int start, int limit) {
   CHECK_GE(start, 0);
   CHECK_LE(start, limit);
-  std::lock_guard<std::mutex> l(benchmark_mutex);
+  std::lock_guard<std::mutex> l(mutex_);
   for (int arg = start; arg <= limit; ++arg) rangeX_.push_back(arg);
   return this;
 }
 
 Benchmark* Benchmark::ArgPair(int x, int y) {
-  std::lock_guard<std::mutex> l(benchmark_mutex);
+  std::lock_guard<std::mutex> l(mutex_);
   rangeX_.push_back(x);
   rangeY_.push_back(y);
   return this;
@@ -741,7 +741,7 @@ Benchmark* Benchmark::RangePair(int lo1, int hi1, int lo2, int hi2) {
   AddRange(&arglist1, lo1, hi1, kRangeMultiplier);
   AddRange(&arglist2, lo2, hi2, kRangeMultiplier);
 
-  std::lock_guard<std::mutex> l(benchmark_mutex);
+  std::lock_guard<std::mutex> l(mutex_);
   rangeX_.resize(arglist1.size());
   std::copy(arglist1.begin(), arglist1.end(), rangeX_.begin());
   rangeY_.resize(arglist2.size());
@@ -756,7 +756,7 @@ Benchmark* Benchmark::Apply(void (*custom_arguments)(Benchmark* benchmark)) {
 
 Benchmark* Benchmark::Threads(int t) {
   CHECK_GT(t, 0);
-  std::lock_guard<std::mutex> l(benchmark_mutex);
+  std::lock_guard<std::mutex> l(mutex_);
   thread_counts_.push_back(t);
   return this;
 }
@@ -765,13 +765,13 @@ Benchmark* Benchmark::ThreadRange(int min_threads, int max_threads) {
   CHECK_GT(min_threads, 0);
   CHECK_GE(max_threads, min_threads);
 
-  std::lock_guard<std::mutex> l(benchmark_mutex);
+  std::lock_guard<std::mutex> l(mutex_);
   AddRange(&thread_counts_, min_threads, max_threads, 2);
   return this;
 }
 
 Benchmark* Benchmark::ThreadPerCpu() {
-  std::lock_guard<std::mutex> l(benchmark_mutex);
+  std::lock_guard<std::mutex> l(mutex_);
   thread_counts_.push_back(NumCPUs());
   return this;
 }
