@@ -142,6 +142,7 @@ BENCHMARK(BM_MultiThreaded)->Threads(4);
 #include <string>
 #include <thread>
 #include <vector>
+#include <mutex>
 
 #include "macros.h"
 
@@ -462,6 +463,7 @@ class Benchmark {
   std::vector<int> rangeX_;
   std::vector<int> rangeY_;
   std::vector<int> thread_counts_;
+  std::mutex mutex_;
 
   // Special value placed in thread_counts_ to stand for NumCPUs()
   static const int kNumCpuMarker = -1;
