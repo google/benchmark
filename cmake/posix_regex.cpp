@@ -7,6 +7,6 @@ int main() {
   if (ec != 0) {
     return ec;
   }
-  return regexec(&re, str.c_str(), 0, NULL, 0)  ? -1 : 0;
+  return regexec(&re, str.c_str(), 0, nullptr, 0) ? -1 : 0;
 }
 
