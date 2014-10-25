@@ -4,9 +4,6 @@ project (benchmark)
 # Make sure we can import out CMake functions
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 
-# Resolve dependent packages
-find_package(Threads REQUIRED)
-
 # Import and build Google Test
 include(ExternalProject)
 set_directory_properties(properties EP_PREFIX "${CMAKE_BINARY_DIR}/third_party")
@@ -40,6 +37,7 @@ add_cxx_compiler_flag(-Wall)
 add_cxx_compiler_flag(-Wshadow)
 add_cxx_compiler_flag(-Werror)
 add_cxx_compiler_flag(-pedantic-errors)
+add_cxx_compiler_flag(-Wzero-as-null-pointer-constant)
 
 # Release flags
 add_cxx_compiler_flag(-fno-strict-aliasing RELEASE)
