@@ -22,7 +22,7 @@
 #include <atomic>
 #include <limits>
 
-#include "benchmark/macros.h"
+#include "check.h"
 #include "cycleclock.h"
 #include "sysinfo.h"
 

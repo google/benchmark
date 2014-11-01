@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <benchmark/macros.h>
+#include "check.h"
 #include "re.h"
 
 namespace benchmark {

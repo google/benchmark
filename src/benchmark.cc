@@ -13,7 +13,7 @@
 // limitations under the License.
 
 #include "benchmark/benchmark.h"
-#include "benchmark/macros.h"
+#include "check.h"
 #include "colorprint.h"
 #include "commandlineflags.h"
 #include "re.h"
