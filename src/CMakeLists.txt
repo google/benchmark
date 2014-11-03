@@ -32,6 +32,11 @@ set_target_properties(benchmark PROPERTIES
   SOVERSION ${GENERIC_LIB_SOVERSION}
   )
 
+# We need extra libraries on Windows
+if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+  target_link_libraries(benchmark Shlwapi)
+endif()
+
 # Install target (will install the library to specified CMAKE_INSTALL_PREFIX variable)
 install(
   TARGETS benchmark

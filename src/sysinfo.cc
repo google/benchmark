@@ -233,7 +233,6 @@ void InitializeSystemInfo() {
 // TODO: also figure out cpuinfo_num_cpus
 
 #elif defined OS_WINDOWS
-#pragma comment(lib, "shlwapi.lib")  // for SHGetValue()
   // In NT, read MHz from the registry. If we fail to do so or we're in win9x
   // then make a crude estimate.
   OSVERSIONINFO os;
