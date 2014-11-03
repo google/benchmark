@@ -279,9 +279,9 @@ void InitializeSystemInfo() {
 }
 }  // end namespace
 
-#ifndef OS_WINDOWS
 // getrusage() based implementation of MyCPUUsage
 static double MyCPUUsageRUsage() {
+#ifndef OS_WINDOWS
   struct rusage ru;
   if (getrusage(RUSAGE_SELF, &ru) == 0) {
     return (static_cast<double>(ru.ru_utime.tv_sec) +
@@ -291,8 +291,25 @@ static double MyCPUUsageRUsage() {
   } else {
     return 0.0;
   }
+#else
+  HANDLE proc = GetCurrentProcess();
+  FILETIME creation_time;
+  FILETIME exit_time;
+  FILETIME kernel_time;
+  FILETIME user_time;
+  ULARGE_INTEGER kernel;
+  ULARGE_INTEGER user;
+  GetProcessTimes(proc, &creation_time, &exit_time, &kernel_time, &user_time);
+  kernel.HighPart = kernel_time.dwHighDateTime;
+  kernel.LowPart = kernel_time.dwLowDateTime;
+  user.HighPart = user_time.dwHighDateTime;
+  user.LowPart = user_time.dwLowDateTime;
+  return (static_cast<double>(kernel.QuadPart) +
+          static_cast<double>(user.QuadPart)) / 1.0E-7;
+#endif  // OS_WINDOWS
 }
 
+#ifndef OS_WINDOWS
 static bool MyCPUUsageCPUTimeNsLocked(double* cputime) {
   static int cputime_fd = -1;
   if (cputime_fd == -1) {
@@ -318,8 +335,10 @@ static bool MyCPUUsageCPUTimeNsLocked(double* cputime) {
   *cputime = static_cast<double>(result) / 1e9;
   return true;
 }
+#endif  // OS_WINDOWS
 
 double MyCPUUsage() {
+#ifndef OS_WINDOWS
   {
     std::lock_guard<std::mutex> l(cputimens_mutex);
     static bool use_cputime_ns = true;
@@ -333,10 +352,12 @@ double MyCPUUsage() {
       use_cputime_ns = false;
     }
   }
+#endif  // OS_WINDOWS
   return MyCPUUsageRUsage();
 }
 
 double ChildrenCPUUsage() {
+#ifndef OS_WINDOWS
   struct rusage ru;
   if (getrusage(RUSAGE_CHILDREN, &ru) == 0) {
     return (static_cast<double>(ru.ru_utime.tv_sec) +
@@ -346,8 +367,11 @@ double ChildrenCPUUsage() {
   } else {
     return 0.0;
   }
-}
+#else
+  // TODO: Not sure what this even means on Windows
+  return 0.0;
 #endif  // OS_WINDOWS
+}
 
 double CyclesPerSecond(void) {
   std::call_once(cpuinfo_init, InitializeSystemInfo);
