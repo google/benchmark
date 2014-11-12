@@ -1,20 +1,46 @@
-os:
-    - linux
-
-env:
-    - SUITE=tests BUILD_TYPE=Debug
-    - SUITE=tests BUILD_TYPE=Release
-    - SUITE=examples BUILD_TYPE=Debug
-    - SUITE=examples BUILD_TYPE=Release
+matrix:
+  include:
+    - os: linux
+      env: SUITE=tests    BUILD_TYPE=Debug   STD=c++0x
+    - os: linux
+      env: SUITE=tests    BUILD_TYPE=Debug   STD=c++11
+    - os: linux
+      env: SUITE=tests    BUILD_TYPE=Release STD=c++0x
+    - os: linux
+      env: SUITE=tests    BUILD_TYPE=Release STD=c++11
+    - os: linux
+      env: SUITE=examples BUILD_TYPE=Debug   STD=c++0x
+    - os: linux
+      env: SUITE=examples BUILD_TYPE=Debug   STD=c++11
+    - os: linux
+      env: SUITE=examples BUILD_TYPE=Release STD=c++0x
+    - os: linux
+      env: SUITE=examples BUILD_TYPE=Release STD=c++11
+    - os: osx
+      env: SUITE=tests    BUILD_TYPE=Debug   STD=c++11
+    - os: osx
+      env: SUITE=tests    BUILD_TYPE=Release STD=c++11
+    - os: osx
+      env: SUITE=examples BUILD_TYPE=Debug   STD=c++11
+    - os: osx
+      env: SUITE=examples BUILD_TYPE=Release STD=c++11
 
 language:
     - cpp
 
+before_install:
+    - if [ "$TRAVIS_OS_NAME" = "linux" ] && [ "$STD" = "c++11" ]; then sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test; fi
+    - if [ "$TRAVIS_OS_NAME" = "linux" ] && [ "$STD" = "c++11" ]; then sudo apt-get update -qq; fi
+
+install:
+    - if [ "$TRAVIS_OS_NAME" = "linux" ] && [ "$STD" = "c++11" ]; then sudo apt-get install -qq gcc-4.8 g++-4.8; fi
+    - if [ "$TRAVIS_OS_NAME" = "linux" ] && [ "$STD" = "c++11" ]; then sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-4.8 90; fi
+    
 before_script:
     - mkdir build && cd build
 
 script:
-    - cmake .. -DBUILD_TYPE=${BUILD_TYPE}
+    - cmake .. -DCMAKE_BUILD_TYPE=${BUILD_TYPE} -DCMAKE_CXX_FLAGS="-std=${STD}"
     - make
     - if [ "$SUITE" = "tests" ]; then ./test/re_test; fi
-    - if [ "$SUITE" = "examples"]; then ./test/benchmark_test; fi
+    - if [ "$SUITE" = "examples" ]; then ./test/benchmark_test; fi
