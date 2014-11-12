@@ -1,0 +1,20 @@
+os:
+    - linux
+
+env:
+    - SUITE=tests BUILD_TYPE=Debug
+    - SUITE=tests BUILD_TYPE=Release
+    - SUITE=examples BUILD_TYPE=Debug
+    - SUITE=examples BUILD_TYPE=Release
+
+language:
+    - cpp
+
+before_script:
+    - mkdir build && cd build
+
+script:
+    - cmake .. -DBUILD_TYPE=${BUILD_TYPE}
+    - make
+    - if [ "$SUITE" = "tests" ]; then ./test/re_test; fi
+    - if [ "$SUITE" = "examples"]; then ./test/benchmark_test; fi
