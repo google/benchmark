@@ -16,9 +16,11 @@
 
 namespace {
 
+#ifdef DEBUG
 int ATTRIBUTE_NOINLINE Factorial(uint32_t n) {
   return (n == 1) ? 1 : n * Factorial(n - 1);
 }
+#endif
 
 double CalculatePi(int depth) {
   double pi = 0.0;
