@@ -32,7 +32,7 @@ BENCHMARK(BM_StringCopy);
 //       my_unittest --benchmark_filter=BM_StringCreation
 //       my_unittest --benchmark_filter=String
 //       my_unittest --benchmark_filter='Copy|Creation'
-int main(int argc, char** argv) {
+int main(int argc, const char* argv[]) {
   benchmark::Initialize(&argc, argv);
   benchmark::RunSpecifiedBenchmarks();
   return 0;
