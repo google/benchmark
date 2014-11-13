@@ -1,5 +1,6 @@
 #include "benchmark/benchmark.h"
 
+#include <assert.h>
 #include <math.h>
 #include <stdint.h>
 
@@ -109,7 +110,7 @@ static void BM_StringCompare(benchmark::State& state) {
   while (state.KeepRunning())
     r |= s1.compare(s2);
   // Prevent compiler optimizations
-  CHECK(r != std::numeric_limits<int>::max());
+  assert(r != std::numeric_limits<int>::max());
 }
 BENCHMARK(BM_StringCompare)->Range(1, 1<<20);
 
@@ -138,7 +139,7 @@ static void BM_LongTest(benchmark::State& state) {
   while (state.KeepRunning())
     for (int i = 0; i < state.range_x(); ++i)
       tracker += i;
-  CHECK(tracker != 0.0);
+  assert(tracker != 0.0);
 }
 BENCHMARK(BM_LongTest)->Range(1<<16,1<<28);
 
@@ -168,8 +169,8 @@ class TestReporter : public benchmark::internal::ConsoleReporter {
 int main(int argc, const char* argv[]) {
   benchmark::Initialize(&argc, argv);
 
-  CHECK(Factorial(8) == 40320);
-  CHECK(CalculatePi(1) == 0.0);
+  assert(Factorial(8) == 40320);
+  assert(CalculatePi(1) == 0.0);
 
   TestReporter test_reporter;
   benchmark::RunSpecifiedBenchmarks(&test_reporter);

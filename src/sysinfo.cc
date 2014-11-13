@@ -29,7 +29,7 @@
 #include <limits>
 #include <mutex>
 
-#include "benchmark/macros.h"
+#include "check.h"
 #include "cycleclock.h"
 #include "sleep.h"
 
