@@ -1,5 +1,6 @@
 benchmark
 =========
+[![Build Status](https://travis-ci.org/google/benchmark.svg?branch=master)](https://travis-ci.org/google/benchmark)
 [![Build Status](https://drone.io/github.com/google/benchmark/status.png)](https://drone.io/github.com/google/benchmark/latest)
 
 A library to support the benchmarking of functions, similar to unit-tests.
