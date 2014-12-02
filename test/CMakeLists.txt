@@ -2,7 +2,8 @@ find_package(Threads REQUIRED)
 
 # Demonstration executable
 add_executable(benchmark_test benchmark_test.cc)
-target_link_libraries(benchmark_test benchmark ${CMAKE_THREAD_LIBS_INIT})
+target_link_libraries(benchmark_test benchmark gtest ${CMAKE_THREAD_LIBS_INIT})
+add_dependencies(benchmark_test googletest)
 add_test(benchmark benchmark_test 50)
 add_test(benchmark_filter_simple benchmark_test --benchmark_filter=Calculate 16)
 add_test(benchmark_filter_prefix benchmark_test --benchmark_filter=*Calculate 0)
