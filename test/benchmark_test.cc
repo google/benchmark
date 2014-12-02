@@ -52,7 +52,7 @@ static void BM_Factorial(benchmark::State& state) {
   while (state.KeepRunning())
     fac_42 = Factorial(8);
   // Prevent compiler optimizations
-  CHECK(fac_42 != std::numeric_limits<int>::max());
+  EXPECT_NE(fac_42, std::numeric_limits<int>::max());
 }
 BENCHMARK(BM_Factorial);
 #endif
