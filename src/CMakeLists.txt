@@ -26,12 +26,27 @@ set_target_properties(benchmark PROPERTIES
   SOVERSION ${GENERIC_LIB_SOVERSION}
 )
 
-# Install target (will install the library to specified CMAKE_INSTALL_PREFIX variable)
+# Build the benchmark main library
+add_library(benchmark_main benchmark_main.cc)
+set_target_properties(benchmark_main PROPERTIES
+  VERSION ${GENERIC_LIB_VERSION}
+  SOVERSION ${GENERIC_LIB_SOVERSION}
+)
+
+# Build the integrated benchmark and googletest main library
+add_library(benchmark_test_main benchmark_test_main.cc)
+set_target_properties(benchmark_main PROPERTIES
+  VERSION ${GENERIC_LIB_VERSION}
+  SOVERSION ${GENERIC_LIB_SOVERSION}
+)
+
+# Install target (will install the libraries to specified CMAKE_INSTALL_PREFIX variable)
 install(
-  TARGETS benchmark
+  TARGETS benchmark benchmark_main benchmark_test_main
   ARCHIVE DESTINATION lib
   LIBRARY DESTINATION lib
   COMPONENT library)
+
 install(
   DIRECTORY "${PROJECT_SOURCE_DIR}/include/benchmark"
   DESTINATION include

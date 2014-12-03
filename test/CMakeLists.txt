@@ -16,3 +16,13 @@ add_executable(re_test ${RE_FILES} "re_test.cc")
 target_link_libraries(re_test benchmark_re gtest gtest_main ${CMAKE_THREAD_LIBS_INIT})
 add_dependencies(re_test googletest)
 add_test(regex re_test)
+
+# Test harness for integrated main
+add_executable(benchmark_main_test benchmark_main_test.cc)
+target_link_libraries(benchmark_main_test benchmark benchmark_main ${CMAKE_THREAD_LIBS_INIT})
+
+# Test harness for integrated main with googletest
+add_executable(benchmark_test_main_test benchmark_test_main_test.cc)
+add_dependencies(benchmark_test_main_test googletest)
+target_link_libraries(benchmark_test_main_test benchmark gtest benchmark_test_main ${CMAKE_THREAD_LIBS_INIT})
+
