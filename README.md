@@ -6,7 +6,8 @@ A library to support the benchmarking of functions, similar to unit-tests.
 
 Discussion group: https://groups.google.com/d/forum/benchmark-discuss
 
-Example usage:
+Example usage
+-------------
 Define a function that executes the code to be measured a
 specified number of times:
 
@@ -158,3 +159,7 @@ static void BM_MultiThreaded(benchmark::State& state) {
 }
 BENCHMARK(BM_MultiThreaded)->Threads(2);
 ```
+
+Linking against the library
+---------------------------
+When using gcc, it is necessary to link against pthread to avoid runtime exceptions. This is due to how gcc implements std::thread. See [issue #67](https://github.com/google/benchmark/issues/67) for more details.
