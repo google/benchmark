@@ -142,7 +142,7 @@ class Benchmark {
 
   static void AddRange(std::vector<int>* dst, int lo, int hi, int mult);
 
-  DISALLOW_COPY_AND_ASSIGN(Benchmark)
+  DISALLOW_COPY_AND_ASSIGN(Benchmark);
 };
 
 // ------------------------------------------------------

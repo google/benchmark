@@ -375,7 +375,7 @@ public:
 
 private:
   Benchmark *imp_;
-  DISALLOW_COPY_AND_ASSIGN(MinimalBenchmark)
+  DISALLOW_COPY_AND_ASSIGN(MinimalBenchmark);
 };
 
 
