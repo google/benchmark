@@ -58,13 +58,16 @@ public:
 
   static WallTimeImp & GetWallTimeImp() {
     static WallTimeImp imp;
+#if __cplusplus >= 201103L
     static_assert(std::is_trivially_destructible<WallTimeImp>::value,
                   "WallTimeImp must be trivially destructible to prevent "
                   "issues with static destruction");
+#endif
     return imp;
   }
 
 private:
+  WallTimeImp();
   // Helper routines to load/store a float from an AtomicWord. Required because
   // g++ < 4.7 doesn't support std::atomic<float> correctly. I cannot wait to
   // get rid of this horror show.
@@ -93,15 +96,14 @@ private:
 
   static constexpr double kMaxErrorInterval = 100e-6;
 
-  WallTimeType base_walltime_ = 0.0;
-  int64_t base_cycletime_ = 0;
+  WallTimeType base_walltime_;
+  int64_t base_cycletime_;
   int64_t cycles_per_second_;
   double seconds_per_cycle_;
-  uint32_t last_adjust_time_ = 0;
-  std::atomic<int32_t> drift_adjust_ = ATOMIC_VAR_INIT(0);
-  int64_t max_interval_cycles_ = 0;
+  uint32_t last_adjust_time_;
+  std::atomic<int32_t> drift_adjust_;
+  int64_t max_interval_cycles_;
 
-  WallTimeImp();
   DISALLOW_COPY_AND_ASSIGN(WallTimeImp)
 };
 
@@ -134,7 +136,11 @@ WallTimeType WallTimeImp::Now() {
 }
 
 
-WallTimeImp::WallTimeImp() {
+WallTimeImp::WallTimeImp()
+    : base_walltime_(0.0), base_cycletime_(0),
+      cycles_per_second_(0), seconds_per_cycle_(0.0),
+      last_adjust_time_(0), drift_adjust_(0),
+      max_interval_cycles_(0) {
   cycles_per_second_ = static_cast<int64_t>(CyclesPerSecond());
   CHECK(cycles_per_second_ != 0);
   seconds_per_cycle_ = 1.0 / cycles_per_second_;

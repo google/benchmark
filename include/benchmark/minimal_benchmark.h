@@ -156,7 +156,7 @@ class BenchmarkReporter;
 
 // Initialize the package and parse the command line flags.
 // This function must be called before using the bennchmark library.
-extern void Initialize(int argc, const char** argv);
+extern void Initialize(int* argc, const char** argv);
 
 // If the --benchmarks flag is empty, do nothing.
 //
@@ -429,7 +429,7 @@ private:
 // Helper macro to create a main routine in a test that runs the benchmarks
 #define BENCHMARK_MAIN()                             \
   int main(int argc, const char** argv) {            \
-    ::benchmark::Initialize(argc, argv);             \
+    ::benchmark::Initialize(&argc, argv);            \
     ::benchmark::RunSpecifiedBenchmarks();           \
   }
 

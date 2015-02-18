@@ -110,19 +110,19 @@ static std::vector<Benchmark*>* families = NULL;
 struct ThreadStats {
   int64_t bytes_processed;
   int64_t items_processed;
-
-  ThreadStats() {
-    Reset();
-  }
-  void Reset() {
-    bytes_processed = 0;
-    items_processed = 0;
-  }
-  void Add(const ThreadStats& other) {
-    bytes_processed += other.bytes_processed;
-    items_processed += other.items_processed;
-  }
 };
+
+void ResetThreadStats(ThreadStats* stats)
+{
+    stats->bytes_processed = 0;
+    stats->items_processed = 0;
+}
+
+void AddThreadStats(ThreadStats* stats, ThreadStats const& rhs)
+{
+    stats->bytes_processed += rhs.bytes_processed;
+    stats->items_processed += rhs.items_processed;
+}
 
 // Per-thread stats
 static ATTRIBUTE_THREAD_LOCAL ThreadStats thread_stats;
@@ -539,13 +539,13 @@ void RunInThread(const benchmark::Benchmark::Instance* b,
                  int iters,
                  ThreadStats* total) EXCLUDES(GetBenchmarkLock()) {
   ThreadStats* my_stats = &thread_stats;
-  my_stats->Reset();
+  ResetThreadStats(my_stats);
   timer_manager->StartTimer();
   b->Run(iters);
 
   {
     MutexLock l(GetBenchmarkLock());
-    total->Add(*my_stats);
+    AddThreadStats(total, *my_stats);
   }
 
   timer_manager->Finalize();
@@ -966,8 +966,9 @@ void ParseCommandLineFlags(int* argc, const char** argv) {
 }
 
 
-void Initialize(int argc, const char** argv) {
-  ParseCommandLineFlags(&argc, argv);
+void Initialize(int* argc, const char** argv) {
+  ParseCommandLineFlags(argc, argv);
+  ResetThreadStats(&thread_stats);
   // TODO remove this. It prints some output the first time it is called.
   // We don't want to have this ouput printed during benchmarking.
   MyCPUUsage();

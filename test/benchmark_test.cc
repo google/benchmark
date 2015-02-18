@@ -194,7 +194,7 @@ class TestReporter : public benchmark::ConsoleReporter {
 };
 
 int main(int argc, const char* argv[]) {
-  benchmark::Initialize(argc, argv);
+  benchmark::Initialize(&argc, argv);
 
 #ifdef DEBUG
   assert(Factorial(8) == 40320);
