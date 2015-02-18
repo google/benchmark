@@ -91,10 +91,10 @@ static_assert(arraysize(kBigSIUnits) == arraysize(kBigIECUnits),
               "SI and IEC unit arrays must be the same size");
 static_assert(arraysize(kSmallSIUnits) == arraysize(kBigSIUnits),
               "Small SI and Big SI unit arrays must be the same size");
-static const int kUnitsSize = arraysize(kBigSIUnits);
+static const size_t kUnitsSize = arraysize(kBigSIUnits);
 
 void ToExponentAndMantissa(double val, double thresh, int precision,
-                           double one_k, std::string* mantissa, int* exponent) {
+                           double one_k, std::string* mantissa, size_t* exponent) {
   std::stringstream mantissa_stream;
 
   if (val < 0) {
@@ -144,10 +144,10 @@ void ToExponentAndMantissa(double val, double thresh, int precision,
   *mantissa = mantissa_stream.str();
 }
 
-std::string ExponentToPrefix(int exponent, bool iec) {
+std::string ExponentToPrefix(size_t exponent, bool iec) {
   if (exponent == 0) return "";
 
-  const int index = (exponent > 0 ? exponent - 1 : -exponent - 1);
+  const size_t index = (exponent > 0 ? exponent - 1 : -exponent - 1);
   if (index >= kUnitsSize) return "";
 
   const char* array =
@@ -161,7 +161,7 @@ std::string ExponentToPrefix(int exponent, bool iec) {
 std::string ToBinaryStringFullySpecified(double value, double threshold,
                                          int precision) {
   std::string mantissa;
-  int exponent;
+  size_t exponent;
   ToExponentAndMantissa(value, threshold, precision, 1024.0, &mantissa,
                         &exponent);
   return mantissa + ExponentToPrefix(exponent, false);
@@ -311,10 +311,10 @@ class BenchmarkFamilies {
   static BenchmarkFamilies* GetInstance();
 
   // Registers a benchmark family and returns the index assigned to it.
-  int AddBenchmark(Benchmark* family);
+  size_t AddBenchmark(Benchmark* family);
 
   // Unregisters a family at the given index.
-  void RemoveBenchmark(int index);
+  void RemoveBenchmark(size_t index);
 
   // Extract the list of benchmark instances that match the specified
   // regular expression.
@@ -341,7 +341,7 @@ BenchmarkFamilies::~BenchmarkFamilies() {
   }
 }
 
-int BenchmarkFamilies::AddBenchmark(Benchmark* family) {
+size_t BenchmarkFamilies::AddBenchmark(Benchmark* family) {
   std::lock_guard<std::mutex> l(mutex_);
   // This loop attempts to reuse an entry that was previously removed to avoid
   // unncessary growth of the vector.
@@ -351,12 +351,12 @@ int BenchmarkFamilies::AddBenchmark(Benchmark* family) {
       return index;
     }
   }
-  int index = families_.size();
+  size_t index = families_.size();
   families_.push_back(family);
   return index;
 }
 
-void BenchmarkFamilies::RemoveBenchmark(int index) {
+void BenchmarkFamilies::RemoveBenchmark(size_t index) {
   std::lock_guard<std::mutex> l(mutex_);
   families_[index] = NULL;
   // Don't shrink families_ here, we might be called by the destructor of
@@ -389,12 +389,13 @@ void BenchmarkFamilies::FindBenchmarks(
     std::vector<Benchmark::Instance> instances;
     if (family->rangeX_.empty() && family->rangeY_.empty()) {
       instances = family->CreateBenchmarkInstances(
-        Benchmark::kNoRange, Benchmark::kNoRange);
+        Benchmark::kNoRangeIndex, Benchmark::kNoRangeIndex);
       std::copy(instances.begin(), instances.end(),
                 std::back_inserter(*benchmarks));
     } else if (family->rangeY_.empty()) {
       for (size_t x = 0; x < family->rangeX_.size(); ++x) {
-        instances = family->CreateBenchmarkInstances(x, Benchmark::kNoRange);
+        instances = family->CreateBenchmarkInstances(
+          x, Benchmark::kNoRangeIndex);
         std::copy(instances.begin(), instances.end(),
                   std::back_inserter(*benchmarks));
       }
@@ -440,7 +441,7 @@ bool ConsoleReporter::ReportContext(const BenchmarkReporter::Context& context)
   }
 
   int output_width = fprintf(stdout, "%s%-*s %10s %10s %10s\n",
-                             Prefix(), name_field_width_, "Benchmark",
+                             Prefix(), int(name_field_width_), "Benchmark",
                              "Time(ns)", "CPU(ns)", "Iterations");
   std::cout << std::string(output_width - 1, '-').c_str() << "\n";
 
@@ -794,7 +795,7 @@ void Benchmark::AddRange(std::vector<int>* dst, int lo, int hi, int mult) {
 }
 
 std::vector<Benchmark::Instance> Benchmark::CreateBenchmarkInstances(
-    int rangeXindex, int rangeYindex) {
+    size_t rangeXindex, size_t rangeYindex) {
   // Special list of thread counts to use when none are specified
   std::vector<int> one_thread;
   one_thread.push_back(1);
@@ -810,12 +811,12 @@ std::vector<Benchmark::Instance> Benchmark::CreateBenchmarkInstances(
     instance.bm = this;
     instance.threads = num_threads;
 
-    if (rangeXindex != kNoRange) {
+    if (rangeXindex != kNoRangeIndex) {
       instance.rangeX = rangeX_[rangeXindex];
       instance.rangeXset = true;
       AppendHumanReadable(instance.rangeX, &instance.name);
     }
-    if (rangeYindex != kNoRange) {
+    if (rangeYindex != kNoRangeIndex) {
       instance.rangeY = rangeY_[rangeYindex];
       instance.rangeYset = true;
       AppendHumanReadable(instance.rangeY, &instance.name);
@@ -1231,20 +1232,21 @@ void RunMatchingBenchmarks(const std::string& spec,
 
   // Determine the width of the name field using a minimum width of 10.
   // Also determine max number of threads needed.
-  int name_field_width = 10;
+  size_t name_field_width = 10;
   for (const internal::Benchmark::Instance& benchmark : benchmarks) {
     // Add width for _stddev and threads:XX
     if (benchmark.threads > 1 && FLAGS_benchmark_repetitions > 1) {
       name_field_width =
-          std::max<int>(name_field_width, benchmark.name.size() + 17);
+          std::max<size_t>(name_field_width, benchmark.name.size() + 17);
     } else if (benchmark.threads > 1) {
       name_field_width =
-          std::max<int>(name_field_width, benchmark.name.size() + 10);
+          std::max<size_t>(name_field_width, benchmark.name.size() + 10);
     } else if (FLAGS_benchmark_repetitions > 1) {
       name_field_width =
-          std::max<int>(name_field_width, benchmark.name.size() + 7);
+          std::max<size_t>(name_field_width, benchmark.name.size() + 7);
     } else {
-      name_field_width = std::max<int>(name_field_width, benchmark.name.size());
+      name_field_width =
+          std::max<size_t>(name_field_width, benchmark.name.size());
     }
   }
 

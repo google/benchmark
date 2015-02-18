@@ -55,7 +55,7 @@ int64_t EstimateCyclesPerSecond() {
 #if defined OS_LINUX || defined OS_CYGWIN
 // Helper function for reading an int from a file. Returns true if successful
 // and the memory location pointed to by value is set to the value read.
-bool ReadIntFromFile(const char* file, int* value) {
+bool ReadIntFromFile(const char* file, long* value) {
   bool ret = false;
   int fd = open(file, O_RDONLY);
   if (fd != -1) {
@@ -63,7 +63,7 @@ bool ReadIntFromFile(const char* file, int* value) {
     char* err;
     memset(line, '\0', sizeof(line));
     CHECK(read(fd, line, sizeof(line) - 1));
-    const int temp_value = strtol(line, &err, 10);
+    const long temp_value = strtol(line, &err, 10);
     if (line[0] != '\0' && (*err == '\n' || *err == '\0')) {
       *value = temp_value;
       ret = true;
@@ -78,7 +78,7 @@ void InitializeSystemInfo() {
 #if defined OS_LINUX || defined OS_CYGWIN
   char line[1024];
   char* err;
-  int freq;
+  long freq;
 
   bool saw_mhz = false;
 
@@ -120,13 +120,13 @@ void InitializeSystemInfo() {
 
   double bogo_clock = 1.0;
   bool saw_bogo = false;
-  int max_cpu_id = 0;
+  long max_cpu_id = 0;
   int num_cpus = 0;
   line[0] = line[1] = '\0';
-  int chars_read = 0;
+  size_t chars_read = 0;
   do {  // we'll exit when the last read didn't read anything
     // Move the next line to the beginning of the buffer
-    const int oldlinelen = strlen(line);
+    const size_t oldlinelen = strlen(line);
     if (sizeof(line) == oldlinelen + 1)  // oldlinelen took up entire line
       line[0] = '\0';
     else  // still other lines left to save
@@ -134,8 +134,8 @@ void InitializeSystemInfo() {
     // Terminate the new line, reading more if we can't find the newline
     char* newline = strchr(line, '\n');
     if (newline == NULL) {
-      const int linelen = strlen(line);
-      const int bytes_to_read = sizeof(line) - 1 - linelen;
+      const size_t linelen = strlen(line);
+      const size_t bytes_to_read = sizeof(line) - 1 - linelen;
       CHECK(bytes_to_read > 0);  // because the memmove recovered >=1 bytes
       chars_read = read(fd, line + linelen, bytes_to_read);
       line[linelen + chars_read] = '\0';
@@ -164,7 +164,7 @@ void InitializeSystemInfo() {
       num_cpus++;  // count up every time we see an "processor :" entry
       const char* freqstr = strchr(line, ':');
       if (freqstr) {
-        const int cpu_id = strtol(freqstr + 1, &err, 10);
+        const long cpu_id = strtol(freqstr + 1, &err, 10);
         if (freqstr[1] != '\0' && *err == '\0' && max_cpu_id < cpu_id)
           max_cpu_id = cpu_id;
       }
