@@ -21,6 +21,12 @@ using benchmark::StopBenchmarkTiming;
 using benchmark::SetBenchmarkBytesProcessed;
 using benchmark::SetBenchmarkItemsProcessed;
 
+#if defined(__GNUC__)
+# define ATTRIBUTE_NOINLINE __attribute__((noinline))
+#else
+# define ATTRIBUTE_NOINLINE
+#endif
+
 namespace {
 
 #ifdef DEBUG
@@ -75,7 +81,7 @@ BENCHMARK_RANGE(BM_CalculatePiRange, 1, 1024 * 1024);
 
 static void BM_CalculatePi(int iters) {
   static const int depth = 1024;
-  double pi ATTRIBUTE_UNUSED = 0.0;
+  double pi BENCHMARK_UNUSED = 0.0;
   while (iters-- > 0) {
     pi = CalculatePi(depth);
   }

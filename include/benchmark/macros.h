@@ -28,21 +28,17 @@
     TypeName& operator=(const TypeName&) = delete;
 #endif
 
-#define ATTRIBUTE_UNUSED __attribute__((unused))
-#define ATTRIBUTE_ALWAYS_INLINE __attribute__((always_inline))
-#define ATTRIBUTE_NOINLINE __attribute__((noinline))
-#if __cplusplus < 201103L
-# define ATTRIBUTE_NORETURN __attribute__((noreturn))
+#if defined(__GNUC__)
+# define BENCHMARK_UNUSED __attribute__((unused))
+# define BENCHMARK_ALWAYS_INLINE __attribute__((always_inline))
+#elif defined(_MSC_VER) && !defined(__clang__)
+# define BENCHMARK_UNUSED
+# define BENCHMARK_ALWAYS_INLINE __forceinline
 #else
-# define ATTRIBUTE_NORETURN [[noreturn]]
+# define BENCHMARK_UNUSED
+# define BENCHMARK_ALWAYS_INLINE
 #endif
 
-#if __has_feature(cxx_thread_local) \
-    || (!defined(__clang__) && __cplusplus >= 201103L)
-# define ATTRIBUTE_THREAD_LOCAL thread_local
-#else
-# define ATTRIBUTE_THREAD_LOCAL __thread
-#endif
 
 #if defined(__CYGWIN__)
 # define OS_CYGWIN 1

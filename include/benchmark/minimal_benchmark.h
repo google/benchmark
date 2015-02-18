@@ -150,6 +150,8 @@ BENCHMARK(BM_memcpy)->Setup(NewPermanentCallback(MemcpySetup))
 #include <stdlib.h>
 #include "macros.h"
 
+
+
 namespace benchmark {
 
 class BenchmarkReporter;
@@ -388,7 +390,7 @@ private:
 
 #define BENCHMARK(n)                                                    \
   static ::benchmark::Benchmark*                                          \
-  BENCHMARK_CONCAT(_benchmark_, n, __LINE__) ATTRIBUTE_UNUSED =        \
+  BENCHMARK_CONCAT(_benchmark_, n, __LINE__) BENCHMARK_UNUSED =        \
   (::benchmark::MinimalBenchmark(#n, &n))
 
 // Old-style macros
@@ -411,18 +413,18 @@ private:
 #if __cplusplus < 201103L
 # define BENCHMARK_TEMPLATE(n, a)                                           \
     static ::benchmark::Benchmark*                                          \
-    BENCHMARK_CONCAT(_benchmark_, n, __LINE__) ATTRIBUTE_UNUSED =           \
+    BENCHMARK_CONCAT(_benchmark_, n, __LINE__) BENCHMARK_UNUSED =           \
     (::benchmark::MinimalBenchmark(#n "<" #a ">", &n<a>))
 #else
 # define BENCHMARK_TEMPLATE(n, ...)                                           \
     static ::benchmark::Benchmark*                                            \
-    BENCHMARK_CONCAT(_benchmark_, n, __LINE__) ATTRIBUTE_UNUSED =             \
+    BENCHMARK_CONCAT(_benchmark_, n, __LINE__) BENCHMARK_UNUSED =             \
     (::benchmark::MinimalBenchmark(#n "<" #__VA_ARGS__ ">", &n<__VA_ARGS__>))
 #endif
 
 #define BENCHMARK_TEMPLATE2(n, a, b)                                      \
   static ::benchmark::Benchmark*                                          \
-  BENCHMARK_CONCAT(__benchmark_, n, __LINE__) ATTRIBUTE_UNUSED =          \
+  BENCHMARK_CONCAT(__benchmark_, n, __LINE__) BENCHMARK_UNUSED =          \
   (::benchmark::MinimalBenchmark(#n "<" #a "," #b ">",                    \
                                &n<a, b>))
 
