@@ -553,7 +553,7 @@ void RunBenchmark(const benchmark::Benchmark::Instance& b,
       Notification done;
       timer_manager = new TimerManager(b.threads, &done);
 
-      ThreadStats total;
+      ThreadStats total{0, 0};
       running_benchmark = true;
       if (b.multithreaded) {
         // If this is out first iteration of the while(true) loop then the
