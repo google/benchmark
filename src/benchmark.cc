@@ -520,12 +520,13 @@ void RunInThread(const benchmark::Benchmark::Instance* b,
   ThreadStats* my_stats = &thread_stats;
   ResetThreadStats(my_stats);
   b->Run(iters, thread_id);
-  timer_manager->Finalize();
 
   {
     MutexLock l(GetBenchmarkLock());
     AddThreadStats(total, *my_stats);
   }
+
+  timer_manager->Finalize();
 }
 
 void RunBenchmark(const benchmark::Benchmark::Instance& b,
