@@ -29,6 +29,7 @@
 
 #include "check.h"
 #include "commandlineflags.h"
+#include "colorprint.h"
 #include "log.h"
 #include "mutex.h"
 #include "re.h"
@@ -66,6 +67,8 @@ DEFINE_int32(benchmark_repetitions, 1,
 DEFINE_bool(benchmark_use_picoseconds, false,
             "Report times in picoseconds, to provide more significant figures "
             "for very fast-running benchmarks.");
+
+DEFINE_bool(color_print, false, "Enables colorized logging.");
 
 // The ""'s catch people who don't pass in a literal for "str"
 #define strliterallen(str) (sizeof("" str "") - 1)
@@ -799,22 +802,26 @@ void ConsoleReporter::PrintRunData(const BenchmarkRunData& result) {
                    " items/s");
   }
 
-  double multiplier = FLAGS_benchmark_use_picoseconds ? 1e12 : 1e9;
-  fprintf(stdout,
-          "%s%-*s %10.0f %10.0f %10lld%s %s %s\n",
-          Prefix(),
-          name_field_width_,
-          result.benchmark_name.c_str(),
-          (result.real_accumulated_time * multiplier) /
-          (static_cast<double>(result.iters)),
-          (result.cpu_accumulated_time * multiplier) /
-          (static_cast<double>(result.iters)),
-          // TODO: make format accept int64_t
-          static_cast<long long>(result.iters),
-          rate.c_str(),
-          items.c_str(),
-          result.report_label.c_str());
-  fflush(stdout);
+  double const multiplier = FLAGS_benchmark_use_picoseconds ? 1e12 : 1e9;
+  ColorPrintf(COLOR_DEFAULT, "%s", Prefix());
+  ColorPrintf(COLOR_GREEN, "%-*s ",
+              name_field_width_, result.benchmark_name.c_str());
+  if (result.iters == 0) {
+    ColorPrintf(COLOR_YELLOW, "%10.0f %10.0f ",
+                result.real_accumulated_time * multiplier,
+                result.cpu_accumulated_time * multiplier);
+  } else {
+    ColorPrintf(COLOR_YELLOW, "%10.0f %10.0f ",
+                (result.real_accumulated_time * multiplier) /
+                    (static_cast<double>(result.iters)),
+                (result.cpu_accumulated_time * multiplier) /
+                    (static_cast<double>(result.iters)));
+  }
+  ColorPrintf(COLOR_CYAN, "%10lld", result.iters);
+  ColorPrintf(COLOR_DEFAULT, "%*s %*s %s\n",
+              13, rate.c_str(),
+              18, items.c_str(),
+              result.report_label.c_str());
 }
 
 void RunMatchingBenchmarks(const std::string& spec,
@@ -925,7 +932,8 @@ void PrintUsageAndExit() {
           "          [--benchmark_max_iters=<iterations>]\n"
           "          [--benchmark_min_time=<min_time>]\n"
           "          [--benchmark_repetitions=<num_repetitions>]\n"
-          "          [--benchmark_use_picoseconds={true|false}]\n");
+          "          [--benchmark_use_picoseconds={true|false}]\n"
+          "          [--color_print={true|false}]\n");
   exit(0);
 }
 
@@ -943,7 +951,9 @@ void ParseCommandLineFlags(int* argc, const char** argv) {
         ParseInt32Flag(argv[i], "benchmark_repetitions",
                        &FLAGS_benchmark_repetitions) ||
         ParseBoolFlag(argv[i], "benchmark_use_picoseconds",
-                       &FLAGS_benchmark_use_picoseconds)) {
+                       &FLAGS_benchmark_use_picoseconds) ||
+        ParseBoolFlag(argv[i], "color_print",
+                       &FLAGS_color_print)) {
       for (int j = i; j != *argc; ++j) argv[j] = argv[j + 1];
 
       --(*argc);
