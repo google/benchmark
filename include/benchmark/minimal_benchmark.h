@@ -266,6 +266,7 @@ public:
   {}
 
   // Returns true iff the benchmark should continue through another iteration.
+  ATTRIBUTE_ALWAYS_INLINE
   bool KeepRunning() {
     if (__builtin_expect(!started_, false)) {
         StartBenchmarkTiming();
@@ -279,10 +280,12 @@ public:
     return res;
   }
 
+  ATTRIBUTE_ALWAYS_INLINE
   void PauseTiming() {
     StopBenchmarkTiming();
   }
 
+  ATTRIBUTE_ALWAYS_INLINE
   void ResumeTiming() {
     StartBenchmarkTiming();
   }
@@ -294,6 +297,7 @@ public:
   // per iteration.
   //
   // REQUIRES: a benchmark has exited its KeepRunning loop.
+  ATTRIBUTE_ALWAYS_INLINE
   void SetBytesProcessed(int64_t bytes) {
     SetBenchmarkBytesProcessed(bytes);
   }
@@ -304,6 +308,7 @@ public:
   // benchmark where a processing items/second output is desired.
   //
   // REQUIRES: a benchmark has exited its KeepRunning loop.
+  ATTRIBUTE_ALWAYS_INLINE
   void SetItemsProcessed(int64_t items) {
     SetBenchmarkItemsProcessed(items);
   }
@@ -320,22 +325,28 @@ public:
   //  BM_Compress   50         50   14115038  compress:27.3%
   //
   // REQUIRES: a benchmark has exited its KeepRunning loop.
+  ATTRIBUTE_ALWAYS_INLINE
   void SetLabel(const char* label) {
     SetBenchmarkLabel(label);
   }
 
   // Range arguments for this run. CHECKs if the argument has been set.
+  ATTRIBUTE_ALWAYS_INLINE
   int range_x() const {
     assert(has_range_x_);
     return range_x_;
   }
 
+  ATTRIBUTE_ALWAYS_INLINE
   int range_y() const {
     assert(has_range_y_);
     return range_y_;
   }
 
+  ATTRIBUTE_ALWAYS_INLINE
   int iterations() const { return total_iterations_; }
+
+  ATTRIBUTE_ALWAYS_INLINE
   int max_iterations() const { return max_iterations_; }
 
 
