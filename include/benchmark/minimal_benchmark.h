@@ -354,10 +354,10 @@ private:
     bool started_;
     unsigned total_iterations_, max_iterations_;
 
-    bool has_range_x_;
+    bool has_range_x_ ATTRIBUTE_DEBUG_UNUSED;
     int range_x_;
 
-    bool has_range_y_;
+    bool has_range_y_ ATTRIBUTE_DEBUG_UNUSED;
     int range_y_;
 
 public:

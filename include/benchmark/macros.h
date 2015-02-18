@@ -29,6 +29,12 @@
 #endif
 
 #define ATTRIBUTE_UNUSED __attribute__((unused))
+#ifdef NDEBUG
+# define ATTRIBUTE_DEBUG_UNUSED ATTRIBUTE_UNUSED
+#else
+# define ATTRIBUTE_DEBUG_UNUSED
+#endif
+
 #define ATTRIBUTE_ALWAYS_INLINE __attribute__((always_inline))
 #define ATTRIBUTE_NOINLINE __attribute__((noinline))
 #if __cplusplus < 201103L
