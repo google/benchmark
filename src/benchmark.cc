@@ -261,56 +261,30 @@ const int Benchmark::kNumCpuMarker;
 // Information kept per benchmark we may want to run
 struct Benchmark::Instance {
   std::string   name;
-  Function      function;
-  Function      setup;
-  Function      teardown;
+  Function*     function;
+  bool          has_arg1;
   int           arg1;
+  bool          has_arg2;
   int           arg2;
   int           threads;    // Number of concurrent threads to use
   bool          multithreaded;  // Is benchmark multi-threaded?
 
-  void Run(int iters) const {
-    function.Run(iters, arg1, arg2);
+  void Run(int iters, int thread_id) const {
+    State st(iters, has_arg1, arg1, has_arg2, arg2, thread_id);
+    function(st);
   }
 };
 
-void Function::Run(int iters, int arg1, int arg2) const {
-  if (f0_ != NULL) {
-    (*f0_)(iters);
-  } else if (f1_ != NULL) {
-    (*f1_)(iters, arg1);
-  } else if (f2_ != NULL) {
-    (*f2_)(iters, arg1, arg2);
-  } else {
-    // NULL function; do nothing.
-  }
-}
-
-int Function::args() const {
-  if (f0_ != NULL) {
-    return 0;
-  } else if (f1_ != NULL) {
-    return 1;
-  } else if (f2_ != NULL) {
-    return 2;
-  } else {
-    return -1;
-  }
-}
 
 Benchmark::Benchmark(const std::string& name,
-                     const Function& f) EXCLUDES(GetBenchmarkLock())
-                    : name_(name), function_(f) {
+                     Function* f) EXCLUDES(GetBenchmarkLock())
+                    : name_(name), function_(f), arg_count_(-1) {
   MutexLock l(GetBenchmarkLock());
   if (families == NULL) {
     families = new std::vector<Benchmark*>;
   }
   registration_index_ = families->size();
   families->push_back(this);
-  if (f.args() == 0) {
-    // Run it exactly once regardless of Arg/Range calls.
-    args_.emplace_back(-1, -1);
-  }
 }
 
 Benchmark::~Benchmark() EXCLUDES(GetBenchmarkLock()) {
@@ -324,13 +298,18 @@ Benchmark::~Benchmark() EXCLUDES(GetBenchmarkLock()) {
 }
 
 Benchmark* Benchmark::Arg(int x) {
-  CHECK_EQ(function_.args(), 1) << "Wrong number of args for " << name_;
+   // TODO(remove)
+  //CHECK_EQ(function_.args(), 1) << "Wrong number of args for " << name_;
+  CHECK(arg_count_ == -1 || arg_count_ == 1);
+  arg_count_ = 1;
   args_.emplace_back(x, -1);
   return this;
 }
 
 Benchmark* Benchmark::Range(int start, int limit) {
-  CHECK_EQ(function_.args(), 1) << "Wrong number of args for " << name_;
+  //CHECK_EQ(function_.args(), 1) << "Wrong number of args for " << name_;
+  CHECK(arg_count_ == -1 || arg_count_ == 1);
+  arg_count_ = 1;
   std::vector<int> arglist;
   AddRange(&arglist, start, limit, kRangeMultiplier);
 
@@ -341,7 +320,9 @@ Benchmark* Benchmark::Range(int start, int limit) {
 }
 
 Benchmark* Benchmark::DenseRange(int start, int limit) {
-  CHECK_EQ(function_.args(), 1) << "Wrong number of args for " << name_;
+  //CHECK_EQ(function_.args(), 1) << "Wrong number of args for " << name_;
+  CHECK(arg_count_ == -1 || arg_count_ == 1);
+  arg_count_ = 1;
   CHECK_GE(start, 0);
   CHECK_LE(start, limit);
   for (int arg = start; arg <= limit; arg++) {
@@ -351,13 +332,17 @@ Benchmark* Benchmark::DenseRange(int start, int limit) {
 }
 
 Benchmark* Benchmark::ArgPair(int x, int y) {
-  CHECK_EQ(function_.args(), 2) << "Wrong number of args for " << name_;
+  //CHECK_EQ(function_.args(), 2) << "Wrong number of args for " << name_;
+  CHECK(arg_count_ == -1 || arg_count_ == 2);
+  arg_count_ = 2;
   args_.emplace_back(x, y);
   return this;
 }
 
 Benchmark* Benchmark::RangePair(int lo1, int hi1, int lo2, int hi2) {
-  CHECK_EQ(function_.args(), 2) << "Wrong number of args for " << name_;
+  //CHECK_EQ(function_.args(), 2) << "Wrong number of args for " << name_;
+  CHECK(arg_count_ == -1 || arg_count_ == 2);
+  arg_count_ = 2;
   std::vector<int> arglist1, arglist2;
   AddRange(&arglist1, lo1, hi1, kRangeMultiplier);
   AddRange(&arglist2, lo2, hi2, kRangeMultiplier);
@@ -416,15 +401,6 @@ void Benchmark::AddRange(std::vector<int>* dst, int lo, int hi, int mult) {
   }
 }
 
-Benchmark* Benchmark::Setup(const Function& setup) {
-  setup_ = setup;
-  return this;
-}
-
-Benchmark* Benchmark::Teardown(const Function& teardown) {
-  teardown_ = teardown;
-  return this;
-}
 
 // Extract the list of benchmark instances that match the specified
 // regular expression.
@@ -448,7 +424,10 @@ void Benchmark::FindBenchmarks(
     for (Benchmark* family : *families) {
       if (family == NULL) continue;  // Family was deleted
 
-      const int num_args = family->function_.args();
+      if (family->arg_count_ == -1) {
+        family->arg_count_ = 0;
+        family->args_.emplace_back(-1, -1);
+      }
       for (auto const& args : family->args_) {
         const std::vector<int>* thread_counts =
             (family->thread_counts_.empty()
@@ -462,18 +441,18 @@ void Benchmark::FindBenchmarks(
           Instance instance;
           instance.name = family->name_;
           instance.function = family->function_;
+          instance.has_arg1 = family->arg_count_ >= 1;
           instance.arg1 = args.first;
+          instance.has_arg2 = family->arg_count_ == 2;
           instance.arg2 = args.second;
           instance.threads = num_threads;
           instance.multithreaded = !(family->thread_counts_.empty());
-          instance.setup = family->setup_;
-          instance.teardown = family->teardown_;
 
           // Add arguments to instance name
-          if (num_args >= 1) {
+          if (family->arg_count_ >= 1) {
             AppendHumanReadable(instance.arg1, &instance.name);
           }
-          if (num_args >= 2) {
+          if (family->arg_count_ >= 2) {
             AppendHumanReadable(instance.arg2, &instance.name);
           }
 
@@ -536,19 +515,17 @@ static bool CpuScalingEnabled() {
 // Execute one thread of benchmark b for the specified number of iterations.
 // Adds the stats collected for the thread into *total.
 void RunInThread(const benchmark::Benchmark::Instance* b,
-                 int iters,
+                 int iters, int thread_id,
                  ThreadStats* total) EXCLUDES(GetBenchmarkLock()) {
   ThreadStats* my_stats = &thread_stats;
   ResetThreadStats(my_stats);
-  timer_manager->StartTimer();
-  b->Run(iters);
+  b->Run(iters, thread_id);
+  timer_manager->Finalize();
 
   {
     MutexLock l(GetBenchmarkLock());
     AddThreadStats(total, *my_stats);
   }
-
-  timer_manager->Finalize();
 }
 
 void RunBenchmark(const benchmark::Benchmark::Instance& b,
@@ -571,7 +548,6 @@ void RunBenchmark(const benchmark::Benchmark::Instance& b,
         report_label.clear();
         use_real_time = false;
       }
-      b.setup.Run(b.threads, b.arg1, b.arg2);
 
       Notification done;
       timer_manager = new TimerManager(b.threads, &done);
@@ -586,12 +562,12 @@ void RunBenchmark(const benchmark::Benchmark::Instance& b,
           if (thread.joinable())
             thread.join();
         }
-        for (std::thread& thread : pool) {
-          thread = std::thread(&RunInThread, &b, iters, &total);
+        for (std::size_t ti = 0; ti < pool.size(); ++ti) {
+            pool[i] = std::thread(&RunInThread, &b, iters, ti, &total);
         }
       } else {
         // Run directly in this thread
-        RunInThread(&b, iters, &total);
+        RunInThread(&b, iters, 0, &total);
       }
       done.WaitForNotification();
       running_benchmark = false;
@@ -600,7 +576,6 @@ void RunBenchmark(const benchmark::Benchmark::Instance& b,
       const double real_accumulated_time = timer_manager->real_time_used();
       delete timer_manager;
       timer_manager = NULL;
-      b.teardown.Run(b.threads, b.arg1, b.arg2);
 
       VLOG(1) << "Ran in " << cpu_accumulated_time << "/"
             << real_accumulated_time << "\n";

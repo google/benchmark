@@ -146,6 +146,7 @@ BENCHMARK(BM_memcpy)->Setup(NewPermanentCallback(MemcpySetup))
 #ifndef BENCHMARK_MINIMAL_BENCHMARK_H_
 #define BENCHMARK_MINIMAL_BENCHMARK_H_
 
+#include <assert.h>
 #include <stdint.h>
 #include <stdlib.h>
 #include "macros.h"
@@ -252,38 +253,115 @@ extern void BenchmarkUseRealTime();
 
 class Benchmark;
 
-// A Function object wraps together a callback of one of several
-// possible types and allows it to be invoked without the caller
-// having to know which type is being invoked.  The callback must be
-// repeatable.
-class Function {
-   private:
-    typedef void(F0Type)(int);
-    typedef void(F1Type)(int, int);
-    typedef void(F2Type)(int, int, int);
 
-    F0Type *f0_;
-    F1Type *f1_;
-    F2Type *f2_;
-   public:
-    Function() : f0_(NULL), f1_(NULL), f2_(NULL) {}
-    Function(F0Type* f)
-        : f0_(f), f1_(NULL), f2_(NULL) {
+// State is passed to a running Benchmark and contains state for the
+// benchmark to use.
+class State {
+public:
+  State(int max_iters, bool has_x, int x, bool has_y, int y, int thread_i)
+    : started_(false), total_iterations_(0), max_iterations_(max_iters),
+      has_range_x_(has_x), range_x_(x),
+      has_range_y_(has_y), range_y_(y),
+      thread_index(thread_i)
+  {}
+
+  // Returns true iff the benchmark should continue through another iteration.
+  bool KeepRunning() {
+    if (__builtin_expect(!started_, false)) {
+        StartBenchmarkTiming();
+        started_ = true;
     }
-    Function(F1Type* f)
-        : f0_(NULL), f1_(f), f2_(NULL) {
+    bool const res = total_iterations_++ < max_iterations_;
+    if (__builtin_expect(!res, false)) {
+        assert(started_);
+        StopBenchmarkTiming();
     }
-    Function(F2Type* f)
-        : f0_(NULL), f1_(NULL), f2_(f) {
-    }
-    void Run(int iters, int arg1, int arg2) const;
-    int args() const;
+    return res;
+  }
+
+  void PauseTiming() {
+    StopBenchmarkTiming();
+  }
+
+  void ResumeTiming() {
+    StartBenchmarkTiming();
+  }
+
+  // Set the number of bytes processed by the current benchmark
+  // execution.  This routine is typically called once at the end of a
+  // throughput oriented benchmark.  If this routine is called with a
+  // value > 0, the report is printed in MB/sec instead of nanoseconds
+  // per iteration.
+  //
+  // REQUIRES: a benchmark has exited its KeepRunning loop.
+  void SetBytesProcessed(int64_t bytes) {
+    SetBenchmarkBytesProcessed(bytes);
+  }
+
+  // If this routine is called with items > 0, then an items/s
+  // label is printed on the benchmark report line for the currently
+  // executing benchmark. It is typically called at the end of a processing
+  // benchmark where a processing items/second output is desired.
+  //
+  // REQUIRES: a benchmark has exited its KeepRunning loop.
+  void SetItemsProcessed(int64_t items) {
+    SetBenchmarkItemsProcessed(items);
+  }
+
+  // If this routine is called, the specified label is printed at the
+  // end of the benchmark report line for the currently executing
+  // benchmark.  Example:
+  //  static void BM_Compress(int iters) {
+  //    ...
+  //    double compress = input_size / output_size;
+  //    benchmark::SetLabel(StringPrintf("compress:%.1f%%", 100.0*compression));
+  //  }
+  // Produces output that looks like:
+  //  BM_Compress   50         50   14115038  compress:27.3%
+  //
+  // REQUIRES: a benchmark has exited its KeepRunning loop.
+  void SetLabel(const char* label) {
+    SetBenchmarkLabel(label);
+  }
+
+  // Range arguments for this run. CHECKs if the argument has been set.
+  int range_x() const {
+    assert(has_range_x_);
+    return range_x_;
+  }
+
+  int range_y() const {
+    assert(has_range_y_);
+    return range_y_;
+  }
+
+  int iterations() const { return total_iterations_; }
+  int max_iterations() const { return max_iterations_; }
+
+
+private:
+    bool started_;
+    unsigned total_iterations_, max_iterations_;
+
+    bool has_range_x_;
+    int range_x_;
+
+    bool has_range_y_;
+    int range_y_;
+
+public:
+    const int thread_index;
+
+private:
+    DISALLOW_COPY_AND_ASSIGN(State)
 };
+
+typedef void(Function)(State&);
 
 class MinimalBenchmark
 {
 public:
-  MinimalBenchmark(const char* name, const Function& f);
+  MinimalBenchmark(const char* name, Function* ptr);
 
   ~MinimalBenchmark();
 
@@ -344,23 +422,6 @@ public:
 
   // Equivalent to ThreadRange(NumCPUs(), NumCPUs())
   MinimalBenchmark& ThreadPerCpu();
-
-  // Have "setup" and/or "teardown" invoked once for every benchmark run.
-  // If the benchmark is multi-threaded (will run in k threads concurrently),
-  // the setup callback will be be invoked exactly once (not k times) before
-  // each run with k threads. Time allowing (e.g. for a short benchmark), there
-  // may be multiple such runs per benchmark, each run with its own
-  // "setup"/"teardown".
-  //
-  // If the benchmark uses different size groups of threads (e.g. via
-  // ThreadRange), the above will be true for each size group.
-  //
-  // The callback will be passed the number of threads for this benchmark run.
-  //
-  // The callback must not be self-deleting.  The Benchmark
-  // object takes ownership of the callback object.
-  MinimalBenchmark& Setup(const Function& setup);
-  MinimalBenchmark& Teardown(const Function& teardown);
 
   MinimalBenchmark* operator->() {
     return this;

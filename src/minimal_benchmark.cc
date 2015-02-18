@@ -17,7 +17,7 @@
 
 namespace benchmark {
 
-MinimalBenchmark::MinimalBenchmark(const char* name, const Function& f)
+MinimalBenchmark::MinimalBenchmark(const char* name, Function* f)
   : imp_(new Benchmark(name, f))
 { }
 
@@ -70,16 +70,6 @@ MinimalBenchmark& MinimalBenchmark::ThreadRange(int min_threads,
 
 MinimalBenchmark& MinimalBenchmark::ThreadPerCpu() {
   imp_->ThreadPerCpu();
-  return *this;
-}
-
-MinimalBenchmark& MinimalBenchmark::Setup(const Function& setup) {
-  imp_->Setup(setup);
-  return *this;
-}
-
-MinimalBenchmark& MinimalBenchmark::Teardown(const Function& teardown) {
-  imp_->Teardown(teardown);
   return *this;
 }
 

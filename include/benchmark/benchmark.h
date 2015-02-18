@@ -35,7 +35,7 @@ namespace benchmark {
 class Benchmark {
  public:
   // The Benchmark takes ownership of the Callback pointed to by f.
-  Benchmark(const std::string& name, const Function& f);
+  Benchmark(const std::string& name, Function* f);
 
   ~Benchmark();
 
@@ -97,23 +97,6 @@ class Benchmark {
   // Equivalent to ThreadRange(NumCPUs(), NumCPUs())
   Benchmark* ThreadPerCpu();
 
-  // Have "setup" and/or "teardown" invoked once for every benchmark run.
-  // If the benchmark is multi-threaded (will run in k threads concurrently),
-  // the setup callback will be be invoked exactly once (not k times) before
-  // each run with k threads. Time allowing (e.g. for a short benchmark), there
-  // may be multiple such runs per benchmark, each run with its own
-  // "setup"/"teardown".
-  //
-  // If the benchmark uses different size groups of threads (e.g. via
-  // ThreadRange), the above will be true for each size group.
-  //
-  // The callback will be passed the number of threads for this benchmark run.
-  //
-  // The callback must not be self-deleting.  The Benchmark
-  // object takes ownership of the callback object.
-  Benchmark* Setup(const Function& setup);
-  Benchmark* Teardown(const Function& teardown);
-
   // TODO(sanjay): Control whether or not real-time is used for this benchmark
   // TODO(sanjay): Control the default number of iterations
 
@@ -130,10 +113,9 @@ class Benchmark {
 
  private:
   std::string name_;
-  Function function_;
-  Function setup_;
-  Function teardown_;
+  Function* function_;
   int registration_index_;
+  int arg_count_;
   std::vector< std::pair<int, int> > args_;  // Args for all benchmark runs
   std::vector<int> thread_counts_;
 
