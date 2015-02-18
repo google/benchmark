@@ -199,7 +199,7 @@ class BenchmarkReporter {
   // cpu-time and heap memory usage during the benchmark run.
   // Note that all the grouped benchmark runs should refer to the same
   // benchmark, thus have the same name.
-  virtual void ReportRuns(const std::vector<BenchmarkRunData>& report) = 0;
+  virtual void ReportRuns(const std::vector<BenchmarkRunData>& report) const = 0;
 
   virtual ~BenchmarkReporter();
 };
@@ -225,10 +225,10 @@ void ComputeStats(const std::vector<BenchmarkRunData>& reports,
 class ConsoleReporter : public BenchmarkReporter {
  public:
   virtual bool ReportContext(const BenchmarkContextData& context);
-  virtual void ReportRuns(const std::vector<BenchmarkRunData>& reports);
+  virtual void ReportRuns(const std::vector<BenchmarkRunData>& reports) const;
  private:
-  std::string PrintMemoryUsage(double bytes);
-  virtual void PrintRunData(const BenchmarkRunData& report);
+  virtual void PrintRunData(const BenchmarkRunData& report) const;
+  // TODO(ericwf): Find a better way to share this information.
   int name_field_width_;
 };
 

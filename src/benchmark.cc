@@ -761,7 +761,8 @@ bool ConsoleReporter::ReportContext(const BenchmarkContextData& context) {
   return true;
 }
 
-void ConsoleReporter::ReportRuns(const std::vector<BenchmarkRunData>& reports) {
+void ConsoleReporter::ReportRuns(
+    const std::vector<BenchmarkRunData>& reports) const {
   if (reports.empty()) {
     return;
   }
@@ -788,7 +789,7 @@ void ConsoleReporter::ReportRuns(const std::vector<BenchmarkRunData>& reports) {
   fprintf(stdout, "\n");
 }
 
-void ConsoleReporter::PrintRunData(const BenchmarkRunData& result) {
+void ConsoleReporter::PrintRunData(const BenchmarkRunData& result) const {
   // Format bytes per second
   std::string rate;
   if (result.bytes_per_second > 0) {
@@ -960,9 +961,6 @@ void ParseCommandLineFlags(int* argc, const char** argv) {
       --i;
     } else if (IsFlag(argv[i], "help")) {
       PrintUsageAndExit();
-    } else {
-        std::cerr << "Unrecognized option: " << argv[i] << "\n";
-        PrintUsageAndExit();
     }
   }
 }

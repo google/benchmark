@@ -1,7 +1,7 @@
 cmake_minimum_required (VERSION 2.8)
 project (benchmark)
 
-option(BENCHMARK_ENABLE_SHARED  "Enable building a shared library." ON)
+option(BENCHMARK_ENABLE_SHARED  "Enable building a shared library." OFF)
 option(BENCHMARK_ENABLE_TESTING "Enable testing of the benchmark library." ON)
 set(BENCHMARK_LOGGING_LEVEL "0" CACHE STRING "The logging level to use.")
 

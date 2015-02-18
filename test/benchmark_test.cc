@@ -169,6 +169,30 @@ static void BM_LongTest(int iters, int xrange) {
 }
 BENCHMARK(BM_LongTest)->Range(1<<16,1<<28);
 
+class TestReporter : public benchmark::ConsoleReporter {
+ public:
+  virtual bool ReportContext(const benchmark::BenchmarkContextData& context) {
+    return ConsoleReporter::ReportContext(context);
+  };
+
+  virtual void ReportRuns(
+    const std::vector<benchmark::BenchmarkRunData>& report) const {
+    ++count_;
+    ConsoleReporter::ReportRuns(report);
+  };
+
+  TestReporter() : count_(0) {}
+
+  virtual ~TestReporter() {}
+
+  int GetCount() const {
+    return count_;
+  }
+
+ private:
+  mutable size_t count_;
+};
+
 int main(int argc, const char* argv[]) {
   benchmark::Initialize(argc, argv);
 
@@ -177,6 +201,16 @@ int main(int argc, const char* argv[]) {
 #endif
   assert(CalculatePi(1) == 0.0);
 
-  benchmark::RunSpecifiedBenchmarks();
+  TestReporter test_reporter;
+  benchmark::RunSpecifiedBenchmarks(&test_reporter);
+
+  // Make sure we ran all of the tests
+  const size_t count = test_reporter.GetCount();
+  const size_t expected = (argc == 2) ? std::stoul(argv[1]) : count;
+  if (count != expected) {
+    std::cerr << "ERROR: Expected " << expected << " tests to be ran but only "
+              << count << " completed" << std::endl;
+    return -1;
+  }
 }
 
