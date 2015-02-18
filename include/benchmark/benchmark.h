@@ -227,7 +227,7 @@ class State {
   int range_x() const;
   int range_y() const;
 
-  int iterations() const { return total_iterations_; }
+  int64_t iterations() const { return total_iterations_; }
 
   const int thread_index;
 
@@ -312,7 +312,7 @@ class BenchmarkReporter {
     bool cpu_scaling_enabled;
 
     // The number of chars in the longest benchmark name.
-    int name_field_width;
+    size_t name_field_width;
   };
 
   struct Run {
@@ -454,12 +454,12 @@ class Benchmark {
  private:
   friend class BenchmarkFamilies;
 
-  std::vector<Benchmark::Instance> CreateBenchmarkInstances(int rangeXindex,
-                                                            int rangeYindex);
+  std::vector<Benchmark::Instance> CreateBenchmarkInstances(size_t rangeXindex,
+                                                            size_t rangeYindex);
 
   std::string name_;
   BenchmarkFunction function_;
-  int registration_index_;
+  size_t registration_index_;
   std::vector<int> rangeX_;
   std::vector<int> rangeY_;
   std::vector<int> thread_counts_;
@@ -469,7 +469,8 @@ class Benchmark {
   static const int kNumCpuMarker = -1;
 
   // Special value used to indicate that no range is required.
-  static const int kNoRange = -1;
+  static const size_t kNoRangeIndex = std::numeric_limits<size_t>::max();
+  static const int kNoRange = std::numeric_limits<int>::max();
 
   static void AddRange(std::vector<int>* dst, int lo, int hi, int mult);
   static double MeasurePeakHeapMemory(const Instance& b);
@@ -494,7 +495,7 @@ class ConsoleReporter : public BenchmarkReporter {
  private:
   std::string PrintMemoryUsage(double bytes) const;
   virtual void PrintRunData(const Run& report) const;
-  mutable int name_field_width_;
+  mutable size_t name_field_width_;
 };
 
 }  // end namespace internal
