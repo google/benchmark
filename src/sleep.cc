@@ -15,9 +15,10 @@
 #include "sleep.h"
 
 #include <time.h>
-#include <errno.h>
+#include <cerrno>
 
 namespace benchmark {
+
 #ifdef OS_WINDOWS
 // Window's _sleep takes milliseconds argument.
 void SleepForMilliseconds(int milliseconds) { _sleep(milliseconds); }

@@ -21,7 +21,7 @@
 #ifndef BENCHMARK_CYCLECLOCK_H_
 #define BENCHMARK_CYCLECLOCK_H_
 
-#include <stdint.h>
+#include <cstdint>
 
 #if defined(OS_MACOSX)
 #include <mach/mach_time.h>

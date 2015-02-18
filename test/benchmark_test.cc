@@ -16,6 +16,11 @@
 
 #include <gtest/gtest.h>
 
+using benchmark::StartBenchmarkTiming;
+using benchmark::StopBenchmarkTiming;
+using benchmark::SetBenchmarkBytesProcessed;
+using benchmark::SetBenchmarkItemsProcessed;
+
 namespace {
 
 #ifdef DEBUG
@@ -43,13 +48,14 @@ std::set<int> ConstructRandomSet(int size) {
 
 std::mutex test_vector_mu;
 std::vector<int>* test_vector = nullptr;
+static bool setup_called = false;
 
 }  // end namespace
 
 #ifdef DEBUG
-static void BM_Factorial(benchmark::State& state) {
+static void BM_Factorial(int iters) {
   int fac_42 = 0;
-  while (state.KeepRunning())
+  while (iters-- > 0)
     fac_42 = Factorial(8);
   // Prevent compiler optimizations
   EXPECT_NE(fac_42, std::numeric_limits<int>::max());
@@ -57,20 +63,20 @@ static void BM_Factorial(benchmark::State& state) {
 BENCHMARK(BM_Factorial);
 #endif
 
-static void BM_CalculatePiRange(benchmark::State& state) {
+static void BM_CalculatePiRange(int iters, int rangex) {
   double pi = 0.0;
-  while (state.KeepRunning())
-    pi = CalculatePi(state.range_x());
+  while (iters-- > 0)
+    pi = CalculatePi(rangex);
   std::stringstream ss;
   ss << pi;
-  state.SetLabel(ss.str());
+  //state.SetLabel(ss.str().c_str());
 }
 BENCHMARK_RANGE(BM_CalculatePiRange, 1, 1024 * 1024);
 
-static void BM_CalculatePi(benchmark::State& state) {
+static void BM_CalculatePi(int iters) {
   static const int depth = 1024;
   double pi ATTRIBUTE_UNUSED = 0.0;
-  while (state.KeepRunning()) {
+  while (iters-- > 0) {
     pi = CalculatePi(depth);
   }
 }
@@ -78,53 +84,68 @@ BENCHMARK(BM_CalculatePi)->Threads(8);
 BENCHMARK(BM_CalculatePi)->ThreadRange(1, 32);
 BENCHMARK(BM_CalculatePi)->ThreadPerCpu();
 
-static void BM_SetInsert(benchmark::State& state) {
-  while (state.KeepRunning()) {
-    state.PauseTiming();
-    std::set<int> data = ConstructRandomSet(state.range_x());
-    state.ResumeTiming();
-    for (int j = 0; j < state.range_y(); ++j)
+
+static void BM_SetInsert(int iters, int xrange, int yrange) {
+  const int total_iters = iters;
+  while (iters-->0) {
+    StopBenchmarkTiming();
+    std::set<int> data = ConstructRandomSet(xrange);
+    StartBenchmarkTiming();
+    for (int j = 0; j < yrange; ++j)
       data.insert(rand());
   }
-  state.SetItemsProcessed(state.iterations() * state.range_y());
-  state.SetBytesProcessed(state.iterations() * state.range_y() * sizeof(int));
+  SetBenchmarkItemsProcessed(total_iters * yrange);
+  SetBenchmarkBytesProcessed(total_iters * yrange * sizeof(int));
 }
 BENCHMARK(BM_SetInsert)->RangePair(1<<10,8<<10, 1,10);
 
+
 template<typename Q>
-static void BM_Sequential(benchmark::State& state) {
+static void BM_Sequential(int iters, int xrange) {
+  const int total_iters = iters;
   typename Q::value_type v = 42;
-  while (state.KeepRunning()) {
+  while (iters-->0) {
     Q q;
-    for (int i = state.range_x(); --i; )
+    for (int i = xrange; --i; )
       q.push_back(v);
   }
   const int64_t items_processed =
-      static_cast<int64_t>(state.iterations()) * state.range_x();
-  state.SetItemsProcessed(items_processed);
-  state.SetBytesProcessed(items_processed * sizeof(v));
+      static_cast<int64_t>(total_iters) * xrange;
+  SetBenchmarkItemsProcessed(items_processed);
+  SetBenchmarkBytesProcessed(items_processed * sizeof(v));
 }
 BENCHMARK_TEMPLATE(BM_Sequential, std::vector<int>)->Range(1 << 0, 1 << 10);
 BENCHMARK_TEMPLATE(BM_Sequential, std::list<int>)->Range(1 << 0, 1 << 10);
 
-static void BM_StringCompare(benchmark::State& state) {
-  std::string s1(state.range_x(), '-');
-  std::string s2(state.range_x(), '-');
+
+static void BM_StringCompare(int iters, int xrange) {
+  StopBenchmarkTiming();
+  std::string s1(xrange, '-');
+  std::string s2(xrange, '-');
   int r = 0;
-  while (state.KeepRunning())
+  StartBenchmarkTiming();
+  while (iters-->0)
     r |= s1.compare(s2);
   // Prevent compiler optimizations
   assert(r != std::numeric_limits<int>::max());
 }
 BENCHMARK(BM_StringCompare)->Range(1, 1<<20);
 
-static void BM_SetupTeardown(benchmark::State& state) {
-  if (state.thread_index == 0) {
-    // No need to lock test_vector_mu here as this is running single-threaded.
-    test_vector = new std::vector<int>();
-  }
+static void BM_SetupTeardown_Setup(int) {
+  assert(setup_called == false);
+  setup_called = true;
+  test_vector = new std::vector<int>();
+}
+
+static void BM_SetupTeardown_Teardown(int) {
+  assert(setup_called);
+  setup_called = false;
+  delete test_vector;
+}
+
+static void BM_SetupTeardown(int iters) {
   int i = 0;
-  while (state.KeepRunning()) {
+  while (iters-->0) {
     std::lock_guard<std::mutex> l(test_vector_mu);
     if (i%2 == 0)
       test_vector->push_back(i);
@@ -132,62 +153,30 @@ static void BM_SetupTeardown(benchmark::State& state) {
       test_vector->pop_back();
     ++i;
   }
-  if (state.thread_index == 0) {
-    delete test_vector;
-  }
 }
-BENCHMARK(BM_SetupTeardown)->ThreadPerCpu();
+BENCHMARK(BM_SetupTeardown)->Setup(&BM_SetupTeardown_Setup)
+                           ->Teardown(&BM_SetupTeardown_Teardown)
+                           ->ThreadPerCpu();
 
-static void BM_LongTest(benchmark::State& state) {
+
+static void BM_LongTest(int iters, int xrange) {
   double tracker = 0.0;
-  while (state.KeepRunning())
-    for (int i = 0; i < state.range_x(); ++i)
+  while (iters-->0) {
+    for (int i = 0; i < xrange; ++i)
       tracker += i;
+  }
   assert(tracker != 0.0);
 }
 BENCHMARK(BM_LongTest)->Range(1<<16,1<<28);
 
-class TestReporter : public benchmark::internal::ConsoleReporter {
- public:
-  virtual bool ReportContext(const Context& context) const {
-    return ConsoleReporter::ReportContext(context);
-  };
-
-  virtual void ReportRuns(const std::vector<Run>& report) const {
-    ++count_;
-    ConsoleReporter::ReportRuns(report);
-  };
-
-  TestReporter() : count_(0) {}
-
-  virtual ~TestReporter() {}
-
-  int GetCount() const {
-    return count_;
-  }
-
- private:
-  mutable size_t count_;
-};
-
 int main(int argc, const char* argv[]) {
-  benchmark::Initialize(&argc, argv);
+  benchmark::Initialize(argc, argv);
 
 #ifdef DEBUG
   assert(Factorial(8) == 40320);
 #endif
   assert(CalculatePi(1) == 0.0);
 
-  TestReporter test_reporter;
-  benchmark::RunSpecifiedBenchmarks(&test_reporter);
-
-  // Make sure we ran all of the tests
-  const size_t count = test_reporter.GetCount();
-  const size_t expected = (argc == 2) ? std::stoul(argv[1]) : count;
-  if (count != expected) {
-    std::cerr << "ERROR: Expected " << expected << " tests to be ran but only "
-              << count << " completed" << std::endl;
-    return -1;
-  }
+  benchmark::RunSpecifiedBenchmarks();
 }
 
