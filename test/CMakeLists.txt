@@ -40,9 +40,7 @@ add_benchmark_test(basic_test)
 compile_benchmark_test(benchmark_test)
 add_test(benchmark benchmark_test --benchmark_min_time=0.1 50)
 add_test(benchmark_filter_simple benchmark_test --benchmarks=Calculate 16)
-add_test(benchmark_filter_prefix benchmark_test --benchmarks=*Calculate 0)
 add_test(benchmark_filter_suffix benchmark_test --benchmarks=Calculate* 16)
-add_test(benchmark_filter_both benchmark_test --benchmarks=*Calculate* 0)
 add_test(benchmark_filter_regex_wildcard benchmark_test --benchmarks=.*Calculate.* 16)
 
 
