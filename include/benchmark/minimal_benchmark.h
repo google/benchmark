@@ -152,6 +152,8 @@ BENCHMARK(BM_memcpy)->Setup(NewPermanentCallback(MemcpySetup))
 
 namespace benchmark {
 
+class BenchmarkReporter;
+
 // Initialize the package and parse the command line flags.
 // This function must be called before using the bennchmark library.
 extern void Initialize(int argc, const char** argv);
@@ -160,7 +162,7 @@ extern void Initialize(int argc, const char** argv);
 //
 // Otherwise, run all benchmarks specified by the --benchmarks flag,
 // and exit after running the benchmarks.
-extern void RunSpecifiedBenchmarks();
+extern void RunSpecifiedBenchmarks(BenchmarkReporter* reporter = NULL);
 
 // ------------------------------------------------------
 // Routines that can be called from within a benchmark

@@ -5,14 +5,24 @@ include_directories(${PROJECT_SOURCE_DIR}/src)
 set(SOURCE_FILES "benchmark.cc" "minimal_benchmark.cc" "commandlineflags.cc"
                  "log.cc" "sleep.cc" "string_util.cc" "sysinfo.cc"
                  "walltime.cc")
+# Determine the correct regular expression engine to use
+if(HAVE_STD_REGEX)
+  set(RE_FILES "re_std.cc")
+elseif(HAVE_GNU_POSIX_REGEX)
+  set(RE_FILES "re_posix.cc")
+elseif(HAVE_POSIX_REGEX)
+  set(RE_FILES "re_posix.cc")
+else()
+  message(FATAL_ERROR "Failed to determine the source files for the regular expression backend")
+endif()
 
 # Build the benchmark library
 if (BENCHMARK_ENABLE_SHARED)
-  add_library(benchmark SHARED ${SOURCE_FILES})
+  add_library(benchmark SHARED ${SOURCE_FILES} ${RE_FILES})
   find_package(Threads REQUIRED)
   target_link_libraries(benchmark ${CMAKE_THREAD_LIBS_INIT})
 else()
-  add_library(benchmark STATIC ${SOURCE_FILES})
+  add_library(benchmark STATIC ${SOURCE_FILES} ${RE_FILES})
 endif()
 
 set_target_properties(benchmark PROPERTIES

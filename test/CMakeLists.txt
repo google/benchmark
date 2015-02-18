@@ -17,13 +17,21 @@ link_directories(${binary_dir})
 
 find_package(Threads REQUIRED)
 
+macro(add_gtest_test name)
+  add_executable(${name} "${name}.cc")
+  target_link_libraries(${name} benchmark gtest gtest_main ${CMAKE_THREAD_LIBS_INIT})
+  add_dependencies(${name} googletest)
+  add_test(${name} ${name})
+endmacro(add_gtest_test)
+
 macro (add_benchmark_test name)
-  add_executable(${name}_bin "${name}.cc")
-  target_link_libraries(${name}_bin benchmark gtest ${CMAKE_THREAD_LIBS_INIT})
-  add_dependencies(${name}_bin googletest)
-  add_test(${name} ${name}_bin --benchmarks=all)
+  add_executable(${name} "${name}.cc")
+  target_link_libraries(${name} benchmark gtest ${CMAKE_THREAD_LIBS_INIT})
+  add_dependencies(${name} googletest)
+  add_test(${name} ${name} --benchmarks=all)
 endmacro(add_benchmark_test)
 
 # Demonstration executable
 add_benchmark_test(benchmark_test)
 add_benchmark_test(basic_test)
+add_gtest_test(re_test)

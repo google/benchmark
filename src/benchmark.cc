@@ -18,12 +18,6 @@
 #include <sys/resource.h>
 #include <unistd.h>
 
-#ifdef OS_FREEBSD
-# include <gnuregex.h>
-#else
-# include <regex.h>
-#endif
-
 #include <cstdlib>
 #include <cstring>
 #include <algorithm>
@@ -37,6 +31,7 @@
 #include "commandlineflags.h"
 #include "log.h"
 #include "mutex.h"
+#include "re.h"
 #include "stat.h"
 #include "string_util.h"
 #include "sysinfo.h"
@@ -434,14 +429,10 @@ void Benchmark::FindBenchmarks(
     const std::string& spec,
     std::vector<Instance>* benchmarks) EXCLUDES(GetBenchmarkLock()) {
   // Make regular expression out of command-line flag
-  regex_t re;
-  int ec = regcomp(&re, spec.c_str(), REG_EXTENDED | REG_NOSUB);
-  if (ec != 0) {
-    size_t needed = regerror(ec, &re, NULL, 0);
-    char* errbuf = new char[needed];
-    regerror(ec, &re, errbuf, needed);
-    std::cerr << "Could not compile benchmark re: " << errbuf << std::endl;
-    delete[] errbuf;
+  std::string error_msg;
+  Regex re;
+  if (!re.Init(spec, &error_msg)) {
+    std::cerr << "Could not compile benchmark re: " << error_msg << std::endl;
     std::exit(1);
   }
 
@@ -489,15 +480,13 @@ void Benchmark::FindBenchmarks(
           }
 
           // Add if benchmark name matches regexp
-          if (regexec(&re, instance.name.c_str(), 0, NULL, 0) == 0) {
+          if (re.Match(instance.name)) {
             benchmarks->push_back(instance);
           }
         }
       }
     }
   }
-
-  regfree(&re);
 }
 
 
@@ -878,7 +867,7 @@ void FindMatchingBenchmarkNames(const std::string& spec,
   }
 }
 
-void RunSpecifiedBenchmarks() {
+void RunSpecifiedBenchmarks(BenchmarkReporter* reporter) {
   std::string spec = FLAGS_benchmarks;
   if (spec.empty()) {
     // Nothing to do
@@ -887,7 +876,7 @@ void RunSpecifiedBenchmarks() {
       spec = ".";         // Regexp that matches all benchmarks
     }
     ConsoleReporter default_reporter;
-    RunMatchingBenchmarks(spec, &default_reporter);
+    RunMatchingBenchmarks(spec, reporter ? reporter : &default_reporter);
     std::exit(0);
   }
 }
