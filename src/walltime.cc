@@ -104,7 +104,7 @@ private:
   std::atomic<int32_t> drift_adjust_;
   int64_t max_interval_cycles_;
 
-  DISALLOW_COPY_AND_ASSIGN(WallTimeImp);
+  BENCHMARK_DISALLOW_COPY_AND_ASSIGN(WallTimeImp);
 };
 
 
