@@ -7,6 +7,14 @@
 #include "benchmark/macros.h"
 #include "log.h"
 
+#if __has_feature(cxx_attributes)
+# define BENCHMARK_NORETURN [[noreturn]]
+#elif defined(__GNUC__)
+# define BENCHMARK_NORETURN __attribute__((noreturn))
+#else
+# define BENCHMARK_NORETURN
+#endif
+
 namespace benchmark {
 namespace internal {
 
@@ -25,7 +33,7 @@ public:
     return log_;
   }
 
-  ATTRIBUTE_NORETURN ~CheckHandler() {
+  BENCHMARK_NORETURN ~CheckHandler() {
       log_ << std::endl;
       std::abort();
   }

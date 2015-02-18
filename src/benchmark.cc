@@ -39,6 +39,29 @@
 #include "walltime.h"
 
 
+#if defined(__clang__)
+#
+# if __has_feature(cxx_thread_local)
+#   define BENCHMARK_THREAD_LOCAL thread_local
+# else
+#   define BENCHMARK_THREAD_LOCAL __thread
+# endif
+#
+#elif defined(__GNUC__)
+#
+# if __cplusplus >= 201103L
+#   define BENCHMARK_THREAD_LOCAL thread_local
+# else
+#   define BENCHMARK_THREAD_LOCAL __thread
+# endif
+#
+#elif defined(_MSC_VER) && !defined(__clang__)
+#
+# define BENCHMARK_THREAD_LOCAL thread_local
+#
+#endif
+
+
 DEFINE_string(benchmarks, "all",
               "A regular expression that specifies the set of benchmarks "
               "to execute.  If this flag is empty, no benchmarks are run.  "
@@ -125,7 +148,7 @@ void AddThreadStats(ThreadStats* stats, ThreadStats const& rhs)
 }
 
 // Per-thread stats
-static ATTRIBUTE_THREAD_LOCAL ThreadStats thread_stats;
+static BENCHMARK_THREAD_LOCAL ThreadStats thread_stats;
 
 // Timer management class
 class TimerManager {
