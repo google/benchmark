@@ -45,6 +45,12 @@
 # define BENCHMARK_DEBUG_UNUSED BENCHMARK_UNUSED
 #endif
 
+#if defined(__GNUC__)
+# define BENCHMARK_BUILTIN_EXPECT(x, y) __builtin_expect(x, y)
+#else
+# define BENCHMARK_BUILTIN_EXPECT(x, y) x
+#endif
+
 #if defined(__CYGWIN__)
 # define OS_CYGWIN 1
 #elif defined(_WIN32)
