@@ -26,7 +26,7 @@ void BM_spin(benchmark::State& state) {
 BENCHMARK(BM_spin)->Range(8, 8<<10);
 
 void BM_spin_pause_before(benchmark::State& state) {
-  for (int i = 0; i < state.range_y(); ++i) {
+  for (int i = 0; i < state.range_x(); ++i) {
     volatile int dummy = i;
     ((void)dummy);
   }
@@ -49,7 +49,7 @@ void BM_spin_pause_during(benchmark::State& state) {
       ((void)dummy);
     }
     StartBenchmarkTiming();
-    for (int i = 0; i < state.range_y(); ++i) {
+    for (int i = 0; i < state.range_x(); ++i) {
       volatile int dummy = i;
       ((void)dummy);
     }
