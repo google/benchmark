@@ -14,6 +14,10 @@
 #ifndef BENCHMARK_MACROS_H_
 #define BENCHMARK_MACROS_H_
 
+#ifndef __has_feature
+# define __has_feature(x) 0
+#endif
+
 #if __cplusplus < 201103L
 # define DISALLOW_COPY_AND_ASSIGN(TypeName)  \
     TypeName(const TypeName&);               \
@@ -27,7 +31,18 @@
 #define ATTRIBUTE_UNUSED __attribute__((unused))
 #define ATTRIBUTE_ALWAYS_INLINE __attribute__((always_inline))
 #define ATTRIBUTE_NOINLINE __attribute__((noinline))
-#define ATTRIBUTE_NORETURN [[noreturn]]
+#if __cplusplus < 201103L
+# define ATTRIBUTE_NORETURN __attribute__((noreturn))
+#else
+# define ATTRIBUTE_NORETURN [[noreturn]]
+#endif
+
+#if __has_feature(cxx_thread_local) \
+    || (!defined(__clang__) && __cplusplus >= 201103L)
+# define ATTRIBUTE_THREAD_LOCAL thread_local
+#else
+# define ATTRIBUTE_THREAD_LOCAL __thread
+#endif
 
 #if defined(__CYGWIN__)
 # define OS_CYGWIN 1

@@ -125,7 +125,7 @@ struct ThreadStats {
 };
 
 // Per-thread stats
-static thread_local ThreadStats thread_stats;
+static ATTRIBUTE_THREAD_LOCAL ThreadStats thread_stats;
 
 // Timer management class
 class TimerManager {

@@ -6,7 +6,7 @@
 
 // Enable thread safety attributes only with clang.
 // The attributes can be safely erased when compiling with other compilers.
-#if defined(__clang__)
+#if defined(HAVE_THREAD_SAFETY_ATTRIBUTES)
 #define THREAD_ANNOTATION_ATTRIBUTE__(x)   __attribute__((x))
 #else
 #define THREAD_ANNOTATION_ATTRIBUTE__(x)   // no-op
@@ -72,7 +72,7 @@
 
 namespace benchmark {
 
-using Condition = std::condition_variable;
+typedef std::condition_variable Condition;
 
 // NOTE: Wrappers for std::mutex and std::unique_lock are provided so that
 // we can annotate them with thread safety attributes and use the
@@ -95,14 +95,14 @@ private:
 
 class SCOPED_CAPABILITY MutexLock
 {
-  using MutexLockImp = std::unique_lock<std::mutex>;
+  typedef std::unique_lock<std::mutex> MutexLockImp;
 public:
   MutexLock(Mutex& m) ACQUIRE(m) : ml_(m.native_handle())
   { }
   ~MutexLock() RELEASE() {}
   MutexLockImp& native_handle() { return ml_; }
 private:
-  std::unique_lock<std::mutex> ml_;
+  MutexLockImp ml_;
 };
 
 

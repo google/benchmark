@@ -24,12 +24,18 @@ endif()
 
 # Turn compiler warnings up to 11
 include(AddCXXCompilerFlag)
+include(CXXFeatureCheck)
+
 add_cxx_compiler_flag(-Wall)
 add_cxx_compiler_flag(-Wextra)
 add_cxx_compiler_flag(-Wshadow)
 add_cxx_compiler_flag(-Werror)
 add_cxx_compiler_flag(-pedantic-errors)
 add_cxx_compiler_flag(-Wthread-safety)
+if (HAVE_WTHREAD_SAFETY)
+  add_definitions(-DHAVE_WTHREAD_SAFETY)
+  cxx_feature_check(THREAD_SAFETY_ATTRIBUTES)
+endif()
 # TODO(ericwf): enable this for g++
 #add_cxx_compiler_flag(-Wzero-as-null-pointer-constant)
 
@@ -37,7 +43,6 @@ add_cxx_compiler_flag(-Wthread-safety)
 add_cxx_compiler_flag(-fno-strict-aliasing RELEASE)
 
 # C++ feature checks
-include(CXXFeatureCheck)
 cxx_feature_check(STD_REGEX)
 cxx_feature_check(GNU_POSIX_REGEX)
 cxx_feature_check(POSIX_REGEX)
