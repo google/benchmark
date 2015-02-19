@@ -355,10 +355,10 @@ private:
     bool started_;
     unsigned total_iterations_, max_iterations_;
 
-    bool has_range_x_ BENCHMARK_UNUSED;
+    bool has_range_x_ BENCHMARK_DEBUG_UNUSED;
     int range_x_;
 
-    bool has_range_y_ BENCHMARK_UNUSED;
+    bool has_range_y_ BENCHMARK_DEBUG_UNUSED;
     int range_y_;
 
 public:
