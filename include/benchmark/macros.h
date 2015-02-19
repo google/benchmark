@@ -39,12 +39,6 @@
 # define BENCHMARK_ALWAYS_INLINE
 #endif
 
-#if defined(NDEBUG)
-# define BENCHMARK_DEBUG_UNUSED
-#else
-# define BENCHMARK_DEBUG_UNUSED BENCHMARK_UNUSED
-#endif
-
 #if defined(__GNUC__)
 # define BENCHMARK_BUILTIN_EXPECT(x, y) __builtin_expect(x, y)
 #else

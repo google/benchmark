@@ -11,40 +11,35 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-/*
-
+/* Example usage:
 // Define a function that executes the code to be measured a
 // specified number of times:
-static void BM_StringCreation(int n) {
-  while (n-- > 0) {
-    string empty_string;
-  }
+static void BM_StringCreation(benchmark::State& state) {
+  while (state.KeepRunning())
+    std::string empty_string;
 }
 
 // Register the function as a benchmark
 BENCHMARK(BM_StringCreation);
 
 // Define another benchmark
-static void BM_StringCopy(int n) {
-  string x = "hello";
-  while (n-- > 0) {
-    string copy(x);
-  }
+static void BM_StringCopy(benchmark::State& state) {
+  std::string x = "hello";
+  while (state.KeepRunning())
+    std::string copy(x);
 }
 BENCHMARK(BM_StringCopy);
 
 // Augment the main() program to invoke benchmarks if specified
 // via the --benchmarks command line flag.  E.g.,
-//       my_unittest --benchmarks=all
-//       my_unittest --benchmarks=BM_StringCreation
-//       my_unittest --benchmarks=String
-//       my_unittest --benchmarks='Copy|Creation'
+//       my_unittest --benchmark_filter=all
+//       my_unittest --benchmark_filter=BM_StringCreation
+//       my_unittest --benchmark_filter=String
+//       my_unittest --benchmark_filter='Copy|Creation'
 int main(int argc, char** argv) {
-  InitGoogle(argv[0], &argc, &argv, true);
-
-  RunSpecifiedBenchmarks(); // Does nothing unless --benchmarks is specified
-
-  ... normal unittest code ...;
+  benchmark::Initialize(&argc, argv);
+  benchmark::RunSpecifiedBenchmarks();
+  return 0;
 }
 
 // Sometimes a family of microbenchmarks can be implemented with
@@ -53,13 +48,12 @@ int main(int argc, char** argv) {
 // code defines a family of microbenchmarks for measuring the speed
 // of memcpy() calls of different lengths:
 
-static void BM_memcpy(int iters, int nbytes) {
-  char* src = new char[nbytes]; char* dst = new char[nbytes];
-  memset(src, 'x', nbytes);
-  for (int i = 0; i < iters; i++) {
-    memcpy(dst, src, nbytes);
-  }
-  SetBenchmarkBytesProcessed(int64_t(iters) * int64_t(nbytes));
+static void BM_memcpy(benchmark::State& state) {
+  char* src = new char[state.range_x()]; char* dst = new char[state.range_x()];
+  memset(src, 'x', state.range_x());
+  while (state.KeepRunning())
+    memcpy(dst, src, state.range_x());
+  state.SetBytesProcessed(int64_t_t(state.iterations) * int64(state.range_x()));
   delete[] src; delete[] dst;
 }
 BENCHMARK(BM_memcpy)->Arg(8)->Arg(64)->Arg(512)->Arg(1<<10)->Arg(8<<10);
@@ -73,14 +67,13 @@ BENCHMARK(BM_memcpy)->Range(8, 8<<10);
 // You might have a microbenchmark that depends on two inputs.  For
 // example, the following code defines a family of microbenchmarks for
 // measuring the speed of set insertion.
-static void BM_SetInsert(int iters, int size, int how_many) {
-  for (int i = 0; i < iters; ++i) {
-    StopBenchmarkTiming();
-    set<int> data = ConstructRandomSet(size);
-    StartBenchmarkTiming();
-    for (int j = 0; j < how_many; ++j) {
+static void BM_SetInsert(benchmark::State& state) {
+  while (state.KeepRunning()) {
+    state.PauseTiming();
+    set<int> data = ConstructRandomSet(state.range_x());
+    state.ResumeTiming();
+    for (int j = 0; j < state.rangeY; ++j)
       data.insert(RandomNumber());
-    }
   }
 }
 BENCHMARK(BM_SetInsert)
@@ -104,44 +97,52 @@ BENCHMARK(BM_SetInsert)->RangePair(1<<10, 8<<10, 1, 512);
 // arbitrary set of arguments to run the microbenchmark on.
 // The following example enumerates a dense range on
 // one parameter, and a sparse range on the second.
-static void CustomArguments(benchmark::Benchmark* b) {
-  for (int i = 0; i <= 10; ++i) {
-    for (int j = 32; j <= 1024*1024; j *= 8) {
+static benchmark::internal::Benchmark* CustomArguments(
+    benchmark::internal::Benchmark* b) {
+  for (int i = 0; i <= 10; ++i)
+    for (int j = 32; j <= 1024*1024; j *= 8)
       b = b->ArgPair(i, j);
-    }
-  }
+  return b;
 }
 BENCHMARK(BM_SetInsert)->Apply(CustomArguments);
 
 // Templated microbenchmarks work the same way:
 // Produce then consume 'size' messages 'iters' times
 // Measures throughput in the absence of multiprogramming.
-template <class Q> void BM_Sequential(int iters, int size) {
+template <class Q> int BM_Sequential(benchmark::State& state) {
   Q q;
   typename Q::value_type v;
-  for (int r = iters; r--; ) {
-    for (int i = size; i--; ) {
+  while (state.KeepRunning()) {
+    for (int i = state.range_x(); i--; )
       q.push(v);
-    }
-    for (int e = size; e--; ) {
+    for (int e = state.range_x(); e--; )
       q.Wait(&v);
-    }
   }
   // actually messages, not bytes:
-  SetBenchmarkBytesProcessed(static_cast<int64_t>(iters)*size);
+  state.SetBytesProcessed(
+      static_cast<int64_t>(state.iterations())*state.range_x());
 }
 BENCHMARK_TEMPLATE(BM_Sequential, WaitQueue<int>)->Range(1<<0, 1<<10);
 
-You can use your own Setup and Teardown hooks. Useful mainly for multi-threaded
-benchmarks.
+In a multithreaded test, it is guaranteed that none of the threads will start
+until all have called KeepRunning, and all will have finished before KeepRunning
+returns false. As such, any global setup or teardown you want to do can be
+wrapped in a check against the thread index:
 
-static void MemcpySetup(int num_threads);
-static void MemcpyTeardown(int num_threads);
-
-BENCHMARK(BM_memcpy)->Setup(NewPermanentCallback(MemcpySetup))
-                    ->Teardown(NewPermanentCallback(MemcpyTeardown));
-
+static void BM_MultiThreaded(benchmark::State& state) {
+  if (state.thread_index == 0) {
+    // Setup code here.
+  }
+  while (state.KeepRunning()) {
+    // Run the test as normal.
+  }
+  if (state.thread_index == 0) {
+    // Teardown code here.
+  }
+}
+BENCHMARK(BM_MultiThreaded)->Threads(4);
 */
+
 
 #ifndef BENCHMARK_MINIMAL_BENCHMARK_H_
 #define BENCHMARK_MINIMAL_BENCHMARK_H_
@@ -150,8 +151,6 @@ BENCHMARK(BM_memcpy)->Setup(NewPermanentCallback(MemcpySetup))
 #include <stdint.h>
 #include <stdlib.h>
 #include "macros.h"
-
-
 
 namespace benchmark {
 
@@ -356,17 +355,17 @@ private:
     bool started_;
     unsigned total_iterations_, max_iterations_;
 
-    bool has_range_x_ BENCHMARK_DEBUG_UNUSED;
+    bool has_range_x_ BENCHMARK_UNUSED;
     int range_x_;
 
-    bool has_range_y_ BENCHMARK_DEBUG_UNUSED;
+    bool has_range_y_ BENCHMARK_UNUSED;
     int range_y_;
 
 public:
     const int thread_index;
 
 private:
-    DISALLOW_COPY_AND_ASSIGN(State)
+    BENCHMARK_DISALLOW_COPY_AND_ASSIGN(State);
 };
 
 typedef void(Function)(State&);
@@ -383,12 +382,10 @@ public:
 
   // Run this benchmark once with "x" as the extra argument passed
   // to the function.
-  // REQUIRES: The function passed to the constructor must accept an arg1.
   MinimalBenchmark& Arg(int x);
 
   // Run this benchmark once for a number of values picked from the
   // range [start..limit].  (start and limit are always picked.)
-  // REQUIRES: The function passed to the constructor must accept an arg1.
   MinimalBenchmark& Range(int start, int limit);
 
   // Run this benchmark once for every value in the range [start..limit]
@@ -397,14 +394,12 @@ public:
 
   // Run this benchmark once with "x,y" as the extra arguments passed
   // to the function.
-  // REQUIRES: The function passed to the constructor must accept arg1,arg2.
   MinimalBenchmark& ArgPair(int x, int y);
 
   // Pick a set of values A from the range [lo1..hi1] and a set
   // of values B from the range [lo2..hi2].  Run the benchmark for
   // every pair of values in the cartesian product of A and B
   // (i.e., for all combinations of the values in A and B).
-  // REQUIRES: The function passed to the constructor must accept arg1,arg2.
   MinimalBenchmark& RangePair(int lo1, int hi1, int lo2, int hi2);
 
   // Pass this benchmark object to *func, which can customize
