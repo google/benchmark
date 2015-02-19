@@ -650,6 +650,8 @@ void RunBenchmark(const benchmark::Benchmark::Instance& b,
       // If our last run was at least 10% of FLAGS_benchmark_min_time then we
       // use the multiplier directly. Otherwise we use at most 10 times
       // expansion.
+      // NOTE: When the last run was at least 10% of the min time the max
+      // expansion should be 14x.
       bool is_significant = (seconds / FLAGS_benchmark_min_time) > 0.1;
       multiplier = is_significant ? multiplier : std::min(10.0, multiplier);
       // TODO(ericwf) I don't think this branch is reachable.
