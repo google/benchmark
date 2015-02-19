@@ -169,12 +169,24 @@ void RunSpecifiedBenchmarks(BenchmarkReporter* reporter = NULL);
 // ------------------------------------------------------
 // Routines that can be called from within a benchmark
 
+//
+// REQUIRES: a benchmark is currently executing
+// NOTE: SetLabel(std::string const &) is available in benchmark.h
+void SetLabel(const char* label);
+
+// If a particular benchmark is I/O bound, or if for some reason CPU
+// timings are not representative, call this method from within the
+// benchmark routine.  If called, the elapsed time will be used to
+// control how many iterations are run, and in the printing of
+// items/second or MB/seconds values.  If not called, the cpu time
+// used by the benchmark will be used.
+void UseRealTime();
+
+
 namespace internal {
 
-void SetBenchmarkLabel(const char* label);
 void StartBenchmarkTiming();
 void StopBenchmarkTiming();
-void BenchmarkUseRealTime();
 
 } // end namespace internal
 
@@ -249,17 +261,6 @@ public:
     internal::StartBenchmarkTiming();
   }
 
-  // If a particular benchmark is I/O bound, or if for some reason CPU
-  // timings are not representative, call this method from within the
-  // benchmark routine.  If called, the elapsed time will be used to
-  // control how many iterations are run, and in the printing of
-  // items/second or MB/seconds values.  If not called, the cpu time
-  // used by the benchmark will be used.
-  BENCHMARK_ALWAYS_INLINE
-  void UseRealTime() {
-    internal::BenchmarkUseRealTime();
-  }
-
   // Set the number of bytes processed by the current benchmark
   // execution.  This routine is typically called once at the end of a
   // throughput oriented benchmark.  If this routine is called with a
@@ -307,7 +308,7 @@ public:
   // REQUIRES: a benchmark has exited its KeepRunning loop.
   BENCHMARK_ALWAYS_INLINE
   void SetLabel(const char* label) {
-    internal::SetBenchmarkLabel(label);
+    ::benchmark::SetLabel(label);
   }
 
   // Range arguments for this run. CHECKs if the argument has been set.

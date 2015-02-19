@@ -876,13 +876,19 @@ void RunSpecifiedBenchmarks(BenchmarkReporter* reporter) {
   }
 }
 
-namespace internal {
 
-void SetBenchmarkLabel(const char* label) {
+void SetLabel(const char* label) {
   CHECK(running_benchmark);
   MutexLock l(GetBenchmarkLock());
   report_label = label;
 }
+
+void UseRealTime() {
+  MutexLock l(GetBenchmarkLock());
+  use_real_time = true;
+}
+
+namespace internal {
 
 void StopBenchmarkTiming() {
   // Add in time accumulated so far
@@ -893,12 +899,6 @@ void StopBenchmarkTiming() {
 void StartBenchmarkTiming() {
   CHECK(running_benchmark);
   timer_manager->StartTimer();
-}
-
-
-void BenchmarkUseRealTime() {
-  MutexLock l(GetBenchmarkLock());
-  use_real_time = true;
 }
 
 } // end namespace internal

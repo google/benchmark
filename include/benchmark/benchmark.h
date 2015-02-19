@@ -32,6 +32,10 @@
 
 namespace benchmark {
 
+inline void SetLabel(std::string const& label) {
+    SetLabel(label.c_str());
+}
+
 class Benchmark {
  public:
   // The Benchmark takes ownership of the Callback pointed to by f.
