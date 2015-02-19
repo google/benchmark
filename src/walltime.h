@@ -3,8 +3,6 @@
 
 #include <string>
 
-#include "benchmark/macros.h"
-
 namespace benchmark {
 namespace walltime {
 

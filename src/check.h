@@ -4,16 +4,8 @@
 #include <cstdlib>
 #include <ostream>
 
-#include "benchmark/macros.h"
+#include "internal_macros.h"
 #include "log.h"
-
-#if __has_feature(cxx_attributes)
-# define BENCHMARK_NORETURN [[noreturn]]
-#elif defined(__GNUC__)
-# define BENCHMARK_NORETURN __attribute__((noreturn))
-#else
-# define BENCHMARK_NORETURN
-#endif
 
 namespace benchmark {
 namespace internal {
