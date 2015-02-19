@@ -14,10 +14,6 @@
 #ifndef BENCHMARK_MACROS_H_
 #define BENCHMARK_MACROS_H_
 
-#ifndef __has_feature
-# define __has_feature(x) 0
-#endif
-
 #if __cplusplus < 201103L
 # define BENCHMARK_DISALLOW_COPY_AND_ASSIGN(TypeName)  \
     TypeName(const TypeName&);                         \
@@ -43,20 +39,6 @@
 # define BENCHMARK_BUILTIN_EXPECT(x, y) __builtin_expect(x, y)
 #else
 # define BENCHMARK_BUILTIN_EXPECT(x, y) x
-#endif
-
-#if defined(__CYGWIN__)
-# define OS_CYGWIN 1
-#elif defined(_WIN32)
-# define OS_WINDOWS 1
-#elif defined(__APPLE__)
-// TODO(ericwf) This doesn't actually check that it is a Mac OSX system. Just
-// that it is an apple system.
-# define OS_MACOSX 1
-#elif defined(__FreeBSD__)
-# define OS_FREEBSD 1
-#elif defined(__linux__)
-# define OS_LINUX 1
 #endif
 
 #endif  // BENCHMARK_MACROS_H_
