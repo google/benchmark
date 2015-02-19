@@ -18,14 +18,12 @@ include_directories(${source_dir}/include)
 ExternalProject_Get_Property(googletest binary_dir)
 link_directories(${binary_dir})
 
-# Enable the latest C++ standard possible
+# Try and enable C++11. Don't use C++14 because it doesn't work in some
+# configurations.
 include(CheckCXXCompilerFlag)
-check_cxx_compiler_flag(--std=c++14 HAVE_FLAG_CXX_14)
 check_cxx_compiler_flag(--std=c++11 HAVE_FLAG_CXX_11)
 check_cxx_compiler_flag(--std=c++0x HAVE_FLAG_CXX_0X)
-if (HAVE_FLAG_CXX_14)
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} --std=c++14")
-elseif (HAVE_FLAG_CXX_11)
+if (HAVE_FLAG_CXX_11)
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} --std=c++11")
 elseif (HAVE_FLAG_CXX_0X)
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} --std=c++0x")
