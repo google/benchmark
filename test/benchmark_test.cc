@@ -171,7 +171,7 @@ static void BM_LongTest(int iters, int xrange) {
     for (int i = 0; i < xrange; ++i)
       tracker += i;
   }
-  assert(tracker != 0.0);
+  assert(tracker > 1.0);
 }
 BENCHMARK(BM_LongTest)->Range(1<<16,1<<28);
 
