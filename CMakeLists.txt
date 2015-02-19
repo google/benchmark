@@ -4,7 +4,6 @@ project (benchmark)
 option(BENCHMARK_ENABLE_SHARED  "Enable building a shared library." OFF)
 option(BENCHMARK_ENABLE_TESTING "Enable testing of the benchmark library." ON)
 set(BENCHMARK_LOGGING_LEVEL "0" CACHE STRING "The logging level to use.")
-
 # Make sure we can import out CMake functions
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 
@@ -14,6 +13,9 @@ endif()
 
 # Enable the latest C++ standard possible
 include(CheckCXXCompilerFlag)
+include(AddCXXCompilerFlag)
+include(CXXFeatureCheck)
+
 check_cxx_compiler_flag(-std=c++11 HAVE_FLAG_CXX_11)
 check_cxx_compiler_flag(-std=c++0x HAVE_FLAG_CXX_0X)
 if (HAVE_FLAG_CXX_11)
@@ -22,10 +24,8 @@ elseif (HAVE_FLAG_CXX_0X)
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++0x")
 endif()
 
-# Turn compiler warnings up to 11
-include(AddCXXCompilerFlag)
-include(CXXFeatureCheck)
 
+# Turn compiler warnings up to 11
 add_cxx_compiler_flag(-Wall)
 add_cxx_compiler_flag(-Wextra)
 add_cxx_compiler_flag(-Wshadow)
@@ -42,10 +42,13 @@ endif()
 # Release flags
 add_cxx_compiler_flag(-fno-strict-aliasing RELEASE)
 
+
+
 # C++ feature checks
 cxx_feature_check(STD_REGEX)
 cxx_feature_check(GNU_POSIX_REGEX)
 cxx_feature_check(POSIX_REGEX)
+
 
 # Set up directories
 include_directories(${PROJECT_SOURCE_DIR}/include)
