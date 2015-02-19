@@ -68,7 +68,7 @@ DEFINE_string(benchmarks, "all",
               "If this flag is the string \"all\", all benchmarks linked "
               "into the process are run.");
 
-DEFINE_int32(benchmark_min_iters, 100,
+DEFINE_int32(benchmark_min_iters, 1,
              "Minimum number of iterations per benchmark");
 
 DEFINE_int32(benchmark_max_iters, 1000000000,
@@ -646,9 +646,13 @@ void RunBenchmark(const benchmark::Benchmark::Instance& b,
 
       // See how much iterations should be increased by
       // Note: Avoid division by zero with max(seconds, 1ns).
-      double multiplier = 1.4 * FLAGS_benchmark_min_time /
-                          std::max(seconds, 1e-9);
-      multiplier = std::min(10.0, multiplier);  // At most 10 times expansion
+      double multiplier = FLAGS_benchmark_min_time * 1.4 / std::max(seconds, 1e-9);
+      // If our last run was at least 10% of FLAGS_benchmark_min_time then we
+      // use the multiplier directly. Otherwise we use at most 10 times
+      // expansion.
+      bool is_significant = (seconds / FLAGS_benchmark_min_time) > 0.1;
+      multiplier = is_significant ? multiplier : std::min(10.0, multiplier);
+      // TODO(ericwf) I don't think this branch is reachable.
       if (multiplier <= 1.0) multiplier = 2.0;
       double next_iters = std::max(multiplier * iters, iters + 1.0);
       if (next_iters > FLAGS_benchmark_max_iters) {
