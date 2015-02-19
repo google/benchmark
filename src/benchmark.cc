@@ -130,25 +130,12 @@ GetBenchmarkLock()
 // benchmark identifies a family of related benchmarks to run.
 static std::vector<Benchmark*>* families = NULL;
 
+
 struct ThreadStats {
-  int64_t bytes_processed;
-  int64_t items_processed;
+    ThreadStats() : bytes_processed(0), items_processed(0) {}
+    int64_t bytes_processed;
+    int64_t items_processed;
 };
-
-void ResetThreadStats(ThreadStats* stats)
-{
-    stats->bytes_processed = 0;
-    stats->items_processed = 0;
-}
-
-void AddThreadStats(ThreadStats* stats, ThreadStats const& rhs)
-{
-    stats->bytes_processed += rhs.bytes_processed;
-    stats->items_processed += rhs.items_processed;
-}
-
-// Per-thread stats
-static BENCHMARK_THREAD_LOCAL ThreadStats thread_stats;
 
 // Timer management class
 class TimerManager {
@@ -291,11 +278,6 @@ struct Benchmark::Instance {
   int           arg2;
   int           threads;    // Number of concurrent threads to use
   bool          multithreaded;  // Is benchmark multi-threaded?
-
-  void Run(int iters, int thread_id) const {
-    State st(iters, has_arg1, arg1, has_arg2, arg2, thread_id);
-    function(st);
-  }
 };
 
 
@@ -540,13 +522,13 @@ static bool CpuScalingEnabled() {
 void RunInThread(const benchmark::Benchmark::Instance* b,
                  int iters, int thread_id,
                  ThreadStats* total) EXCLUDES(GetBenchmarkLock()) {
-  ThreadStats* my_stats = &thread_stats;
-  ResetThreadStats(my_stats);
-  b->Run(iters, thread_id);
+  State st(iters, b->has_arg1, b->arg1, b->has_arg2, b->arg2, thread_id);
+  b->function(st);
 
   {
     MutexLock l(GetBenchmarkLock());
-    AddThreadStats(total, *my_stats);
+    total->bytes_processed += st.bytes_processed();
+    total->items_processed += st.items_processed();
   }
 
   timer_manager->Finalize();
@@ -576,7 +558,7 @@ void RunBenchmark(const benchmark::Benchmark::Instance& b,
       Notification done;
       timer_manager = new TimerManager(b.threads, &done);
 
-      ThreadStats total{0, 0};
+      ThreadStats total;
       running_benchmark = true;
       if (b.multithreaded) {
         // If this is out first iteration of the while(true) loop then the
@@ -894,17 +876,7 @@ void RunSpecifiedBenchmarks(BenchmarkReporter* reporter) {
   }
 }
 
-void SetBenchmarkBytesProcessed(int64_t bytes) {
-  CHECK(running_benchmark) << ": SetBenchmarkBytesProcessed() should only "
-                           << "be called from within a benchmark";
-  thread_stats.bytes_processed = bytes;
-}
-
-void SetBenchmarkItemsProcessed(int64_t items) {
-  CHECK(running_benchmark) << ": SetBenchmarkItemsProcessed() should only "
-                           << "be called from within a benchmark";
-  thread_stats.items_processed = items;
-}
+namespace internal {
 
 void SetBenchmarkLabel(const char* label) {
   CHECK(running_benchmark);
@@ -928,6 +900,8 @@ void BenchmarkUseRealTime() {
   MutexLock l(GetBenchmarkLock());
   use_real_time = true;
 }
+
+} // end namespace internal
 
 void PrintUsageAndExit() {
   fprintf(stdout,
@@ -973,7 +947,6 @@ void ParseCommandLineFlags(int* argc, const char** argv) {
 
 void Initialize(int* argc, const char** argv) {
   ParseCommandLineFlags(argc, argv);
-  ResetThreadStats(&thread_stats);
   // TODO remove this. It prints some output the first time it is called.
   // We don't want to have this ouput printed during benchmarking.
   MyCPUUsage();

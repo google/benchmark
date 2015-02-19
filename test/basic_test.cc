@@ -4,9 +4,6 @@
 #define BASIC_BENCHMARK_TEST(x) \
     BENCHMARK(x)->Arg(8)->Arg(512)->Arg(8192)
 
-using benchmark::StartBenchmarkTiming;
-using benchmark::StopBenchmarkTiming;
-
 void BM_empty(benchmark::State& state) {
   while (state.KeepRunning()) {
     volatile int x = state.iterations();

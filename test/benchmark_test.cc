@@ -16,11 +16,6 @@
 
 #include <gtest/gtest.h>
 
-using benchmark::StartBenchmarkTiming;
-using benchmark::StopBenchmarkTiming;
-using benchmark::SetBenchmarkBytesProcessed;
-using benchmark::SetBenchmarkItemsProcessed;
-
 #if defined(__GNUC__)
 # define BENCHMARK_NOINLINE __attribute__((noinline))
 #else

@@ -158,92 +158,25 @@ class BenchmarkReporter;
 
 // Initialize the package and parse the command line flags.
 // This function must be called before using the bennchmark library.
-extern void Initialize(int* argc, const char** argv);
+void Initialize(int* argc, const char** argv);
 
 // If the --benchmarks flag is empty, do nothing.
 //
 // Otherwise, run all benchmarks specified by the --benchmarks flag,
 // and exit after running the benchmarks.
-extern void RunSpecifiedBenchmarks(BenchmarkReporter* reporter = NULL);
+void RunSpecifiedBenchmarks(BenchmarkReporter* reporter = NULL);
 
 // ------------------------------------------------------
 // Routines that can be called from within a benchmark
 
-// Set the number of bytes processed by the current benchmark
-// execution.  This routine is typically called once at the end of a
-// throughput oriented benchmark.  If this routine is called with a
-// value > 0, the report is printed in MB/sec instead of nanoseconds
-// per iteration.  By default this uses CPU seconds when computing rates.
-// Use BenchmarkUseRealTime() if you want rates in terms of wallclock time
-// instead.
-//
-// REQUIRES: a benchmark is currently executing
-extern void SetBenchmarkBytesProcessed(int64_t bytes);
+namespace internal {
 
-// If this routine is called with items > 0, then an items/s
-// label is printed on the benchmark report line for the currently
-// executing benchmark. It is typically called at the end of a processing
-// benchmark where a processing items/second output is desired.
-// By default this uses CPU seconds when computing rates. Use
-// BenchmarkUseRealTime() if you want rates in terms of wallclock time instead.
-//
-// REQUIRED: a benchmark is currently executing
-extern void SetBenchmarkItemsProcessed(int64_t items);
+void SetBenchmarkLabel(const char* label);
+void StartBenchmarkTiming();
+void StopBenchmarkTiming();
+void BenchmarkUseRealTime();
 
-// If this routine is called, the specified label is printed at the
-// end of the benchmark report line for the currently executing
-// benchmark.  Example:
-//  static void BM_Compress(int iters) {
-//    ...
-//    double compress = input_size / output_size;
-//    SetBenchmarkLabel(StringPrintf("compress:%.1f%%", 100.0*compression));
-//  }
-// Produces output that looks like:
-//  BM_Compress   50         50   14115038  compress:27.3%
-//
-// REQUIRES: a benchmark is currently executing
-extern void SetBenchmarkLabel(const char* label);
-
-// REQUIRES: timer is not running
-// Start the benchmark timer.  The timer is running on entrance to the
-// benchmark function.
-//
-// For threaded benchmarks the StartBenchmarkTiming() function acts
-// like a barrier.  I.e., the ith call by a particular thread to this
-// function will block until all threads have made their ith call.
-// The timer will start when the last thread has called this function.
-//
-// NOTE: StartBenchmarkTiming()/StopBenchmarkTiming() are relatively
-// heavyweight, and so their use should generally be avoided
-// within each benchmark iteration, if possible.
-extern void StartBenchmarkTiming();
-
-// REQUIRES: timer is running
-// Stop the benchmark timer.  If not called, the timer will be
-// automatically stopped after the benchmark function returns.
-//
-// For threaded benchmarks the StopBenchmarkTiming() function acts
-// like a barrier.  I.e., the ith call by a particular thread to this
-// function will block until all threads have made their ith call.
-// The timer will stop when the last thread has called this function.
-//
-// NOTE: StartBenchmarkTiming()/StopBenchmarkTiming() are relatively
-// heavyweight, and so their use should generally be avoided
-// within each benchmark iteration, if possible.
-extern void StopBenchmarkTiming();
-
-// Backwards compatible shortcut for
-// BenchmarkMemoryUsage(benchmark::kPerThreadUsage).
-extern void BenchmarkMemoryUsage();
-
-// If a particular benchmark is I/O bound, or if for some reason CPU
-// timings are not representative, call this method from within the
-// benchmark routine.  If called, the elapsed time will be used to
-// control how many iterations are run, and in the printing of
-// items/second or MB/seconds values.  If not called, the cpu time
-// used by the benchmark will be used.
-extern void BenchmarkUseRealTime();
-
+} // end namespace internal
 
 // ------------------------------------------------------
 // Benchmark registration object.  The BENCHMARK() macro expands
@@ -263,6 +196,7 @@ public:
     : started_(false), total_iterations_(0), max_iterations_(max_iters),
       has_range_x_(has_x), range_x_(x),
       has_range_y_(has_y), range_y_(y),
+      bytes_processed_(0), items_processed_(0),
       thread_index(thread_i)
   {}
 
@@ -270,25 +204,60 @@ public:
   BENCHMARK_ALWAYS_INLINE
   bool KeepRunning() {
     if (BENCHMARK_BUILTIN_EXPECT(!started_, false)) {
-        StartBenchmarkTiming();
+        internal::StartBenchmarkTiming();
         started_ = true;
     }
     bool const res = total_iterations_++ < max_iterations_;
     if (BENCHMARK_BUILTIN_EXPECT(!res, false)) {
         assert(started_);
-        StopBenchmarkTiming();
+        internal::StopBenchmarkTiming();
     }
     return res;
   }
 
+  // REQUIRES: timer is running
+  // Stop the benchmark timer.  If not called, the timer will be
+  // automatically stopped after KeepRunning() returns false for the first time.
+  //
+  // For threaded benchmarks the PauseTiming() function acts
+  // like a barrier.  I.e., the ith call by a particular thread to this
+  // function will block until all threads have made their ith call.
+  // The timer will stop when the last thread has called this function.
+  //
+  // NOTE: PauseTiming()/ResumeTiming() are relatively
+  // heavyweight, and so their use should generally be avoided
+  // within each benchmark iteration, if possible.
   BENCHMARK_ALWAYS_INLINE
   void PauseTiming() {
-    StopBenchmarkTiming();
+    internal::StopBenchmarkTiming();
   }
 
+  // REQUIRES: timer is not running
+  // Start the benchmark timer.  The timer is NOT running on entrance to the
+  // benchmark function. It begins running after the first call to KeepRunning()
+  //
+  // For threaded benchmarks the ResumeTiming() function acts
+  // like a barrier.  I.e., the ith call by a particular thread to this
+  // function will block until all threads have made their ith call.
+  // The timer will start when the last thread has called this function.
+  //
+  // NOTE: PauseTiming()/ResumeTiming() are relatively
+  // heavyweight, and so their use should generally be avoided
+  // within each benchmark iteration, if possible.
   BENCHMARK_ALWAYS_INLINE
   void ResumeTiming() {
-    StartBenchmarkTiming();
+    internal::StartBenchmarkTiming();
+  }
+
+  // If a particular benchmark is I/O bound, or if for some reason CPU
+  // timings are not representative, call this method from within the
+  // benchmark routine.  If called, the elapsed time will be used to
+  // control how many iterations are run, and in the printing of
+  // items/second or MB/seconds values.  If not called, the cpu time
+  // used by the benchmark will be used.
+  BENCHMARK_ALWAYS_INLINE
+  void UseRealTime() {
+    internal::BenchmarkUseRealTime();
   }
 
   // Set the number of bytes processed by the current benchmark
@@ -300,7 +269,12 @@ public:
   // REQUIRES: a benchmark has exited its KeepRunning loop.
   BENCHMARK_ALWAYS_INLINE
   void SetBytesProcessed(int64_t bytes) {
-    SetBenchmarkBytesProcessed(bytes);
+    bytes_processed_ = bytes;
+  }
+
+  BENCHMARK_ALWAYS_INLINE
+  int64_t bytes_processed() const {
+    return bytes_processed_;
   }
 
   // If this routine is called with items > 0, then an items/s
@@ -311,7 +285,12 @@ public:
   // REQUIRES: a benchmark has exited its KeepRunning loop.
   BENCHMARK_ALWAYS_INLINE
   void SetItemsProcessed(int64_t items) {
-    SetBenchmarkItemsProcessed(items);
+    items_processed_ = items;
+  }
+
+  BENCHMARK_ALWAYS_INLINE
+  int64_t items_processed() const {
+    return items_processed_;
   }
 
   // If this routine is called, the specified label is printed at the
@@ -328,7 +307,7 @@ public:
   // REQUIRES: a benchmark has exited its KeepRunning loop.
   BENCHMARK_ALWAYS_INLINE
   void SetLabel(const char* label) {
-    SetBenchmarkLabel(label);
+    internal::SetBenchmarkLabel(label);
   }
 
   // Range arguments for this run. CHECKs if the argument has been set.
@@ -350,7 +329,6 @@ public:
   BENCHMARK_ALWAYS_INLINE
   int max_iterations() const { return max_iterations_; }
 
-
 private:
     bool started_;
     unsigned total_iterations_, max_iterations_;
@@ -361,6 +339,7 @@ private:
     bool has_range_y_ BENCHMARK_DEBUG_UNUSED;
     int range_y_;
 
+    int64_t bytes_processed_, items_processed_;
 public:
     const int thread_index;
 
