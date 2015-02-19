@@ -314,12 +314,14 @@ public:
   BENCHMARK_ALWAYS_INLINE
   int range_x() const {
     assert(has_range_x_);
+    ((void)has_range_x_); // Prevent unused warning.
     return range_x_;
   }
 
   BENCHMARK_ALWAYS_INLINE
   int range_y() const {
     assert(has_range_y_);
+    ((void)has_range_y_); // Prevent unused warning.
     return range_y_;
   }
 
@@ -333,10 +335,10 @@ private:
     bool started_;
     unsigned total_iterations_, max_iterations_;
 
-    bool has_range_x_ BENCHMARK_DEBUG_UNUSED;
+    bool has_range_x_;
     int range_x_;
 
-    bool has_range_y_ BENCHMARK_DEBUG_UNUSED;
+    bool has_range_y_;
     int range_y_;
 
     int64_t bytes_processed_, items_processed_;
