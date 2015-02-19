@@ -31,17 +31,16 @@ add_cxx_compiler_flag(-Wextra)
 add_cxx_compiler_flag(-Wshadow)
 add_cxx_compiler_flag(-Werror)
 add_cxx_compiler_flag(-pedantic-errors)
+# TODO(ericwf): enable this for g++
+#add_cxx_compiler_flag(-Wzero-as-null-pointer-constant)
+# Release flags
+add_cxx_compiler_flag(-fno-strict-aliasing RELEASE)
+
 add_cxx_compiler_flag(-Wthread-safety)
 if (HAVE_WTHREAD_SAFETY)
   add_definitions(-DHAVE_WTHREAD_SAFETY)
   cxx_feature_check(THREAD_SAFETY_ATTRIBUTES)
 endif()
-# TODO(ericwf): enable this for g++
-#add_cxx_compiler_flag(-Wzero-as-null-pointer-constant)
-
-# Release flags
-add_cxx_compiler_flag(-fno-strict-aliasing RELEASE)
-
 
 
 # C++ feature checks
