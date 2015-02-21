@@ -56,6 +56,10 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
   add_definitions(-DOS_WINDOWS)
 endif()
 
+if(${CMAKE_SYSTEM_NAME} MATCHES "FreeBSD")
+  add_definitions(-DOS_FREEBSD)
+endif()
+
 # Set CPU
 if(${CMAKE_SYSTEM_PROCESSOR} MATCHES "x86")
   add_definitions(-DARCH_X86)
