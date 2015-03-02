@@ -170,7 +170,7 @@ class TestReporter : public benchmark::ConsoleReporter {
 
   virtual ~TestReporter() {}
 
-  int GetCount() const {
+  size_t GetCount() const {
     return count_;
   }
 

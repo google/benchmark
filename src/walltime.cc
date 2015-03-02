@@ -17,6 +17,7 @@
 #include <sys/time.h>
 #include <time.h>
 #include <cstdio>
+#include <cstdint>
 #include <cstring>
 #include <atomic>
 #include <limits>
