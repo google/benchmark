@@ -11,7 +11,8 @@ if (NOT BENCHMARK_LOGGING_LEVEL STREQUAL "0")
   add_definitions(-DBENCHMARK_LOGGING_LEVEL=${BENCHMARK_LOGGING_LEVEL})
 endif()
 
-# Enable the latest C++ standard possible
+# Try and enable C++11. Don't use C++14 because it doesn't work in some
+# configurations.
 include(CheckCXXCompilerFlag)
 include(AddCXXCompilerFlag)
 include(CXXFeatureCheck)
