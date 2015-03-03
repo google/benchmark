@@ -128,7 +128,7 @@ GetBenchmarkLock()
 
 // List of all registered benchmarks.  Note that each registered
 // benchmark identifies a family of related benchmarks to run.
-static std::vector<Benchmark*>* families = NULL;
+static std::vector<internal::Benchmark*>* families = NULL;
 
 struct ThreadStats {
     ThreadStats() : bytes_processed(0), items_processed(0) {}
@@ -264,6 +264,8 @@ class TimerManager {
 
 // TimerManager for current run.
 static TimerManager* timer_manager = nullptr;
+
+namespace internal {
 
 const int Benchmark::kNumCpuMarker;
 
@@ -468,6 +470,7 @@ void Benchmark::FindBenchmarks(
   }
 }
 
+} // end namespace internal
 
 namespace {
 
@@ -511,7 +514,7 @@ static bool CpuScalingEnabled() {
 
 // Execute one thread of benchmark b for the specified number of iterations.
 // Adds the stats collected for the thread into *total.
-void RunInThread(const benchmark::Benchmark::Instance* b,
+void RunInThread(const benchmark::internal::Benchmark::Instance* b,
                  int iters, int thread_id,
                  ThreadStats* total) EXCLUDES(GetBenchmarkLock()) {
   State st(iters, b->has_arg1, b->arg1, b->has_arg2, b->arg2, thread_id);
@@ -526,7 +529,7 @@ void RunInThread(const benchmark::Benchmark::Instance* b,
   timer_manager->Finalize();
 }
 
-void RunBenchmark(const benchmark::Benchmark::Instance& b,
+void RunBenchmark(const benchmark::internal::Benchmark::Instance& b,
                   BenchmarkReporter* br) EXCLUDES(GetBenchmarkLock()) {
   int iters = FLAGS_benchmark_min_iters;
   std::vector<BenchmarkReporter::Run> reports;
@@ -817,8 +820,8 @@ void RunMatchingBenchmarks(const std::string& spec,
     << " must be less than or equal to -benchmark_max_iters="
     << FLAGS_benchmark_max_iters;
 
-  std::vector<benchmark::Benchmark::Instance> benchmarks;
-  benchmark::Benchmark::FindBenchmarks(spec, &benchmarks);
+  std::vector<benchmark::internal::Benchmark::Instance> benchmarks;
+  benchmark::internal::Benchmark::FindBenchmarks(spec, &benchmarks);
 
 
   // Determine the width of the name field using a minimum width of 10.
@@ -850,8 +853,8 @@ void FindMatchingBenchmarkNames(const std::string& spec,
                                 std::vector<std::string>* benchmark_names) {
   if (spec.empty()) return;
 
-  std::vector<benchmark::Benchmark::Instance> benchmarks;
-  benchmark::Benchmark::FindBenchmarks(spec, &benchmarks);
+  std::vector<benchmark::internal::Benchmark::Instance> benchmarks;
+  benchmark::internal::Benchmark::FindBenchmarks(spec, &benchmarks);
   for (const auto& bench_instance : benchmarks) {
     benchmark_names->push_back(bench_instance.name);
   }

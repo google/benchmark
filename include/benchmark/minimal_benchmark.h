@@ -188,8 +188,6 @@ namespace internal {
 void StartBenchmarkTiming();
 void StopBenchmarkTiming();
 
-} // end namespace internal
-
 // ------------------------------------------------------
 // Benchmark registration object.  The BENCHMARK() macro expands
 // into a benchmark::Benchmark* object.  Various methods can
@@ -199,6 +197,7 @@ void StopBenchmarkTiming();
 
 class Benchmark;
 
+} // end namespace internal
 
 // State is passed to a running Benchmark and contains state for the
 // benchmark to use.
@@ -399,7 +398,7 @@ public:
   // Pass this benchmark object to *func, which can customize
   // the benchmark by calling various methods like Arg, ArgPair,
   // Threads, etc.
-  MinimalBenchmark& Apply(void (*func)(Benchmark* benchmark));
+  MinimalBenchmark& Apply(void (*func)(internal::Benchmark* benchmark));
 
   // Support for running multiple copies of the same benchmark concurrently
   // in multiple threads.  This may be useful when measuring the scaling
@@ -428,14 +427,14 @@ public:
   MinimalBenchmark* operator->() {
     return this;
   }
-  operator Benchmark*() {
-    Benchmark *tmp = imp_;
+  operator internal::Benchmark*() {
+    internal::Benchmark *tmp = imp_;
     imp_ = nullptr;
     return tmp;
   }
 
 private:
-  Benchmark *imp_;
+  internal::Benchmark *imp_;
   BENCHMARK_DISALLOW_COPY_AND_ASSIGN(MinimalBenchmark);
 };
 
@@ -449,8 +448,8 @@ private:
 #define BENCHMARK_CONCAT(a, b, c) BENCHMARK_CONCAT2(a, b, c)
 #define BENCHMARK_CONCAT2(a, b, c) a ## b ## c
 
-#define BENCHMARK(n)                                                    \
-  static ::benchmark::Benchmark*                                          \
+#define BENCHMARK(n)                                                   \
+  static ::benchmark::internal::Benchmark*                             \
   BENCHMARK_CONCAT(_benchmark_, n, __LINE__) BENCHMARK_UNUSED =        \
   (::benchmark::MinimalBenchmark(#n, &n))
 
@@ -473,18 +472,18 @@ private:
 // template arguments.
 #if __cplusplus < 201103L
 # define BENCHMARK_TEMPLATE(n, a)                                           \
-    static ::benchmark::Benchmark*                                          \
+    static ::benchmark::internal::Benchmark*                                \
     BENCHMARK_CONCAT(_benchmark_, n, __LINE__) BENCHMARK_UNUSED =           \
     (::benchmark::MinimalBenchmark(#n "<" #a ">", &n<a>))
 #else
 # define BENCHMARK_TEMPLATE(n, ...)                                           \
-    static ::benchmark::Benchmark*                                            \
+    static ::benchmark::internal::Benchmark*                                  \
     BENCHMARK_CONCAT(_benchmark_, n, __LINE__) BENCHMARK_UNUSED =             \
     (::benchmark::MinimalBenchmark(#n "<" #__VA_ARGS__ ">", &n<__VA_ARGS__>))
 #endif
 
 #define BENCHMARK_TEMPLATE2(n, a, b)                                      \
-  static ::benchmark::Benchmark*                                          \
+  static ::benchmark::internal::Benchmark*                                \
   BENCHMARK_CONCAT(__benchmark_, n, __LINE__) BENCHMARK_UNUSED =          \
   (::benchmark::MinimalBenchmark(#n "<" #a "," #b ">",                    \
                                &n<a, b>))

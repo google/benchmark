@@ -18,7 +18,7 @@
 namespace benchmark {
 
 MinimalBenchmark::MinimalBenchmark(const char* name, Function* f)
-  : imp_(new Benchmark(name, f))
+  : imp_(new internal::Benchmark(name, f))
 { }
 
 MinimalBenchmark::~MinimalBenchmark() {
@@ -52,7 +52,7 @@ MinimalBenchmark& MinimalBenchmark::RangePair(int lo1, int hi1, int lo2,
   return *this;
 }
 
-MinimalBenchmark& MinimalBenchmark::Apply(void (*func)(Benchmark*)) {
+MinimalBenchmark& MinimalBenchmark::Apply(void (*func)(internal::Benchmark*)) {
   imp_->Apply(func);
   return *this;
 }
