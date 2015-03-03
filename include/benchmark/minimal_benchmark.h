@@ -362,7 +362,9 @@ private:
   BENCHMARK_DISALLOW_COPY_AND_ASSIGN(State);
 };
 
+
 typedef void(Function)(State&);
+
 
 class MinimalBenchmark
 {
