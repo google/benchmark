@@ -101,9 +101,6 @@ class Benchmark {
   // Equivalent to ThreadRange(NumCPUs(), NumCPUs())
   Benchmark* ThreadPerCpu();
 
-  // TODO(sanjay): Control whether or not real-time is used for this benchmark
-  // TODO(sanjay): Control the default number of iterations
-
   // -------------------------------
   // Following methods are not useful for clients
 
