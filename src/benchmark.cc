@@ -130,7 +130,6 @@ GetBenchmarkLock()
 // benchmark identifies a family of related benchmarks to run.
 static std::vector<Benchmark*>* families = NULL;
 
-
 struct ThreadStats {
     ThreadStats() : bytes_processed(0), items_processed(0) {}
     int64_t bytes_processed;
@@ -280,7 +279,6 @@ struct Benchmark::Instance {
   bool          multithreaded;  // Is benchmark multi-threaded?
 };
 
-
 Benchmark::Benchmark(const std::string& name,
                      Function* f) EXCLUDES(GetBenchmarkLock())
                     : name_(name), function_(f), arg_count_(-1) {
@@ -303,8 +301,6 @@ Benchmark::~Benchmark() EXCLUDES(GetBenchmarkLock()) {
 }
 
 Benchmark* Benchmark::Arg(int x) {
-   // TODO(remove)
-  //CHECK_EQ(function_.args(), 1) << "Wrong number of args for " << name_;
   CHECK(arg_count_ == -1 || arg_count_ == 1);
   arg_count_ = 1;
   args_.emplace_back(x, -1);
@@ -312,7 +308,6 @@ Benchmark* Benchmark::Arg(int x) {
 }
 
 Benchmark* Benchmark::Range(int start, int limit) {
-  //CHECK_EQ(function_.args(), 1) << "Wrong number of args for " << name_;
   CHECK(arg_count_ == -1 || arg_count_ == 1);
   arg_count_ = 1;
   std::vector<int> arglist;
@@ -325,7 +320,6 @@ Benchmark* Benchmark::Range(int start, int limit) {
 }
 
 Benchmark* Benchmark::DenseRange(int start, int limit) {
-  //CHECK_EQ(function_.args(), 1) << "Wrong number of args for " << name_;
   CHECK(arg_count_ == -1 || arg_count_ == 1);
   arg_count_ = 1;
   CHECK_GE(start, 0);
@@ -337,7 +331,6 @@ Benchmark* Benchmark::DenseRange(int start, int limit) {
 }
 
 Benchmark* Benchmark::ArgPair(int x, int y) {
-  //CHECK_EQ(function_.args(), 2) << "Wrong number of args for " << name_;
   CHECK(arg_count_ == -1 || arg_count_ == 2);
   arg_count_ = 2;
   args_.emplace_back(x, y);
@@ -345,7 +338,6 @@ Benchmark* Benchmark::ArgPair(int x, int y) {
 }
 
 Benchmark* Benchmark::RangePair(int lo1, int hi1, int lo2, int hi2) {
-  //CHECK_EQ(function_.args(), 2) << "Wrong number of args for " << name_;
   CHECK(arg_count_ == -1 || arg_count_ == 2);
   arg_count_ = 2;
   std::vector<int> arglist1, arglist2;

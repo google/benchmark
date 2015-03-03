@@ -333,21 +333,21 @@ public:
   int max_iterations() const { return max_iterations_; }
 
 private:
-    bool started_;
-    unsigned total_iterations_, max_iterations_;
+  bool started_;
+  unsigned total_iterations_, max_iterations_;
 
-    bool has_range_x_;
-    int range_x_;
+  bool has_range_x_;
+  int range_x_;
 
-    bool has_range_y_;
-    int range_y_;
+  bool has_range_y_;
+  int range_y_;
 
-    int64_t bytes_processed_, items_processed_;
+  int64_t bytes_processed_, items_processed_;
 public:
-    const int thread_index;
+  const int thread_index;
 
 private:
-    BENCHMARK_DISALLOW_COPY_AND_ASSIGN(State);
+  BENCHMARK_DISALLOW_COPY_AND_ASSIGN(State);
 };
 
 typedef void(Function)(State&);
