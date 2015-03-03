@@ -705,9 +705,7 @@ void ComputeStats(const std::vector<BenchmarkReporter::Run>& reports,
 
 }  // namespace
 
-
 BenchmarkReporter::~BenchmarkReporter() {}
-
 
 namespace internal {
 
@@ -862,6 +860,7 @@ void FindMatchingBenchmarkNames(const std::string& spec,
 
 } // end namespace internal
 
+
 void RunSpecifiedBenchmarks(BenchmarkReporter* reporter) {
   std::string spec = FLAGS_benchmark_filter;
   if (spec.empty()) {
@@ -876,7 +875,6 @@ void RunSpecifiedBenchmarks(BenchmarkReporter* reporter) {
   }
 }
 
-
 void SetLabel(const char* label) {
   CHECK(running_benchmark);
   MutexLock l(GetBenchmarkLock());
@@ -887,6 +885,7 @@ void UseRealTime() {
   MutexLock l(GetBenchmarkLock());
   use_real_time = true;
 }
+
 
 namespace internal {
 
@@ -902,6 +901,7 @@ void StartBenchmarkTiming() {
 }
 
 } // end namespace internal
+
 
 void PrintUsageAndExit() {
   fprintf(stdout,
@@ -944,7 +944,6 @@ void ParseCommandLineFlags(int* argc, const char** argv) {
     }
   }
 }
-
 
 void Initialize(int* argc, const char** argv) {
   ParseCommandLineFlags(argc, argv);

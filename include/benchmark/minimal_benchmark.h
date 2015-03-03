@@ -199,6 +199,7 @@ class Benchmark;
 
 } // end namespace internal
 
+
 // State is passed to a running Benchmark and contains state for the
 // benchmark to use.
 class State {
