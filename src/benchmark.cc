@@ -906,7 +906,7 @@ void StartBenchmarkTiming() {
 void PrintUsageAndExit() {
   fprintf(stdout,
           "benchmark"
-          " [--benchmarks=<regex>]\n"
+          " [--benchmark_filter=<regex>]\n"
 
           "          [--benchmark_min_iters=<iterations>]\n"
           "          [--benchmark_max_iters=<iterations>]\n"
