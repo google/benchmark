@@ -43,7 +43,7 @@ namespace internal {
 class Benchmark {
  public:
   // The Benchmark takes ownership of the Callback pointed to by f.
-  Benchmark(const std::string& name, Function* f);
+  Benchmark(const char* name, Function* f);
 
   ~Benchmark();
 

@@ -281,7 +281,7 @@ struct Benchmark::Instance {
   bool          multithreaded;  // Is benchmark multi-threaded?
 };
 
-Benchmark::Benchmark(const std::string& name,
+Benchmark::Benchmark(const char* name,
                      Function* f) EXCLUDES(GetBenchmarkLock())
                     : name_(name), function_(f), arg_count_(-1) {
   MutexLock l(GetBenchmarkLock());
