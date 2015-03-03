@@ -311,6 +311,17 @@ public:
     ::benchmark::SetLabel(label);
   }
 
+  // Allow the use of std::string without actually including <string>.
+  // This function does not participate in overload resolution unless StringType
+  // has the nested typename `basic_string`. This typename should be provided
+  // as an injected class name in the case of std::string.
+  template <class StringType>
+  BENCHMARK_ALWAYS_INLINE
+  void SetLabel(StringType const & str,
+                typename StringType::basic_string* = 0) {
+    ::benchmark::SetLabel(str.c_str());
+  }
+
   // Range arguments for this run. CHECKs if the argument has been set.
   BENCHMARK_ALWAYS_INLINE
   int range_x() const {
