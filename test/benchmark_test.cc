@@ -156,7 +156,7 @@ static void BM_LongTest(benchmark::State& state) {
 }
 BENCHMARK(BM_LongTest)->Range(1<<16,1<<28);
 
-class TestReporter : public benchmark::ConsoleReporter {
+class TestReporter : public benchmark::internal::ConsoleReporter {
  public:
   virtual bool ReportContext(const Context& context) {
     return ConsoleReporter::ReportContext(context);

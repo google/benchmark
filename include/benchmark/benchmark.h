@@ -188,6 +188,8 @@ class BenchmarkReporter {
   virtual ~BenchmarkReporter();
 };
 
+namespace internal {
+
 // Run all benchmarks whose name is a partial match for the regular
 // expression in "spec". The results of benchmark runs are fed to "reporter".
 void RunMatchingBenchmarks(const std::string& spec,
@@ -210,5 +212,6 @@ class ConsoleReporter : public BenchmarkReporter {
   int name_field_width_;
 };
 
+} // end namespace internal
 }  // end namespace benchmark
 #endif  // BENCHMARK_BENCHMARK_H_

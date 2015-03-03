@@ -706,6 +706,8 @@ void ComputeStats(const std::vector<BenchmarkReporter::Run>& reports,
 BenchmarkReporter::~BenchmarkReporter() {}
 
 
+namespace internal {
+
 bool ConsoleReporter::ReportContext(const Context& context) {
   name_field_width_ = context.name_field_width;
 
@@ -855,6 +857,8 @@ void FindMatchingBenchmarkNames(const std::string& spec,
   }
 }
 
+} // end namespace internal
+
 void RunSpecifiedBenchmarks(BenchmarkReporter* reporter) {
   std::string spec = FLAGS_benchmark_filter;
   if (spec.empty()) {
@@ -863,8 +867,8 @@ void RunSpecifiedBenchmarks(BenchmarkReporter* reporter) {
     if (spec == "all") {
       spec = ".";         // Regexp that matches all benchmarks
     }
-    ConsoleReporter default_reporter;
-    RunMatchingBenchmarks(spec, reporter ? reporter : &default_reporter);
+    internal::ConsoleReporter default_reporter;
+    internal::RunMatchingBenchmarks(spec, reporter ? reporter : &default_reporter);
     std::exit(0);
   }
 }
