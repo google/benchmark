@@ -529,7 +529,7 @@ void RunInThread(const benchmark::Benchmark::Instance* b,
 void RunBenchmark(const benchmark::Benchmark::Instance& b,
                   BenchmarkReporter* br) EXCLUDES(GetBenchmarkLock()) {
   int iters = FLAGS_benchmark_min_iters;
-  std::vector<BenchmarkRunData> reports;
+  std::vector<BenchmarkReporter::Run> reports;
 
   std::vector<std::thread> pool;
   if (b.multithreaded)
@@ -605,7 +605,7 @@ void RunBenchmark(const benchmark::Benchmark::Instance& b,
         }
 
         // Create report about this benchmark run.
-        BenchmarkRunData report;
+        BenchmarkReporter::Run report;
         report.benchmark_name = b.name;
         report.report_label = label;
         // Report the total iterations across all threads.
@@ -651,9 +651,9 @@ void RunBenchmark(const benchmark::Benchmark::Instance& b,
 BenchmarkReporter::~BenchmarkReporter() {}
 
 
-void ComputeStats(const std::vector<BenchmarkRunData>& reports,
-                  BenchmarkRunData* mean_data,
-                  BenchmarkRunData* stddev_data) {
+void ComputeStats(const std::vector<BenchmarkReporter::Run>& reports,
+                  BenchmarkReporter::Run* mean_data,
+                  BenchmarkReporter::Run* stddev_data) {
   // Accumulators.
   Stat1_d real_accumulated_time_stat;
   Stat1_d cpu_accumulated_time_stat;
@@ -662,7 +662,7 @@ void ComputeStats(const std::vector<BenchmarkRunData>& reports,
   int64_t total_iters = 0;
 
   // Populate the accumulators.
-  for (std::vector<BenchmarkRunData>::const_iterator it = reports.begin();
+  for (std::vector<BenchmarkReporter::Run>::const_iterator it = reports.begin();
        it != reports.end();
        it++) {
     CHECK_EQ(reports[0].benchmark_name, it->benchmark_name);
@@ -675,7 +675,7 @@ void ComputeStats(const std::vector<BenchmarkRunData>& reports,
     bytes_per_second_stat += Stat1_d(it->bytes_per_second, it->iters);
   }
 
-  // Get the data from the accumulator to BenchmarkRunData's.
+  // Get the data from the accumulator to BenchmarkReporter::Run's.
   mean_data->benchmark_name = reports[0].benchmark_name + "_mean";
   mean_data->iters = total_iters;
   mean_data->real_accumulated_time = real_accumulated_time_stat.Sum();
@@ -705,7 +705,7 @@ void ComputeStats(const std::vector<BenchmarkRunData>& reports,
 }
 
 
-bool ConsoleReporter::ReportContext(const BenchmarkContextData& context) {
+bool ConsoleReporter::ReportContext(const Context& context) {
   name_field_width_ = context.name_field_width;
 
   fprintf(stdout,
@@ -741,12 +741,12 @@ bool ConsoleReporter::ReportContext(const BenchmarkContextData& context) {
 }
 
 void ConsoleReporter::ReportRuns(
-    const std::vector<BenchmarkRunData>& reports) const {
+    const std::vector<Run>& reports) const {
   if (reports.empty()) {
     return;
   }
 
-  for (std::vector<BenchmarkRunData>::const_iterator it = reports.begin();
+  for (std::vector<Run>::const_iterator it = reports.begin();
        it != reports.end();
        it++) {
     CHECK_EQ(reports[0].benchmark_name, it->benchmark_name);
@@ -758,8 +758,8 @@ void ConsoleReporter::ReportRuns(
     return;
   }
 
-  BenchmarkRunData mean_data;
-  BenchmarkRunData stddev_data;
+  Run mean_data;
+  Run stddev_data;
   benchmark::ComputeStats(reports, &mean_data, &stddev_data);
 
   // Output using PrintRun.
@@ -768,7 +768,7 @@ void ConsoleReporter::ReportRuns(
   fprintf(stdout, "\n");
 }
 
-void ConsoleReporter::PrintRunData(const BenchmarkRunData& result) const {
+void ConsoleReporter::PrintRunData(const Run& result) const {
   // Format bytes per second
   std::string rate;
   if (result.bytes_per_second > 0) {
@@ -829,7 +829,7 @@ void RunMatchingBenchmarks(const std::string& spec,
   }
 
   // Print header here
-  BenchmarkContextData context;
+  BenchmarkReporter::Context context;
   context.num_cpus = benchmark::NumCPUs();
   context.mhz_per_cpu = benchmark::CyclesPerSecond() / 1000000.0f;
 

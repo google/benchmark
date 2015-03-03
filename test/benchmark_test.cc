@@ -158,12 +158,12 @@ BENCHMARK(BM_LongTest)->Range(1<<16,1<<28);
 
 class TestReporter : public benchmark::ConsoleReporter {
  public:
-  virtual bool ReportContext(const benchmark::BenchmarkContextData& context) {
+  virtual bool ReportContext(const Context& context) {
     return ConsoleReporter::ReportContext(context);
   };
 
   virtual void ReportRuns(
-    const std::vector<benchmark::BenchmarkRunData>& report) const {
+    const std::vector<Run>& report) const {
     ++count_;
     ConsoleReporter::ReportRuns(report);
   };
