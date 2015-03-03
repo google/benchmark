@@ -20,8 +20,8 @@
   library it is desirable to minimize dependency on the standard library.
 
 */
-#ifndef TESTING_BASE_PUBLIC_BENCHMARK_H_
-#define TESTING_BASE_PUBLIC_BENCHMARK_H_
+#ifndef BENCHMARK_BENCHMARK_H_
+#define BENCHMARK_BENCHMARK_H_
 
 #include <string>
 #include <utility>
@@ -219,4 +219,4 @@ class ConsoleReporter : public BenchmarkReporter {
 };
 
 }  // end namespace benchmark
-#endif  // TESTING_BASE_PUBLIC_BENCHMARK_H_
+#endif  // BENCHMARK_BENCHMARK_H_
