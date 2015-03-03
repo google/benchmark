@@ -198,12 +198,6 @@ void RunMatchingBenchmarks(const std::string& spec,
 void FindMatchingBenchmarkNames(const std::string& re,
                                 std::vector<std::string>* benchmark_names);
 
-// Given a collection of reports, computes their mean and stddev.
-// REQUIRES: all runs in "reports" must be from the same benchmark.
-void ComputeStats(const std::vector<BenchmarkReporter::Run>& reports,
-                  BenchmarkReporter::Run* mean_data,
-                  BenchmarkReporter::Run* stddev_data);
-
 // Simple reporter that outputs benchmark data to the console. This is the
 // default reporter used by RunSpecifiedBenchmarks().
 class ConsoleReporter : public BenchmarkReporter {

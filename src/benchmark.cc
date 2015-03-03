@@ -645,11 +645,6 @@ void RunBenchmark(const benchmark::Benchmark::Instance& b,
   }
 }
 
-}  // namespace
-
-
-BenchmarkReporter::~BenchmarkReporter() {}
-
 
 void ComputeStats(const std::vector<BenchmarkReporter::Run>& reports,
                   BenchmarkReporter::Run* mean_data,
@@ -703,6 +698,12 @@ void ComputeStats(const std::vector<BenchmarkReporter::Run>& reports,
   stddev_data->bytes_per_second = bytes_per_second_stat.StdDev();
   stddev_data->items_per_second = items_per_second_stat.StdDev();
 }
+
+
+}  // namespace
+
+
+BenchmarkReporter::~BenchmarkReporter() {}
 
 
 bool ConsoleReporter::ReportContext(const Context& context) {
@@ -760,7 +761,7 @@ void ConsoleReporter::ReportRuns(
 
   Run mean_data;
   Run stddev_data;
-  benchmark::ComputeStats(reports, &mean_data, &stddev_data);
+  ComputeStats(reports, &mean_data, &stddev_data);
 
   // Output using PrintRun.
   PrintRunData(mean_data);
