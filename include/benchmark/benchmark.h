@@ -23,6 +23,7 @@
 #ifndef BENCHMARK_BENCHMARK_H_
 #define BENCHMARK_BENCHMARK_H_
 
+#include <cstddef>
 #include <string>
 #include <utility>
 #include <vector>
@@ -115,7 +116,7 @@ class Benchmark {
  private:
   std::string name_;
   Function* function_;
-  int registration_index_;
+  std::size_t registration_index_;
   int arg_count_;
   std::vector< std::pair<int, int> > args_;  // Args for all benchmark runs
   std::vector<int> thread_counts_;

@@ -342,7 +342,8 @@ private:
   bool has_range_y_;
   int range_y_;
 
-  int64_t bytes_processed_, items_processed_;
+  int64_t bytes_processed_;
+  int64_t items_processed_;
 public:
   const int thread_index;
 
