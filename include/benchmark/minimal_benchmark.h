@@ -31,7 +31,7 @@ static void BM_StringCopy(benchmark::State& state) {
 BENCHMARK(BM_StringCopy);
 
 // Augment the main() program to invoke benchmarks if specified
-// via the --benchmarks command line flag.  E.g.,
+// via the --benchmark_filter command line flag.  E.g.,
 //       my_unittest --benchmark_filter=all
 //       my_unittest --benchmark_filter=BM_StringCreation
 //       my_unittest --benchmark_filter=String
@@ -160,9 +160,9 @@ class BenchmarkReporter;
 // This function must be called before using the bennchmark library.
 void Initialize(int* argc, const char** argv);
 
-// If the --benchmarks flag is empty, do nothing.
+// If the --benchmark_filter flag is empty, do nothing.
 //
-// Otherwise, run all benchmarks specified by the --benchmarks flag,
+// Otherwise, run all benchmarks specified by the --benchmark_filter flag,
 // and exit after running the benchmarks.
 void RunSpecifiedBenchmarks(BenchmarkReporter* reporter = NULL);
 

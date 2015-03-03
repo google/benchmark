@@ -62,7 +62,7 @@
 #endif
 
 
-DEFINE_string(benchmarks, "all",
+DEFINE_string(benchmark_filter, "all",
               "A regular expression that specifies the set of benchmarks "
               "to execute.  If this flag is empty, no benchmarks are run.  "
               "If this flag is the string \"all\", all benchmarks linked "
@@ -855,7 +855,7 @@ void FindMatchingBenchmarkNames(const std::string& spec,
 }
 
 void RunSpecifiedBenchmarks(BenchmarkReporter* reporter) {
-  std::string spec = FLAGS_benchmarks;
+  std::string spec = FLAGS_benchmark_filter;
   if (spec.empty()) {
     // Nothing to do
   } else {
@@ -913,7 +913,8 @@ void ParseCommandLineFlags(int* argc, const char** argv) {
   using namespace benchmark;
   for (int i = 1; i < *argc; ++i) {
     if (
-        ParseStringFlag(argv[i], "benchmarks", &FLAGS_benchmarks) ||
+        ParseStringFlag(argv[i], "benchmark_filter",
+                        &FLAGS_benchmark_filter) ||
         ParseInt32Flag(argv[i], "benchmark_min_iters",
                        &FLAGS_benchmark_min_iters) ||
         ParseInt32Flag(argv[i], "benchmark_max_iters",
