@@ -326,15 +326,23 @@ public:
   BENCHMARK_ALWAYS_INLINE
   int range_x() const {
     assert(has_range_x_);
-    ((void)has_range_x_); // Prevent unused warning.
     return range_x_;
+  }
+
+  BENCHMARK_ALWAYS_INLINE
+  bool has_range_x() const {
+    return has_range_x_;
   }
 
   BENCHMARK_ALWAYS_INLINE
   int range_y() const {
     assert(has_range_y_);
-    ((void)has_range_y_); // Prevent unused warning.
     return range_y_;
+  }
+
+  BENCHMARK_ALWAYS_INLINE
+  bool has_range_y() const {
+    return has_range_y_;
   }
 
   BENCHMARK_ALWAYS_INLINE
