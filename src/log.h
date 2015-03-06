@@ -13,7 +13,7 @@ std::ostream& GetNullLogInstance();
 std::ostream& GetErrorLogInstance();
 
 inline std::ostream& GetLogInstanceForLevel(int level) {
-  if (level >= GetLogLevel()) {
+  if (level <= GetLogLevel()) {
     return GetErrorLogInstance();
   }
   return GetNullLogInstance();
