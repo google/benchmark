@@ -23,6 +23,9 @@
 
 #include <cstdint>
 
+#include "benchmark/macros.h"
+#include "internal_macros.h"
+
 #if defined(OS_MACOSX)
 #include <mach/mach_time.h>
 #endif
@@ -38,8 +41,6 @@ extern "C" uint64_t __rdtsc();
 #pragma intrinsic(__rdtsc)
 #endif
 #include <sys/time.h>
-
-#include "internal_macros.h"
 
 namespace benchmark {
 // NOTE: only i386 and x86_64 have been well tested.

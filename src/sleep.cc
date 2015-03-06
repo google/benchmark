@@ -14,8 +14,10 @@
 
 #include "sleep.h"
 
-#include <time.h>
 #include <cerrno>
+#include <ctime>
+
+#include "internal_macros.h"
 
 namespace benchmark {
 

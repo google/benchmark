@@ -6,17 +6,16 @@
 namespace benchmark {
 namespace internal {
 
+int GetLogLevel();
+void SetLogLevel(int level);
+
 std::ostream& GetNullLogInstance();
 std::ostream& GetErrorLogInstance();
 
 inline std::ostream& GetLogInstanceForLevel(int level) {
-#if defined(BENCHMARK_LOGGING_LEVEL)
-  if (level <= BENCHMARK_LOGGING_LEVEL) {
+  if (level <= GetLogLevel()) {
     return GetErrorLogInstance();
   }
-#else
-  ((void)level); // Use level so no warning is issued.
-#endif
   return GetNullLogInstance();
 }
 

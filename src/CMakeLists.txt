@@ -28,7 +28,8 @@ endif()
 set_target_properties(benchmark PROPERTIES
   OUTPUT_NAME "benchmark"
   VERSION ${GENERIC_LIB_VERSION}
-  SOVERSION ${GENERIC_LIB_SOVERSION})
+  SOVERSION ${GENERIC_LIB_SOVERSION}
+  )
 
 # Install target (will install the library to specified CMAKE_INSTALL_PREFIX variable)
 install(

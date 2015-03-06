@@ -3,13 +3,8 @@ project (benchmark)
 
 option(BENCHMARK_ENABLE_SHARED  "Enable building a shared library." OFF)
 option(BENCHMARK_ENABLE_TESTING "Enable testing of the benchmark library." ON)
-set(BENCHMARK_LOGGING_LEVEL "0" CACHE STRING "The logging level to use.")
 # Make sure we can import out CMake functions
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
-
-if (NOT BENCHMARK_LOGGING_LEVEL STREQUAL "0")
-  add_definitions(-DBENCHMARK_LOGGING_LEVEL=${BENCHMARK_LOGGING_LEVEL})
-endif()
 
 # Read the git tags to determine the project version
 include(GetGitVersion)
@@ -37,7 +32,6 @@ elseif (HAVE_FLAG_CXX_0X)
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++0x")
 endif()
 
-
 # Turn compiler warnings up to 11
 add_cxx_compiler_flag(-Wall)
 add_cxx_compiler_flag(-Wextra)
@@ -55,16 +49,13 @@ if (HAVE_WTHREAD_SAFETY)
   cxx_feature_check(THREAD_SAFETY_ATTRIBUTES)
 endif()
 
-
 # C++ feature checks
 cxx_feature_check(STD_REGEX)
 cxx_feature_check(GNU_POSIX_REGEX)
 cxx_feature_check(POSIX_REGEX)
 
-
 # Set up directories
 include_directories(${PROJECT_SOURCE_DIR}/include)
-
 
 # Build the targets
 add_subdirectory(src)

@@ -3,6 +3,8 @@
 
 #include <cstddef>
 
+#include "internal_macros.h"
+
 namespace benchmark {
 namespace internal {
 // The arraysize(arr) macro returns the # of elements in an array arr.

@@ -38,30 +38,6 @@
 #include "sysinfo.h"
 #include "walltime.h"
 
-
-#if defined(__clang__)
-#
-# if __has_feature(cxx_thread_local)
-#   define BENCHMARK_THREAD_LOCAL thread_local
-# else
-#   define BENCHMARK_THREAD_LOCAL __thread
-# endif
-#
-#elif defined(__GNUC__)
-#
-# if __cplusplus >= 201103L
-#   define BENCHMARK_THREAD_LOCAL thread_local
-# else
-#   define BENCHMARK_THREAD_LOCAL __thread
-# endif
-#
-#elif defined(_MSC_VER) && !defined(__clang__)
-#
-# define BENCHMARK_THREAD_LOCAL thread_local
-#
-#endif
-
-
 DEFINE_string(benchmark_filter, "all",
               "A regular expression that specifies the set of benchmarks "
               "to execute.  If this flag is empty, no benchmarks are run.  "
@@ -92,6 +68,9 @@ DEFINE_bool(benchmark_use_picoseconds, false,
             "for very fast-running benchmarks.");
 
 DEFINE_bool(color_print, false, "Enables colorized logging.");
+
+DEFINE_int32(v, 0, "The level of verbose logging to output");
+
 
 // The ""'s catch people who don't pass in a literal for "str"
 #define strliterallen(str) (sizeof("" str "") - 1)
@@ -913,7 +892,8 @@ void PrintUsageAndExit() {
           "          [--benchmark_min_time=<min_time>]\n"
           "          [--benchmark_repetitions=<num_repetitions>]\n"
           "          [--benchmark_use_picoseconds={true|false}]\n"
-          "          [--color_print={true|false}]\n");
+          "          [--color_print={true|false}]\n"
+          "          [--v=<verbosity>]\n");
   exit(0);
 }
 
@@ -934,7 +914,8 @@ void ParseCommandLineFlags(int* argc, const char** argv) {
         ParseBoolFlag(argv[i], "benchmark_use_picoseconds",
                        &FLAGS_benchmark_use_picoseconds) ||
         ParseBoolFlag(argv[i], "color_print",
-                       &FLAGS_color_print)) {
+                       &FLAGS_color_print) ||
+        ParseInt32Flag(argv[i], "v", &FLAGS_v)) {
       for (int j = i; j != *argc; ++j) argv[j] = argv[j + 1];
 
       --(*argc);
@@ -947,6 +928,7 @@ void ParseCommandLineFlags(int* argc, const char** argv) {
 
 void Initialize(int* argc, const char** argv) {
   ParseCommandLineFlags(argc, argv);
+  internal::SetLogLevel(FLAGS_v);
   // TODO remove this. It prints some output the first time it is called.
   // We don't want to have this ouput printed during benchmarking.
   MyCPUUsage();

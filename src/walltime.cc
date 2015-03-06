@@ -31,7 +31,7 @@ namespace benchmark {
 namespace walltime {
 namespace {
 
-inline bool SplitTimezone(WallTimeType value, bool local, struct tm* t,
+inline bool SplitTimezone(WallTime value, bool local, struct tm* t,
                              double* subsecond) {
   memset(t, 0, sizeof(*t));
   if ((value < 0) || (value > std::numeric_limits<time_t>::max())) {
@@ -55,7 +55,7 @@ namespace internal {
 class WallTimeImp
 {
 public:
-  WallTimeType Now();
+  WallTime Now();
 
   static WallTimeImp & GetWallTimeImp() {
     static WallTimeImp imp;
@@ -85,7 +85,7 @@ private:
     return f;
   }
 
-  WallTimeType Slow() {
+  WallTime Slow() {
     struct timeval tv;
     gettimeofday(&tv, NULL);
     return tv.tv_sec + tv.tv_usec * 1e-6;
@@ -97,7 +97,7 @@ private:
 
   static constexpr double kMaxErrorInterval = 100e-6;
 
-  WallTimeType base_walltime_;
+  WallTime base_walltime_;
   int64_t base_cycletime_;
   int64_t cycles_per_second_;
   double seconds_per_cycle_;
@@ -109,9 +109,9 @@ private:
 };
 
 
-WallTimeType WallTimeImp::Now() {
-  WallTimeType now = 0.0;
-  WallTimeType result = 0.0;
+WallTime WallTimeImp::Now() {
+  WallTime now = 0.0;
+  WallTime result = 0.0;
   int64_t ct = 0;
   uint32_t top_bits = 0;
   do {
@@ -161,13 +161,13 @@ WallTimeImp::WallTimeImp()
 } // end namespace internal
 
 
-WallTimeType Now()
+WallTime Now()
 {
     static internal::WallTimeImp& imp = internal::WallTimeImp::GetWallTimeImp();
     return imp.Now();
 }
 
-std::string Print(WallTimeType time, const char* format, bool local,
+std::string Print(WallTime time, const char* format, bool local,
                   int* remainder_us) {
   char storage[32];
   struct tm split;

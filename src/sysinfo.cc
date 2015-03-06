@@ -34,6 +34,7 @@
 #include "arraysize.h"
 #include "check.h"
 #include "cycleclock.h"
+#include "internal_macros.h"
 #include "sleep.h"
 
 namespace benchmark {

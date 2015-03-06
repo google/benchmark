@@ -14,9 +14,10 @@
 
 #include "colorprint.h"
 
-#include <stdarg.h>
+#include <cstdarg>
 
 #include "commandlineflags.h"
+#include "internal_macros.h"
 
 DECLARE_bool(color_print);
 

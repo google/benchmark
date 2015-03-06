@@ -5,6 +5,19 @@
 namespace benchmark {
 namespace internal {
 
+int& LoggingLevelImp() {
+    static int level = 0;
+    return level;
+}
+
+void SetLogLevel(int value) {
+    LoggingLevelImp() = value;
+}
+
+int GetLogLevel() {
+    return LoggingLevelImp();
+}
+
 class NullLogBuffer : public std::streambuf
 {
 public:
