@@ -24,7 +24,7 @@
 
 namespace {
 
-#ifndef NDEBUG
+#if 0 // TODO(ericwf): Remove this or figure out its purpose.
 int BENCHMARK_NOINLINE Factorial(uint32_t n) {
   return (n == 1) ? 1 : n * Factorial(n - 1);
 }
@@ -52,7 +52,7 @@ std::vector<int>* test_vector = nullptr;
 
 }  // end namespace
 
-#ifndef NDEBUG
+#if 0 // TODO(ericwf): Remove this or figure out its purpose.
 static void BM_Factorial(benchmark::State& state) {
   int fac_42 = 0;
   while (state.KeepRunning())
@@ -179,7 +179,7 @@ class TestReporter : public benchmark::internal::ConsoleReporter {
 int main(int argc, const char* argv[]) {
   benchmark::Initialize(&argc, argv);
 
-#ifndef NDEBUG
+#if 0 // TODO(ericwf): Remove this or figure out its purpose.
   assert(Factorial(8) == 40320);
 #endif
   assert(CalculatePi(1) == 0.0);
