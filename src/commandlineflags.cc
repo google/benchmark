@@ -14,8 +14,7 @@
 
 #include "commandlineflags.h"
 
-#include <string.h>
-
+#include <cstring>
 #include <iostream>
 #include <limits>
 
@@ -75,10 +74,7 @@ bool ParseDouble(const std::string& src_text, const char* str, double* value) {
 }
 
 inline const char* GetEnv(const char* name) {
-#if GTEST_OS_WINDOWS_MOBILE
-  // We are on Windows CE, which has no environment variables.
-  return NULL;
-#elif defined(__BORLANDC__) || defined(__SunOS_5_8) || defined(__SunOS_5_9)
+#if defined(__BORLANDC__) || defined(__SunOS_5_8) || defined(__SunOS_5_9)
   // Environment variables which we programmatically clear will be set to the
   // empty string rather than unset (NULL).  Handle that case.
   const char* const env = getenv(name);

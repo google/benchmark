@@ -14,24 +14,26 @@
 
 #include "sysinfo.h"
 
-#include <errno.h>
 #include <fcntl.h>
-#include <stdio.h>
-#include <stdint.h>
-#include <stdlib.h>
-#include <string.h>
 #include <sys/resource.h>
 #include <sys/types.h> // this header must be included before 'sys/sysctl.h' to avoid compilation error on FreeBSD
 #include <sys/sysctl.h>
 #include <sys/time.h>
 #include <unistd.h>
 
+#include <cerrno>
+#include <cstdio>
+#include <cstdint>
+#include <cstdlib>
+#include <cstring>
 #include <iostream>
 #include <limits>
 #include <mutex>
 
+#include "arraysize.h"
 #include "check.h"
 #include "cycleclock.h"
+#include "internal_macros.h"
 #include "sleep.h"
 
 namespace benchmark {

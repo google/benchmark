@@ -1,4 +1,4 @@
-// Copyright 2014 Google Inc. All rights reserved.
+// Copyright 2015 Google Inc. All rights reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -22,6 +22,7 @@
 #include "re.h"
 #include "sleep.h"
 #include "stat.h"
+#include "string_util.h"
 #include "sysinfo.h"
 #include "walltime.h"
 
@@ -82,108 +83,6 @@ DECLARE_string(heap_check);
 
 namespace benchmark {
 namespace {
-// kilo, Mega, Giga, Tera, Peta, Exa, Zetta, Yotta.
-const char kBigSIUnits[] = "kMGTPEZY";
-// Kibi, Mebi, Gibi, Tebi, Pebi, Exbi, Zebi, Yobi.
-const char kBigIECUnits[] = "KMGTPEZY";
-// milli, micro, nano, pico, femto, atto, zepto, yocto.
-const char kSmallSIUnits[] = "munpfazy";
-
-// We require that all three arrays have the same size.
-static_assert(arraysize(kBigSIUnits) == arraysize(kBigIECUnits),
-              "SI and IEC unit arrays must be the same size");
-static_assert(arraysize(kSmallSIUnits) == arraysize(kBigSIUnits),
-              "Small SI and Big SI unit arrays must be the same size");
-static const size_t kUnitsSize = arraysize(kBigSIUnits);
-
-void ToExponentAndMantissa(double val, double thresh, int precision,
-                           double one_k, std::string* mantissa, size_t* exponent) {
-  std::stringstream mantissa_stream;
-
-  if (val < 0) {
-    mantissa_stream << "-";
-    val = -val;
-  }
-
-  // Adjust threshold so that it never excludes things which can't be rendered
-  // in 'precision' digits.
-  const double adjusted_threshold =
-      std::max(thresh, 1.0 / pow(10.0, precision));
-  const double big_threshold = adjusted_threshold * one_k;
-  const double small_threshold = adjusted_threshold;
-
-  if (val > big_threshold) {
-    // Positive powers
-    double scaled = val;
-    for (size_t i = 0; i < arraysize(kBigSIUnits); ++i) {
-      scaled /= one_k;
-      if (scaled <= big_threshold) {
-        mantissa_stream << scaled;
-        *exponent = i + 1;
-        *mantissa = mantissa_stream.str();
-        return;
-      }
-    }
-    mantissa_stream << val;
-    *exponent = 0;
-  } else if (val < small_threshold) {
-    // Negative powers
-    double scaled = val;
-    for (size_t i = 0; i < arraysize(kSmallSIUnits); ++i) {
-      scaled *= one_k;
-      if (scaled >= small_threshold) {
-        mantissa_stream << scaled;
-        *exponent = -i - 1;
-        *mantissa = mantissa_stream.str();
-        return;
-      }
-    }
-    mantissa_stream << val;
-    *exponent = 0;
-  } else {
-    mantissa_stream << val;
-    *exponent = 0;
-  }
-  *mantissa = mantissa_stream.str();
-}
-
-std::string ExponentToPrefix(size_t exponent, bool iec) {
-  if (exponent == 0) return "";
-
-  const size_t index = (exponent > 0 ? exponent - 1 : -exponent - 1);
-  if (index >= kUnitsSize) return "";
-
-  const char* array =
-      (exponent > 0 ? (iec ? kBigIECUnits : kBigSIUnits) : kSmallSIUnits);
-  if (iec)
-    return array[index] + std::string("i");
-  else
-    return std::string(1, array[index]);
-}
-
-std::string ToBinaryStringFullySpecified(double value, double threshold,
-                                         int precision) {
-  std::string mantissa;
-  size_t exponent;
-  ToExponentAndMantissa(value, threshold, precision, 1024.0, &mantissa,
-                        &exponent);
-  return mantissa + ExponentToPrefix(exponent, false);
-}
-
-inline void AppendHumanReadable(int n, std::string* str) {
-  std::stringstream ss;
-  // Round down to the nearest SI prefix.
-  ss << "/" << ToBinaryStringFullySpecified(n, 1.0, 0);
-  *str += ss.str();
-}
-
-inline std::string HumanReadableNumber(double n) {
-  // 1.1 means that figures up to 1.1k should be shown with the next unit down;
-  // this softens edge effects.
-  // 1 means that we should show one decimal place of precision.
-  return ToBinaryStringFullySpecified(n, 1.1, 1);
-}
-
 // For non-dense Range, intermediate values are powers of kRangeMultiplier.
 static const int kRangeMultiplier = 8;
 
@@ -271,7 +170,7 @@ void ComputeStats(const std::vector<BenchmarkReporter::Run>& reports,
                                     mean_data->iterations;
   mean_data->bytes_per_second = bytes_per_second_stat.Mean();
   mean_data->items_per_second = items_per_second_stat.Mean();
-  mean_data->max_heapbytes_used = max_heapbytes_used_stat.max();
+  mean_data->max_heapbytes_used = max_heapbytes_used_stat.Max();
 
   // Only add label to mean/stddev if it is same for all runs
   mean_data->report_label = reports[0].report_label;
