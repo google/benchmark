@@ -295,7 +295,7 @@ class State {
   std::unique_ptr<ThreadStats> stats_;
 
   friend class internal::Benchmark;
-  DISALLOW_COPY_AND_ASSIGN(State)
+  BENCHMARK_DISALLOW_COPY_AND_ASSIGN(State);
 };
 
 // Interface for custom benchmark result printers.
@@ -479,7 +479,7 @@ class Benchmark {
   friend struct ::benchmark::internal::Benchmark::Instance;
   friend void ::benchmark::internal::RunMatchingBenchmarks(
       const std::string&, const BenchmarkReporter*);
-  DISALLOW_COPY_AND_ASSIGN(Benchmark)
+  BENCHMARK_DISALLOW_COPY_AND_ASSIGN(Benchmark);
 };
 
 // ------------------------------------------------------
@@ -510,7 +510,7 @@ class ConsoleReporter : public BenchmarkReporter {
 
 #define BENCHMARK(n)                                         \
   static ::benchmark::internal::Benchmark* BENCHMARK_CONCAT( \
-      __benchmark_, n, __LINE__) ATTRIBUTE_UNUSED =          \
+      __benchmark_, n, __LINE__) BENCHMARK_UNUSED =          \
       (new ::benchmark::internal::Benchmark(#n, n))
 
 // Old-style macros
@@ -530,12 +530,12 @@ class ConsoleReporter : public BenchmarkReporter {
 // will register BM_Foo<1> as a benchmark.
 #define BENCHMARK_TEMPLATE(n, a)                             \
   static ::benchmark::internal::Benchmark* BENCHMARK_CONCAT( \
-      __benchmark_, n, __LINE__) ATTRIBUTE_UNUSED =          \
+      __benchmark_, n, __LINE__) BENCHMARK_UNUSED =          \
       (new ::benchmark::internal::Benchmark(#n "<" #a ">", n<a>))
 
 #define BENCHMARK_TEMPLATE2(n, a, b)                         \
   static ::benchmark::internal::Benchmark* BENCHMARK_CONCAT( \
-      __benchmark_, n, __LINE__) ATTRIBUTE_UNUSED =          \
+      __benchmark_, n, __LINE__) BENCHMARK_UNUSED =          \
       (new ::benchmark::internal::Benchmark(#n "<" #a "," #b ">", n<a, b>))
 
 #endif  // BENCHMARK_BENCHMARK_H_

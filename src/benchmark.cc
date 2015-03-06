@@ -13,9 +13,11 @@
 // limitations under the License.
 
 #include "benchmark/benchmark.h"
+#include "arraysize.h"
 #include "check.h"
 #include "colorprint.h"
 #include "commandlineflags.h"
+#include "internal_macros.h"
 #include "re.h"
 #include "sleep.h"
 #include "stat.h"
@@ -628,7 +630,7 @@ class State::FastClock {
     }
   }
 
-  DISALLOW_COPY_AND_ASSIGN(FastClock)
+  BENCHMARK_DISALLOW_COPY_AND_ASSIGN(FastClock);
 };
 
 struct State::ThreadStats {
@@ -693,7 +695,7 @@ struct State::SharedState {
         exited(0),
         threads(b == nullptr ? 1 : b->threads) { }
 
-  DISALLOW_COPY_AND_ASSIGN(SharedState)
+  BENCHMARK_DISALLOW_COPY_AND_ASSIGN(SharedState);
 };
 
 namespace internal {

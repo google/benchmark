@@ -16,10 +16,16 @@
 
 #include <gtest/gtest.h>
 
+#if defined(__GNUC__)
+# define BENCHMARK_NOINLINE __attribute__((noinline))
+#else
+# define BENCHMARK_NOINLINE
+#endif
+
 namespace {
 
 #ifdef DEBUG
-int ATTRIBUTE_NOINLINE Factorial(uint32_t n) {
+int BENCHMARK_NOINLINE Factorial(uint32_t n) {
   return (n == 1) ? 1 : n * Factorial(n - 1);
 }
 #endif
@@ -69,7 +75,7 @@ BENCHMARK_RANGE(BM_CalculatePiRange, 1, 1024 * 1024);
 
 static void BM_CalculatePi(benchmark::State& state) {
   static const int depth = 1024;
-  double pi ATTRIBUTE_UNUSED = 0.0;
+  double pi BENCHMARK_UNUSED = 0.0;
   while (state.KeepRunning()) {
     pi = CalculatePi(depth);
   }
