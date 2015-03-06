@@ -23,11 +23,6 @@ macro(compile_benchmark_test name)
   add_dependencies(${name} googletest)
 endmacro(compile_benchmark_test)
 
-macro (add_benchmark_test name)
-  compile_benchmark_test(${name})
-  add_test(${name} ${name} --benchmarks=all)
-endmacro(add_benchmark_test)
-
 macro(add_gtest_test name)
   add_executable(${name} "${name}.cc")
   target_link_libraries(${name} benchmark gtest gtest_main ${CMAKE_THREAD_LIBS_INIT})
