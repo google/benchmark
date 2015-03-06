@@ -24,7 +24,7 @@
 
 namespace {
 
-#ifdef DEBUG
+#ifndef NDEBUG
 int BENCHMARK_NOINLINE Factorial(uint32_t n) {
   return (n == 1) ? 1 : n * Factorial(n - 1);
 }
@@ -52,7 +52,7 @@ std::vector<int>* test_vector = nullptr;
 
 }  // end namespace
 
-#ifdef DEBUG
+#ifndef NDEBUG
 static void BM_Factorial(benchmark::State& state) {
   int fac_42 = 0;
   while (state.KeepRunning())
@@ -179,7 +179,7 @@ class TestReporter : public benchmark::internal::ConsoleReporter {
 int main(int argc, const char* argv[]) {
   benchmark::Initialize(&argc, argv);
 
-#ifdef DEBUG
+#ifndef NDEBUG
   assert(Factorial(8) == 40320);
 #endif
   assert(CalculatePi(1) == 0.0);

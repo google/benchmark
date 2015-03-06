@@ -18,6 +18,7 @@
 #include "colorprint.h"
 #include "commandlineflags.h"
 #include "internal_macros.h"
+#include "log.h"
 #include "re.h"
 #include "sleep.h"
 #include "stat.h"
@@ -382,9 +383,7 @@ void BenchmarkFamilies::FindBenchmarks(
 
     // Match against filter.
     if (!re.Match(family->name_)) {
-#ifdef DEBUG
-      std::cout << "Skipping " << family->name_ << "\n";
-#endif
+      VLOG(1) << "Skipping " << family->name_ << "\n";
       continue;
     }
 
@@ -845,9 +844,7 @@ void Benchmark::MeasureOverhead() {
   }
   overhead = state.runs[0].real_accumulated_time /
              static_cast<double>(state.runs[0].iterations);
-#ifdef DEBUG
-  std::cout << "Per-iteration overhead for doing nothing: " << overhead << "\n";
-#endif
+  VLOG(1) << "Per-iteration overhead for doing nothing: " << overhead << "\n";
 }
 
 void Benchmark::RunInstance(const Instance& b, const BenchmarkReporter* br) {
@@ -1091,20 +1088,16 @@ bool State::StartRunning() {
 void State::NewInterval() {
   stop_time_micros_ = clock_->NowMicros() + interval_micros_;
   if (!is_continuation_) {
-#ifdef DEBUG
-    std::cout << "Starting new interval; stopping in " << interval_micros_
-              << "\n";
-#endif
+    VLOG(1) << "Starting new interval; stopping in " << interval_micros_
+            << "\n";
     iterations_ = 0;
     pause_cpu_time_ = 0;
     pause_real_time_ = 0;
     start_cpu_ = MyCPUUsage() + ChildrenCPUUsage();
     start_time_ = walltime::Now();
   } else {
-#ifdef DEBUG
-    std::cout << "Continuing interval; stopping in " << interval_micros_
-              << "\n";
-#endif
+    VLOG(1) << "Continuing interval; stopping in " << interval_micros_
+            << "\n";
   }
 }
 
@@ -1114,10 +1107,8 @@ bool State::FinishInterval() {
            FLAGS_benchmark_iterations / FLAGS_benchmark_repetitions) ||
       iterations_ < 1) {
     interval_micros_ *= 2;
-#ifdef DEBUG
-    std::cout << "Not enough iterations in interval; "
-              << "Trying again for " << interval_micros_ << " useconds.\n";
-#endif
+    VLOG(1) << "Not enough iterations in interval; "
+            << "Trying again for " << interval_micros_ << " useconds.\n";
     is_continuation_ = false;
     NewInterval();
     return true;
@@ -1287,8 +1278,8 @@ void RunSpecifiedBenchmarks(const BenchmarkReporter* reporter /*= nullptr*/) {
 }
 
 void Initialize(int* argc, const char** argv) {
-  walltime::Initialize();
   internal::ParseCommandLineFlags(argc, argv);
+  internal::SetLogLevel(FLAGS_v);
   internal::Benchmark::MeasureOverhead();
 }
 
