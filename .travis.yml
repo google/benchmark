@@ -40,7 +40,7 @@ before_script:
     - mkdir build && cd build
 
 script:
-    - cmake .. -DCMAKE_BUILD_TYPE=${BUILD_TYPE} -DCMAKE_CXX_FLAGS="-std=${STD}"
+    - cmake .. -DCMAKE_BUILD_TYPE=${BUILD_TYPE} -DCMAKE_CXX_FLAGS="-std=${STD}" -DBENCHMARK_ENABLE_TESTS=ON
     - make
     - if [ "$SUITE" = "tests" ]; then ./test/re_test; fi
     - if [ "$SUITE" = "examples" ]; then ./test/benchmark_test; fi
