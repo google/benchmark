@@ -4,19 +4,24 @@ project (benchmark)
 # Make sure we can import out CMake functions
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 
-# Import and build Google Test
-include(ExternalProject)
-set_directory_properties(properties EP_PREFIX "${CMAKE_BINARY_DIR}/third_party")
-ExternalProject_Add(googletest
-  URL "https://googletest.googlecode.com/files/gtest-1.7.0.zip"
-  URL_MD5 2d6ec8ccdf5c46b05ba54a9fd1d130d7
-  SOURCE_DIR "${CMAKE_BINARY_DIR}/third_party/gtest"
-  CMAKE_ARGS "-DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER}"
-  INSTALL_COMMAND "")
-ExternalProject_Get_Property(googletest source_dir)
-include_directories(${source_dir}/include)
-ExternalProject_Get_Property(googletest binary_dir)
-link_directories(${binary_dir})
+
+option(BENCHMARK_ENABLE_TESTS "Enable building and running unit tests." OFF)
+
+if(BENCHMARK_ENABLE_TESTS)
+  # Import and build Google Test
+  include(ExternalProject)
+  set_directory_properties(properties EP_PREFIX "${CMAKE_BINARY_DIR}/third_party")
+  ExternalProject_Add(googletest
+    URL "https://googletest.googlecode.com/files/gtest-1.7.0.zip"
+    URL_MD5 2d6ec8ccdf5c46b05ba54a9fd1d130d7
+    SOURCE_DIR "${CMAKE_BINARY_DIR}/third_party/gtest"
+    CMAKE_ARGS "-DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER}"
+    INSTALL_COMMAND "")
+  ExternalProject_Get_Property(googletest source_dir)
+  include_directories(${source_dir}/include)
+  ExternalProject_Get_Property(googletest binary_dir)
+  link_directories(${binary_dir})
+endif()
 
 # Try and enable C++11. Don't use C++14 because it doesn't work in some
 # configurations.
@@ -88,6 +93,9 @@ include_directories(${PROJECT_SOURCE_DIR}/include)
 include_directories(${PROJECT_SOURCE_DIR}/src)
 
 # Build the targets
-enable_testing()
 add_subdirectory(src)
-add_subdirectory(test)
+
+if(BENCHMARK_ENABLE_TESTS)
+  enable_testing()
+  add_subdirectory(test)
+endif()
