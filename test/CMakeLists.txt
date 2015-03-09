@@ -23,6 +23,11 @@ macro(compile_benchmark_test name)
   add_dependencies(${name} googletest)
 endmacro(compile_benchmark_test)
 
+macro (add_benchmark_test name)
+  compile_benchmark_test(${name})
+  add_test(${name} ${name} --benchmarks=all)
+endmacro(add_benchmark_test)
+
 macro(add_gtest_test name)
   add_executable(${name} "${name}.cc")
   target_link_libraries(${name} benchmark gtest gtest_main ${CMAKE_THREAD_LIBS_INIT})
@@ -31,10 +36,12 @@ macro(add_gtest_test name)
 endmacro(add_gtest_test)
 
 # Demonstration executable
+add_benchmark_test(basic_test)
 compile_benchmark_test(benchmark_test)
 add_test(benchmark benchmark_test --benchmark_min_time=0.1 51)
 add_test(benchmark_filter_simple benchmark_test --benchmark_filter=Calculate 16)
 add_test(benchmark_filter_suffix benchmark_test --benchmark_filter=Calculate* 16)
 add_test(benchmark_filter_regex_wildcard benchmark_test --benchmark_filter=.*Calculate.* 16)
+
 
 add_gtest_test(re_test)

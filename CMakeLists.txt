@@ -44,6 +44,10 @@ add_cxx_compiler_flag(-pedantic-errors)
 add_cxx_compiler_flag(-fno-strict-aliasing RELEASE)
 
 add_cxx_compiler_flag(-Wthread-safety)
+if (HAVE_WTHREAD_SAFETY)
+  add_definitions(-DHAVE_WTHREAD_SAFETY)
+  cxx_feature_check(THREAD_SAFETY_ATTRIBUTES)
+endif()
 
 # C++ feature checks
 cxx_feature_check(STD_REGEX)
