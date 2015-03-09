@@ -13,7 +13,7 @@
 // limitations under the License.
 
 #include <gtest/gtest.h>
-#include "re.h"
+#include "../src/re.h"
 
 TEST(Regex, RegexSimple) {
     benchmark::Regex re;
