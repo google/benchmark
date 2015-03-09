@@ -509,7 +509,7 @@ void RunInThread(const benchmark::internal::Benchmark::Instance* b,
 }
 
 void RunBenchmark(const benchmark::internal::Benchmark::Instance& b,
-                  BenchmarkReporter* br) EXCLUDES(GetBenchmarkLock()) {
+                  const BenchmarkReporter* br) EXCLUDES(GetBenchmarkLock()) {
   int iters = FLAGS_benchmark_min_iters;
   std::vector<BenchmarkReporter::Run> reports;
 
@@ -787,7 +787,7 @@ void ConsoleReporter::PrintRunData(const Run& result) const {
 }
 
 void RunMatchingBenchmarks(const std::string& spec,
-                           BenchmarkReporter* reporter) {
+                           const BenchmarkReporter* reporter) {
   CHECK(reporter != NULL);
   if (spec.empty()) return;
 
@@ -839,7 +839,7 @@ void FindMatchingBenchmarkNames(const std::string& spec,
 } // end namespace internal
 
 
-void RunSpecifiedBenchmarks(BenchmarkReporter* reporter) {
+void RunSpecifiedBenchmarks(const BenchmarkReporter* reporter) {
   std::string spec = FLAGS_benchmark_filter;
   if (spec.empty()) {
     // Nothing to do
