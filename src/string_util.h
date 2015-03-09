@@ -7,14 +7,6 @@
 
 namespace benchmark {
 
-void ToExponentAndMantissa(double val, double thresh, int precision,
-                           double one_k, std::string* mantissa, int* exponent);
-
-std::string ExponentToPrefix(int exponent, bool iec);
-
-std::string ToBinaryStringFullySpecified(double value, double threshold,
-                                         int precision);
-
 void AppendHumanReadable(int n, std::string* str);
 
 std::string HumanReadableNumber(double n);
