@@ -688,7 +688,7 @@ BenchmarkReporter::~BenchmarkReporter() {}
 
 namespace internal {
 
-bool ConsoleReporter::ReportContext(const Context& context) {
+bool ConsoleReporter::ReportContext(const Context& context) const {
   name_field_width_ = context.name_field_width;
 
   fprintf(stdout,

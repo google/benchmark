@@ -182,7 +182,7 @@ class BenchmarkReporter {
   // platform under which the benchmarks are running. The benchmark run is
   // never started if this function returns false, allowing the reporter
   // to skip runs based on the context information.
-  virtual bool ReportContext(const Context& context) = 0;
+  virtual bool ReportContext(const Context& context) const = 0;
 
   // Called once for each group of benchmark runs, gives information about
   // cpu-time and heap memory usage during the benchmark run.
@@ -209,12 +209,12 @@ void FindMatchingBenchmarkNames(const std::string& re,
 // default reporter used by RunSpecifiedBenchmarks().
 class ConsoleReporter : public BenchmarkReporter {
  public:
-  virtual bool ReportContext(const Context& context);
+  virtual bool ReportContext(const Context& context) const;
   virtual void ReportRuns(const std::vector<Run>& reports) const;
  private:
   virtual void PrintRunData(const Run& report) const;
   // TODO(ericwf): Find a better way to share this information.
-  int name_field_width_;
+  mutable int name_field_width_;
 };
 
 } // end namespace internal
