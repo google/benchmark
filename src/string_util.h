@@ -1,19 +1,11 @@
-#ifndef BENCHMARK_STRING_UTIL_H
-#define BENCHMARK_STRING_UTIL_H
+#ifndef BENCHMARK_STRING_UTIL_H_
+#define BENCHMARK_STRING_UTIL_H_
 
 #include <string>
 #include <sstream>
 #include <utility>
 
 namespace benchmark {
-
-void ToExponentAndMantissa(double val, double thresh, int precision,
-                           double one_k, std::string* mantissa, int* exponent);
-
-std::string ExponentToPrefix(int exponent, bool iec);
-
-std::string ToBinaryStringFullySpecified(double value, double threshold,
-                                         int precision);
 
 void AppendHumanReadable(int n, std::string* str);
 
@@ -45,4 +37,4 @@ inline std::string StrCat(Args&&... args)
 
 } // end namespace benchmark
 
-#endif // BENCHMARK_STRING_UTIL_H
+#endif // BENCHMARK_STRING_UTIL_H_
