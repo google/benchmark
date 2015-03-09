@@ -24,11 +24,9 @@
 
 namespace {
 
-#ifdef DEBUG
 int BENCHMARK_NOINLINE Factorial(uint32_t n) {
   return (n == 1) ? 1 : n * Factorial(n - 1);
 }
-#endif
 
 double CalculatePi(int depth) {
   double pi = 0.0;
@@ -52,7 +50,6 @@ std::vector<int>* test_vector = nullptr;
 
 }  // end namespace
 
-#ifdef DEBUG
 static void BM_Factorial(benchmark::State& state) {
   int fac_42 = 0;
   while (state.KeepRunning())
@@ -61,7 +58,6 @@ static void BM_Factorial(benchmark::State& state) {
   EXPECT_NE(fac_42, std::numeric_limits<int>::max());
 }
 BENCHMARK(BM_Factorial);
-#endif
 
 static void BM_CalculatePiRange(benchmark::State& state) {
   double pi = 0.0;
@@ -179,9 +175,7 @@ class TestReporter : public benchmark::internal::ConsoleReporter {
 int main(int argc, const char* argv[]) {
   benchmark::Initialize(&argc, argv);
 
-#ifdef DEBUG
   assert(Factorial(8) == 40320);
-#endif
   assert(CalculatePi(1) == 0.0);
 
   TestReporter test_reporter;

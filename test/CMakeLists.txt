@@ -32,7 +32,7 @@ endmacro(add_gtest_test)
 
 # Demonstration executable
 compile_benchmark_test(benchmark_test)
-add_test(benchmark benchmark_test --benchmark_min_time=0.1 50)
+add_test(benchmark benchmark_test --benchmark_min_time=0.1 51)
 add_test(benchmark_filter_simple benchmark_test --benchmark_filter=Calculate 16)
 add_test(benchmark_filter_suffix benchmark_test --benchmark_filter=Calculate* 16)
 add_test(benchmark_filter_regex_wildcard benchmark_test --benchmark_filter=.*Calculate.* 16)

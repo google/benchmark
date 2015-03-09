@@ -7,7 +7,6 @@ namespace benchmark {
 typedef double WallTime;
 
 namespace walltime {
-void Initialize();
 WallTime Now();
 
 // GIVEN: walltime, generic format string (as understood by strftime),

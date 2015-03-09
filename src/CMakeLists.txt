@@ -3,7 +3,7 @@ include_directories(${PROJECT_SOURCE_DIR}/src)
 
 # Define the source files
 set(SOURCE_FILES "benchmark.cc" "colorprint.cc" "commandlineflags.cc"
-                 "sleep.cc" "sysinfo.cc" "walltime.cc")
+                 "log.cc" "sleep.cc" "sysinfo.cc" "walltime.cc")
 # Determine the correct regular expression engine to use
 if(HAVE_STD_REGEX)
   set(RE_FILES "re_std.cc")

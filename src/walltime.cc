@@ -1,4 +1,4 @@
-// Copyright 2014 Google Inc. All rights reserved.
+// Copyright 2015 Google Inc. All rights reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -14,14 +14,16 @@
 
 #include "walltime.h"
 
-#include <stdio.h>
-#include <stdint.h>
-#include <string.h>
 #include <sys/time.h>
-#include <time.h>
+
+#include <cstdio>
+#include <cstdint>
+#include <cstring>
+#include <ctime>
 
 #include <atomic>
 #include <limits>
+#include <type_traits>
 
 #include "check.h"
 #include "cycleclock.h"
@@ -30,41 +32,6 @@
 namespace benchmark {
 namespace walltime {
 namespace {
-const double kMaxErrorInterval = 100e-6;
-
-std::atomic<bool> initialized(false);
-WallTime base_walltime = 0.0;
-int64_t base_cycletime = 0;
-int64_t cycles_per_second;
-double seconds_per_cycle;
-uint32_t last_adjust_time = 0;
-std::atomic<int32_t> drift_adjust(0);
-int64_t max_interval_cycles = 0;
-
-// Helper routines to load/store a float from an AtomicWord. Required because
-// g++ < 4.7 doesn't support std::atomic<float> correctly. I cannot wait to get
-// rid of this horror show.
-inline void SetDrift(float f) {
-  int32_t w;
-  memcpy(&w, &f, sizeof(f));
-  std::atomic_store(&drift_adjust, w);
-}
-
-inline float GetDrift() {
-  float f;
-  int32_t w = std::atomic_load(&drift_adjust);
-  memcpy(&f, &w, sizeof(f));
-  return f;
-}
-
-static_assert(sizeof(float) <= sizeof(int32_t),
-              "type sizes don't allow the drift_adjust hack");
-
-WallTime Slow() {
-  struct timeval tv;
-  gettimeofday(&tv, NULL);
-  return tv.tv_sec + tv.tv_usec * 1e-6;
-}
 
 bool SplitTimezone(WallTime value, bool local, struct tm* t,
                    double* subsecond) {
@@ -81,56 +48,125 @@ bool SplitTimezone(WallTime value, bool local, struct tm* t,
     gmtime_r(&whole_time, t);
   return true;
 }
-}  // end namespace
 
-// This routine should be invoked to initialize walltime.
-// It is not intended for general purpose use.
-void Initialize() {
-  CHECK(!std::atomic_load(&initialized));
-  cycles_per_second = static_cast<int64_t>(CyclesPerSecond());
-  CHECK(cycles_per_second != 0);
-  seconds_per_cycle = 1.0 / cycles_per_second;
-  max_interval_cycles =
-      static_cast<int64_t>(cycles_per_second * kMaxErrorInterval);
-  do {
-    base_cycletime = cycleclock::Now();
-    base_walltime = Slow();
-  } while (cycleclock::Now() - base_cycletime > max_interval_cycles);
-  // We are now sure that "base_walltime" and "base_cycletime" were produced
-  // within kMaxErrorInterval of one another.
+} // end anonymous namespace
 
-  SetDrift(0.0);
-  last_adjust_time = static_cast<uint32_t>(uint64_t(base_cycletime) >> 32);
-  std::atomic_store(&initialized, true);
-}
 
-WallTime Now() {
-  if (!std::atomic_load(&initialized)) return Slow();
+namespace {
 
+class WallTimeImp
+{
+public:
+  WallTime Now();
+
+  static WallTimeImp& GetWallTimeImp() {
+    static WallTimeImp imp;
+#if __cplusplus >= 201103L
+    static_assert(std::is_trivially_destructible<WallTimeImp>::value,
+                  "WallTimeImp must be trivially destructible to prevent "
+                  "issues with static destruction");
+#endif
+    return imp;
+  }
+
+private:
+  WallTimeImp();
+  // Helper routines to load/store a float from an AtomicWord. Required because
+  // g++ < 4.7 doesn't support std::atomic<float> correctly. I cannot wait to
+  // get rid of this horror show.
+  void SetDrift(float f) {
+    int32_t w;
+    memcpy(&w, &f, sizeof(f));
+    std::atomic_store(&drift_adjust_, w);
+  }
+
+  float GetDrift() const {
+    float f;
+    int32_t w = std::atomic_load(&drift_adjust_);
+    memcpy(&f, &w, sizeof(f));
+    return f;
+  }
+
+  WallTime Slow() const {
+    struct timeval tv;
+    gettimeofday(&tv, NULL);
+    return tv.tv_sec + tv.tv_usec * 1e-6;
+  }
+
+private:
+  static_assert(sizeof(float) <= sizeof(int32_t),
+               "type sizes don't allow the drift_adjust hack");
+
+  static constexpr double kMaxErrorInterval = 100e-6;
+
+  WallTime base_walltime_;
+  int64_t base_cycletime_;
+  int64_t cycles_per_second_;
+  double seconds_per_cycle_;
+  uint32_t last_adjust_time_;
+  std::atomic<int32_t> drift_adjust_;
+  int64_t max_interval_cycles_;
+
+  BENCHMARK_DISALLOW_COPY_AND_ASSIGN(WallTimeImp);
+};
+
+
+WallTime WallTimeImp::Now() {
   WallTime now = 0.0;
   WallTime result = 0.0;
   int64_t ct = 0;
   uint32_t top_bits = 0;
   do {
     ct = cycleclock::Now();
-    int64_t cycle_delta = ct - base_cycletime;
-    result = base_walltime + cycle_delta * seconds_per_cycle;
+    int64_t cycle_delta = ct - base_cycletime_;
+    result = base_walltime_ + cycle_delta * seconds_per_cycle_;
 
     top_bits = static_cast<uint32_t>(uint64_t(ct) >> 32);
     // Recompute drift no more often than every 2^32 cycles.
     // I.e., @2GHz, ~ every two seconds
-    if (top_bits == last_adjust_time) {  // don't need to recompute drift
+    if (top_bits == last_adjust_time_) {  // don't need to recompute drift
       return result + GetDrift();
     }
 
     now = Slow();
-  } while (cycleclock::Now() - ct > max_interval_cycles);
+  } while (cycleclock::Now() - ct > max_interval_cycles_);
   // We are now sure that "now" and "result" were produced within
   // kMaxErrorInterval of one another.
 
   SetDrift(now - result);
-  last_adjust_time = top_bits;
+  last_adjust_time_ = top_bits;
   return now;
+}
+
+
+WallTimeImp::WallTimeImp()
+    : base_walltime_(0.0), base_cycletime_(0),
+      cycles_per_second_(0), seconds_per_cycle_(0.0),
+      last_adjust_time_(0), drift_adjust_(0),
+      max_interval_cycles_(0) {
+  cycles_per_second_ = static_cast<int64_t>(CyclesPerSecond());
+  CHECK(cycles_per_second_ != 0);
+  seconds_per_cycle_ = 1.0 / cycles_per_second_;
+  max_interval_cycles_ =
+      static_cast<int64_t>(cycles_per_second_ * kMaxErrorInterval);
+  do {
+    base_cycletime_ = cycleclock::Now();
+    base_walltime_ = Slow();
+  } while (cycleclock::Now() - base_cycletime_ > max_interval_cycles_);
+  // We are now sure that "base_walltime" and "base_cycletime" were produced
+  // within kMaxErrorInterval of one another.
+
+  SetDrift(0.0);
+  last_adjust_time_ = static_cast<uint32_t>(uint64_t(base_cycletime_) >> 32);
+}
+
+} // end anonymous namespace
+
+
+WallTime Now()
+{
+    static WallTimeImp& imp = WallTimeImp::GetWallTimeImp();
+    return imp.Now();
 }
 
 std::string Print(WallTime time, const char* format, bool local,
@@ -150,5 +186,6 @@ std::string Print(WallTime time, const char* format, bool local,
   }
   return std::string(storage);
 }
+
 }  // end namespace walltime
 }  // end namespace benchmark
