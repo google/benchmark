@@ -13,6 +13,9 @@ matrix:
     - os: osx
       env: BUILD_TYPE=Release STD=c++11
 
+env:
+    - CTEST_OUTPUT_ON_FAILURE=1
+
 language:
     - cpp
 
