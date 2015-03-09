@@ -432,7 +432,7 @@ public:
   }
   operator internal::Benchmark*() {
     internal::Benchmark *tmp = imp_;
-    imp_ = nullptr;
+    imp_ = NULL;
     return tmp;
   }
 
