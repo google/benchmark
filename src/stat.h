@@ -103,6 +103,7 @@ class Stat1 {
   // Return the total weight of this sample set
   NumType numSamples() const { return numsamples_; }
 
+  // Return the sum of this sample set
   VType Sum() const { return sum_; }
 
   // Return the mean of this sample set
@@ -270,6 +271,7 @@ class Stat1MinMax : public Stat1<VType, NumType> {
   VType Max() const { return max_; }
   // Return the minimal value in this sample set
   VType Min() const { return min_; }
+
  private:
   // The - operation makes no sense with Min/Max
   // unless we keep the full list of values (but we don't)

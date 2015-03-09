@@ -1,4 +1,4 @@
-// Copyright 2015 Google Inc. All rights reserved.
+// Copyright 2014 Google Inc. All rights reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -216,5 +216,4 @@ bool ParseStringFlag(const char* str, const char* flag, std::string* value) {
 bool IsFlag(const char* str, const char* flag) {
   return (ParseFlagValue(str, flag, true) != NULL);
 }
-
 }  // end namespace benchmark

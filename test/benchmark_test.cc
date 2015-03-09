@@ -24,11 +24,9 @@
 
 namespace {
 
-#ifndef NDEBUG
 int BENCHMARK_NOINLINE Factorial(uint32_t n) {
   return (n == 1) ? 1 : n * Factorial(n - 1);
 }
-#endif
 
 double CalculatePi(int depth) {
   double pi = 0.0;
@@ -52,7 +50,6 @@ std::vector<int>* test_vector = nullptr;
 
 }  // end namespace
 
-#ifndef NDEBUG
 static void BM_Factorial(benchmark::State& state) {
   int fac_42 = 0;
   while (state.KeepRunning())
@@ -61,7 +58,6 @@ static void BM_Factorial(benchmark::State& state) {
   EXPECT_NE(fac_42, std::numeric_limits<int>::max());
 }
 BENCHMARK(BM_Factorial);
-#endif
 
 static void BM_CalculatePiRange(benchmark::State& state) {
   double pi = 0.0;
@@ -69,15 +65,12 @@ static void BM_CalculatePiRange(benchmark::State& state) {
     pi = CalculatePi(state.range_x());
   std::stringstream ss;
   ss << pi;
-  // Test both overloads of SetLabel to ensure they work.
-  state.SetLabel(ss.str().c_str());
   state.SetLabel(ss.str());
 }
 BENCHMARK_RANGE(BM_CalculatePiRange, 1, 1024 * 1024);
 
 static void BM_CalculatePi(benchmark::State& state) {
   static const int depth = 1024;
-
   double pi BENCHMARK_UNUSED = 0.0;
   while (state.KeepRunning()) {
     pi = CalculatePi(depth);
@@ -152,7 +145,7 @@ static void BM_LongTest(benchmark::State& state) {
   while (state.KeepRunning())
     for (int i = 0; i < state.range_x(); ++i)
       tracker += i;
-  assert(tracker > 1.0);
+  assert(tracker != 0.0);
 }
 BENCHMARK(BM_LongTest)->Range(1<<16,1<<28);
 
@@ -182,9 +175,7 @@ class TestReporter : public benchmark::internal::ConsoleReporter {
 int main(int argc, const char* argv[]) {
   benchmark::Initialize(&argc, argv);
 
-#ifndef NDEBUG
   assert(Factorial(8) == 40320);
-#endif
   assert(CalculatePi(1) == 0.0);
 
   TestReporter test_reporter;
