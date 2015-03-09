@@ -1,5 +1,5 @@
-#ifndef BENCHMARK_STRING_UTIL_H
-#define BENCHMARK_STRING_UTIL_H
+#ifndef BENCHMARK_STRING_UTIL_H_
+#define BENCHMARK_STRING_UTIL_H_
 
 #include <string>
 #include <sstream>
@@ -45,4 +45,4 @@ inline std::string StrCat(Args&&... args)
 
 } // end namespace benchmark
 
-#endif // BENCHMARK_STRING_UTIL_H
+#endif // BENCHMARK_STRING_UTIL_H_
