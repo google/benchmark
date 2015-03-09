@@ -15,10 +15,12 @@
 #include "walltime.h"
 
 #include <sys/time.h>
-#include <time.h>
+
 #include <cstdio>
 #include <cstdint>
 #include <cstring>
+#include <ctime>
+
 #include <atomic>
 #include <limits>
 #include <type_traits>
@@ -31,8 +33,8 @@ namespace benchmark {
 namespace walltime {
 namespace {
 
-inline bool SplitTimezone(WallTime value, bool local, struct tm* t,
-                             double* subsecond) {
+bool SplitTimezone(WallTime value, bool local, struct tm* t,
+                   double* subsecond) {
   memset(t, 0, sizeof(*t));
   if ((value < 0) || (value > std::numeric_limits<time_t>::max())) {
     *subsecond = 0.0;
@@ -50,14 +52,14 @@ inline bool SplitTimezone(WallTime value, bool local, struct tm* t,
 } // end anonymous namespace
 
 
-namespace internal {
+namespace {
 
 class WallTimeImp
 {
 public:
   WallTime Now();
 
-  static WallTimeImp & GetWallTimeImp() {
+  static WallTimeImp& GetWallTimeImp() {
     static WallTimeImp imp;
 #if __cplusplus >= 201103L
     static_assert(std::is_trivially_destructible<WallTimeImp>::value,
@@ -85,7 +87,7 @@ private:
     return f;
   }
 
-  WallTime Slow() {
+  WallTime Slow() const {
     struct timeval tv;
     gettimeofday(&tv, NULL);
     return tv.tv_sec + tv.tv_usec * 1e-6;
@@ -158,12 +160,12 @@ WallTimeImp::WallTimeImp()
   last_adjust_time_ = static_cast<uint32_t>(uint64_t(base_cycletime_) >> 32);
 }
 
-} // end namespace internal
+} // end anonymous namespace
 
 
 WallTime Now()
 {
-    static internal::WallTimeImp& imp = internal::WallTimeImp::GetWallTimeImp();
+    static WallTimeImp& imp = WallTimeImp::GetWallTimeImp();
     return imp.Now();
 }
 

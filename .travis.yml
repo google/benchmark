@@ -30,4 +30,4 @@ before_script:
 script:
     - cmake .. -DCMAKE_BUILD_TYPE=${BUILD_TYPE} -DCMAKE_CXX_FLAGS="-std=${STD}"
     - make
-    - make test
+    - make CTEST_OUTPUT_ON_FAILURE=1 test

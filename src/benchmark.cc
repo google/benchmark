@@ -1179,6 +1179,9 @@ void RunSpecifiedBenchmarks(const BenchmarkReporter* reporter /*= nullptr*/) {
 void Initialize(int* argc, const char** argv) {
   internal::ParseCommandLineFlags(argc, argv);
   internal::SetLogLevel(FLAGS_v);
+  // Ensure walltime is initialized by a single thread by forcing the
+  // initialization.
+  walltime::Now();
   internal::Benchmark::MeasureOverhead();
 }
 
