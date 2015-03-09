@@ -38,7 +38,7 @@
 #include "sysinfo.h"
 #include "walltime.h"
 
-DEFINE_string(benchmark_filter, "all",
+DEFINE_string(benchmark_filter, ".",
               "A regular expression that specifies the set of benchmarks "
               "to execute.  If this flag is empty, no benchmarks are run.  "
               "If this flag is the string \"all\", all benchmarks linked "
@@ -242,7 +242,7 @@ class TimerManager {
 };
 
 // TimerManager for current run.
-static TimerManager* timer_manager = nullptr;
+static std::unique_ptr<TimerManager> timer_manager = nullptr;
 
 namespace internal {
 
@@ -530,7 +530,7 @@ void RunBenchmark(const benchmark::internal::Benchmark::Instance& b,
       }
 
       Notification done;
-      timer_manager = new TimerManager(b.threads, &done);
+      timer_manager = std::unique_ptr<TimerManager>(new TimerManager(b.threads, &done));
 
       ThreadStats total;
       running_benchmark = true;
@@ -554,8 +554,7 @@ void RunBenchmark(const benchmark::internal::Benchmark::Instance& b,
 
       const double cpu_accumulated_time = timer_manager->cpu_time_used();
       const double real_accumulated_time = timer_manager->real_time_used();
-      delete timer_manager;
-      timer_manager = NULL;
+      timer_manager.reset();
 
       VLOG(1) << "Ran in " << cpu_accumulated_time << "/"
             << real_accumulated_time << "\n";
@@ -845,9 +844,8 @@ void RunSpecifiedBenchmarks(BenchmarkReporter* reporter) {
   if (spec.empty()) {
     // Nothing to do
   } else {
-    if (spec == "all") {
-      spec = ".";         // Regexp that matches all benchmarks
-    }
+    if (spec.empty() || spec == "all")
+        spec = ".";  // Regexp that matches all benchmarks
     internal::ConsoleReporter default_reporter;
     internal::RunMatchingBenchmarks(spec, reporter ? reporter : &default_reporter);
     std::exit(0);
