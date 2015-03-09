@@ -1,11 +1,12 @@
 #ifndef BENCHMARK_STAT_H_
 #define BENCHMARK_STAT_H_
 
-#include <math.h>
-#include <iostream>
+#include <cmath>
+#include <ostream>
 #include <limits>
 
 namespace benchmark {
+
 template <typename VType, typename NumType>
 class Stat1;
 
@@ -103,7 +104,7 @@ class Stat1 {
   NumType numSamples() const { return numsamples_; }
 
   // Return the sum of this sample set
-  VType sum() const { return sum_; }
+  VType Sum() const { return sum_; }
 
   // Return the mean of this sample set
   VType Mean() const {
@@ -267,9 +268,9 @@ class Stat1MinMax : public Stat1<VType, NumType> {
   Self operator*(const VType &k) const { return Self(*this) *= k; }
 
   // Return the maximal value in this sample set
-  VType max() const { return max_; }
+  VType Max() const { return max_; }
   // Return the minimal value in this sample set
-  VType min() const { return min_; }
+  VType Min() const { return min_; }
 
  private:
   // The - operation makes no sense with Min/Max

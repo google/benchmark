@@ -1,8 +1,7 @@
 #ifndef BENCHMARK_COMMANDLINEFLAGS_H_
 #define BENCHMARK_COMMANDLINEFLAGS_H_
 
-#include <stdint.h>
-
+#include <cstdint>
 #include <string>
 
 // Macro for referencing flags.
@@ -72,6 +71,6 @@ bool ParseStringFlag(const char* str, const char* flag, std::string* value);
 // Returns true if the string matches the flag.
 bool IsFlag(const char* str, const char* flag);
 
-}  // end namespace gbenchmark
+}  // end namespace benchmark
 
 #endif  // BENCHMARK_COMMANDLINEFLAGS_H_
