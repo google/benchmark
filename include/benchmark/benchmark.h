@@ -194,7 +194,7 @@ void StopBenchmarkTiming();
 // benchmark to use.
 class State {
 public:
-  State(int max_iters, bool has_x, int x, bool has_y, int y, int thread_i)
+  State(size_t max_iters, bool has_x, int x, bool has_y, int y, int thread_i)
     : started_(false), total_iterations_(0), max_iterations_(max_iters),
       has_range_x_(has_x), range_x_(x),
       has_range_y_(has_y), range_y_(y),
@@ -259,12 +259,12 @@ public:
   //
   // REQUIRES: a benchmark has exited its KeepRunning loop.
   BENCHMARK_ALWAYS_INLINE
-  void SetBytesProcessed(int64_t bytes) {
+  void SetBytesProcessed(size_t bytes) {
     bytes_processed_ = bytes;
   }
 
   BENCHMARK_ALWAYS_INLINE
-  int64_t bytes_processed() const {
+  size_t bytes_processed() const {
     return bytes_processed_;
   }
 
@@ -275,12 +275,12 @@ public:
   //
   // REQUIRES: a benchmark has exited its KeepRunning loop.
   BENCHMARK_ALWAYS_INLINE
-  void SetItemsProcessed(int64_t items) {
+  void SetItemsProcessed(size_t items) {
     items_processed_ = items;
   }
 
   BENCHMARK_ALWAYS_INLINE
-  int64_t items_processed() const {
+  size_t items_processed() const {
     return items_processed_;
   }
 
@@ -328,14 +328,15 @@ public:
   }
 
   BENCHMARK_ALWAYS_INLINE
-  int iterations() const { return total_iterations_; }
+  size_t iterations() const { return total_iterations_; }
 
   BENCHMARK_ALWAYS_INLINE
-  int max_iterations() const { return max_iterations_; }
+  size_t max_iterations() const { return max_iterations_; }
 
 private:
   bool started_;
-  unsigned total_iterations_, max_iterations_;
+  size_t total_iterations_;
+  size_t max_iterations_;
 
   bool has_range_x_;
   int range_x_;
@@ -343,8 +344,8 @@ private:
   bool has_range_y_;
   int range_y_;
 
-  int bytes_processed_;
-  int items_processed_;
+  size_t bytes_processed_;
+  size_t items_processed_;
 public:
   const int thread_index;
 
@@ -365,7 +366,7 @@ class BenchmarkReporter {
     bool cpu_scaling_enabled;
 
     // The number of chars in the longest benchmark name.
-    int name_field_width;
+    size_t name_field_width;
   };
 
   struct Run {
@@ -379,7 +380,7 @@ class BenchmarkReporter {
 
     std::string benchmark_name;
     std::string report_label;  // Empty if not set by benchmark.
-    int64_t iterations;
+    size_t iterations;
     double real_accumulated_time;
     double cpu_accumulated_time;
 
@@ -412,6 +413,12 @@ namespace internal {
 
 typedef void(Function)(State&);
 
+// ------------------------------------------------------
+// Benchmark registration object.  The BENCHMARK() macro expands
+// into an internal::Benchmark* object.  Various methods can
+// be called on this object to change the properties of the benchmark.
+// Each method returns "this" so that multiple method calls can
+// chained into one expression.
 class Benchmark {
  public:
   Benchmark(const char* name, Function* f);
@@ -482,8 +489,6 @@ class Benchmark {
   // Used inside the benchmark implementation
   struct Instance;
 
-  friend class BenchmarkFamilies;
-
  private:
   std::string name_;
   Function* function_;
@@ -496,6 +501,8 @@ class Benchmark {
   static const int kNumCpuMarker = -1;
 
   static void AddRange(std::vector<int>* dst, int lo, int hi, int mult);
+
+  friend class BenchmarkFamilies;
 
   BENCHMARK_DISALLOW_COPY_AND_ASSIGN(Benchmark);
 };
@@ -513,7 +520,7 @@ class ConsoleReporter : public BenchmarkReporter {
  private:
   virtual void PrintRunData(const Run& report) const;
   // TODO(ericwf): Find a better way to share this information.
-  mutable int name_field_width_;
+  mutable size_t name_field_width_;
 };
 
 }  // end namespace internal

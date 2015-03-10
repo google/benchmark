@@ -1,4 +1,6 @@
 
+#include <cstddef>
+
 #include "benchmark/benchmark.h"
 
 #define BASIC_BENCHMARK_TEST(x) \
@@ -6,7 +8,7 @@
 
 void BM_empty(benchmark::State& state) {
   while (state.KeepRunning()) {
-    volatile int x = state.iterations();
+    volatile std::size_t x = state.iterations();
     ((void)x);
   }
 }

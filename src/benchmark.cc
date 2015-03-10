@@ -760,7 +760,7 @@ bool ConsoleReporter::ReportContext(const Context& context) const {
       fprintf(stdout,
               "%s%-*s %10s %10s %10s\n",
               Prefix(),
-              name_field_width_,
+              static_cast<int>(name_field_width_),
               "Benchmark",
               FLAGS_benchmark_use_picoseconds ? "Time(ps)" : "Time(ns)",
               FLAGS_benchmark_use_picoseconds ? "CPU(ps)" : "CPU(ns)",
@@ -850,9 +850,9 @@ void RunMatchingBenchmarks(const std::string& spec,
 
 
   // Determine the width of the name field using a minimum width of 10.
-  int name_field_width = 10;
+  std::size_t name_field_width = 10;
   for (std::size_t i = 0; i < benchmarks.size(); i++) {
-    name_field_width = std::max<int>(name_field_width,
+    name_field_width = std::max<std::size_t>(name_field_width,
                                     // Maybe add space for appending "_stddev"
                                     FLAGS_benchmark_repetitions > 1
                                     ? benchmarks[i].name.size() + 7
