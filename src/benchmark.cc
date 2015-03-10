@@ -766,6 +766,7 @@ bool ConsoleReporter::ReportContext(const Context& context) const {
   }
 
   int prefix_len = static_cast<int>(std::strlen(Prefix()));
+  CHECK(prefix_len <= static_cast<int>(name_field_width_));
   int output_width =
       fprintf(stdout,
               "%s%-*s %10s %10s %10s\n",

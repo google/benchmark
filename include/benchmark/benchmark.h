@@ -192,11 +192,12 @@ class BenchmarkFamilies;
 class State {
 public:
   State(size_t max_iters, bool has_x, int x, bool has_y, int y, int thread_i)
-    : started_(false), total_iterations_(0), max_iterations_(max_iters),
+    : started_(false), total_iterations_(0),
       has_range_x_(has_x), range_x_(x),
       has_range_y_(has_y), range_y_(y),
       bytes_processed_(0), items_processed_(0),
-      thread_index(thread_i)
+      thread_index(thread_i),
+      max_iterations(max_iters)
   {}
 
   // Returns true iff the benchmark should continue through another iteration.
@@ -205,7 +206,7 @@ public:
         ResumeTiming();
         started_ = true;
     }
-    bool const res = total_iterations_++ < max_iterations_;
+    bool const res = total_iterations_++ < max_iterations;
     if (BENCHMARK_BUILTIN_EXPECT(!res, false)) {
         assert(started_);
         PauseTiming();
@@ -316,13 +317,9 @@ public:
   BENCHMARK_ALWAYS_INLINE
   size_t iterations() const { return total_iterations_; }
 
-  BENCHMARK_ALWAYS_INLINE
-  size_t max_iterations() const { return max_iterations_; }
-
 private:
   bool started_;
   size_t total_iterations_;
-  size_t max_iterations_;
 
   bool has_range_x_;
   int range_x_;
@@ -332,8 +329,10 @@ private:
 
   size_t bytes_processed_;
   size_t items_processed_;
+
 public:
   const int thread_index;
+  const size_t max_iterations;
 
 private:
   BENCHMARK_DISALLOW_COPY_AND_ASSIGN(State);
