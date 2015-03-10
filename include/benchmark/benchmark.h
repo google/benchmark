@@ -342,7 +342,7 @@ private:
 // Interface for custom benchmark result printers.
 // By default, benchmark reports are printed to stdout. However an application
 // can control the destination of the reports by calling
-// RunMatchingBenchmarks and passing it a custom reporter object.
+// RunSpecifiedBenchmarks and passing it a custom reporter object.
 // The reporter object must implement the following interface.
 class BenchmarkReporter {
  public:

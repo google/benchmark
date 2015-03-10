@@ -80,7 +80,6 @@ namespace benchmark {
 
 // For non-dense Range, intermediate values are powers of kRangeMultiplier.
 static const int kRangeMultiplier = 8;
-static const int kMinIterations = 1;
 static const int kMaxIterations = 1000000000;
 
 namespace internal {
@@ -238,8 +237,6 @@ static std::unique_ptr<TimerManager> timer_manager = nullptr;
 
 namespace internal {
 
-const int Benchmark::kNumCpuMarker;
-
 // Information kept per benchmark we may want to run
 struct Benchmark::Instance {
   std::string   name;
@@ -267,7 +264,7 @@ class BenchmarkFamilies {
 
   // Extract the list of benchmark instances that match the specified
   // regular expression.
-  void FindBenchmarks(const std::string& re,
+  bool FindBenchmarks(const std::string& re,
                       std::vector<Benchmark::Instance>* benchmarks);
  private:
   BenchmarkFamilies();
@@ -313,7 +310,7 @@ void BenchmarkFamilies::RemoveBenchmark(size_t index) {
   // BenchmarkFamilies which iterates over the vector.
 }
 
-void BenchmarkFamilies::FindBenchmarks(
+bool BenchmarkFamilies::FindBenchmarks(
     const std::string& spec,
     std::vector<Benchmark::Instance>* benchmarks) {
   // Make regular expression out of command-line flag
@@ -321,7 +318,7 @@ void BenchmarkFamilies::FindBenchmarks(
   Regex re;
   if (!re.Init(spec, &error_msg)) {
     std::cerr << "Could not compile benchmark re: " << error_msg << std::endl;
-    std::exit(1);
+    return false;
   }
 
   // Special list of thread counts to use when none are specified
@@ -342,9 +339,6 @@ void BenchmarkFamilies::FindBenchmarks(
          ? &one_thread
          : &family->thread_counts_);
       for (int num_threads : *thread_counts) {
-        if (num_threads == Benchmark::kNumCpuMarker) {
-          num_threads = benchmark::NumCPUs();
-        }
 
         Benchmark::Instance instance;
         instance.name = family->name_;
@@ -376,6 +370,7 @@ void BenchmarkFamilies::FindBenchmarks(
       }
     }
   }
+  return true;
 }
 
 
@@ -461,7 +456,8 @@ Benchmark* Benchmark::ThreadRange(int min_threads, int max_threads) {
 }
 
 Benchmark* Benchmark::ThreadPerCpu() {
-  thread_counts_.push_back(kNumCpuMarker);
+  static int num_cpus = NumCPUs();
+  thread_counts_.push_back(num_cpus);
   return this;
 }
 
@@ -494,7 +490,10 @@ namespace {
 bool running_benchmark = false;
 
 // Global variable so that a benchmark can cause a little extra printing
-std::string report_label GUARDED_BY(GetBenchmarkLock());
+std::string* GetReportLabel() {
+    static std::string label GUARDED_BY(GetBenchmarkLock());
+    return &label;
+}
 
 // Should this benchmark base decisions off of real time rather than
 // cpu time?
@@ -549,7 +548,7 @@ void RunInThread(const benchmark::internal::Benchmark::Instance* b,
 void RunBenchmark(const benchmark::internal::Benchmark::Instance& b,
                   const BenchmarkReporter* br) EXCLUDES(GetBenchmarkLock()) {
   int iters = FLAGS_benchmark_iterations ? FLAGS_benchmark_iterations
-                                         : kMinIterations;
+                                         : 1;
   std::vector<BenchmarkReporter::Run> reports;
 
   std::vector<std::thread> pool;
@@ -564,7 +563,7 @@ void RunBenchmark(const benchmark::internal::Benchmark::Instance& b,
 
       {
         MutexLock l(GetBenchmarkLock());
-        report_label.clear();
+        GetReportLabel()->clear();
         use_real_time = false;
       }
 
@@ -603,7 +602,7 @@ void RunBenchmark(const benchmark::internal::Benchmark::Instance& b,
       std::string label;
       {
         MutexLock l(GetBenchmarkLock());
-        label = report_label;
+        label = *GetReportLabel();
         if (use_real_time) {
           seconds = real_accumulated_time;
         }
@@ -846,8 +845,9 @@ void RunMatchingBenchmarks(const std::string& spec,
   if (spec.empty()) return;
 
   std::vector<benchmark::internal::Benchmark::Instance> benchmarks;
-  benchmark::internal::BenchmarkFamilies::GetInstance()->FindBenchmarks(
-    spec, &benchmarks);
+  auto families = benchmark::internal::BenchmarkFamilies::GetInstance();
+  if (!families->FindBenchmarks(spec, &benchmarks)) return;
+
 
   // Determine the width of the name field using a minimum width of 10.
   std::size_t name_field_width = 10;
@@ -888,7 +888,7 @@ void RunSpecifiedBenchmarks(const BenchmarkReporter* reporter) {
 void SetLabel(const char* label) {
   CHECK(running_benchmark);
   MutexLock l(GetBenchmarkLock());
-  report_label = label;
+  *GetReportLabel() = label;
 }
 
 void UseRealTime() {

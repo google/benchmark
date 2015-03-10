@@ -22,4 +22,4 @@ add_test(filter_regex_begin filter_test --benchmark_filter=^BM_Calculate.* 16)
 add_test(filter_regex_end filter_test --benchmark_filter=.*Pi$ 8)
 
 compile_benchmark_test(basic_test)
-add_test(basic_test)
+add_test(basic basic_test)
