@@ -343,8 +343,8 @@ private:
   bool has_range_y_;
   int range_y_;
 
-  int64_t bytes_processed_;
-  int64_t items_processed_;
+  int bytes_processed_;
+  int items_processed_;
 public:
   const int thread_index;
 
@@ -370,7 +370,7 @@ class BenchmarkReporter {
 
   struct Run {
     Run() :
-      iters(1),
+      iterations(1),
       real_accumulated_time(0),
       cpu_accumulated_time(0),
       bytes_per_second(0),
@@ -379,7 +379,7 @@ class BenchmarkReporter {
 
     std::string benchmark_name;
     std::string report_label;  // Empty if not set by benchmark.
-    int64_t iters;
+    int64_t iterations;
     double real_accumulated_time;
     double cpu_accumulated_time;
 

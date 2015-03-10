@@ -633,7 +633,7 @@ void RunBenchmark(const benchmark::internal::Benchmark::Instance& b,
         report.benchmark_name = b.name;
         report.report_label = label;
         // Report the total iterations across all threads.
-        report.iters = static_cast<int64_t>(iters) * b.threads;
+        report.iterations = static_cast<int64_t>(iters) * b.threads;
         report.real_accumulated_time = real_accumulated_time;
         report.cpu_accumulated_time = cpu_accumulated_time;
         report.bytes_per_second = bytes_per_second;
@@ -685,18 +685,18 @@ void ComputeStats(const std::vector<BenchmarkReporter::Run>& reports,
        it != reports.end();
        it++) {
     CHECK_EQ(reports[0].benchmark_name, it->benchmark_name);
-    total_iters += it->iters;
+    total_iters += it->iterations;
     real_accumulated_time_stat +=
-        Stat1_d(it->real_accumulated_time/it->iters, it->iters);
+        Stat1_d(it->real_accumulated_time/it->iterations, it->iterations);
     cpu_accumulated_time_stat +=
-        Stat1_d(it->cpu_accumulated_time/it->iters, it->iters);
-    items_per_second_stat += Stat1_d(it->items_per_second, it->iters);
-    bytes_per_second_stat += Stat1_d(it->bytes_per_second, it->iters);
+        Stat1_d(it->cpu_accumulated_time/it->iterations, it->iterations);
+    items_per_second_stat += Stat1_d(it->items_per_second, it->iterations);
+    bytes_per_second_stat += Stat1_d(it->bytes_per_second, it->iterations);
   }
 
   // Get the data from the accumulator to BenchmarkReporter::Run's.
   mean_data->benchmark_name = reports[0].benchmark_name + "_mean";
-  mean_data->iters = total_iters;
+  mean_data->iterations = total_iters;
   mean_data->real_accumulated_time = real_accumulated_time_stat.Sum();
   mean_data->cpu_accumulated_time = cpu_accumulated_time_stat.Sum();
   mean_data->bytes_per_second = bytes_per_second_stat.Mean();
@@ -713,7 +713,7 @@ void ComputeStats(const std::vector<BenchmarkReporter::Run>& reports,
 
   stddev_data->benchmark_name = reports[0].benchmark_name + "_stddev";
   stddev_data->report_label = mean_data->report_label;
-  stddev_data->iters = total_iters;
+  stddev_data->iterations = total_iters;
   // We multiply by total_iters since PrintRunData expects a total time.
   stddev_data->real_accumulated_time =
       real_accumulated_time_stat.StdDev() * total_iters;
@@ -811,18 +811,18 @@ void ConsoleReporter::PrintRunData(const Run& result) const {
   ColorPrintf(COLOR_DEFAULT, "%s", Prefix());
   ColorPrintf(COLOR_GREEN, "%-*s ",
               name_field_width_, result.benchmark_name.c_str());
-  if (result.iters == 0) {
+  if (result.iterations == 0) {
     ColorPrintf(COLOR_YELLOW, "%10.0f %10.0f ",
                 result.real_accumulated_time * multiplier,
                 result.cpu_accumulated_time * multiplier);
   } else {
     ColorPrintf(COLOR_YELLOW, "%10.0f %10.0f ",
                 (result.real_accumulated_time * multiplier) /
-                    (static_cast<double>(result.iters)),
+                    (static_cast<double>(result.iterations)),
                 (result.cpu_accumulated_time * multiplier) /
-                    (static_cast<double>(result.iters)));
+                    (static_cast<double>(result.iterations)));
   }
-  ColorPrintf(COLOR_CYAN, "%10lld", result.iters);
+  ColorPrintf(COLOR_CYAN, "%10lld", result.iterations);
   ColorPrintf(COLOR_DEFAULT, "%*s %*s %s\n",
               13, rate.c_str(),
               18, items.c_str(),
