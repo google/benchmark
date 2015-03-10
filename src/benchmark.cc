@@ -47,12 +47,6 @@ DEFINE_string(benchmark_filter, ".",
 DEFINE_int32(benchmark_iterations, 0,
              "The exact amount of iterations per benchmark");
 
-DEFINE_int32(benchmark_min_iters, 1,
-             "Minimum number of iterations per benchmark");
-
-DEFINE_int32(benchmark_max_iters, 1000000000,
-             "Maximum number of iterations per benchmark");
-
 DEFINE_double(benchmark_min_time, 0.5,
               "Minimum number of seconds we should run benchmark before "
               "results are considered significant.  For cpu-time based "
@@ -86,6 +80,8 @@ namespace benchmark {
 
 // For non-dense Range, intermediate values are powers of kRangeMultiplier.
 static const int kRangeMultiplier = 8;
+static const int kMinIterations = 1;
+static const int kMaxIterations = 1000000000;
 
 namespace internal {
 
@@ -553,7 +549,7 @@ void RunInThread(const benchmark::internal::Benchmark::Instance* b,
 void RunBenchmark(const benchmark::internal::Benchmark::Instance& b,
                   const BenchmarkReporter* br) EXCLUDES(GetBenchmarkLock()) {
   int iters = FLAGS_benchmark_iterations ? FLAGS_benchmark_iterations
-                                         : FLAGS_benchmark_min_iters;
+                                         : kMinIterations;
   std::vector<BenchmarkReporter::Run> reports;
 
   std::vector<std::thread> pool;
@@ -617,7 +613,7 @@ void RunBenchmark(const benchmark::internal::Benchmark::Instance& b,
       // If this is not the first run, go with the current value of iter.
       if ((i > 0) ||
           (iters == FLAGS_benchmark_iterations) ||
-          (iters >= FLAGS_benchmark_max_iters) ||
+          (iters >= kMaxIterations) ||
           (seconds >= FLAGS_benchmark_min_time) ||
           (real_accumulated_time >= 5*FLAGS_benchmark_min_time)) {
         double bytes_per_second = 0;
@@ -656,8 +652,8 @@ void RunBenchmark(const benchmark::internal::Benchmark::Instance& b,
       // TODO(ericwf) I don't think this branch is reachable.
       if (multiplier <= 1.0) multiplier = 2.0;
       double next_iters = std::max(multiplier * iters, iters + 1.0);
-      if (next_iters > FLAGS_benchmark_max_iters) {
-        next_iters = FLAGS_benchmark_max_iters;
+      if (next_iters > kMaxIterations) {
+        next_iters = kMaxIterations;
       }
       VLOG(2) << "Next iters: " << next_iters << ", " << multiplier << "\n";
       iters = static_cast<int>(next_iters + 0.5);
@@ -849,15 +845,9 @@ void RunMatchingBenchmarks(const std::string& spec,
   CHECK(reporter != NULL);
   if (spec.empty()) return;
 
-  CHECK(FLAGS_benchmark_min_iters <= FLAGS_benchmark_max_iters)
-    << "-benchmark_min_iters=" << FLAGS_benchmark_min_iters
-    << " must be less than or equal to -benchmark_max_iters="
-    << FLAGS_benchmark_max_iters;
-
   std::vector<benchmark::internal::Benchmark::Instance> benchmarks;
   benchmark::internal::BenchmarkFamilies::GetInstance()->FindBenchmarks(
     spec, &benchmarks);
-
 
   // Determine the width of the name field using a minimum width of 10.
   std::size_t name_field_width = 10;
@@ -913,8 +903,6 @@ void PrintUsageAndExit() {
           "benchmark"
           " [--benchmark_filter=<regex>]\n"
           "          [--benchmark_iterations=<iterations>]\n"
-          "          [--benchmark_min_iters=<iterations>]\n"
-          "          [--benchmark_max_iters=<iterations>]\n"
           "          [--benchmark_min_time=<min_time>]\n"
           "          [--benchmark_repetitions=<num_repetitions>]\n"
           "          [--color_print={true|false}]\n"
@@ -930,10 +918,6 @@ void ParseCommandLineFlags(int* argc, const char** argv) {
                         &FLAGS_benchmark_filter) ||
         ParseInt32Flag(argv[i], "benchmark_iterations",
                        &FLAGS_benchmark_iterations) ||
-        ParseInt32Flag(argv[i], "benchmark_min_iters",
-                       &FLAGS_benchmark_min_iters) ||
-        ParseInt32Flag(argv[i], "benchmark_max_iters",
-                       &FLAGS_benchmark_max_iters) ||
         ParseDoubleFlag(argv[i], "benchmark_min_time",
                         &FLAGS_benchmark_min_time) ||
         ParseInt32Flag(argv[i], "benchmark_repetitions",
