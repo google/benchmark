@@ -15,7 +15,7 @@ void BM_empty(benchmark::State& state) {
 BENCHMARK(BM_empty);
 BENCHMARK(BM_empty)->ThreadPerCpu();
 
-void BM_spin(benchmark::State& state) {
+void BM_spin_empty(benchmark::State& state) {
   while (state.KeepRunning()) {
     for (int x = 0; x < state.range_x(); ++x) {
       volatile int dummy = x;
@@ -23,8 +23,8 @@ void BM_spin(benchmark::State& state) {
     }
   }
 }
-BASIC_BENCHMARK_TEST(BM_spin);
-BASIC_BENCHMARK_TEST(BM_spin)->ThreadPerCpu();
+BASIC_BENCHMARK_TEST(BM_spin_empty);
+BASIC_BENCHMARK_TEST(BM_spin_empty)->ThreadPerCpu();
 
 void BM_spin_pause_before(benchmark::State& state) {
   for (int i = 0; i < state.range_x(); ++i) {
