@@ -45,7 +45,8 @@ DEFINE_string(benchmark_filter, ".",
               "into the process are run.");
 
 DEFINE_int32(benchmark_iterations, 0,
-             "The exact amount of iterations per benchmark");
+             "Total number of iterations per benchmark. 0 means the benchmarks "
+             "are time-based.");
 
 DEFINE_double(benchmark_min_time, 0.5,
               "Minimum number of seconds we should run benchmark before "
