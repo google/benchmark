@@ -78,10 +78,6 @@ DEFINE_int32(v, 0, "The level of verbose logging to output");
 
 namespace benchmark {
 
-// For non-dense Range, intermediate values are powers of kRangeMultiplier.
-static const int kRangeMultiplier = 8;
-static const int kMaxIterations = 1000000000;
-
 namespace internal {
 
 // NOTE: This is a dummy "mutex" type used to denote the actual mutex
@@ -98,6 +94,108 @@ GetBenchmarkLock()
   static Mutex lock;
   return lock;
 }
+
+namespace {
+
+// For non-dense Range, intermediate values are powers of kRangeMultiplier.
+static const int kRangeMultiplier = 8;
+static const int kMaxIterations = 1000000000;
+
+bool running_benchmark = false;
+
+// Global variable so that a benchmark can cause a little extra printing
+std::string* GetReportLabel() {
+    static std::string label GUARDED_BY(GetBenchmarkLock());
+    return &label;
+}
+
+// Should this benchmark base decisions off of real time rather than
+// cpu time?
+bool use_real_time GUARDED_BY(GetBenchmarkLock());
+
+// Return prefix to print in front of each reported line
+static const char* Prefix() {
+#ifdef NDEBUG
+  return "";
+#else
+  return "DEBUG: ";
+#endif
+}
+
+// TODO(ericwf): support MallocCounter.
+//static benchmark::MallocCounter *benchmark_mc;
+
+static bool CpuScalingEnabled() {
+  // On Linux, the CPUfreq subsystem exposes CPU information as files on the
+  // local file system. If reading the exported files fails, then we may not be
+  // running on Linux, so we silently ignore all the read errors.
+  for (int cpu = 0, num_cpus = NumCPUs(); cpu < num_cpus; ++cpu) {
+    std::string governor_file = StrCat("/sys/devices/system/cpu/cpu", cpu,
+                                       "/cpufreq/scaling_governor");
+    FILE* file = fopen(governor_file.c_str(), "r");
+    if (!file) break;
+    char buff[16];
+    size_t bytes_read = fread(buff, 1, sizeof(buff), file);
+    fclose(file);
+    if (memprefix(buff, bytes_read, "performance") == NULL) return true;
+  }
+  return false;
+}
+
+void ComputeStats(const std::vector<BenchmarkReporter::Run>& reports,
+                  BenchmarkReporter::Run* mean_data,
+                  BenchmarkReporter::Run* stddev_data) {
+  // Accumulators.
+  Stat1_d real_accumulated_time_stat;
+  Stat1_d cpu_accumulated_time_stat;
+  Stat1_d bytes_per_second_stat;
+  Stat1_d items_per_second_stat;
+  int64_t total_iters = 0;
+
+  // Populate the accumulators.
+  for (std::vector<BenchmarkReporter::Run>::const_iterator it = reports.begin();
+       it != reports.end();
+       it++) {
+    CHECK_EQ(reports[0].benchmark_name, it->benchmark_name);
+    total_iters += it->iterations;
+    real_accumulated_time_stat +=
+        Stat1_d(it->real_accumulated_time/it->iterations, it->iterations);
+    cpu_accumulated_time_stat +=
+        Stat1_d(it->cpu_accumulated_time/it->iterations, it->iterations);
+    items_per_second_stat += Stat1_d(it->items_per_second, it->iterations);
+    bytes_per_second_stat += Stat1_d(it->bytes_per_second, it->iterations);
+  }
+
+  // Get the data from the accumulator to BenchmarkReporter::Run's.
+  mean_data->benchmark_name = reports[0].benchmark_name + "_mean";
+  mean_data->iterations = total_iters;
+  mean_data->real_accumulated_time = real_accumulated_time_stat.Sum();
+  mean_data->cpu_accumulated_time = cpu_accumulated_time_stat.Sum();
+  mean_data->bytes_per_second = bytes_per_second_stat.Mean();
+  mean_data->items_per_second = items_per_second_stat.Mean();
+
+  // Only add label to mean/stddev if it is same for all runs
+  mean_data->report_label = reports[0].report_label;
+  for (std::size_t i = 1; i < reports.size(); i++) {
+    if (reports[i].report_label != reports[0].report_label) {
+      mean_data->report_label = "";
+      break;
+    }
+  }
+
+  stddev_data->benchmark_name = reports[0].benchmark_name + "_stddev";
+  stddev_data->report_label = mean_data->report_label;
+  stddev_data->iterations = total_iters;
+  // We multiply by total_iters since PrintRunData expects a total time.
+  stddev_data->real_accumulated_time =
+      real_accumulated_time_stat.StdDev() * total_iters;
+  stddev_data->cpu_accumulated_time =
+      cpu_accumulated_time_stat.StdDev() * total_iters;
+  stddev_data->bytes_per_second = bytes_per_second_stat.StdDev();
+  stddev_data->items_per_second = items_per_second_stat.StdDev();
+}
+
+} // end namespace
 
 
 struct ThreadStats {
@@ -487,46 +585,6 @@ void Benchmark::AddRange(std::vector<int>* dst, int lo, int hi, int mult) {
 
 namespace {
 
-bool running_benchmark = false;
-
-// Global variable so that a benchmark can cause a little extra printing
-std::string* GetReportLabel() {
-    static std::string label GUARDED_BY(GetBenchmarkLock());
-    return &label;
-}
-
-// Should this benchmark base decisions off of real time rather than
-// cpu time?
-bool use_real_time GUARDED_BY(GetBenchmarkLock());
-
-// Return prefix to print in front of each reported line
-static const char* Prefix() {
-#ifdef NDEBUG
-  return "";
-#else
-  return "DEBUG: ";
-#endif
-}
-
-// TODO(ericwf): support MallocCounter.
-//static benchmark::MallocCounter *benchmark_mc;
-
-static bool CpuScalingEnabled() {
-  // On Linux, the CPUfreq subsystem exposes CPU information as files on the
-  // local file system. If reading the exported files fails, then we may not be
-  // running on Linux, so we silently ignore all the read errors.
-  for (int cpu = 0, num_cpus = NumCPUs(); cpu < num_cpus; ++cpu) {
-    std::string governor_file = StrCat("/sys/devices/system/cpu/cpu", cpu,
-                                       "/cpufreq/scaling_governor");
-    FILE* file = fopen(governor_file.c_str(), "r");
-    if (!file) break;
-    char buff[16];
-    size_t bytes_read = fread(buff, 1, sizeof(buff), file);
-    fclose(file);
-    if (memprefix(buff, bytes_read, "performance") == NULL) return true;
-  }
-  return false;
-}
 
 // Execute one thread of benchmark b for the specified number of iterations.
 // Adds the stats collected for the thread into *total.
@@ -664,61 +722,6 @@ void RunBenchmark(const benchmark::internal::Benchmark::Instance& b,
       thread.join();
   }
 }
-
-
-void ComputeStats(const std::vector<BenchmarkReporter::Run>& reports,
-                  BenchmarkReporter::Run* mean_data,
-                  BenchmarkReporter::Run* stddev_data) {
-  // Accumulators.
-  Stat1_d real_accumulated_time_stat;
-  Stat1_d cpu_accumulated_time_stat;
-  Stat1_d bytes_per_second_stat;
-  Stat1_d items_per_second_stat;
-  int64_t total_iters = 0;
-
-  // Populate the accumulators.
-  for (std::vector<BenchmarkReporter::Run>::const_iterator it = reports.begin();
-       it != reports.end();
-       it++) {
-    CHECK_EQ(reports[0].benchmark_name, it->benchmark_name);
-    total_iters += it->iterations;
-    real_accumulated_time_stat +=
-        Stat1_d(it->real_accumulated_time/it->iterations, it->iterations);
-    cpu_accumulated_time_stat +=
-        Stat1_d(it->cpu_accumulated_time/it->iterations, it->iterations);
-    items_per_second_stat += Stat1_d(it->items_per_second, it->iterations);
-    bytes_per_second_stat += Stat1_d(it->bytes_per_second, it->iterations);
-  }
-
-  // Get the data from the accumulator to BenchmarkReporter::Run's.
-  mean_data->benchmark_name = reports[0].benchmark_name + "_mean";
-  mean_data->iterations = total_iters;
-  mean_data->real_accumulated_time = real_accumulated_time_stat.Sum();
-  mean_data->cpu_accumulated_time = cpu_accumulated_time_stat.Sum();
-  mean_data->bytes_per_second = bytes_per_second_stat.Mean();
-  mean_data->items_per_second = items_per_second_stat.Mean();
-
-  // Only add label to mean/stddev if it is same for all runs
-  mean_data->report_label = reports[0].report_label;
-  for (std::size_t i = 1; i < reports.size(); i++) {
-    if (reports[i].report_label != reports[0].report_label) {
-      mean_data->report_label = "";
-      break;
-    }
-  }
-
-  stddev_data->benchmark_name = reports[0].benchmark_name + "_stddev";
-  stddev_data->report_label = mean_data->report_label;
-  stddev_data->iterations = total_iters;
-  // We multiply by total_iters since PrintRunData expects a total time.
-  stddev_data->real_accumulated_time =
-      real_accumulated_time_stat.StdDev() * total_iters;
-  stddev_data->cpu_accumulated_time =
-      cpu_accumulated_time_stat.StdDev() * total_iters;
-  stddev_data->bytes_per_second = bytes_per_second_stat.StdDev();
-  stddev_data->items_per_second = items_per_second_stat.StdDev();
-}
-
 
 }  // namespace
 
