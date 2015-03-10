@@ -66,10 +66,6 @@ DEFINE_int32(benchmark_repetitions, 1,
              "The number of runs of each benchmark. If greater than 1, the "
              "mean and standard deviation of the runs will be reported.");
 
-DEFINE_bool(benchmark_use_picoseconds, false,
-            "Report times in picoseconds, to provide more significant figures "
-            "for very fast-running benchmarks.");
-
 DEFINE_bool(color_print, false, "Enables colorized logging.");
 
 DEFINE_int32(v, 0, "The level of verbose logging to output");
@@ -762,8 +758,7 @@ bool ConsoleReporter::ReportContext(const Context& context) const {
               Prefix(),
               static_cast<int>(name_field_width_),
               "Benchmark",
-              FLAGS_benchmark_use_picoseconds ? "Time(ps)" : "Time(ns)",
-              FLAGS_benchmark_use_picoseconds ? "CPU(ps)" : "CPU(ns)",
+              "Time(ns)", "CPU(ns)",
               "Iterations");
   fprintf(stdout, "%s\n", std::string(output_width - 1, '-').c_str());
 
@@ -812,7 +807,7 @@ void ConsoleReporter::PrintRunData(const Run& result) const {
                    " items/s");
   }
 
-  double const multiplier = FLAGS_benchmark_use_picoseconds ? 1e12 : 1e9;
+  double const multiplier = 1e9; // nano second multiplier
   ColorPrintf(COLOR_DEFAULT, "%s", Prefix());
   ColorPrintf(COLOR_GREEN, "%-*s ",
               name_field_width_, result.benchmark_name.c_str());
@@ -861,8 +856,8 @@ void RunMatchingBenchmarks(const std::string& spec,
 
   // Print header here
   BenchmarkReporter::Context context;
-  context.num_cpus = benchmark::NumCPUs();
-  context.mhz_per_cpu = benchmark::CyclesPerSecond() / 1000000.0f;
+  context.num_cpus = NumCPUs();
+  context.mhz_per_cpu = CyclesPerSecond() / 1000000.0f;
 
   context.cpu_scaling_enabled = CpuScalingEnabled();
   context.name_field_width = name_field_width;
@@ -879,15 +874,10 @@ void RunMatchingBenchmarks(const std::string& spec,
 
 void RunSpecifiedBenchmarks(const BenchmarkReporter* reporter) {
   std::string spec = FLAGS_benchmark_filter;
-  if (spec.empty()) {
-    // Nothing to do
-  } else {
-    if (spec.empty() || spec == "all")
-        spec = ".";  // Regexp that matches all benchmarks
-    internal::ConsoleReporter default_reporter;
-    internal::RunMatchingBenchmarks(spec, reporter ? reporter : &default_reporter);
-    std::exit(0);
-  }
+  if (spec.empty() || spec == "all")
+    spec = ".";  // Regexp that matches all benchmarks
+  internal::ConsoleReporter default_reporter;
+  internal::RunMatchingBenchmarks(spec, reporter ? reporter : &default_reporter);
 }
 
 void SetLabel(const char* label) {
@@ -923,7 +913,6 @@ void PrintUsageAndExit() {
           "          [--benchmark_max_iters=<iterations>]\n"
           "          [--benchmark_min_time=<min_time>]\n"
           "          [--benchmark_repetitions=<num_repetitions>]\n"
-          "          [--benchmark_use_picoseconds={true|false}]\n"
           "          [--color_print={true|false}]\n"
           "          [--v=<verbosity>]\n");
   exit(0);
@@ -945,8 +934,6 @@ void ParseCommandLineFlags(int* argc, const char** argv) {
                         &FLAGS_benchmark_min_time) ||
         ParseInt32Flag(argv[i], "benchmark_repetitions",
                        &FLAGS_benchmark_repetitions) ||
-        ParseBoolFlag(argv[i], "benchmark_use_picoseconds",
-                       &FLAGS_benchmark_use_picoseconds) ||
         ParseBoolFlag(argv[i], "color_print",
                        &FLAGS_color_print) ||
         ParseInt32Flag(argv[i], "v", &FLAGS_v)) {
