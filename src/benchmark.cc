@@ -425,7 +425,8 @@ bool BenchmarkFamilies::FindBenchmarks(
 
   MutexLock l(mutex_);
   for (Benchmark* family : families_) {
-    if (family == nullptr) continue;  // Family was deleted
+    // Family was deleted or benchmark doesn't match
+    if (family == nullptr || !re.Match(family->name_)) continue;
 
     if (family->arg_count_ == -1) {
       family->arg_count_ = 0;
@@ -461,10 +462,7 @@ bool BenchmarkFamilies::FindBenchmarks(
           instance.name += StringPrintF("/threads:%d", instance.threads);
         }
 
-        // Add if benchmark name matches regexp
-        if (re.Match(instance.name)) {
-          benchmarks->push_back(instance);
-        }
+        benchmarks->push_back(instance);
       }
     }
   }
