@@ -727,6 +727,21 @@ void ComputeStats(const std::vector<BenchmarkReporter::Run>& reports,
 
 }  // namespace
 
+void State::PauseTiming() {
+  // Add in time accumulated so far
+  CHECK(running_benchmark);
+  timer_manager->StopTimer();
+}
+
+void State::ResumeTiming() {
+  CHECK(running_benchmark);
+  timer_manager->StartTimer();
+}
+
+void State::SetLabel(const char* label) {
+    ::benchmark::SetLabel(label);
+}
+
 BenchmarkReporter::~BenchmarkReporter() {}
 
 namespace internal {
@@ -892,17 +907,6 @@ void UseRealTime() {
 }
 
 namespace internal {
-
-void StopBenchmarkTiming() {
-  // Add in time accumulated so far
-  CHECK(running_benchmark);
-  timer_manager->StopTimer();
-}
-
-void StartBenchmarkTiming() {
-  CHECK(running_benchmark);
-  timer_manager->StartTimer();
-}
 
 void PrintUsageAndExit() {
   fprintf(stdout,

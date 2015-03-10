@@ -185,9 +185,6 @@ void UseRealTime();
 namespace internal {
 class Benchmark;
 class BenchmarkFamilies;
-
-void StartBenchmarkTiming();
-void StopBenchmarkTiming();
 }
 
 // State is passed to a running Benchmark and contains state for the
@@ -203,16 +200,15 @@ public:
   {}
 
   // Returns true iff the benchmark should continue through another iteration.
-  BENCHMARK_ALWAYS_INLINE
   bool KeepRunning() {
     if (BENCHMARK_BUILTIN_EXPECT(!started_, false)) {
-        internal::StartBenchmarkTiming();
+        ResumeTiming();
         started_ = true;
     }
     bool const res = total_iterations_++ < max_iterations_;
     if (BENCHMARK_BUILTIN_EXPECT(!res, false)) {
         assert(started_);
-        internal::StopBenchmarkTiming();
+        PauseTiming();
     }
     return res;
   }
@@ -229,10 +225,7 @@ public:
   // NOTE: PauseTiming()/ResumeTiming() are relatively
   // heavyweight, and so their use should generally be avoided
   // within each benchmark iteration, if possible.
-  BENCHMARK_ALWAYS_INLINE
-  void PauseTiming() {
-    internal::StopBenchmarkTiming();
-  }
+  void PauseTiming();
 
   // REQUIRES: timer is not running
   // Start the benchmark timer.  The timer is NOT running on entrance to the
@@ -246,10 +239,7 @@ public:
   // NOTE: PauseTiming()/ResumeTiming() are relatively
   // heavyweight, and so their use should generally be avoided
   // within each benchmark iteration, if possible.
-  BENCHMARK_ALWAYS_INLINE
-  void ResumeTiming() {
-    internal::StartBenchmarkTiming();
-  }
+  void ResumeTiming();
 
   // Set the number of bytes processed by the current benchmark
   // execution.  This routine is typically called once at the end of a
@@ -296,20 +286,16 @@ public:
   //  BM_Compress   50         50   14115038  compress:27.3%
   //
   // REQUIRES: a benchmark has exited its KeepRunning loop.
-  BENCHMARK_ALWAYS_INLINE
-  void SetLabel(const char* label) {
-    ::benchmark::SetLabel(label);
-  }
+  void SetLabel(const char* label);
 
   // Allow the use of std::string without actually including <string>.
   // This function does not participate in overload resolution unless StringType
   // has the nested typename `basic_string`. This typename should be provided
   // as an injected class name in the case of std::string.
   template <class StringType>
-  BENCHMARK_ALWAYS_INLINE
   void SetLabel(StringType const & str,
                 typename StringType::basic_string* = 0) {
-    ::benchmark::SetLabel(str.c_str());
+    this->SetLabel(str.c_str());
   }
 
   // Range arguments for this run. CHECKs if the argument has been set.
