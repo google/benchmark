@@ -74,7 +74,7 @@ DEFINE_int32(v, 0, "The level of verbose logging to output");
   ((((len) >= strliterallen(prefix)) &&                   \
     std::memcmp(str, prefix, strliterallen(prefix)) == 0) \
        ? str + strliterallen(prefix)                      \
-       : NULL)
+       : nullptr)
 
 
 namespace benchmark {
@@ -138,7 +138,7 @@ static bool CpuScalingEnabled() {
     char buff[16];
     size_t bytes_read = fread(buff, 1, sizeof(buff), file);
     fclose(file);
-    if (memprefix(buff, bytes_read, "performance") == NULL) return true;
+    if (memprefix(buff, bytes_read, "performance") == nullptr) return true;
   }
   return false;
 }
@@ -195,9 +195,6 @@ void ComputeStats(const std::vector<BenchmarkReporter::Run>& reports,
   stddev_data->bytes_per_second = bytes_per_second_stat.StdDev();
   stddev_data->items_per_second = items_per_second_stat.StdDev();
 }
-
-} // end namespace
-
 
 struct ThreadStats {
     ThreadStats() : bytes_processed(0), items_processed(0) {}
@@ -334,6 +331,8 @@ class TimerManager {
 // TimerManager for current run.
 static std::unique_ptr<TimerManager> timer_manager = nullptr;
 
+} // end namespace
+
 namespace internal {
 
 // Information kept per benchmark we may want to run
@@ -404,7 +403,7 @@ size_t BenchmarkFamilies::AddBenchmark(Benchmark* family) {
 
 void BenchmarkFamilies::RemoveBenchmark(size_t index) {
   MutexLock l(mutex_);
-  families_[index] = NULL;
+  families_[index] = nullptr;
   // Don't shrink families_ here, we might be called by the destructor of
   // BenchmarkFamilies which iterates over the vector.
 }
@@ -426,7 +425,7 @@ bool BenchmarkFamilies::FindBenchmarks(
 
   MutexLock l(mutex_);
   for (Benchmark* family : families_) {
-    if (family == NULL) continue;  // Family was deleted
+    if (family == nullptr) continue;  // Family was deleted
 
     if (family->arg_count_ == -1) {
       family->arg_count_ = 0;
@@ -846,7 +845,7 @@ void ConsoleReporter::PrintRunData(const Run& result) const {
 
 void RunMatchingBenchmarks(const std::string& spec,
                            const BenchmarkReporter* reporter) {
-  CHECK(reporter != NULL);
+  CHECK(reporter != nullptr);
   if (spec.empty()) return;
 
   std::vector<benchmark::internal::Benchmark::Instance> benchmarks;
@@ -855,13 +854,23 @@ void RunMatchingBenchmarks(const std::string& spec,
 
 
   // Determine the width of the name field using a minimum width of 10.
-  std::size_t name_field_width = 10;
-  for (std::size_t i = 0; i < benchmarks.size(); i++) {
-    name_field_width = std::max<std::size_t>(name_field_width,
-                                    // Maybe add space for appending "_stddev"
-                                    FLAGS_benchmark_repetitions > 1
-                                    ? benchmarks[i].name.size() + 7
-                                    : benchmarks[i].name.size());
+  // Also determine max number of threads needed.
+  size_t name_field_width = 10;
+  for (const internal::Benchmark::Instance& benchmark : benchmarks) {
+    // Add width for _stddev and threads:XX
+    if (benchmark.threads > 1 && FLAGS_benchmark_repetitions > 1) {
+      name_field_width =
+          std::max<size_t>(name_field_width, benchmark.name.size() + 17);
+    } else if (benchmark.threads > 1) {
+      name_field_width =
+          std::max<size_t>(name_field_width, benchmark.name.size() + 10);
+    } else if (FLAGS_benchmark_repetitions > 1) {
+      name_field_width =
+          std::max<size_t>(name_field_width, benchmark.name.size() + 7);
+    } else {
+      name_field_width =
+          std::max<size_t>(name_field_width, benchmark.name.size());
+    }
   }
 
   // Print header here
@@ -873,8 +882,8 @@ void RunMatchingBenchmarks(const std::string& spec,
   context.name_field_width = name_field_width;
 
   if (reporter->ReportContext(context)) {
-    for (const auto& bench_instance : benchmarks) {
-      RunBenchmark(bench_instance, reporter);
+    for (const auto& benchmark : benchmarks) {
+      RunBenchmark(benchmark, reporter);
     }
   }
 }
