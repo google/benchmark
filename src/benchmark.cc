@@ -44,6 +44,9 @@ DEFINE_string(benchmark_filter, ".",
               "If this flag is the string \"all\", all benchmarks linked "
               "into the process are run.");
 
+DEFINE_int32(benchmark_iterations, 0,
+             "The exact amount of iterations per benchmark");
+
 DEFINE_int32(benchmark_min_iters, 1,
              "Minimum number of iterations per benchmark");
 
@@ -553,7 +556,8 @@ void RunInThread(const benchmark::internal::Benchmark::Instance* b,
 
 void RunBenchmark(const benchmark::internal::Benchmark::Instance& b,
                   const BenchmarkReporter* br) EXCLUDES(GetBenchmarkLock()) {
-  int iters = FLAGS_benchmark_min_iters;
+  int iters = FLAGS_benchmark_iterations ? FLAGS_benchmark_iterations
+                                         : FLAGS_benchmark_min_iters;
   std::vector<BenchmarkReporter::Run> reports;
 
   std::vector<std::thread> pool;
@@ -616,6 +620,7 @@ void RunBenchmark(const benchmark::internal::Benchmark::Instance& b,
       // If this was the first run, was elapsed time or cpu time large enough?
       // If this is not the first run, go with the current value of iter.
       if ((i > 0) ||
+          (iters == FLAGS_benchmark_iterations) ||
           (iters >= FLAGS_benchmark_max_iters) ||
           (seconds >= FLAGS_benchmark_min_time) ||
           (real_accumulated_time >= 5*FLAGS_benchmark_min_time)) {
@@ -917,7 +922,7 @@ void PrintUsageAndExit() {
   fprintf(stdout,
           "benchmark"
           " [--benchmark_filter=<regex>]\n"
-
+          "          [--benchmark_iterations=<iterations>]\n"
           "          [--benchmark_min_iters=<iterations>]\n"
           "          [--benchmark_max_iters=<iterations>]\n"
           "          [--benchmark_min_time=<min_time>]\n"
@@ -934,6 +939,8 @@ void ParseCommandLineFlags(int* argc, const char** argv) {
     if (
         ParseStringFlag(argv[i], "benchmark_filter",
                         &FLAGS_benchmark_filter) ||
+        ParseInt32Flag(argv[i], "benchmark_iterations",
+                       &FLAGS_benchmark_iterations) ||
         ParseInt32Flag(argv[i], "benchmark_min_iters",
                        &FLAGS_benchmark_min_iters) ||
         ParseInt32Flag(argv[i], "benchmark_max_iters",
