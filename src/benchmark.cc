@@ -114,15 +114,6 @@ std::string* GetReportLabel() {
 // cpu time?
 bool use_real_time GUARDED_BY(GetBenchmarkLock());
 
-// Return prefix to print in front of each reported line
-static const char* Prefix() {
-#ifdef NDEBUG
-  return "";
-#else
-  return "DEBUG: ";
-#endif
-}
-
 // TODO(ericwf): support MallocCounter.
 //static benchmark::MallocCounter *benchmark_mc;
 
@@ -615,7 +606,7 @@ void RunBenchmark(const benchmark::internal::Benchmark::Instance& b,
     std::string mem;
     while (true) {
       // Try benchmark
-      VLOG(1) << "Running " << b.name << " for " << iters << "\n";
+      VLOG(2) << "Running " << b.name << " for " << iters << "\n";
 
       {
         MutexLock l(GetBenchmarkLock());
@@ -650,8 +641,8 @@ void RunBenchmark(const benchmark::internal::Benchmark::Instance& b,
       const double real_accumulated_time = timer_manager->real_time_used();
       timer_manager.reset();
 
-      VLOG(1) << "Ran in " << cpu_accumulated_time << "/"
-            << real_accumulated_time << "\n";
+      VLOG(2) << "Ran in " << cpu_accumulated_time << "/"
+              << real_accumulated_time << "\n";
 
       // Base decisions off of real time if requested by this benchmark.
       double seconds = cpu_accumulated_time;
@@ -709,7 +700,7 @@ void RunBenchmark(const benchmark::internal::Benchmark::Instance& b,
       if (next_iters > kMaxIterations) {
         next_iters = kMaxIterations;
       }
-      VLOG(2) << "Next iters: " << next_iters << ", " << multiplier << "\n";
+      VLOG(3) << "Next iters: " << next_iters << ", " << multiplier << "\n";
       iters = static_cast<int>(next_iters + 0.5);
     }
   }
@@ -762,13 +753,14 @@ bool ConsoleReporter::ReportContext(const Context& context) const {
                     "timings may be noisy\n");
   }
 
-  int prefix_len = static_cast<int>(std::strlen(Prefix()));
-  CHECK(prefix_len <= static_cast<int>(name_field_width_));
+#ifndef NDEBUG
+  fprintf(stdout, "Build Type: DEBUG\n");
+#endif
+
   int output_width =
       fprintf(stdout,
-              "%s%-*s %10s %10s %10s\n",
-              Prefix(),
-              static_cast<int>(name_field_width_) - prefix_len,
+              "%-*s %10s %10s %10s\n",
+              static_cast<int>(name_field_width_),
               "Benchmark",
               "Time(ns)", "CPU(ns)",
               "Iterations");

@@ -34,6 +34,7 @@
 #include "check.h"
 #include "cycleclock.h"
 #include "internal_macros.h"
+#include "log.h"
 #include "sleep.h"
 
 namespace benchmark {
@@ -322,7 +323,7 @@ double MyCPUUsage() {
         return value;
       }
       // Once MyCPUUsageCPUTimeNsLocked fails once fall back to getrusage().
-      std::cout << "Reading /proc/self/cputime_ns failed. Using getrusage().\n";
+      VLOG(1) << "Reading /proc/self/cputime_ns failed. Using getrusage().\n";
       use_cputime_ns = false;
     }
   }
