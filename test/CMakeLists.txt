@@ -9,7 +9,7 @@ endmacro(compile_benchmark_test)
 
 # Demonstration executable
 compile_benchmark_test(benchmark_test)
-add_test(benchmark benchmark_test --benchmark_min_time=0.1 51)
+add_test(benchmark benchmark_test --benchmark_min_time=0.1)
 
 compile_benchmark_test(filter_test)
 add_test(filter_simple filter_test --benchmark_filter=Calculate 16)
