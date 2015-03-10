@@ -762,7 +762,7 @@ bool ConsoleReporter::ReportContext(const Context& context) const {
                     "timings may be noisy\n");
   }
 
-  int prefix_len = strlen(Prefix());
+  int prefix_len = std::strlen(Prefix());
   int output_width =
       fprintf(stdout,
               "%s%-*s %10s %10s %10s\n",
