@@ -14,8 +14,6 @@
 #include <string>
 #include <vector>
 
-#include <gtest/gtest.h>
-
 #if defined(__GNUC__)
 # define BENCHMARK_NOINLINE __attribute__((noinline))
 #else
@@ -55,7 +53,7 @@ static void BM_Factorial(benchmark::State& state) {
   while (state.KeepRunning())
     fac_42 = Factorial(8);
   // Prevent compiler optimizations
-  EXPECT_NE(fac_42, std::numeric_limits<int>::max());
+  std::cout << fac_42;
 }
 BENCHMARK(BM_Factorial);
 
@@ -149,45 +147,12 @@ static void BM_LongTest(benchmark::State& state) {
 }
 BENCHMARK(BM_LongTest)->Range(1<<16,1<<28);
 
-class TestReporter : public benchmark::internal::ConsoleReporter {
- public:
-  virtual bool ReportContext(const Context& context) const {
-    return ConsoleReporter::ReportContext(context);
-  };
-
-  virtual void ReportRuns(const std::vector<Run>& report) const {
-    ++count_;
-    ConsoleReporter::ReportRuns(report);
-  };
-
-  TestReporter() : count_(0) {}
-
-  virtual ~TestReporter() {}
-
-  size_t GetCount() const {
-    return count_;
-  }
-
- private:
-  mutable size_t count_;
-};
-
 int main(int argc, const char* argv[]) {
   benchmark::Initialize(&argc, argv);
 
   assert(Factorial(8) == 40320);
   assert(CalculatePi(1) == 0.0);
 
-  TestReporter test_reporter;
-  benchmark::RunSpecifiedBenchmarks(&test_reporter);
-
-  // Make sure we ran all of the tests
-  const size_t count = test_reporter.GetCount();
-  const size_t expected = (argc == 2) ? std::stoul(argv[1]) : count;
-  if (count != expected) {
-    std::cerr << "ERROR: Expected " << expected << " tests to be ran but only "
-              << count << " completed" << std::endl;
-    return -1;
-  }
+  benchmark::RunSpecifiedBenchmarks();
 }
 
