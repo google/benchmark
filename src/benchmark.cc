@@ -762,11 +762,12 @@ bool ConsoleReporter::ReportContext(const Context& context) const {
                     "timings may be noisy\n");
   }
 
+  int prefix_len = strlen(Prefix());
   int output_width =
       fprintf(stdout,
               "%s%-*s %10s %10s %10s\n",
               Prefix(),
-              static_cast<int>(name_field_width_),
+              static_cast<int>(name_field_width_) - prefix_len,
               "Benchmark",
               "Time(ns)", "CPU(ns)",
               "Iterations");
@@ -818,7 +819,6 @@ void ConsoleReporter::PrintRunData(const Run& result) const {
   }
 
   double const multiplier = 1e9; // nano second multiplier
-  ColorPrintf(COLOR_DEFAULT, "%s", Prefix());
   ColorPrintf(COLOR_GREEN, "%-*s ",
               name_field_width_, result.benchmark_name.c_str());
   if (result.iterations == 0) {
