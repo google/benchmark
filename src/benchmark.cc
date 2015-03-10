@@ -706,7 +706,6 @@ void RunBenchmark(const benchmark::internal::Benchmark::Instance& b,
       // expansion should be 14x.
       bool is_significant = (seconds / FLAGS_benchmark_min_time) > 0.1;
       multiplier = is_significant ? multiplier : std::min(10.0, multiplier);
-      // TODO(ericwf) I don't think this branch is reachable.
       if (multiplier <= 1.0) multiplier = 2.0;
       double next_iters = std::max(multiplier * iters, iters + 1.0);
       if (next_iters > kMaxIterations) {
