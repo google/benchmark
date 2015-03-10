@@ -482,10 +482,7 @@ class Benchmark {
   // Used inside the benchmark implementation
   struct Instance;
 
-  // Extract the list of benchmark instances that match the specified
-  // regular expression.
-  static void FindBenchmarks(const std::string& re,
-                             std::vector<Instance>* benchmarks);
+  friend class BenchmarkFamilies;
 
  private:
   std::string name_;

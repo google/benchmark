@@ -105,9 +105,6 @@ GetBenchmarkLock()
   return lock;
 }
 
-// List of all registered benchmarks.  Note that each registered
-// benchmark identifies a family of related benchmarks to run.
-static std::vector<internal::Benchmark*>* families = NULL;
 
 struct ThreadStats {
     ThreadStats() : bytes_processed(0), items_processed(0) {}
@@ -260,25 +257,141 @@ struct Benchmark::Instance {
   bool          multithreaded;  // Is benchmark multi-threaded?
 };
 
-Benchmark::Benchmark(const char* name,
-                     Function* f) EXCLUDES(GetBenchmarkLock())
-                    : name_(name), function_(f), arg_count_(-1) {
-  MutexLock l(GetBenchmarkLock());
-  if (families == NULL) {
-    families = new std::vector<Benchmark*>;
-  }
-  registration_index_ = families->size();
-  families->push_back(this);
+
+// Class for managing registered benchmarks.  Note that each registered
+// benchmark identifies a family of related benchmarks to run.
+class BenchmarkFamilies {
+ public:
+  static BenchmarkFamilies* GetInstance();
+
+  // Registers a benchmark family and returns the index assigned to it.
+  size_t AddBenchmark(Benchmark* family);
+
+  // Unregisters a family at the given index.
+  void RemoveBenchmark(size_t index);
+
+  // Extract the list of benchmark instances that match the specified
+  // regular expression.
+  void FindBenchmarks(const std::string& re,
+                      std::vector<Benchmark::Instance>* benchmarks);
+ private:
+  BenchmarkFamilies();
+  ~BenchmarkFamilies();
+
+  std::vector<Benchmark*> families_;
+  Mutex mutex_;
+};
+
+
+BenchmarkFamilies* BenchmarkFamilies::GetInstance() {
+  static BenchmarkFamilies instance;
+  return &instance;
 }
 
-Benchmark::~Benchmark() EXCLUDES(GetBenchmarkLock()) {
-  MutexLock l(GetBenchmarkLock());
-  CHECK((*families)[registration_index_] == this);
-  (*families)[registration_index_] = NULL;
-  // Shrink the vector if convenient.
-  while (!families->empty() && families->back() == NULL) {
-    families->pop_back();
+BenchmarkFamilies::BenchmarkFamilies() { }
+
+BenchmarkFamilies::~BenchmarkFamilies() {
+  for (internal::Benchmark* family : families_) {
+    delete family;
   }
+}
+
+size_t BenchmarkFamilies::AddBenchmark(Benchmark* family) {
+  MutexLock l(mutex_);
+  // This loop attempts to reuse an entry that was previously removed to avoid
+  // unncessary growth of the vector.
+  for (size_t index = 0; index < families_.size(); ++index) {
+    if (families_[index] == nullptr) {
+      families_[index] = family;
+      return index;
+    }
+  }
+  size_t index = families_.size();
+  families_.push_back(family);
+  return index;
+}
+
+void BenchmarkFamilies::RemoveBenchmark(size_t index) {
+  MutexLock l(mutex_);
+  families_[index] = NULL;
+  // Don't shrink families_ here, we might be called by the destructor of
+  // BenchmarkFamilies which iterates over the vector.
+}
+
+void BenchmarkFamilies::FindBenchmarks(
+    const std::string& spec,
+    std::vector<Benchmark::Instance>* benchmarks) {
+  // Make regular expression out of command-line flag
+  std::string error_msg;
+  Regex re;
+  if (!re.Init(spec, &error_msg)) {
+    std::cerr << "Could not compile benchmark re: " << error_msg << std::endl;
+    std::exit(1);
+  }
+
+  // Special list of thread counts to use when none are specified
+  std::vector<int> one_thread;
+  one_thread.push_back(1);
+
+  MutexLock l(mutex_);
+  for (Benchmark* family : families_) {
+    if (family == NULL) continue;  // Family was deleted
+
+    if (family->arg_count_ == -1) {
+      family->arg_count_ = 0;
+      family->args_.emplace_back(-1, -1);
+    }
+    for (auto const& args : family->args_) {
+      const std::vector<int>* thread_counts =
+        (family->thread_counts_.empty()
+         ? &one_thread
+         : &family->thread_counts_);
+      for (int num_threads : *thread_counts) {
+        if (num_threads == Benchmark::kNumCpuMarker) {
+          num_threads = benchmark::NumCPUs();
+        }
+
+        Benchmark::Instance instance;
+        instance.name = family->name_;
+        instance.function = family->function_;
+        instance.has_arg1 = family->arg_count_ >= 1;
+        instance.arg1 = args.first;
+        instance.has_arg2 = family->arg_count_ == 2;
+        instance.arg2 = args.second;
+        instance.threads = num_threads;
+        instance.multithreaded = !(family->thread_counts_.empty());
+
+        // Add arguments to instance name
+        if (family->arg_count_ >= 1) {
+          AppendHumanReadable(instance.arg1, &instance.name);
+        }
+        if (family->arg_count_ >= 2) {
+          AppendHumanReadable(instance.arg2, &instance.name);
+        }
+
+        // Add the number of threads used to the name
+        if (!family->thread_counts_.empty()) {
+          instance.name += StringPrintF("/threads:%d", instance.threads);
+        }
+
+        // Add if benchmark name matches regexp
+        if (re.Match(instance.name)) {
+          benchmarks->push_back(instance);
+        }
+      }
+    }
+  }
+}
+
+
+Benchmark::Benchmark(const char* name,
+                     Function* f)
+                    : name_(name), function_(f), arg_count_(-1) {
+  registration_index_ = BenchmarkFamilies::GetInstance()->AddBenchmark(this);
+}
+
+Benchmark::~Benchmark()  {
+  BenchmarkFamilies::GetInstance()->RemoveBenchmark(registration_index_);
 }
 
 Benchmark* Benchmark::Arg(int x) {
@@ -376,76 +489,6 @@ void Benchmark::AddRange(std::vector<int>* dst, int lo, int hi, int mult) {
   // Add "hi" (if different from "lo")
   if (hi != lo) {
     dst->push_back(hi);
-  }
-}
-
-
-// Extract the list of benchmark instances that match the specified
-// regular expression.
-void Benchmark::FindBenchmarks(
-    const std::string& spec,
-    std::vector<Instance>* benchmarks) EXCLUDES(GetBenchmarkLock()) {
-  // Make regular expression out of command-line flag
-  std::string error_msg;
-  Regex re;
-  if (!re.Init(spec, &error_msg)) {
-    std::cerr << "Could not compile benchmark re: " << error_msg << std::endl;
-    std::exit(1);
-  }
-
-  // Special list of thread counts to use when none are specified
-  std::vector<int> one_thread;
-  one_thread.push_back(1);
-
-  MutexLock l(GetBenchmarkLock());
-  if (families != NULL) {
-    for (Benchmark* family : *families) {
-      if (family == NULL) continue;  // Family was deleted
-
-      if (family->arg_count_ == -1) {
-        family->arg_count_ = 0;
-        family->args_.emplace_back(-1, -1);
-      }
-      for (auto const& args : family->args_) {
-        const std::vector<int>* thread_counts =
-            (family->thread_counts_.empty()
-             ? &one_thread
-             : &family->thread_counts_);
-        for (int num_threads : *thread_counts) {
-          if (num_threads == kNumCpuMarker) {
-            num_threads = benchmark::NumCPUs();
-          }
-
-          Instance instance;
-          instance.name = family->name_;
-          instance.function = family->function_;
-          instance.has_arg1 = family->arg_count_ >= 1;
-          instance.arg1 = args.first;
-          instance.has_arg2 = family->arg_count_ == 2;
-          instance.arg2 = args.second;
-          instance.threads = num_threads;
-          instance.multithreaded = !(family->thread_counts_.empty());
-
-          // Add arguments to instance name
-          if (family->arg_count_ >= 1) {
-            AppendHumanReadable(instance.arg1, &instance.name);
-          }
-          if (family->arg_count_ >= 2) {
-            AppendHumanReadable(instance.arg2, &instance.name);
-          }
-
-          // Add the number of threads used to the name
-          if (!family->thread_counts_.empty()) {
-            instance.name += StringPrintF("/threads:%d", instance.threads);
-          }
-
-          // Add if benchmark name matches regexp
-          if (re.Match(instance.name)) {
-            benchmarks->push_back(instance);
-          }
-        }
-      }
-    }
   }
 }
 
@@ -797,7 +840,8 @@ void RunMatchingBenchmarks(const std::string& spec,
     << FLAGS_benchmark_max_iters;
 
   std::vector<benchmark::internal::Benchmark::Instance> benchmarks;
-  benchmark::internal::Benchmark::FindBenchmarks(spec, &benchmarks);
+  benchmark::internal::BenchmarkFamilies::GetInstance()->FindBenchmarks(
+    spec, &benchmarks);
 
 
   // Determine the width of the name field using a minimum width of 10.
@@ -822,17 +866,6 @@ void RunMatchingBenchmarks(const std::string& spec,
     for (const auto& bench_instance : benchmarks) {
       RunBenchmark(bench_instance, reporter);
     }
-  }
-}
-
-void FindMatchingBenchmarkNames(const std::string& spec,
-                                std::vector<std::string>* benchmark_names) {
-  if (spec.empty()) return;
-
-  std::vector<benchmark::internal::Benchmark::Instance> benchmarks;
-  benchmark::internal::Benchmark::FindBenchmarks(spec, &benchmarks);
-  for (const auto& bench_instance : benchmarks) {
-    benchmark_names->push_back(bench_instance.name);
   }
 }
 
