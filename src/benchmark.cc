@@ -901,7 +901,6 @@ void UseRealTime() {
   use_real_time = true;
 }
 
-
 namespace internal {
 
 void StopBenchmarkTiming() {
@@ -914,9 +913,6 @@ void StartBenchmarkTiming() {
   CHECK(running_benchmark);
   timer_manager->StartTimer();
 }
-
-} // end namespace internal
-
 
 void PrintUsageAndExit() {
   fprintf(stdout,
@@ -964,8 +960,10 @@ void ParseCommandLineFlags(int* argc, const char** argv) {
   }
 }
 
+} // end namespace internal
+
 void Initialize(int* argc, const char** argv) {
-  ParseCommandLineFlags(argc, argv);
+  internal::ParseCommandLineFlags(argc, argv);
   internal::SetLogLevel(FLAGS_v);
   // TODO remove this. It prints some output the first time it is called.
   // We don't want to have this ouput printed during benchmarking.
