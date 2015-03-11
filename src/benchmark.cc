@@ -416,8 +416,6 @@ void MemoryUsage() {
 }
 */
 
-void UseRealTime() { use_real_time = true; }
-
 void PrintUsageAndExit() {
   fprintf(stdout,
           "benchmark [--benchmark_filter=<regex>]\n"
@@ -1175,6 +1173,8 @@ void RunSpecifiedBenchmarks(const BenchmarkReporter* reporter /*= nullptr*/) {
   internal::RunMatchingBenchmarks(
       spec, reporter == nullptr ? &default_reporter : reporter);
 }
+
+void UseRealTime() { use_real_time = true; }
 
 void Initialize(int* argc, const char** argv) {
   internal::ParseCommandLineFlags(argc, argv);

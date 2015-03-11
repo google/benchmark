@@ -57,6 +57,17 @@ static void BM_Factorial(benchmark::State& state) {
 }
 BENCHMARK(BM_Factorial);
 
+static void BM_FactorialRealTime(benchmark::State& state) {
+  benchmark::UseRealTime();
+
+  int fac_42 = 0;
+  while (state.KeepRunning())
+    fac_42 = Factorial(8);
+  // Prevent compiler optimizations
+  std::cout << fac_42;
+}
+BENCHMARK(BM_FactorialRealTime);
+
 static void BM_CalculatePiRange(benchmark::State& state) {
   double pi = 0.0;
   while (state.KeepRunning())
