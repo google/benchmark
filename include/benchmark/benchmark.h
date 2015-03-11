@@ -158,10 +158,6 @@ void RunSpecifiedBenchmarks(const BenchmarkReporter* reporter = nullptr);
 // ------------------------------------------------------
 // Routines that can be called from within a benchmark
 
-//
-// REQUIRES: a benchmark is currently executing
-void SetLabel(const std::string& label);
-
 // If this routine is called, peak memory allocation past this point in the
 // benchmark is reported at the end of the benchmark report line. (It is
 // computed by running the benchmark once with a single iteration and a memory
@@ -212,10 +208,10 @@ class State {
   // If this routine is called, the specified label is printed at the
   // end of the benchmark report line for the currently executing
   // benchmark.  Example:
-  //  static void BM_Compress(int iters) {
+  //  static void BM_Compress(benchmark::State& state) {
   //    ...
   //    double compress = input_size / output_size;
-  //    benchmark::SetLabel(StringPrintf("compress:%.1f%%", 100.0*compression));
+  //    state.SetLabel(StringPrintf("compress:%.1f%%", 100.0*compression));
   //  }
   // Produces output that looks like:
   //  BM_Compress   50         50   14115038  compress:27.3%
