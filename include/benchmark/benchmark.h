@@ -165,7 +165,7 @@ void RunSpecifiedBenchmarks(const BenchmarkReporter* reporter = NULL);
 
 namespace internal {
 class Benchmark;
-class BenchmarkFamilies;
+class BenchmarkImp;
 }
 
 // State is passed to a running Benchmark and contains state for the
@@ -454,28 +454,12 @@ class Benchmark {
   // Equivalent to ThreadRange(NumCPUs(), NumCPUs())
   Benchmark* ThreadPerCpu();
 
-  // -------------------------------
-  // Following methods are not useful for clients
-
   // Used inside the benchmark implementation
   struct Instance;
 
  private:
-  std::string name_;
-  Function* function_;
-  std::size_t registration_index_;
-  int arg_count_;
-  std::vector< std::pair<int, int> > args_;  // Args for all benchmark runs
-  std::vector<int> thread_counts_;
-
-  // Special value placed in thread_counts_ to stand for NumCPUs()
-  static const int kNumCpuMarker = -1;
-
-  static void AddRange(std::vector<int>* dst, int lo, int hi, int mult);
-
-  friend class BenchmarkFamilies;
-
-  BENCHMARK_DISALLOW_COPY_AND_ASSIGN(Benchmark);
+   BenchmarkImp* imp_;
+   BENCHMARK_DISALLOW_COPY_AND_ASSIGN(Benchmark);
 };
 
 
