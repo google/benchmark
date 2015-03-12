@@ -137,32 +137,35 @@ static bool CpuScalingEnabled() {
 void ComputeStats(const std::vector<BenchmarkReporter::Run>& reports,
                   BenchmarkReporter::Run* mean_data,
                   BenchmarkReporter::Run* stddev_data) {
+  CHECK(reports.size() >= 2) << "Cannot compute stats for less than 2 reports";
   // Accumulators.
   Stat1_d real_accumulated_time_stat;
   Stat1_d cpu_accumulated_time_stat;
   Stat1_d bytes_per_second_stat;
   Stat1_d items_per_second_stat;
-  int64_t total_iters = 0;
+  // All repetitions should be run with the same number of iterations so we
+  // can take this information from the first benchmark.
+  std::size_t const run_iterations = reports.front().iterations;
 
   // Populate the accumulators.
-  for (std::vector<BenchmarkReporter::Run>::const_iterator it = reports.begin();
-       it != reports.end();
-       it++) {
-    CHECK_EQ(reports[0].benchmark_name, it->benchmark_name);
-    total_iters += it->iterations;
+  for (BenchmarkReporter::Run const& run : reports) {
+    CHECK_EQ(reports[0].benchmark_name, run.benchmark_name);
+    CHECK_EQ(run_iterations, run.iterations);
     real_accumulated_time_stat +=
-        Stat1_d(it->real_accumulated_time/it->iterations, it->iterations);
+        Stat1_d(run.real_accumulated_time/run.iterations, run.iterations);
     cpu_accumulated_time_stat +=
-        Stat1_d(it->cpu_accumulated_time/it->iterations, it->iterations);
-    items_per_second_stat += Stat1_d(it->items_per_second, it->iterations);
-    bytes_per_second_stat += Stat1_d(it->bytes_per_second, it->iterations);
+        Stat1_d(run.cpu_accumulated_time/run.iterations, run.iterations);
+    items_per_second_stat += Stat1_d(run.items_per_second, run.iterations);
+    bytes_per_second_stat += Stat1_d(run.bytes_per_second, run.iterations);
   }
 
   // Get the data from the accumulator to BenchmarkReporter::Run's.
   mean_data->benchmark_name = reports[0].benchmark_name + "_mean";
-  mean_data->iterations = total_iters;
-  mean_data->real_accumulated_time = real_accumulated_time_stat.Sum();
-  mean_data->cpu_accumulated_time = cpu_accumulated_time_stat.Sum();
+  mean_data->iterations = run_iterations;
+  mean_data->real_accumulated_time = real_accumulated_time_stat.Mean() *
+                                     run_iterations;
+  mean_data->cpu_accumulated_time = cpu_accumulated_time_stat.Mean() *
+                                    run_iterations;
   mean_data->bytes_per_second = bytes_per_second_stat.Mean();
   mean_data->items_per_second = items_per_second_stat.Mean();
 
@@ -177,12 +180,11 @@ void ComputeStats(const std::vector<BenchmarkReporter::Run>& reports,
 
   stddev_data->benchmark_name = reports[0].benchmark_name + "_stddev";
   stddev_data->report_label = mean_data->report_label;
-  stddev_data->iterations = total_iters;
-  // We multiply by total_iters since PrintRunData expects a total time.
+  stddev_data->iterations = 0;
   stddev_data->real_accumulated_time =
-      real_accumulated_time_stat.StdDev() * total_iters;
+      real_accumulated_time_stat.StdDev();
   stddev_data->cpu_accumulated_time =
-      cpu_accumulated_time_stat.StdDev() * total_iters;
+      cpu_accumulated_time_stat.StdDev();
   stddev_data->bytes_per_second = bytes_per_second_stat.StdDev();
   stddev_data->items_per_second = items_per_second_stat.StdDev();
 }
