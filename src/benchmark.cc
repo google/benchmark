@@ -327,8 +327,6 @@ static std::unique_ptr<TimerManager> timer_manager = nullptr;
 
 namespace internal {
 
-class BenchmarkFamilies;
-
 // Information kept per benchmark we may want to run
 struct Benchmark::Instance {
   std::string   name;
@@ -339,6 +337,30 @@ struct Benchmark::Instance {
   int           arg2;
   int           threads;    // Number of concurrent threads to use
   bool          multithreaded;  // Is benchmark multi-threaded?
+};
+
+// Class for managing registered benchmarks.  Note that each registered
+// benchmark identifies a family of related benchmarks to run.
+class BenchmarkFamilies {
+ public:
+  static BenchmarkFamilies* GetInstance();
+
+  // Registers a benchmark family and returns the index assigned to it.
+  size_t AddBenchmark(BenchmarkImp* family);
+
+  // Unregisters a family at the given index.
+  void RemoveBenchmark(size_t index);
+
+  // Extract the list of benchmark instances that match the specified
+  // regular expression.
+  bool FindBenchmarks(const std::string& re,
+                      std::vector<Benchmark::Instance>* benchmarks);
+ private:
+  BenchmarkFamilies();
+  ~BenchmarkFamilies();
+
+  std::vector<BenchmarkImp*> families_;
+  Mutex mutex_;
 };
 
 
@@ -367,32 +389,9 @@ private:
   std::vector< std::pair<int, int> > args_;  // Args for all benchmark runs
   std::vector<int> thread_counts_;
   std::size_t registration_index_;
+
+  BENCHMARK_DISALLOW_COPY_AND_ASSIGN(BenchmarkImp);
 };
-
-// Class for managing registered benchmarks.  Note that each registered
-// benchmark identifies a family of related benchmarks to run.
-class BenchmarkFamilies {
- public:
-  static BenchmarkFamilies* GetInstance();
-
-  // Registers a benchmark family and returns the index assigned to it.
-  size_t AddBenchmark(BenchmarkImp* family);
-
-  // Unregisters a family at the given index.
-  void RemoveBenchmark(size_t index);
-
-  // Extract the list of benchmark instances that match the specified
-  // regular expression.
-  bool FindBenchmarks(const std::string& re,
-                      std::vector<Benchmark::Instance>* benchmarks);
- private:
-  BenchmarkFamilies();
-  ~BenchmarkFamilies();
-
-  std::vector<BenchmarkImp*> families_;
-  Mutex mutex_;
-};
-
 
 BenchmarkFamilies* BenchmarkFamilies::GetInstance() {
   static BenchmarkFamilies instance;
