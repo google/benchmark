@@ -136,14 +136,12 @@ BENCHMARK(BM_MultiThreaded)->Threads(4);
 #define BENCHMARK_BENCHMARK_H_
 
 #include <cassert>
+#include <cstddef>
 #include <cstdint>
 
-#include <functional>
-#include <memory>
 #include <string>
-#include <thread>
+#include <utility>
 #include <vector>
-#include <mutex>
 
 #include "macros.h"
 
