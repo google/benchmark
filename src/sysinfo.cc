@@ -303,7 +303,7 @@ static bool MyCPUUsageCPUTimeNsLocked(double* cputime) {
     cputime_fd = -1;
     return false;
   }
-  unsigned long long result = strtoull(buff, NULL, 0);
+  unsigned long long result = strtoull(buff, nullptr, 0);
   if (result == (std::numeric_limits<unsigned long long>::max)()) {
     close(cputime_fd);
     cputime_fd = -1;

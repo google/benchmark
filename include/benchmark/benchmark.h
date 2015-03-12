@@ -152,7 +152,8 @@ void Initialize(int* argc, const char** argv);
 
 // Otherwise, run all benchmarks specified by the --benchmark_filter flag,
 // and exit after running the benchmarks.
-void RunSpecifiedBenchmarks(const BenchmarkReporter* reporter = NULL);
+void RunSpecifiedBenchmarks();
+void RunSpecifiedBenchmarks(const BenchmarkReporter* reporter);
 
 // If this routine is called, peak memory allocation past this point in the
 // benchmark is reported at the end of the benchmark report line. (It is
@@ -164,6 +165,19 @@ void RunSpecifiedBenchmarks(const BenchmarkReporter* reporter = NULL);
 namespace internal {
 class Benchmark;
 class BenchmarkFamilies;
+
+template <class T> struct Voider {
+    typedef void type;
+};
+
+template <class T, class = void>
+struct EnableIfString {};
+
+template <class T>
+struct EnableIfString<T, typename Voider<typename T::basic_string>::type> {
+    typedef int type;
+};
+
 }
 
 // State is passed to a running Benchmark and contains state for the
@@ -279,7 +293,7 @@ public:
   // as an injected class name in the case of std::string.
   template <class StringType>
   void SetLabel(StringType const & str,
-                typename StringType::basic_string* = 0) {
+                typename internal::EnableIfString<StringType>::type = 1) {
     this->SetLabel(str.c_str());
   }
 

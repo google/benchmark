@@ -898,6 +898,9 @@ void RunMatchingBenchmarks(const std::string& spec,
 
 } // end namespace internal
 
+void RunSpecifiedBenchmarks() {
+  RunSpecifiedBenchmarks(nullptr);
+}
 
 void RunSpecifiedBenchmarks(const BenchmarkReporter* reporter) {
   std::string spec = FLAGS_benchmark_filter;
