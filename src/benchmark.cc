@@ -61,7 +61,7 @@ DEFINE_int32(benchmark_repetitions, 1,
              "The number of runs of each benchmark. If greater than 1, the "
              "mean and standard deviation of the runs will be reported.");
 
-DEFINE_bool(color_print, false, "Enables colorized logging.");
+DEFINE_bool(color_print, true, "Enables colorized logging.");
 
 DEFINE_int32(v, 0, "The level of verbose logging to output");
 
