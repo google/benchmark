@@ -177,7 +177,7 @@ std::string Print(WallTime time, const char* format, bool local,
   if (!SplitTimezone(time, local, &split, &subsecond)) {
     snprintf(storage, sizeof(storage), "Invalid time: %f", time);
   } else {
-    if (remainder_us != NULL) {
+    if (remainder_us != nullptr) {
       *remainder_us = static_cast<int>((subsecond * 1000000) + 0.5);
       if (*remainder_us > 999999) *remainder_us = 999999;
       if (*remainder_us < 0) *remainder_us = 0;

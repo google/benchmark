@@ -24,7 +24,7 @@ namespace benchmark {
 // unchanged and returns false.
 bool ParseInt32(const std::string& src_text, const char* str, int32_t* value) {
   // Parses the environment variable as a decimal integer.
-  char* end = NULL;
+  char* end = nullptr;
   const long long_value = strtol(str, &end, 10);  // NOLINT
 
   // Has strtol() consumed all characters in the string?
@@ -58,7 +58,7 @@ bool ParseInt32(const std::string& src_text, const char* str, int32_t* value) {
 // returns true; otherwise leaves *value unchanged and returns false.
 bool ParseDouble(const std::string& src_text, const char* str, double* value) {
   // Parses the environment variable as a decimal integer.
-  char* end = NULL;
+  char* end = nullptr;
   const double double_value = strtod(str, &end);  // NOLINT
 
   // Has strtol() consumed all characters in the string?
@@ -76,9 +76,9 @@ bool ParseDouble(const std::string& src_text, const char* str, double* value) {
 inline const char* GetEnv(const char* name) {
 #if defined(__BORLANDC__) || defined(__SunOS_5_8) || defined(__SunOS_5_9)
   // Environment variables which we programmatically clear will be set to the
-  // empty string rather than unset (NULL).  Handle that case.
+  // empty string rather than unset (nullptr).  Handle that case.
   const char* const env = getenv(name);
-  return (env != NULL && env[0] != '\0') ? env : NULL;
+  return (env != nullptr && env[0] != '\0') ? env : nullptr;
 #else
   return getenv(name);
 #endif
@@ -104,7 +104,7 @@ static std::string FlagToEnvVar(const char* flag) {
 bool BoolFromEnv(const char* flag, bool default_value) {
   const std::string env_var = FlagToEnvVar(flag);
   const char* const string_value = GetEnv(env_var.c_str());
-  return string_value == NULL ? default_value : strcmp(string_value, "0") != 0;
+  return string_value == nullptr ? default_value : strcmp(string_value, "0") != 0;
 }
 
 // Reads and returns a 32-bit integer stored in the environment
@@ -113,7 +113,7 @@ bool BoolFromEnv(const char* flag, bool default_value) {
 int32_t Int32FromEnv(const char* flag, int32_t default_value) {
   const std::string env_var = FlagToEnvVar(flag);
   const char* const string_value = GetEnv(env_var.c_str());
-  if (string_value == NULL) {
+  if (string_value == nullptr) {
     // The environment variable is not set.
     return default_value;
   }
@@ -133,23 +133,23 @@ int32_t Int32FromEnv(const char* flag, int32_t default_value) {
 const char* StringFromEnv(const char* flag, const char* default_value) {
   const std::string env_var = FlagToEnvVar(flag);
   const char* const value = GetEnv(env_var.c_str());
-  return value == NULL ? default_value : value;
+  return value == nullptr ? default_value : value;
 }
 
 // Parses a string as a command line flag.  The string should have
 // the format "--flag=value".  When def_optional is true, the "=value"
 // part can be omitted.
 //
-// Returns the value of the flag, or NULL if the parsing failed.
+// Returns the value of the flag, or nullptr if the parsing failed.
 const char* ParseFlagValue(const char* str, const char* flag,
                            bool def_optional) {
-  // str and flag must not be NULL.
-  if (str == NULL || flag == NULL) return NULL;
+  // str and flag must not be nullptr.
+  if (str == nullptr || flag == nullptr) return nullptr;
 
   // The flag must start with "--".
   const std::string flag_str = std::string("--") + std::string(flag);
   const size_t flag_len = flag_str.length();
-  if (strncmp(str, flag_str.c_str(), flag_len) != 0) return NULL;
+  if (strncmp(str, flag_str.c_str(), flag_len) != 0) return nullptr;
 
   // Skips the flag name.
   const char* flag_end = str + flag_len;
@@ -160,7 +160,7 @@ const char* ParseFlagValue(const char* str, const char* flag,
   // If def_optional is true and there are more characters after the
   // flag name, or if def_optional is false, there must be a '=' after
   // the flag name.
-  if (flag_end[0] != '=') return NULL;
+  if (flag_end[0] != '=') return nullptr;
 
   // Returns the string after "=".
   return flag_end + 1;
@@ -171,7 +171,7 @@ bool ParseBoolFlag(const char* str, const char* flag, bool* value) {
   const char* const value_str = ParseFlagValue(str, flag, true);
 
   // Aborts if the parsing failed.
-  if (value_str == NULL) return false;
+  if (value_str == nullptr) return false;
 
   // Converts the string value to a bool.
   *value = !(*value_str == '0' || *value_str == 'f' || *value_str == 'F');
@@ -183,7 +183,7 @@ bool ParseInt32Flag(const char* str, const char* flag, int32_t* value) {
   const char* const value_str = ParseFlagValue(str, flag, false);
 
   // Aborts if the parsing failed.
-  if (value_str == NULL) return false;
+  if (value_str == nullptr) return false;
 
   // Sets *value to the value of the flag.
   return ParseInt32(std::string("The value of flag --") + flag, value_str,
@@ -195,7 +195,7 @@ bool ParseDoubleFlag(const char* str, const char* flag, double* value) {
   const char* const value_str = ParseFlagValue(str, flag, false);
 
   // Aborts if the parsing failed.
-  if (value_str == NULL) return false;
+  if (value_str == nullptr) return false;
 
   // Sets *value to the value of the flag.
   return ParseDouble(std::string("The value of flag --") + flag, value_str,
@@ -207,13 +207,13 @@ bool ParseStringFlag(const char* str, const char* flag, std::string* value) {
   const char* const value_str = ParseFlagValue(str, flag, false);
 
   // Aborts if the parsing failed.
-  if (value_str == NULL) return false;
+  if (value_str == nullptr) return false;
 
   *value = value_str;
   return true;
 }
 
 bool IsFlag(const char* str, const char* flag) {
-  return (ParseFlagValue(str, flag, true) != NULL);
+  return (ParseFlagValue(str, flag, true) != nullptr);
 }
 }  // end namespace benchmark

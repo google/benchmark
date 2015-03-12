@@ -137,7 +137,7 @@ void InitializeSystemInfo() {
       memmove(line, line + oldlinelen + 1, sizeof(line) - (oldlinelen + 1));
     // Terminate the new line, reading more if we can't find the newline
     char* newline = strchr(line, '\n');
-    if (newline == NULL) {
+    if (newline == nullptr) {
       const size_t linelen = strlen(line);
       const size_t bytes_to_read = sizeof(line) - 1 - linelen;
       CHECK(bytes_to_read > 0);  // because the memmove recovered >=1 bytes
@@ -145,7 +145,7 @@ void InitializeSystemInfo() {
       line[linelen + chars_read] = '\0';
       newline = strchr(line, '\n');
     }
-    if (newline != NULL) *newline = '\0';
+    if (newline != nullptr) *newline = '\0';
 
     // When parsing the "cpu MHz" and "bogomips" (fallback) entries, we only
     // accept postive values. Some environments (virtual machines) report zero,
@@ -216,7 +216,7 @@ void InitializeSystemInfo() {
 #endif
   size_t sz = sizeof(hz);
   const char* sysctl_path = "machdep.tsc_freq";
-  if (sysctlbyname(sysctl_path, &hz, &sz, NULL, 0) != 0) {
+  if (sysctlbyname(sysctl_path, &hz, &sz, nullptr, 0) != 0) {
     fprintf(stderr, "Unable to determine clock rate from sysctl: %s: %s\n",
             sysctl_path, strerror(errno));
     cpuinfo_cycles_per_second = EstimateCyclesPerSecond();
@@ -236,7 +236,7 @@ void InitializeSystemInfo() {
       SUCCEEDED(
           SHGetValueA(HKEY_LOCAL_MACHINE,
                       "HARDWARE\\DESCRIPTION\\System\\CentralProcessor\\0",
-                      "~MHz", NULL, &data, &data_size)))
+                      "~MHz", nullptr, &data, &data_size)))
     cpuinfo_cycles_per_second = (int64)data * (int64)(1000 * 1000);  // was mhz
   else
     cpuinfo_cycles_per_second = EstimateCyclesPerSecond();

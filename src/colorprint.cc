@@ -65,7 +65,7 @@ PlatformColorCode GetPlatformColorCode(LogColor color) {
     case COLOR_WHITE:
       return "7";
     default:
-      return NULL;
+      return nullptr;
   };
 #endif
 }

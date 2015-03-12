@@ -23,7 +23,7 @@ bool Regex::Init(const std::string& spec, std::string* error) {
   int ec = regcomp(&re_, spec.c_str(), REG_EXTENDED | REG_NOSUB);
   if (ec != 0) {
     if (error) {
-      size_t needed = regerror(ec, &re_, NULL, 0);
+      size_t needed = regerror(ec, &re_, nullptr, 0);
       char* errbuf = new char[needed];
       regerror(ec, &re_, errbuf, needed);
 
@@ -53,7 +53,7 @@ bool Regex::Match(const std::string& str) {
     return false;
   }
 
-  return regexec(&re_, str.c_str(), 0, NULL, 0) == 0;
+  return regexec(&re_, str.c_str(), 0, nullptr, 0) == 0;
 }
 
 }  // end namespace benchmark
