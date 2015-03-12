@@ -53,18 +53,22 @@ static void BM_Factorial(benchmark::State& state) {
   while (state.KeepRunning())
     fac_42 = Factorial(8);
   // Prevent compiler optimizations
-  std::cout << fac_42;
+  std::stringstream ss;
+  ss << fac_42;
+  state.SetLabel(ss.str());
 }
 BENCHMARK(BM_Factorial);
 
 static void BM_FactorialRealTime(benchmark::State& state) {
-  benchmark::UseRealTime();
+  state.UseRealTime();
 
   int fac_42 = 0;
   while (state.KeepRunning())
     fac_42 = Factorial(8);
   // Prevent compiler optimizations
-  std::cout << fac_42;
+  std::stringstream ss;
+  ss << fac_42;
+  state.SetLabel(ss.str());
 }
 BENCHMARK(BM_FactorialRealTime);
 
@@ -158,12 +162,5 @@ static void BM_LongTest(benchmark::State& state) {
 }
 BENCHMARK(BM_LongTest)->Range(1<<16,1<<28);
 
-int main(int argc, const char* argv[]) {
-  benchmark::Initialize(&argc, argv);
-
-  assert(Factorial(8) == 40320);
-  assert(CalculatePi(1) == 0.0);
-
-  benchmark::RunSpecifiedBenchmarks();
-}
+BENCHMARK_MAIN()
 

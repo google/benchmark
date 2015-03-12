@@ -724,8 +724,15 @@ void State::ResumeTiming() {
   timer_manager->StartTimer();
 }
 
+void State::UseRealTime() {
+  MutexLock l(GetBenchmarkLock());
+  use_real_time = true;
+}
+
 void State::SetLabel(const char* label) {
-    ::benchmark::SetLabel(label);
+  CHECK(running_benchmark);
+  MutexLock l(GetBenchmarkLock());
+  *GetReportLabel() = label;
 }
 
 BenchmarkReporter::~BenchmarkReporter() {}
@@ -886,17 +893,6 @@ void RunSpecifiedBenchmarks(const BenchmarkReporter* reporter) {
     spec = ".";  // Regexp that matches all benchmarks
   internal::ConsoleReporter default_reporter;
   internal::RunMatchingBenchmarks(spec, reporter ? reporter : &default_reporter);
-}
-
-void SetLabel(const char* label) {
-  CHECK(running_benchmark);
-  MutexLock l(GetBenchmarkLock());
-  *GetReportLabel() = label;
-}
-
-void UseRealTime() {
-  MutexLock l(GetBenchmarkLock());
-  use_real_time = true;
 }
 
 namespace internal {

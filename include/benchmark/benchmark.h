@@ -156,31 +156,12 @@ void Initialize(int* argc, const char** argv);
 // and exit after running the benchmarks.
 void RunSpecifiedBenchmarks(const BenchmarkReporter* reporter = NULL);
 
-// ------------------------------------------------------
-// Routines that can be called from within a benchmark
-
-//
-// REQUIRES: a benchmark is currently executing
-void SetLabel(const char* label);
-
-inline void SetLabel(std::string const & label) {
-    SetLabel(label.c_str());
-}
-
 // If this routine is called, peak memory allocation past this point in the
 // benchmark is reported at the end of the benchmark report line. (It is
 // computed by running the benchmark once with a single iteration and a memory
 // tracer.)
 // TODO(dominic)
 // void MemoryUsage();
-
-// If a particular benchmark is I/O bound, or if for some reason CPU
-// timings are not representative, call this method from within the
-// benchmark routine.  If called, the elapsed time will be used to
-// control how many iterations are run, and in the printing of
-// items/second or MB/seconds values.  If not called, the cpu time
-// used by the benchmark will be used.
-void UseRealTime();
 
 namespace internal {
 class Benchmark;
@@ -241,6 +222,14 @@ public:
   // heavyweight, and so their use should generally be avoided
   // within each benchmark iteration, if possible.
   void ResumeTiming();
+
+  // If a particular benchmark is I/O bound, or if for some reason CPU
+  // timings are not representative, call this method from within the
+  // benchmark routine.  If called, the elapsed time will be used to
+  // control how many iterations are run, and in the printing of
+  // items/second or MB/seconds values.  If not called, the cpu time
+  // used by the benchmark will be used.
+  void UseRealTime();
 
   // Set the number of bytes processed by the current benchmark
   // execution.  This routine is typically called once at the end of a
