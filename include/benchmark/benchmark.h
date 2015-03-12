@@ -172,16 +172,11 @@ class BenchmarkFamilies;
 // benchmark to use.
 class State {
 public:
-  State(size_t max_iters, bool has_x, int x, bool has_y, int y, int thread_i)
-    : started_(false), total_iterations_(0),
-      has_range_x_(has_x), range_x_(x),
-      has_range_y_(has_y), range_y_(y),
-      bytes_processed_(0), items_processed_(0),
-      thread_index(thread_i),
-      max_iterations(max_iters)
-  {}
+  State(size_t max_iters, bool has_x, int x, bool has_y, int y, int thread_i);
 
   // Returns true iff the benchmark should continue through another iteration.
+  // NOTE: A benchmark may not return from the test until KeepRunning() has
+  // returned false.
   bool KeepRunning() {
     if (BENCHMARK_BUILTIN_EXPECT(!started_, false)) {
         ResumeTiming();
@@ -191,6 +186,8 @@ public:
     if (BENCHMARK_BUILTIN_EXPECT(!res, false)) {
         assert(started_);
         PauseTiming();
+        // Total iterations now is one greater than max iterations. Fix this.
+        total_iterations_ = max_iterations;
     }
     return res;
   }

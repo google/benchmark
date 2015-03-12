@@ -248,9 +248,8 @@ class TimerManager {
     MutexLock l(lock_);
     num_finalized_++;
     if (num_finalized_ == num_threads_) {
-      if (running_) {
-        InternalStop();
-      }
+      CHECK(!running_) <<
+        "The timer should be stopped before the timer is finalized";
       done_->Notify();
     }
   }
@@ -584,7 +583,8 @@ void RunInThread(const benchmark::internal::Benchmark::Instance* b,
                  ThreadStats* total) EXCLUDES(GetBenchmarkLock()) {
   State st(iters, b->has_arg1, b->arg1, b->has_arg2, b->arg2, thread_id);
   b->function(st);
-
+  CHECK(st.iterations() == st.max_iterations) <<
+    "Benchmark returned before State::KeepRunning() returned false!";
   {
     MutexLock l(GetBenchmarkLock());
     total->bytes_processed += st.bytes_processed();
@@ -714,6 +714,18 @@ void RunBenchmark(const benchmark::internal::Benchmark::Instance& b,
 }
 
 }  // namespace
+
+State::State(size_t max_iters, bool has_x, int x, bool has_y, int y,
+             int thread_i)
+    : started_(false), total_iterations_(0),
+      has_range_x_(has_x), range_x_(x),
+      has_range_y_(has_y), range_y_(y),
+      bytes_processed_(0), items_processed_(0),
+      thread_index(thread_i),
+      max_iterations(max_iters)
+{
+    CHECK(max_iterations != 0) << "At least one iteration must be run";
+}
 
 void State::PauseTiming() {
   // Add in time accumulated so far
