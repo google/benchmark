@@ -784,11 +784,9 @@ void ConsoleReporter::ReportRuns(
     return;
   }
 
-  for (std::vector<Run>::const_iterator it = reports.begin();
-       it != reports.end();
-       it++) {
-    CHECK_EQ(reports[0].benchmark_name, it->benchmark_name);
-    PrintRunData(*it);
+  for (Run const& run : reports) {
+    CHECK_EQ(reports[0].benchmark_name, run.benchmark_name);
+    PrintRunData(run);
   }
 
   if (reports.size() < 2) {
