@@ -135,7 +135,8 @@ BENCHMARK(BM_MultiThreaded)->Threads(4);
 #ifndef BENCHMARK_BENCHMARK_H_
 #define BENCHMARK_BENCHMARK_H_
 
-#include <stdint.h>
+#include <cassert>
+#include <cstdint>
 
 #include <functional>
 #include <memory>
@@ -153,10 +154,7 @@ void Initialize(int* argc, const char** argv);
 
 // Otherwise, run all benchmarks specified by the --benchmark_filter flag,
 // and exit after running the benchmarks.
-void RunSpecifiedBenchmarks(const BenchmarkReporter* reporter = nullptr);
-
-// ------------------------------------------------------
-// Routines that can be called from within a benchmark
+void RunSpecifiedBenchmarks(const BenchmarkReporter* reporter = NULL);
 
 // If this routine is called, peak memory allocation past this point in the
 // benchmark is reported at the end of the benchmark report line. (It is
@@ -164,14 +162,6 @@ void RunSpecifiedBenchmarks(const BenchmarkReporter* reporter = nullptr);
 // tracer.)
 // TODO(dominic)
 // void MemoryUsage();
-
-// If a particular benchmark is I/O bound, or if for some reason CPU
-// timings are not representative, call this method from within the
-// benchmark routine.  If called, the elapsed time will be used to
-// control how many iterations are run, and in the printing of
-// items/second or MB/seconds values.  If not called, the cpu time
-// used by the benchmark will be used.
-void UseRealTime();
 
 namespace internal {
 class Benchmark;
@@ -181,12 +171,62 @@ class BenchmarkFamilies;
 // State is passed to a running Benchmark and contains state for the
 // benchmark to use.
 class State {
- public:
-  // Returns true iff the benchmark should continue through another iteration.
-  bool KeepRunning();
+public:
+  State(size_t max_iters, bool has_x, int x, bool has_y, int y, int thread_i);
 
+  // Returns true iff the benchmark should continue through another iteration.
+  // NOTE: A benchmark may not return from the test until KeepRunning() has
+  // returned false.
+  bool KeepRunning() {
+    if (BENCHMARK_BUILTIN_EXPECT(!started_, false)) {
+        ResumeTiming();
+        started_ = true;
+    }
+    bool const res = total_iterations_++ < max_iterations;
+    if (BENCHMARK_BUILTIN_EXPECT(!res, false)) {
+        assert(started_);
+        PauseTiming();
+        // Total iterations now is one greater than max iterations. Fix this.
+        total_iterations_ = max_iterations;
+    }
+    return res;
+  }
+
+  // REQUIRES: timer is running
+  // Stop the benchmark timer.  If not called, the timer will be
+  // automatically stopped after KeepRunning() returns false for the first time.
+  //
+  // For threaded benchmarks the PauseTiming() function acts
+  // like a barrier.  I.e., the ith call by a particular thread to this
+  // function will block until all threads have made their ith call.
+  // The timer will stop when the last thread has called this function.
+  //
+  // NOTE: PauseTiming()/ResumeTiming() are relatively
+  // heavyweight, and so their use should generally be avoided
+  // within each benchmark iteration, if possible.
   void PauseTiming();
+
+  // REQUIRES: timer is not running
+  // Start the benchmark timer.  The timer is NOT running on entrance to the
+  // benchmark function. It begins running after the first call to KeepRunning()
+  //
+  // For threaded benchmarks the ResumeTiming() function acts
+  // like a barrier.  I.e., the ith call by a particular thread to this
+  // function will block until all threads have made their ith call.
+  // The timer will start when the last thread has called this function.
+  //
+  // NOTE: PauseTiming()/ResumeTiming() are relatively
+  // heavyweight, and so their use should generally be avoided
+  // within each benchmark iteration, if possible.
   void ResumeTiming();
+
+  // If a particular benchmark is I/O bound, or if for some reason CPU
+  // timings are not representative, call this method from within the
+  // benchmark routine.  If called, the elapsed time will be used to
+  // control how many iterations are run, and in the printing of
+  // items/second or MB/seconds values.  If not called, the cpu time
+  // used by the benchmark will be used.
+  void UseRealTime();
 
   // Set the number of bytes processed by the current benchmark
   // execution.  This routine is typically called once at the end of a
@@ -195,7 +235,15 @@ class State {
   // per iteration.
   //
   // REQUIRES: a benchmark has exited its KeepRunning loop.
-  void SetBytesProcessed(int64_t bytes);
+  BENCHMARK_ALWAYS_INLINE
+  void SetBytesProcessed(size_t bytes) {
+    bytes_processed_ = bytes;
+  }
+
+  BENCHMARK_ALWAYS_INLINE
+  size_t bytes_processed() const {
+    return bytes_processed_;
+  }
 
   // If this routine is called with items > 0, then an items/s
   // label is printed on the benchmark report line for the currently
@@ -203,94 +251,76 @@ class State {
   // benchmark where a processing items/second output is desired.
   //
   // REQUIRES: a benchmark has exited its KeepRunning loop.
-  void SetItemsProcessed(int64_t items);
+  BENCHMARK_ALWAYS_INLINE
+  void SetItemsProcessed(size_t items) {
+    items_processed_ = items;
+  }
+
+  BENCHMARK_ALWAYS_INLINE
+  size_t items_processed() const {
+    return items_processed_;
+  }
 
   // If this routine is called, the specified label is printed at the
   // end of the benchmark report line for the currently executing
   // benchmark.  Example:
-  //  static void BM_Compress(benchmark::State& state) {
+  //  static void BM_Compress(int iters) {
   //    ...
   //    double compress = input_size / output_size;
-  //    state.SetLabel(StringPrintf("compress:%.1f%%", 100.0*compression));
+  //    benchmark::SetLabel(StringPrintf("compress:%.1f%%", 100.0*compression));
   //  }
   // Produces output that looks like:
   //  BM_Compress   50         50   14115038  compress:27.3%
   //
   // REQUIRES: a benchmark has exited its KeepRunning loop.
-  void SetLabel(const std::string& label);
+  void SetLabel(const char* label);
+
+  // Allow the use of std::string without actually including <string>.
+  // This function does not participate in overload resolution unless StringType
+  // has the nested typename `basic_string`. This typename should be provided
+  // as an injected class name in the case of std::string.
+  template <class StringType>
+  void SetLabel(StringType const & str,
+                typename StringType::basic_string* = 0) {
+    this->SetLabel(str.c_str());
+  }
 
   // Range arguments for this run. CHECKs if the argument has been set.
-  int range_x() const;
-  int range_y() const;
+  BENCHMARK_ALWAYS_INLINE
+  int range_x() const {
+    assert(has_range_x_);
+    ((void)has_range_x_); // Prevent unused warning.
+    return range_x_;
+  }
 
-  int64_t iterations() const { return total_iterations_; }
+  BENCHMARK_ALWAYS_INLINE
+  int range_y() const {
+    assert(has_range_y_);
+    ((void)has_range_y_); // Prevent unused warning.
+    return range_y_;
+  }
 
+  BENCHMARK_ALWAYS_INLINE
+  size_t iterations() const { return total_iterations_; }
+
+private:
+  bool started_;
+  size_t total_iterations_;
+
+  bool has_range_x_;
+  int range_x_;
+
+  bool has_range_y_;
+  int range_y_;
+
+  size_t bytes_processed_;
+  size_t items_processed_;
+
+public:
   const int thread_index;
+  const size_t max_iterations;
 
- private:
-  class FastClock;
-  struct SharedState;
-  struct ThreadStats;
-
-  State(FastClock* clock, SharedState* s, int t);
-  bool StartRunning();
-  bool FinishInterval();
-  bool MaybeStop();
-  void NewInterval();
-  bool AllStarting();
-
-  static void* RunWrapper(void* arg);
-  void Run();
-  void RunAsThread();
-  void Wait();
-
-  enum EState {
-    STATE_INITIAL,   // KeepRunning hasn't been called
-    STATE_STARTING,  // KeepRunning called, waiting for other threads
-    STATE_RUNNING,   // Running and being timed
-    STATE_STOPPING,  // Not being timed but waiting for other threads
-    STATE_STOPPED    // Stopped
-  };
-
-  EState state_;
-
-  FastClock* clock_;
-
-  // State shared by all BenchmarkRun objects that belong to the same
-  // BenchmarkInstance
-  SharedState* shared_;
-
-  std::thread thread_;
-
-  // Custom label set by the user.
-  std::string label_;
-
-  // Each State object goes through a sequence of measurement intervals. By
-  // default each interval is approx. 100ms in length. The following stats are
-  // kept for each interval.
-  int64_t iterations_;
-  double start_cpu_;
-  double start_time_;
-  int64_t stop_time_micros_;
-
-  double start_pause_cpu_;
-  double pause_cpu_time_;
-  double start_pause_real_;
-  double pause_real_time_;
-
-  // Total number of iterations for all finished runs.
-  int64_t total_iterations_;
-
-  // Approximate time in microseconds for one interval of execution.
-  // Dynamically adjusted as needed.
-  int64_t interval_micros_;
-
-  // True if the current interval is the continuation of a previous one.
-  bool is_continuation_;
-
-  std::unique_ptr<ThreadStats> stats_;
-
-  friend class internal::Benchmark;
+private:
   BENCHMARK_DISALLOW_COPY_AND_ASSIGN(State);
 };
 
@@ -304,7 +334,6 @@ class BenchmarkReporter {
   struct Context {
     int num_cpus;
     double mhz_per_cpu;
-    // std::string cpu_info;
     bool cpu_scaling_enabled;
 
     // The number of chars in the longest benchmark name.
@@ -312,19 +341,17 @@ class BenchmarkReporter {
   };
 
   struct Run {
-    Run()
-        : thread_index(-1),
-          iterations(1),
-          real_accumulated_time(0),
-          cpu_accumulated_time(0),
-          bytes_per_second(0),
-          items_per_second(0),
-          max_heapbytes_used(0) {}
+    Run() :
+      iterations(1),
+      real_accumulated_time(0),
+      cpu_accumulated_time(0),
+      bytes_per_second(0),
+      items_per_second(0),
+      max_heapbytes_used(0) {}
 
     std::string benchmark_name;
-    std::string report_label;
-    int thread_index;
-    int64_t iterations;
+    std::string report_label;  // Empty if not set by benchmark.
+    size_t iterations;
     double real_accumulated_time;
     double cpu_accumulated_time;
 
@@ -350,22 +377,12 @@ class BenchmarkReporter {
   // benchmark, thus have the same name.
   virtual void ReportRuns(const std::vector<Run>& report) const = 0;
 
-  virtual ~BenchmarkReporter() {}
+  virtual ~BenchmarkReporter();
 };
 
 namespace internal {
 
-typedef std::function<void(State&)> BenchmarkFunction;
-
-// Run all benchmarks whose name is a partial match for the regular
-// expression in "spec". The results of benchmark runs are fed to "reporter".
-void RunMatchingBenchmarks(const std::string& spec,
-                           const BenchmarkReporter* reporter);
-
-// Extract the list of benchmark names that match the specified regular
-// expression.
-void FindMatchingBenchmarkNames(const std::string& re,
-                                std::vector<std::string>* benchmark_names);
+typedef void(Function)(State&);
 
 // ------------------------------------------------------
 // Benchmark registration object.  The BENCHMARK() macro expands
@@ -375,8 +392,7 @@ void FindMatchingBenchmarkNames(const std::string& re,
 // chained into one expression.
 class Benchmark {
  public:
-  // The Benchmark takes ownership of the Callback pointed to by f.
-  Benchmark(const char* name, BenchmarkFunction f);
+  Benchmark(const char* name, Function* f);
 
   ~Benchmark();
 
@@ -444,39 +460,24 @@ class Benchmark {
   // Used inside the benchmark implementation
   struct Instance;
 
-  // Measure the overhead of an empty benchmark to subtract later.
-  static void MeasureOverhead();
-
  private:
-  friend class BenchmarkFamilies;
-
-  std::vector<Benchmark::Instance> CreateBenchmarkInstances(size_t rangeXindex,
-                                                            size_t rangeYindex);
-
   std::string name_;
-  BenchmarkFunction function_;
-  size_t registration_index_;
-  std::vector<int> rangeX_;
-  std::vector<int> rangeY_;
+  Function* function_;
+  std::size_t registration_index_;
+  int arg_count_;
+  std::vector< std::pair<int, int> > args_;  // Args for all benchmark runs
   std::vector<int> thread_counts_;
-  std::mutex mutex_;
 
   // Special value placed in thread_counts_ to stand for NumCPUs()
   static const int kNumCpuMarker = -1;
 
-  // Special value used to indicate that no range is required.
-  static const size_t kNoRangeIndex = std::numeric_limits<size_t>::max();
-  static const int kNoRange = std::numeric_limits<int>::max();
-
   static void AddRange(std::vector<int>* dst, int lo, int hi, int mult);
-  static double MeasurePeakHeapMemory(const Instance& b);
-  static void RunInstance(const Instance& b, const BenchmarkReporter* br);
-  friend class ::benchmark::State;
-  friend struct ::benchmark::internal::Benchmark::Instance;
-  friend void ::benchmark::internal::RunMatchingBenchmarks(
-      const std::string&, const BenchmarkReporter*);
+
+  friend class BenchmarkFamilies;
+
   BENCHMARK_DISALLOW_COPY_AND_ASSIGN(Benchmark);
 };
+
 
 // ------------------------------------------------------
 // Internal implementation details follow; please ignore
@@ -487,15 +488,15 @@ class ConsoleReporter : public BenchmarkReporter {
  public:
   virtual bool ReportContext(const Context& context) const;
   virtual void ReportRuns(const std::vector<Run>& reports) const;
-
  private:
-  std::string PrintMemoryUsage(double bytes) const;
   virtual void PrintRunData(const Run& report) const;
+  // TODO(ericwf): Find a better way to share this information.
   mutable size_t name_field_width_;
 };
 
 }  // end namespace internal
 }  // end namespace benchmark
+
 
 // ------------------------------------------------------
 // Macro to register benchmarks
@@ -533,5 +534,12 @@ class ConsoleReporter : public BenchmarkReporter {
   static ::benchmark::internal::Benchmark* BENCHMARK_CONCAT( \
       __benchmark_, n, __LINE__) BENCHMARK_UNUSED =          \
       (new ::benchmark::internal::Benchmark(#n "<" #a "," #b ">", n<a, b>))
+
+// Helper macro to create a main routine in a test that runs the benchmarks
+#define BENCHMARK_MAIN()                             \
+  int main(int argc, const char** argv) {            \
+    ::benchmark::Initialize(&argc, argv);            \
+    ::benchmark::RunSpecifiedBenchmarks();           \
+  }
 
 #endif  // BENCHMARK_BENCHMARK_H_

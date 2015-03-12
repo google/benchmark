@@ -24,13 +24,13 @@ static_assert(arraysize(kBigSIUnits) == arraysize(kBigIECUnits),
 static_assert(arraysize(kSmallSIUnits) == arraysize(kBigSIUnits),
               "Small SI and Big SI unit arrays must be the same size");
 
-static const int kUnitsSize = arraysize(kBigSIUnits);
+static const int64_t kUnitsSize = arraysize(kBigSIUnits);
 
 } // end anonymous namespace
 
 void ToExponentAndMantissa(double val, double thresh, int precision,
                            double one_k, std::string* mantissa,
-                           int* exponent) {
+                           int64_t* exponent) {
   std::stringstream mantissa_stream;
 
   if (val < 0) {
@@ -80,10 +80,10 @@ void ToExponentAndMantissa(double val, double thresh, int precision,
   *mantissa = mantissa_stream.str();
 }
 
-std::string ExponentToPrefix(int exponent, bool iec) {
+std::string ExponentToPrefix(int64_t exponent, bool iec) {
   if (exponent == 0) return "";
 
-  const int index = (exponent > 0 ? exponent - 1 : -exponent - 1);
+  const int64_t index = (exponent > 0 ? exponent - 1 : -exponent - 1);
   if (index >= kUnitsSize) return "";
 
   const char* array =
@@ -97,7 +97,7 @@ std::string ExponentToPrefix(int exponent, bool iec) {
 std::string ToBinaryStringFullySpecified(double value, double threshold,
                                          int precision) {
   std::string mantissa;
-  int exponent;
+  int64_t exponent;
   ToExponentAndMantissa(value, threshold, precision, 1024.0, &mantissa,
                         &exponent);
   return mantissa + ExponentToPrefix(exponent, false);
