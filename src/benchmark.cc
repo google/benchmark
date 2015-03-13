@@ -61,6 +61,10 @@ DEFINE_int32(benchmark_repetitions, 1,
              "The number of runs of each benchmark. If greater than 1, the "
              "mean and standard deviation of the runs will be reported.");
 
+DEFINE_string(benchmark_format,  "tabular",
+              "The format to use for console output. Valid values are "
+              "'tabular' or 'csv'.");
+
 DEFINE_bool(color_print, true, "Enables colorized logging.");
 
 DEFINE_int32(v, 0, "The level of verbose logging to output");
@@ -751,12 +755,21 @@ void State::SetLabel(const char* label) {
 
 BenchmarkReporter::~BenchmarkReporter() {}
 
-namespace internal {
+ConsoleReporter::ConsoleReporter() {
+  if (FLAGS_benchmark_format == "tabular") {
+    format_ = FORMAT_TABLE;
+  } else if (FLAGS_benchmark_format == "csv") {
+    format_ = FORMAT_CSV;
+  } else {
+    std::cerr << "Unexpected format: '" << FLAGS_benchmark_format << "'\n";
+    std::exit(1);
+  }
+}
 
 bool ConsoleReporter::ReportContext(const Context& context) const {
   name_field_width_ = context.name_field_width;
 
-  fprintf(stdout,
+  fprintf(stderr,
           "Run on (%d X %0.0f MHz CPU%s)\n",
           context.num_cpus,
           context.mhz_per_cpu,
@@ -767,25 +780,33 @@ bool ConsoleReporter::ReportContext(const Context& context) const {
                                 walltime::Now(), "%Y/%m/%d-%H:%M:%S",
                                 true,  // use local timezone
                                 &remainder_us);
-  fprintf(stdout, "%s\n", walltime_str.c_str());
+  fprintf(stderr, "%s\n", walltime_str.c_str());
 
   if (context.cpu_scaling_enabled) {
-    fprintf(stdout, "***WARNING*** CPU scaling is enabled, the benchmark "
+    fprintf(stderr, "***WARNING*** CPU scaling is enabled, the benchmark "
                     "timings may be noisy\n");
   }
 
 #ifndef NDEBUG
-  fprintf(stdout, "Build Type: DEBUG\n");
+  fprintf(stderr, "Build Type: DEBUG\n");
 #endif
 
-  int output_width =
-      fprintf(stdout,
-              "%-*s %10s %10s %10s\n",
-              static_cast<int>(name_field_width_),
-              "Benchmark",
-              "Time(ns)", "CPU(ns)",
-              "Iterations");
-  fprintf(stdout, "%s\n", std::string(output_width - 1, '-').c_str());
+  switch (format_) {
+    case FORMAT_TABLE: {
+      int output_width =
+          fprintf(stdout,
+                  "%-*s %10s %10s %10s\n",
+                  static_cast<int>(name_field_width_),
+                  "Benchmark",
+                  "Time(ns)", "CPU(ns)",
+                  "Iterations");
+      fprintf(stdout, "%s\n", std::string(output_width - 1, '-').c_str());
+    } break;
+
+    case FORMAT_CSV: {
+      std::cout << "Benchmark,Time(ns),CPU(ns),Iterations,Rate,Items,Label\n";
+    } break;
+  }
 
   return true;
 }
@@ -831,24 +852,44 @@ void ConsoleReporter::PrintRunData(const Run& result) const {
   }
 
   double const multiplier = 1e9; // nano second multiplier
-  ColorPrintf(COLOR_GREEN, "%-*s ",
-              name_field_width_, result.benchmark_name.c_str());
-  if (result.iterations == 0) {
-    ColorPrintf(COLOR_YELLOW, "%10.0f %10.0f ",
-                result.real_accumulated_time * multiplier,
-                result.cpu_accumulated_time * multiplier);
-  } else {
-    ColorPrintf(COLOR_YELLOW, "%10.0f %10.0f ",
-                (result.real_accumulated_time * multiplier) /
-                    (static_cast<double>(result.iterations)),
-                (result.cpu_accumulated_time * multiplier) /
-                    (static_cast<double>(result.iterations)));
+
+  switch (format_) {
+    case FORMAT_TABLE: {
+      ColorPrintf(COLOR_GREEN, "%-*s ",
+                  name_field_width_, result.benchmark_name.c_str());
+      if (result.iterations == 0) {
+        ColorPrintf(COLOR_YELLOW, "%10.0f %10.0f ",
+                    result.real_accumulated_time * multiplier,
+                    result.cpu_accumulated_time * multiplier);
+      } else {
+        ColorPrintf(COLOR_YELLOW, "%10.0f %10.0f ",
+                    (result.real_accumulated_time * multiplier) /
+                        (static_cast<double>(result.iterations)),
+                    (result.cpu_accumulated_time * multiplier) /
+                        (static_cast<double>(result.iterations)));
+      }
+      ColorPrintf(COLOR_CYAN, "%10lld", result.iterations);
+      ColorPrintf(COLOR_DEFAULT, "%*s %*s %s\n",
+                  13, rate.c_str(),
+                  18, items.c_str(),
+                  result.report_label.c_str());
+    } break;
+
+    case FORMAT_CSV: {
+      std::cout << result.benchmark_name << ",";
+      if (result.iterations == 0) {
+        std::cout << result.real_accumulated_time * multiplier << "," <<
+                     result.cpu_accumulated_time * multiplier << ",";
+      } else {
+        std::cout << (result.real_accumulated_time * multiplier) /
+                        (static_cast<double>(result.iterations)) << "," <<
+                     (result.cpu_accumulated_time * multiplier) /
+                        (static_cast<double>(result.iterations)) << ",";
+      }
+      std::cout << result.iterations << "," << rate << "," << items << ","
+                << result.report_label << "\n";
+    } break;
   }
-  ColorPrintf(COLOR_CYAN, "%10lld", result.iterations);
-  ColorPrintf(COLOR_DEFAULT, "%*s %*s %s\n",
-              13, rate.c_str(),
-              18, items.c_str(),
-              result.report_label.c_str());
 }
 
 void RunMatchingBenchmarks(const std::string& spec,
@@ -896,15 +937,12 @@ void RunMatchingBenchmarks(const std::string& spec,
   }
 }
 
-} // end namespace internal
-
-
 void RunSpecifiedBenchmarks(const BenchmarkReporter* reporter) {
   std::string spec = FLAGS_benchmark_filter;
   if (spec.empty() || spec == "all")
     spec = ".";  // Regexp that matches all benchmarks
-  internal::ConsoleReporter default_reporter;
-  internal::RunMatchingBenchmarks(spec, reporter ? reporter : &default_reporter);
+  ConsoleReporter default_reporter;
+  RunMatchingBenchmarks(spec, reporter ? reporter : &default_reporter);
 }
 
 namespace internal {
@@ -916,6 +954,7 @@ void PrintUsageAndExit() {
           "          [--benchmark_iterations=<iterations>]\n"
           "          [--benchmark_min_time=<min_time>]\n"
           "          [--benchmark_repetitions=<num_repetitions>]\n"
+          "          [--benchmark_format=<tabular|csv>\n"
           "          [--color_print={true|false}]\n"
           "          [--v=<verbosity>]\n");
   exit(0);
@@ -933,6 +972,8 @@ void ParseCommandLineFlags(int* argc, const char** argv) {
                         &FLAGS_benchmark_min_time) ||
         ParseInt32Flag(argv[i], "benchmark_repetitions",
                        &FLAGS_benchmark_repetitions) ||
+        ParseStringFlag(argv[i], "benchmark_format",
+                        &FLAGS_benchmark_format) ||
         ParseBoolFlag(argv[i], "color_print",
                        &FLAGS_color_print) ||
         ParseInt32Flag(argv[i], "v", &FLAGS_v)) {
@@ -943,6 +984,12 @@ void ParseCommandLineFlags(int* argc, const char** argv) {
     } else if (IsFlag(argv[i], "help")) {
       PrintUsageAndExit();
     }
+  }
+
+  // Check valid values.
+  if (FLAGS_benchmark_format != "tabular" &&
+      FLAGS_benchmark_format != "csv") {
+    PrintUsageAndExit();
   }
 }
 
