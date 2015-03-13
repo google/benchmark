@@ -751,12 +751,10 @@ void State::SetLabel(const char* label) {
 
 BenchmarkReporter::~BenchmarkReporter() {}
 
-namespace internal {
-
 bool ConsoleReporter::ReportContext(const Context& context) const {
   name_field_width_ = context.name_field_width;
 
-  fprintf(stdout,
+  fprintf(stderr,
           "Run on (%d X %0.0f MHz CPU%s)\n",
           context.num_cpus,
           context.mhz_per_cpu,
@@ -767,25 +765,33 @@ bool ConsoleReporter::ReportContext(const Context& context) const {
                                 walltime::Now(), "%Y/%m/%d-%H:%M:%S",
                                 true,  // use local timezone
                                 &remainder_us);
-  fprintf(stdout, "%s\n", walltime_str.c_str());
+  fprintf(stderr, "%s\n", walltime_str.c_str());
 
   if (context.cpu_scaling_enabled) {
-    fprintf(stdout, "***WARNING*** CPU scaling is enabled, the benchmark "
+    fprintf(stderr, "***WARNING*** CPU scaling is enabled, the benchmark "
                     "timings may be noisy\n");
   }
 
 #ifndef NDEBUG
-  fprintf(stdout, "Build Type: DEBUG\n");
+  fprintf(stderr, "Build Type: DEBUG\n");
 #endif
 
-  int output_width =
-      fprintf(stdout,
-              "%-*s %10s %10s %10s\n",
-              static_cast<int>(name_field_width_),
-              "Benchmark",
-              "Time(ns)", "CPU(ns)",
-              "Iterations");
-  fprintf(stdout, "%s\n", std::string(output_width - 1, '-').c_str());
+  switch (format_) {
+    case FORMAT_TABLE: {
+      int output_width =
+          fprintf(stdout,
+                  "%-*s %10s %10s %10s\n",
+                  static_cast<int>(name_field_width_),
+                  "Benchmark",
+                  "Time(ns)", "CPU(ns)",
+                  "Iterations");
+      fprintf(stdout, "%s\n", std::string(output_width - 1, '-').c_str());
+    } break;
+
+    case FORMAT_CSV: {
+      std::cout << "Benchmark,Time(ns),CPU(ns),Iterations,Rate,Items,Label\n";
+    } break;
+  }
 
   return true;
 }
@@ -831,24 +837,44 @@ void ConsoleReporter::PrintRunData(const Run& result) const {
   }
 
   double const multiplier = 1e9; // nano second multiplier
-  ColorPrintf(COLOR_GREEN, "%-*s ",
-              name_field_width_, result.benchmark_name.c_str());
-  if (result.iterations == 0) {
-    ColorPrintf(COLOR_YELLOW, "%10.0f %10.0f ",
-                result.real_accumulated_time * multiplier,
-                result.cpu_accumulated_time * multiplier);
-  } else {
-    ColorPrintf(COLOR_YELLOW, "%10.0f %10.0f ",
-                (result.real_accumulated_time * multiplier) /
-                    (static_cast<double>(result.iterations)),
-                (result.cpu_accumulated_time * multiplier) /
-                    (static_cast<double>(result.iterations)));
+
+  switch (format_) {
+    case FORMAT_TABLE: {
+      ColorPrintf(COLOR_GREEN, "%-*s ",
+                  name_field_width_, result.benchmark_name.c_str());
+      if (result.iterations == 0) {
+        ColorPrintf(COLOR_YELLOW, "%10.0f %10.0f ",
+                    result.real_accumulated_time * multiplier,
+                    result.cpu_accumulated_time * multiplier);
+      } else {
+        ColorPrintf(COLOR_YELLOW, "%10.0f %10.0f ",
+                    (result.real_accumulated_time * multiplier) /
+                        (static_cast<double>(result.iterations)),
+                    (result.cpu_accumulated_time * multiplier) /
+                        (static_cast<double>(result.iterations)));
+      }
+      ColorPrintf(COLOR_CYAN, "%10lld", result.iterations);
+      ColorPrintf(COLOR_DEFAULT, "%*s %*s %s\n",
+                  13, rate.c_str(),
+                  18, items.c_str(),
+                  result.report_label.c_str());
+    } break;
+
+    case FORMAT_CSV: {
+      std::cout << result.benchmark_name << ",";
+      if (result.iterations == 0) {
+        std::cout << result.real_accumulated_time * multiplier << "," <<
+                     result.cpu_accumulated_time * multiplier << ",";
+      } else {
+        std::cout << (result.real_accumulated_time * multiplier) /
+                        (static_cast<double>(result.iterations)) << "," <<
+                     (result.cpu_accumulated_time * multiplier) /
+                        (static_cast<double>(result.iterations)) << ",";
+      }
+      std::cout << result.iterations << "," << rate << "," << items << ","
+                << result.report_label << "\n";
+    } break;
   }
-  ColorPrintf(COLOR_CYAN, "%10lld", result.iterations);
-  ColorPrintf(COLOR_DEFAULT, "%*s %*s %s\n",
-              13, rate.c_str(),
-              18, items.c_str(),
-              result.report_label.c_str());
 }
 
 void RunMatchingBenchmarks(const std::string& spec,
@@ -896,15 +922,12 @@ void RunMatchingBenchmarks(const std::string& spec,
   }
 }
 
-} // end namespace internal
-
-
 void RunSpecifiedBenchmarks(const BenchmarkReporter* reporter) {
   std::string spec = FLAGS_benchmark_filter;
   if (spec.empty() || spec == "all")
     spec = ".";  // Regexp that matches all benchmarks
-  internal::ConsoleReporter default_reporter;
-  internal::RunMatchingBenchmarks(spec, reporter ? reporter : &default_reporter);
+  ConsoleReporter default_reporter(ConsoleReporter::FORMAT_TABLE);
+  RunMatchingBenchmarks(spec, reporter ? reporter : &default_reporter);
 }
 
 namespace internal {

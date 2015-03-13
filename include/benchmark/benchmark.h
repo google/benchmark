@@ -476,23 +476,30 @@ class Benchmark {
   BENCHMARK_DISALLOW_COPY_AND_ASSIGN(Benchmark);
 };
 
-
-// ------------------------------------------------------
-// Internal implementation details follow; please ignore
+}  // end namespace internal
 
 // Simple reporter that outputs benchmark data to the console. This is the
 // default reporter used by RunSpecifiedBenchmarks().
 class ConsoleReporter : public BenchmarkReporter {
  public:
+  enum Format {
+    FORMAT_TABLE,
+    FORMAT_CSV,
+  };
+
+  explicit ConsoleReporter(Format format)
+      : format_(format) {}
+
   virtual bool ReportContext(const Context& context) const;
   virtual void ReportRuns(const std::vector<Run>& reports) const;
  private:
   virtual void PrintRunData(const Run& report) const;
   // TODO(ericwf): Find a better way to share this information.
   mutable size_t name_field_width_;
+
+  Format format_;
 };
 
-}  // end namespace internal
 }  // end namespace benchmark
 
 
