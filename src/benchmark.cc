@@ -665,11 +665,11 @@ void RunBenchmark(const benchmark::internal::Benchmark::Instance& b,
           (seconds >= FLAGS_benchmark_min_time) ||
           (real_accumulated_time >= 5*FLAGS_benchmark_min_time)) {
         double bytes_per_second = 0;
-        if (total.bytes_processed > 0 && seconds != 0.0) {
+        if (total.bytes_processed > 0 && seconds > 0.0) {
           bytes_per_second = (total.bytes_processed / seconds);
         }
         double items_per_second = 0;
-        if (total.items_processed > 0 && seconds != 0.0) {
+        if (total.items_processed > 0 && seconds > 0.0) {
           items_per_second = (total.items_processed / seconds);
         }
 

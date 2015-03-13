@@ -1,8 +1,8 @@
 #include "benchmark/benchmark.h"
 
-#include <assert.h>
-#include <math.h>
-#include <stdint.h>
+#include <cassert>
+#include <cmath>
+#include <cstdint>
 
 #include <iostream>
 #include <sstream>
@@ -69,7 +69,7 @@ BENCHMARK(BM_CalculatePi)->ThreadPerCpu();
 int main(int argc, const char* argv[]) {
   benchmark::Initialize(&argc, argv);
 
-  assert(CalculatePi(1) == 0.0);
+  assert(std::fabs(CalculatePi(1)) < 0.001);
 
   TestReporter test_reporter;
   benchmark::RunSpecifiedBenchmarks(&test_reporter);

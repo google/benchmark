@@ -158,7 +158,7 @@ static void BM_LongTest(benchmark::State& state) {
   while (state.KeepRunning())
     for (int i = 0; i < state.range_x(); ++i)
       tracker += i;
-  assert(tracker != 0.0);
+  assert(tracker > 1.0);
 }
 BENCHMARK(BM_LongTest)->Range(1<<16,1<<28);
 

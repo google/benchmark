@@ -2,8 +2,10 @@
 #define BENCHMARK_STAT_H_
 
 #include <cmath>
-#include <ostream>
 #include <limits>
+#include <ostream>
+#include <type_traits>
+
 
 namespace benchmark {
 
@@ -13,10 +15,10 @@ class Stat1;
 template <typename VType, typename NumType>
 class Stat1MinMax;
 
-typedef Stat1<float, float> Stat1_f;
-typedef Stat1<double, double> Stat1_d;
-typedef Stat1MinMax<float, float> Stat1MinMax_f;
-typedef Stat1MinMax<double, double> Stat1MinMax_d;
+typedef Stat1<float, int64_t> Stat1_f;
+typedef Stat1<double, int64_t> Stat1_d;
+typedef Stat1MinMax<float, int64_t> Stat1MinMax_f;
+typedef Stat1MinMax<double, int64_t> Stat1MinMax_d;
 
 template <typename VType>
 class Vector2;
@@ -133,6 +135,9 @@ class Stat1 {
   }
 
  private:
+  static_assert(std::is_integral<NumType>::value &&
+                !std::is_same<NumType, bool>::value,
+                "NumType must be an integral type that is not bool.");
   // Let i be the index of the samples provided (using +=)
   // and weight[i],value[i] be the data of sample #i
   // then the variables have the following meaning:
