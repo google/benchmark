@@ -61,6 +61,10 @@ DEFINE_int32(benchmark_repetitions, 1,
              "The number of runs of each benchmark. If greater than 1, the "
              "mean and standard deviation of the runs will be reported.");
 
+DEFINE_string(benchmark_format,  "tabular",
+              "The format to use for console output. Valid values are "
+              "'tabular' or 'csv'.");
+
 DEFINE_bool(color_print, true, "Enables colorized logging.");
 
 DEFINE_int32(v, 0, "The level of verbose logging to output");
@@ -751,6 +755,17 @@ void State::SetLabel(const char* label) {
 
 BenchmarkReporter::~BenchmarkReporter() {}
 
+ConsoleReporter::ConsoleReporter() {
+  if (FLAGS_benchmark_format == "tabular") {
+    format_ = FORMAT_TABLE;
+  } else if (FLAGS_benchmark_format == "csv") {
+    format_ = FORMAT_CSV;
+  } else {
+    std::cerr << "Unexpected format: '" << FLAGS_benchmark_format << "'\n";
+    std::exit(1);
+  }
+}
+
 bool ConsoleReporter::ReportContext(const Context& context) const {
   name_field_width_ = context.name_field_width;
 
@@ -926,7 +941,7 @@ void RunSpecifiedBenchmarks(const BenchmarkReporter* reporter) {
   std::string spec = FLAGS_benchmark_filter;
   if (spec.empty() || spec == "all")
     spec = ".";  // Regexp that matches all benchmarks
-  ConsoleReporter default_reporter(ConsoleReporter::FORMAT_TABLE);
+  ConsoleReporter default_reporter;
   RunMatchingBenchmarks(spec, reporter ? reporter : &default_reporter);
 }
 
@@ -939,6 +954,7 @@ void PrintUsageAndExit() {
           "          [--benchmark_iterations=<iterations>]\n"
           "          [--benchmark_min_time=<min_time>]\n"
           "          [--benchmark_repetitions=<num_repetitions>]\n"
+          "          [--benchmark_format=<tabular|csv>\n"
           "          [--color_print={true|false}]\n"
           "          [--v=<verbosity>]\n");
   exit(0);
@@ -956,6 +972,8 @@ void ParseCommandLineFlags(int* argc, const char** argv) {
                         &FLAGS_benchmark_min_time) ||
         ParseInt32Flag(argv[i], "benchmark_repetitions",
                        &FLAGS_benchmark_repetitions) ||
+        ParseStringFlag(argv[i], "benchmark_format",
+                        &FLAGS_benchmark_format) ||
         ParseBoolFlag(argv[i], "color_print",
                        &FLAGS_color_print) ||
         ParseInt32Flag(argv[i], "v", &FLAGS_v)) {
@@ -966,6 +984,12 @@ void ParseCommandLineFlags(int* argc, const char** argv) {
     } else if (IsFlag(argv[i], "help")) {
       PrintUsageAndExit();
     }
+  }
+
+  // Check valid values.
+  if (FLAGS_benchmark_format != "tabular" &&
+      FLAGS_benchmark_format != "csv") {
+    PrintUsageAndExit();
   }
 }
 

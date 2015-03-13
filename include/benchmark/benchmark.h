@@ -482,17 +482,16 @@ class Benchmark {
 // default reporter used by RunSpecifiedBenchmarks().
 class ConsoleReporter : public BenchmarkReporter {
  public:
+  ConsoleReporter();
+
+  virtual bool ReportContext(const Context& context) const;
+  virtual void ReportRuns(const std::vector<Run>& reports) const;
+ private:
   enum Format {
     FORMAT_TABLE,
     FORMAT_CSV,
   };
 
-  explicit ConsoleReporter(Format format)
-      : format_(format) {}
-
-  virtual bool ReportContext(const Context& context) const;
-  virtual void ReportRuns(const std::vector<Run>& reports) const;
- private:
   virtual void PrintRunData(const Run& report) const;
   // TODO(ericwf): Find a better way to share this information.
   mutable size_t name_field_width_;

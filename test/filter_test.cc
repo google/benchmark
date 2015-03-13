@@ -31,7 +31,7 @@ class TestReporter : public benchmark::ConsoleReporter {
     ConsoleReporter::ReportRuns(report);
   };
 
-  TestReporter() : ConsoleReporter(ConsoleReporter::FORMAT_CSV), count_(0) {}
+  TestReporter() : count_(0) {}
 
   virtual ~TestReporter() {}
 
