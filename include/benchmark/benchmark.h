@@ -489,7 +489,7 @@ class ConsoleReporter : public BenchmarkReporter {
  private:
   enum Format {
     FORMAT_TABLE,
-    FORMAT_CSV,
+    FORMAT_CSV
   };
 
   virtual void PrintRunData(const Run& report) const;
