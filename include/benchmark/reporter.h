@@ -18,7 +18,7 @@
 #include <utility>
 #include <vector>
 
-#include "benchmark.h" // For forward declaration of BenchmarkReporter
+#include "benchmark_api.h" // For forward declaration of BenchmarkReporter
 
 namespace benchmark {
 

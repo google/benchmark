@@ -132,8 +132,8 @@ static void BM_MultiThreaded(benchmark::State& state) {
 BENCHMARK(BM_MultiThreaded)->Threads(4);
 */
 
-#ifndef BENCHMARK_MINIMAL_BENCHMARK_H_
-#define BENCHMARK_MINIMAL_BENCHMARK_H_
+#ifndef BENCHMARK_BENCHMARK_API_H_
+#define BENCHMARK_BENCHMARK_API_H_
 
 #include <assert.h>
 #include <stddef.h>
@@ -462,4 +462,4 @@ class Benchmark {
     ::benchmark::RunSpecifiedBenchmarks();           \
   }
 
-#endif  // BENCHMARK_MINIMAL_BENCHMARK_H_
+#endif  // BENCHMARK_BENCHMARK_API_H_

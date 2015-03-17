@@ -15,7 +15,7 @@
 #define BENCHMARK_BENCHMARK_H_
 
 #include "macros.h"
-#include "minimal_benchmark.h"
+#include "benchmark_api.h"
 #include "reporter.h"
 
 #endif // BENCHMARK_BENCHMARK_H_
