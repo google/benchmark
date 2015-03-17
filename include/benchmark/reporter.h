@@ -18,6 +18,8 @@
 #include <utility>
 #include <vector>
 
+#include "benchmark.h" // For forward declaration of BenchmarkReporter
+
 namespace benchmark {
 
 // Interface for custom benchmark result printers.
