@@ -39,8 +39,7 @@ add_cxx_compiler_flag(-Wshadow)
 add_cxx_compiler_flag(-Werror)
 add_cxx_compiler_flag(-pedantic-errors)
 add_cxx_compiler_flag(-Wshorten-64-to-32)
-# TODO(ericwf): enable this for g++
-#add_cxx_compiler_flag(-Wzero-as-null-pointer-constant)
+add_cxx_compiler_flag(-Wzero-as-null-pointer-constant)
 # Release flags
 add_cxx_compiler_flag(-fno-strict-aliasing RELEASE)
 

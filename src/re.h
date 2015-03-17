@@ -37,7 +37,7 @@ class Regex {
 
   // Compile a regular expression matcher from spec.  Returns true on success.
   //
-  // On failure (and if error is not NULL), error is populated with a human
+  // On failure (and if error is not nullptr), error is populated with a human
   // readable error message if an error occurs.
   bool Init(const std::string& spec, std::string* error);
 
