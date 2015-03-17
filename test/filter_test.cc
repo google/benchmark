@@ -21,7 +21,7 @@ double CalculatePi(int depth) {
   return (pi - 1.0) * 4;
 }
 
-class TestReporter : public benchmark::internal::ConsoleReporter {
+class TestReporter : public benchmark::ConsoleReporter {
  public:
   virtual bool ReportContext(const Context& context) const {
     return ConsoleReporter::ReportContext(context);
