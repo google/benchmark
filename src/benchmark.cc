@@ -339,7 +339,6 @@ struct Benchmark::Instance {
   bool          multithreaded;  // Is benchmark multi-threaded?
 };
 
-
 // Class for managing registered benchmarks.  Note that each registered
 // benchmark identifies a family of related benchmarks to run.
 class BenchmarkFamilies {
@@ -347,7 +346,7 @@ class BenchmarkFamilies {
   static BenchmarkFamilies* GetInstance();
 
   // Registers a benchmark family and returns the index assigned to it.
-  size_t AddBenchmark(Benchmark* family);
+  size_t AddBenchmark(BenchmarkImp* family);
 
   // Unregisters a family at the given index.
   void RemoveBenchmark(size_t index);
@@ -360,10 +359,39 @@ class BenchmarkFamilies {
   BenchmarkFamilies();
   ~BenchmarkFamilies();
 
-  std::vector<Benchmark*> families_;
+  std::vector<BenchmarkImp*> families_;
   Mutex mutex_;
 };
 
+
+class BenchmarkImp {
+public:
+  BenchmarkImp(const char* name, Function* func);
+  ~BenchmarkImp();
+
+  void Arg(int x);
+  void Range(int start, int limit);
+  void DenseRange(int start, int limit);
+  void ArgPair(int start, int limit);
+  void RangePair(int lo1, int hi1, int lo2, int hi2);
+  void Threads(int t);
+  void ThreadRange(int min_threads, int max_threads);
+  void ThreadPerCpu();
+
+  static void AddRange(std::vector<int>* dst, int lo, int hi, int mult);
+
+private:
+  friend class BenchmarkFamilies;
+
+  std::string name_;
+  Function* function_;
+  int arg_count_;
+  std::vector< std::pair<int, int> > args_;  // Args for all benchmark runs
+  std::vector<int> thread_counts_;
+  std::size_t registration_index_;
+
+  BENCHMARK_DISALLOW_COPY_AND_ASSIGN(BenchmarkImp);
+};
 
 BenchmarkFamilies* BenchmarkFamilies::GetInstance() {
   static BenchmarkFamilies instance;
@@ -373,12 +401,12 @@ BenchmarkFamilies* BenchmarkFamilies::GetInstance() {
 BenchmarkFamilies::BenchmarkFamilies() { }
 
 BenchmarkFamilies::~BenchmarkFamilies() {
-  for (internal::Benchmark* family : families_) {
+  for (BenchmarkImp* family : families_) {
     delete family;
   }
 }
 
-size_t BenchmarkFamilies::AddBenchmark(Benchmark* family) {
+size_t BenchmarkFamilies::AddBenchmark(BenchmarkImp* family) {
   MutexLock l(mutex_);
   // This loop attempts to reuse an entry that was previously removed to avoid
   // unncessary growth of the vector.
@@ -416,7 +444,7 @@ bool BenchmarkFamilies::FindBenchmarks(
   one_thread.push_back(1);
 
   MutexLock l(mutex_);
-  for (Benchmark* family : families_) {
+  for (BenchmarkImp* family : families_) {
     // Family was deleted or benchmark doesn't match
     if (family == nullptr || !re.Match(family->name_)) continue;
 
@@ -461,25 +489,22 @@ bool BenchmarkFamilies::FindBenchmarks(
   return true;
 }
 
-
-Benchmark::Benchmark(const char* name,
-                     Function* f)
-                    : name_(name), function_(f), arg_count_(-1) {
-  registration_index_ = BenchmarkFamilies::GetInstance()->AddBenchmark(this);
+BenchmarkImp::BenchmarkImp(const char* name, Function* func)
+    : name_(name), function_(func), arg_count_(-1) {
+    registration_index_ = BenchmarkFamilies::GetInstance()->AddBenchmark(this);
 }
 
-Benchmark::~Benchmark()  {
+BenchmarkImp::~BenchmarkImp() {
   BenchmarkFamilies::GetInstance()->RemoveBenchmark(registration_index_);
 }
 
-Benchmark* Benchmark::Arg(int x) {
+void BenchmarkImp::Arg(int x) {
   CHECK(arg_count_ == -1 || arg_count_ == 1);
   arg_count_ = 1;
   args_.emplace_back(x, -1);
-  return this;
 }
 
-Benchmark* Benchmark::Range(int start, int limit) {
+void BenchmarkImp::Range(int start, int limit) {
   CHECK(arg_count_ == -1 || arg_count_ == 1);
   arg_count_ = 1;
   std::vector<int> arglist;
@@ -488,10 +513,9 @@ Benchmark* Benchmark::Range(int start, int limit) {
   for (int i : arglist) {
     args_.emplace_back(i, -1);
   }
-  return this;
 }
 
-Benchmark* Benchmark::DenseRange(int start, int limit) {
+void BenchmarkImp::DenseRange(int start, int limit) {
   CHECK(arg_count_ == -1 || arg_count_ == 1);
   arg_count_ = 1;
   CHECK_GE(start, 0);
@@ -499,17 +523,15 @@ Benchmark* Benchmark::DenseRange(int start, int limit) {
   for (int arg = start; arg <= limit; arg++) {
     args_.emplace_back(arg, -1);
   }
-  return this;
 }
 
-Benchmark* Benchmark::ArgPair(int x, int y) {
+void BenchmarkImp::ArgPair(int x, int y) {
   CHECK(arg_count_ == -1 || arg_count_ == 2);
   arg_count_ = 2;
   args_.emplace_back(x, y);
-  return this;
 }
 
-Benchmark* Benchmark::RangePair(int lo1, int hi1, int lo2, int hi2) {
+void BenchmarkImp::RangePair(int lo1, int hi1, int lo2, int hi2) {
   CHECK(arg_count_ == -1 || arg_count_ == 2);
   arg_count_ = 2;
   std::vector<int> arglist1, arglist2;
@@ -521,35 +543,26 @@ Benchmark* Benchmark::RangePair(int lo1, int hi1, int lo2, int hi2) {
       args_.emplace_back(i, j);
     }
   }
-  return this;
 }
 
-Benchmark* Benchmark::Apply(void (*custom_arguments)(Benchmark* benchmark)) {
-  custom_arguments(this);
-  return this;
-}
-
-Benchmark* Benchmark::Threads(int t) {
+void BenchmarkImp::Threads(int t) {
   CHECK_GT(t, 0);
   thread_counts_.push_back(t);
-  return this;
 }
 
-Benchmark* Benchmark::ThreadRange(int min_threads, int max_threads) {
+void BenchmarkImp::ThreadRange(int min_threads, int max_threads) {
   CHECK_GT(min_threads, 0);
   CHECK_GE(max_threads, min_threads);
 
   AddRange(&thread_counts_, min_threads, max_threads, 2);
-  return this;
 }
 
-Benchmark* Benchmark::ThreadPerCpu() {
+void BenchmarkImp::ThreadPerCpu() {
   static int num_cpus = NumCPUs();
   thread_counts_.push_back(num_cpus);
-  return this;
 }
 
-void Benchmark::AddRange(std::vector<int>* dst, int lo, int hi, int mult) {
+void BenchmarkImp::AddRange(std::vector<int>* dst, int lo, int hi, int mult) {
   CHECK_GE(lo, 0);
   CHECK_GE(hi, lo);
 
@@ -569,6 +582,60 @@ void Benchmark::AddRange(std::vector<int>* dst, int lo, int hi, int mult) {
   if (hi != lo) {
     dst->push_back(hi);
   }
+}
+
+Benchmark::Benchmark(const char* name, Function* f)
+    : imp_(new BenchmarkImp(name, f))
+{
+}
+
+Benchmark::~Benchmark()  {
+  delete imp_;
+}
+
+Benchmark* Benchmark::Arg(int x) {
+  imp_->Arg(x);
+  return this;
+}
+
+Benchmark* Benchmark::Range(int start, int limit) {
+  imp_->Range(start, limit);
+  return this;
+}
+
+Benchmark* Benchmark::DenseRange(int start, int limit) {
+  imp_->DenseRange(start, limit);
+  return this;
+}
+
+Benchmark* Benchmark::ArgPair(int x, int y) {
+  imp_->ArgPair(x, y);
+  return this;
+}
+
+Benchmark* Benchmark::RangePair(int lo1, int hi1, int lo2, int hi2) {
+  imp_->RangePair(lo1, hi1, lo2, hi2);
+  return this;
+}
+
+Benchmark* Benchmark::Apply(void (*custom_arguments)(Benchmark* benchmark)) {
+  custom_arguments(this);
+  return this;
+}
+
+Benchmark* Benchmark::Threads(int t) {
+  imp_->Threads(t);
+  return this;
+}
+
+Benchmark* Benchmark::ThreadRange(int min_threads, int max_threads) {
+  imp_->ThreadRange(min_threads, max_threads);
+  return this;
+}
+
+Benchmark* Benchmark::ThreadPerCpu() {
+  imp_->ThreadPerCpu();
+  return this;
 }
 
 } // end namespace internal
@@ -898,6 +965,9 @@ void RunMatchingBenchmarks(const std::string& spec,
 
 } // end namespace internal
 
+void RunSpecifiedBenchmarks() {
+  RunSpecifiedBenchmarks(nullptr);
+}
 
 void RunSpecifiedBenchmarks(const BenchmarkReporter* reporter) {
   std::string spec = FLAGS_benchmark_filter;

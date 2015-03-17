@@ -152,7 +152,8 @@ void Initialize(int* argc, const char** argv);
 
 // Otherwise, run all benchmarks specified by the --benchmark_filter flag,
 // and exit after running the benchmarks.
-void RunSpecifiedBenchmarks(const BenchmarkReporter* reporter = NULL);
+void RunSpecifiedBenchmarks();
+void RunSpecifiedBenchmarks(const BenchmarkReporter* reporter);
 
 // If this routine is called, peak memory allocation past this point in the
 // benchmark is reported at the end of the benchmark report line. (It is
@@ -163,8 +164,21 @@ void RunSpecifiedBenchmarks(const BenchmarkReporter* reporter = NULL);
 
 namespace internal {
 class Benchmark;
-class BenchmarkFamilies;
-}
+class BenchmarkImp;
+
+template <class T> struct Voider {
+    typedef void type;
+};
+
+template <class T, class = void>
+struct EnableIfString {};
+
+template <class T>
+struct EnableIfString<T, typename Voider<typename T::basic_string>::type> {
+    typedef int type;
+};
+
+} // end namespace internal
 
 // State is passed to a running Benchmark and contains state for the
 // benchmark to use.
@@ -279,7 +293,7 @@ public:
   // as an injected class name in the case of std::string.
   template <class StringType>
   void SetLabel(StringType const & str,
-                typename StringType::basic_string* = 0) {
+                typename internal::EnableIfString<StringType>::type = 1) {
     this->SetLabel(str.c_str());
   }
 
@@ -452,28 +466,12 @@ class Benchmark {
   // Equivalent to ThreadRange(NumCPUs(), NumCPUs())
   Benchmark* ThreadPerCpu();
 
-  // -------------------------------
-  // Following methods are not useful for clients
-
   // Used inside the benchmark implementation
   struct Instance;
 
  private:
-  std::string name_;
-  Function* function_;
-  std::size_t registration_index_;
-  int arg_count_;
-  std::vector< std::pair<int, int> > args_;  // Args for all benchmark runs
-  std::vector<int> thread_counts_;
-
-  // Special value placed in thread_counts_ to stand for NumCPUs()
-  static const int kNumCpuMarker = -1;
-
-  static void AddRange(std::vector<int>* dst, int lo, int hi, int mult);
-
-  friend class BenchmarkFamilies;
-
-  BENCHMARK_DISALLOW_COPY_AND_ASSIGN(Benchmark);
+   BenchmarkImp* imp_;
+   BENCHMARK_DISALLOW_COPY_AND_ASSIGN(Benchmark);
 };
 
 
