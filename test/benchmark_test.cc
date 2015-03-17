@@ -106,20 +106,20 @@ static void BM_SetInsert(benchmark::State& state) {
 }
 BENCHMARK(BM_SetInsert)->RangePair(1<<10,8<<10, 1,10);
 
-template<typename Q>
+template<typename Container, typename ValueType = typename Container::value_type>
 static void BM_Sequential(benchmark::State& state) {
-  typename Q::value_type v = 42;
+  ValueType v = 42;
   while (state.KeepRunning()) {
-    Q q;
+    Container c;
     for (int i = state.range_x(); --i; )
-      q.push_back(v);
+      c.push_back(v);
   }
   const int64_t items_processed =
       static_cast<int64_t>(state.iterations()) * state.range_x();
   state.SetItemsProcessed(items_processed);
   state.SetBytesProcessed(items_processed * sizeof(v));
 }
-BENCHMARK_TEMPLATE(BM_Sequential, std::vector<int>)->Range(1 << 0, 1 << 10);
+BENCHMARK_TEMPLATE2(BM_Sequential, std::vector<int>, int)->Range(1 << 0, 1 << 10);
 BENCHMARK_TEMPLATE(BM_Sequential, std::list<int>)->Range(1 << 0, 1 << 10);
 
 static void BM_StringCompare(benchmark::State& state) {
