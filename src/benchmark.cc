@@ -606,7 +606,7 @@ void RunInThread(const benchmark::internal::Benchmark::Instance* b,
 }
 
 void RunBenchmark(const benchmark::internal::Benchmark::Instance& b,
-                  const BenchmarkReporter* br) EXCLUDES(GetBenchmarkLock()) {
+                  BenchmarkReporter* br) EXCLUDES(GetBenchmarkLock()) {
   int iters = FLAGS_benchmark_iterations ? FLAGS_benchmark_iterations
                                          : 1;
   std::vector<BenchmarkReporter::Run> reports;
@@ -763,7 +763,7 @@ void State::SetLabel(const char* label) {
 namespace internal {
 
 void RunMatchingBenchmarks(const std::string& spec,
-                           const BenchmarkReporter* reporter) {
+                           BenchmarkReporter* reporter) {
   CHECK(reporter != nullptr);
   if (spec.empty()) return;
 
@@ -813,12 +813,15 @@ void RunSpecifiedBenchmarks() {
   RunSpecifiedBenchmarks(nullptr);
 }
 
-void RunSpecifiedBenchmarks(const BenchmarkReporter* reporter) {
+void RunSpecifiedBenchmarks(BenchmarkReporter* provided_reporter) {
   std::string spec = FLAGS_benchmark_filter;
   if (spec.empty() || spec == "all")
     spec = ".";  // Regexp that matches all benchmarks
   ConsoleReporter default_reporter;
-  internal::RunMatchingBenchmarks(spec, reporter ? reporter : &default_reporter);
+  BenchmarkReporter* reporter = provided_reporter ? provided_reporter
+                                                  : &default_reporter;
+  internal::RunMatchingBenchmarks(spec, reporter);
+  reporter->Finalize();
 }
 
 namespace internal {

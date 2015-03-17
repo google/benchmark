@@ -85,10 +85,13 @@ void ComputeStats(const std::vector<BenchmarkReporter::Run>& reports,
 
 } // end namespace
 
+void BenchmarkReporter::Finalize() {
+}
 
-BenchmarkReporter::~BenchmarkReporter() {}
+BenchmarkReporter::~BenchmarkReporter() {
+}
 
-bool ConsoleReporter::ReportContext(const Context& context) const {
+bool ConsoleReporter::ReportContext(const Context& context) {
   name_field_width_ = context.name_field_width;
 
   fprintf(stdout,
@@ -125,8 +128,7 @@ bool ConsoleReporter::ReportContext(const Context& context) const {
   return true;
 }
 
-void ConsoleReporter::ReportRuns(
-    const std::vector<Run>& reports) const {
+void ConsoleReporter::ReportRuns(const std::vector<Run>& reports) {
   if (reports.empty()) {
     return;
   }
@@ -151,7 +153,7 @@ void ConsoleReporter::ReportRuns(
   fprintf(stdout, "\n");
 }
 
-void ConsoleReporter::PrintRunData(const Run& result) const {
+void ConsoleReporter::PrintRunData(const Run& result) {
   // Format bytes per second
   std::string rate;
   if (result.bytes_per_second > 0) {

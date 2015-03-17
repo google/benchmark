@@ -149,7 +149,7 @@ void Initialize(int* argc, const char** argv);
 // Otherwise, run all benchmarks specified by the --benchmark_filter flag,
 // and exit after running the benchmarks.
 void RunSpecifiedBenchmarks();
-void RunSpecifiedBenchmarks(const BenchmarkReporter* reporter);
+void RunSpecifiedBenchmarks(BenchmarkReporter* reporter);
 
 // If this routine is called, peak memory allocation past this point in the
 // benchmark is reported at the end of the benchmark report line. (It is
