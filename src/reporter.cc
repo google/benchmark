@@ -88,9 +88,6 @@ void ComputeStats(const std::vector<BenchmarkReporter::Run>& reports,
 
 BenchmarkReporter::~BenchmarkReporter() {}
 
-
-namespace internal {
-
 bool ConsoleReporter::ReportContext(const Context& context) const {
   name_field_width_ = context.name_field_width;
 
@@ -188,7 +185,5 @@ void ConsoleReporter::PrintRunData(const Run& result) const {
               18, items.c_str(),
               result.report_label.c_str());
 }
-
-} // end namespace internal
 
 } // end namespace benchmark

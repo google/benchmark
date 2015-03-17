@@ -78,12 +78,6 @@ class BenchmarkReporter {
   virtual ~BenchmarkReporter();
 };
 
-
-namespace internal {
-
-// ------------------------------------------------------
-// Internal implementation details follow; please ignore
-
 // Simple reporter that outputs benchmark data to the console. This is the
 // default reporter used by RunSpecifiedBenchmarks().
 class ConsoleReporter : public BenchmarkReporter {
@@ -96,6 +90,5 @@ class ConsoleReporter : public BenchmarkReporter {
   mutable size_t name_field_width_;
 };
 
-} // end namespace internal
 } // end namespace benchmark
 #endif // BENCHMARK_REPORTER_H_

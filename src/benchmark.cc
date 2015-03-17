@@ -817,7 +817,7 @@ void RunSpecifiedBenchmarks(const BenchmarkReporter* reporter) {
   std::string spec = FLAGS_benchmark_filter;
   if (spec.empty() || spec == "all")
     spec = ".";  // Regexp that matches all benchmarks
-  internal::ConsoleReporter default_reporter;
+  ConsoleReporter default_reporter;
   internal::RunMatchingBenchmarks(spec, reporter ? reporter : &default_reporter);
 }
 
