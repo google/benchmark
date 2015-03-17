@@ -248,9 +248,9 @@ bool JSONReporter::ReportContext(const Context& context) {
       << ",\n";
 
 #if defined(NDEBUG)
-  const char* build_type = "release";
+  const char[] build_type = "release";
 #else
-  const char* build_type = "debug";
+  const char[] build_type = "debug";
 #endif
   out << indent << FormatKV("build_type", build_type) << "\n";
   // Close context block and open the list of benchmarks.
