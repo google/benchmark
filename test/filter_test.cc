@@ -5,6 +5,7 @@
 #include <cstdint>
 
 #include <iostream>
+#include <limits>
 #include <sstream>
 #include <string>
 
@@ -69,7 +70,7 @@ BENCHMARK(BM_CalculatePi)->ThreadPerCpu();
 int main(int argc, const char* argv[]) {
   benchmark::Initialize(&argc, argv);
 
-  assert(std::fabs(CalculatePi(1)) < 0.001);
+  assert(std::fabs(CalculatePi(1)) < std::numeric_limits<float>::epsilon());
 
   TestReporter test_reporter;
   benchmark::RunSpecifiedBenchmarks(&test_reporter);
