@@ -23,11 +23,11 @@ double CalculatePi(int depth) {
 
 class TestReporter : public benchmark::ConsoleReporter {
  public:
-  virtual bool ReportContext(const Context& context) const {
+  virtual bool ReportContext(const Context& context) {
     return ConsoleReporter::ReportContext(context);
   };
 
-  virtual void ReportRuns(const std::vector<Run>& report) const {
+  virtual void ReportRuns(const std::vector<Run>& report) {
     ++count_;
     ConsoleReporter::ReportRuns(report);
   };
