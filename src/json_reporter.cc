@@ -118,7 +118,7 @@ void JSONReporter::ReportRuns(std::vector<Run> const& reports) {
      out << indent << '}';
      auto it_cp = it;
      if (++it_cp != reports_cp.end()) {
-         out << ',';
+         out << ",\n";
      }
   }
 }
