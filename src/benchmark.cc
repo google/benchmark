@@ -60,6 +60,10 @@ DEFINE_int32(benchmark_repetitions, 1,
              "The number of runs of each benchmark. If greater than 1, the "
              "mean and standard deviation of the runs will be reported.");
 
+DEFINE_string(benchmark_format, "tabular",
+              "The format to use for console output. Valid values are "
+              "'tabular' or 'json'.");
+
 DEFINE_bool(color_print, true, "Enables colorized logging.");
 
 DEFINE_int32(v, 0, "The level of verbose logging to output");
@@ -807,19 +811,35 @@ void RunMatchingBenchmarks(const std::string& spec,
   }
 }
 
+std::unique_ptr<BenchmarkReporter> GetDefaultReporter() {
+  typedef std::unique_ptr<BenchmarkReporter> PtrType;
+  if (FLAGS_benchmark_format == "tabular") {
+    return PtrType(new ConsoleReporter);
+  }
+  else if (FLAGS_benchmark_format == "json") {
+    return PtrType(new JSONReporter);
+  } else {
+    std::cerr << "Unexpected format: '" << FLAGS_benchmark_format << "'\n";
+    std::exit(1);
+  }
+}
+
 } // end namespace internal
 
 void RunSpecifiedBenchmarks() {
   RunSpecifiedBenchmarks(nullptr);
 }
 
-void RunSpecifiedBenchmarks(BenchmarkReporter* provided_reporter) {
+void RunSpecifiedBenchmarks(BenchmarkReporter* reporter) {
   std::string spec = FLAGS_benchmark_filter;
   if (spec.empty() || spec == "all")
     spec = ".";  // Regexp that matches all benchmarks
-  ConsoleReporter default_reporter;
-  BenchmarkReporter* reporter = provided_reporter ? provided_reporter
-                                                  : &default_reporter;
+
+  std::unique_ptr<BenchmarkReporter> default_reporter;
+  if (!reporter) {
+    default_reporter = internal::GetDefaultReporter();
+    reporter = default_reporter.get();
+  }
   internal::RunMatchingBenchmarks(spec, reporter);
   reporter->Finalize();
 }
@@ -833,6 +853,7 @@ void PrintUsageAndExit() {
           "          [--benchmark_iterations=<iterations>]\n"
           "          [--benchmark_min_time=<min_time>]\n"
           "          [--benchmark_repetitions=<num_repetitions>]\n"
+          "          [--benchmark_format=<tabular|json>]\n"
           "          [--color_print={true|false}]\n"
           "          [--v=<verbosity>]\n");
   exit(0);
@@ -850,6 +871,8 @@ void ParseCommandLineFlags(int* argc, const char** argv) {
                         &FLAGS_benchmark_min_time) ||
         ParseInt32Flag(argv[i], "benchmark_repetitions",
                        &FLAGS_benchmark_repetitions) ||
+        ParseStringFlag(argv[i], "benchmark_format",
+                        &FLAGS_benchmark_format) ||
         ParseBoolFlag(argv[i], "color_print",
                        &FLAGS_color_print) ||
         ParseInt32Flag(argv[i], "v", &FLAGS_v)) {
@@ -860,6 +883,10 @@ void ParseCommandLineFlags(int* argc, const char** argv) {
     } else if (IsFlag(argv[i], "help")) {
       PrintUsageAndExit();
     }
+  }
+  if (FLAGS_benchmark_format != "tabular" &&
+      FLAGS_benchmark_format != "json") {
+    PrintUsageAndExit();
   }
 }
 

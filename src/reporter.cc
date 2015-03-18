@@ -16,6 +16,7 @@
 
 #include <cstdio>
 #include <cstdlib>
+#include <iostream>
 #include <string>
 #include <vector>
 
@@ -26,11 +27,10 @@
 #include "walltime.h"
 
 namespace benchmark {
-namespace {
 
-void ComputeStats(const std::vector<BenchmarkReporter::Run>& reports,
-                  BenchmarkReporter::Run* mean_data,
-                  BenchmarkReporter::Run* stddev_data) {
+void BenchmarkReporter::ComputeStats(
+    const std::vector<Run>& reports,
+    Run* mean_data, Run* stddev_data) {
   CHECK(reports.size() >= 2) << "Cannot compute stats for less than 2 reports";
   // Accumulators.
   Stat1_d real_accumulated_time_stat;
@@ -42,7 +42,7 @@ void ComputeStats(const std::vector<BenchmarkReporter::Run>& reports,
   std::size_t const run_iterations = reports.front().iterations;
 
   // Populate the accumulators.
-  for (BenchmarkReporter::Run const& run : reports) {
+  for (Run const& run : reports) {
     CHECK_EQ(reports[0].benchmark_name, run.benchmark_name);
     CHECK_EQ(run_iterations, run.iterations);
     real_accumulated_time_stat +=
@@ -82,8 +82,6 @@ void ComputeStats(const std::vector<BenchmarkReporter::Run>& reports,
   stddev_data->bytes_per_second = bytes_per_second_stat.StdDev();
   stddev_data->items_per_second = items_per_second_stat.StdDev();
 }
-
-} // end namespace
 
 void BenchmarkReporter::Finalize() {
 }
@@ -145,7 +143,7 @@ void ConsoleReporter::ReportRuns(const std::vector<Run>& reports) {
 
   Run mean_data;
   Run stddev_data;
-  ComputeStats(reports, &mean_data, &stddev_data);
+  BenchmarkReporter::ComputeStats(reports, &mean_data, &stddev_data);
 
   // Output using PrintRun.
   PrintRunData(mean_data);

@@ -80,6 +80,8 @@ class BenchmarkReporter {
   virtual void Finalize();
 
   virtual ~BenchmarkReporter();
+protected:
+    static void ComputeStats(std::vector<Run> const& reports, Run* mean, Run* stddev);
 };
 
 // Simple reporter that outputs benchmark data to the console. This is the
@@ -88,10 +90,23 @@ class ConsoleReporter : public BenchmarkReporter {
  public:
   virtual bool ReportContext(const Context& context);
   virtual void ReportRuns(const std::vector<Run>& reports);
- private:
+protected:
   virtual void PrintRunData(const Run& report);
 
   size_t name_field_width_;
+};
+
+class JSONReporter : public BenchmarkReporter {
+public:
+  JSONReporter() : first_report_(true) {}
+  virtual bool ReportContext(const Context& context);
+  virtual void ReportRuns(const std::vector<Run>& reports);
+  virtual void Finalize();
+
+private:
+  void PrintRunData(const Run& report);
+
+  bool first_report_;
 };
 
 } // end namespace benchmark

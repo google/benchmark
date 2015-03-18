@@ -150,6 +150,71 @@ static void BM_MultiThreaded(benchmark::State& state) {
 BENCHMARK(BM_MultiThreaded)->Threads(2);
 ```
 
+
+Output Formats
+--------------
+The library supports multiple output formats. Use the
+`--benchmark_format=<tabular|json>` flag to set the format type. `tabular` is
+the default format.
+
+The Tabular format is intended to be a human readable
+format. By default the format generates color output. Example tabular output
+looks like:
+```
+Run on (40 X 2801 MHz CPUs)
+2015/03/17-18:35:54
+Build Type: DEBUG
+Benchmark                               Time(ns)    CPU(ns) Iterations
+----------------------------------------------------------------------
+BM_SetInsert/1024/1                        28928      29349      23853  133.097kB/s   33.2742k items/s
+BM_SetInsert/1024/8                        32065      32913      21375  949.487kB/s   237.372k items/s
+BM_SetInsert/1024/10                       33157      33648      21431  1.13369MB/s   290.225k items/s
+```
+
+The JSON format outputs human readable json split into two top level attributes.
+The `context` attribute contains information about the run in general, including
+information about the CPU and the date.
+The `benchmarks` attribute contains a list of ever benchmark run. Example json
+output looks like:
+```
+{
+  "context": {
+    "date": "2015/03/17-18:40:25",
+    "num_cpus": 40,
+    "mhz_per_cpu": 2801,
+    "cpu_scaling_enabled": false,
+    "build_type": "debug"
+  },
+  "benchmarks": [
+    {
+      "name": "BM_SetInsert/1024/1",
+      "iterations": 94877,
+      "real_time": 29275,
+      "cpu_time": 29836,
+      "bytes_per_second": 134066,
+      "items_per_second": 33516
+    },
+    {
+      "name": "BM_SetInsert/1024/8",
+      "iterations": 21609,
+      "real_time": 32317,
+      "cpu_time": 32429,
+      "bytes_per_second": 986770,
+      "items_per_second": 246693
+    },
+    {
+      "name": "BM_SetInsert/1024/10",
+      "iterations": 21393,
+      "real_time": 32724,
+      "cpu_time": 33355,
+      "bytes_per_second": 1199226,
+      "items_per_second": 299807
+    }
+  ]
+}
+```
+
+
 Linking against the library
 ---------------------------
 When using gcc, it is necessary to link against pthread to avoid runtime exceptions. This is due to how gcc implements std::thread. See [issue #67](https://github.com/google/benchmark/issues/67) for more details.
