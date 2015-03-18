@@ -430,7 +430,6 @@ class Benchmark {
 #define BENCHMARK_PRIVATE_UNIQUE_ID __LINE__
 #endif
 
-
 // Helpers for generating unique variable names
 #define BENCHMARK_PRIVATE_NAME(n) \
     BENCHMARK_PRIVATE_NAME2(_benchmark_, BENCHMARK_PRIVATE_UNIQUE_ID, n)
