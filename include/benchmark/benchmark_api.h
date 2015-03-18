@@ -427,7 +427,7 @@ class Benchmark {
 
 #define BENCHMARK(n)                                         \
   static ::benchmark::internal::Benchmark* BENCHMARK_CONCAT( \
-      __benchmark_, n, __LINE__) BENCHMARK_UNUSED =          \
+      _benchmark_, n, __LINE__) BENCHMARK_UNUSED =           \
       (new ::benchmark::internal::Benchmark(#n, n))
 
 // Old-style macros
@@ -447,12 +447,12 @@ class Benchmark {
 // will register BM_Foo<1> as a benchmark.
 #define BENCHMARK_TEMPLATE(n, a)                             \
   static ::benchmark::internal::Benchmark* BENCHMARK_CONCAT( \
-      __benchmark_, n, __LINE__) BENCHMARK_UNUSED =          \
+      _benchmark_, n, __LINE__) BENCHMARK_UNUSED =           \
       (new ::benchmark::internal::Benchmark(#n "<" #a ">", n<a>))
 
 #define BENCHMARK_TEMPLATE2(n, a, b)                         \
   static ::benchmark::internal::Benchmark* BENCHMARK_CONCAT( \
-      __benchmark_, n, __LINE__) BENCHMARK_UNUSED =          \
+      _benchmark_, n, __LINE__) BENCHMARK_UNUSED =           \
       (new ::benchmark::internal::Benchmark(#n "<" #a "," #b ">", n<a, b>))
 
 // Helper macro to create a main routine in a test that runs the benchmarks
