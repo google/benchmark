@@ -3,6 +3,7 @@
 find_package(Threads REQUIRED)
 
 set(CXX03_FLAGS "${CMAKE_CXX_FLAGS}")
+separate_arguments(CXX03_FLAGS)
 list(REMOVE_ITEM CXX03_FLAGS -std=c++11 -std=c++0x)
 list(APPEND CXX03_FLAGS -std=c++03)
 string(REPLACE ";" " " CXX03_FLAGS "${CXX03_FLAGS}")
