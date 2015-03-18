@@ -27,9 +27,9 @@ include(CXXFeatureCheck)
 check_cxx_compiler_flag(-std=c++11 HAVE_FLAG_CXX_11)
 check_cxx_compiler_flag(-std=c++0x HAVE_FLAG_CXX_0X)
 if (HAVE_FLAG_CXX_11)
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
+  list(APPEND CMAKE_CXX_FLAGS -std=c++11)
 elseif (HAVE_FLAG_CXX_0X)
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++0x")
+  list(APPEND CMAKE_CXX_FLAGS -std=c++0x)
 endif()
 
 # Turn compiler warnings up to 11

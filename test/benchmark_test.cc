@@ -121,6 +121,10 @@ static void BM_Sequential(benchmark::State& state) {
 }
 BENCHMARK_TEMPLATE2(BM_Sequential, std::vector<int>, int)->Range(1 << 0, 1 << 10);
 BENCHMARK_TEMPLATE(BM_Sequential, std::list<int>)->Range(1 << 0, 1 << 10);
+// Test the variadic version of BENCHMARK_TEMPLATE in C++11 and beyond.
+#if __cplusplus >= 201103L
+BENCHMARK_TEMPLATE(BM_Sequential, std::vector<int>, int)->Arg(512);
+#endif
 
 static void BM_StringCompare(benchmark::State& state) {
   std::string s1(state.range_x(), '-');

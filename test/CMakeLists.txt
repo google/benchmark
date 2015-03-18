@@ -2,6 +2,11 @@
 
 find_package(Threads REQUIRED)
 
+set(CXX03_FLAGS "${CMAKE_CXX_FLAGS}")
+list(REMOVE_ITEM CXX03_FLAGS -std=c++11 -std=c++0x)
+list(APPEND CXX03_FLAGS -std=c++03)
+string(REPLACE ";" " " CXX03_FLAGS "${CXX03_FLAGS}")
+
 macro(compile_benchmark_test name)
   add_executable(${name} "${name}.cc")
   target_link_libraries(${name} benchmark ${CMAKE_THREAD_LIBS_INIT})
@@ -23,3 +28,8 @@ add_test(filter_regex_end filter_test --benchmark_filter=.*Pi$ 8)
 
 compile_benchmark_test(basic_test)
 add_test(basic basic_test)
+
+compile_benchmark_test(cxx03_test)
+set_target_properties(cxx03_test
+    PROPERTIES COMPILE_FLAGS "${CXX03_FLAGS}")
+add_test(cxx03 cxx03_test)
