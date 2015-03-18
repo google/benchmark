@@ -431,14 +431,14 @@ class Benchmark {
 #endif
 
 // Helpers for generating unique variable names
-#define BENCHMARK_PRIVATE_NAME(n) \
-    BENCHMARK_PRIVATE_NAME2(_benchmark_, BENCHMARK_PRIVATE_UNIQUE_ID, n)
-#define BENCHMARK_PRIVATE_NAME2(a, b, c) BENCHMARK_PRIVATE_NAME3(a, b, c)
-#define BENCHMARK_PRIVATE_NAME3(a, b, c) a##b##c
+#define BENCHMARK_PRIVATE_CONCAT(n) \
+    BENCHMARK_PRIVATE_CONCAT2(_benchmark_, BENCHMARK_PRIVATE_UNIQUE_ID, n)
+#define BENCHMARK_PRIVATE_CONCAT2(a, b, c) BENCHMARK_PRIVATE_CONCAT3(a, b, c)
+#define BENCHMARK_PRIVATE_CONCAT3(a, b, c) a##b##c
 
 #define BENCHMARK_PRIVATE_DECLARE(n)       \
   static ::benchmark::internal::Benchmark* \
-  BENCHMARK_PRIVATE_NAME(n) BENCHMARK_UNUSED
+  BENCHMARK_PRIVATE_CONCAT(n) BENCHMARK_UNUSED
 
 #define BENCHMARK(n) \
     BENCHMARK_PRIVATE_DECLARE(n) = (new ::benchmark::internal::Benchmark(#n, n))
