@@ -27,11 +27,10 @@
 #include "walltime.h"
 
 namespace benchmark {
-namespace {
 
-void ComputeStats(const std::vector<BenchmarkReporter::Run>& reports,
-                  BenchmarkReporter::Run* mean_data,
-                  BenchmarkReporter::Run* stddev_data) {
+void BenchmarkReporter::ComputeStats(
+    const std::vector<Run>& reports,
+    Run* mean_data, Run* stddev_data) {
   CHECK(reports.size() >= 2) << "Cannot compute stats for less than 2 reports";
   // Accumulators.
   Stat1_d real_accumulated_time_stat;
@@ -43,7 +42,7 @@ void ComputeStats(const std::vector<BenchmarkReporter::Run>& reports,
   std::size_t const run_iterations = reports.front().iterations;
 
   // Populate the accumulators.
-  for (BenchmarkReporter::Run const& run : reports) {
+  for (Run const& run : reports) {
     CHECK_EQ(reports[0].benchmark_name, run.benchmark_name);
     CHECK_EQ(run_iterations, run.iterations);
     real_accumulated_time_stat +=
@@ -83,8 +82,6 @@ void ComputeStats(const std::vector<BenchmarkReporter::Run>& reports,
   stddev_data->bytes_per_second = bytes_per_second_stat.StdDev();
   stddev_data->items_per_second = items_per_second_stat.StdDev();
 }
-
-} // end namespace
 
 void BenchmarkReporter::Finalize() {
 }
@@ -146,7 +143,7 @@ void ConsoleReporter::ReportRuns(const std::vector<Run>& reports) {
 
   Run mean_data;
   Run stddev_data;
-  ComputeStats(reports, &mean_data, &stddev_data);
+  BenchmarkReporter::ComputeStats(reports, &mean_data, &stddev_data);
 
   // Output using PrintRun.
   PrintRunData(mean_data);
@@ -187,147 +184,6 @@ void ConsoleReporter::PrintRunData(const Run& result) {
               13, rate.c_str(),
               18, items.c_str(),
               result.report_label.c_str());
-}
-
-namespace {
-
-std::string FormatKV(std::string const& key, std::string const& value) {
-  return StringPrintF("\"%s\": \"%s\"", key.c_str(), value.c_str());
-}
-
-std::string FormatKV(std::string const& key, const char* value) {
-  return StringPrintF("\"%s\": \"%s\"", key.c_str(), value);
-}
-
-std::string FormatKV(std::string const& key, bool value) {
-  return StringPrintF("\"%s\": %s", key.c_str(), value ? "true" : "false");
-}
-
-std::string FormatKV(std::string const& key, int64_t value) {
-  std::stringstream ss;
-  ss << '"' << key << "\": " << value;
-  return ss.str();
-}
-
-std::string FormatKV(std::string const& key, std::size_t value) {
-  std::stringstream ss;
-  ss << '"' << key << "\": " << value;
-  return ss.str();
-}
-
-int64_t RoundDouble(double v) {
-    return static_cast<int64_t>(v + 0.5);
-}
-
-} // end namespace
-
-bool JSONReporter::ReportContext(const Context& context) {
-  std::ostream& out = std::cout;
-
-  out << "{\n";
-  std::string inner_indent(2, ' ');
-
-  // Open context block and print context information.
-  out << inner_indent << "\"context\": {\n";
-  std::string indent(4, ' ');
-  int remainder_us;
-  std::string walltime_value = walltime::Print(
-                                    walltime::Now(), "%Y/%m/%d-%H:%M:%S",
-                                    true,  // use local timezone
-                                    &remainder_us);
-  out << indent << FormatKV("date", walltime_value) << ",\n";
-
-  out << indent
-      << FormatKV("num_cpus", static_cast<int64_t>(context.num_cpus))
-      << ",\n";
-  out << indent
-      << FormatKV("mhz_per_cpu", RoundDouble(context.mhz_per_cpu))
-      << ",\n";
-  out << indent
-      << FormatKV("cpu_scaling_enabled", context.cpu_scaling_enabled)
-      << ",\n";
-
-#if defined(NDEBUG)
-  const char[] build_type = "release";
-#else
-  const char[] build_type = "debug";
-#endif
-  out << indent << FormatKV("build_type", build_type) << "\n";
-  // Close context block and open the list of benchmarks.
-  out << inner_indent << "},\n";
-  out << inner_indent << "\"benchmarks\": [\n";
-  return true;
-}
-
-void JSONReporter::ReportRuns(std::vector<Run> const& reports) {
-  if (reports.empty()) {
-    return;
-  }
-  std::string indent(4, ' ');
-  std::ostream& out = std::cout;
-  if (!first_report_) {
-    out << ",\n";
-  }
-  first_report_ = false;
-  std::vector<Run> reports_cp = reports;
-  if (reports.size() >= 2) {
-    Run mean_data;
-    Run stddev_data;
-    ComputeStats(reports, &mean_data, &stddev_data);
-    reports_cp.push_back(mean_data);
-    reports_cp.push_back(stddev_data);
-  }
-  for (auto it = reports_cp.begin(); it != reports_cp.end(); ++it) {
-     out << indent << "{\n";
-     PrintRunData(*it);
-     out << indent << '}';
-     auto it_cp = it;
-     if (++it_cp != reports_cp.end()) {
-         out << ',';
-     }
-  }
-}
-
-void JSONReporter::Finalize() {
-    // Close the list of benchmarks and the top level object.
-    std::cout << "\n  ]\n}\n";
-}
-
-void JSONReporter::PrintRunData(Run const& run) {
-    double const multiplier = 1e9; // nano second multiplier
-    double cpu_time = run.cpu_accumulated_time * multiplier;
-    double real_time = run.real_accumulated_time * multiplier;
-    if (run.iterations != 0) {
-        real_time = real_time / static_cast<double>(run.iterations);
-        cpu_time = cpu_time / static_cast<double>(run.iterations);
-    }
-
-    std::string indent(6, ' ');
-    std::ostream& out = std::cout;
-    out << indent
-        << FormatKV("name", run.benchmark_name)
-        << ",\n";
-    out << indent
-        << FormatKV("iterations", run.iterations)
-        << ",\n";
-    out << indent
-        << FormatKV("real_time", RoundDouble(real_time))
-        << ",\n";
-    out << indent
-        << FormatKV("cpu_time", RoundDouble(cpu_time));
-    if (run.bytes_per_second > 0.0) {
-        out << ",\n" << indent
-            << FormatKV("bytes_per_second", RoundDouble(run.bytes_per_second));
-    }
-    if (run.items_per_second > 0.0) {
-        out << ",\n" << indent
-            << FormatKV("items_per_second", RoundDouble(run.items_per_second));
-    }
-    if (!run.report_label.empty()) {
-        out << ",\n" << indent
-            << FormatKV("label", run.report_label);
-    }
-    out << '\n';
 }
 
 } // end namespace benchmark

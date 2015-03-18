@@ -80,6 +80,8 @@ class BenchmarkReporter {
   virtual void Finalize();
 
   virtual ~BenchmarkReporter();
+protected:
+    static void ComputeStats(std::vector<Run> const& reports, Run* mean, Run* stddev);
 };
 
 // Simple reporter that outputs benchmark data to the console. This is the
