@@ -130,6 +130,18 @@ template <class Q> int BM_Sequential(benchmark::State& state) {
 BENCHMARK_TEMPLATE(BM_Sequential, WaitQueue<int>)->Range(1<<0, 1<<10);
 ```
 
+Three macros are provided for adding benchmark templates.
+
+```c++
+#if __cplusplus >= 201103L // C++11 and greater.
+#define BENCHMARK_TEMPLATE(func, ...) // Takes any number of parameters.
+#else // C++ < C++11
+#define BENCHMARK_TEMPLATE(func, arg1)
+#endif
+#define BENCHMARK_TEMPLATE1(func, arg1)
+#define BENCHMARK_TEMPLATE2(func, arg1, arg2)
+```
+
 In a multithreaded test, it is guaranteed that none of the threads will start
 until all have called KeepRunning, and all will have finished before KeepRunning
 returns false. As such, any global setup or teardown you want to do can be

@@ -445,7 +445,7 @@ class Benchmark {
 // BENCHMARK_TEMPLATE(BM_Foo, 1);
 //
 // will register BM_Foo<1> as a benchmark.
-#define BENCHMARK_TEMPLATE(n, a)                             \
+#define BENCHMARK_TEMPLATE1(n, a)                            \
   static ::benchmark::internal::Benchmark* BENCHMARK_CONCAT( \
       _benchmark_, n, __LINE__) BENCHMARK_UNUSED =           \
       (new ::benchmark::internal::Benchmark(#n "<" #a ">", n<a>))
@@ -454,6 +454,16 @@ class Benchmark {
   static ::benchmark::internal::Benchmark* BENCHMARK_CONCAT( \
       _benchmark_, n, __LINE__) BENCHMARK_UNUSED =           \
       (new ::benchmark::internal::Benchmark(#n "<" #a "," #b ">", n<a, b>))
+
+#if __cplusplus >= 201103L
+#define BENCHMARK_TEMPLATE(n, ...) \
+  static ::benchmark::internal::Benchmark* BENCHMARK_CONCAT( \
+      _benchmark_, n, __LINE__) BENCHMARK_UNUSED =           \
+      (new ::benchmark::internal::Benchmark(                 \
+        #n "<" #__VA_ARGS__ ">", n<__VA_ARGS__>))
+#else
+#define BENCHMARK_TEMPLATE(n, a) BENCHMARK_TEMPLATE1(n, a)
+#endif
 
 // Helper macro to create a main routine in a test that runs the benchmarks
 #define BENCHMARK_MAIN()                             \
