@@ -22,11 +22,26 @@
 
 #include "check.h"
 #include "colorprint.h"
+#include "commandlineflags.h"
 #include "stat.h"
 #include "string_util.h"
 #include "walltime.h"
 
+DECLARE_string(benchmark_filter);
+DECLARE_int32(benchmark_iterations);
+DECLARE_double(benchmark_min_time);
+DECLARE_int32(benchmark_repetitions);
+DECLARE_bool(color_print);
+
 namespace benchmark {
+
+BenchmarkReporter::Context::Context()
+    : benchmark_count(0),
+      num_cpus(0),
+      mhz_per_cpu(0.0),
+      cpu_scaling_enabled(false),
+      name_field_width(0)
+{}
 
 void BenchmarkReporter::ComputeStats(
     const std::vector<Run>& reports,
@@ -83,6 +98,26 @@ void BenchmarkReporter::ComputeStats(
   stddev_data->items_per_second = items_per_second_stat.StdDev();
 }
 
+std::string const& BenchmarkReporter::BenchmarkFilterFlag() {
+    return FLAGS_benchmark_filter;
+}
+
+int BenchmarkReporter::BenchmarkIterationsFlag() {
+    return FLAGS_benchmark_iterations;
+}
+
+double BenchmarkReporter::BenchmarkMinTimeFlag() {
+    return FLAGS_benchmark_min_time;
+}
+
+int BenchmarkReporter::BenchmarkRepetitionsFlag() {
+    return FLAGS_benchmark_repetitions;
+}
+
+bool BenchmarkReporter::ColorPrintFlag() {
+    return FLAGS_color_print;
+}
+
 void BenchmarkReporter::Finalize() {
 }
 
@@ -113,6 +148,13 @@ bool ConsoleReporter::ReportContext(const Context& context) {
 #ifndef NDEBUG
   fprintf(stdout, "Build Type: DEBUG\n");
 #endif
+  if (BenchmarkIterationsFlag() == 0) {
+    double estimated_time = context.benchmark_count
+                          * BenchmarkRepetitionsFlag()
+                          * BenchmarkMinTimeFlag()
+                          * 1.4;
+    fprintf(stdout, "Estimated run time: %.0fs\n", estimated_time);
+  }
 
   int output_width =
       fprintf(stdout,

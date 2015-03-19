@@ -30,6 +30,12 @@ namespace benchmark {
 class BenchmarkReporter {
  public:
   struct Context {
+    Context();
+
+    // The total number of benchmarks that will be run
+    std::size_t benchmark_count;
+
+    // Information relating to the CPU.
     int num_cpus;
     double mhz_per_cpu;
     bool cpu_scaling_enabled;
@@ -80,8 +86,15 @@ class BenchmarkReporter {
   virtual void Finalize();
 
   virtual ~BenchmarkReporter();
+
 protected:
     static void ComputeStats(std::vector<Run> const& reports, Run* mean, Run* stddev);
+    // Information relating to the value of the command line flags.
+    static std::string const& BenchmarkFilterFlag();
+    static int BenchmarkIterationsFlag();
+    static double BenchmarkMinTimeFlag();
+    static int BenchmarkRepetitionsFlag();
+    static bool ColorPrintFlag();
 };
 
 // Simple reporter that outputs benchmark data to the console. This is the

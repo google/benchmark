@@ -802,6 +802,7 @@ void RunMatchingBenchmarks(const std::string& spec,
   context.mhz_per_cpu = CyclesPerSecond() / 1000000.0f;
 
   context.cpu_scaling_enabled = CpuScalingEnabled();
+  context.benchmark_count = benchmarks.size();
   context.name_field_width = name_field_width;
 
   if (reporter->ReportContext(context)) {
