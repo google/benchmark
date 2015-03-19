@@ -30,13 +30,22 @@ namespace benchmark {
 class BenchmarkReporter {
  public:
   struct Context {
+    Context();
+
+    // Information relating to the value of the command line flags.
+    std::string benchmark_filter;
+    int benchmark_iterations;
+    double benchmark_min_time;
+    int benchmark_repetitions;
+
+    // The total number of benchmarks that will be run
+    std::size_t benchmark_count;
+
+    // Information relating to the CPU.
     int num_cpus;
     double mhz_per_cpu;
     bool cpu_scaling_enabled;
 
-    double benchmark_min_time;
-    size_t benchmark_count;
-    size_t benchmark_repetitions;
     // The number of chars in the longest benchmark name.
     size_t name_field_width;
   };

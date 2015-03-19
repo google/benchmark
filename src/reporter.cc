@@ -14,21 +14,37 @@
 
 #include "benchmark/reporter.h"
 
-#include <cmath>
 #include <cstdio>
 #include <cstdlib>
 #include <iostream>
-#include <limits>
 #include <string>
 #include <vector>
 
 #include "check.h"
 #include "colorprint.h"
+#include "commandlineflags.h"
 #include "stat.h"
 #include "string_util.h"
 #include "walltime.h"
 
+DECLARE_string(benchmark_filter);
+DECLARE_int32(benchmark_iterations);
+DECLARE_double(benchmark_min_time);
+DECLARE_int32(benchmark_repetitions);
+
 namespace benchmark {
+
+BenchmarkReporter::Context::Context()
+    : benchmark_filter(FLAGS_benchmark_filter),
+      benchmark_iterations(FLAGS_benchmark_iterations),
+      benchmark_min_time(FLAGS_benchmark_min_time),
+      benchmark_repetitions(FLAGS_benchmark_repetitions),
+      benchmark_count(0),
+      num_cpus(0),
+      mhz_per_cpu(0.0),
+      cpu_scaling_enabled(false),
+      name_field_width(0)
+{}
 
 void BenchmarkReporter::ComputeStats(
     const std::vector<Run>& reports,
@@ -115,8 +131,7 @@ bool ConsoleReporter::ReportContext(const Context& context) {
 #ifndef NDEBUG
   fprintf(stdout, "Build Type: DEBUG\n");
 #endif
-  if (std::abs(context.benchmark_min_time)
-        > std::numeric_limits<double>::epsilon()) {
+  if (context.benchmark_iterations == 0) {
     double estimated_time = context.benchmark_count
                           * context.benchmark_repetitions
                           * context.benchmark_min_time
