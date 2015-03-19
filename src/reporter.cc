@@ -31,15 +31,12 @@ DECLARE_string(benchmark_filter);
 DECLARE_int32(benchmark_iterations);
 DECLARE_double(benchmark_min_time);
 DECLARE_int32(benchmark_repetitions);
+DECLARE_bool(color_print);
 
 namespace benchmark {
 
 BenchmarkReporter::Context::Context()
-    : benchmark_filter(FLAGS_benchmark_filter),
-      benchmark_iterations(FLAGS_benchmark_iterations),
-      benchmark_min_time(FLAGS_benchmark_min_time),
-      benchmark_repetitions(FLAGS_benchmark_repetitions),
-      benchmark_count(0),
+    : benchmark_count(0),
       num_cpus(0),
       mhz_per_cpu(0.0),
       cpu_scaling_enabled(false),
@@ -101,6 +98,26 @@ void BenchmarkReporter::ComputeStats(
   stddev_data->items_per_second = items_per_second_stat.StdDev();
 }
 
+std::string const& BenchmarkReporter::BenchmarkFilterFlag() {
+    return FLAGS_benchmark_filter;
+}
+
+int BenchmarkReporter::BenchmarkIterationsFlag() {
+    return FLAGS_benchmark_iterations;
+}
+
+double BenchmarkReporter::BenchmarkMinTimeFlag() {
+    return FLAGS_benchmark_min_time;
+}
+
+int BenchmarkReporter::BenchmarkRepetitionsFlag() {
+    return FLAGS_benchmark_repetitions;
+}
+
+bool BenchmarkReporter::ColorPrintFlag() {
+    return FLAGS_color_print;
+}
+
 void BenchmarkReporter::Finalize() {
 }
 
@@ -131,10 +148,10 @@ bool ConsoleReporter::ReportContext(const Context& context) {
 #ifndef NDEBUG
   fprintf(stdout, "Build Type: DEBUG\n");
 #endif
-  if (context.benchmark_iterations == 0) {
+  if (BenchmarkIterationsFlag() == 0) {
     double estimated_time = context.benchmark_count
-                          * context.benchmark_repetitions
-                          * context.benchmark_min_time
+                          * BenchmarkRepetitionsFlag()
+                          * BenchmarkMinTimeFlag()
                           * 1.4;
     fprintf(stdout, "Estimated run time: %.0fs\n", estimated_time);
   }

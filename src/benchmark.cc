@@ -803,11 +803,7 @@ void RunMatchingBenchmarks(const std::string& spec,
 
   context.cpu_scaling_enabled = CpuScalingEnabled();
   context.benchmark_count = benchmarks.size();
-  context.benchmark_min_time = FLAGS_benchmark_iterations ? 0.0
-                                : FLAGS_benchmark_min_time;
-  context.benchmark_repetitions = FLAGS_benchmark_repetitions;
   context.name_field_width = name_field_width;
-
 
   if (reporter->ReportContext(context)) {
     for (const auto& benchmark : benchmarks) {

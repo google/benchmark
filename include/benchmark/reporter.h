@@ -32,12 +32,6 @@ class BenchmarkReporter {
   struct Context {
     Context();
 
-    // Information relating to the value of the command line flags.
-    std::string benchmark_filter;
-    int benchmark_iterations;
-    double benchmark_min_time;
-    int benchmark_repetitions;
-
     // The total number of benchmarks that will be run
     std::size_t benchmark_count;
 
@@ -92,8 +86,15 @@ class BenchmarkReporter {
   virtual void Finalize();
 
   virtual ~BenchmarkReporter();
+
 protected:
     static void ComputeStats(std::vector<Run> const& reports, Run* mean, Run* stddev);
+    // Information relating to the value of the command line flags.
+    static std::string const& BenchmarkFilterFlag();
+    static int BenchmarkIterationsFlag();
+    static double BenchmarkMinTimeFlag();
+    static int BenchmarkRepetitionsFlag();
+    static bool ColorPrintFlag();
 };
 
 // Simple reporter that outputs benchmark data to the console. This is the
