@@ -34,6 +34,9 @@ class BenchmarkReporter {
     double mhz_per_cpu;
     bool cpu_scaling_enabled;
 
+    double benchmark_min_time;
+    size_t benchmark_count;
+    size_t benchmark_repetitions;
     // The number of chars in the longest benchmark name.
     size_t name_field_width;
   };

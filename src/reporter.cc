@@ -14,9 +14,11 @@
 
 #include "benchmark/reporter.h"
 
+#include <cmath>
 #include <cstdio>
 #include <cstdlib>
 #include <iostream>
+#include <limits>
 #include <string>
 #include <vector>
 
@@ -113,6 +115,14 @@ bool ConsoleReporter::ReportContext(const Context& context) {
 #ifndef NDEBUG
   fprintf(stdout, "Build Type: DEBUG\n");
 #endif
+  if (std::abs(context.benchmark_min_time)
+        > std::numeric_limits<double>::epsilon()) {
+    double estimated_time = context.benchmark_count
+                          * context.benchmark_repetitions
+                          * context.benchmark_min_time
+                          * 1.4;
+    fprintf(stdout, "Estimated run time: %.0fs\n", estimated_time);
+  }
 
   int output_width =
       fprintf(stdout,
