@@ -29,12 +29,33 @@
 #include "arraysize.h"
 #include "check.h"
 #include "cycleclock.h"
+#include "log.h"
 #include "sysinfo.h"
 
 namespace benchmark {
 namespace walltime {
 
 namespace {
+
+#if defined(HAVE_STEADY_CLOCK)
+template <bool HighResIsSteady = std::chrono::high_resolution_clock::is_steady>
+struct ChooseSteadyClock {
+    typedef std::chrono::high_resolution_clock type;
+};
+
+template <>
+struct ChooseSteadyClock<false> {
+    typedef std::chrono::steady_clock type;
+};
+#endif
+
+struct ChooseClockType {
+#if defined(HAVE_STEADY_CLOCK)
+  typedef typename ChooseSteadyClock<>::type type;
+#else
+  typedef std::chrono::high_resolution_clock type;
+#endif
+};
 
 class WallTimeImp
 {
@@ -151,7 +172,7 @@ WallTime CPUWalltimeNow() {
 }
 
 WallTime ChronoWalltimeNow() {
-  typedef std::chrono::system_clock Clock;
+  typedef ChooseClockType::type Clock;
   typedef std::chrono::duration<WallTime, std::chrono::seconds::period>
           FPSeconds;
   static_assert(std::chrono::treat_as_floating_point<WallTime>::value,
@@ -160,13 +181,23 @@ WallTime ChronoWalltimeNow() {
   return std::chrono::duration_cast<FPSeconds>(now).count();
 }
 
+bool UseCpuCycleClock() {
+    bool useWallTime = !CpuScalingEnabled();
+    if (useWallTime) {
+        VLOG(1) << "Using the CPU cycle clock to provide walltime::Now().\n";
+    } else {
+        VLOG(1) << "Using std::chrono to provide walltime::Now().\n";
+    }
+    return useWallTime;
+}
+
 // WallTimeImp doesn't work when CPU Scaling is enabled. If CPU Scaling is
 // enabled at the start of the program then std::chrono::system_clock is used
 // instead.
 WallTime Now()
 {
-  static bool useWallTime = !CpuScalingEnabled();
-  if (useWallTime) {
+  static bool useCPUClock = UseCpuCycleClock();
+  if (useCPUClock) {
     return CPUWalltimeNow();
   } else {
     return ChronoWalltimeNow();
@@ -182,14 +213,11 @@ std::string DateTimeString(bool local) {
   char storage[128];
 
   std::tm timeinfo;
+  std::memset(&timeinfo, 0, sizeof(std::tm));
   if (local) {
-    std::tm* ret = std::localtime(&now);
-    CHECK(ret != nullptr);
-    timeinfo = *ret;
+    ::localtime_r(&now, &timeinfo);
   } else {
-    std::tm* ret = std::gmtime(&now);
-    CHECK(ret != nullptr);
-    timeinfo = *ret;
+    ::gmtime_r(&now, &timeinfo);
   }
   std::size_t written = std::strftime(storage, sizeof(storage), "%F %T", &timeinfo);
   CHECK(written < arraysize(storage));
