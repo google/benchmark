@@ -103,7 +103,8 @@ bool ConsoleReporter::ReportContext(const Context& context) {
 
   if (context.cpu_scaling_enabled) {
     fprintf(stdout, "***WARNING*** CPU scaling is enabled, the benchmark "
-                    "timings may be noisy and will incure extra overhead.\n");
+                    "real time measurements may be noisy and will incure extra "
+                    "overhead.\n");
   }
 
 #ifndef NDEBUG
