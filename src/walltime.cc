@@ -110,11 +110,11 @@ WallTime WallTimeImp::Now() {
       return result + GetDrift();
     }
 
-    now = Slow();
   } while (cycleclock::Now() - ct > max_interval_cycles_);
   // We are now sure that "now" and "result" were produced within
   // kMaxErrorInterval of one another.
 
+  now = Slow();
   SetDrift(now - result);
   last_adjust_time_ = top_bits;
   return now;
