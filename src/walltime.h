@@ -7,6 +7,8 @@ namespace benchmark {
 typedef double WallTime;
 
 namespace walltime {
+WallTime CPUWalltimeNow();
+WallTime ChronoWalltimeNow();
 WallTime Now();
 }  // end namespace walltime
 

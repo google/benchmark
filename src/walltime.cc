@@ -145,6 +145,21 @@ WallTimeImp::WallTimeImp()
 } // end anonymous namespace
 
 
+WallTime CPUWalltimeNow() {
+  static WallTimeImp& imp = WallTimeImp::GetWallTimeImp();
+  return imp.Now();
+}
+
+WallTime ChronoWalltimeNow() {
+  typedef std::chrono::system_clock Clock;
+  typedef std::chrono::duration<WallTime, std::chrono::seconds::period>
+          FPSeconds;
+  static_assert(std::chrono::treat_as_floating_point<WallTime>::value,
+                "This type must be treated as a floating point type.");
+  auto now = Clock::now().time_since_epoch();
+  return std::chrono::duration_cast<FPSeconds>(now).count();
+}
+
 // WallTimeImp doesn't work when CPU Scaling is enabled. If CPU Scaling is
 // enabled at the start of the program then std::chrono::system_clock is used
 // instead.
@@ -152,16 +167,9 @@ WallTime Now()
 {
   static bool useWallTime = !CpuScalingEnabled();
   if (useWallTime) {
-    static WallTimeImp& imp = WallTimeImp::GetWallTimeImp();
-    return imp.Now();
+    return CPUWalltimeNow();
   } else {
-    typedef std::chrono::system_clock Clock;
-    typedef std::chrono::duration<WallTime, std::chrono::seconds::period>
-            FPSeconds;
-    static_assert(std::chrono::treat_as_floating_point<WallTime>::value,
-                  "This type must be treated as a floating point type.");
-    auto now = Clock::now().time_since_epoch();
-    return std::chrono::duration_cast<FPSeconds>(now).count();
+    return ChronoWalltimeNow();
   }
 }
 
@@ -185,6 +193,7 @@ std::string DateTimeString(bool local) {
   }
   std::size_t written = std::strftime(storage, sizeof(storage), "%F %T", &timeinfo);
   CHECK(written < arraysize(storage));
+  ((void)written); // prevent unused variable in optimized mode.
   return std::string(storage);
 }
 
