@@ -68,7 +68,6 @@ void BM_pause_during(benchmark::State& state) {
 BASIC_BENCHMARK_TEST(BM_pause_during);
 BASIC_BENCHMARK_TEST(BM_pause_during)->ThreadPerCpu();
 
-
 void BM_pause_during_realtime(benchmark::State& state) {
   state.UseRealTime();
   while(state.KeepRunning()) {
@@ -78,8 +77,6 @@ void BM_pause_during_realtime(benchmark::State& state) {
 }
 BASIC_BENCHMARK_TEST(BM_pause_during_realtime);
 BASIC_BENCHMARK_TEST(BM_pause_during_realtime)->ThreadPerCpu();
-
-
 
 void BM_spin_pause_after(benchmark::State& state) {
   while(state.KeepRunning()) {

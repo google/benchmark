@@ -15,7 +15,6 @@
 #include "walltime.h"
 
 #include <sys/time.h>
-#include <iostream>
 
 #include <cstdio>
 #include <cstdint>
