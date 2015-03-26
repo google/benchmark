@@ -15,6 +15,7 @@
 #include "walltime.h"
 
 #include <sys/time.h>
+#include <iostream>
 
 #include <cstdio>
 #include <cstdint>
@@ -22,35 +23,17 @@
 #include <ctime>
 
 #include <atomic>
+#include <chrono>
 #include <limits>
 #include <type_traits>
 
+#include "arraysize.h"
 #include "check.h"
 #include "cycleclock.h"
 #include "sysinfo.h"
 
 namespace benchmark {
 namespace walltime {
-namespace {
-
-bool SplitTimezone(WallTime value, bool local, struct tm* t,
-                   double* subsecond) {
-  memset(t, 0, sizeof(*t));
-  if ((value < 0) || (value > std::numeric_limits<time_t>::max())) {
-    *subsecond = 0.0;
-    return false;
-  }
-  const time_t whole_time = static_cast<time_t>(value);
-  *subsecond = value - whole_time;
-  if (local)
-    localtime_r(&whole_time, t);
-  else
-    gmtime_r(&whole_time, t);
-  return true;
-}
-
-} // end anonymous namespace
-
 
 namespace {
 
@@ -163,29 +146,47 @@ WallTimeImp::WallTimeImp()
 } // end anonymous namespace
 
 
+// WallTimeImp doesn't work when CPU Scaling is enabled. If CPU Scaling is
+// enabled at the start of the program then std::chrono::system_clock is used
+// instead.
 WallTime Now()
 {
+  static bool useWallTime = !CpuScalingEnabled();
+  if (useWallTime) {
     static WallTimeImp& imp = WallTimeImp::GetWallTimeImp();
     return imp.Now();
-}
-
-std::string Print(WallTime time, const char* format, bool local,
-                  int* remainder_us) {
-  char storage[32];
-  struct tm split;
-  double subsecond;
-  if (!SplitTimezone(time, local, &split, &subsecond)) {
-    snprintf(storage, sizeof(storage), "Invalid time: %f", time);
   } else {
-    if (remainder_us != nullptr) {
-      *remainder_us = static_cast<int>((subsecond * 1000000) + 0.5);
-      if (*remainder_us > 999999) *remainder_us = 999999;
-      if (*remainder_us < 0) *remainder_us = 0;
-    }
-    strftime(storage, sizeof(storage), format, &split);
+    typedef std::chrono::system_clock Clock;
+    typedef std::chrono::duration<WallTime, std::chrono::seconds::period>
+            FPSeconds;
+    static_assert(std::chrono::treat_as_floating_point<WallTime>::value,
+                  "This type must be treated as a floating point type.");
+    auto now = Clock::now().time_since_epoch();
+    return std::chrono::duration_cast<FPSeconds>(now).count();
   }
-  return std::string(storage);
 }
 
 }  // end namespace walltime
+
+
+std::string DateTimeString(bool local) {
+  typedef std::chrono::system_clock Clock;
+  std::time_t now = Clock::to_time_t(Clock::now());
+  char storage[128];
+
+  std::tm timeinfo;
+  if (local) {
+    std::tm* ret = std::localtime(&now);
+    CHECK(ret != nullptr);
+    timeinfo = *ret;
+  } else {
+    std::tm* ret = std::gmtime(&now);
+    CHECK(ret != nullptr);
+    timeinfo = *ret;
+  }
+  std::size_t written = std::strftime(storage, sizeof(storage), "%F %T", &timeinfo);
+  CHECK(written < arraysize(storage));
+  return std::string(storage);
+}
+
 }  // end namespace benchmark

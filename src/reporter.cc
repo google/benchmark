@@ -98,11 +98,7 @@ bool ConsoleReporter::ReportContext(const Context& context) {
           context.mhz_per_cpu,
           (context.num_cpus > 1) ? "s" : "");
 
-  int remainder_us;
-  std::string walltime_str = walltime::Print(
-                                walltime::Now(), "%Y/%m/%d-%H:%M:%S",
-                                true,  // use local timezone
-                                &remainder_us);
+  std::string walltime_str = LocalDateTimeString();
   fprintf(stdout, "%s\n", walltime_str.c_str());
 
   if (context.cpu_scaling_enabled) {
