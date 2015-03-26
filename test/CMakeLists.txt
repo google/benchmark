@@ -32,5 +32,3 @@ compile_benchmark_test(cxx03_test)
 set_target_properties(cxx03_test
     PROPERTIES COMPILE_FLAGS "${CXX03_FLAGS}")
 add_test(cxx03 cxx03_test)
-
-compile_benchmark_test(walltime_test)

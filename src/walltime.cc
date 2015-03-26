@@ -163,9 +163,6 @@ WallTimeImp::WallTimeImp()
   last_adjust_time_ = static_cast<uint32_t>(uint64_t(base_cycletime_) >> 32);
 }
 
-} // end anonymous namespace
-
-
 WallTime CPUWalltimeNow() {
   static WallTimeImp& imp = WallTimeImp::GetWallTimeImp();
   return imp.Now();
@@ -190,6 +187,9 @@ bool UseCpuCycleClock() {
     }
     return useWallTime;
 }
+
+
+} // end anonymous namespace
 
 // WallTimeImp doesn't work when CPU Scaling is enabled. If CPU Scaling is
 // enabled at the start of the program then std::chrono::system_clock is used
