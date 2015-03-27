@@ -1,6 +1,7 @@
 *.a
 *.so
 *.so.?*
+*.exe
 *.dylib
 *.cmake
 !/cmake/*.cmake
