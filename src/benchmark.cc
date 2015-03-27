@@ -73,6 +73,8 @@ namespace benchmark {
 
 namespace internal {
 
+void UseCharPointer(char const volatile*) {}
+
 // NOTE: This is a dummy "mutex" type used to denote the actual mutex
 // returned by GetBenchmarkLock(). This is only used to placate the thread
 // safety warnings by giving the return of GetBenchmarkLock() a name.
