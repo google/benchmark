@@ -2,8 +2,9 @@
 include_directories(${PROJECT_SOURCE_DIR}/src)
 
 # Define the source files
-set(SOURCE_FILES "benchmark.cc" "colorprint.cc" "commandlineflags.cc" "log.cc"
-                 "json_reporter.cc" "reporter.cc" "sleep.cc" "string_util.cc"
+set(SOURCE_FILES "benchmark.cc" "colorprint.cc" "commandlineflags.cc"
+                 "console_reporter.cc" "csv_reporter.cc" "json_reporter.cc"
+                 "log.cc" "reporter.cc" "sleep.cc" "string_util.cc"
                  "sysinfo.cc" "walltime.cc")
 # Determine the correct regular expression engine to use
 if(HAVE_STD_REGEX)

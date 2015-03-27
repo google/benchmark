@@ -14,17 +14,11 @@
 
 #include "benchmark/reporter.h"
 
-#include <cstdio>
 #include <cstdlib>
-#include <iostream>
-#include <string>
 #include <vector>
 
 #include "check.h"
-#include "colorprint.h"
 #include "stat.h"
-#include "string_util.h"
-#include "walltime.h"
 
 namespace benchmark {
 
@@ -87,100 +81,6 @@ void BenchmarkReporter::Finalize() {
 }
 
 BenchmarkReporter::~BenchmarkReporter() {
-}
-
-bool ConsoleReporter::ReportContext(const Context& context) {
-  name_field_width_ = context.name_field_width;
-
-  fprintf(stdout,
-          "Run on (%d X %0.0f MHz CPU%s)\n",
-          context.num_cpus,
-          context.mhz_per_cpu,
-          (context.num_cpus > 1) ? "s" : "");
-
-  std::string walltime_str = LocalDateTimeString();
-  fprintf(stdout, "%s\n", walltime_str.c_str());
-
-  if (context.cpu_scaling_enabled) {
-    fprintf(stdout, "***WARNING*** CPU scaling is enabled, the benchmark "
-                    "real time measurements may be noisy and will incure extra "
-                    "overhead.\n");
-  }
-
-#ifndef NDEBUG
-  fprintf(stdout, "Build Type: DEBUG\n");
-#endif
-
-  int output_width =
-      fprintf(stdout,
-              "%-*s %10s %10s %10s\n",
-              static_cast<int>(name_field_width_),
-              "Benchmark",
-              "Time(ns)", "CPU(ns)",
-              "Iterations");
-  fprintf(stdout, "%s\n", std::string(output_width - 1, '-').c_str());
-
-  return true;
-}
-
-void ConsoleReporter::ReportRuns(const std::vector<Run>& reports) {
-  if (reports.empty()) {
-    return;
-  }
-
-  for (Run const& run : reports) {
-    CHECK_EQ(reports[0].benchmark_name, run.benchmark_name);
-    PrintRunData(run);
-  }
-
-  if (reports.size() < 2) {
-    // We don't report aggregated data if there was a single run.
-    return;
-  }
-
-  Run mean_data;
-  Run stddev_data;
-  BenchmarkReporter::ComputeStats(reports, &mean_data, &stddev_data);
-
-  // Output using PrintRun.
-  PrintRunData(mean_data);
-  PrintRunData(stddev_data);
-  fprintf(stdout, "\n");
-}
-
-void ConsoleReporter::PrintRunData(const Run& result) {
-  // Format bytes per second
-  std::string rate;
-  if (result.bytes_per_second > 0) {
-    rate = StrCat(" ", HumanReadableNumber(result.bytes_per_second), "B/s");
-  }
-
-  // Format items per second
-  std::string items;
-  if (result.items_per_second > 0) {
-    items = StrCat(" ", HumanReadableNumber(result.items_per_second),
-                   " items/s");
-  }
-
-  double const multiplier = 1e9; // nano second multiplier
-  ColorPrintf(COLOR_GREEN, "%-*s ",
-              name_field_width_, result.benchmark_name.c_str());
-  if (result.iterations == 0) {
-    ColorPrintf(COLOR_YELLOW, "%10.0f %10.0f ",
-                result.real_accumulated_time * multiplier,
-                result.cpu_accumulated_time * multiplier);
-  } else {
-    ColorPrintf(COLOR_YELLOW, "%10.0f %10.0f ",
-                (result.real_accumulated_time * multiplier) /
-                    (static_cast<double>(result.iterations)),
-                (result.cpu_accumulated_time * multiplier) /
-                    (static_cast<double>(result.iterations)));
-  }
-  ColorPrintf(COLOR_CYAN, "%10lld", result.iterations);
-  ColorPrintf(COLOR_DEFAULT, "%*s %*s %s\n",
-              13, rate.c_str(),
-              18, items.c_str(),
-              result.report_label.c_str());
 }
 
 } // end namespace benchmark
