@@ -184,12 +184,12 @@ void UseCharPointer(char const volatile*);
 // See: http://stackoverflow.com/questions/28287064
 #if defined(__GNUC__)
 template <class Tp>
-inline BENCHMARK_ALWAYS_INLINE void DoNotOptimize(Tp& value) {
+inline BENCHMARK_ALWAYS_INLINE void DoNotOptimize(Tp const& value) {
     asm volatile("" : "+r" (value));
 }
 #else
 template <class Tp>
-inline BENCHMARK_ALWAYS_INLINE void DoNotOptimize(Tp& value) {
+inline BENCHMARK_ALWAYS_INLINE void DoNotOptimize(Tp const& value) {
     internal::UseCharPointer(&reinterpret_cast<char const volatile&>(value));
 }
 #endif
