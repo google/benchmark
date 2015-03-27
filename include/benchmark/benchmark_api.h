@@ -174,7 +174,22 @@ struct EnableIfString<T, typename Voider<typename T::basic_string>::type> {
     typedef int type;
 };
 
+void UseCharPointer(char const volatile*);
+
 } // end namespace internal
+
+#if defined(__GNUC__)
+template <class Tp>
+inline BENCHMARK_ALWAYS_INLINE void DoNotOptimize(Tp& value) {
+    asm volatile("" : "+r" (value));
+}
+#else
+template <class Tp>
+inline BENCHMARK_ALWAYS_INLINE void DoNotOptimize(Tp& value) {
+    internal::UseCharPointer(&reinterpret_cast<char const volatile&>(value));
+}
+#endif
+
 
 // State is passed to a running Benchmark and contains state for the
 // benchmark to use.
