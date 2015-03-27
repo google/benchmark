@@ -802,26 +802,14 @@ void RunMatchingBenchmarks(const std::string& spec,
   auto families = benchmark::internal::BenchmarkFamilies::GetInstance();
   if (!families->FindBenchmarks(spec, &benchmarks)) return;
 
-
   // Determine the width of the name field using a minimum width of 10.
-  // Also determine max number of threads needed.
   size_t name_field_width = 10;
   for (const internal::Benchmark::Instance& benchmark : benchmarks) {
-    // Add width for _stddev and threads:XX
-    if (benchmark.threads > 1 && FLAGS_benchmark_repetitions > 1) {
-      name_field_width =
-          std::max<size_t>(name_field_width, benchmark.name.size() + 17);
-    } else if (benchmark.threads > 1) {
-      name_field_width =
-          std::max<size_t>(name_field_width, benchmark.name.size() + 10);
-    } else if (FLAGS_benchmark_repetitions > 1) {
-      name_field_width =
-          std::max<size_t>(name_field_width, benchmark.name.size() + 7);
-    } else {
-      name_field_width =
-          std::max<size_t>(name_field_width, benchmark.name.size());
-    }
+    name_field_width =
+        std::max<size_t>(name_field_width, benchmark.name.size());
   }
+  if (FLAGS_benchmark_repetitions > 1)
+    name_field_width += std::strlen("_stddev");
 
   // Print header here
   BenchmarkReporter::Context context;
