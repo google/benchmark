@@ -72,9 +72,8 @@ BENCHMARK_RANGE(BM_CalculatePiRange, 1, 1024 * 1024);
 
 static void BM_CalculatePi(benchmark::State& state) {
   static const int depth = 1024;
-  double pi BENCHMARK_UNUSED = 0.0;
   while (state.KeepRunning()) {
-    pi = CalculatePi(depth);
+    benchmark::DoNotOptimize(CalculatePi(depth));
   }
 }
 BENCHMARK(BM_CalculatePi)->Threads(8);
@@ -117,11 +116,8 @@ BENCHMARK_TEMPLATE(BM_Sequential, std::vector<int>, int)->Arg(512);
 static void BM_StringCompare(benchmark::State& state) {
   std::string s1(state.range_x(), '-');
   std::string s2(state.range_x(), '-');
-  int r = 0;
   while (state.KeepRunning())
-    r |= s1.compare(s2);
-  // Prevent compiler optimizations
-  assert(r != std::numeric_limits<int>::max());
+    benchmark::DoNotOptimize(s1.compare(s2));
 }
 BENCHMARK(BM_StringCompare)->Range(1, 1<<20);
 
@@ -147,10 +143,10 @@ BENCHMARK(BM_SetupTeardown)->ThreadPerCpu();
 
 static void BM_LongTest(benchmark::State& state) {
   double tracker = 0.0;
-  while (state.KeepRunning())
+  while (state.KeepRunning()) {
     for (int i = 0; i < state.range_x(); ++i)
-      tracker += i;
-  assert(tracker > 1.0);
+      benchmark::DoNotOptimize(tracker += i);
+  }
 }
 BENCHMARK(BM_LongTest)->Range(1<<16,1<<28);
 
