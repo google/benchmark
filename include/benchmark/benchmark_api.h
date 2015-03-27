@@ -185,7 +185,7 @@ void UseCharPointer(char const volatile*);
 #if defined(__GNUC__)
 template <class Tp>
 inline BENCHMARK_ALWAYS_INLINE void DoNotOptimize(Tp const& value) {
-    asm volatile("" : "+r" (value));
+    asm volatile("" : "+r" (const_cast<Tp&>(value)));
 }
 #else
 template <class Tp>
