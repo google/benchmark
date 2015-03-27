@@ -421,14 +421,27 @@ class Benchmark {
 // ------------------------------------------------------
 // Macro to register benchmarks
 
-// Helpers for generating unique variable names
-#define BENCHMARK_CONCAT(a, b, c) BENCHMARK_CONCAT2(a, b, c)
-#define BENCHMARK_CONCAT2(a, b, c) a##b##c
+// Check that __COUNTER__ is defined and that __COUNTER__ increases by 1
+// every time it is expanded. X + 1 == X + 0 is used in case X is defined to be
+// empty. If X is empty the expression becomes (+1 == +0).
+#if defined(__COUNTER__) && (__COUNTER__ + 1 == __COUNTER__ + 0)
+#define BENCHMARK_PRIVATE_UNIQUE_ID __COUNTER__
+#else
+#define BENCHMARK_PRIVATE_UNIQUE_ID __LINE__
+#endif
 
-#define BENCHMARK(n)                                         \
-  static ::benchmark::internal::Benchmark* BENCHMARK_CONCAT( \
-      _benchmark_, n, __LINE__) BENCHMARK_UNUSED =           \
-      (new ::benchmark::internal::Benchmark(#n, n))
+// Helpers for generating unique variable names
+#define BENCHMARK_PRIVATE_NAME(n) \
+    BENCHMARK_PRIVATE_CONCAT(_benchmark_, BENCHMARK_PRIVATE_UNIQUE_ID, n)
+#define BENCHMARK_PRIVATE_CONCAT(a, b, c) BENCHMARK_PRIVATE_CONCAT2(a, b, c)
+#define BENCHMARK_PRIVATE_CONCAT2(a, b, c) a##b##c
+
+#define BENCHMARK_PRIVATE_DECLARE(n)       \
+  static ::benchmark::internal::Benchmark* \
+  BENCHMARK_PRIVATE_NAME(n) BENCHMARK_UNUSED
+
+#define BENCHMARK(n) \
+    BENCHMARK_PRIVATE_DECLARE(n) = (new ::benchmark::internal::Benchmark(#n, n))
 
 // Old-style macros
 #define BENCHMARK_WITH_ARG(n, a) BENCHMARK(n)->Arg((a))
@@ -445,21 +458,18 @@ class Benchmark {
 // BENCHMARK_TEMPLATE(BM_Foo, 1);
 //
 // will register BM_Foo<1> as a benchmark.
-#define BENCHMARK_TEMPLATE1(n, a)                            \
-  static ::benchmark::internal::Benchmark* BENCHMARK_CONCAT( \
-      _benchmark_, n, __LINE__) BENCHMARK_UNUSED =           \
+#define BENCHMARK_TEMPLATE1(n, a) \
+  BENCHMARK_PRIVATE_DECLARE(n) =  \
       (new ::benchmark::internal::Benchmark(#n "<" #a ">", n<a>))
 
-#define BENCHMARK_TEMPLATE2(n, a, b)                         \
-  static ::benchmark::internal::Benchmark* BENCHMARK_CONCAT( \
-      _benchmark_, n, __LINE__) BENCHMARK_UNUSED =           \
+#define BENCHMARK_TEMPLATE2(n, a, b) \
+  BENCHMARK_PRIVATE_DECLARE(n) =     \
       (new ::benchmark::internal::Benchmark(#n "<" #a "," #b ">", n<a, b>))
 
 #if __cplusplus >= 201103L
-#define BENCHMARK_TEMPLATE(n, ...) \
-  static ::benchmark::internal::Benchmark* BENCHMARK_CONCAT( \
-      _benchmark_, n, __LINE__) BENCHMARK_UNUSED =           \
-      (new ::benchmark::internal::Benchmark(                 \
+#define BENCHMARK_TEMPLATE(n, ...)           \
+  BENCHMARK_PRIVATE_DECLARE(n) =             \
+      (new ::benchmark::internal::Benchmark( \
         #n "<" #__VA_ARGS__ ">", n<__VA_ARGS__>))
 #else
 #define BENCHMARK_TEMPLATE(n, a) BENCHMARK_TEMPLATE1(n, a)
