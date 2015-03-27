@@ -113,6 +113,14 @@ template <class Q> int BM_Sequential(benchmark::State& state) {
 }
 BENCHMARK_TEMPLATE(BM_Sequential, WaitQueue<int>)->Range(1<<0, 1<<10);
 
+Use `Benchmark::MinTime(double t)` to set the minimum time used to run the
+benchmark. This option overrides the `benchmark_min_time` flag.
+
+void BM_test(benchmark::State& state) {
+ ... body ...
+}
+BENCHMARK(BM_test)->MinTime(2.0); // Run for at least 2 seconds.
+
 In a multithreaded test, it is guaranteed that none of the threads will start
 until all have called KeepRunning, and all will have finished before KeepRunning
 returns false. As such, any global setup or teardown you want to do can be
@@ -246,14 +254,6 @@ public:
   // heavyweight, and so their use should generally be avoided
   // within each benchmark iteration, if possible.
   void ResumeTiming();
-
-  // If a particular benchmark is I/O bound, or if for some reason CPU
-  // timings are not representative, call this method from within the
-  // benchmark routine.  If called, the elapsed time will be used to
-  // control how many iterations are run, and in the printing of
-  // items/second or MB/seconds values.  If not called, the cpu time
-  // used by the benchmark will be used.
-  void UseRealTime();
 
   // Set the number of bytes processed by the current benchmark
   // execution.  This routine is typically called once at the end of a
@@ -400,6 +400,17 @@ class Benchmark {
   // the benchmark by calling various methods like Arg, ArgPair,
   // Threads, etc.
   Benchmark* Apply(void (*func)(Benchmark* benchmark));
+
+  // Set the minimum amount of time to use when running this benchmark. This
+  // option overrides the `benchmark_min_time` flag.
+  Benchmark* MinTime(double t);
+
+  // If a particular benchmark is I/O bound, or if for some reason CPU
+  // timings are not representative, call this method. If called, the elapsed
+  // time will be used to control how many iterations are run, and in the
+  // printing of items/second or MB/seconds values.  If not called, the cpu
+  // time used by the benchmark will be used.
+  Benchmark* UseRealTime();
 
   // Support for running multiple copies of the same benchmark concurrently
   // in multiple threads.  This may be useful when measuring the scaling

@@ -25,8 +25,11 @@ add_test(filter_regex_wildcard filter_test --benchmark_filter=.*Calculate.* 16)
 add_test(filter_regex_begin filter_test --benchmark_filter=^BM_Calculate.* 16)
 add_test(filter_regex_end filter_test --benchmark_filter=.*Pi$ 8)
 
+compile_benchmark_test(options_test)
+add_test(options_benchmarks options_test)
+
 compile_benchmark_test(basic_test)
-add_test(basic basic_test)
+add_test(basic_benchmark basic_test)
 
 compile_benchmark_test(cxx03_test)
 set_target_properties(cxx03_test
