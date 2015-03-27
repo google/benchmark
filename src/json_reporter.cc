@@ -65,11 +65,8 @@ bool JSONReporter::ReportContext(const Context& context) {
   // Open context block and print context information.
   out << inner_indent << "\"context\": {\n";
   std::string indent(4, ' ');
-  int remainder_us;
-  std::string walltime_value = walltime::Print(
-                                    walltime::Now(), "%Y/%m/%d-%H:%M:%S",
-                                    true,  // use local timezone
-                                    &remainder_us);
+
+  std::string walltime_value = LocalDateTimeString();
   out << indent << FormatKV("date", walltime_value) << ",\n";
 
   out << indent

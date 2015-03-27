@@ -54,6 +54,7 @@ endif()
 cxx_feature_check(STD_REGEX)
 cxx_feature_check(GNU_POSIX_REGEX)
 cxx_feature_check(POSIX_REGEX)
+cxx_feature_check(STEADY_CLOCK)
 
 # Set up directories
 include_directories(${PROJECT_SOURCE_DIR}/include)
