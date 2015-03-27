@@ -13,13 +13,19 @@
 // limitations under the License.
 
 #include "sysinfo.h"
+#include "internal_macros.h"
 
+#ifdef OS_WINDOWS
+#include <Shlwapi.h>
+#include <Windows.h>
+#else
 #include <fcntl.h>
 #include <sys/resource.h>
 #include <sys/types.h> // this header must be included before 'sys/sysctl.h' to avoid compilation error on FreeBSD
 #include <sys/sysctl.h>
 #include <sys/time.h>
 #include <unistd.h>
+#endif
 
 #include <cerrno>
 #include <cstdio>
