@@ -178,6 +178,10 @@ void UseCharPointer(char const volatile*);
 
 } // end namespace internal
 
+// The DoNotOptimize(...) function can be used to prevent a value or
+// expression from being optimized away by the compiler. This function is 
+// intented to add little to no overhead.
+// See: http://stackoverflow.com/questions/28287064
 #if defined(__GNUC__)
 template <class Tp>
 inline BENCHMARK_ALWAYS_INLINE void DoNotOptimize(Tp& value) {
