@@ -6,6 +6,7 @@ double MyCPUUsage();
 double ChildrenCPUUsage();
 int NumCPUs();
 double CyclesPerSecond();
+bool CpuScalingEnabled();
 }  // end namespace benchmark
 
 #endif  // BENCHMARK_SYSINFO_H_

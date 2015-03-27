@@ -69,17 +69,6 @@ DEFINE_bool(color_print, true, "Enables colorized logging.");
 DEFINE_int32(v, 0, "The level of verbose logging to output");
 
 
-// The ""'s catch people who don't pass in a literal for "str"
-#define strliterallen(str) (sizeof("" str "") - 1)
-
-// Must use a string literal for prefix.
-#define memprefix(str, len, prefix)                       \
-  ((((len) >= strliterallen(prefix)) &&                   \
-    std::memcmp(str, prefix, strliterallen(prefix)) == 0) \
-       ? str + strliterallen(prefix)                      \
-       : nullptr)
-
-
 namespace benchmark {
 
 namespace internal {
@@ -119,23 +108,6 @@ bool use_real_time GUARDED_BY(GetBenchmarkLock());
 
 // TODO(ericwf): support MallocCounter.
 //static benchmark::MallocCounter *benchmark_mc;
-
-static bool CpuScalingEnabled() {
-  // On Linux, the CPUfreq subsystem exposes CPU information as files on the
-  // local file system. If reading the exported files fails, then we may not be
-  // running on Linux, so we silently ignore all the read errors.
-  for (int cpu = 0, num_cpus = NumCPUs(); cpu < num_cpus; ++cpu) {
-    std::string governor_file = StrCat("/sys/devices/system/cpu/cpu", cpu,
-                                       "/cpufreq/scaling_governor");
-    FILE* file = fopen(governor_file.c_str(), "r");
-    if (!file) break;
-    char buff[16];
-    size_t bytes_read = fread(buff, 1, sizeof(buff), file);
-    fclose(file);
-    if (memprefix(buff, bytes_read, "performance") == nullptr) return true;
-  }
-  return false;
-}
 
 struct ThreadStats {
     ThreadStats() : bytes_processed(0), items_processed(0) {}
