@@ -207,6 +207,8 @@ WallTime Now()
 }  // end namespace walltime
 
 
+namespace {
+
 std::string DateTimeString(bool local) {
   typedef std::chrono::system_clock Clock;
   std::time_t now = Clock::to_time_t(Clock::now());
@@ -223,6 +225,12 @@ std::string DateTimeString(bool local) {
   CHECK(written < arraysize(storage));
   ((void)written); // prevent unused variable in optimized mode.
   return std::string(storage);
+}
+
+} // end namespace
+
+std::string LocalDateTimeString() {
+  return DateTimeString(true);
 }
 
 }  // end namespace benchmark

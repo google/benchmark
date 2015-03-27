@@ -10,11 +10,7 @@ namespace walltime {
 WallTime Now();
 }  // end namespace walltime
 
-std::string DateTimeString(bool local = false);
-
-inline std::string LocalDateTimeString() {
-    return DateTimeString(true);
-}
+std::string LocalDateTimeString();
 
 }  // end namespace benchmark
 
