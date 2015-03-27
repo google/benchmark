@@ -60,8 +60,6 @@ static void BM_Factorial(benchmark::State& state) {
 BENCHMARK(BM_Factorial);
 
 static void BM_FactorialRealTime(benchmark::State& state) {
-  state.UseRealTime();
-
   int fac_42 = 0;
   while (state.KeepRunning())
     fac_42 = Factorial(8);
@@ -70,7 +68,7 @@ static void BM_FactorialRealTime(benchmark::State& state) {
   ss << fac_42;
   state.SetLabel(ss.str());
 }
-BENCHMARK(BM_FactorialRealTime);
+BENCHMARK(BM_FactorialRealTime)->UseRealTime();
 
 static void BM_CalculatePiRange(benchmark::State& state) {
   double pi = 0.0;

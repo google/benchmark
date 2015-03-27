@@ -43,10 +43,6 @@ DEFINE_string(benchmark_filter, ".",
               "If this flag is the string \"all\", all benchmarks linked "
               "into the process are run.");
 
-DEFINE_int32(benchmark_iterations, 0,
-             "Total number of iterations per benchmark. 0 means the benchmarks "
-             "are time-based.");
-
 DEFINE_double(benchmark_min_time, 0.5,
               "Minimum number of seconds we should run benchmark before "
               "results are considered significant.  For cpu-time based "
@@ -101,6 +97,10 @@ GetBenchmarkLock()
 
 namespace {
 
+bool IsZero(double n) {
+    return std::abs(n) < std::numeric_limits<double>::epsilon();
+}
+
 // For non-dense Range, intermediate values are powers of kRangeMultiplier.
 static const int kRangeMultiplier = 8;
 static const int kMaxIterations = 1000000000;
@@ -112,10 +112,6 @@ std::string* GetReportLabel() {
     static std::string label GUARDED_BY(GetBenchmarkLock());
     return &label;
 }
-
-// Should this benchmark base decisions off of real time rather than
-// cpu time?
-bool use_real_time GUARDED_BY(GetBenchmarkLock());
 
 // TODO(ericwf): support MallocCounter.
 //static benchmark::MallocCounter *benchmark_mc;
@@ -283,6 +279,8 @@ struct Benchmark::Instance {
   int           arg1;
   bool          has_arg2;
   int           arg2;
+  bool          use_real_time;
+  double        min_time;
   int           threads;    // Number of concurrent threads to use
   bool          multithreaded;  // Is benchmark multi-threaded?
 };
@@ -322,6 +320,8 @@ public:
   void DenseRange(int start, int limit);
   void ArgPair(int start, int limit);
   void RangePair(int lo1, int hi1, int lo2, int hi2);
+  void MinTime(double n);
+  void UseRealTime();
   void Threads(int t);
   void ThreadRange(int min_threads, int max_threads);
   void ThreadPerCpu();
@@ -335,6 +335,8 @@ private:
   Function* function_;
   int arg_count_;
   std::vector< std::pair<int, int> > args_;  // Args for all benchmark runs
+  double min_time_;
+  bool use_real_time_;
   std::vector<int> thread_counts_;
   std::size_t registration_index_;
 
@@ -414,6 +416,8 @@ bool BenchmarkFamilies::FindBenchmarks(
         instance.arg1 = args.first;
         instance.has_arg2 = family->arg_count_ == 2;
         instance.arg2 = args.second;
+        instance.min_time = family->min_time_;
+        instance.use_real_time = family->use_real_time_;
         instance.threads = num_threads;
         instance.multithreaded = !(family->thread_counts_.empty());
 
@@ -423,6 +427,12 @@ bool BenchmarkFamilies::FindBenchmarks(
         }
         if (family->arg_count_ >= 2) {
           AppendHumanReadable(instance.arg2, &instance.name);
+        }
+        if (!IsZero(family->min_time_)) {
+          instance.name +=  StringPrintF("/min_time:%0.3f",  family->min_time_);
+        }
+        if (family->use_real_time_) {
+          instance.name +=  "/real_time";
         }
 
         // Add the number of threads used to the name
@@ -438,7 +448,8 @@ bool BenchmarkFamilies::FindBenchmarks(
 }
 
 BenchmarkImp::BenchmarkImp(const char* name, Function* func)
-    : name_(name), function_(func), arg_count_(-1) {
+    : name_(name), function_(func), arg_count_(-1),
+      min_time_(0.0), use_real_time_(false) {
     registration_index_ = BenchmarkFamilies::GetInstance()->AddBenchmark(this);
 }
 
@@ -491,6 +502,15 @@ void BenchmarkImp::RangePair(int lo1, int hi1, int lo2, int hi2) {
       args_.emplace_back(i, j);
     }
   }
+}
+
+void BenchmarkImp::MinTime(double t) {
+  CHECK(t > 0.0);
+  min_time_ = t;
+}
+
+void BenchmarkImp::UseRealTime() {
+  use_real_time_ = true;
 }
 
 void BenchmarkImp::Threads(int t) {
@@ -571,6 +591,16 @@ Benchmark* Benchmark::Apply(void (*custom_arguments)(Benchmark* benchmark)) {
   return this;
 }
 
+Benchmark* Benchmark::MinTime(double t) {
+  imp_->MinTime(t);
+  return this;
+}
+
+Benchmark* Benchmark::UseRealTime() {
+  imp_->UseRealTime();
+  return this;
+}
+
 Benchmark* Benchmark::Threads(int t) {
   imp_->Threads(t);
   return this;
@@ -611,8 +641,8 @@ void RunInThread(const benchmark::internal::Benchmark::Instance* b,
 
 void RunBenchmark(const benchmark::internal::Benchmark::Instance& b,
                   BenchmarkReporter* br) EXCLUDES(GetBenchmarkLock()) {
-  int iters = FLAGS_benchmark_iterations ? FLAGS_benchmark_iterations
-                                         : 1;
+  int iters = 1;
+
   std::vector<BenchmarkReporter::Run> reports;
 
   std::vector<std::thread> pool;
@@ -628,7 +658,6 @@ void RunBenchmark(const benchmark::internal::Benchmark::Instance& b,
       {
         MutexLock l(GetBenchmarkLock());
         GetReportLabel()->clear();
-        use_real_time = false;
       }
 
       Notification done;
@@ -663,22 +692,25 @@ void RunBenchmark(const benchmark::internal::Benchmark::Instance& b,
 
       // Base decisions off of real time if requested by this benchmark.
       double seconds = cpu_accumulated_time;
+      if (b.use_real_time) {
+          seconds = real_accumulated_time;
+      }
+
       std::string label;
       {
         MutexLock l(GetBenchmarkLock());
         label = *GetReportLabel();
-        if (use_real_time) {
-          seconds = real_accumulated_time;
-        }
       }
+
+      const double min_time = !IsZero(b.min_time) ? b.min_time
+                                                  : FLAGS_benchmark_min_time;
 
       // If this was the first run, was elapsed time or cpu time large enough?
       // If this is not the first run, go with the current value of iter.
       if ((i > 0) ||
-          (iters == FLAGS_benchmark_iterations) ||
           (iters >= kMaxIterations) ||
-          (seconds >= FLAGS_benchmark_min_time) ||
-          (real_accumulated_time >= 5*FLAGS_benchmark_min_time)) {
+          (seconds >= min_time) ||
+          (real_accumulated_time >= 5*min_time)) {
         double bytes_per_second = 0;
         if (total.bytes_processed > 0 && seconds > 0.0) {
           bytes_per_second = (total.bytes_processed / seconds);
@@ -704,13 +736,13 @@ void RunBenchmark(const benchmark::internal::Benchmark::Instance& b,
 
       // See how much iterations should be increased by
       // Note: Avoid division by zero with max(seconds, 1ns).
-      double multiplier = FLAGS_benchmark_min_time * 1.4 / std::max(seconds, 1e-9);
+      double multiplier = min_time * 1.4 / std::max(seconds, 1e-9);
       // If our last run was at least 10% of FLAGS_benchmark_min_time then we
       // use the multiplier directly. Otherwise we use at most 10 times
       // expansion.
       // NOTE: When the last run was at least 10% of the min time the max
       // expansion should be 14x.
-      bool is_significant = (seconds / FLAGS_benchmark_min_time) > 0.1;
+      bool is_significant = (seconds / min_time) > 0.1;
       multiplier = is_significant ? multiplier : std::min(10.0, multiplier);
       if (multiplier <= 1.0) multiplier = 2.0;
       double next_iters = std::max(multiplier * iters, iters + 1.0);
@@ -751,11 +783,6 @@ void State::PauseTiming() {
 void State::ResumeTiming() {
   CHECK(running_benchmark);
   timer_manager->StartTimer();
-}
-
-void State::UseRealTime() {
-  MutexLock l(GetBenchmarkLock());
-  use_real_time = true;
 }
 
 void State::SetLabel(const char* label) {
@@ -850,7 +877,6 @@ void PrintUsageAndExit() {
   fprintf(stdout,
           "benchmark"
           " [--benchmark_filter=<regex>]\n"
-          "          [--benchmark_iterations=<iterations>]\n"
           "          [--benchmark_min_time=<min_time>]\n"
           "          [--benchmark_repetitions=<num_repetitions>]\n"
           "          [--benchmark_format=<tabular|json>]\n"
@@ -865,8 +891,6 @@ void ParseCommandLineFlags(int* argc, const char** argv) {
     if (
         ParseStringFlag(argv[i], "benchmark_filter",
                         &FLAGS_benchmark_filter) ||
-        ParseInt32Flag(argv[i], "benchmark_iterations",
-                       &FLAGS_benchmark_iterations) ||
         ParseDoubleFlag(argv[i], "benchmark_min_time",
                         &FLAGS_benchmark_min_time) ||
         ParseInt32Flag(argv[i], "benchmark_repetitions",
