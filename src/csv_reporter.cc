@@ -22,6 +22,8 @@
 #include "string_util.h"
 #include "walltime.h"
 
+// File format reference: http://edoceo.com/utilitas/csv-file-format.
+
 namespace benchmark {
 
 bool CSVReporter::ReportContext(const Context& context) {
@@ -71,7 +73,8 @@ void CSVReporter::PrintRunData(Run const& run) {
     cpu_time = cpu_time / static_cast<double>(run.iterations);
   }
 
-  std::cout << run.benchmark_name << ",";
+  // Field with embedded commas must be delimited with double-quotes.
+  std::cout << "\"" << run.benchmark_name << "\",";
   std::cout << run.iterations << ",";
   std::cout << real_time << ",";
   std::cout << cpu_time << ",";
@@ -85,7 +88,12 @@ void CSVReporter::PrintRunData(Run const& run) {
   }
   std::cout << ",";
   if (!run.report_label.empty()) {
-    std::cout << run.report_label;
+    // Field with embedded double-quote characters must be doubled and the field
+    // delimited with double-quotes.
+    std::string label = run.report_label;
+    ReplaceAll(&label, "\"", "\"\"");
+
+    std::cout << "\"" << label << "\"";
   }
   std::cout << '\n';
 }
