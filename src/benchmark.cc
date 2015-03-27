@@ -842,7 +842,7 @@ void PrintUsageAndExit() {
           " [--benchmark_filter=<regex>]\n"
           "          [--benchmark_min_time=<min_time>]\n"
           "          [--benchmark_repetitions=<num_repetitions>]\n"
-          "          [--benchmark_format=<tabular|json>]\n"
+          "          [--benchmark_format=<tabular|json|csv>]\n"
           "          [--color_print={true|false}]\n"
           "          [--v=<verbosity>]\n");
   exit(0);
