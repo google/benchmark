@@ -154,4 +154,13 @@ std::string StringPrintF(const char* format, ...)
   return tmp;
 }
 
+void ReplaceAll(std::string* str, const std::string& from,
+                const std::string& to) {
+  std::size_t start = 0;
+  while((start = str->find(from, start)) != std::string::npos) {
+    str->replace(start, from.length(), to);
+    start += to.length();
+  }
+}
+
 } // end namespace benchmark

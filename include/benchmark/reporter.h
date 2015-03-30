@@ -109,5 +109,14 @@ private:
   bool first_report_;
 };
 
+class CSVReporter : public BenchmarkReporter {
+public:
+  virtual bool ReportContext(const Context& context);
+  virtual void ReportRuns(const std::vector<Run>& reports);
+
+private:
+  void PrintRunData(const Run& report);
+};
+
 } // end namespace benchmark
 #endif // BENCHMARK_REPORTER_H_

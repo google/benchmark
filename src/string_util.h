@@ -35,6 +35,9 @@ inline std::string StrCat(Args&&... args)
   return ss.str();
 }
 
+void ReplaceAll(std::string* str, const std::string& from,
+                const std::string& to);
+
 } // end namespace benchmark
 
 #endif // BENCHMARK_STRING_UTIL_H_

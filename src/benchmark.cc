@@ -58,7 +58,7 @@ DEFINE_int32(benchmark_repetitions, 1,
 
 DEFINE_string(benchmark_format, "tabular",
               "The format to use for console output. Valid values are "
-              "'tabular' or 'json'.");
+              "'tabular', 'json', or 'csv'.");
 
 DEFINE_bool(color_print, true, "Enables colorized logging.");
 
@@ -804,9 +804,10 @@ std::unique_ptr<BenchmarkReporter> GetDefaultReporter() {
   typedef std::unique_ptr<BenchmarkReporter> PtrType;
   if (FLAGS_benchmark_format == "tabular") {
     return PtrType(new ConsoleReporter);
-  }
-  else if (FLAGS_benchmark_format == "json") {
+  } else if (FLAGS_benchmark_format == "json") {
     return PtrType(new JSONReporter);
+  } else if (FLAGS_benchmark_format == "csv") {
+    return PtrType(new CSVReporter);
   } else {
     std::cerr << "Unexpected format: '" << FLAGS_benchmark_format << "'\n";
     std::exit(1);
@@ -841,7 +842,7 @@ void PrintUsageAndExit() {
           " [--benchmark_filter=<regex>]\n"
           "          [--benchmark_min_time=<min_time>]\n"
           "          [--benchmark_repetitions=<num_repetitions>]\n"
-          "          [--benchmark_format=<tabular|json>]\n"
+          "          [--benchmark_format=<tabular|json|csv>]\n"
           "          [--color_print={true|false}]\n"
           "          [--v=<verbosity>]\n");
   exit(0);
@@ -871,7 +872,8 @@ void ParseCommandLineFlags(int* argc, const char** argv) {
     }
   }
   if (FLAGS_benchmark_format != "tabular" &&
-      FLAGS_benchmark_format != "json") {
+      FLAGS_benchmark_format != "json" &&
+      FLAGS_benchmark_format != "csv") {
     PrintUsageAndExit();
   }
 }
