@@ -6,6 +6,8 @@
 *.cmake
 !/cmake/*.cmake
 *~
+*.pyc
+__pycache__
 
 # cmake files.
 /Testing
