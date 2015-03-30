@@ -73,8 +73,12 @@ void CSVReporter::PrintRunData(Run const& run) {
     cpu_time = cpu_time / static_cast<double>(run.iterations);
   }
 
-  // Field with embedded commas must be delimited with double-quotes.
-  std::cout << "\"" << run.benchmark_name << "\",";
+  // Field with embedded double-quote characters must be doubled and the field
+  // delimited with double-quotes.
+  std::string name = run.benchmark_name;
+  ReplaceAll(&name, "\"", "\"\"");
+  std::cout << "\"" << name << "\",";
+
   std::cout << run.iterations << ",";
   std::cout << real_time << ",";
   std::cout << cpu_time << ",";
@@ -92,7 +96,6 @@ void CSVReporter::PrintRunData(Run const& run) {
     // delimited with double-quotes.
     std::string label = run.report_label;
     ReplaceAll(&label, "\"", "\"\"");
-
     std::cout << "\"" << label << "\"";
   }
   std::cout << '\n';
