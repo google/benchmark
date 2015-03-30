@@ -1,6 +1,7 @@
 *.a
 *.so
 *.so.?*
+*.dll
 *.exe
 *.dylib
 *.cmake
