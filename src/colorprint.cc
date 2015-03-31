@@ -19,6 +19,10 @@
 #include "commandlineflags.h"
 #include "internal_macros.h"
 
+#ifdef OS_WINDOWS
+#include <Windows.h>
+#endif
+
 DECLARE_bool(color_print);
 
 namespace benchmark {

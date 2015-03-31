@@ -1,10 +1,14 @@
 *.a
 *.so
 *.so.?*
+*.dll
+*.exe
 *.dylib
 *.cmake
 !/cmake/*.cmake
 *~
+*.pyc
+__pycache__
 
 # cmake files.
 /Testing

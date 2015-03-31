@@ -19,10 +19,14 @@
 
 #include "internal_macros.h"
 
+#ifdef OS_WINDOWS
+#include <Windows.h>
+#endif
+
 namespace benchmark {
 #ifdef OS_WINDOWS
-// Window's _sleep takes milliseconds argument.
-void SleepForMilliseconds(int milliseconds) { _sleep(milliseconds); }
+// Window's Sleep takes milliseconds argument.
+void SleepForMilliseconds(int milliseconds) { Sleep(milliseconds); }
 void SleepForSeconds(double seconds) {
   SleepForMilliseconds(static_cast<int>(kNumMillisPerSecond * seconds));
 }

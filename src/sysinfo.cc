@@ -13,13 +13,19 @@
 // limitations under the License.
 
 #include "sysinfo.h"
+#include "internal_macros.h"
 
+#ifdef OS_WINDOWS
+#include <Shlwapi.h>
+#include <Windows.h>
+#else
 #include <fcntl.h>
 #include <sys/resource.h>
 #include <sys/types.h> // this header must be included before 'sys/sysctl.h' to avoid compilation error on FreeBSD
 #include <sys/sysctl.h>
 #include <sys/time.h>
 #include <unistd.h>
+#endif
 
 #include <cerrno>
 #include <cstdio>
@@ -227,7 +233,6 @@ void InitializeSystemInfo() {
 // TODO: also figure out cpuinfo_num_cpus
 
 #elif defined OS_WINDOWS
-#pragma comment(lib, "shlwapi.lib")  // for SHGetValue()
   // In NT, read MHz from the registry. If we fail to do so or we're in win9x
   // then make a crude estimate.
   OSVERSIONINFO os;
@@ -238,7 +243,7 @@ void InitializeSystemInfo() {
           SHGetValueA(HKEY_LOCAL_MACHINE,
                       "HARDWARE\\DESCRIPTION\\System\\CentralProcessor\\0",
                       "~MHz", nullptr, &data, &data_size)))
-    cpuinfo_cycles_per_second = (int64)data * (int64)(1000 * 1000);  // was mhz
+    cpuinfo_cycles_per_second = (int64_t)data * (int64_t)(1000 * 1000);  // was mhz
   else
     cpuinfo_cycles_per_second = EstimateCyclesPerSecond();
 // TODO: also figure out cpuinfo_num_cpus
@@ -274,9 +279,9 @@ void InitializeSystemInfo() {
 }
 }  // end namespace
 
-#ifndef OS_WINDOWS
 // getrusage() based implementation of MyCPUUsage
 static double MyCPUUsageRUsage() {
+#ifndef OS_WINDOWS
   struct rusage ru;
   if (getrusage(RUSAGE_SELF, &ru) == 0) {
     return (static_cast<double>(ru.ru_utime.tv_sec) +
@@ -286,8 +291,25 @@ static double MyCPUUsageRUsage() {
   } else {
     return 0.0;
   }
+#else
+  HANDLE proc = GetCurrentProcess();
+  FILETIME creation_time;
+  FILETIME exit_time;
+  FILETIME kernel_time;
+  FILETIME user_time;
+  ULARGE_INTEGER kernel;
+  ULARGE_INTEGER user;
+  GetProcessTimes(proc, &creation_time, &exit_time, &kernel_time, &user_time);
+  kernel.HighPart = kernel_time.dwHighDateTime;
+  kernel.LowPart = kernel_time.dwLowDateTime;
+  user.HighPart = user_time.dwHighDateTime;
+  user.LowPart = user_time.dwLowDateTime;
+  return (static_cast<double>(kernel.QuadPart) +
+          static_cast<double>(user.QuadPart)) / 1.0E-7;
+#endif  // OS_WINDOWS
 }
 
+#ifndef OS_WINDOWS
 static bool MyCPUUsageCPUTimeNsLocked(double* cputime) {
   static int cputime_fd = -1;
   if (cputime_fd == -1) {
@@ -313,8 +335,10 @@ static bool MyCPUUsageCPUTimeNsLocked(double* cputime) {
   *cputime = static_cast<double>(result) / 1e9;
   return true;
 }
+#endif  // OS_WINDOWS
 
 double MyCPUUsage() {
+#ifndef OS_WINDOWS
   {
     std::lock_guard<std::mutex> l(cputimens_mutex);
     static bool use_cputime_ns = true;
@@ -328,10 +352,12 @@ double MyCPUUsage() {
       use_cputime_ns = false;
     }
   }
+#endif  // OS_WINDOWS
   return MyCPUUsageRUsage();
 }
 
 double ChildrenCPUUsage() {
+#ifndef OS_WINDOWS
   struct rusage ru;
   if (getrusage(RUSAGE_CHILDREN, &ru) == 0) {
     return (static_cast<double>(ru.ru_utime.tv_sec) +
@@ -341,8 +367,11 @@ double ChildrenCPUUsage() {
   } else {
     return 0.0;
   }
-}
+#else
+  // TODO: Not sure what this even means on Windows
+  return 0.0;
 #endif  // OS_WINDOWS
+}
 
 double CyclesPerSecond(void) {
   std::call_once(cpuinfo_init, InitializeSystemInfo);
