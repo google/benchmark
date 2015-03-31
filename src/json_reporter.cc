@@ -84,7 +84,7 @@ bool JSONReporter::ReportContext(const Context& context) {
 #else
   const char build_type[] = "debug";
 #endif
-  out << indent << FormatKV("build_type", build_type) << "\n";
+  out << indent << FormatKV("library_build_type", build_type) << "\n";
   // Close context block and open the list of benchmarks.
   out << inner_indent << "},\n";
   out << inner_indent << "\"benchmarks\": [\n";

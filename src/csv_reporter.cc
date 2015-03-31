@@ -39,7 +39,8 @@ bool CSVReporter::ReportContext(const Context& context) {
   }
 
 #ifndef NDEBUG
-  std::cerr << "Build Type: DEBUG\n";
+  std::cerr << "***WARNING*** Library was built as DEBUG. Timings may be "
+               "affected.\n";
 #endif
   std::cout << "name,iterations,real_time,cpu_time,bytes_per_second,"
                "items_per_second,label\n";
