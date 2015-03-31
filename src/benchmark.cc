@@ -418,8 +418,9 @@ bool BenchmarkFamilies::FindBenchmarks(
           instance.name += StringPrintF("/threads:%d", instance.threads);
         }
 
-        if (re.Match(instance.name))
+        if (re.Match(instance.name)) {
           benchmarks->push_back(instance);
+        }
       }
     }
   }
@@ -778,8 +779,9 @@ void PrintBenchmarkList() {
   auto families = BenchmarkFamilies::GetInstance();
   if (!families->FindBenchmarks(".", &benchmarks)) return;
 
-  for (const internal::Benchmark::Instance& benchmark : benchmarks)
+  for (const internal::Benchmark::Instance& benchmark : benchmarks) {
     std::cout <<  benchmark.name << "\n";
+  }
 }
 
 void RunMatchingBenchmarks(const std::string& spec,
