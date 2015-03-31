@@ -41,16 +41,13 @@ bool ConsoleReporter::ReportContext(const Context& context) {
   }
 
 #ifndef NDEBUG
-  std::cerr << "Build Type: DEBUG\n";
+  std::cerr << "***WARNING*** Library was built as DEBUG. Timings may be "
+               "affected.\n";
 #endif
 
-  int output_width =
-      fprintf(stdout,
-              "%-*s %10s %10s %10s\n",
-              static_cast<int>(name_field_width_),
-              "Benchmark",
-              "Time(ns)", "CPU(ns)",
-              "Iterations");
+  int output_width = fprintf(stdout, "%-*s %10s %10s %10s\n",
+                             static_cast<int>(name_field_width_), "Benchmark",
+                             "Time(ns)", "CPU(ns)", "Iterations");
   std::cout << std::string(output_width - 1, '-') << "\n";
 
   return true;
