@@ -11,16 +11,6 @@
 
 namespace {
 
-double CalculatePi(int depth) {
-  double pi = 0.0;
-  for (int i = 0; i < depth; ++i) {
-    double numerator = static_cast<double>(((i % 2) * 2) - 1);
-    double denominator = static_cast<double>((2 * i) - 1);
-    pi += numerator / denominator;
-  }
-  return (pi - 1.0) * 4;
-}
-
 class TestReporter : public benchmark::ConsoleReporter {
  public:
   virtual bool ReportContext(const Context& context) {
@@ -46,31 +36,39 @@ class TestReporter : public benchmark::ConsoleReporter {
 
 }  // end namespace
 
-static void BM_CalculatePiRange(benchmark::State& state) {
-  double pi = 0.0;
-  while (state.KeepRunning())
-    pi = CalculatePi(state.range_x());
-  std::stringstream ss;
-  ss << pi;
-  state.SetLabel(ss.str());
-}
-BENCHMARK_RANGE(BM_CalculatePiRange, 1, 1024 * 1024);
 
-static void BM_CalculatePi(benchmark::State& state) {
-  static const int depth = 1024;
-  double pi BENCHMARK_UNUSED = 0.0;
-  while (state.KeepRunning()) {
-    pi = CalculatePi(depth);
-  }
+static void NoPrefix(benchmark::State& state) {
+  while (state.KeepRunning()) {}
 }
-BENCHMARK(BM_CalculatePi)->Threads(8);
-BENCHMARK(BM_CalculatePi)->ThreadRange(1, 32);
-BENCHMARK(BM_CalculatePi)->ThreadPerCpu();
+BENCHMARK(NoPrefix);
+
+static void BM_Foo(benchmark::State& state) {
+  while (state.KeepRunning()) {}
+}
+BENCHMARK(BM_Foo);
+
+
+static void BM_Bar(benchmark::State& state) {
+  while (state.KeepRunning()) {}
+}
+BENCHMARK(BM_Bar);
+
+
+static void BM_FooBar(benchmark::State& state) {
+  while (state.KeepRunning()) {}
+}
+BENCHMARK(BM_FooBar);
+
+
+static void BM_FooBa(benchmark::State& state) {
+  while (state.KeepRunning()) {}
+}
+BENCHMARK(BM_FooBa);
+
+
 
 int main(int argc, const char* argv[]) {
   benchmark::Initialize(&argc, argv);
-
-  assert(std::fabs(CalculatePi(1)) < std::numeric_limits<float>::epsilon());
 
   TestReporter test_reporter;
   benchmark::RunSpecifiedBenchmarks(&test_reporter);

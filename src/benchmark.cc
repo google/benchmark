@@ -40,6 +40,10 @@
 #include "sysinfo.h"
 #include "walltime.h"
 
+DEFINE_bool(benchmark_list_tests, false,
+            "Print a list of benchmarks. This option overrides all other "
+            "options.");
+
 DEFINE_string(benchmark_filter, ".",
               "A regular expression that specifies the set of benchmarks "
               "to execute.  If this flag is empty, no benchmarks are run.  "
@@ -373,7 +377,7 @@ bool BenchmarkFamilies::FindBenchmarks(
   MutexLock l(mutex_);
   for (BenchmarkImp* family : families_) {
     // Family was deleted or benchmark doesn't match
-    if (family == nullptr || !re.Match(family->name_)) continue;
+    if (family == nullptr) continue;
 
     if (family->arg_count_ == -1) {
       family->arg_count_ = 0;
@@ -417,7 +421,9 @@ bool BenchmarkFamilies::FindBenchmarks(
           instance.name += StringPrintF("/threads:%d", instance.threads);
         }
 
-        benchmarks->push_back(instance);
+        if (re.Match(instance.name)) {
+          benchmarks->push_back(instance);
+        }
       }
     }
   }
@@ -769,19 +775,30 @@ void State::SetLabel(const char* label) {
 }
 
 namespace internal {
+namespace {
+
+void PrintBenchmarkList() {
+  std::vector<Benchmark::Instance> benchmarks;
+  auto families = BenchmarkFamilies::GetInstance();
+  if (!families->FindBenchmarks(".", &benchmarks)) return;
+
+  for (const internal::Benchmark::Instance& benchmark : benchmarks) {
+    std::cout <<  benchmark.name << "\n";
+  }
+}
 
 void RunMatchingBenchmarks(const std::string& spec,
                            BenchmarkReporter* reporter) {
   CHECK(reporter != nullptr);
   if (spec.empty()) return;
 
-  std::vector<benchmark::internal::Benchmark::Instance> benchmarks;
-  auto families = benchmark::internal::BenchmarkFamilies::GetInstance();
+  std::vector<Benchmark::Instance> benchmarks;
+  auto families = BenchmarkFamilies::GetInstance();
   if (!families->FindBenchmarks(spec, &benchmarks)) return;
 
   // Determine the width of the name field using a minimum width of 10.
   size_t name_field_width = 10;
-  for (const internal::Benchmark::Instance& benchmark : benchmarks) {
+  for (const Benchmark::Instance& benchmark : benchmarks) {
     name_field_width =
         std::max<size_t>(name_field_width, benchmark.name.size());
   }
@@ -817,6 +834,7 @@ std::unique_ptr<BenchmarkReporter> GetDefaultReporter() {
   }
 }
 
+} // end namespace
 } // end namespace internal
 
 void RunSpecifiedBenchmarks() {
@@ -824,6 +842,10 @@ void RunSpecifiedBenchmarks() {
 }
 
 void RunSpecifiedBenchmarks(BenchmarkReporter* reporter) {
+  if (FLAGS_benchmark_list_tests) {
+    internal::PrintBenchmarkList();
+    return;
+  }
   std::string spec = FLAGS_benchmark_filter;
   if (spec.empty() || spec == "all")
     spec = ".";  // Regexp that matches all benchmarks
@@ -842,7 +864,8 @@ namespace internal {
 void PrintUsageAndExit() {
   fprintf(stdout,
           "benchmark"
-          " [--benchmark_filter=<regex>]\n"
+          " [--benchmark_list_tests={true|false}]\n"
+          "          [--benchmark_filter=<regex>]\n"
           "          [--benchmark_min_time=<min_time>]\n"
           "          [--benchmark_repetitions=<num_repetitions>]\n"
           "          [--benchmark_format=<tabular|json|csv>]\n"
@@ -855,6 +878,8 @@ void ParseCommandLineFlags(int* argc, const char** argv) {
   using namespace benchmark;
   for (int i = 1; i < *argc; ++i) {
     if (
+        ParseBoolFlag(argv[i], "benchmark_list_tests",
+                      &FLAGS_benchmark_list_tests) ||
         ParseStringFlag(argv[i], "benchmark_filter",
                         &FLAGS_benchmark_filter) ||
         ParseDoubleFlag(argv[i], "benchmark_min_time",
