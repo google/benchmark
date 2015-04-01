@@ -28,7 +28,7 @@ namespace benchmark {
 
 bool CSVReporter::ReportContext(const Context& context) {
   std::cerr << "Run on (" << context.num_cpus << " X " << context.mhz_per_cpu
-            << " MHz CPU " << ((context.num_cpus > 1) ? "s" : "") << "\n";
+            << " MHz CPU " << ((context.num_cpus > 1) ? "s" : "") << ")\n";
 
   std::cerr << LocalDateTimeString() << "\n";
 

@@ -30,7 +30,7 @@ bool ConsoleReporter::ReportContext(const Context& context) {
   name_field_width_ = context.name_field_width;
 
   std::cerr << "Run on (" << context.num_cpus << " X " << context.mhz_per_cpu
-            << " MHz CPU " << ((context.num_cpus > 1) ? "s" : "") << "\n";
+            << " MHz CPU " << ((context.num_cpus > 1) ? "s" : "") << ")\n";
 
   std::cerr << LocalDateTimeString() << "\n";
 

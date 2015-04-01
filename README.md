@@ -182,13 +182,10 @@ The library supports multiple output formats. Use the
 `--benchmark_format=<tabular|json>` flag to set the format type. `tabular` is
 the default format.
 
-The Tabular format is intended to be a human readable
-format. By default the format generates color output. Example tabular output
-looks like:
+The Tabular format is intended to be a human readable format. By default
+the format generates color output. Context is output on stderr and the 
+tabular data on stdout. Example tabular output looks like:
 ```
-Run on (40 X 2801 MHz CPUs)
-2015/03/17-18:35:54
-Build Type: DEBUG
 Benchmark                               Time(ns)    CPU(ns) Iterations
 ----------------------------------------------------------------------
 BM_SetInsert/1024/1                        28928      29349      23853  133.097kB/s   33.2742k items/s
@@ -239,6 +236,14 @@ output looks like:
 }
 ```
 
+The CSV format outputs comma-separated values. The `context` is output on stderr
+and the CSV itself on stdout. Example CSV output looks like:
+```
+name,iterations,real_time,cpu_time,bytes_per_second,items_per_second,label
+"BM_SetInsert/1024/1",65465,17890.7,8407.45,475768,118942,
+"BM_SetInsert/1024/8",116606,18810.1,9766.64,3.27646e+06,819115,
+"BM_SetInsert/1024/10",106365,17238.4,8421.53,4.74973e+06,1.18743e+06,
+```
 
 Linking against the library
 ---------------------------
