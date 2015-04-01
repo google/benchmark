@@ -1,7 +1,6 @@
 cmake_minimum_required (VERSION 2.8)
 project (benchmark)
 
-option(BENCHMARK_ENABLE_SHARED  "Enable building a shared library." OFF)
 option(BENCHMARK_ENABLE_TESTING "Enable testing of the benchmark library." ON)
 # Make sure we can import out CMake functions
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")

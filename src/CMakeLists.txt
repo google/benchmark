@@ -17,13 +17,12 @@ else()
   message(FATAL_ERROR "Failed to determine the source files for the regular expression backend")
 endif()
 
-# Build the benchmark library
-if (BENCHMARK_ENABLE_SHARED)
-  add_library(benchmark SHARED ${SOURCE_FILES} ${RE_FILES})
+add_library(benchmark ${SOURCE_FILES} ${RE_FILES})
+
+# Link threading if building a shared library.
+if (BUILD_SHARED_LIBS)
   find_package(Threads REQUIRED)
   target_link_libraries(benchmark ${CMAKE_THREAD_LIBS_INIT})
-else()
-  add_library(benchmark STATIC ${SOURCE_FILES} ${RE_FILES})
 endif()
 
 set_target_properties(benchmark PROPERTIES
