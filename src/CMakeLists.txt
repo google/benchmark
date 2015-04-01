@@ -19,7 +19,7 @@ endif()
 
 add_library(benchmark ${SOURCE_FILES} ${RE_FILES})
 
-# Build the benchmark library
+# Link threading if building a shared library.
 if (BUILD_SHARED_LIBS)
   find_package(Threads REQUIRED)
   target_link_libraries(benchmark ${CMAKE_THREAD_LIBS_INIT})
