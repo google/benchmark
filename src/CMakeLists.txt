@@ -42,6 +42,7 @@ install(
   TARGETS benchmark
   ARCHIVE DESTINATION lib
   LIBRARY DESTINATION lib
+  RUNTIME DESTINATION bin
   COMPONENT library)
 
 install(
