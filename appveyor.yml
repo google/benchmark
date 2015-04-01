@@ -42,7 +42,7 @@ before_build:
   - if "%generator%"=="MinGW Makefiles" (set "PATH=%PATH:C:\Program Files (x86)\Git\bin=%")
 
 build_script:
-  - cmake -G "%generator%" "-DCMAKE_BUILD_TYPE=%variant%" "-DBENCHMARK_ENABLE_SHARED=%shared%"
+  - cmake -G "%generator%" "-DCMAKE_BUILD_TYPE=%variant%" "-DBUILD_SHARED_LIBS=%shared%"
   - cmd /c "%build%"
 
 test_script:
