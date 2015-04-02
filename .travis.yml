@@ -17,6 +17,8 @@ language:
     - cpp
 
 before_install:
+    - uname -a
+    - cmake --version
     - if [ "$TRAVIS_OS_NAME" = "linux" ] && [ "$STD" = "c++11" ]; then sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test; fi
     - if [ "$TRAVIS_OS_NAME" = "linux" ] && [ "$STD" = "c++11" ]; then sudo apt-get update -qq; fi
 
