@@ -20,7 +20,7 @@ endif()
 add_library(benchmark ${SOURCE_FILES} ${RE_FILES})
 
 find_package(Threads REQUIRED)
-target_link_libraries(benchmark INTERFACE ${CMAKE_THREAD_LIBS_INIT})
+target_link_libraries(benchmark ${CMAKE_THREAD_LIBS_INIT})
 
 set_target_properties(benchmark PROPERTIES
   OUTPUT_NAME "benchmark"
