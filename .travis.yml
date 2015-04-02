@@ -1,20 +1,18 @@
 language: cpp
-
-compiler:
-    - gcc
-    - clang
-env:
-    - BUILD_TYPE=Debug   STD=c++0x
-    - BUILD_TYPE=Release STD=c++0x
-    - BUILD_TYPE=Debug   STD=c++11
-    - BUILD_TYPE=Release STD=c++11
-
 matrix:
-    exclude:
-        - compiler: clang
+    include:
+        - compiler: gcc
           env: BUILD_TYPE=Debug STD=c++0x
-        - compiler: clang
+        - compiler: gcc
           env: BUILD_TYPE=Release STD=c++0x
+        - compiler: gcc
+          env: BUILD_TYPE=Debug STD=c++11
+        - compiler: gcc
+          env: BUILD_TYPE=Release STD=c++11
+        - compiler: clang
+          env: BUILD_TYPE=Debug STD=c++11
+        - compiler: clang
+          env: BUILD_TYPE=Release STD=c++11
 
 before_script:
     - source .travis-setup.sh

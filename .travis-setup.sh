@@ -4,9 +4,9 @@
 if [ "$STD" = "c++11" ]; then
     sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test
     if [ "$CXX" = "clang++" ]; then
-        deb http://llvm.org/apt/precise/ llvm-toolchain-precise-3.6 main
-        deb-src http://llvm.org/apt/precise/ llvm-toolchain-precise-3.6 main
         wget -O - http://llvm.org/apt/llvm-snapshot.gpg.key | sudo apt-key add -
+        sudo add-apt-repository -y "deb http://llvm.org/apt/precise/ llvm-toolchain-precise-3.6 main"
+        sudo add-apt-repository -y "deb-src http://llvm.org/apt/precise/ llvm-toolchain-precise-3.6 main"
     fi
     sudo apt-get update -qq
 fi
