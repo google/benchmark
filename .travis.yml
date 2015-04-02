@@ -16,11 +16,10 @@ before_install:
 install:
     - if [ "$STD" = "c++11" ]; then sudo apt-get install -qq gcc-4.8 g++-4.8; fi
     - if [ "$STD" = "c++11" ]; then sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-4.8 90; fi
-    - mkdir depends && cd depends
-    - wget http://www.cmake.org/files/v3.2/cmake-3.2.1-Linux-x86_64.sh
-    - sudo sh cmake-3.2.1-Linux-x86_64.sh --prefix=/opt/cmake
-    - cd .. && sudo rm -rf depends
-    - export PATH=/opt/cmake/bin:$PATH
+    - wget http://www.cmake.org/files/v3.2/cmake-3.2.1-Linux-x86_64.tar.gz
+    - sudo tar -C /opt -xzvf cmake-3.2.1-Linux-x86_64.tar.gz
+    - rm cmake-3.2.1-Linux-x86_64.tar.gz
+    - export PATH=/opt/cmake-3.2.1-Linux-x86_64/bin:$PATH
     - cmake --version
 
 before_script:
