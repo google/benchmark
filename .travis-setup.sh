@@ -1,8 +1,5 @@
 #!/usr/bin/env bash
 
-set -x
-set -e
-
 # Before install
 if [ "$STD" = "c++11" ]; then
     sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test
@@ -15,12 +12,13 @@ if [ "$STD" = "c++11" ]; then
 fi
 
 # Install
-if [ "$STD" = "c++11" && "$CXX" = "g++" ]; then
+if [ "$STD" = "c++11" ] && [ "$CXX" = "g++" ]; then
     sudo apt-get install -qq gcc-4.8 g++-4.8
+    sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-4.8 90
     sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-4.8 90
-fi
 elif [ "$CXX" = "clang++" ]; then
     sudo apt-get install clang-3.6
+    sudo update-alternatives --install /usr/bin/clang   clang   /usr/bin/clang-3.6 90
     sudo update-alternatives --install /usr/bin/clang++ clang++ /usr/bin/clang++-3.6 90
 fi
 # Install cmake

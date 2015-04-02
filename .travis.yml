@@ -12,7 +12,9 @@ env:
 matrix:
     exclude:
         - compiler: clang
-          env: STD=c++0x
+          env: BUILD_TYPE=Debug STD=c++0x
+        - compiler: clang
+          env: BUILD_TYPE=Release STD=c++0x
 
 before_script:
     - source .travis-setup.sh
