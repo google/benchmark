@@ -1,4 +1,4 @@
-cmake_minimum_required (VERSION 2.8.12)
+cmake_minimum_required (VERSION 2.8.11)
 project (benchmark)
 
 option(BENCHMARK_ENABLE_TESTING "Enable testing of the benchmark library." ON)
