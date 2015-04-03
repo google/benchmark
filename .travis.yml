@@ -1,32 +1,24 @@
+language: cpp
+
+# NOTE: The COMPILER variable is unused. It simply makes the display on
+# travis-ci.org more readable.
 matrix:
-  include:
-    - os: linux
-      env: BUILD_TYPE=Debug   STD=c++0x
-    - os: linux
-      env: BUILD_TYPE=Debug   STD=c++11
-    - os: linux
-      env: BUILD_TYPE=Release STD=c++0x
-    - os: linux
-      env: BUILD_TYPE=Release STD=c++11
-    - os: osx
-      env: BUILD_TYPE=Debug   STD=c++11
-    - os: osx
-      env: BUILD_TYPE=Release STD=c++11
-
-language:
-    - cpp
-
-before_install:
-    - uname -a
-    - cmake --version
-    - if [ "$TRAVIS_OS_NAME" = "linux" ] && [ "$STD" = "c++11" ]; then sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test; fi
-    - if [ "$TRAVIS_OS_NAME" = "linux" ] && [ "$STD" = "c++11" ]; then sudo apt-get update -qq; fi
-
-install:
-    - if [ "$TRAVIS_OS_NAME" = "linux" ] && [ "$STD" = "c++11" ]; then sudo apt-get install -qq gcc-4.8 g++-4.8; fi
-    - if [ "$TRAVIS_OS_NAME" = "linux" ] && [ "$STD" = "c++11" ]; then sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-4.8 90; fi
+    include:
+        - compiler: gcc
+          env: COMPILER=g++-4.6     STD=c++0x BUILD_TYPE=Debug
+        - compiler: gcc
+          env: COMPILER=g++-4.6     STD=c++0x BUILD_TYPE=Release
+        - compiler: gcc
+          env: COMPILER=g++-4.8     STD=c++11 BUILD_TYPE=Debug
+        - compiler: gcc
+          env: COMPILER=g++-4.8     STD=c++11 BUILD_TYPE=Release
+        - compiler: clang
+          env: COMPILER=clang++-3.6 STD=c++11 BUILD_TYPE=Debug
+        - compiler: clang
+          env: COMPILER=clang++-3.6 STD=c++11 BUILD_TYPE=Release
 
 before_script:
+    - source .travis-setup.sh
     - mkdir build && cd build
 
 script:
