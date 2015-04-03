@@ -68,7 +68,7 @@ static void BM_SetInsert(benchmark::State& state) {
     state.PauseTiming();
     std::set<int> data = ConstructRandomSet(state.range_x());
     state.ResumeTiming();
-    for (int j = 0; j < state.rangeY; ++j)
+    for (int j = 0; j < state.range_y(); ++j)
       data.insert(RandomNumber());
   }
 }
