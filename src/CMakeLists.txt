@@ -19,11 +19,8 @@ endif()
 
 add_library(benchmark ${SOURCE_FILES} ${RE_FILES})
 
-# Link threading if building a shared library.
-if (BUILD_SHARED_LIBS)
-  find_package(Threads REQUIRED)
-  target_link_libraries(benchmark ${CMAKE_THREAD_LIBS_INIT})
-endif()
+find_package(Threads REQUIRED)
+target_link_libraries(benchmark ${CMAKE_THREAD_LIBS_INIT})
 
 set_target_properties(benchmark PROPERTIES
   OUTPUT_NAME "benchmark"
@@ -35,6 +32,8 @@ set_target_properties(benchmark PROPERTIES
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
   target_link_libraries(benchmark Shlwapi)
 endif()
+
+target_include_directories(benchmark PUBLIC ${PROJECT_SOURCE_DIR}/include)
 
 # Install target (will install the library to specified CMAKE_INSTALL_PREFIX variable)
 install(
