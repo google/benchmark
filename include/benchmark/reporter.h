@@ -33,9 +33,23 @@ class BenchmarkReporter {
     int num_cpus;
     double mhz_per_cpu;
     bool cpu_scaling_enabled;
+    bool benchmark_best_worse_enabled;
 
     // The number of chars in the longest benchmark name.
     size_t name_field_width;
+  };
+
+  struct PerformanceHit {
+    PerformanceHit() :
+      enabled(false),
+      benchmark_best_time(0),
+      benchmark_worse_time(0) {}
+
+    bool enabled;
+
+    //benchmark best and worse performance
+    double benchmark_best_time;
+    double benchmark_worse_time;
   };
 
   struct Run {
@@ -59,6 +73,9 @@ class BenchmarkReporter {
 
     // This is set to 0.0 if memory tracing is not enabled.
     double max_heapbytes_used;
+
+    //benchmark best and worse performance
+    struct PerformanceHit hit;
   };
 
   // Called once for every suite of benchmarks run.

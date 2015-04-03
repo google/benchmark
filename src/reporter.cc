@@ -16,6 +16,7 @@
 
 #include <cstdlib>
 #include <vector>
+#include <limits>
 
 #include "check.h"
 #include "stat.h"
@@ -35,6 +36,9 @@ void BenchmarkReporter::ComputeStats(
   // can take this information from the first benchmark.
   std::size_t const run_iterations = reports.front().iterations;
 
+  double best_performance = std::numeric_limits<double>::max();
+  double worse_performance = 0;
+
   // Populate the accumulators.
   for (Run const& run : reports) {
     CHECK_EQ(reports[0].benchmark_name, run.benchmark_name);
@@ -45,6 +49,10 @@ void BenchmarkReporter::ComputeStats(
         Stat1_d(run.cpu_accumulated_time/run.iterations, run.iterations);
     items_per_second_stat += Stat1_d(run.items_per_second, run.iterations);
     bytes_per_second_stat += Stat1_d(run.bytes_per_second, run.iterations);
+    if (run.hit.enabled) {
+      best_performance = std::min(best_performance, run.hit.benchmark_best_time);
+      worse_performance = std::max(worse_performance, run.hit.benchmark_worse_time);
+    }
   }
 
   // Get the data from the accumulator to BenchmarkReporter::Run's.
@@ -56,6 +64,9 @@ void BenchmarkReporter::ComputeStats(
                                     run_iterations;
   mean_data->bytes_per_second = bytes_per_second_stat.Mean();
   mean_data->items_per_second = items_per_second_stat.Mean();
+
+  mean_data->hit.benchmark_best_time = best_performance;
+  mean_data->hit.benchmark_worse_time = worse_performance;
 
   // Only add label to mean/stddev if it is same for all runs
   mean_data->report_label = reports[0].report_label;
@@ -75,6 +86,8 @@ void BenchmarkReporter::ComputeStats(
       cpu_accumulated_time_stat.StdDev();
   stddev_data->bytes_per_second = bytes_per_second_stat.StdDev();
   stddev_data->items_per_second = items_per_second_stat.StdDev();
+  stddev_data->hit.benchmark_best_time = best_performance;
+  stddev_data->hit.benchmark_worse_time = worse_performance;
 }
 
 void BenchmarkReporter::Finalize() {

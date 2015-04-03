@@ -29,6 +29,7 @@
 #include <iostream>
 #include <memory>
 #include <thread>
+#include <limits>
 
 #include "check.h"
 #include "commandlineflags.h"
@@ -71,6 +72,8 @@ DEFINE_bool(color_print, true, "Enables colorized logging.");
 
 DEFINE_int32(v, 0, "The level of verbose logging to output");
 
+DEFINE_bool(benchmark_best_worst, false,
+            "Enable the best and worst time score for the set of benchmarks.");
 
 namespace benchmark {
 
@@ -264,6 +267,8 @@ struct Benchmark::Instance {
   double        min_time;
   int           threads;    // Number of concurrent threads to use
   bool          multithreaded;  // Is benchmark multi-threaded?
+  double        benchmark_best_time;
+  double        benchmark_worse_time;
 };
 
 // Class for managing registered benchmarks.  Note that each registered
@@ -632,6 +637,10 @@ void RunBenchmark(const benchmark::internal::Benchmark::Instance& b,
   if (b.multithreaded)
     pool.resize(b.threads);
 
+  double best_performance = std::numeric_limits<double>::max();
+  double worse_performance = 0;
+  double last_real_accumulated_time = 0;
+
   for (int i = 0; i < FLAGS_benchmark_repetitions; i++) {
     std::string mem;
     while (true) {
@@ -688,6 +697,13 @@ void RunBenchmark(const benchmark::internal::Benchmark::Instance& b,
       const double min_time = !IsZero(b.min_time) ? b.min_time
                                                   : FLAGS_benchmark_min_time;
 
+      /* calulate the best and worse performance */
+      {
+        last_real_accumulated_time = cpu_accumulated_time - last_real_accumulated_time;
+        best_performance = std::min(best_performance, last_real_accumulated_time);
+        worse_performance = std::max(worse_performance, last_real_accumulated_time);
+        last_real_accumulated_time = cpu_accumulated_time;
+      }
       // If this was the first run, was elapsed time or cpu time large enough?
       // If this is not the first run, go with the current value of iter.
       if ((i > 0) ||
@@ -713,7 +729,13 @@ void RunBenchmark(const benchmark::internal::Benchmark::Instance& b,
         report.cpu_accumulated_time = cpu_accumulated_time;
         report.bytes_per_second = bytes_per_second;
         report.items_per_second = items_per_second;
+        if (FLAGS_benchmark_best_worst) {
+          report.hit.enabled = true;
+          report.hit.benchmark_best_time = best_performance;
+          report.hit.benchmark_worse_time = worse_performance;
+        }
         reports.push_back(report);
+        VLOG(2) << "Store and Break";
         break;
       }
 
@@ -812,6 +834,7 @@ void RunMatchingBenchmarks(const std::string& spec,
 
   context.cpu_scaling_enabled = CpuScalingEnabled();
   context.name_field_width = name_field_width;
+  context.benchmark_best_worse_enabled = FLAGS_benchmark_best_worst;
 
   if (reporter->ReportContext(context)) {
     for (const auto& benchmark : benchmarks) {
@@ -867,6 +890,7 @@ void PrintUsageAndExit() {
           " [--benchmark_list_tests={true|false}]\n"
           "          [--benchmark_filter=<regex>]\n"
           "          [--benchmark_min_time=<min_time>]\n"
+          "          [--benchmark_best_worse={true|false}]\n"
           "          [--benchmark_repetitions=<num_repetitions>]\n"
           "          [--benchmark_format=<tabular|json|csv>]\n"
           "          [--color_print={true|false}]\n"
@@ -884,6 +908,8 @@ void ParseCommandLineFlags(int* argc, const char** argv) {
                         &FLAGS_benchmark_filter) ||
         ParseDoubleFlag(argv[i], "benchmark_min_time",
                         &FLAGS_benchmark_min_time) ||
+        ParseBoolFlag(argv[i], "benchmark_best_worse",
+                        &FLAGS_benchmark_best_worst) ||
         ParseInt32Flag(argv[i], "benchmark_repetitions",
                        &FLAGS_benchmark_repetitions) ||
         ParseStringFlag(argv[i], "benchmark_format",
