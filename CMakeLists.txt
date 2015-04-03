@@ -55,6 +55,9 @@ cxx_feature_check(GNU_POSIX_REGEX)
 cxx_feature_check(POSIX_REGEX)
 cxx_feature_check(STEADY_CLOCK)
 
+# Ensure we have pthreads
+find_package(Threads REQUIRED)
+
 # Set up directories
 include_directories(${PROJECT_SOURCE_DIR}/include)
 
