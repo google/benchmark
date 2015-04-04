@@ -114,9 +114,9 @@ void ConsoleReporter::PrintRunData(const Run& result) {
   ColorPrintf(COLOR_CYAN, "%10lld", result.iterations);
 
   if(result.hit.enabled) {
-    ColorPrintf(COLOR_CYAN, "%10.0f %10.0f",
-        result.hit.benchmark_best_time * multiplier,
-        result.hit.benchmark_worse_time * multiplier);
+    ColorPrintf(COLOR_CYAN, " %10.0f %10.0f",
+                result.hit.benchmark_best_time,
+                result.hit.benchmark_worse_time);
   }
 
   ColorPrintf(COLOR_DEFAULT, "%*s %*s %s\n",

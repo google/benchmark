@@ -64,7 +64,6 @@ void BenchmarkReporter::ComputeStats(
                                     run_iterations;
   mean_data->bytes_per_second = bytes_per_second_stat.Mean();
   mean_data->items_per_second = items_per_second_stat.Mean();
-
   mean_data->hit.benchmark_best_time = best_performance;
   mean_data->hit.benchmark_worse_time = worse_performance;
 

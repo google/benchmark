@@ -41,6 +41,7 @@
 #include "sysinfo.h"
 #include "walltime.h"
 
+
 DEFINE_bool(benchmark_list_tests, false,
             "Print a list of benchmarks. This option overrides all other "
             "options.");
@@ -249,7 +250,7 @@ class TimerManager {
 };
 
 // TimerManager for current run.
-static std::unique_ptr<TimerManager> timer_manager = nullptr;
+static std::unique_ptr<TimerManager> single_iteration_timer_manager = nullptr;
 
 } // end namespace
 
@@ -608,11 +609,12 @@ Benchmark* Benchmark::ThreadPerCpu() {
 
 namespace {
 
+  typedef std::vector<std::pair<double, double>> hits;
 
 // Execute one thread of benchmark b for the specified number of iterations.
 // Adds the stats collected for the thread into *total.
 void RunInThread(const benchmark::internal::Benchmark::Instance* b,
-                 int iters, int thread_id,
+                 int iters, int thread_id, hits* v_hit,
                  ThreadStats* total) EXCLUDES(GetBenchmarkLock()) {
   State st(iters, b->has_arg1, b->arg1, b->has_arg2, b->arg2, thread_id);
   b->function(st);
@@ -622,9 +624,10 @@ void RunInThread(const benchmark::internal::Benchmark::Instance* b,
     MutexLock l(GetBenchmarkLock());
     total->bytes_processed += st.bytes_processed();
     total->items_processed += st.items_processed();
+    v_hit->operator[](thread_id) = std::make_pair(st.best_performance(), st.worse_performance());
   }
 
-  timer_manager->Finalize();
+  single_iteration_timer_manager->Finalize();
 }
 
 void RunBenchmark(const benchmark::internal::Benchmark::Instance& b,
@@ -639,7 +642,6 @@ void RunBenchmark(const benchmark::internal::Benchmark::Instance& b,
 
   double best_performance = std::numeric_limits<double>::max();
   double worse_performance = 0;
-  double last_real_accumulated_time = 0;
 
   for (int i = 0; i < FLAGS_benchmark_repetitions; i++) {
     std::string mem;
@@ -653,10 +655,11 @@ void RunBenchmark(const benchmark::internal::Benchmark::Instance& b,
       }
 
       Notification done;
-      timer_manager = std::unique_ptr<TimerManager>(new TimerManager(b.threads, &done));
+      single_iteration_timer_manager = std::unique_ptr<TimerManager>(new TimerManager(b.threads, &done));
 
       ThreadStats total;
       running_benchmark = true;
+      hits v_hit;
       if (b.multithreaded) {
         // If this is out first iteration of the while(true) loop then the
         // threads haven't been started and can't be joined. Otherwise we need
@@ -665,19 +668,23 @@ void RunBenchmark(const benchmark::internal::Benchmark::Instance& b,
           if (thread.joinable())
             thread.join();
         }
+
+        v_hit.resize(pool.size());
+
         for (std::size_t ti = 0; ti < pool.size(); ++ti) {
-            pool[ti] = std::thread(&RunInThread, &b, iters, ti, &total);
+            pool[ti] = std::thread(&RunInThread, &b, iters, ti, &v_hit, &total);
         }
       } else {
+        v_hit.resize(1);
         // Run directly in this thread
-        RunInThread(&b, iters, 0, &total);
+        RunInThread(&b, iters, 0, &v_hit, &total);
       }
       done.WaitForNotification();
       running_benchmark = false;
 
-      const double cpu_accumulated_time = timer_manager->cpu_time_used();
-      const double real_accumulated_time = timer_manager->real_time_used();
-      timer_manager.reset();
+      const double cpu_accumulated_time = single_iteration_timer_manager->cpu_time_used();
+      const double real_accumulated_time = single_iteration_timer_manager->real_time_used();
+      single_iteration_timer_manager.reset();
 
       VLOG(2) << "Ran in " << cpu_accumulated_time << "/"
               << real_accumulated_time << "\n";
@@ -697,13 +704,14 @@ void RunBenchmark(const benchmark::internal::Benchmark::Instance& b,
       const double min_time = !IsZero(b.min_time) ? b.min_time
                                                   : FLAGS_benchmark_min_time;
 
-      /* calulate the best and worse performance */
-      {
-        last_real_accumulated_time = cpu_accumulated_time - last_real_accumulated_time;
-        best_performance = std::min(best_performance, last_real_accumulated_time);
-        worse_performance = std::max(worse_performance, last_real_accumulated_time);
-        last_real_accumulated_time = cpu_accumulated_time;
+      /* calculate the best and worse performance over the threads */
+      for (auto best_worse : v_hit){
+        best_performance = std::min(best_performance, best_worse.first);
+        worse_performance = std::max(worse_performance, best_worse.second);
       }
+      VLOG(3) << "Best/Worse = " << best_performance << "/"
+              << worse_performance << "\n";
+
       // If this was the first run, was elapsed time or cpu time large enough?
       // If this is not the first run, go with the current value of iter.
       if ((i > 0) ||
@@ -777,17 +785,67 @@ State::State(size_t max_iters, bool has_x, int x, bool has_y, int y,
       max_iterations(max_iters)
 {
     CHECK(max_iterations != 0) << "At least one iteration must be run";
+    best_performance_ = std::numeric_limits<double>::max();
+    worse_performance_ = 0;
+}
+
+bool State::KeepRunning() {
+  if (BENCHMARK_BUILTIN_EXPECT(!started_, false)) {
+    ResumeTiming();
+    single_iteration_timer_ = std::chrono::high_resolution_clock::now();
+    started_ = true;
+  }
+  else {
+    PauseTiming();
+    {
+      auto now = std::chrono::high_resolution_clock::now();
+      std::chrono::duration<double, std::nano> elapsed = now - single_iteration_timer_;
+      auto elapsed_count = elapsed.count() - count_pause_resume_;
+      best_performance_ = std::min(best_performance_, elapsed_count);
+      worse_performance_ = std::max(worse_performance_, elapsed_count);
+    }
+    ResumeTiming();
+  }
+
+  bool const res = total_iterations_++ < max_iterations;
+  if (BENCHMARK_BUILTIN_EXPECT(!res, false)) {
+    assert(started_);
+    PauseTiming();
+
+    // Total iterations now is one greater than max iterations. Fix this.
+    total_iterations_ = max_iterations;
+  }
+
+  single_iteration_timer_ = std::chrono::high_resolution_clock::now();
+  count_pause_resume_ = 0;
+  return res;
+}
+
+void State::log(const int level, const char *msg) {
+  VLOG(level) << msg;
 }
 
 void State::PauseTiming() {
   // Add in time accumulated so far
   CHECK(running_benchmark);
-  timer_manager->StopTimer();
+  single_iteration_timer_manager->StopTimer();
+
+  if (pause_flag_) return;
+
+  single_iteration_pause_ = std::chrono::high_resolution_clock::now();
+  pause_flag_ = true;
 }
 
 void State::ResumeTiming() {
   CHECK(running_benchmark);
-  timer_manager->StartTimer();
+  single_iteration_timer_manager->StartTimer();
+
+  if (!pause_flag_) return;
+
+  auto now = std::chrono::high_resolution_clock::now();
+  std::chrono::duration<double, std::nano> elapsed = now - single_iteration_pause_;
+  count_pause_resume_ += elapsed.count();
+  pause_flag_ = false;
 }
 
 void State::SetLabel(const char* label) {

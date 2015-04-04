@@ -146,6 +146,7 @@ BENCHMARK(BM_MultiThreaded)->Threads(4);
 #include <assert.h>
 #include <stddef.h>
 #include <stdint.h>
+#include <chrono>
 
 #include "macros.h"
 
@@ -218,23 +219,10 @@ class State {
 public:
   State(size_t max_iters, bool has_x, int x, bool has_y, int y, int thread_i);
 
-  // Returns true iff the benchmark should continue through another iteration.
+  // Returns true if the benchmark should continue through another iteration.
   // NOTE: A benchmark may not return from the test until KeepRunning() has
   // returned false.
-  bool KeepRunning() {
-    if (BENCHMARK_BUILTIN_EXPECT(!started_, false)) {
-        ResumeTiming();
-        started_ = true;
-    }
-    bool const res = total_iterations_++ < max_iterations;
-    if (BENCHMARK_BUILTIN_EXPECT(!res, false)) {
-        assert(started_);
-        PauseTiming();
-        // Total iterations now is one greater than max iterations. Fix this.
-        total_iterations_ = max_iterations;
-    }
-    return res;
-  }
+  bool KeepRunning();
 
   // REQUIRES: timer is running
   // Stop the benchmark timer.  If not called, the timer will be
@@ -297,7 +285,20 @@ public:
     return items_processed_;
   }
 
-  // If this routine is called, the specified label is printed at the
+  BENCHMARK_ALWAYS_INLINE
+  double best_performance() const {
+    return best_performance_;
+  }
+
+  BENCHMARK_ALWAYS_INLINE
+  double worse_performance() const {
+    return worse_performance_;
+  }
+
+  BENCHMARK_ALWAYS_INLINE
+  void log(const int level, const char* msg);
+
+    // If this routine is called, the specified label is printed at the
   // end of the benchmark report line for the currently executing
   // benchmark.  Example:
   //  static void BM_Compress(int iters) {
@@ -340,6 +341,9 @@ public:
   size_t iterations() const { return total_iterations_; }
 
 private:
+  void UpdatePerformanceHits();
+
+private:
   bool started_;
   size_t total_iterations_;
 
@@ -351,6 +355,13 @@ private:
 
   size_t bytes_processed_;
   size_t items_processed_;
+
+  double count_pause_resume_;
+  double best_performance_;
+  double worse_performance_;
+  decltype(std::chrono::high_resolution_clock::now())
+      single_iteration_timer_, single_iteration_pause_;
+  bool pause_flag_;
 
 public:
   const int thread_index;

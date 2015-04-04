@@ -42,8 +42,15 @@ bool CSVReporter::ReportContext(const Context& context) {
   std::cerr << "***WARNING*** Library was built as DEBUG. Timings may be "
                "affected.\n";
 #endif
+
   std::cout << "name,iterations,real_time,cpu_time,bytes_per_second,"
-               "items_per_second,label\n";
+            "items_per_second,label";
+
+  if (context.benchmark_best_worse_enabled)
+    std::cout << ",best,worse";
+
+  std::cout << "\n";
+
   return true;
 }
 
@@ -99,6 +106,12 @@ void CSVReporter::PrintRunData(Run const& run) {
     ReplaceAll(&label, "\"", "\"\"");
     std::cout << "\"" << label << "\"";
   }
+
+  if (run.hit.enabled) {
+    std::cout << "," << run.hit.benchmark_best_time;
+    std::cout << "," << run.hit.benchmark_worse_time;
+  }
+
   std::cout << '\n';
 }
 

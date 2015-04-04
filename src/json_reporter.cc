@@ -147,6 +147,14 @@ void JSONReporter::PrintRunData(Run const& run) {
         << ",\n";
     out << indent
         << FormatKV("cpu_time", RoundDouble(cpu_time));
+
+    if (run.hit.enabled) {
+      out << ",\n" << indent
+          << FormatKV("best", RoundDouble(run.hit.benchmark_best_time));
+      out << ",\n" << indent
+          << FormatKV("worse", RoundDouble(run.hit.benchmark_worse_time));
+    }
+
     if (run.bytes_per_second > 0.0) {
         out << ",\n" << indent
             << FormatKV("bytes_per_second", RoundDouble(run.bytes_per_second));
