@@ -359,7 +359,7 @@ private:
   double count_pause_resume_;
   double best_performance_;
   double worse_performance_;
-  decltype(std::chrono::high_resolution_clock::now())
+  std::chrono::time_point<std::chrono::steady_clock>
       single_iteration_timer_, single_iteration_pause_;
   bool pause_flag_;
 
