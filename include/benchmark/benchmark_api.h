@@ -185,6 +185,8 @@ struct EnableIfString<T, typename Voider<typename T::basic_string>::type> {
 
 void UseCharPointer(char const volatile*);
 
+// Take ownership of the pointer and register the benchmark. Return the
+// registered benchmark.
 Benchmark* RegisterBenchmarkInternal(Benchmark*);
 
 } // end namespace internal
@@ -375,9 +377,7 @@ typedef void(Function)(State&);
 // Each method returns "this" so that multiple method calls can
 // chained into one expression.
 class Benchmark {
- public:
-  Benchmark(const char* name);
-
+public:
   virtual ~Benchmark();
 
   // Note: the following methods all return "this" so that multiple
@@ -455,8 +455,9 @@ class Benchmark {
   struct Instance;
 
 protected:
-   Benchmark(Benchmark const&);
-   void SetName(const char* name);
+  explicit Benchmark(const char* name);
+  Benchmark(Benchmark const&);
+  void SetName(const char* name);
 
 private:
   friend class BenchmarkFamilies;
@@ -480,23 +481,7 @@ private:
 
 }  // end namespace internal
 
-// The base class for all fixture tests. Fixture tests are created by
-// first defining a type that derives from ::benchmark::Fixture and then
-// creating/registering the tests using the following macros:
-//
-// * BENCHMARK_F(ClassName, Method)
-// * BENCHMARK_DEFINE_F(ClassName, Method)
-// * BENCHMARK_REGISTER_F(ClassName, Method)
-//
-// For Example:
-//
-// class MyFixture : public benchmark::Fixture {};
-//
-// BENCHMARK_F(MyFixture, FooTest)(benchmark::State& st) {
-//    while (st.KeepRunning()) {
-//      ...
-//    }
-// }
+// The base class for all fixture tests. 
 class Fixture: public internal::Benchmark {
 public:
     Fixture() : internal::Benchmark("") {}
@@ -580,44 +565,29 @@ protected:
 
 
 #define BENCHMARK_PRIVATE_DECLARE_F(BaseClass, Method) \
-class BaseClass##_##Method##_Test : public BaseClass { \
+class BaseClass##_##Method##_Benchmark : public BaseClass { \
 public:\
-    BaseClass##_##Method##_Test() : BaseClass() {this->SetName(#BaseClass "/" #Method);} \
+    BaseClass##_##Method##_Benchmark() : BaseClass() {this->SetName(#BaseClass "/" #Method);} \
 protected: \
     virtual void TestCase(::benchmark::State&); \
 };
 
-// The BENCHMARK_DEFINE_F(...) and BENCHMARK_REGISTER_F(...) macros are used
-// to define and register new fixture benchmarks in two steps.
-// Example:
-//
-// class MyFixture : public ::benchmark::Fixture {};
-//
-// BENCHMARK_DEFINE_F(MyFixture, Method)(benchmark::State& st) {
-//    while(st.KeepRunning()) {
-//        ...
-//    }
-// }
-// /* the test is not registered. */
-// BENCHMARK_REGISTER_F(MyFixture, Method)->Arg(42);
-// /* the test is now registered */
 #define BENCHMARK_DEFINE_F(BaseClass, Method) \
     BENCHMARK_PRIVATE_DECLARE_F(BaseClass, Method) \
-    void BaseClass##_##Method##_Test::TestCase
+    void BaseClass##_##Method##_Benchmark::TestCase
 
 #define BENCHMARK_REGISTER_F(BaseClass, Method) \
-    BENCHMARK_PRIVATE_REGISTER_F(BaseClass##_##Method##_Test)
+    BENCHMARK_PRIVATE_REGISTER_F(BaseClass##_##Method##_Benchmark)
 
 #define BENCHMARK_PRIVATE_REGISTER_F(TestName) \
     BENCHMARK_PRIVATE_DECLARE(TestName) = \
         (::benchmark::internal::RegisterBenchmarkInternal(new TestName()))
 
-// This function will define and register a benchmark within a fixture class.
-// See Fixture for more information.
+// This macro will define and register a benchmark within a fixture class.
 #define BENCHMARK_F(BaseClass, Method) \
     BENCHMARK_PRIVATE_DECLARE_F(BaseClass, Method) \
     BENCHMARK_REGISTER_F(BaseClass, Method); \
-    void BaseClass##_##Method##_Test::TestCase
+    void BaseClass##_##Method##_Benchmark::TestCase
 
 
 // Helper macro to create a main routine in a test that runs the benchmarks

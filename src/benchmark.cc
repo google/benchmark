@@ -289,7 +289,7 @@ class BenchmarkFamilies {
 
 class BenchmarkImp {
 public:
-  BenchmarkImp(const char* name);
+  explicit BenchmarkImp(const char* name);
   ~BenchmarkImp();
 
   void Arg(int x);
