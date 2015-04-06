@@ -1,12 +1,32 @@
 
 #include "benchmark/benchmark.h"
 
+#include <cassert>
+
 class MyFixture : public ::benchmark::Fixture
 {
+public:
+    void SetUp() {
+        data = new int(42);
+    }
+
+    void TearDown() {
+        assert(data != nullptr);
+        delete data;
+        data = nullptr;
+    }
+
+    ~MyFixture() {
+      assert(data == nullptr);
+    }
+
+    int* data;
 };
 
 
 BENCHMARK_F(MyFixture, Foo)(benchmark::State& st) {
+    assert(data != nullptr);
+    assert(*data == 42);
     while (st.KeepRunning()) {
     }
 }

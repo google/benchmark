@@ -488,7 +488,7 @@ public:
 
     virtual void Run(State& st) {
       this->SetUp();
-      this->TestCase(st);
+      this->BenchmarkCase(st);
       this->TearDown();
     }
 
@@ -496,7 +496,7 @@ public:
     virtual void TearDown() {}
 
 protected:
-    virtual void TestCase(State&) = 0;
+    virtual void BenchmarkCase(State&) = 0;
 };
 
 }  // end namespace benchmark
@@ -525,8 +525,9 @@ protected:
   BENCHMARK_PRIVATE_NAME(n) BENCHMARK_UNUSED
 
 #define BENCHMARK(n) \
-    BENCHMARK_PRIVATE_DECLARE(n) = (::benchmark::internal::RegisterBenchmarkInternal( \
-        new ::benchmark::internal::FunctionBenchmark(#n, n)))
+    BENCHMARK_PRIVATE_DECLARE(n) =                               \
+        (::benchmark::internal::RegisterBenchmarkInternal(       \
+            new ::benchmark::internal::FunctionBenchmark(#n, n)))
 
 // Old-style macros
 #define BENCHMARK_WITH_ARG(n, a) BENCHMARK(n)->Arg((a))
@@ -548,10 +549,11 @@ protected:
       (::benchmark::internal::RegisterBenchmarkInternal( \
         new ::benchmark::internal::FunctionBenchmark(#n "<" #a ">", n<a>)))
 
-#define BENCHMARK_TEMPLATE2(n, a, b) \
-  BENCHMARK_PRIVATE_DECLARE(n) =     \
+#define BENCHMARK_TEMPLATE2(n, a, b)                     \
+  BENCHMARK_PRIVATE_DECLARE(n) =                         \
       (::benchmark::internal::RegisterBenchmarkInternal( \
-        new ::benchmark::internal::FunctionBenchmark(#n "<" #a "," #b ">", n<a, b>)))
+        new ::benchmark::internal::FunctionBenchmark(    \
+            #n "<" #a "," #b ">", n<a, b>)))
 
 #if __cplusplus >= 201103L
 #define BENCHMARK_TEMPLATE(n, ...)           \
@@ -564,17 +566,18 @@ protected:
 #endif
 
 
-#define BENCHMARK_PRIVATE_DECLARE_F(BaseClass, Method) \
+#define BENCHMARK_PRIVATE_DECLARE_F(BaseClass, Method)      \
 class BaseClass##_##Method##_Benchmark : public BaseClass { \
-public:\
-    BaseClass##_##Method##_Benchmark() : BaseClass() {this->SetName(#BaseClass "/" #Method);} \
-protected: \
-    virtual void TestCase(::benchmark::State&); \
+public:                                                     \
+    BaseClass##_##Method##_Benchmark() : BaseClass() {      \
+        this->SetName(#BaseClass "/" #Method);}             \
+protected:                                                  \
+    virtual void BenchmarkCase(::benchmark::State&);        \
 };
 
 #define BENCHMARK_DEFINE_F(BaseClass, Method) \
     BENCHMARK_PRIVATE_DECLARE_F(BaseClass, Method) \
-    void BaseClass##_##Method##_Benchmark::TestCase
+    void BaseClass##_##Method##_Benchmark::BenchmarkCase
 
 #define BENCHMARK_REGISTER_F(BaseClass, Method) \
     BENCHMARK_PRIVATE_REGISTER_F(BaseClass##_##Method##_Benchmark)
@@ -587,7 +590,7 @@ protected: \
 #define BENCHMARK_F(BaseClass, Method) \
     BENCHMARK_PRIVATE_DECLARE_F(BaseClass, Method) \
     BENCHMARK_REGISTER_F(BaseClass, Method); \
-    void BaseClass##_##Method##_Benchmark::TestCase
+    void BaseClass##_##Method##_Benchmark::BenchmarkCase
 
 
 // Helper macro to create a main routine in a test that runs the benchmarks
