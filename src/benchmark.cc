@@ -254,16 +254,16 @@ namespace internal {
 
 // Information kept per benchmark we may want to run
 struct Benchmark::Instance {
-  std::string   name;
-  Function*     function;
-  bool          has_arg1;
-  int           arg1;
-  bool          has_arg2;
-  int           arg2;
-  bool          use_real_time;
-  double        min_time;
-  int           threads;    // Number of concurrent threads to use
-  bool          multithreaded;  // Is benchmark multi-threaded?
+  std::string    name;
+  Benchmark*     benchmark;
+  bool           has_arg1;
+  int            arg1;
+  bool           has_arg2;
+  int            arg2;
+  bool           use_real_time;
+  double         min_time;
+  int            threads;    // Number of concurrent threads to use
+  bool           multithreaded;  // Is benchmark multi-threaded?
 };
 
 // Class for managing registered benchmarks.  Note that each registered
@@ -273,27 +273,23 @@ class BenchmarkFamilies {
   static BenchmarkFamilies* GetInstance();
 
   // Registers a benchmark family and returns the index assigned to it.
-  size_t AddBenchmark(BenchmarkImp* family);
-
-  // Unregisters a family at the given index.
-  void RemoveBenchmark(size_t index);
+  size_t AddBenchmark(std::unique_ptr<Benchmark> family);
 
   // Extract the list of benchmark instances that match the specified
   // regular expression.
   bool FindBenchmarks(const std::string& re,
                       std::vector<Benchmark::Instance>* benchmarks);
  private:
-  BenchmarkFamilies();
-  ~BenchmarkFamilies();
+  BenchmarkFamilies() {}
 
-  std::vector<BenchmarkImp*> families_;
+  std::vector<std::unique_ptr<Benchmark>> families_;
   Mutex mutex_;
 };
 
 
 class BenchmarkImp {
 public:
-  BenchmarkImp(const char* name, Function* func);
+  BenchmarkImp(const char* name);
   ~BenchmarkImp();
 
   void Arg(int x);
@@ -306,6 +302,7 @@ public:
   void Threads(int t);
   void ThreadRange(int min_threads, int max_threads);
   void ThreadPerCpu();
+  void SetName(const char* name);
 
   static void AddRange(std::vector<int>* dst, int lo, int hi, int mult);
 
@@ -313,15 +310,13 @@ private:
   friend class BenchmarkFamilies;
 
   std::string name_;
-  Function* function_;
   int arg_count_;
   std::vector< std::pair<int, int> > args_;  // Args for all benchmark runs
   double min_time_;
   bool use_real_time_;
   std::vector<int> thread_counts_;
-  std::size_t registration_index_;
 
-  BENCHMARK_DISALLOW_COPY_AND_ASSIGN(BenchmarkImp);
+  BenchmarkImp& operator=(BenchmarkImp const&);
 };
 
 BenchmarkFamilies* BenchmarkFamilies::GetInstance() {
@@ -329,34 +324,12 @@ BenchmarkFamilies* BenchmarkFamilies::GetInstance() {
   return &instance;
 }
 
-BenchmarkFamilies::BenchmarkFamilies() { }
 
-BenchmarkFamilies::~BenchmarkFamilies() {
-  for (BenchmarkImp* family : families_) {
-    delete family;
-  }
-}
-
-size_t BenchmarkFamilies::AddBenchmark(BenchmarkImp* family) {
+size_t BenchmarkFamilies::AddBenchmark(std::unique_ptr<Benchmark> family) {
   MutexLock l(mutex_);
-  // This loop attempts to reuse an entry that was previously removed to avoid
-  // unncessary growth of the vector.
-  for (size_t index = 0; index < families_.size(); ++index) {
-    if (families_[index] == nullptr) {
-      families_[index] = family;
-      return index;
-    }
-  }
   size_t index = families_.size();
-  families_.push_back(family);
+  families_.push_back(std::move(family));
   return index;
-}
-
-void BenchmarkFamilies::RemoveBenchmark(size_t index) {
-  MutexLock l(mutex_);
-  families_[index] = nullptr;
-  // Don't shrink families_ here, we might be called by the destructor of
-  // BenchmarkFamilies which iterates over the vector.
 }
 
 bool BenchmarkFamilies::FindBenchmarks(
@@ -375,9 +348,10 @@ bool BenchmarkFamilies::FindBenchmarks(
   one_thread.push_back(1);
 
   MutexLock l(mutex_);
-  for (BenchmarkImp* family : families_) {
+  for (std::unique_ptr<Benchmark>& bench_family : families_) {
     // Family was deleted or benchmark doesn't match
-    if (family == nullptr) continue;
+    if (!bench_family) continue;
+    BenchmarkImp* family = bench_family->imp_;
 
     if (family->arg_count_ == -1) {
       family->arg_count_ = 0;
@@ -392,7 +366,7 @@ bool BenchmarkFamilies::FindBenchmarks(
 
         Benchmark::Instance instance;
         instance.name = family->name_;
-        instance.function = family->function_;
+        instance.benchmark = bench_family.get();
         instance.has_arg1 = family->arg_count_ >= 1;
         instance.arg1 = args.first;
         instance.has_arg2 = family->arg_count_ == 2;
@@ -430,14 +404,12 @@ bool BenchmarkFamilies::FindBenchmarks(
   return true;
 }
 
-BenchmarkImp::BenchmarkImp(const char* name, Function* func)
-    : name_(name), function_(func), arg_count_(-1),
+BenchmarkImp::BenchmarkImp(const char* name)
+    : name_(name), arg_count_(-1),
       min_time_(0.0), use_real_time_(false) {
-    registration_index_ = BenchmarkFamilies::GetInstance()->AddBenchmark(this);
 }
 
 BenchmarkImp::~BenchmarkImp() {
-  BenchmarkFamilies::GetInstance()->RemoveBenchmark(registration_index_);
 }
 
 void BenchmarkImp::Arg(int x) {
@@ -513,6 +485,10 @@ void BenchmarkImp::ThreadPerCpu() {
   thread_counts_.push_back(num_cpus);
 }
 
+void BenchmarkImp::SetName(const char* name) {
+  name_ = name;
+}
+
 void BenchmarkImp::AddRange(std::vector<int>* dst, int lo, int hi, int mult) {
   CHECK_GE(lo, 0);
   CHECK_GE(hi, lo);
@@ -535,13 +511,18 @@ void BenchmarkImp::AddRange(std::vector<int>* dst, int lo, int hi, int mult) {
   }
 }
 
-Benchmark::Benchmark(const char* name, Function* f)
-    : imp_(new BenchmarkImp(name, f))
+Benchmark::Benchmark(const char* name)
+    : imp_(new BenchmarkImp(name))
 {
 }
 
 Benchmark::~Benchmark()  {
   delete imp_;
+}
+
+Benchmark::Benchmark(Benchmark const& other)
+  : imp_(new BenchmarkImp(*other.imp_))
+{
 }
 
 Benchmark* Benchmark::Arg(int x) {
@@ -599,6 +580,14 @@ Benchmark* Benchmark::ThreadPerCpu() {
   return this;
 }
 
+void Benchmark::SetName(const char* name) {
+  imp_->SetName(name);
+}
+
+void FunctionBenchmark::Run(State& st) {
+  func_(st);
+}
+
 } // end namespace internal
 
 namespace {
@@ -610,7 +599,7 @@ void RunInThread(const benchmark::internal::Benchmark::Instance* b,
                  int iters, int thread_id,
                  ThreadStats* total) EXCLUDES(GetBenchmarkLock()) {
   State st(iters, b->has_arg1, b->arg1, b->has_arg2, b->arg2, thread_id);
-  b->function(st);
+  b->benchmark->Run(st);
   CHECK(st.iterations() == st.max_iterations) <<
     "Benchmark returned before State::KeepRunning() returned false!";
   {
@@ -904,6 +893,13 @@ void ParseCommandLineFlags(int* argc, const char** argv) {
       FLAGS_benchmark_format != "csv") {
     PrintUsageAndExit();
   }
+}
+
+Benchmark* RegisterBenchmarkInternal(Benchmark* bench) {
+    std::unique_ptr<Benchmark> bench_ptr(bench);
+    BenchmarkFamilies* families = BenchmarkFamilies::GetInstance();
+    families->AddBenchmark(std::move(bench_ptr));
+    return bench;
 }
 
 } // end namespace internal
