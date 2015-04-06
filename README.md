@@ -175,6 +175,36 @@ static void BM_test(benchmark::State& state) {
 }
 ```
 
+Benchmark Fixtures
+------------------
+Fixture tests are created by
+first defining a type that derives from ::benchmark::Fixture and then
+creating/registering the tests using the following macros:
+
+* `BENCHMARK_F(ClassName, Method)`
+* `BENCHMARK_DEFINE_F(ClassName, Method)`
+* `BENCHMARK_REGISTER_F(ClassName, Method)`
+
+For Example:
+
+```c++
+class MyFixture : public benchmark::Fixture {};
+
+BENCHMARK_F(MyFixture, FooTest)(benchmark::State& st) {
+   while (st.KeepRunning()) {
+     ...
+  }
+}
+
+BENCHMARK_DEFINE_F(MyFixture, BarTest)(benchmark::State& st) {
+   while (st.KeepRunning()) {
+     ...
+  }
+}
+/* BarTest is NOT registered */
+BENCHMARK_REGISTER_F(MyFixture, BarTest)->Threads(2);
+/* BarTest is now registered */
+```
 
 Output Formats
 --------------

@@ -169,6 +169,7 @@ void RunSpecifiedBenchmarks(BenchmarkReporter* reporter);
 namespace internal {
 class Benchmark;
 class BenchmarkImp;
+class BenchmarkFamilies;
 
 template <class T> struct Voider {
     typedef void type;
@@ -184,7 +185,12 @@ struct EnableIfString<T, typename Voider<typename T::basic_string>::type> {
 
 void UseCharPointer(char const volatile*);
 
+// Take ownership of the pointer and register the benchmark. Return the
+// registered benchmark.
+Benchmark* RegisterBenchmarkInternal(Benchmark*);
+
 } // end namespace internal
+
 
 // The DoNotOptimize(...) function can be used to prevent a value or
 // expression from being optimized away by the compiler. This function is
@@ -371,10 +377,8 @@ typedef void(Function)(State&);
 // Each method returns "this" so that multiple method calls can
 // chained into one expression.
 class Benchmark {
- public:
-  Benchmark(const char* name, Function* f);
-
-  ~Benchmark();
+public:
+  virtual ~Benchmark();
 
   // Note: the following methods all return "this" so that multiple
   // method calls can be chained together in one expression.
@@ -445,15 +449,56 @@ class Benchmark {
   // Equivalent to ThreadRange(NumCPUs(), NumCPUs())
   Benchmark* ThreadPerCpu();
 
+  virtual void Run(State& state) = 0;
+
   // Used inside the benchmark implementation
   struct Instance;
 
- private:
-   BenchmarkImp* imp_;
-   BENCHMARK_DISALLOW_COPY_AND_ASSIGN(Benchmark);
+protected:
+  explicit Benchmark(const char* name);
+  Benchmark(Benchmark const&);
+  void SetName(const char* name);
+
+private:
+  friend class BenchmarkFamilies;
+  BenchmarkImp* imp_;
+
+  Benchmark& operator=(Benchmark const&);
+};
+
+// The class used to hold all Benchmarks created from static function.
+// (ie those created using the BENCHMARK(...) macros.
+class FunctionBenchmark : public Benchmark {
+public:
+    FunctionBenchmark(const char* name, Function* func)
+        : Benchmark(name), func_(func)
+    {}
+
+    virtual void Run(State& st);
+private:
+    Function* func_;
 };
 
 }  // end namespace internal
+
+// The base class for all fixture tests. 
+class Fixture: public internal::Benchmark {
+public:
+    Fixture() : internal::Benchmark("") {}
+
+    virtual void Run(State& st) {
+      this->SetUp();
+      this->BenchmarkCase(st);
+      this->TearDown();
+    }
+
+    virtual void SetUp() {}
+    virtual void TearDown() {}
+
+protected:
+    virtual void BenchmarkCase(State&) = 0;
+};
+
 }  // end namespace benchmark
 
 
@@ -480,7 +525,9 @@ class Benchmark {
   BENCHMARK_PRIVATE_NAME(n) BENCHMARK_UNUSED
 
 #define BENCHMARK(n) \
-    BENCHMARK_PRIVATE_DECLARE(n) = (new ::benchmark::internal::Benchmark(#n, n))
+    BENCHMARK_PRIVATE_DECLARE(n) =                               \
+        (::benchmark::internal::RegisterBenchmarkInternal(       \
+            new ::benchmark::internal::FunctionBenchmark(#n, n)))
 
 // Old-style macros
 #define BENCHMARK_WITH_ARG(n, a) BENCHMARK(n)->Arg((a))
@@ -499,20 +546,52 @@ class Benchmark {
 // will register BM_Foo<1> as a benchmark.
 #define BENCHMARK_TEMPLATE1(n, a) \
   BENCHMARK_PRIVATE_DECLARE(n) =  \
-      (new ::benchmark::internal::Benchmark(#n "<" #a ">", n<a>))
+      (::benchmark::internal::RegisterBenchmarkInternal( \
+        new ::benchmark::internal::FunctionBenchmark(#n "<" #a ">", n<a>)))
 
-#define BENCHMARK_TEMPLATE2(n, a, b) \
-  BENCHMARK_PRIVATE_DECLARE(n) =     \
-      (new ::benchmark::internal::Benchmark(#n "<" #a "," #b ">", n<a, b>))
+#define BENCHMARK_TEMPLATE2(n, a, b)                     \
+  BENCHMARK_PRIVATE_DECLARE(n) =                         \
+      (::benchmark::internal::RegisterBenchmarkInternal( \
+        new ::benchmark::internal::FunctionBenchmark(    \
+            #n "<" #a "," #b ">", n<a, b>)))
 
 #if __cplusplus >= 201103L
 #define BENCHMARK_TEMPLATE(n, ...)           \
   BENCHMARK_PRIVATE_DECLARE(n) =             \
-      (new ::benchmark::internal::Benchmark( \
-        #n "<" #__VA_ARGS__ ">", n<__VA_ARGS__>))
+      (::benchmark::internal::RegisterBenchmarkInternal( \
+        new ::benchmark::internal::FunctionBenchmark( \
+        #n "<" #__VA_ARGS__ ">", n<__VA_ARGS__>)))
 #else
 #define BENCHMARK_TEMPLATE(n, a) BENCHMARK_TEMPLATE1(n, a)
 #endif
+
+
+#define BENCHMARK_PRIVATE_DECLARE_F(BaseClass, Method)      \
+class BaseClass##_##Method##_Benchmark : public BaseClass { \
+public:                                                     \
+    BaseClass##_##Method##_Benchmark() : BaseClass() {      \
+        this->SetName(#BaseClass "/" #Method);}             \
+protected:                                                  \
+    virtual void BenchmarkCase(::benchmark::State&);        \
+};
+
+#define BENCHMARK_DEFINE_F(BaseClass, Method) \
+    BENCHMARK_PRIVATE_DECLARE_F(BaseClass, Method) \
+    void BaseClass##_##Method##_Benchmark::BenchmarkCase
+
+#define BENCHMARK_REGISTER_F(BaseClass, Method) \
+    BENCHMARK_PRIVATE_REGISTER_F(BaseClass##_##Method##_Benchmark)
+
+#define BENCHMARK_PRIVATE_REGISTER_F(TestName) \
+    BENCHMARK_PRIVATE_DECLARE(TestName) = \
+        (::benchmark::internal::RegisterBenchmarkInternal(new TestName()))
+
+// This macro will define and register a benchmark within a fixture class.
+#define BENCHMARK_F(BaseClass, Method) \
+    BENCHMARK_PRIVATE_DECLARE_F(BaseClass, Method) \
+    BENCHMARK_REGISTER_F(BaseClass, Method); \
+    void BaseClass##_##Method##_Benchmark::BenchmarkCase
+
 
 // Helper macro to create a main routine in a test that runs the benchmarks
 #define BENCHMARK_MAIN()                             \
