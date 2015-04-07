@@ -216,13 +216,16 @@ NOTE: Value benchmarks are only enabled in C++11 and beyond.
 
 ```c++
 std::vector<int> test_vector1 = {1, 2, 3};
+std::vector<int> test_vector2 = {3, 4, 5};
 
-void BM_find_in(benchmark::State&, std::vector<int>& cont, int value) {
+void BM_find_in(benchmark::State&, std::vector<int>& cont, std::vector<int> const& values) {
     while (st.KeepRunning()) {
-         DoNotOptimize(std::find(cont.begin(), cont.end(), value));
+         for (auto value : values) {
+            DoNotOptimize(std::find(cont.begin(), cont.end(), value));
+        }
     }
 }
-BENCHMARK_V(BM_find_in, test_vector1, 42);
+BENCHMARK_V(BM_find_in, test_vector1, test_vector2);
 ```
 
 Output Formats
