@@ -17,5 +17,8 @@
 #include "macros.h"
 #include "benchmark_api.h"
 #include "reporter.h"
+#if __cplusplus >= 201103L
+#include "value_benchmark.h"
+#endif
 
 #endif // BENCHMARK_BENCHMARK_H_

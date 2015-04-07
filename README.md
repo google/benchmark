@@ -206,6 +206,25 @@ BENCHMARK_REGISTER_F(MyFixture, BarTest)->Threads(2);
 /* BarTest is now registered */
 ```
 
+Value Benchmarks
+-------------------
+Value benchmarks let you pass an arbitrary number of extra arguments to a
+benchmark test. The value of these extra arguments is specified when the
+benchmark is created. Use the `BENCHMARK_V(...)` macro to create value
+benchmarks.
+NOTE: Value benchmarks are only enabled in C++11 and beyond.
+
+```c++
+std::vector<int> test_vector1 = {1, 2, 3};
+
+void BM_find_in(benchmark::State&, std::vector<int>& cont, int value) {
+    while (st.KeepRunning()) {
+         DoNotOptimize(std::find(cont.begin(), cont.end(), value));
+    }
+}
+BENCHMARK_V(BM_find_in, test_vector1, 42);
+```
+
 Output Formats
 --------------
 The library supports multiple output formats. Use the

@@ -39,4 +39,7 @@ BENCHMARK_DEFINE_F(MyFixture, Bar)(benchmark::State& st) {
 BENCHMARK_REGISTER_F(MyFixture, Bar)->Arg(42);
 
 
+
+
+
 BENCHMARK_MAIN()

@@ -192,6 +192,12 @@ Benchmark* RegisterBenchmarkInternal(Benchmark*);
 } // end namespace internal
 
 
+template <class Tp>
+internal::Benchmark* RegisterBenchmark(Tp const& bench) {
+    Tp* new_bench = new Tp(bench);
+    return internal::RegisterBenchmarkInternal(new_bench);
+}
+
 // The DoNotOptimize(...) function can be used to prevent a value or
 // expression from being optimized away by the compiler. This function is
 // intented to add little to no overhead.
