@@ -46,7 +46,7 @@ bool CSVReporter::ReportContext(const Context& context) {
   std::cout << "name,iterations,real_time,cpu_time,bytes_per_second,"
             "items_per_second,label";
 
-  if (context.benchmark_best_worse_enabled)
+  if (context.benchmark_min_max_enabled)
     std::cout << ",best,worse";
 
   std::cout << "\n";
@@ -108,8 +108,8 @@ void CSVReporter::PrintRunData(Run const& run) {
   }
 
   if (run.hit.enabled) {
-    std::cout << "," << run.hit.benchmark_best_time;
-    std::cout << "," << run.hit.benchmark_worse_time;
+    std::cout << "," << run.hit.benchmark_min_time;
+    std::cout << "," << run.hit.benchmark_max_time;
   }
 
   std::cout << '\n';

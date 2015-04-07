@@ -219,7 +219,7 @@ class State {
 public:
   State(size_t max_iters, bool has_x, int x, bool has_y, int y, int thread_i);
 
-  // Returns true if the benchmark should continue through another iteration.
+  // Returns true iff the benchmark should continue through another iteration.
   // NOTE: A benchmark may not return from the test until KeepRunning() has
   // returned false.
   bool KeepRunning();
@@ -294,9 +294,6 @@ public:
   double worse_performance() const {
     return worse_performance_;
   }
-
-  BENCHMARK_ALWAYS_INLINE
-  void log(const int level, const char* msg);
 
     // If this routine is called, the specified label is printed at the
   // end of the benchmark report line for the currently executing

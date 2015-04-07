@@ -33,7 +33,7 @@ class BenchmarkReporter {
     int num_cpus;
     double mhz_per_cpu;
     bool cpu_scaling_enabled;
-    bool benchmark_best_worse_enabled;
+    bool benchmark_min_max_enabled;
 
     // The number of chars in the longest benchmark name.
     size_t name_field_width;
@@ -42,14 +42,14 @@ class BenchmarkReporter {
   struct PerformanceHit {
     PerformanceHit() :
       enabled(false),
-      benchmark_best_time(0),
-      benchmark_worse_time(0) {}
+      benchmark_min_time(0),
+      benchmark_max_time(0) {}
 
     bool enabled;
 
     //benchmark best and worse performance
-    double benchmark_best_time;
-    double benchmark_worse_time;
+    double benchmark_min_time;
+    double benchmark_max_time;
   };
 
   struct Run {

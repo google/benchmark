@@ -49,7 +49,7 @@ bool ConsoleReporter::ReportContext(const Context& context) {
                              static_cast<int>(name_field_width_), "Benchmark",
                              "Time(ns)", "CPU(ns)", "Iterations");
 
-  if (context.benchmark_best_worse_enabled)
+  if (context.benchmark_min_max_enabled)
     output_width += fprintf(stdout, " %10s %10s", "Best(ns)" , "Worse(ns)");
 
   output_width += fprintf(stdout, "\n");
@@ -115,8 +115,8 @@ void ConsoleReporter::PrintRunData(const Run& result) {
 
   if(result.hit.enabled) {
     ColorPrintf(COLOR_CYAN, " %10.0f %10.0f",
-                result.hit.benchmark_best_time,
-                result.hit.benchmark_worse_time);
+                result.hit.benchmark_min_time,
+                result.hit.benchmark_max_time);
   }
 
   ColorPrintf(COLOR_DEFAULT, "%*s %*s %s\n",

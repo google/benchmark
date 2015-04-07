@@ -50,8 +50,8 @@ void BenchmarkReporter::ComputeStats(
     items_per_second_stat += Stat1_d(run.items_per_second, run.iterations);
     bytes_per_second_stat += Stat1_d(run.bytes_per_second, run.iterations);
     if (run.hit.enabled) {
-      best_performance = std::min(best_performance, run.hit.benchmark_best_time);
-      worse_performance = std::max(worse_performance, run.hit.benchmark_worse_time);
+      best_performance = std::min(best_performance, run.hit.benchmark_min_time);
+      worse_performance = std::max(worse_performance, run.hit.benchmark_max_time);
     }
   }
 
@@ -64,8 +64,8 @@ void BenchmarkReporter::ComputeStats(
                                     run_iterations;
   mean_data->bytes_per_second = bytes_per_second_stat.Mean();
   mean_data->items_per_second = items_per_second_stat.Mean();
-  mean_data->hit.benchmark_best_time = best_performance;
-  mean_data->hit.benchmark_worse_time = worse_performance;
+  mean_data->hit.benchmark_min_time = best_performance;
+  mean_data->hit.benchmark_max_time = worse_performance;
 
   // Only add label to mean/stddev if it is same for all runs
   mean_data->report_label = reports[0].report_label;
@@ -85,8 +85,8 @@ void BenchmarkReporter::ComputeStats(
       cpu_accumulated_time_stat.StdDev();
   stddev_data->bytes_per_second = bytes_per_second_stat.StdDev();
   stddev_data->items_per_second = items_per_second_stat.StdDev();
-  stddev_data->hit.benchmark_best_time = best_performance;
-  stddev_data->hit.benchmark_worse_time = worse_performance;
+  stddev_data->hit.benchmark_min_time = best_performance;
+  stddev_data->hit.benchmark_max_time = worse_performance;
 }
 
 void BenchmarkReporter::Finalize() {

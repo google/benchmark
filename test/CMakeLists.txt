@@ -42,4 +42,4 @@ set_target_properties(cxx03_test
 add_test(cxx03 cxx03_test --benchmark_min_time=0.01)
 
 compile_benchmark_test(sleep_test)
-add_test(sleep_benchmark sleep_test --benchmark_best_worse)
+add_test(sleep_benchmark sleep_test --benchmark_min_max)
