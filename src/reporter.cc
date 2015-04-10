@@ -67,9 +67,11 @@ void BenchmarkReporter::ComputeStats(
   mean_data->bytes_per_second = bytes_per_second_stat.Mean();
   mean_data->items_per_second = items_per_second_stat.Mean();
 
-  double const multiplier = 1e9; // nano second multiplier
-  mean_data->hit.benchmark_min_time = min_real_accumulated_time * multiplier;
-  mean_data->hit.benchmark_max_time = max_real_accumulated_time * multiplier;
+  if (mean_data->hit.enabled) {
+    double const multiplier = 1e9; // nano second multiplier
+    mean_data->hit.benchmark_min_time = min_real_accumulated_time * multiplier;
+    mean_data->hit.benchmark_max_time = max_real_accumulated_time * multiplier;
+  }
 
   // Only add label to mean/stddev if it is same for all runs
   mean_data->report_label = reports[0].report_label;
