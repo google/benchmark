@@ -33,7 +33,7 @@ void BenchmarkReporter::ComputeStats(
   Stat1_d items_per_second_stat;
   // All repetitions should be run with the same number of iterations so we
   // can take this information from the first benchmark.
-  std::size_t const run_iterations = reports.front().iterations;
+  int64_t const run_iterations = reports.front().iterations;
 
   // Populate the accumulators.
   for (Run const& run : reports) {

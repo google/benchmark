@@ -49,7 +49,7 @@ class BenchmarkReporter {
 
     std::string benchmark_name;
     std::string report_label;  // Empty if not set by benchmark.
-    size_t iterations;
+    int64_t iterations;
     double real_accumulated_time;
     double cpu_accumulated_time;
 
