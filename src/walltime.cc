@@ -51,7 +51,7 @@ struct ChooseSteadyClock<false> {
 
 struct ChooseClockType {
 #if defined(HAVE_STEADY_CLOCK)
-  typedef typename ChooseSteadyClock<>::type type;
+  typedef ChooseSteadyClock<>::type type;
 #else
   typedef std::chrono::high_resolution_clock type;
 #endif
