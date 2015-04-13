@@ -305,7 +305,7 @@ static double MyCPUUsageRUsage() {
   user.HighPart = user_time.dwHighDateTime;
   user.LowPart = user_time.dwLowDateTime;
   return (static_cast<double>(kernel.QuadPart) +
-          static_cast<double>(user.QuadPart)) / 1.0E-7;
+          static_cast<double>(user.QuadPart)) / 1.0E7;
 #endif  // OS_WINDOWS
 }
 
