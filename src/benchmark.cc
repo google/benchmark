@@ -15,11 +15,11 @@
 #include "benchmark/benchmark.h"
 #include "internal_macros.h"
 
-#include <sys/time.h>
 #ifndef OS_WINDOWS
+#include <sys/time.h>
 #include <sys/resource.h>
-#endif
 #include <unistd.h>
+#endif
 
 #include <cstdlib>
 #include <cstring>
