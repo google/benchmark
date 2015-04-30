@@ -18,18 +18,16 @@ message("-- Version: ${VERSION}")
 set(GENERIC_LIB_VERSION ${VERSION})
 string(SUBSTRING ${VERSION} 0 1 GENERIC_LIB_SOVERSION)
 
-# Try and enable C++11. Don't use C++14 because it doesn't work in some
-# configurations.
+# Import our CMake modules
 include(CheckCXXCompilerFlag)
 include(AddCXXCompilerFlag)
 include(CXXFeatureCheck)
 
-check_cxx_compiler_flag(-std=c++11 HAVE_FLAG_CXX_11)
-check_cxx_compiler_flag(-std=c++0x HAVE_FLAG_CXX_0X)
-if (HAVE_FLAG_CXX_11)
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
-elseif (HAVE_FLAG_CXX_0X)
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++0x")
+# Try and enable C++11. Don't use C++14 because it doesn't work in some
+# configurations.
+add_cxx_compiler_flag(-std=c++11)
+if (NOT HAVE_CXX_FLAG_STD_CXX11)
+  add_cxx_compiler_flag(-std=c++0x)
 endif()
 
 # Turn compiler warnings up to 11
