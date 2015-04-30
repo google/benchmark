@@ -22,8 +22,7 @@ Makefile
 # in-source build.
 bin/
 lib/
-/test/benchmark_test
-/test/re_test
+/test/*_test
 
 # exuberant ctags.
 tags
