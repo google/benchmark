@@ -42,6 +42,11 @@ add_cxx_compiler_flag(-pedantic-errors)
 add_cxx_compiler_flag(-Wshorten-64-to-32)
 add_cxx_compiler_flag(-Wfloat-equal)
 add_cxx_compiler_flag(-Wzero-as-null-pointer-constant)
+add_cxx_compiler_flag(-Wthread-safety)
+if (HAVE_WTHREAD_SAFETY)
+  add_definitions(-DHAVE_WTHREAD_SAFETY)
+  cxx_feature_check(THREAD_SAFETY_ATTRIBUTES)
+endif()
 
 # Release flags
 add_cxx_compiler_flag(-fno-strict-aliasing RELEASE)
@@ -59,12 +64,6 @@ if (BENCHMARK_ENABLE_LTO)
       set(CMAKE_RANLIB ${GCC_RANLIB})
     endif()
   endif()
-endif()
-
-add_cxx_compiler_flag(-Wthread-safety)
-if (HAVE_WTHREAD_SAFETY)
-  add_definitions(-DHAVE_WTHREAD_SAFETY)
-  cxx_feature_check(THREAD_SAFETY_ATTRIBUTES)
 endif()
 
 # C++ feature checks
