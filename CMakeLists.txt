@@ -64,6 +64,27 @@ if (BENCHMARK_ENABLE_LTO)
   endif()
 endif()
 
+# Coverage build type
+set(CMAKE_CXX_FLAGS_COVERAGE "${CMAKE_CXX_FLAGS_DEBUG}" CACHE STRING
+  "Flags used by the C++ compiler during coverage builds."
+  FORCE)
+set(CMAKE_EXE_LINKER_FLAGS_COVERAGE
+  "${CMAKE_EXE_LINKER_FLAGS_DEBUG}" CACHE STRING
+  "Flags used for linking binaries during coverage builds."
+  FORCE)
+set(CMAKE_SHARED_LINKER_FLAGS_COVERAGE
+  "${CMAKE_SHARED_LINKER_FLAGS_DEBUG}" CACHE STRING
+  "Flags used by the shared libraries linker during coverage builds."
+  FORCE)
+mark_as_advanced(
+  CMAKE_CXX_FLAGS_COVERAGE
+  CMAKE_EXE_LINKER_FLAGS_COVERAGE
+  CMAKE_SHARED_LINKER_FLAGS_COVERAGE)
+set(CMAKE_BUILD_TYPE "${CMAKE_BUILD_TYPE}" CACHE STRING
+  "Choose the type of build, options are: None Debug Release RelWithDebInfo MinSizeRel Coverage."
+  FORCE)
+add_cxx_compiler_flag(--coverage COVERAGE)
+
 # C++ feature checks
 cxx_feature_check(STD_REGEX)
 cxx_feature_check(GNU_POSIX_REGEX)

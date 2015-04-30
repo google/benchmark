@@ -10,6 +10,10 @@
 *.pyc
 __pycache__
 
+# lcov
+*.lcov
+/lcov
+
 # cmake files.
 /Testing
 CMakeCache.txt
