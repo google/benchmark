@@ -2,6 +2,7 @@ cmake_minimum_required (VERSION 2.8.11)
 project (benchmark)
 
 option(BENCHMARK_ENABLE_TESTING "Enable testing of the benchmark library." ON)
+option(BENCHMARK_ENABLE_LTO "Enable link time optimisation of the benchmark library." OFF)
 # Make sure we can import out CMake functions
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 
@@ -41,8 +42,24 @@ add_cxx_compiler_flag(-pedantic-errors)
 add_cxx_compiler_flag(-Wshorten-64-to-32)
 add_cxx_compiler_flag(-Wfloat-equal)
 add_cxx_compiler_flag(-Wzero-as-null-pointer-constant)
+
 # Release flags
 add_cxx_compiler_flag(-fno-strict-aliasing RELEASE)
+
+# Link time optimisation
+if (BENCHMARK_ENABLE_LTO)
+  add_cxx_compiler_flag(-flto)
+  if ("${CMAKE_C_COMPILER_ID}" STREQUAL "GNU")
+    find_program(GCC_AR gcc-ar)
+    if (GCC_AR)
+      set(CMAKE_AR ${GCC_AR})
+    endif()
+    find_program(GCC_RANLIB gcc-ranlib)
+    if (GCC_RANLIB)
+      set(CMAKE_RANLIB ${GCC_RANLIB})
+    endif()
+  endif()
+endif()
 
 add_cxx_compiler_flag(-Wthread-safety)
 if (HAVE_WTHREAD_SAFETY)
