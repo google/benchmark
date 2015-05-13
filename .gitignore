@@ -10,6 +10,10 @@
 *.pyc
 __pycache__
 
+# lcov
+*.lcov
+/lcov
+
 # cmake files.
 /Testing
 CMakeCache.txt
@@ -22,8 +26,7 @@ Makefile
 # in-source build.
 bin/
 lib/
-/test/benchmark_test
-/test/re_test
+/test/*_test
 
 # exuberant ctags.
 tags
