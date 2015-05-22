@@ -45,7 +45,9 @@ set_target_properties(cxx03_test
 add_test(cxx03 cxx03_test --benchmark_min_time=0.01)
 
 # Add the coverage command(s)
-string(TOLOWER ${CMAKE_BUILD_TYPE} CMAKE_BUILD_TYPE_LOWER)
+if(CMAKE_BUILD_TYPE)
+  string(TOLOWER ${CMAKE_BUILD_TYPE} CMAKE_BUILD_TYPE_LOWER)
+endif()
 if (${CMAKE_BUILD_TYPE_LOWER} MATCHES "coverage")
   find_program(GCOV gcov)
   find_program(LCOV lcov)
