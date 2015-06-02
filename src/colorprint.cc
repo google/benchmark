@@ -16,16 +16,20 @@
 
 #include <cstdarg>
 #include <cstdio>
-#include <cstdarg>
-#include <string>
+#include <cstdlib>
+#include <cstring>
 #include <memory>
+#include <string>
 
 #include "check.h"
 #include "internal_macros.h"
 
 #ifdef BENCHMARK_OS_WINDOWS
+#include <io.h>
 #include <Windows.h>
-#endif
+#else
+#include <unistd.h>
+#endif // BENCHMARK_OS_WINDOWS
 
 namespace benchmark {
 namespace {
@@ -149,6 +153,36 @@ void ColorPrintf(std::ostream& out, LogColor color, const char* fmt, va_list arg
   out << FormatString(fmt, args) << "\033[m";
 #endif
 
+}
+
+bool IsColorTerminal() {
+#if BENCHMARK_OS_WINDOWS
+  // On Windows the TERM variable is usually not set, but the
+  // console there does support colors.
+  return 0 != _isatty(_fileno(stdout));
+#else
+  // On non-Windows platforms, we rely on the TERM variable. This list of
+  // supported TERM values is copied from Google Test:
+  // <https://github.com/google/googletest/blob/master/googletest/src/gtest.cc#L2925>.
+  const char* const SUPPORTED_TERM_VALUES[] = {
+      "xterm",         "xterm-color",     "xterm-256color",
+      "screen",        "screen-256color", "tmux",
+      "tmux-256color", "rxvt-unicode",    "rxvt-unicode-256color",
+      "linux",         "cygwin",
+  };
+
+  const char* const term = getenv("TERM");
+
+  bool term_supports_color = false;
+  for (const char* candidate : SUPPORTED_TERM_VALUES) {
+    if (term && 0 == strcmp(term, candidate)) {
+      term_supports_color = true;
+      break;
+    }
+  }
+
+  return 0 != isatty(fileno(stdout)) && term_supports_color;
+#endif // BENCHMARK_OS_WINDOWS
 }
 
 }  // end namespace benchmark
