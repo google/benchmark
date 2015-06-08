@@ -217,9 +217,9 @@ std::string DateTimeString(bool local) {
   std::tm timeinfo;
   std::memset(&timeinfo, 0, sizeof(std::tm));
   if (local) {
-    ::localtime_r(&now, &timeinfo);
+    localtime_r(&now, &timeinfo);
   } else {
-    ::gmtime_r(&now, &timeinfo);
+    gmtime_r(&now, &timeinfo);
   }
   std::size_t written = std::strftime(storage, sizeof(storage), "%F %T", &timeinfo);
   CHECK(written < arraysize(storage));
