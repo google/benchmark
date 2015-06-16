@@ -267,7 +267,7 @@ void InitializeSystemInfo() {
   int num_cpus = 0;
   size_t size = sizeof(num_cpus);
   int numcpus_name[] = {CTL_HW, HW_NCPU};
-  if (::sysctl(numcpus_name, arraysize(numcpus_name), &num_cpus, &size, 0, 0) ==
+  if (::sysctl(numcpus_name, arraysize(numcpus_name), &num_cpus, &size, nullptr, 0) ==
           0 &&
       (size == sizeof(num_cpus)))
     cpuinfo_num_cpus = num_cpus;
