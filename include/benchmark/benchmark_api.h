@@ -481,7 +481,7 @@ private:
 
 }  // end namespace internal
 
-// The base class for all fixture tests. 
+// The base class for all fixture tests.
 class Fixture: public internal::Benchmark {
 public:
     Fixture() : internal::Benchmark("") {}
