@@ -394,6 +394,7 @@ int NumCPUs(void) {
        : nullptr)
 
 bool CpuScalingEnabled() {
+#ifndef OS_WINDOWS
   // On Linux, the CPUfreq subsystem exposes CPU information as files on the
   // local file system. If reading the exported files fails, then we may not be
   // running on Linux, so we silently ignore all the read errors.
@@ -407,6 +408,7 @@ bool CpuScalingEnabled() {
     fclose(file);
     if (memprefix(buff, bytes_read, "performance") == nullptr) return true;
   }
+#endif
   return false;
 }
 
