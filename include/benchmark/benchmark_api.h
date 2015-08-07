@@ -86,8 +86,7 @@ BENCHMARK(BM_SetInsert)->RangePair(1<<10, 8<<10, 1, 512);
 // arbitrary set of arguments to run the microbenchmark on.
 // The following example enumerates a dense range on
 // one parameter, and a sparse range on the second.
-static benchmark::internal::Benchmark* CustomArguments(
-    benchmark::internal::Benchmark* b) {
+static void CustomArguments(benchmark::internal::Benchmark* b) {
   for (int i = 0; i <= 10; ++i)
     for (int j = 32; j <= 1024*1024; j *= 8)
       b = b->ArgPair(i, j);
