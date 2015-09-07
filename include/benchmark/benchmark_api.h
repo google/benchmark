@@ -223,7 +223,7 @@ class State {
 public:
   State(size_t max_iters, bool has_x, int x, bool has_y, int y, int thread_i);
 
-  // Returns true iff the benchmark should continue through another iteration.
+  // Returns true if the benchmark should continue through another iteration.
   // NOTE: A benchmark may not return from the test until KeepRunning() has
   // returned false.
   bool KeepRunning() {
