@@ -12,9 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "walltime.h"
 #include "benchmark/macros.h"
 #include "internal_macros.h"
+#include "walltime.h"
 
 #if defined(OS_WINDOWS)
 #include <time.h>
@@ -110,7 +110,7 @@ private:
     ularge.LowPart = file_time.dwLowDateTime;
     ularge.HighPart = file_time.dwHighDateTime;
 
-    tv.tv_sec = (long)((ularge.QuadPart - epoch) / 10000000L);
+    tv.tv_sec = (long)((ularge.QuadPart - epoch) / (10L * 1000 * 1000));
     tv.tv_usec = (long)(system_time.wMilliseconds * 1000);
 #else
     gettimeofday(&tv, nullptr);
@@ -167,8 +167,8 @@ WallTimeImp::WallTimeImp()
       cycles_per_second_(0), seconds_per_cycle_(0.0),
       last_adjust_time_(0), drift_adjust_(0),
       max_interval_cycles_(0) {
-    const double kMaxErrorInterval = 100e-6;
-    cycles_per_second_ = static_cast<int64_t>(CyclesPerSecond());
+  const double kMaxErrorInterval = 100e-6;
+  cycles_per_second_ = static_cast<int64_t>(CyclesPerSecond());
   CHECK(cycles_per_second_ != 0);
   seconds_per_cycle_ = 1.0 / cycles_per_second_;
   max_interval_cycles_ =
