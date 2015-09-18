@@ -44,7 +44,8 @@ static void BM_memcpy(benchmark::State& state) {
   memset(src, 'x', state.range_x());
   while (state.KeepRunning())
     memcpy(dst, src, state.range_x());
-  state.SetBytesProcessed(int64_t(state.iterations) * int64_t(state.range_x()));
+  state.SetBytesProcessed(int64_t(state.iterations()) *
+                          int64_t(state.range_x()));
   delete[] src;
   delete[] dst;
 }

@@ -42,7 +42,8 @@ static void BM_memcpy(benchmark::State& state) {
   memset(src, 'x', state.range_x());
   while (state.KeepRunning())
     memcpy(dst, src, state.range_x());
-  state.SetBytesProcessed(int64_t_t(state.iterations) * int64(state.range_x()));
+  state.SetBytesProcessed(int64_t(state.iterations()) *
+                          int64_t(state.range_x()));
   delete[] src; delete[] dst;
 }
 BENCHMARK(BM_memcpy)->Arg(8)->Arg(64)->Arg(512)->Arg(1<<10)->Arg(8<<10);
