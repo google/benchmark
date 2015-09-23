@@ -90,8 +90,7 @@ BENCHMARK(BM_SetInsert)->RangePair(1<<10, 8<<10, 1, 512);
 static void CustomArguments(benchmark::internal::Benchmark* b) {
   for (int i = 0; i <= 10; ++i)
     for (int j = 32; j <= 1024*1024; j *= 8)
-      b = b->ArgPair(i, j);
-  return b;
+      b->ArgPair(i, j);
 }
 BENCHMARK(BM_SetInsert)->Apply(CustomArguments);
 
