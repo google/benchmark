@@ -151,7 +151,7 @@ BENCHMARK(BM_MultiThreaded)->Threads(4);
 namespace benchmark {
 class BenchmarkReporter;
 
-void Initialize(int* argc, const char** argv);
+void Initialize(int* argc, char** argv);
 
 // Otherwise, run all benchmarks specified by the --benchmark_filter flag,
 // and exit after running the benchmarks.
@@ -593,10 +593,10 @@ protected:                                                  \
 
 
 // Helper macro to create a main routine in a test that runs the benchmarks
-#define BENCHMARK_MAIN()                             \
-  int main(int argc, const char** argv) {            \
-    ::benchmark::Initialize(&argc, argv);            \
-    ::benchmark::RunSpecifiedBenchmarks();           \
+#define BENCHMARK_MAIN()                   \
+  int main(int argc, char** argv) {        \
+    ::benchmark::Initialize(&argc, argv);  \
+    ::benchmark::RunSpecifiedBenchmarks(); \
   }
 
 #endif  // BENCHMARK_BENCHMARK_API_H_
