@@ -67,7 +67,7 @@ BENCHMARK(BM_FooBa);
 
 
 
-int main(int argc, const char* argv[]) {
+int main(int argc, char* argv[]) {
   benchmark::Initialize(&argc, argv);
 
   TestReporter test_reporter;
@@ -82,4 +82,3 @@ int main(int argc, const char* argv[]) {
     return -1;
   }
 }
-
