@@ -305,7 +305,7 @@ static double MyCPUUsageRUsage() {
   user.HighPart = user_time.dwHighDateTime;
   user.LowPart = user_time.dwLowDateTime;
   return (static_cast<double>(kernel.QuadPart) +
-          static_cast<double>(user.QuadPart)) / 1.0E-7;
+          static_cast<double>(user.QuadPart)) * 1e-7;
 #endif  // OS_WINDOWS
 }
 
@@ -394,6 +394,7 @@ int NumCPUs(void) {
        : nullptr)
 
 bool CpuScalingEnabled() {
+#ifndef OS_WINDOWS
   // On Linux, the CPUfreq subsystem exposes CPU information as files on the
   // local file system. If reading the exported files fails, then we may not be
   // running on Linux, so we silently ignore all the read errors.
@@ -407,6 +408,7 @@ bool CpuScalingEnabled() {
     fclose(file);
     if (memprefix(buff, bytes_read, "performance") == nullptr) return true;
   }
+#endif
   return false;
 }
 

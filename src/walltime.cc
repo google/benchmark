@@ -12,9 +12,16 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#include "benchmark/macros.h"
+#include "internal_macros.h"
 #include "walltime.h"
 
+#if defined(OS_WINDOWS)
+#include <time.h>
+#include <winsock.h> // for timeval
+#else
 #include <sys/time.h>
+#endif
 
 #include <cstdio>
 #include <cstdint>
@@ -51,7 +58,7 @@ struct ChooseSteadyClock<false> {
 
 struct ChooseClockType {
 #if defined(HAVE_STEADY_CLOCK)
-  typedef typename ChooseSteadyClock<>::type type;
+  typedef ChooseSteadyClock<>::type type;
 #else
   typedef std::chrono::high_resolution_clock type;
 #endif
@@ -92,15 +99,28 @@ private:
 
   WallTime Slow() const {
     struct timeval tv;
+#if defined(OS_WINDOWS)
+    FILETIME    file_time;
+    SYSTEMTIME  system_time;
+    ULARGE_INTEGER ularge;
+    const unsigned __int64 epoch = 116444736000000000LL;
+
+    GetSystemTime(&system_time);
+    SystemTimeToFileTime(&system_time, &file_time);
+    ularge.LowPart = file_time.dwLowDateTime;
+    ularge.HighPart = file_time.dwHighDateTime;
+
+    tv.tv_sec = (long)((ularge.QuadPart - epoch) / (10L * 1000 * 1000));
+    tv.tv_usec = (long)(system_time.wMilliseconds * 1000);
+#else
     gettimeofday(&tv, nullptr);
+#endif
     return tv.tv_sec + tv.tv_usec * 1e-6;
   }
 
 private:
   static_assert(sizeof(float) <= sizeof(int32_t),
                "type sizes don't allow the drift_adjust hack");
-
-  static constexpr double kMaxErrorInterval = 100e-6;
 
   WallTime base_walltime_;
   int64_t base_cycletime_;
@@ -147,6 +167,7 @@ WallTimeImp::WallTimeImp()
       cycles_per_second_(0), seconds_per_cycle_(0.0),
       last_adjust_time_(0), drift_adjust_(0),
       max_interval_cycles_(0) {
+  const double kMaxErrorInterval = 100e-6;
   cycles_per_second_ = static_cast<int64_t>(CyclesPerSecond());
   CHECK(cycles_per_second_ != 0);
   seconds_per_cycle_ = 1.0 / cycles_per_second_;
@@ -213,15 +234,27 @@ std::string DateTimeString(bool local) {
   typedef std::chrono::system_clock Clock;
   std::time_t now = Clock::to_time_t(Clock::now());
   char storage[128];
+  std::size_t written;
 
-  std::tm timeinfo;
-  std::memset(&timeinfo, 0, sizeof(std::tm));
   if (local) {
-    localtime_r(&now, &timeinfo);
+#if defined(OS_WINDOWS)
+    written = std::strftime(storage, sizeof(storage), "%x %X", ::localtime(&now));
+#else
+    std::tm timeinfo;
+    std::memset(&timeinfo, 0, sizeof(std::tm));
+    ::localtime_r(&now, &timeinfo);
+    written = std::strftime(storage, sizeof(storage), "%F %T", &timeinfo);
+#endif
   } else {
-    gmtime_r(&now, &timeinfo);
+#if defined(OS_WINDOWS)
+    written = std::strftime(storage, sizeof(storage), "%x %X", ::gmtime(&now));
+#else
+    std::tm timeinfo;
+    std::memset(&timeinfo, 0, sizeof(std::tm));
+    ::gmtime_r(&now, &timeinfo);
+    written = std::strftime(storage, sizeof(storage), "%F %T", &timeinfo);
+#endif
   }
-  std::size_t written = std::strftime(storage, sizeof(storage), "%F %T", &timeinfo);
   CHECK(written < arraysize(storage));
   ((void)written); // prevent unused variable in optimized mode.
   return std::string(storage);

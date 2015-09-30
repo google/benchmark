@@ -4,6 +4,7 @@
 #include <string>
 #include <sstream>
 #include <utility>
+#include "internal_macros.h"
 
 namespace benchmark {
 
@@ -14,7 +15,7 @@ std::string HumanReadableNumber(double n);
 std::string StringPrintF(const char* format, ...);
 
 inline std::ostream&
-StringCatImp(std::ostream& out) noexcept
+StringCatImp(std::ostream& out) BENCHMARK_NOEXCEPT
 {
   return out;
 }

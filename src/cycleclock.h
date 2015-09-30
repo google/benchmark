@@ -40,7 +40,10 @@
 extern "C" uint64_t __rdtsc();
 #pragma intrinsic(__rdtsc)
 #endif
+
+#ifndef OS_WINDOWS
 #include <sys/time.h>
+#endif
 
 namespace benchmark {
 // NOTE: only i386 and x86_64 have been well tested.
