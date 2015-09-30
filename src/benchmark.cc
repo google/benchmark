@@ -697,7 +697,7 @@ void RunBenchmark(const benchmark::internal::Benchmark::Instance& b,
         report.benchmark_name = b.name;
         report.report_label = label;
         // Report the total iterations across all threads.
-        report.iterations = static_cast<int64_t>(iters) * b.threads;
+        report.iterations = static_cast<size_t>(static_cast<int64_t>(iters) * b.threads);
         report.real_accumulated_time = real_accumulated_time;
         report.cpu_accumulated_time = cpu_accumulated_time;
         report.bytes_per_second = bytes_per_second;
