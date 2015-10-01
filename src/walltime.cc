@@ -69,8 +69,8 @@ public:
   WallTime Now();
 
   static WallTimeImp& GetWallTimeImp() {
-    static WallTimeImp imp;
-    return imp;
+    static WallTimeImp* imp = new WallTimeImp();
+    return *imp;
   }
 
 private:
