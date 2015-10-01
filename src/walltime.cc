@@ -31,7 +31,6 @@
 #include <atomic>
 #include <chrono>
 #include <limits>
-#include <type_traits>
 
 #include "arraysize.h"
 #include "check.h"
@@ -70,13 +69,8 @@ public:
   WallTime Now();
 
   static WallTimeImp& GetWallTimeImp() {
-    static WallTimeImp imp;
-#if __cplusplus >= 201103L
-    static_assert(std::is_trivially_destructible<WallTimeImp>::value,
-                  "WallTimeImp must be trivially destructible to prevent "
-                  "issues with static destruction");
-#endif
-    return imp;
+    static WallTimeImp* imp = new WallTimeImp();
+    return *imp;
   }
 
 private:
