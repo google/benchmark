@@ -596,7 +596,7 @@ namespace {
 // Execute one thread of benchmark b for the specified number of iterations.
 // Adds the stats collected for the thread into *total.
 void RunInThread(const benchmark::internal::Benchmark::Instance* b,
-                 int iters, int thread_id,
+                 size_t iters, int thread_id,
                  ThreadStats* total) EXCLUDES(GetBenchmarkLock()) {
   State st(iters, b->has_arg1, b->arg1, b->has_arg2, b->arg2, thread_id);
   b->benchmark->Run(st);
@@ -613,7 +613,7 @@ void RunInThread(const benchmark::internal::Benchmark::Instance* b,
 
 void RunBenchmark(const benchmark::internal::Benchmark::Instance& b,
                   BenchmarkReporter* br) EXCLUDES(GetBenchmarkLock()) {
-  int iters = 1;
+  size_t iters = 1;
 
   std::vector<BenchmarkReporter::Run> reports;
 
