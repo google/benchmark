@@ -15,11 +15,11 @@
 #include "benchmark/benchmark.h"
 #include "internal_macros.h"
 
-#include <sys/time.h>
 #ifndef OS_WINDOWS
+#include <sys/time.h>
 #include <sys/resource.h>
-#endif
 #include <unistd.h>
+#endif
 
 #include <cstdlib>
 #include <cstring>
@@ -863,7 +863,7 @@ void PrintUsageAndExit() {
   exit(0);
 }
 
-void ParseCommandLineFlags(int* argc, const char** argv) {
+void ParseCommandLineFlags(int* argc, char** argv) {
   using namespace benchmark;
   for (int i = 1; i < *argc; ++i) {
     if (
@@ -904,7 +904,7 @@ Benchmark* RegisterBenchmarkInternal(Benchmark* bench) {
 
 } // end namespace internal
 
-void Initialize(int* argc, const char** argv) {
+void Initialize(int* argc, char** argv) {
   internal::ParseCommandLineFlags(argc, argv);
   internal::SetLogLevel(FLAGS_v);
   // TODO remove this. It prints some output the first time it is called.

@@ -42,7 +42,8 @@ static void BM_memcpy(benchmark::State& state) {
   memset(src, 'x', state.range_x());
   while (state.KeepRunning())
     memcpy(dst, src, state.range_x());
-  state.SetBytesProcessed(int64_t_t(state.iterations) * int64(state.range_x()));
+  state.SetBytesProcessed(int64_t(state.iterations()) *
+                          int64_t(state.range_x()));
   delete[] src; delete[] dst;
 }
 BENCHMARK(BM_memcpy)->Arg(8)->Arg(64)->Arg(512)->Arg(1<<10)->Arg(8<<10);
@@ -89,8 +90,7 @@ BENCHMARK(BM_SetInsert)->RangePair(1<<10, 8<<10, 1, 512);
 static void CustomArguments(benchmark::internal::Benchmark* b) {
   for (int i = 0; i <= 10; ++i)
     for (int j = 32; j <= 1024*1024; j *= 8)
-      b = b->ArgPair(i, j);
-  return b;
+      b->ArgPair(i, j);
 }
 BENCHMARK(BM_SetInsert)->Apply(CustomArguments);
 
@@ -151,7 +151,7 @@ BENCHMARK(BM_MultiThreaded)->Threads(4);
 namespace benchmark {
 class BenchmarkReporter;
 
-void Initialize(int* argc, const char** argv);
+void Initialize(int* argc, char** argv);
 
 // Otherwise, run all benchmarks specified by the --benchmark_filter flag,
 // and exit after running the benchmarks.
@@ -593,10 +593,10 @@ protected:                                                  \
 
 
 // Helper macro to create a main routine in a test that runs the benchmarks
-#define BENCHMARK_MAIN()                             \
-  int main(int argc, const char** argv) {            \
-    ::benchmark::Initialize(&argc, argv);            \
-    ::benchmark::RunSpecifiedBenchmarks();           \
+#define BENCHMARK_MAIN()                   \
+  int main(int argc, char** argv) {        \
+    ::benchmark::Initialize(&argc, argv);  \
+    ::benchmark::RunSpecifiedBenchmarks(); \
   }
 
 #endif  // BENCHMARK_BENCHMARK_API_H_

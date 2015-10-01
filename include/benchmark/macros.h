@@ -27,12 +27,16 @@
 #if defined(__GNUC__)
 # define BENCHMARK_UNUSED __attribute__((unused))
 # define BENCHMARK_ALWAYS_INLINE __attribute__((always_inline))
+# define BENCHMARK_NOEXCEPT noexcept
 #elif defined(_MSC_VER) && !defined(__clang__)
 # define BENCHMARK_UNUSED
 # define BENCHMARK_ALWAYS_INLINE __forceinline
+# define BENCHMARK_NOEXCEPT
+# define __func__ __FUNCTION__
 #else
 # define BENCHMARK_UNUSED
 # define BENCHMARK_ALWAYS_INLINE
+# define BENCHMARK_NOEXCEPT
 #endif
 
 #if defined(__GNUC__)

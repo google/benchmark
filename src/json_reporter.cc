@@ -44,12 +44,6 @@ std::string FormatKV(std::string const& key, int64_t value) {
   return ss.str();
 }
 
-std::string FormatKV(std::string const& key, std::size_t value) {
-  std::stringstream ss;
-  ss << '"' << key << "\": " << value;
-  return ss.str();
-}
-
 int64_t RoundDouble(double v) {
     return static_cast<int64_t>(v + 0.5);
 }
