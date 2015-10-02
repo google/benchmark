@@ -101,7 +101,7 @@ bool IsZero(double n) {
 
 // For non-dense Range, intermediate values are powers of kRangeMultiplier.
 static const int kRangeMultiplier = 8;
-static const int kMaxIterations = 1000000000;
+static const size_t kMaxIterations = 1000000000;
 
 bool running_benchmark = false;
 
