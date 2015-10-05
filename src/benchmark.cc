@@ -623,7 +623,7 @@ void RunBenchmark(const benchmark::internal::Benchmark::Instance& b,
 
   for (int i = 0; i < FLAGS_benchmark_repetitions; i++) {
     std::string mem;
-    while (true) {
+    for (;;) {
       // Try benchmark
       VLOG(2) << "Running " << b.name << " for " << iters << "\n";
 
