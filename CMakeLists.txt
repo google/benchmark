@@ -31,7 +31,11 @@ if (NOT HAVE_CXX_FLAG_STD_CXX11)
 endif()
 
 # Turn compiler warnings up to 11
-add_cxx_compiler_flag(-Wall)
+if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
+  add_cxx_compiler_flag(-W4)
+else()
+  add_cxx_compiler_flag(-Wall)
+endif()
 add_cxx_compiler_flag(-Wextra)
 add_cxx_compiler_flag(-Wshadow)
 add_cxx_compiler_flag(-Werror RELEASE)
