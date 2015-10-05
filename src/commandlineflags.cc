@@ -92,7 +92,7 @@ static std::string FlagToEnvVar(const char* flag) {
 
   std::string env_var;
   for (size_t i = 0; i != flag_str.length(); ++i)
-    env_var += ::toupper(flag_str.c_str()[i]);
+    env_var += static_cast<char>(::toupper(flag_str.c_str()[i]));
 
   return "BENCHMARK_" + env_var;
 }
