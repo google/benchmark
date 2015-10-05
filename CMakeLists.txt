@@ -33,6 +33,7 @@ endif()
 # Turn compiler warnings up to 11
 if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
   add_cxx_compiler_flag(-W4)
+  add_definitions(-D_CRT_SECURE_NO_WARNINGS)
 else()
   add_cxx_compiler_flag(-Wall)
 endif()
