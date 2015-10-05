@@ -243,9 +243,9 @@ void InitializeSystemInfo() {
           SHGetValueA(HKEY_LOCAL_MACHINE,
                       "HARDWARE\\DESCRIPTION\\System\\CentralProcessor\\0",
                       "~MHz", nullptr, &data, &data_size)))
-    cpuinfo_cycles_per_second = (int64_t)data * (int64_t)(1000 * 1000);  // was mhz
+    cpuinfo_cycles_per_second = static_cast<double>((int64_t)data * (int64_t)(1000 * 1000));  // was mhz
   else
-    cpuinfo_cycles_per_second = EstimateCyclesPerSecond();
+    cpuinfo_cycles_per_second = static_cast<double>(EstimateCyclesPerSecond());
 // TODO: also figure out cpuinfo_num_cpus
 
 #elif defined BENCHMARK_OS_MACOSX
