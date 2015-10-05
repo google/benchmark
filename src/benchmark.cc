@@ -15,7 +15,7 @@
 #include "benchmark/benchmark.h"
 #include "internal_macros.h"
 
-#ifndef OS_WINDOWS
+#ifndef BENCHMARK_OS_WINDOWS
 #include <sys/time.h>
 #include <sys/resource.h>
 #include <unistd.h>

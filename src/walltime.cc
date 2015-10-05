@@ -16,7 +16,7 @@
 #include "internal_macros.h"
 #include "walltime.h"
 
-#if defined(OS_WINDOWS)
+#if defined(BENCHMARK_OS_WINDOWS)
 #include <time.h>
 #include <winsock.h> // for timeval
 #else
@@ -93,7 +93,7 @@ private:
 
   WallTime Slow() const {
     struct timeval tv;
-#if defined(OS_WINDOWS)
+#if defined(BENCHMARK_OS_WINDOWS)
     FILETIME    file_time;
     SYSTEMTIME  system_time;
     ULARGE_INTEGER ularge;
@@ -231,7 +231,7 @@ std::string DateTimeString(bool local) {
   std::size_t written;
 
   if (local) {
-#if defined(OS_WINDOWS)
+#if defined(BENCHMARK_OS_WINDOWS)
     written = std::strftime(storage, sizeof(storage), "%x %X", ::localtime(&now));
 #else
     std::tm timeinfo;
@@ -240,7 +240,7 @@ std::string DateTimeString(bool local) {
     written = std::strftime(storage, sizeof(storage), "%F %T", &timeinfo);
 #endif
   } else {
-#if defined(OS_WINDOWS)
+#if defined(BENCHMARK_OS_WINDOWS)
     written = std::strftime(storage, sizeof(storage), "%x %X", ::gmtime(&now));
 #else
     std::tm timeinfo;

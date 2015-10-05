@@ -19,7 +19,7 @@
 #include "commandlineflags.h"
 #include "internal_macros.h"
 
-#ifdef OS_WINDOWS
+#ifdef BENCHMARK_OS_WINDOWS
 #include <Windows.h>
 #endif
 
@@ -27,14 +27,14 @@ DECLARE_bool(color_print);
 
 namespace benchmark {
 namespace {
-#ifdef OS_WINDOWS
+#ifdef BENCHMARK_OS_WINDOWS
 typedef WORD PlatformColorCode;
 #else
 typedef const char* PlatformColorCode;
 #endif
 
 PlatformColorCode GetPlatformColorCode(LogColor color) {
-#ifdef OS_WINDOWS
+#ifdef BENCHMARK_OS_WINDOWS
   switch (color) {
     case COLOR_RED:
       return FOREGROUND_RED;
@@ -85,7 +85,7 @@ void ColorPrintf(LogColor color, const char* fmt, ...) {
     return;
   }
 
-#ifdef OS_WINDOWS
+#ifdef BENCHMARK_OS_WINDOWS
   const HANDLE stdout_handle = GetStdHandle(STD_OUTPUT_HANDLE);
 
   // Gets the current text color.
