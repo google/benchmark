@@ -66,7 +66,7 @@ void ToExponentAndMantissa(double val, double thresh, int precision,
       scaled *= one_k;
       if (scaled >= small_threshold) {
         mantissa_stream << scaled;
-        *exponent = -i - 1;
+        *exponent = -static_cast<int64_t>(i + 1);
         *mantissa = mantissa_stream.str();
         return;
       }
