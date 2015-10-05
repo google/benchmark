@@ -3,6 +3,7 @@
 #include <cassert>
 #include <cmath>
 #include <cstdint>
+#include <cstdlib>
 
 #include <iostream>
 #include <limits>
@@ -75,7 +76,7 @@ int main(int argc, char* argv[]) {
 
   // Make sure we ran all of the tests
   const size_t count = test_reporter.GetCount();
-  const size_t expected = (argc == 2) ? std::stoul(argv[1]) : count;
+  const size_t expected = (argc == 2) ? std::atol(argv[1]) : count;
   if (count != expected) {
     std::cerr << "ERROR: Expected " << expected << " tests to be ran but only "
               << count << " completed" << std::endl;

@@ -13,6 +13,7 @@
 #include <sstream>
 #include <string>
 #include <vector>
+#include <cstdlib>
 
 #if defined(__GNUC__)
 # define BENCHMARK_NOINLINE __attribute__((noinline))
