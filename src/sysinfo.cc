@@ -23,9 +23,11 @@
 #include <fcntl.h>
 #include <sys/resource.h>
 #include <sys/types.h> // this header must be included before 'sys/sysctl.h' to avoid compilation error on FreeBSD
-#include <sys/sysctl.h>
 #include <sys/time.h>
 #include <unistd.h>
+#if defined OS_FREEBSD || defined OS_MACOSX
+#include <sys/sysctl.h>
+#endif
 #endif
 
 #include <cerrno>
