@@ -150,7 +150,7 @@ WallTime WallTimeImp::Now() {
   // We are now sure that "now" and "result" were produced within
   // kMaxErrorInterval of one another.
 
-  SetDrift(now - result);
+  SetDrift(static_cast<float>(now - result));
   last_adjust_time_ = top_bits;
   return now;
 }
