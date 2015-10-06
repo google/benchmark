@@ -1,6 +1,4 @@
 
-#include <cstddef>
-
 #include "benchmark/benchmark_api.h"
 
 #define BASIC_BENCHMARK_TEST(x) \
