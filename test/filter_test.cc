@@ -74,12 +74,18 @@ int main(int argc, char* argv[]) {
   TestReporter test_reporter;
   benchmark::RunSpecifiedBenchmarks(&test_reporter);
 
-  // Make sure we ran all of the tests
-  const size_t count = test_reporter.GetCount();
-  const size_t expected = (argc == 2) ? std::atol(argv[1]) : count;
-  if (count != expected) {
-    std::cerr << "ERROR: Expected " << expected << " tests to be ran but only "
-              << count << " completed" << std::endl;
-    return -1;
+  if (argc == 2) {
+    // Make sure we ran all of the tests
+    std::stringstream ss(argv[1]);
+    size_t expected;
+    ss >> expected;
+
+    const size_t count = test_reporter.GetCount();
+    if (count != expected) {
+      std::cerr << "ERROR: Expected " << expected << " tests to be ran but only "
+                << count << " completed" << std::endl;
+      return -1;
+    }
   }
+  return 0;
 }
