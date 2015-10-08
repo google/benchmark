@@ -14,10 +14,10 @@
 
 #include "commandlineflags.h"
 
+#include <cstdlib>
 #include <cstring>
 #include <iostream>
 #include <limits>
-#include <cstdlib>
 
 namespace benchmark {
 // Parses 'str' for a 32-bit signed integer.  If successful, writes
