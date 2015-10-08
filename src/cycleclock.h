@@ -26,7 +26,7 @@
 #include "benchmark/macros.h"
 #include "internal_macros.h"
 
-#if defined(OS_MACOSX)
+#if defined(BENCHMARK_OS_MACOSX)
 #include <mach/mach_time.h>
 #endif
 // For MSVC, we want to use '_asm rdtsc' when possible (since it works
