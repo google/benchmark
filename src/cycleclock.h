@@ -41,7 +41,7 @@ extern "C" uint64_t __rdtsc();
 #pragma intrinsic(__rdtsc)
 #endif
 
-#ifndef OS_WINDOWS
+#ifndef BENCHMARK_OS_WINDOWS
 #include <sys/time.h>
 #endif
 

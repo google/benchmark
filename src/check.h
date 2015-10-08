@@ -30,6 +30,9 @@ public:
       std::abort();
   }
 
+  CheckHandler & operator=(const CheckHandler&) = delete;
+  CheckHandler(const CheckHandler&) = delete;
+  CheckHandler() = delete;
 private:
   std::ostream& log_;
 };

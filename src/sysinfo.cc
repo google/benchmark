@@ -15,9 +15,10 @@
 #include "sysinfo.h"
 #include "internal_macros.h"
 
-#ifdef OS_WINDOWS
+#ifdef BENCHMARK_OS_WINDOWS
 #include <Shlwapi.h>
 #include <Windows.h>
+#include <VersionHelpers.h>
 #else
 #include <fcntl.h>
 #include <sys/resource.h>
@@ -51,7 +52,7 @@ double cpuinfo_cycles_per_second = 1.0;
 int cpuinfo_num_cpus = 1;  // Conservative guess
 std::mutex cputimens_mutex;
 
-#if !defined OS_MACOSX
+#if !defined BENCHMARK_OS_MACOSX
 const int64_t estimate_time_ms = 1000;
 
 // Helper function estimates cycles/sec by observing cycles elapsed during
@@ -63,7 +64,7 @@ int64_t EstimateCyclesPerSecond() {
 }
 #endif
 
-#if defined OS_LINUX || defined OS_CYGWIN
+#if defined BENCHMARK_OS_LINUX || defined BENCHMARK_OS_CYGWIN
 // Helper function for reading an int from a file. Returns true if successful
 // and the memory location pointed to by value is set to the value read.
 bool ReadIntFromFile(const char* file, long* value) {
@@ -86,7 +87,7 @@ bool ReadIntFromFile(const char* file, long* value) {
 #endif
 
 void InitializeSystemInfo() {
-#if defined OS_LINUX || defined OS_CYGWIN
+#if defined BENCHMARK_OS_LINUX || defined BENCHMARK_OS_CYGWIN
   char line[1024];
   char* err;
   long freq;
@@ -204,7 +205,7 @@ void InitializeSystemInfo() {
     cpuinfo_num_cpus = num_cpus;
   }
 
-#elif defined OS_FREEBSD
+#elif defined BENCHMARK_OS_FREEBSD
 // For this sysctl to work, the machine must be configured without
 // SMP, APIC, or APM support.  hz should be 64-bit in freebsd 7.0
 // and later.  Before that, it's a 32-bit quantity (and gives the
@@ -232,23 +233,21 @@ void InitializeSystemInfo() {
   }
 // TODO: also figure out cpuinfo_num_cpus
 
-#elif defined OS_WINDOWS
+#elif defined BENCHMARK_OS_WINDOWS
   // In NT, read MHz from the registry. If we fail to do so or we're in win9x
   // then make a crude estimate.
-  OSVERSIONINFO os;
-  os.dwOSVersionInfoSize = sizeof(os);
   DWORD data, data_size = sizeof(data);
-  if (GetVersionEx(&os) && os.dwPlatformId == VER_PLATFORM_WIN32_NT &&
+  if (IsWindowsXPOrGreater() &&
       SUCCEEDED(
           SHGetValueA(HKEY_LOCAL_MACHINE,
                       "HARDWARE\\DESCRIPTION\\System\\CentralProcessor\\0",
                       "~MHz", nullptr, &data, &data_size)))
-    cpuinfo_cycles_per_second = (int64_t)data * (int64_t)(1000 * 1000);  // was mhz
+    cpuinfo_cycles_per_second = static_cast<double>((int64_t)data * (int64_t)(1000 * 1000));  // was mhz
   else
-    cpuinfo_cycles_per_second = EstimateCyclesPerSecond();
+    cpuinfo_cycles_per_second = static_cast<double>(EstimateCyclesPerSecond());
 // TODO: also figure out cpuinfo_num_cpus
 
-#elif defined OS_MACOSX
+#elif defined BENCHMARK_OS_MACOSX
   // returning "mach time units" per second. the current number of elapsed
   // mach time units can be found by calling uint64 mach_absolute_time();
   // while not as precise as actual CPU cycles, it is accurate in the face
@@ -281,7 +280,7 @@ void InitializeSystemInfo() {
 
 // getrusage() based implementation of MyCPUUsage
 static double MyCPUUsageRUsage() {
-#ifndef OS_WINDOWS
+#ifndef BENCHMARK_OS_WINDOWS
   struct rusage ru;
   if (getrusage(RUSAGE_SELF, &ru) == 0) {
     return (static_cast<double>(ru.ru_utime.tv_sec) +
@@ -309,7 +308,7 @@ static double MyCPUUsageRUsage() {
 #endif  // OS_WINDOWS
 }
 
-#ifndef OS_WINDOWS
+#ifndef BENCHMARK_OS_WINDOWS
 static bool MyCPUUsageCPUTimeNsLocked(double* cputime) {
   static int cputime_fd = -1;
   if (cputime_fd == -1) {
@@ -338,7 +337,7 @@ static bool MyCPUUsageCPUTimeNsLocked(double* cputime) {
 #endif  // OS_WINDOWS
 
 double MyCPUUsage() {
-#ifndef OS_WINDOWS
+#ifndef BENCHMARK_OS_WINDOWS
   {
     std::lock_guard<std::mutex> l(cputimens_mutex);
     static bool use_cputime_ns = true;
@@ -357,7 +356,7 @@ double MyCPUUsage() {
 }
 
 double ChildrenCPUUsage() {
-#ifndef OS_WINDOWS
+#ifndef BENCHMARK_OS_WINDOWS
   struct rusage ru;
   if (getrusage(RUSAGE_CHILDREN, &ru) == 0) {
     return (static_cast<double>(ru.ru_utime.tv_sec) +
@@ -394,7 +393,7 @@ int NumCPUs(void) {
        : nullptr)
 
 bool CpuScalingEnabled() {
-#ifndef OS_WINDOWS
+#ifndef BENCHMARK_OS_WINDOWS
   // On Linux, the CPUfreq subsystem exposes CPU information as files on the
   // local file system. If reading the exported files fails, then we may not be
   // running on Linux, so we silently ignore all the read errors.

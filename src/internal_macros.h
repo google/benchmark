@@ -16,17 +16,17 @@
 #endif
 
 #if defined(__CYGWIN__)
-# define OS_CYGWIN 1
+# define BENCHMARK_OS_CYGWIN 1
 #elif defined(_WIN32)
-# define OS_WINDOWS 1
+# define BENCHMARK_OS_WINDOWS 1
 #elif defined(__APPLE__)
 // TODO(ericwf) This doesn't actually check that it is a Mac OSX system. Just
 // that it is an apple system.
-# define OS_MACOSX 1
+# define BENCHMARK_OS_MACOSX 1
 #elif defined(__FreeBSD__)
-# define OS_FREEBSD 1
+# define BENCHMARK_OS_FREEBSD 1
 #elif defined(__linux__)
-# define OS_LINUX 1
+# define BENCHMARK_OS_LINUX 1
 #endif
 
 #if defined(__clang__)
