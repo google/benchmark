@@ -5,7 +5,6 @@
 #include <array>
 #include <memory>
 #include <sstream>
-
 #include <stdio.h>
 
 #include "arraysize.h"
