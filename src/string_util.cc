@@ -128,7 +128,7 @@ std::string StringPrintFImp(const char *msg, va_list args)
   // allocation guess what the size might be
   std::array<char, 256> local_buff;
   std::size_t size = local_buff.size();
-  // 8/10/2015: vsnprintf is used instead of snd::vsnprintf due to a limitation in the android-ndk
+  // 2015-10-08: vsnprintf is used instead of snd::vsnprintf due to a limitation in the android-ndk
   auto ret = vsnprintf(local_buff.data(), size, msg, args_cp);
 
   va_end(args_cp);
@@ -143,7 +143,7 @@ std::string StringPrintFImp(const char *msg, va_list args)
   // add 1 to size to account for null-byte in size cast to prevent overflow
   size = static_cast<std::size_t>(ret) + 1;
   auto buff_ptr = std::unique_ptr<char[]>(new char[size]);
-  // 8/10/2015: vsnprintf is used instead of snd::vsnprintf due to a limitation in the android-ndk
+  // 2015-10-08: vsnprintf is used instead of snd::vsnprintf due to a limitation in the android-ndk
   ret = vsnprintf(buff_ptr.get(), size, msg, args);
   return std::string(buff_ptr.get());
 }
