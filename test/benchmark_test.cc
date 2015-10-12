@@ -4,6 +4,7 @@
 #include <math.h>
 #include <stdint.h>
 
+#include <cstdlib>
 #include <iostream>
 #include <limits>
 #include <list>
