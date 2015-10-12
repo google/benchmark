@@ -30,7 +30,7 @@ void SleepForMilliseconds(int milliseconds) { Sleep(milliseconds); }
 void SleepForSeconds(double seconds) {
   SleepForMilliseconds(static_cast<int>(kNumMillisPerSecond * seconds));
 }
-#else   // OS_WINDOWS
+#else   // BENCHMARK_OS_WINDOWS
 void SleepForMicroseconds(int microseconds) {
   struct timespec sleep_time;
   sleep_time.tv_sec = microseconds / kNumMicrosPerSecond;
@@ -46,5 +46,5 @@ void SleepForMilliseconds(int milliseconds) {
 void SleepForSeconds(double seconds) {
   SleepForMicroseconds(static_cast<int>(seconds * kNumMicrosPerSecond));
 }
-#endif  // OS_WINDOWS
+#endif  // BENCHMARK_OS_WINDOWS
 }  // end namespace benchmark
