@@ -8,6 +8,8 @@ A library to support the benchmarking of functions, similar to unit-tests.
 
 Discussion group: https://groups.google.com/d/forum/benchmark-discuss
 
+IRC channel: https://freenode.net #googlebenchmark
+
 Example usage
 -------------
 Define a function that executes the code to be measured a
