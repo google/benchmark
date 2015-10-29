@@ -127,7 +127,7 @@ void InitializeSystemInfo() {
   if (fd == -1) {
     perror(pname);
     if (!saw_mhz) {
-      cpuinfo_cycles_per_second = EstimateCyclesPerSecond();
+      cpuinfo_cycles_per_second = static_cast<double>(EstimateCyclesPerSecond());
     }
     return;
   }
@@ -193,7 +193,7 @@ void InitializeSystemInfo() {
       cpuinfo_cycles_per_second = bogo_clock;
     } else {
       // If we don't even have bogomips, we'll use the slow estimation.
-      cpuinfo_cycles_per_second = EstimateCyclesPerSecond();
+      cpuinfo_cycles_per_second = static_cast<double>(EstimateCyclesPerSecond());
     }
   }
   if (num_cpus == 0) {
@@ -229,7 +229,7 @@ void InitializeSystemInfo() {
   if (sysctlbyname(sysctl_path, &hz, &sz, nullptr, 0) != 0) {
     fprintf(stderr, "Unable to determine clock rate from sysctl: %s: %s\n",
             sysctl_path, strerror(errno));
-    cpuinfo_cycles_per_second = EstimateCyclesPerSecond();
+    cpuinfo_cycles_per_second = static_cast<double>(EstimateCyclesPerSecond());
   } else {
     cpuinfo_cycles_per_second = hz;
   }
@@ -275,7 +275,7 @@ void InitializeSystemInfo() {
 
 #else
   // Generic cycles per second counter
-  cpuinfo_cycles_per_second = EstimateCyclesPerSecond();
+  cpuinfo_cycles_per_second = static_cast<double>(EstimateCyclesPerSecond());
 #endif
 }
 }  // end namespace
