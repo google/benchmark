@@ -165,6 +165,7 @@ static void BM_MultiThreaded(benchmark::State& state) {
   }
 }
 BENCHMARK(BM_MultiThreaded)->Threads(2);
+```
 
 To prevent a value or expression from being optimized away by the compiler
 the `benchmark::DoNotOptimize(...)` function can be used.
