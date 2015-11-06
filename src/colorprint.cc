@@ -15,6 +15,7 @@
 #include "colorprint.h"
 
 #include <cstdarg>
+#include <cstdio>
 
 #include "commandlineflags.h"
 #include "internal_macros.h"
