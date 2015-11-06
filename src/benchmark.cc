@@ -23,6 +23,7 @@
 
 #include <cstdlib>
 #include <cstring>
+#include <cstdio>
 #include <algorithm>
 #include <atomic>
 #include <condition_variable>
