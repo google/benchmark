@@ -54,7 +54,7 @@ namespace benchmark {
 namespace cycleclock {
 // This should return the number of cycles since power-on.  Thread-safe.
 inline BENCHMARK_ALWAYS_INLINE int64_t Now() {
-#if defined(OS_MACOSX)
+#if defined(BENCHMARK_OS_MACOSX)
   // this goes at the top because we need ALL Macs, regardless of
   // architecture, to return the number of "mach time units" that
   // have passed since startup.  See sysinfo.cc where
