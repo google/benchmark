@@ -145,9 +145,10 @@ Three macros are provided for adding benchmark templates.
 #define BENCHMARK_TEMPLATE2(func, arg1, arg2)
 ```
 
-In a multithreaded test, it is guaranteed that none of the threads will start
-until all have called KeepRunning, and all will have finished before KeepRunning
-returns false. As such, any global setup or teardown you want to do can be
+In a multithreaded test (benchmark invoked by multiple threads simultaneously),
+it is guaranteed that none of the threads will start until all have called
+KeepRunning, and all will have finished before KeepRunning returns false. As
+such, any global setup or teardown you want to do can be
 wrapped in a check against the thread index:
 
 ```c++
@@ -164,6 +165,16 @@ static void BM_MultiThreaded(benchmark::State& state) {
 }
 BENCHMARK(BM_MultiThreaded)->Threads(2);
 ```
+
+If the benchmarked code itself uses threads and you want to compare it to
+single-threaded code, you may want to use real-time ("wallclock") measurements
+for latency comparisons:
+
+```c++
+BENCHMARK(BM_test)->Range(8, 8<<10)->UseRealTime();
+```
+
+Without `UseRealTime`, CPU time is used by default.
 
 To prevent a value or expression from being optimized away by the compiler
 the `benchmark::DoNotOptimize(...)` function can be used.
