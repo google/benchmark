@@ -417,11 +417,11 @@ public:
   // option overrides the `benchmark_min_time` flag.
   Benchmark* MinTime(double t);
 
-  // If a particular benchmark is I/O bound, or if for some reason CPU
-  // timings are not representative, call this method. If called, the elapsed
-  // time will be used to control how many iterations are run, and in the
-  // printing of items/second or MB/seconds values.  If not called, the cpu
-  // time used by the benchmark will be used.
+  // If a particular benchmark is I/O bound, runs multiple threads internally or
+  // if for some reason CPU timings are not representative, call this method. If
+  // called, the elapsed time will be used to control how many iterations are
+  // run, and in the printing of items/second or MB/seconds values.  If not
+  // called, the cpu time used by the benchmark will be used.
   Benchmark* UseRealTime();
 
   // Support for running multiple copies of the same benchmark concurrently
