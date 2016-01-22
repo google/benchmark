@@ -37,11 +37,15 @@ endif()
 # Expose public API
 target_include_directories(benchmark PUBLIC ${PROJECT_SOURCE_DIR}/include)
 
+if(NOT DEFINED CMAKE_INSTALL_LIBDIR)
+  set(CMAKE_INSTALL_LIBDIR "lib")
+endif()
+
 # Install target (will install the library to specified CMAKE_INSTALL_PREFIX variable)
 install(
   TARGETS benchmark
-  ARCHIVE DESTINATION lib
-  LIBRARY DESTINATION lib
+  ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+  LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
   RUNTIME DESTINATION bin
   COMPONENT library)
 
