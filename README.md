@@ -290,6 +290,20 @@ name,iterations,real_time,cpu_time,bytes_per_second,items_per_second,label
 "BM_SetInsert/1024/10",106365,17238.4,8421.53,4.74973e+06,1.18743e+06,
 ```
 
+Debug vs Release
+----------------
+By default, benchmark builds as a debug library. You will see a warning in the output when this is the case. To build it as a release library instead, use:
+
+```
+cmake -DCMAKE_BUILD_TYPE=Release
+```
+
+To enable link-time optimisation, use
+
+```
+cmake -DCMAKE_BUILD_TYPE=Release -DBENCHMARK_ENABLE_LTO=true
+```
+
 Linking against the library
 ---------------------------
 When using gcc, it is necessary to link against pthread to avoid runtime exceptions. This is due to how gcc implements std::thread. See [issue #67](https://github.com/google/benchmark/issues/67) for more details.
