@@ -486,12 +486,12 @@ public:
     Fixture() : internal::Benchmark("") {}
 
     virtual void Run(State& st) {
-      this->SetUp();
+      this->SetUp(st);
       this->BenchmarkCase(st);
       this->TearDown();
     }
 
-    virtual void SetUp() {}
+    virtual void SetUp(const State&) {}
     virtual void TearDown() {}
 
 protected:
