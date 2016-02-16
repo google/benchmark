@@ -243,7 +243,7 @@ The `context` attribute contains information about the run in general, including
 information about the CPU and the date.
 The `benchmarks` attribute contains a list of ever benchmark run. Example json
 output looks like:
-```
+``` json
 {
   "context": {
     "date": "2015/03/17-18:40:25",
