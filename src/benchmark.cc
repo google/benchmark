@@ -749,6 +749,12 @@ State::State(size_t max_iters, bool has_x, int x, bool has_y, int y,
     CHECK_LT(thread_index, threads) << "thread_index must be less than threads";
 }
 
+void State::SetLabel(const char* label) {
+  CHECK(running_benchmark);
+  MutexLock l(GetBenchmarkLock());
+  *GetReportLabel() = label;
+}
+
 void State::PauseTiming() {
   // Add in time accumulated so far
   CHECK(running_benchmark);
@@ -758,12 +764,6 @@ void State::PauseTiming() {
 void State::ResumeTiming() {
   CHECK(running_benchmark);
   timer_manager->StartTimer();
-}
-
-void State::SetLabel(const char* label) {
-  CHECK(running_benchmark);
-  MutexLock l(GetBenchmarkLock());
-  *GetReportLabel() = label;
 }
 
 namespace internal {

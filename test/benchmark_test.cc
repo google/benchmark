@@ -83,9 +83,8 @@ BENCHMARK(BM_CalculatePi)->ThreadPerCpu();
 
 static void BM_SetInsert(benchmark::State& state) {
   while (state.KeepRunning()) {
-    state.PauseTiming();
+    // NOTE: Use fixtures to construct the set outside the benchmark.
     std::set<int> data = ConstructRandomSet(state.range_x());
-    state.ResumeTiming();
     for (int j = 0; j < state.range_y(); ++j)
       data.insert(rand());
   }

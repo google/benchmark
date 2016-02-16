@@ -1,41 +1,48 @@
 
 #include "benchmark/benchmark.h"
 
-#include <cassert>
+#include <map>
 #include <memory>
 
-class MyFixture : public ::benchmark::Fixture {
+
+class EmptyMapFixture : public ::benchmark::Fixture {
+  public:
+    std::map<int, int> m;
+};
+
+class MapFixture : public EmptyMapFixture {
  public:
-  void SetUp(const ::benchmark::State&) {
-    assert(data.get() == nullptr);
-    data.reset(new int(42));
+  void SetUp(const ::benchmark::State& st) {
+    const int size = st.range_x();
+    for (int i = 0; i < size; ++i) {
+      m.insert(std::make_pair(rand() % size, rand() % size));
+    }
   }
 
   void TearDown() {
-    assert(data.get() != nullptr);
-    data.release();
+    m.clear();
   }
-
-  ~MyFixture() {
-    assert(data == nullptr);
-  }
-
-  std::unique_ptr<int> data;
 };
 
-
-BENCHMARK_F(MyFixture, Foo)(benchmark::State& st) {
-  assert(data.get() != nullptr);
-  assert(*data == 42);
-  while (st.KeepRunning()) {
+BENCHMARK_F(EmptyMapFixture, Insert)(benchmark::State& state) {
+  int i = 0;
+  while (state.KeepRunning()) {
+    m.insert(std::make_pair(i, i));
+    ++i;
   }
+  state.SetBytesProcessed(state.iterations() * sizeof(int));
 }
 
-BENCHMARK_DEFINE_F(MyFixture, Bar)(benchmark::State& st) {
-  while (st.KeepRunning()) {
+BENCHMARK_DEFINE_F(MapFixture, Lookup)(benchmark::State& state) {
+  const int size = state.range_x();
+  while (state.KeepRunning()) {
+    for (int i = 0; i < size; ++i) {
+      benchmark::DoNotOptimize(m.find(rand() % size));
+    }
   }
-  st.SetItemsProcessed(st.range_x());
+  state.SetItemsProcessed(state.iterations() * size);
+  state.SetBytesProcessed(state.iterations() * size * sizeof(int));
 }
-BENCHMARK_REGISTER_F(MyFixture, Bar)->Arg(42);
+BENCHMARK_REGISTER_F(MapFixture, Lookup)->Range(1<<3, 1<<12);
 
 BENCHMARK_MAIN()
