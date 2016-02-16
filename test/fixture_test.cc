@@ -4,7 +4,13 @@
 #include <map>
 #include <memory>
 
-class MapFixture : public ::benchmark::Fixture {
+
+class EmptyMapFixture : public ::benchmark::Fixture {
+  public:
+    std::map<int, int> m;
+};
+
+class MapFixture : public EmptyMapFixture {
  public:
   void SetUp(const ::benchmark::State& st) {
     const int size = st.range_x();
@@ -16,11 +22,9 @@ class MapFixture : public ::benchmark::Fixture {
   void TearDown() {
     m.clear();
   }
-
-  std::map<int, int> m;
 };
 
-BENCHMARK_F(MapFixture, Insert)(benchmark::State& state) {
+BENCHMARK_F(EmptyMapFixture, Insert)(benchmark::State& state) {
   int i = 0;
   while (state.KeepRunning()) {
     benchmark::DoNotOptimize(m.insert(std::make_pair(i, i)));
