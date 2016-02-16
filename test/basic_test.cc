@@ -36,32 +36,6 @@ BASIC_BENCHMARK_TEST(BM_spin_pause_before);
 BASIC_BENCHMARK_TEST(BM_spin_pause_before)->ThreadPerCpu();
 
 
-void BM_spin_pause_during(benchmark::State& state) {
-  while(state.KeepRunning()) {
-    state.PauseTiming();
-    for (int i = 0; i < state.range_x(); ++i) {
-      benchmark::DoNotOptimize(i);
-    }
-    state.ResumeTiming();
-    for (int i = 0; i < state.range_x(); ++i) {
-      benchmark::DoNotOptimize(i);
-    }
-  }
-}
-BASIC_BENCHMARK_TEST(BM_spin_pause_during);
-BASIC_BENCHMARK_TEST(BM_spin_pause_during)->ThreadPerCpu();
-
-void BM_pause_during(benchmark::State& state) {
-  while(state.KeepRunning()) {
-    state.PauseTiming();
-    state.ResumeTiming();
-  }
-}
-BENCHMARK(BM_pause_during);
-BENCHMARK(BM_pause_during)->ThreadPerCpu();
-BENCHMARK(BM_pause_during)->UseRealTime();
-BENCHMARK(BM_pause_during)->UseRealTime()->ThreadPerCpu();
-
 void BM_spin_pause_after(benchmark::State& state) {
   while(state.KeepRunning()) {
     for (int i = 0; i < state.range_x(); ++i) {

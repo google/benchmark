@@ -59,9 +59,8 @@ BENCHMARK(BM_memcpy)->Range(8, 8<<10);
 // measuring the speed of set insertion.
 static void BM_SetInsert(benchmark::State& state) {
   while (state.KeepRunning()) {
-    state.PauseTiming();
+    // NOTE: Use a fixture to construct this before running the benchmark.
     set<int> data = ConstructRandomSet(state.range_x());
-    state.ResumeTiming();
     for (int j = 0; j < state.range_y(); ++j)
       data.insert(RandomNumber());
   }
@@ -241,34 +240,6 @@ public:
     return res;
   }
 
-  // REQUIRES: timer is running
-  // Stop the benchmark timer.  If not called, the timer will be
-  // automatically stopped after KeepRunning() returns false for the first time.
-  //
-  // For threaded benchmarks the PauseTiming() function acts
-  // like a barrier.  I.e., the ith call by a particular thread to this
-  // function will block until all threads have made their ith call.
-  // The timer will stop when the last thread has called this function.
-  //
-  // NOTE: PauseTiming()/ResumeTiming() are relatively
-  // heavyweight, and so their use should generally be avoided
-  // within each benchmark iteration, if possible.
-  void PauseTiming();
-
-  // REQUIRES: timer is not running
-  // Start the benchmark timer.  The timer is NOT running on entrance to the
-  // benchmark function. It begins running after the first call to KeepRunning()
-  //
-  // For threaded benchmarks the ResumeTiming() function acts
-  // like a barrier.  I.e., the ith call by a particular thread to this
-  // function will block until all threads have made their ith call.
-  // The timer will start when the last thread has called this function.
-  //
-  // NOTE: PauseTiming()/ResumeTiming() are relatively
-  // heavyweight, and so their use should generally be avoided
-  // within each benchmark iteration, if possible.
-  void ResumeTiming();
-
   // Set the number of bytes processed by the current benchmark
   // execution.  This routine is typically called once at the end of a
   // throughput oriented benchmark.  If this routine is called with a
@@ -345,6 +316,34 @@ public:
   size_t iterations() const { return total_iterations_; }
 
 private:
+  // REQUIRES: timer is running
+  // Stop the benchmark timer.  If not called, the timer will be
+  // automatically stopped after KeepRunning() returns false for the first time.
+  //
+  // For threaded benchmarks the PauseTiming() function acts
+  // like a barrier.  I.e., the ith call by a particular thread to this
+  // function will block until all threads have made their ith call.
+  // The timer will stop when the last thread has called this function.
+  //
+  // NOTE: PauseTiming()/ResumeTiming() are relatively
+  // heavyweight, and so their use should generally be avoided
+  // within each benchmark iteration, if possible.
+  void PauseTiming();
+
+  // REQUIRES: timer is not running
+  // Start the benchmark timer.  The timer is NOT running on entrance to the
+  // benchmark function. It begins running after the first call to KeepRunning()
+  //
+  // For threaded benchmarks the ResumeTiming() function acts
+  // like a barrier.  I.e., the ith call by a particular thread to this
+  // function will block until all threads have made their ith call.
+  // The timer will start when the last thread has called this function.
+  //
+  // NOTE: PauseTiming()/ResumeTiming() are relatively
+  // heavyweight, and so their use should generally be avoided
+  // within each benchmark iteration, if possible.
+  void ResumeTiming();
+
   bool started_;
   size_t total_iterations_;
 
