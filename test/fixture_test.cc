@@ -27,7 +27,7 @@ class MapFixture : public EmptyMapFixture {
 BENCHMARK_F(EmptyMapFixture, Insert)(benchmark::State& state) {
   int i = 0;
   while (state.KeepRunning()) {
-    benchmark::DoNotOptimize(m.insert(std::make_pair(i, i)));
+    benchmark::DoNotOptimize(m.insert(std::make_pair(i, i)).first);
     ++i;
   }
   state.SetBytesProcessed(state.iterations() * sizeof(int));
