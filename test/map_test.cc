@@ -36,7 +36,7 @@ class MapFixture : public ::benchmark::Fixture {
     m = ConstructRandomMap(st.range_x());
   }
 
-  void TearDown() {
+  void TearDown(const ::benchmark::State&) {
     m.clear();
   }
 
