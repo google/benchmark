@@ -491,11 +491,11 @@ public:
     virtual void Run(State& st) {
       this->SetUp(st);
       this->BenchmarkCase(st);
-      this->TearDown();
+      this->TearDown(st);
     }
 
     virtual void SetUp(const State&) {}
-    virtual void TearDown() {}
+    virtual void TearDown(const State&) {}
 
 protected:
     virtual void BenchmarkCase(State&) = 0;
