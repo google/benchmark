@@ -1,5 +1,6 @@
 #include "benchmark/benchmark.h"
 
+#include <cstdlib>
 #include <map>
 
 namespace {
