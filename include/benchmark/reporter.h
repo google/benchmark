@@ -17,6 +17,7 @@
 #include <string>
 #include <utility>
 #include <vector>
+#include <sstream>
 
 #include "benchmark_api.h" // For forward declaration of BenchmarkReporter
 
@@ -116,6 +117,39 @@ public:
 
 private:
   void PrintRunData(const Run& report);
+};
+
+class HTMLReporter : public BenchmarkReporter {
+public:
+  HTMLReporter(const std::string&);
+  virtual bool ReportContext(const Context& context);
+  virtual void ReportRuns(const std::vector<Run>& reports);
+  virtual void Finalize();
+
+private:
+  double nanoSecondsPerItem(double itemsPerSec);
+    void determineState(const std::string&);
+
+  struct RunData
+  {
+      int64_t iterations;
+      double  realTime;
+      double  cpuTime;
+
+      double  bytesSecond;
+      double  itemsSecond;
+      int     range_x;
+  };
+
+  struct BenchmarkData
+  {
+      std::string name;
+      std::vector<RunData> runData;
+  };
+
+  std::vector<BenchmarkData> benchmarkTests;
+  std::string userString;
+  int state;
 };
 
 } // end namespace benchmark

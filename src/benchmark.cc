@@ -66,12 +66,13 @@ DEFINE_int32(benchmark_repetitions, 1,
 
 DEFINE_string(benchmark_format, "tabular",
               "The format to use for console output. Valid values are "
-              "'tabular', 'json', or 'csv'.");
+              "'tabular', 'json', 'csv' or 'html'.");
 
 DEFINE_bool(color_print, true, "Enables colorized logging.");
 
 DEFINE_int32(v, 0, "The level of verbose logging to output");
 
+DEFINE_string(benchmark_userString, "", "Additinal values, passed for reporters");
 
 namespace benchmark {
 
@@ -820,6 +821,8 @@ std::unique_ptr<BenchmarkReporter> GetDefaultReporter() {
     return PtrType(new JSONReporter);
   } else if (FLAGS_benchmark_format == "csv") {
     return PtrType(new CSVReporter);
+  } else if (FLAGS_benchmark_format == "html") {
+    return PtrType(new HTMLReporter(FLAGS_benchmark_userString));
   } else {
     std::cerr << "Unexpected format: '" << FLAGS_benchmark_format << "'\n";
     std::exit(1);
@@ -860,7 +863,7 @@ void PrintUsageAndExit() {
           "          [--benchmark_filter=<regex>]\n"
           "          [--benchmark_min_time=<min_time>]\n"
           "          [--benchmark_repetitions=<num_repetitions>]\n"
-          "          [--benchmark_format=<tabular|json|csv>]\n"
+          "          [--benchmark_format=<tabular|json|csv|html>]\n"
           "          [--color_print={true|false}]\n"
           "          [--v=<verbosity>]\n");
   exit(0);
@@ -882,7 +885,8 @@ void ParseCommandLineFlags(int* argc, char** argv) {
                         &FLAGS_benchmark_format) ||
         ParseBoolFlag(argv[i], "color_print",
                        &FLAGS_color_print) ||
-        ParseInt32Flag(argv[i], "v", &FLAGS_v)) {
+        ParseInt32Flag(argv[i], "v", &FLAGS_v) ||
+        ParseStringFlag(argv[i], "benchmark_userString", &FLAGS_benchmark_userString)) {
       for (int j = i; j != *argc; ++j) argv[j] = argv[j + 1];
 
       --(*argc);
@@ -893,7 +897,8 @@ void ParseCommandLineFlags(int* argc, char** argv) {
   }
   if (FLAGS_benchmark_format != "tabular" &&
       FLAGS_benchmark_format != "json" &&
-      FLAGS_benchmark_format != "csv") {
+      FLAGS_benchmark_format != "csv" &&
+	  FLAGS_benchmark_format != "html") {
     PrintUsageAndExit();
   }
 }
