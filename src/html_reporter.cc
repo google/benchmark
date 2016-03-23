@@ -1,7 +1,9 @@
 #include "benchmark/reporter.h"
+#include "benchmark/filePath.h"
 
 #include <cstdint>
 #include <iostream>
+#include <fstream>
 #include <string>
 #include <vector>
 
@@ -22,9 +24,7 @@ const char *HTML_Begin = "<!DOCTYPE html>\n"
 						 "           #benchmark{\n"
 						 "                height:400px;\n"
 						 "           }\n"
-						 "       </style>\n"
-						 "       <script type = \"text/javascript\" src = \"./jquery-2.2.1.min.js\"></script>\n"
-						 "       <script type = \"text/javascript\" src = \"./highstock.js\"></script>\n";
+						 "       </style>\n";
 
 const char *highChart_Line =
 						 "       <script>\n"
@@ -128,6 +128,7 @@ HTMLReporter::HTMLReporter(const std::string &nUserString) : userString(nUserStr
 }
 
 bool HTMLReporter::ReportContext(const Context& context) {
+
   std::cerr << "Run on (" << context.num_cpus << " X " << context.mhz_per_cpu
             << " MHz CPU " << ((context.num_cpus > 1) ? "s" : "") << ")\n";
 
@@ -144,6 +145,12 @@ bool HTMLReporter::ReportContext(const Context& context) {
                "affected.\n";
 #endif
   std::cout << HTML_Begin;
+  std::cout << "<script type = \"text/javascript\">";
+  writeFile(JQUERY_PATH);
+  std::cout << "</script>\n<script type = \"text/javascript\">";
+  writeFile(HIGHSTOCK_PATH);
+  std::cout << "</script>\n";
+
   state = HTML_Reporter_State::none;
   return true;
 }
@@ -264,10 +271,10 @@ void HTMLReporter::Finalize() {
     }
 
     std::cout << HTML_End;
-    std::cout << userString << "\n";
+    std::cout << userString;
 }
 
-double HTMLReporter::nanoSecondsPerItem(double itemsPerSec) {
+double HTMLReporter::nanoSecondsPerItem(double itemsPerSec) const {
   double dItemsPerSec = itemsPerSec / 1000000000.0;
 
   return (1.0 / dItemsPerSec);
@@ -280,6 +287,21 @@ void HTMLReporter::determineState(const std::string &label) {
 
     else {
         state = HTML_Reporter_State::label;
+    }
+}
+
+void HTMLReporter::writeFile(const char *file) const {
+    std::fstream fin;
+    char buffer[256];
+
+    fin.open(file);
+    if(fin.is_open()) {
+        do {
+            fin.read(buffer, 256);
+            std::cout.write(buffer, fin.gcount());
+        } while(fin.gcount() > 0);
+
+        fin.close();
     }
 }
 

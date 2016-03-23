@@ -1,0 +1,2 @@
+#cmakedefine JQUERY_PATH "@JQUERY_PATH@"
+#cmakedefine HIGHSTOCK_PATH "@HIGHSTOCK_PATH@"

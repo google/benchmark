@@ -121,6 +121,20 @@ find_package(Threads REQUIRED)
 # Set up directories
 include_directories(${PROJECT_SOURCE_DIR}/include)
 
+# Set up pathes to javascript
+set(JQUERY_NAME "jquery-2.2.1.min.js")
+set(HIGHSTOCK_NAME "highstock.js")
+
+set(JQUERY_PATH "${PROJECT_SOURCE_DIR}/include/benchmark/${JQUERY_NAME}")
+set(HIGHSTOCK_PATH "${PROJECT_SOURCE_DIR}/include/benchmark/${HIGHSTOCK_NAME}")
+
+configure_file(${PROJECT_SOURCE_DIR}/include/benchmark/filePath.h.in ${PROJECT_BINARY_DIR}/include/benchmark/filePath.h @ONLY)
+
+set(JQUERY_PATH "${CMAKE_INSTALL_PREFIX}/share/benchmark/${JQUERY_NAME}")
+set(HIGHSTOCK_PATH "${CMAKE_INSTALL_PREFIX}/share/benchmark/${HIGHSTOCK_NAME}")
+
+configure_file(${PROJECT_SOURCE_DIR}/include/benchmark/filePath.h.in ${PROJECT_BINARY_DIR}/include/benchmark/filePath.h.install @ONLY)
+
 # Build the targets
 add_subdirectory(src)
 

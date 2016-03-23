@@ -127,8 +127,9 @@ public:
   virtual void Finalize();
 
 private:
-  double nanoSecondsPerItem(double itemsPerSec);
-    void determineState(const std::string&);
+  double nanoSecondsPerItem(double itemsPerSec) const;
+    void determineState(const std::string &label);
+    void writeFile(const char *file) const;
 
   struct RunData
   {

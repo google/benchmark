@@ -19,7 +19,6 @@ endif()
 
 add_library(benchmark ${SOURCE_FILES} ${RE_FILES})
 
-
 set_target_properties(benchmark PROPERTIES
   OUTPUT_NAME "benchmark"
   VERSION ${GENERIC_LIB_VERSION}
@@ -48,4 +47,11 @@ install(
 install(
   DIRECTORY "${PROJECT_SOURCE_DIR}/include/benchmark"
   DESTINATION include
-  FILES_MATCHING PATTERN "*.*h")
+  FILES_MATCHING PATTERN "*.*h" PATTERN "filePath.h" EXCLUDE)
+  
+install(
+  DIRECTORY "${PROJECT_SOURCE_DIR}/include/benchmark"
+  DESTINATION "share"
+  FILES_MATCHING PATTERN "*.js")
+  
+install(FILES "${PROJECT_BINARY_DIR}/include/benchmark/filePath.h.install" DESTINATION include/benchmark/ RENAME filePath.h)
