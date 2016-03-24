@@ -130,6 +130,15 @@ private:
   double nanoSecondsPerItem(double itemsPerSec) const;
     void determineState(const std::string &label);
     void writeFile(const char *file) const;
+    void replaceDefuncChars(std::string &label);
+
+    void outputLine() const;
+    void outputColumns() const;
+
+    void printHTML(std::ostream &out, const std::string &html) const;
+
+
+    std::string& removeCommands(std::string &data) const;
 
   struct RunData
   {
