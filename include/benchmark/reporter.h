@@ -36,6 +36,8 @@ class BenchmarkReporter {
 
     // The number of chars in the longest benchmark name.
     size_t name_field_width;
+    // The time unit for displayed execution time.
+    std::string time_unit;
   };
 
   struct Run {
@@ -94,6 +96,7 @@ protected:
   virtual void PrintRunData(const Run& report);
 
   size_t name_field_width_;
+  std::string time_unit_;
 };
 
 class JSONReporter : public BenchmarkReporter {

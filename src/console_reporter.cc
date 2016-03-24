@@ -29,6 +29,7 @@ namespace benchmark {
 
 bool ConsoleReporter::ReportContext(const Context& context) {
   name_field_width_ = context.name_field_width;
+  time_unit_ = context.time_unit;
 
   std::cerr << "Run on (" << context.num_cpus << " X " << context.mhz_per_cpu
             << " MHz CPU " << ((context.num_cpus > 1) ? "s" : "") << ")\n";
@@ -46,9 +47,11 @@ bool ConsoleReporter::ReportContext(const Context& context) {
                "affected.\n";
 #endif
 
+  std::string timeLabel = "Time(" + time_unit_ + ")";
+  std::string cpuLabel = "CPU(" + time_unit_ + ")";
   int output_width = fprintf(stdout, "%-*s %10s %10s %10s\n",
                              static_cast<int>(name_field_width_), "Benchmark",
-                             "Time(ns)", "CPU(ns)", "Iterations");
+                             timeLabel.c_str(), cpuLabel.c_str(), "Iterations");
   std::cout << std::string(output_width - 1, '-') << "\n";
 
   return true;
@@ -92,7 +95,9 @@ void ConsoleReporter::PrintRunData(const Run& result) {
                    " items/s");
   }
 
-  double const multiplier = 1e9; // nano second multiplier
+  double const multiplier = time_unit_ == "ns" ? 1e9 : 1e3; // nano second or
+                                                            // millis multiplier
+
   ColorPrintf(COLOR_GREEN, "%-*s ",
               name_field_width_, result.benchmark_name.c_str());
   if (result.iterations == 0) {

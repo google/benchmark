@@ -64,6 +64,10 @@ DEFINE_int32(benchmark_repetitions, 1,
              "The number of runs of each benchmark. If greater than 1, the "
              "mean and standard deviation of the runs will be reported.");
 
+DEFINE_string(benchmark_time_unit, "ns",
+              "The time unit to use for console output. Valid values are "
+              "'ns', or 'ms'.");
+
 DEFINE_string(benchmark_format, "tabular",
               "The format to use for console output. Valid values are "
               "'tabular', 'json', or 'csv'.");
@@ -779,7 +783,7 @@ void PrintBenchmarkList() {
   }
 }
 
-void RunMatchingBenchmarks(const std::string& spec,
+void RunMatchingBenchmarks(const std::string& spec, const std::string& timeUnit,
                            BenchmarkReporter* reporter) {
   CHECK(reporter != nullptr);
   if (spec.empty()) return;
@@ -804,6 +808,7 @@ void RunMatchingBenchmarks(const std::string& spec,
 
   context.cpu_scaling_enabled = CpuScalingEnabled();
   context.name_field_width = name_field_width;
+  context.time_unit = timeUnit;
 
   if (reporter->ReportContext(context)) {
     for (const auto& benchmark : benchmarks) {
@@ -838,6 +843,7 @@ void RunSpecifiedBenchmarks(BenchmarkReporter* reporter) {
     internal::PrintBenchmarkList();
     return;
   }
+  std::string timeUnit = FLAGS_benchmark_time_unit;
   std::string spec = FLAGS_benchmark_filter;
   if (spec.empty() || spec == "all")
     spec = ".";  // Regexp that matches all benchmarks
@@ -847,7 +853,7 @@ void RunSpecifiedBenchmarks(BenchmarkReporter* reporter) {
     default_reporter = internal::GetDefaultReporter();
     reporter = default_reporter.get();
   }
-  internal::RunMatchingBenchmarks(spec, reporter);
+  internal::RunMatchingBenchmarks(spec, timeUnit, reporter);
   reporter->Finalize();
 }
 
@@ -860,6 +866,7 @@ void PrintUsageAndExit() {
           "          [--benchmark_filter=<regex>]\n"
           "          [--benchmark_min_time=<min_time>]\n"
           "          [--benchmark_repetitions=<num_repetitions>]\n"
+          "          [--benchmark_time_unit=<ns|ms>]\n"
           "          [--benchmark_format=<tabular|json|csv>]\n"
           "          [--color_print={true|false}]\n"
           "          [--v=<verbosity>]\n");
@@ -878,6 +885,8 @@ void ParseCommandLineFlags(int* argc, char** argv) {
                         &FLAGS_benchmark_min_time) ||
         ParseInt32Flag(argv[i], "benchmark_repetitions",
                        &FLAGS_benchmark_repetitions) ||
+        ParseStringFlag(argv[i], "benchmark_time_unit",
+                        &FLAGS_benchmark_time_unit) ||
         ParseStringFlag(argv[i], "benchmark_format",
                         &FLAGS_benchmark_format) ||
         ParseBoolFlag(argv[i], "color_print",
@@ -891,6 +900,12 @@ void ParseCommandLineFlags(int* argc, char** argv) {
       PrintUsageAndExit();
     }
   }
+
+  if (FLAGS_benchmark_time_unit != "ns" &&
+      FLAGS_benchmark_time_unit != "ms") {
+    PrintUsageAndExit();
+  }
+
   if (FLAGS_benchmark_format != "tabular" &&
       FLAGS_benchmark_format != "json" &&
       FLAGS_benchmark_format != "csv") {
