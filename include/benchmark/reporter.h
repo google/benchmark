@@ -36,13 +36,12 @@ class BenchmarkReporter {
 
     // The number of chars in the longest benchmark name.
     size_t name_field_width;
-    // The time unit for displayed execution time.
-    std::string time_unit;
   };
 
   struct Run {
     Run() :
       iterations(1),
+      time_unit(kNanosecond),
       real_accumulated_time(0),
       cpu_accumulated_time(0),
       bytes_per_second(0),
@@ -52,6 +51,7 @@ class BenchmarkReporter {
     std::string benchmark_name;
     std::string report_label;  // Empty if not set by benchmark.
     int64_t iterations;
+    TimeUnit time_unit;
     double real_accumulated_time;
     double cpu_accumulated_time;
 
@@ -86,17 +86,22 @@ protected:
     static void ComputeStats(std::vector<Run> const& reports, Run* mean, Run* stddev);
 };
 
+typedef std::pair<const char*,double> TimeUnitMultiplier;
+
 // Simple reporter that outputs benchmark data to the console. This is the
 // default reporter used by RunSpecifiedBenchmarks().
 class ConsoleReporter : public BenchmarkReporter {
  public:
   virtual bool ReportContext(const Context& context);
   virtual void ReportRuns(const std::vector<Run>& reports);
-protected:
+
+ protected:
   virtual void PrintRunData(const Run& report);
 
+ private:
+  TimeUnitMultiplier getTimeUnitAndMultiplier(TimeUnit unit);
+
   size_t name_field_width_;
-  std::string time_unit_;
 };
 
 class JSONReporter : public BenchmarkReporter {

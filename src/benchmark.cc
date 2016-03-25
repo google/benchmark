@@ -64,10 +64,6 @@ DEFINE_int32(benchmark_repetitions, 1,
              "The number of runs of each benchmark. If greater than 1, the "
              "mean and standard deviation of the runs will be reported.");
 
-DEFINE_string(benchmark_time_unit, "ns",
-              "The time unit to use for console output. Valid values are "
-              "'ns', or 'ms'.");
-
 DEFINE_string(benchmark_format, "tabular",
               "The format to use for console output. Valid values are "
               "'tabular', 'json', or 'csv'.");
@@ -265,6 +261,7 @@ struct Benchmark::Instance {
   int            arg1;
   bool           has_arg2;
   int            arg2;
+  TimeUnit       time_unit;
   bool           use_real_time;
   double         min_time;
   int            threads;    // Number of concurrent threads to use
@@ -298,6 +295,7 @@ public:
   ~BenchmarkImp();
 
   void Arg(int x);
+  void Unit(TimeUnit unit);
   void Range(int start, int limit);
   void DenseRange(int start, int limit);
   void ArgPair(int start, int limit);
@@ -317,6 +315,7 @@ private:
   std::string name_;
   int arg_count_;
   std::vector< std::pair<int, int> > args_;  // Args for all benchmark runs
+  TimeUnit time_unit_;
   double min_time_;
   bool use_real_time_;
   std::vector<int> thread_counts_;
@@ -376,6 +375,7 @@ bool BenchmarkFamilies::FindBenchmarks(
         instance.arg1 = args.first;
         instance.has_arg2 = family->arg_count_ == 2;
         instance.arg2 = args.second;
+        instance.time_unit = family->time_unit_;
         instance.min_time = family->min_time_;
         instance.use_real_time = family->use_real_time_;
         instance.threads = num_threads;
@@ -410,7 +410,7 @@ bool BenchmarkFamilies::FindBenchmarks(
 }
 
 BenchmarkImp::BenchmarkImp(const char* name)
-    : name_(name), arg_count_(-1),
+    : name_(name), arg_count_(-1), time_unit_(kNanosecond),
       min_time_(0.0), use_real_time_(false) {
 }
 
@@ -421,6 +421,10 @@ void BenchmarkImp::Arg(int x) {
   CHECK(arg_count_ == -1 || arg_count_ == 1);
   arg_count_ = 1;
   args_.emplace_back(x, -1);
+}
+
+void BenchmarkImp::Unit(TimeUnit unit) {
+  time_unit_ = unit;
 }
 
 void BenchmarkImp::Range(int start, int limit) {
@@ -532,6 +536,11 @@ Benchmark::Benchmark(Benchmark const& other)
 
 Benchmark* Benchmark::Arg(int x) {
   imp_->Arg(x);
+  return this;
+}
+
+Benchmark* Benchmark::Unit(TimeUnit unit) {
+  imp_->Unit(unit);
   return this;
 }
 
@@ -703,6 +712,7 @@ void RunBenchmark(const benchmark::internal::Benchmark::Instance& b,
         report.report_label = label;
         // Report the total iterations across all threads.
         report.iterations = static_cast<int64_t>(iters) * b.threads;
+        report.time_unit = b.time_unit;
         report.real_accumulated_time = real_accumulated_time;
         report.cpu_accumulated_time = cpu_accumulated_time;
         report.bytes_per_second = bytes_per_second;
@@ -783,7 +793,7 @@ void PrintBenchmarkList() {
   }
 }
 
-void RunMatchingBenchmarks(const std::string& spec, const std::string& timeUnit,
+void RunMatchingBenchmarks(const std::string& spec,
                            BenchmarkReporter* reporter) {
   CHECK(reporter != nullptr);
   if (spec.empty()) return;
@@ -808,7 +818,6 @@ void RunMatchingBenchmarks(const std::string& spec, const std::string& timeUnit,
 
   context.cpu_scaling_enabled = CpuScalingEnabled();
   context.name_field_width = name_field_width;
-  context.time_unit = timeUnit;
 
   if (reporter->ReportContext(context)) {
     for (const auto& benchmark : benchmarks) {
@@ -843,7 +852,6 @@ void RunSpecifiedBenchmarks(BenchmarkReporter* reporter) {
     internal::PrintBenchmarkList();
     return;
   }
-  std::string timeUnit = FLAGS_benchmark_time_unit;
   std::string spec = FLAGS_benchmark_filter;
   if (spec.empty() || spec == "all")
     spec = ".";  // Regexp that matches all benchmarks
@@ -853,7 +861,7 @@ void RunSpecifiedBenchmarks(BenchmarkReporter* reporter) {
     default_reporter = internal::GetDefaultReporter();
     reporter = default_reporter.get();
   }
-  internal::RunMatchingBenchmarks(spec, timeUnit, reporter);
+  internal::RunMatchingBenchmarks(spec, reporter);
   reporter->Finalize();
 }
 
@@ -866,7 +874,6 @@ void PrintUsageAndExit() {
           "          [--benchmark_filter=<regex>]\n"
           "          [--benchmark_min_time=<min_time>]\n"
           "          [--benchmark_repetitions=<num_repetitions>]\n"
-          "          [--benchmark_time_unit=<ns|ms>]\n"
           "          [--benchmark_format=<tabular|json|csv>]\n"
           "          [--color_print={true|false}]\n"
           "          [--v=<verbosity>]\n");
@@ -885,8 +892,6 @@ void ParseCommandLineFlags(int* argc, char** argv) {
                         &FLAGS_benchmark_min_time) ||
         ParseInt32Flag(argv[i], "benchmark_repetitions",
                        &FLAGS_benchmark_repetitions) ||
-        ParseStringFlag(argv[i], "benchmark_time_unit",
-                        &FLAGS_benchmark_time_unit) ||
         ParseStringFlag(argv[i], "benchmark_format",
                         &FLAGS_benchmark_format) ||
         ParseBoolFlag(argv[i], "color_print",
@@ -899,11 +904,6 @@ void ParseCommandLineFlags(int* argc, char** argv) {
     } else if (IsFlag(argv[i], "help")) {
       PrintUsageAndExit();
     }
-  }
-
-  if (FLAGS_benchmark_time_unit != "ns" &&
-      FLAGS_benchmark_time_unit != "ms") {
-    PrintUsageAndExit();
   }
 
   if (FLAGS_benchmark_format != "tabular" &&

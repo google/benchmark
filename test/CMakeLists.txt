@@ -1,5 +1,8 @@
 # Enable the tests
 
+# Allow the source files to find headers in src/
+include_directories(${PROJECT_SOURCE_DIR}/src)
+
 find_package(Threads REQUIRED)
 
 set(CXX03_FLAGS "${CMAKE_CXX_FLAGS}")

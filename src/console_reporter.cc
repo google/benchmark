@@ -18,6 +18,7 @@
 #include <cstdio>
 #include <iostream>
 #include <string>
+#include <tuple>
 #include <vector>
 
 #include "check.h"
@@ -29,7 +30,6 @@ namespace benchmark {
 
 bool ConsoleReporter::ReportContext(const Context& context) {
   name_field_width_ = context.name_field_width;
-  time_unit_ = context.time_unit;
 
   std::cerr << "Run on (" << context.num_cpus << " X " << context.mhz_per_cpu
             << " MHz CPU " << ((context.num_cpus > 1) ? "s" : "") << ")\n";
@@ -47,11 +47,9 @@ bool ConsoleReporter::ReportContext(const Context& context) {
                "affected.\n";
 #endif
 
-  std::string timeLabel = "Time(" + time_unit_ + ")";
-  std::string cpuLabel = "CPU(" + time_unit_ + ")";
-  int output_width = fprintf(stdout, "%-*s %10s %10s %10s\n",
+  int output_width = fprintf(stdout, "%-*s %13s %13s %10s\n",
                              static_cast<int>(name_field_width_), "Benchmark",
-                             timeLabel.c_str(), cpuLabel.c_str(), "Iterations");
+                             "Time", "CPU", "Iterations");
   std::cout << std::string(output_width - 1, '-') << "\n";
 
   return true;
@@ -95,27 +93,44 @@ void ConsoleReporter::PrintRunData(const Run& result) {
                    " items/s");
   }
 
-  double const multiplier = time_unit_ == "ns" ? 1e9 : 1e3; // nano second or
-                                                            // millis multiplier
+  double multiplier;
+  const char* timeLabel;
+  std::tie(timeLabel, multiplier) = getTimeUnitAndMultiplier(result.time_unit);
 
   ColorPrintf(COLOR_GREEN, "%-*s ",
               name_field_width_, result.benchmark_name.c_str());
   if (result.iterations == 0) {
-    ColorPrintf(COLOR_YELLOW, "%10.0f %10.0f ",
+    ColorPrintf(COLOR_YELLOW, "%10.0f %s %10.0f %s ",
                 result.real_accumulated_time * multiplier,
-                result.cpu_accumulated_time * multiplier);
+                timeLabel,
+                result.cpu_accumulated_time * multiplier,
+                timeLabel);
   } else {
-    ColorPrintf(COLOR_YELLOW, "%10.0f %10.0f ",
+    ColorPrintf(COLOR_YELLOW, "%10.0f %s %10.0f %s ",
                 (result.real_accumulated_time * multiplier) /
                     (static_cast<double>(result.iterations)),
+                timeLabel,
                 (result.cpu_accumulated_time * multiplier) /
-                    (static_cast<double>(result.iterations)));
+                    (static_cast<double>(result.iterations)),
+                timeLabel);
   }
   ColorPrintf(COLOR_CYAN, "%10lld", result.iterations);
   ColorPrintf(COLOR_DEFAULT, "%*s %*s %s\n",
               13, rate.c_str(),
               18, items.c_str(),
               result.report_label.c_str());
+}
+
+TimeUnitMultiplier ConsoleReporter::getTimeUnitAndMultiplier(TimeUnit unit) {
+  switch (unit) {
+    case kMillisecond:
+      return std::make_pair("ms", 1e3);
+    case kMicrosecond:
+      return std::make_pair("us", 1e6);
+    case kNanosecond:
+    default:
+      return std::make_pair("ns", 1e9);
+  }
 }
 
 }  // end namespace benchmark

@@ -216,6 +216,13 @@ inline BENCHMARK_ALWAYS_INLINE void DoNotOptimize(Tp const& value) {
 }
 #endif
 
+// TimeUnit is passed to a benchmark in order to specify the order of magnitude
+// for the measured time.
+enum TimeUnit {
+  kNanosecond,
+  kMicrosecond,
+  kMillisecond
+};
 
 // State is passed to a running Benchmark and contains state for the
 // benchmark to use.
@@ -390,6 +397,9 @@ public:
   // REQUIRES: The function passed to the constructor must accept an arg1.
   Benchmark* Arg(int x);
 
+  // Run this benchmark with the given time unit for the generated output report
+  Benchmark* Unit(TimeUnit unit);
+
   // Run this benchmark once for a number of values picked from the
   // range [start..limit].  (start and limit are always picked.)
   // REQUIRES: The function passed to the constructor must accept an arg1.
@@ -534,6 +544,7 @@ protected:
 // Old-style macros
 #define BENCHMARK_WITH_ARG(n, a) BENCHMARK(n)->Arg((a))
 #define BENCHMARK_WITH_ARG2(n, a1, a2) BENCHMARK(n)->ArgPair((a1), (a2))
+#define BENCHMARK_WITH_UNIT(n, t) BENCHMARK(n)->Unit((t))
 #define BENCHMARK_RANGE(n, lo, hi) BENCHMARK(n)->Range((lo), (hi))
 #define BENCHMARK_RANGE2(n, l1, h1, l2, h2) \
   BENCHMARK(n)->RangePair((l1), (h1), (l2), (h2))

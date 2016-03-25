@@ -1,11 +1,22 @@
 #include "benchmark/benchmark_api.h"
+#include "sleep.h"
 
 void BM_basic(benchmark::State& state) {
   while (state.KeepRunning()) {
   }
 }
+
+void BM_basic_slow(benchmark::State& state) {
+  while (state.KeepRunning()) {
+    benchmark::SleepForMilliseconds(state.range_x());
+  }
+}
+
 BENCHMARK(BM_basic);
 BENCHMARK(BM_basic)->Arg(42);
+BENCHMARK(BM_basic_slow)->Arg(10)->Unit(benchmark::kNanosecond);
+BENCHMARK(BM_basic_slow)->Arg(100)->Unit(benchmark::kMicrosecond);
+BENCHMARK(BM_basic_slow)->Arg(1000)->Unit(benchmark::kMillisecond);
 BENCHMARK(BM_basic)->Range(1, 8);
 BENCHMARK(BM_basic)->DenseRange(10, 15);
 BENCHMARK(BM_basic)->ArgPair(42, 42);
