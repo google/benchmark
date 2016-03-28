@@ -137,6 +137,13 @@ static void BM_MultiThreaded(benchmark::State& state) {
   }
 }
 BENCHMARK(BM_MultiThreaded)->Threads(4);
+
+
+If a benchmark runs a few milliseconds it may be hard to visually compare the
+measured times, since the output data is given in nanoseconds per default. In
+order to manually set the time unit, you can specify it manually:
+
+BENCHMARK(BM_test)->Unit(benchmark::kMillisecond);
 */
 
 #ifndef BENCHMARK_BENCHMARK_API_H_

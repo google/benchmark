@@ -95,7 +95,7 @@ void ConsoleReporter::PrintRunData(const Run& result) {
 
   double multiplier;
   const char* timeLabel;
-  std::tie(timeLabel, multiplier) = getTimeUnitAndMultiplier(result.time_unit);
+  std::tie(timeLabel, multiplier) = GetTimeUnitAndMultiplier(result.time_unit);
 
   ColorPrintf(COLOR_GREEN, "%-*s ",
               name_field_width_, result.benchmark_name.c_str());
@@ -119,18 +119,6 @@ void ConsoleReporter::PrintRunData(const Run& result) {
               13, rate.c_str(),
               18, items.c_str(),
               result.report_label.c_str());
-}
-
-TimeUnitMultiplier ConsoleReporter::getTimeUnitAndMultiplier(TimeUnit unit) {
-  switch (unit) {
-    case kMillisecond:
-      return std::make_pair("ms", 1e3);
-    case kMicrosecond:
-      return std::make_pair("us", 1e6);
-    case kNanosecond:
-    default:
-      return std::make_pair("ns", 1e9);
-  }
 }
 
 }  // end namespace benchmark

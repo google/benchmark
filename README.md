@@ -190,6 +190,14 @@ static void BM_test(benchmark::State& state) {
 }
 ```
 
+If a benchmark runs a few milliseconds it may be hard to visually compare the
+measured times, since the output data is given in nanoseconds per default. In
+order to manually set the time unit, you can specify it manually:
+
+```c++
+BENCHMARK(BM_test)->Unit(benchmark::kMillisecond);
+```
+
 Benchmark Fixtures
 ------------------
 Fixture tests are created by
