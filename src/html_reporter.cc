@@ -72,13 +72,13 @@ const char *highChart_Column_Function =
     "                });\n@CHART@";
 
 const char *highChart_Line_Function =
-    "                $('#Benchmark').highcharts({\n"
+    "                $('#@BENCHMARK_ID@').highcharts({\n"
     "                    chart: {\n"
     "                        type: 'line',\n"
     "                        zoomType: 'xy'\n"
     "                    },\n"
     "                    title: {\n"
-    "                        text: 'Benchmark'\n"
+    "                        text: '@BENCHMARK_NAME@'\n"
     "                    },\n"
     "                    legend: {\n"
     "                         align: 'right',\n"
@@ -90,19 +90,17 @@ const char *highChart_Line_Function =
     "                              text: 'Amount of calculated values',\n"
     "                              enabled: true\n"
     "                        },\n"
-    "                        allowDecimals: false\n"
+    "                        allowDecimals: true\n"
     "                    },\n"
     "                    yAxis: {\n"
     "                        title: {\n"
-    "                            text: 'time per item (ns)'\n"
+    "                            text: '@YAXIS_TITLE@'\n"
     "                        },\n  "
-    "                        allowDecimals: false\n"
+    "                        allowDecimals: true\n"
     "                    },\n"
     "                    tooltip: {\n"
-    "                        headerFormat: "
-    "'<b><center>{series.name}</center></b><br/>',\n"
-    "                        pointFormat: 'Amount of calculated values: "
-    "<b>{point.x}</b><br/>Time per item: <b>{point.y}ns</b>',\n"
+    "                        headerFormat: '@TOOLTIP_HEADER@',\n"
+    "                        pointFormat: '@TOOLTIP_BODY@',\n"
     "                        borderWidth: 5\n"
     "                    },\n"
     "                    scrollbar: {\n"
@@ -157,6 +155,9 @@ const char *HTML_Base =
 
 namespace benchmark {
 
+const char* HTMLReporter::benchmarkId[] = {"Benchmark_TimeInCpu", "Benchmark_ItemsPerSec", "Benchmark_TimeInReal", "Benchmark_BytesPerSec"};
+const char* HTMLReporter::benchmarkName[] = {"Time in CPU", "Items per seconds", "Time in realtime", "Bytes per second"};
+
 HTMLReporter::HTMLReporter(const std::string &nUserString)
     : userString(nUserString) {}
 
@@ -201,7 +202,9 @@ void HTMLReporter::ReportRuns(std::vector<Run> const &reports) {
     }
 
     else {
-        name.erase(subStrPos);
+        if(subStrPos != std::string::npos) {
+            name.erase(subStrPos);
+        }
     }
   }
 
@@ -229,13 +232,17 @@ void HTMLReporter::ReportRuns(std::vector<Run> const &reports) {
 }
 
 void HTMLReporter::Finalize() {
+  std::string output(HTML_Base);
+
   if (state == HTML_Reporter_State::label) {
-    outputLine();
+    outputLine(output);
   }
 
   else {
-    outputColumns();
+    outputColumns(output);
   }
+
+  printHTML(std::cout, removeCommands(output));
 }
 
 double HTMLReporter::nanoSecondsPerItem(double itemsPerSec) const {
@@ -289,54 +296,82 @@ std::string HTMLReporter::replaceDefuncChars(const std::string &label) {
   return newLabel;
 }
 
-void HTMLReporter::outputLine() const {
+void HTMLReporter::outputLine(std::string &output) const {
   size_t n = 0;
   size_t m;
+  size_t chartNum = 0;
   std::string series;
-  std::string output(HTML_Base);
+  std::string chart(highChart_Line_Function);
 
-  while (n < benchmarkTests.size()) {
-    series.append("{name: '")
-        .append(benchmarkTests[n].name)
-        .append("',\ndata: [");
-    m = 0;
-    while (m < benchmarkTests[n].runData.size()) {
-      series.append("[")
-          .append(std::to_string(benchmarkTests[n].runData[m].range_x))
-          .append(",")
-          .append(std::to_string(
-              nanoSecondsPerItem(benchmarkTests[n].runData[m].itemsSecond)))
-          .append("]");
+  do {
+      replaceString(chart, "@BENCHMARK_ID@", HTMLReporter::benchmarkId[chartNum]);
+      replaceString(chart, "@BENCHMARK_NAME@", HTMLReporter::benchmarkName[chartNum]);
+      replaceString(chart, "@TOOLTIP_HEADER@", "<b><center>{series.name}</center></b><br/>");
 
-      if (++m < benchmarkTests[n].runData.size()) {
-        series.append(",");
+      n = 0;
+      while (n < benchmarkTests.size()) {
+        series.append("{name: '")
+            .append(benchmarkTests[n].name)
+            .append("',\ndata: [");
+        m = 0;
+        while (m < benchmarkTests[n].runData.size()) {
+          series.append("[")
+              .append(std::to_string(benchmarkTests[n].runData[m].range_x))
+              .append(",");
+          switch(chartNum)
+          {
+            case 0:
+                series.append(std::to_string(benchmarkTests[n].runData[m].cpuTime));
+                replaceString(chart, "@YAXIS_TITLE@", "CPU time (items/s)");
+                replaceString(chart, "@TOOLTIP_BODY@","Calculated values: <b>{point.key}</b><br/>CPU time: <b>{point.y}</b>");
+            break;
+
+            case 1:
+                series.append(std::to_string(benchmarkTests[n].runData[m].itemsSecond));
+                replaceString(chart, "@YAXIS_TITLE@", "Items per second (items/s)");
+                replaceString(chart, "@TOOLTIP_BODY@","Calculated values: <b>{point.key}</b><br/>Item per time: <b>{point.y}</b>");
+            break;
+
+            case 2:
+                series.append(std::to_string(benchmarkTests[n].runData[m].realTime));
+                replaceString(chart, "@YAXIS_TITLE@", "Real time");
+                replaceString(chart, "@TOOLTIP_BODY@","Calculated values: <b>{point.key}</b><br/>Real time: <b>{point.y}</b>");
+            break;
+
+            case 3:
+                series.append(std::to_string(benchmarkTests[n].runData[m].bytesSecond));
+                replaceString(chart, "@YAXIS_TITLE@", "Bytes per second (items/s)");
+                replaceString(chart, "@TOOLTIP_BODY@","Calculated values: <b>{point.key}</b><br/>Byte per time: <b>{point.y}byte/s</b>");
+            break;
+          }
+          series.append("]");
+
+          if (++m < benchmarkTests[n].runData.size()) {
+            series.append(",");
+          }
+        }
+        series.append("]}");
+
+        if (++n < benchmarkTests.size()) {
+          series.append(",");
+        }
+
+        series.append("\n");
       }
-    }
-    series.append("]}");
+      replaceString(chart, "@SERIES@", series);
 
-    if (++n < benchmarkTests.size()) {
-      series.append(",");
-    }
+      replaceString(output, "@CHART@", chart);
+      replaceString(output, "@DIV@", div_Element);
+      replaceString(output, "@DIV_NAME@", HTMLReporter::benchmarkId[chartNum]);
 
-    series.append("\n");
-  }
+      series.clear();
+      chart.assign(highChart_Line_Function);
 
-  replaceString(output, "@CHART@", highChart_Line_Function);
-  replaceString(output, "@SERIES@", series);
-  replaceString(output, "@DIV@", div_Element);
-  replaceString(output, "@DIV_NAME@", "Benchmark");
-
-  printHTML(std::cout, removeCommands(output));
+      chartNum++;
+    } while(chartNum < 4);
 }
 
-void HTMLReporter::outputColumns() const {
-  const char *benchmarkId[4] = {"Benchmark_TimeInCpu", "Benchmark_ItemsPerSec",
-                                "Benchmark_TimeInReal",
-                                "Benchmark_BytesPerSec"};
-  const char *benchmarkName[4] = {"Time in CPU", "Items per seconds",
-                                  "Time in realtime", "Bytes per second"};
-
-  std::string output(HTML_Base);
+void HTMLReporter::outputColumns(std::string &output) const {
   std::string chart(highChart_Column_Function);
   std::string div(div_Element);
   std::string categories;
@@ -399,9 +434,9 @@ void HTMLReporter::outputColumns() const {
 
     series.append("]}\n");
 
-    replaceString(div, "@DIV_NAME@", benchmarkId[chartNum]);
-    replaceString(chart, "@BENCHMARK_ID@", benchmarkId[chartNum]);
-    replaceString(chart, "@BENCHMARK_NAME@", benchmarkName[chartNum]);
+    replaceString(div, "@DIV_NAME@", HTMLReporter::benchmarkId[chartNum]);
+    replaceString(chart, "@BENCHMARK_ID@", HTMLReporter::benchmarkId[chartNum]);
+    replaceString(chart, "@BENCHMARK_NAME@", HTMLReporter::benchmarkName[chartNum]);
     replaceString(chart, "@CATEGORIES@", categories);
     replaceString(chart, "@SERIES@", series);
     replaceString(output, "@CHART@", chart);
@@ -413,8 +448,6 @@ void HTMLReporter::outputColumns() const {
     div.assign(div_Element);
     chartNum++;
   } while (chartNum < 4);
-
-  printHTML(std::cout, removeCommands(output));
 }
 
 std::string &HTMLReporter::removeCommands(std::string &data) const {

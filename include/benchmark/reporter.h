@@ -141,8 +141,8 @@ private:
     void writeFile(const char *file) const;
     std::string replaceDefuncChars(const std::string &label);
 
-    void outputLine() const;
-    void outputColumns() const;
+    void outputLine(std::string&) const;
+    void outputColumns(std::string&) const;
 
     void printHTML(std::ostream &out, const std::string &html) const;
 
@@ -169,6 +169,9 @@ private:
   std::vector<BenchmarkData> benchmarkTests;
   std::string userString;
   int state;
+
+  static const char* benchmarkId[4];
+  static const char* benchmarkName[4];
 };
 
 } // end namespace benchmark
