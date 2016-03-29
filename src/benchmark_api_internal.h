@@ -15,6 +15,7 @@ namespace internal {
 // Information kept per benchmark we may want to run
 struct Benchmark::Instance {
   std::string name;
+  std::string family;
   Benchmark* benchmark;
   ReportMode report_mode;
   std::vector<int> arg;
