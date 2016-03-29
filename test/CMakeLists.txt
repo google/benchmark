@@ -1,6 +1,7 @@
 # Enable the tests
 
-# Allow the source files to find headers in src/
+# Allow the test files to find headers in src/ since we rely on
+# SleepForMilliseconds(int milliseconds) in options_test.cc
 include_directories(${PROJECT_SOURCE_DIR}/src)
 
 find_package(Threads REQUIRED)
