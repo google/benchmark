@@ -189,46 +189,28 @@ void HTMLReporter::ReportRuns(std::vector<Run> const &reports) {
   std::string tail;
 
   if (state == HTML_Reporter_State::none) {
-    determineState(reports[0].report_label);
+    determineState(reports[0].has_arg1);
   }
+
+  name = replaceDefuncChars(reports[0].benchmark_name);
 
   if (state == HTML_Reporter_State::label) {
-    bool hasRealTimeTag = false;
-
-    // Remove x: form label
-    subStrPos = reports[0].report_label.rfind("x:");
-    if (subStrPos == std::string::npos) {
-      return;
+    subStrPos = name.find("/");
+    if(name.find("/", (subStrPos + 1)) != std::string::npos) {
+        name.erase(subStrPos, (name.find("/", subStrPos + 1) - subStrPos));
     }
-    tail = reports[0].report_label.substr((subStrPos + 2));
 
-    // Check for realTime
-    hasRealTimeTag =
-        (reports[0].benchmark_name.rfind("/real_time") != std::string::npos);
-
-    // Remove all behind /
-    subStrPos = reports[0].benchmark_name.find("/");
-    if (subStrPos == std::string::npos) {
-      return;
+    else {
+        name.erase(subStrPos);
     }
-    name = reports[0].benchmark_name.substr(0, subStrPos);
-    if (hasRealTimeTag) {
-      name.append("/real_time");
-    }
-    runData.range_x = stoi(tail);
   }
 
-  else {
-    name = reports[0].benchmark_name;
-  }
-
-  replaceDefuncChars(name);
-
-  runData.iterations = reports[0].iterations;
-  runData.realTime = reports[0].real_accumulated_time;
-  runData.cpuTime = reports[0].cpu_accumulated_time;
+  runData.iterations  = reports[0].iterations;
+  runData.realTime    = reports[0].real_accumulated_time;
+  runData.cpuTime     = reports[0].cpu_accumulated_time;
   runData.bytesSecond = reports[0].bytes_per_second;
   runData.itemsSecond = reports[0].items_per_second;
+  runData.range_x     = reports[0].arg1;
 
   for (n = 0; n < benchmarkTests.size(); n++) {
     if (benchmarkTests[n].name == name) {
@@ -262,13 +244,13 @@ double HTMLReporter::nanoSecondsPerItem(double itemsPerSec) const {
   return (1.0 / dItemsPerSec);
 }
 
-void HTMLReporter::determineState(const std::string &label) {
-  if (label.rfind("x:") == std::string::npos) {
-    state = HTML_Reporter_State::noLabel;
+void HTMLReporter::determineState(bool hasX) {
+  if (hasX) {
+    state = HTML_Reporter_State::label;
   }
 
   else {
-    state = HTML_Reporter_State::label;
+    state = HTML_Reporter_State::noLabel;
   }
 }
 
@@ -287,21 +269,24 @@ void HTMLReporter::writeFile(const char *file) const {
   }
 }
 
-void HTMLReporter::replaceDefuncChars(std::string &label) {
+std::string HTMLReporter::replaceDefuncChars(const std::string &label) {
   size_t charPos;
+  std::string newLabel(label);
 
   // Tempaltes greats < >, which must be removed
-  charPos = label.find('<');
+  charPos = newLabel.find('<');
   while (charPos != std::string::npos) {
-    label[charPos] = '(';
-    charPos = label.find('<', (charPos + 1));
+    newLabel[charPos] = '(';
+    charPos = newLabel.find('<', (charPos + 1));
   }
 
-  charPos = label.find('>');
+  charPos = newLabel.find('>');
   while (charPos != std::string::npos) {
-    label[charPos] = ')';
-    charPos = label.find('>', (charPos + 1));
+    newLabel[charPos] = ')';
+    charPos = newLabel.find('>', (charPos + 1));
   }
+
+  return newLabel;
 }
 
 void HTMLReporter::outputLine() const {

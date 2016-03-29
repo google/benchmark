@@ -46,7 +46,11 @@ class BenchmarkReporter {
       cpu_accumulated_time(0),
       bytes_per_second(0),
       items_per_second(0),
-      max_heapbytes_used(0) {}
+      max_heapbytes_used(0),
+      has_arg1(false),
+      has_arg2(false),
+      arg1(0),
+      arg2(0) {}
 
     std::string benchmark_name;
     std::string report_label;  // Empty if not set by benchmark.
@@ -60,6 +64,11 @@ class BenchmarkReporter {
 
     // This is set to 0.0 if memory tracing is not enabled.
     double max_heapbytes_used;
+
+    bool has_arg1;
+    bool has_arg2;
+    int arg1;
+    int arg2;
   };
 
   // Called once for every suite of benchmarks run.
@@ -128,9 +137,9 @@ public:
 
 private:
   double nanoSecondsPerItem(double itemsPerSec) const;
-    void determineState(const std::string &label);
+    void determineState(bool);
     void writeFile(const char *file) const;
-    void replaceDefuncChars(std::string &label);
+    std::string replaceDefuncChars(const std::string &label);
 
     void outputLine() const;
     void outputColumns() const;

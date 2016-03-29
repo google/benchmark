@@ -704,6 +704,10 @@ void RunBenchmark(const benchmark::internal::Benchmark::Instance& b,
         report.cpu_accumulated_time = cpu_accumulated_time;
         report.bytes_per_second = bytes_per_second;
         report.items_per_second = items_per_second;
+        report.has_arg1 = b.has_arg1;
+        report.has_arg2 = b.has_arg2;
+        report.arg1     = b.arg1;
+        report.arg2     = b.arg2;
         reports.push_back(report);
         break;
       }
