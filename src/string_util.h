@@ -39,6 +39,8 @@ inline std::string StrCat(Args&&... args)
 void ReplaceAll(std::string* str, const std::string& from,
                 const std::string& to);
 
+std::string generateInstanceName(const std::string &name, int arg_count, int arg1, int arg2, double min_time, bool use_real_time, bool multithreaded, int threads);
+
 } // end namespace benchmark
 
 #endif // BENCHMARK_STRING_UTIL_H_

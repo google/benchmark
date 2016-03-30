@@ -36,6 +36,10 @@ std::string copyStringFrom(const std::string &input, const std::string &begin,
   return std::string(input, startPos, (endPos - startPos));
 }
 
+bool IsZero(double n) {
+    return std::abs(n) < std::numeric_limits<double>::epsilon();
+}
+
 const char *highChart_Column_Function =
     "                $('#@BENCHMARK_ID@').highcharts({\n"
     "                    chart: {\n"
@@ -180,30 +184,20 @@ bool HTMLReporter::ReportContext(const Context &context) {
 
 void HTMLReporter::ReportRuns(std::vector<Run> const &reports) {
   std::vector<BenchmarkData> *aktContainer;
-  size_t subStrPos;
   RunData runData;
   size_t n;
   std::string name;
   std::string tail;
 
-  name = replaceDefuncChars(reports[0].benchmark_name);
-
   if (reports[0].has_arg1) {
     aktContainer = &this->benchmarkTests_Line;
-    subStrPos = name.find("/");
-    if (name.find("/", (subStrPos + 1)) != std::string::npos) {
-      name.erase(subStrPos, (name.find("/", subStrPos + 1) - subStrPos));
-    }
 
-    else {
-      if (subStrPos != std::string::npos) {
-        name.erase(subStrPos);
-      }
-    }
+    name = generateInstanceName(replaceDefuncChars(reports[0].benchmark_family), 0, 0, 0, reports[0].min_time, reports[0].use_real_time, reports[0].multithreaded, reports[0].threads);
   }
 
   else {
     aktContainer = &this->benchmarkTests_Column;
+    name = replaceDefuncChars(reports[0].benchmark_name);
   }
 
   runData.iterations = reports[0].iterations;

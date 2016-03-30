@@ -252,6 +252,31 @@ static std::unique_ptr<TimerManager> timer_manager = nullptr;
 
 } // end namespace
 
+std::string generateInstanceName(const std::string &name, int arg_count, int arg1, int arg2, double min_time, bool use_real_time, bool multithreaded, int threads) {
+    std::string instanceName(name);
+
+    // Add arguments to instance name
+    if (arg_count >= 1) {
+        AppendHumanReadable(arg1, &instanceName);
+    }
+    if (arg_count >= 2) {
+        AppendHumanReadable(arg2, &instanceName);
+    }
+    if (!IsZero(min_time)) {
+        instanceName +=  StringPrintF("/min_time:%0.3f",  min_time);
+    }
+    if (use_real_time) {
+        instanceName +=  "/real_time";
+    }
+
+    // Add the number of threads used to the name
+    if (multithreaded) {
+        instanceName += StringPrintF("/threads:%d", threads);
+    }
+
+    return instanceName;
+}
+
 namespace internal {
 
 // Information kept per benchmark we may want to run
@@ -368,7 +393,8 @@ bool BenchmarkFamilies::FindBenchmarks(
       for (int num_threads : *thread_counts) {
 
         Benchmark::Instance instance;
-        instance.name = family->name_;
+        //instance.name = family->name_;
+        instance.name = generateInstanceName(family->name_, family->arg_count_, args.first, args.second, family->min_time_, family->use_real_time_, !(family->thread_counts_.empty()), num_threads);
         instance.family = family->name_;
         instance.benchmark = bench_family.get();
         instance.has_arg1 = family->arg_count_ >= 1;
@@ -380,8 +406,9 @@ bool BenchmarkFamilies::FindBenchmarks(
         instance.threads = num_threads;
         instance.multithreaded = !(family->thread_counts_.empty());
 
+
         // Add arguments to instance name
-        if (family->arg_count_ >= 1) {
+        /*if (family->arg_count_ >= 1) {
           AppendHumanReadable(instance.arg1, &instance.name);
         }
         if (family->arg_count_ >= 2) {
@@ -397,7 +424,7 @@ bool BenchmarkFamilies::FindBenchmarks(
         // Add the number of threads used to the name
         if (!family->thread_counts_.empty()) {
           instance.name += StringPrintF("/threads:%d", instance.threads);
-        }
+        }*/
 
         if (re.Match(instance.name)) {
           benchmarks->push_back(instance);
