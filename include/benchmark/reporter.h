@@ -148,7 +148,22 @@ class HTMLReporter : public BenchmarkReporter {
   virtual void ReportRuns(const std::vector<Run>& reports);
   virtual void Finalize();
 
+   struct RunData {
+    int64_t iterations;
+    double realTime;
+    double cpuTime;
+
+    double bytesSecond;
+    double itemsSecond;
+    int range_x;
+  };
+
  private:
+  struct BenchmarkData {
+    std::string name;
+    std::vector<RunData> runData;
+  };
+
   void writeFile(const char* file) const;
   std::string replaceDefuncChars(const std::string& label);
 
@@ -159,26 +174,13 @@ class HTMLReporter : public BenchmarkReporter {
 
   std::string& removeCommands(std::string& data) const;
 
-  struct RunData {
-    int64_t iterations;
-    double realTime;
-    double cpuTime;
-
-    double bytesSecond;
-    double itemsSecond;
-    int range_x;
-  };
-
-  struct BenchmarkData {
-    std::string name;
-    std::vector<RunData> runData;
-  };
-
   std::vector<BenchmarkData> benchmarkTests_Line;
+  std::vector<BenchmarkData> benchmarkTests_Line_stddev;
   std::vector<BenchmarkData> benchmarkTests_Column;
+  std::vector<BenchmarkData> benchmarkTests_Column_stddev;
   std::string userString;
 
-  static const char* benchmarkName[4];
+  //static const char* benchmarkName[4];
 };
 
 }  // end namespace benchmark
