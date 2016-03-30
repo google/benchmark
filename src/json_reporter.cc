@@ -17,6 +17,7 @@
 #include <cstdint>
 #include <iostream>
 #include <string>
+#include <tuple>
 #include <vector>
 
 #include "string_util.h"
