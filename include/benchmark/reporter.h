@@ -19,7 +19,7 @@
 #include <vector>
 #include <sstream>
 
-#include "benchmark_api.h" // For forward declaration of BenchmarkReporter
+#include "benchmark_api.h"  // For forward declaration of BenchmarkReporter
 
 namespace benchmark {
 
@@ -40,17 +40,17 @@ class BenchmarkReporter {
   };
 
   struct Run {
-    Run() :
-      iterations(1),
-      real_accumulated_time(0),
-      cpu_accumulated_time(0),
-      bytes_per_second(0),
-      items_per_second(0),
-      max_heapbytes_used(0),
-      has_arg1(false),
-      has_arg2(false),
-      arg1(0),
-      arg2(0) {}
+    Run()
+        : iterations(1),
+          real_accumulated_time(0),
+          cpu_accumulated_time(0),
+          bytes_per_second(0),
+          items_per_second(0),
+          max_heapbytes_used(0),
+          has_arg1(false),
+          has_arg2(false),
+          arg1(0),
+          arg2(0) {}
 
     std::string benchmark_name;
     std::string report_label;  // Empty if not set by benchmark.
@@ -90,8 +90,10 @@ class BenchmarkReporter {
   virtual void Finalize();
 
   virtual ~BenchmarkReporter();
-protected:
-    static void ComputeStats(std::vector<Run> const& reports, Run* mean, Run* stddev);
+
+ protected:
+  static void ComputeStats(std::vector<Run> const& reports, Run* mean,
+                           Run* stddev);
 };
 
 // Simple reporter that outputs benchmark data to the console. This is the
@@ -100,79 +102,74 @@ class ConsoleReporter : public BenchmarkReporter {
  public:
   virtual bool ReportContext(const Context& context);
   virtual void ReportRuns(const std::vector<Run>& reports);
-protected:
+
+ protected:
   virtual void PrintRunData(const Run& report);
 
   size_t name_field_width_;
 };
 
 class JSONReporter : public BenchmarkReporter {
-public:
+ public:
   JSONReporter() : first_report_(true) {}
   virtual bool ReportContext(const Context& context);
   virtual void ReportRuns(const std::vector<Run>& reports);
   virtual void Finalize();
 
-private:
+ private:
   void PrintRunData(const Run& report);
 
   bool first_report_;
 };
 
 class CSVReporter : public BenchmarkReporter {
-public:
+ public:
   virtual bool ReportContext(const Context& context);
   virtual void ReportRuns(const std::vector<Run>& reports);
 
-private:
+ private:
   void PrintRunData(const Run& report);
 };
 
 class HTMLReporter : public BenchmarkReporter {
-public:
+ public:
   HTMLReporter(const std::string&);
   virtual bool ReportContext(const Context& context);
   virtual void ReportRuns(const std::vector<Run>& reports);
   virtual void Finalize();
 
-private:
-  double nanoSecondsPerItem(double itemsPerSec) const;
-    void determineState(bool);
-    void writeFile(const char *file) const;
-    std::string replaceDefuncChars(const std::string &label);
+ private:
+  void writeFile(const char* file) const;
+  std::string replaceDefuncChars(const std::string& label);
 
-    void outputLine(std::string&) const;
-    void outputColumns(std::string&) const;
+  void outputLine(std::string&) const;
+  void outputColumns(std::string&) const;
 
-    void printHTML(std::ostream &out, const std::string &html) const;
+  void printHTML(std::ostream& out, const std::string& html) const;
 
+  std::string& removeCommands(std::string& data) const;
 
-    std::string& removeCommands(std::string &data) const;
+  struct RunData {
+    int64_t iterations;
+    double realTime;
+    double cpuTime;
 
-  struct RunData
-  {
-      int64_t iterations;
-      double  realTime;
-      double  cpuTime;
-
-      double  bytesSecond;
-      double  itemsSecond;
-      int     range_x;
+    double bytesSecond;
+    double itemsSecond;
+    int range_x;
   };
 
-  struct BenchmarkData
-  {
-      std::string name;
-      std::vector<RunData> runData;
+  struct BenchmarkData {
+    std::string name;
+    std::vector<RunData> runData;
   };
 
-  std::vector<BenchmarkData> benchmarkTests;
+  std::vector<BenchmarkData> benchmarkTests_Line;
+  std::vector<BenchmarkData> benchmarkTests_Column;
   std::string userString;
-  int state;
 
-  static const char* benchmarkId[4];
   static const char* benchmarkName[4];
 };
 
-} // end namespace benchmark
-#endif // BENCHMARK_REPORTER_H_
+}  // end namespace benchmark
+#endif  // BENCHMARK_REPORTER_H_
