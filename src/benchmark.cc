@@ -257,6 +257,7 @@ namespace internal {
 // Information kept per benchmark we may want to run
 struct Benchmark::Instance {
   std::string    name;
+  std::string    family;
   Benchmark*     benchmark;
   bool           has_arg1;
   int            arg1;
@@ -368,6 +369,7 @@ bool BenchmarkFamilies::FindBenchmarks(
 
         Benchmark::Instance instance;
         instance.name = family->name_;
+        instance.family = family->name_;
         instance.benchmark = bench_family.get();
         instance.has_arg1 = family->arg_count_ >= 1;
         instance.arg1 = args.first;
@@ -697,6 +699,7 @@ void RunBenchmark(const benchmark::internal::Benchmark::Instance& b,
         // Create report about this benchmark run.
         BenchmarkReporter::Run report;
         report.benchmark_name = b.name;
+        report.benchmark_family = b.family;
         report.report_label = label;
         // Report the total iterations across all threads.
         report.iterations = static_cast<int64_t>(iters) * b.threads;
@@ -708,6 +711,10 @@ void RunBenchmark(const benchmark::internal::Benchmark::Instance& b,
         report.has_arg2 = b.has_arg2;
         report.arg1     = b.arg1;
         report.arg2     = b.arg2;
+        report.use_real_time = b.use_real_time;
+        report.min_time = b.min_time;
+        report.threads = b.threads;
+        report.multithreaded = b.multithreaded;
         reports.push_back(report);
         break;
       }

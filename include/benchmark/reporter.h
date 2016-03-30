@@ -47,12 +47,17 @@ class BenchmarkReporter {
           bytes_per_second(0),
           items_per_second(0),
           max_heapbytes_used(0),
+          min_time(0.0),
+          arg1(0),
+          arg2(0),
+          threads(0),
           has_arg1(false),
           has_arg2(false),
-          arg1(0),
-          arg2(0) {}
+          use_real_time(false),
+          multithreaded(false) {}
 
     std::string benchmark_name;
+    std::string benchmark_family;
     std::string report_label;  // Empty if not set by benchmark.
     int64_t iterations;
     double real_accumulated_time;
@@ -64,11 +69,16 @@ class BenchmarkReporter {
 
     // This is set to 0.0 if memory tracing is not enabled.
     double max_heapbytes_used;
+    double min_time;
+
+    int arg1;
+    int arg2;
+    int threads;
 
     bool has_arg1;
     bool has_arg2;
-    int arg1;
-    int arg2;
+    bool use_real_time;
+    bool multithreaded;
   };
 
   // Called once for every suite of benchmarks run.
