@@ -17,7 +17,6 @@
 #include <string>
 #include <utility>
 #include <vector>
-#include <sstream>
 
 #include "benchmark_api.h"  // For forward declaration of BenchmarkReporter
 
@@ -143,12 +142,11 @@ class CSVReporter : public BenchmarkReporter {
 
 class HTMLReporter : public BenchmarkReporter {
  public:
-  HTMLReporter(const std::string&);
   virtual bool ReportContext(const Context& context);
   virtual void ReportRuns(const std::vector<Run>& reports);
   virtual void Finalize();
 
-   struct RunData {
+  struct RunData {
     int64_t iterations;
     double realTime;
     double cpuTime;
@@ -158,29 +156,23 @@ class HTMLReporter : public BenchmarkReporter {
     int range_x;
   };
 
- private:
   struct BenchmarkData {
     std::string name;
     std::vector<RunData> runData;
   };
 
+ private:
   void writeFile(const char* file) const;
-  std::string replaceDefuncChars(const std::string& label);
-
-  void outputLine(std::string&) const;
-  void outputColumns(std::string&) const;
+  std::string replaceHTMLSpecialChars(const std::string& label) const;
 
   void printHTML(std::ostream& out, const std::string& html) const;
 
-  std::string& removeCommands(std::string& data) const;
+  void appendRunDataTo(std::vector<BenchmarkData> *container, const Run &data, bool isStddev) const;
 
   std::vector<BenchmarkData> benchmarkTests_Line;
   std::vector<BenchmarkData> benchmarkTests_Line_stddev;
-  std::vector<BenchmarkData> benchmarkTests_Column;
-  std::vector<BenchmarkData> benchmarkTests_Column_stddev;
-  std::string userString;
-
-  //static const char* benchmarkName[4];
+  std::vector<BenchmarkData> benchmarkTests_Bar;
+  std::vector<BenchmarkData> benchmarkTests_Bar_stddev;
 };
 
 }  // end namespace benchmark

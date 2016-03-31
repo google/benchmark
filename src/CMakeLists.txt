@@ -47,7 +47,7 @@ install(
 install(
   DIRECTORY "${PROJECT_SOURCE_DIR}/include/benchmark"
   DESTINATION include
-  FILES_MATCHING PATTERN "*.*h" PATTERN "filePath.h" EXCLUDE)
+  FILES_MATCHING PATTERN "*.*h")
   
 install(
   DIRECTORY "${PROJECT_SOURCE_DIR}/include/benchmark"

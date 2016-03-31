@@ -66,13 +66,11 @@ DEFINE_int32(benchmark_repetitions, 1,
 
 DEFINE_string(benchmark_format, "tabular",
               "The format to use for console output. Valid values are "
-              "'tabular', 'json', 'csv' or 'html'.");
+              "'tabular', 'json', 'csv', or 'html'.");
 
 DEFINE_bool(color_print, true, "Enables colorized logging.");
 
 DEFINE_int32(v, 0, "The level of verbose logging to output");
-
-DEFINE_string(benchmark_userString, "", "Additinal values, passed for reporters");
 
 namespace benchmark {
 
@@ -252,29 +250,32 @@ static std::unique_ptr<TimerManager> timer_manager = nullptr;
 
 } // end namespace
 
-std::string generateInstanceName(const std::string &name, int arg_count, int arg1, int arg2, double min_time, bool use_real_time, bool multithreaded, int threads) {
-    std::string instanceName(name);
+std::string generateInstanceName(const std::string& name, int arg_count,
+                                 int arg1, int arg2, double min_time,
+                                 bool use_real_time, bool multithreaded,
+                                 int threads) {
+  std::string instanceName(name);
 
-    // Add arguments to instance name
-    if (arg_count >= 1) {
-        AppendHumanReadable(arg1, &instanceName);
-    }
-    if (arg_count >= 2) {
-        AppendHumanReadable(arg2, &instanceName);
-    }
-    if (!IsZero(min_time)) {
-        instanceName +=  StringPrintF("/min_time:%0.3f",  min_time);
-    }
-    if (use_real_time) {
-        instanceName +=  "/real_time";
-    }
+  // Add arguments to instance name
+  if (arg_count >= 1) {
+    AppendHumanReadable(arg1, &instanceName);
+  }
+  if (arg_count >= 2) {
+    AppendHumanReadable(arg2, &instanceName);
+  }
+  if (!IsZero(min_time)) {
+    instanceName += StringPrintF("/min_time:%0.3f", min_time);
+  }
+  if (use_real_time) {
+    instanceName += "/real_time";
+  }
 
-    // Add the number of threads used to the name
-    if (multithreaded) {
-        instanceName += StringPrintF("/threads:%d", threads);
-    }
+  // Add the number of threads used to the name
+  if (multithreaded) {
+    instanceName += StringPrintF("/threads:%d", threads);
+  }
 
-    return instanceName;
+  return instanceName;
 }
 
 namespace internal {
@@ -393,8 +394,10 @@ bool BenchmarkFamilies::FindBenchmarks(
       for (int num_threads : *thread_counts) {
 
         Benchmark::Instance instance;
-        //instance.name = family->name_;
-        instance.name = generateInstanceName(family->name_, family->arg_count_, args.first, args.second, family->min_time_, family->use_real_time_, !(family->thread_counts_.empty()), num_threads);
+        instance.name = generateInstanceName(
+            family->name_, family->arg_count_, args.first, args.second,
+            family->min_time_, family->use_real_time_,
+            !(family->thread_counts_.empty()), num_threads);
         instance.family = family->name_;
         instance.benchmark = bench_family.get();
         instance.has_arg1 = family->arg_count_ >= 1;
@@ -405,26 +408,6 @@ bool BenchmarkFamilies::FindBenchmarks(
         instance.use_real_time = family->use_real_time_;
         instance.threads = num_threads;
         instance.multithreaded = !(family->thread_counts_.empty());
-
-
-        // Add arguments to instance name
-        /*if (family->arg_count_ >= 1) {
-          AppendHumanReadable(instance.arg1, &instance.name);
-        }
-        if (family->arg_count_ >= 2) {
-          AppendHumanReadable(instance.arg2, &instance.name);
-        }
-        if (!IsZero(family->min_time_)) {
-          instance.name +=  StringPrintF("/min_time:%0.3f",  family->min_time_);
-        }
-        if (family->use_real_time_) {
-          instance.name +=  "/real_time";
-        }
-
-        // Add the number of threads used to the name
-        if (!family->thread_counts_.empty()) {
-          instance.name += StringPrintF("/threads:%d", instance.threads);
-        }*/
 
         if (re.Match(instance.name)) {
           benchmarks->push_back(instance);
@@ -860,7 +843,7 @@ std::unique_ptr<BenchmarkReporter> GetDefaultReporter() {
   } else if (FLAGS_benchmark_format == "csv") {
     return PtrType(new CSVReporter);
   } else if (FLAGS_benchmark_format == "html") {
-    return PtrType(new HTMLReporter(FLAGS_benchmark_userString));
+    return PtrType(new HTMLReporter());
   } else {
     std::cerr << "Unexpected format: '" << FLAGS_benchmark_format << "'\n";
     std::exit(1);
@@ -923,8 +906,7 @@ void ParseCommandLineFlags(int* argc, char** argv) {
                         &FLAGS_benchmark_format) ||
         ParseBoolFlag(argv[i], "color_print",
                        &FLAGS_color_print) ||
-        ParseInt32Flag(argv[i], "v", &FLAGS_v) ||
-        ParseStringFlag(argv[i], "benchmark_userString", &FLAGS_benchmark_userString)) {
+        ParseInt32Flag(argv[i], "v", &FLAGS_v)) {
       for (int j = i; j != *argc; ++j) argv[j] = argv[j + 1];
 
       --(*argc);
@@ -933,10 +915,11 @@ void ParseCommandLineFlags(int* argc, char** argv) {
       PrintUsageAndExit();
     }
   }
+
   if (FLAGS_benchmark_format != "tabular" &&
       FLAGS_benchmark_format != "json" &&
       FLAGS_benchmark_format != "csv" &&
-	  FLAGS_benchmark_format != "html") {
+      FLAGS_benchmark_format != "html") {
     PrintUsageAndExit();
   }
 }
