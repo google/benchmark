@@ -34,7 +34,7 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 endif()
 
 # Expose public API
-target_include_directories(benchmark PUBLIC ${PROJECT_SOURCE_DIR}/include)
+target_include_directories(benchmark PUBLIC ${PROJECT_SOURCE_DIR}/include ${PROJECT_BINARY_DIR}/include)
 
 # Install target (will install the library to specified CMAKE_INSTALL_PREFIX variable)
 install(
