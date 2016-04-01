@@ -1,13 +1,14 @@
 #include "benchmark/reporter.h"
 #include "benchmark/filePath.h"
 
+#include <algorithm>
+#include <array>
 #include <cstdint>
 #include <iostream>
+#include <functional>
 #include <fstream>
 #include <string>
 #include <vector>
-#include <algorithm>
-#include <functional>
 
 #include "string_util.h"
 #include "walltime.h"
@@ -168,7 +169,7 @@ std::function<std::string(const HTMLReporter::RunData &,
                           const HTMLReporter::RunData &)>
 generateErrorbarCallable(T HTMLReporter::RunData::*member) {
   return [member](const HTMLReporter::RunData &mean,
-                  const HTMLReporter::RunData &stddev) {
+                  const HTMLReporter::RunData &stddev) -> std::string {
     T biggerVal = (mean.*member + stddev.*member);
     T shorterVal = (mean.*member - stddev.*member);
 
@@ -375,7 +376,7 @@ void HTMLReporter::ReportRuns(std::vector<Run> const &reports) {
 void HTMLReporter::Finalize() {
   std::string output(HTML_Base);
   const std::array<ChartIt, 4> charts = {
-      ChartIt{[](const RunData &mean) { return std::to_string(mean.cpuTime); },
+      {ChartIt{[](const RunData &mean) { return std::to_string(mean.cpuTime); },
               generateErrorbarCallable(&RunData::cpuTime)},
       ChartIt{
           [](const RunData &mean) { return std::to_string(mean.itemsSecond); },
@@ -384,7 +385,7 @@ void HTMLReporter::Finalize() {
               generateErrorbarCallable(&RunData::realTime)},
       ChartIt{
           [](const RunData &mean) { return std::to_string(mean.bytesSecond); },
-          generateErrorbarCallable(&RunData::bytesSecond)}};
+          generateErrorbarCallable(&RunData::bytesSecond)}}};
 
   outputAllLineCharts(output, charts, benchmarkTests_Line,
                       benchmarkTests_Line_stddev);
