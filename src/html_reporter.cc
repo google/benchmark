@@ -1,5 +1,4 @@
 #include "benchmark/reporter.h"
-#include "benchmark/filePath.h"
 
 #include <algorithm>
 #include <array>
@@ -13,9 +12,9 @@
 #include "string_util.h"
 #include "walltime.h"
 
-static const char *const benchmarkTitles[4] = {"Time in CPU", "Items per seconds",
-                                            "Time in real time",
-                                            "Bytes per seconds"};
+static const char *const benchmarkTitles[4] = {
+    "Time in CPU", "Items per seconds", "Time in real time",
+    "Bytes per seconds"};
 
 static const char *const yaxisTitles[4] = {
     "CPU time (items/s)", "Items per second (items/s)", "Real time",
@@ -35,46 +34,46 @@ static const char *const column_toolTipBodies[4] = {
     "Bytes per second: <b>{point.y}bytes/s</b>"};
 
 static const char *const highChart_Bar_Function =
-    "                $('#@BENCHMARK_ID@').highcharts({\n"
+    "                $('#${BENCHMARK_ID}').highcharts({\n"
     "                    chart: {\n"
     "                        type: 'column',\n"
     "                        zoomType: 'xy'\n"
     "                    },\n"
     "                    title: {\n"
-    "                        text: '@BENCHMARK_NAME@'\n"
+    "                        text: '${BENCHMARK_NAME}'\n"
     "                    },\n"
     "                    legend: {\n"
     "                         enabled: false\n"
     "                    },\n"
     "                    xAxis: {\n"
-    "                        categories:[\n@CATEGORIES@"
+    "                        categories:[\n${CATEGORIES}"
     "                    ]},\n"
     "                    yAxis: {\n"
     "                        title: {\n"
-    "                            text: '@YAXIS_TITLE@'\n"
+    "                            text: '${YAXIS_TITLE}'\n"
     "                        },\n  "
     "                        allowDecimals: true\n"
     "                    },\n"
     "                    tooltip: {\n"
-    "                        headerFormat: '@TOOLTIP_HEADER@',\n"
-    "                        pointFormat: '@TOOLTIP_BODY@',\n"
+    "                        headerFormat: '${TOOLTIP_HEADER}',\n"
+    "                        pointFormat: '${TOOLTIP_BODY}',\n"
     "                        borderWidth: 5\n"
     "                    },\n"
     "                    scrollbar: {\n"
     "                        enabled: false\n"
     "                    },\n"
-    "                   series:[\n@SERIES@"
+    "                   series:[\n${SERIES}"
     "                   ]\n"
-    "                });\n@CHART@";
+    "                });\n${CHART}";
 
 static const char *const highChart_Line_Function =
-    "                $('#@BENCHMARK_ID@').highcharts({\n"
+    "                $('#${BENCHMARK_ID}').highcharts({\n"
     "                    chart: {\n"
     "                        type: 'line',\n"
     "                        zoomType: 'xy'\n"
     "                    },\n"
     "                    title: {\n"
-    "                        text: '@BENCHMARK_NAME@'\n"
+    "                        text: '${BENCHMARK_NAME}'\n"
     "                    },\n"
     "                    legend: {\n"
     "                         align: 'right',\n"
@@ -90,13 +89,13 @@ static const char *const highChart_Line_Function =
     "                    },\n"
     "                    yAxis: {\n"
     "                        title: {\n"
-    "                            text: '@YAXIS_TITLE@'\n"
+    "                            text: '${YAXIS_TITLE}'\n"
     "                        },\n  "
     "                        allowDecimals: true\n"
     "                    },\n"
     "                    tooltip: {\n"
-    "                        headerFormat: '@TOOLTIP_HEADER@',\n"
-    "                        pointFormat: '@TOOLTIP_BODY@',\n"
+    "                        headerFormat: '${TOOLTIP_HEADER}',\n"
+    "                        pointFormat: '${TOOLTIP_BODY}',\n"
     "                        borderWidth: 5\n"
     "                    },\n"
     "                    scrollbar: {\n"
@@ -114,12 +113,12 @@ static const char *const highChart_Line_Function =
     "                          lineWidth: 1\n"
     "                        }\n"
     "                    },\n"
-    "                   series:[\n@SERIES@"
+    "                   series:[\n${SERIES}"
     "                   ]\n"
-    "                });\n@CHART@";
+    "                });\n${CHART}";
 
 static const char *const div_Element =
-    "      <div class = \"chart\" id = \"@DIV_NAME@\"></div>\n@DIV@";
+    "      <div class = \"chart\" id = \"${DIV_NAME}\"></div>\n${DIV}";
 
 static const char *const HTML_Base =
     "<!DOCTYPE html>\n"
@@ -132,23 +131,15 @@ static const char *const HTML_Base =
     "                height:400px;\n"
     "           }\n"
     "       </style>\n"
-    "       <script type = \"text/javascript\">\n"
-    "@JQUERY@\n"
-    "       </script>\n"
-    "       <script type = \"text/javascript\">\n"
-    "@HIGHCHART@\n"
-    "       </script>\n"
-    "       <script type = \"text/javascript\">\n"
-    "@HIGHCHART_MORE@\n"
-    "       </script>\n"
+    "@CMAKE_JAVASCRIPT_REPLACEMENT@"
     "       <script>\n"
     "            $(function () {\n"
-    "@CHART@"
+    "${CHART}"
     "            });\n"
     "       </script>\n"
     "   </head>\n"
     "   <body>\n"
-    "@DIV@"
+    "${DIV}"
     "   </body>\n"
     "</html>";
 
@@ -237,17 +228,17 @@ void outputAllLineCharts(
 
     series.append("\n");
 
-    replaceString(chart, "@YAXIS_TITLE@", yaxisTitles[chartNum]);
-    replaceString(chart, "@TOOLTIP_BODY@", line_toolTipBodies[chartNum]);
-    replaceString(chart, "@BENCHMARK_ID@", benchmarkId[chartNum]);
-    replaceString(chart, "@BENCHMARK_NAME@", benchmarkTitles[chartNum]);
-    replaceString(chart, "@TOOLTIP_HEADER@",
+    replaceString(chart, "${YAXIS_TITLE}", yaxisTitles[chartNum]);
+    replaceString(chart, "${TOOLTIP_BODY}", line_toolTipBodies[chartNum]);
+    replaceString(chart, "${BENCHMARK_ID}", benchmarkId[chartNum]);
+    replaceString(chart, "${BENCHMARK_NAME}", benchmarkTitles[chartNum]);
+    replaceString(chart, "${TOOLTIP_HEADER}",
                   "<b><center>{series.name}</center></b><br/>");
-    replaceString(chart, "@SERIES@", series);
+    replaceString(chart, "${SERIES}", series);
 
-    replaceString(output, "@CHART@", chart);
-    replaceString(output, "@DIV@", div_Element);
-    replaceString(output, "@DIV_NAME@", benchmarkId[chartNum]);
+    replaceString(output, "${CHART}", chart);
+    replaceString(output, "${DIV}", div_Element);
+    replaceString(output, "${DIV_NAME}", benchmarkId[chartNum]);
 
     series.clear();
     chart.assign(highChart_Line_Function);
@@ -305,17 +296,17 @@ void outputAllBarCharts(
     }
     series.append("\n");
 
-    replaceString(chart, "@YAXIS_TITLE@", yaxisTitles[chartNum]);
-    replaceString(chart, "@TOOLTIP_BODY@", column_toolTipBodies[chartNum]);
-    replaceString(chart, "@TOOLTIP_HEADER@",
+    replaceString(chart, "${YAXIS_TITLE}", yaxisTitles[chartNum]);
+    replaceString(chart, "${TOOLTIP_BODY}", column_toolTipBodies[chartNum]);
+    replaceString(chart, "${TOOLTIP_HEADER}",
                   "<b><center>{point.key}</center></b><br/>");
-    replaceString(div, "@DIV_NAME@", benchmarkId[chartNum]);
-    replaceString(chart, "@BENCHMARK_ID@", benchmarkId[chartNum]);
-    replaceString(chart, "@BENCHMARK_NAME@", benchmarkTitles[chartNum]);
-    replaceString(chart, "@CATEGORIES@", categories);
-    replaceString(chart, "@SERIES@", series);
-    replaceString(output, "@CHART@", chart);
-    replaceString(output, "@DIV@", div);
+    replaceString(div, "${DIV_NAME}", benchmarkId[chartNum]);
+    replaceString(chart, "${BENCHMARK_ID}", benchmarkId[chartNum]);
+    replaceString(chart, "${BENCHMARK_NAME}", benchmarkTitles[chartNum]);
+    replaceString(chart, "${CATEGORIES}", categories);
+    replaceString(chart, "${SERIES}", series);
+    replaceString(output, "${CHART}", chart);
+    replaceString(output, "${DIV}", div);
 
     categories.clear();
     series.clear();
@@ -377,15 +368,16 @@ void HTMLReporter::Finalize() {
   std::string output(HTML_Base);
   const std::array<ChartIt, 4> charts = {
       {ChartIt{[](const RunData &mean) { return std::to_string(mean.cpuTime); },
-              generateErrorbarCallable(&RunData::cpuTime)},
-      ChartIt{
-          [](const RunData &mean) { return std::to_string(mean.itemsSecond); },
-          generateErrorbarCallable(&RunData::itemsSecond)},
-      ChartIt{[](const RunData &mean) { return std::to_string(mean.realTime); },
-              generateErrorbarCallable(&RunData::realTime)},
-      ChartIt{
-          [](const RunData &mean) { return std::to_string(mean.bytesSecond); },
-          generateErrorbarCallable(&RunData::bytesSecond)}}};
+               generateErrorbarCallable(&RunData::cpuTime)},
+       ChartIt{
+           [](const RunData &mean) { return std::to_string(mean.itemsSecond); },
+           generateErrorbarCallable(&RunData::itemsSecond)},
+       ChartIt{
+           [](const RunData &mean) { return std::to_string(mean.realTime); },
+           generateErrorbarCallable(&RunData::realTime)},
+       ChartIt{
+           [](const RunData &mean) { return std::to_string(mean.bytesSecond); },
+           generateErrorbarCallable(&RunData::bytesSecond)}}};
 
   outputAllLineCharts(output, charts, benchmarkTests_Line,
                       benchmarkTests_Line_stddev);
@@ -393,7 +385,7 @@ void HTMLReporter::Finalize() {
                      benchmarkTests_Bar_stddev);
 
   printHTML(std::cout,
-            replaceString(replaceString(output, "@CHART@", ""), "@DIV@", ""));
+            replaceString(replaceString(output, "${CHART}", ""), "${DIV}", ""));
 }
 
 void HTMLReporter::writeFile(const char *file) const {
@@ -437,37 +429,30 @@ std::string HTMLReporter::replaceHTMLSpecialChars(
 }
 
 void HTMLReporter::printHTML(std::ostream &out, const std::string &html) const {
-  size_t markerPos = html.find("@JQUERY@");
+  size_t markerPos = html.find("${JQUERY}");
   size_t stringPos = 0;
 
-  if (markerPos == std::string::npos) {
-    std::cerr << "@JQUERY@ marker not found\n";
-    return;
+  if (markerPos != std::string::npos) {
+    out.write(html.c_str(), markerPos);
+    writeFile("@CMAKE_JQUERY_PATH@");
+    stringPos = (markerPos + 9);
   }
 
-  out.write(html.c_str(), markerPos);
-  writeFile(JQUERY_PATH);
-  stringPos = (markerPos + 8);
+  markerPos = html.find("${HIGHCHART}", markerPos);
 
-  markerPos = html.find("@HIGHCHART@", markerPos);
-  if (markerPos == std::string::npos) {
-    std::cerr << "@HIGHCHART@ marker not found\n";
-    return;
+  if (markerPos != std::string::npos) {
+    out.write((html.c_str() + stringPos), (markerPos - stringPos));
+    writeFile("@CMAKE_HIGHSTOCK_PATH@");
+    stringPos = (markerPos + 12);
   }
 
-  out.write((html.c_str() + stringPos), (markerPos - stringPos));
-  writeFile(HIGHSTOCK_PATH);
-  stringPos = (markerPos + 11);
+  markerPos = html.find("${HIGHCHART_MORE}", markerPos);
 
-  markerPos = html.find("@HIGHCHART_MORE@", markerPos);
-  if (markerPos == std::string::npos) {
-    std::cerr << "@HIGHCHART_MORE@ marker not found\n";
-    return;
+  if (markerPos != std::string::npos) {
+    out.write((html.c_str() + stringPos), (markerPos - stringPos));
+    writeFile("@CMAKE_HIGHSTOCK_MORE_PATH@");
+    stringPos = (markerPos + 17);
   }
-
-  out.write((html.c_str() + stringPos), (markerPos - stringPos));
-  writeFile(HIGHSTOCK_MORE_PATH);
-  stringPos = (markerPos + 16);
 
   out << (html.c_str() + stringPos);
 }

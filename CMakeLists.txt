@@ -11,6 +11,7 @@ endforeach()
 
 option(BENCHMARK_ENABLE_TESTING "Enable testing of the benchmark library." ON)
 option(BENCHMARK_ENABLE_LTO "Enable link time optimisation of the benchmark library." OFF)
+option(BENCHMARK_DOWNLOAD_JS "Enable download of Highchart and JQuery" OFF)
 # Make sure we can import out CMake functions
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 
@@ -122,21 +123,43 @@ find_package(Threads REQUIRED)
 include_directories(${PROJECT_SOURCE_DIR}/include)
 
 # Set up pathes to javascript
-set(JQUERY_NAME "jquery-2.2.1.min.js")
-set(HIGHSTOCK_NAME "highstock.js")
-set(HIGHSTOCK_MORE_NAME "highcharts-more.js")
 
-set(JQUERY_PATH "${PROJECT_SOURCE_DIR}/include/benchmark/${JQUERY_NAME}")
-set(HIGHSTOCK_PATH "${PROJECT_SOURCE_DIR}/include/benchmark/${HIGHSTOCK_NAME}")
-set(HIGHSTOCK_MORE_PATH "${PROJECT_SOURCE_DIR}/include/benchmark/${HIGHSTOCK_MORE_NAME}")
+if (BENCHMARK_DOWNLOAD_JS)
+    set(JQUERY_NAME "jquery-2.2.1.min.js")
+    set(HIGHSTOCK_NAME "highstock.js")
+    set(HIGHSTOCK_MORE_NAME "highcharts-more.js")
 
-configure_file(${PROJECT_SOURCE_DIR}/include/benchmark/filePath.h.in ${PROJECT_BINARY_DIR}/include/benchmark/filePath.h @ONLY)
+    file(DOWNLOAD "https://code.jquery.com/jquery-2.2.2.min.js" "${PROJECT_BINARY_DIR}/include/benchmark/${JQUERY_NAME}" SHOW_PROGRESS STATUS state)
+    list(GET state 0 result)
+    if(result)
+        message(FATAL_ERROR "JQuery couldn't downloaded")
+    endif()
 
-set(JQUERY_PATH "${CMAKE_INSTALL_PREFIX}/share/benchmark/${JQUERY_NAME}")
-set(HIGHSTOCK_PATH "${CMAKE_INSTALL_PREFIX}/share/benchmark/${HIGHSTOCK_NAME}")
-set(HIGHSTOCK_MORE_PATH "${CMAKE_INSTALL_PREFIX}/share/benchmark/${HIGHSTOCK_MORE_NAME}")
+    file(DOWNLOAD "http://code.highcharts.com/stock/highstock.js" "${PROJECT_BINARY_DIR}/include/benchmark/${HIGHSTOCK_NAME}" SHOW_PROGRESS STATUS state)
+    list(GET state 0 result)
+    if(result)
+        message(FATAL_ERROR "Highstock couldn't downloaded")
+    endif()
+    
+    file(DOWNLOAD "http://code.highcharts.com/highcharts-more.js" "${PROJECT_BINARY_DIR}/include/benchmark/${HIGHSTOCK_MORE_NAME}" SHOW_PROGRESS STATUS state)
+    list(GET state 0 result)
+    if(result)
+        message(FATAL_ERROR "Highchart-more couldn't downloaded")
+    endif()
 
-configure_file(${PROJECT_SOURCE_DIR}/include/benchmark/filePath.h.in ${PROJECT_BINARY_DIR}/include/benchmark/filePath.h.install @ONLY)
+    set(CMAKE_JQUERY_PATH "${CMAKE_INSTALL_PREFIX}/share/benchmark/${JQUERY_NAME}")
+    set(CMAKE_HIGHSTOCK_PATH "${CMAKE_INSTALL_PREFIX}/share/benchmark/${HIGHSTOCK_NAME}")
+    set(CMAKE_HIGHSTOCK_MORE_PATH "${CMAKE_INSTALL_PREFIX}/share/benchmark/${HIGHSTOCK_MORE_NAME}")
+
+    set(CMAKE_JAVASCRIPT_REPLACEMENT "<script type = \\\"text/javascript\\\">\${JQUERY}</script><script type = \\\"text/javascript\\\">\${HIGHCHART}</script><script type = \\\"text/javascript\\\">\${HIGHCHART_MORE}</script>")
+else ()
+    set(CMAKE_JQUERY_PATH "")
+    set(CMAKE_HIGHSTOCK_PATH "")
+    set(CMAKE_HIGHSTOCK_MORE_PATH "")
+    set(CMAKE_JAVASCRIPT_REPLACEMENT "<script type = \\\"text/javascript\\\" src = \\\"https://code.jquery.com/jquery-2.2.2.min.js\\\"></script><script type = \\\"text/javascript\\\" src = \\\"http://code.highcharts.com/stock/highstock.js\\\"></script><script type = \\\"text/javascript\\\" src = \\\"http://code.highcharts.com/highcharts-more.js\\\"></script>")
+endif ()
+
+configure_file(${PROJECT_SOURCE_DIR}/src/html_reporter.cc ${PROJECT_BINARY_DIR}/src/html_reporter.cc @ONLY)
 
 # Build the targets
 add_subdirectory(src)

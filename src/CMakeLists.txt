@@ -3,7 +3,7 @@ include_directories(${PROJECT_SOURCE_DIR}/src)
 
 # Define the source files
 set(SOURCE_FILES "benchmark.cc" "colorprint.cc" "commandlineflags.cc"
-                 "console_reporter.cc" "csv_reporter.cc" "html_reporter.cc" "json_reporter.cc"
+                 "console_reporter.cc" "csv_reporter.cc" "${PROJECT_BINARY_DIR}/src/html_reporter.cc" "json_reporter.cc"
                  "log.cc" "reporter.cc" "sleep.cc" "string_util.cc"
                  "sysinfo.cc" "walltime.cc")
 # Determine the correct regular expression engine to use
@@ -49,9 +49,9 @@ install(
   DESTINATION include
   FILES_MATCHING PATTERN "*.*h")
   
-install(
-  DIRECTORY "${PROJECT_SOURCE_DIR}/include/benchmark"
-  DESTINATION "share"
-  FILES_MATCHING PATTERN "*.js")
-  
-install(FILES "${PROJECT_BINARY_DIR}/include/benchmark/filePath.h.install" DESTINATION include/benchmark/ RENAME filePath.h)
+if(BENCHMARK_DOWNLOAD_JS)
+    install(
+    DIRECTORY "${PROJECT_BINARY_DIR}/include/benchmark"
+    DESTINATION "share"
+    FILES_MATCHING PATTERN "*.js")
+endif()
