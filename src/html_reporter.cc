@@ -13,25 +13,25 @@
 #include "walltime.h"
 
 static const char *const benchmarkTitles[4] = {
-    "Time in CPU", "Items per seconds", "Time in real time",
-    "Bytes per seconds"};
+    "CPU time", "Items per second", "Real time",
+    "Bytes per second"};
 
 static const char *const yaxisTitles[4] = {
-    "CPU time (items/s)", "Items per second (items/s)", "Real time",
-    "Bytes per second (items/s)"};
+    "CPU time [ns]", "Items per second [items/s]", "Real time [ns]",
+    "Bytes per second [B/s]"};
 
 static const char *const line_toolTipBodies[4] = {
-    "Calculated values: <b>{point.key}</b><br/>CPU time: <b>{point.y}</b>",
-    "Calculated values: <b>{point.key}</b><br/>Item per time: "
-    "<b>{point.y}</b>,",
-    "Calculated values: <b>{point.key}</b><br/>Real time: <b>{point.y}</b>",
-    "Calculated values: <b>{point.key}</b><br/>Byte per time: "
-    "<b>{point.y}byte/s</b>"};
+    "Calculated values: <b>{point.key}</b><br/>CPU time: <b>{point.y} ns</b><br/>Argument 1: <b>{point.x}</b>",
+    "Calculated values: <b>{point.key}</b><br/>Items per second: "
+    "<b>{point.y}</b><br/>Argument 1: <b>{point.x}</b>",
+    "Calculated values: <b>{point.key}</b><br/>Real time: <b>{point.y} ns</b><br/>Argument 1: <b>{point.x}</b>",
+    "Calculated values: <b>{point.key}</b><br/>Bytes per second: "
+    "<b>{point.y}</b><br/>Argument 1: <b>{point.x}</b>"};
 
 static const char *const column_toolTipBodies[4] = {
-    "CPU time: <b>{point.y}</b>", "Item per time: <b>{point.y}item/s</b>",
-    "Real time: <b>{point.y}ns</b>",
-    "Bytes per second: <b>{point.y}bytes/s</b>"};
+    "CPU time: <b>{point.y} ns</b>", "Items per second: <b>{point.y}</b>",
+    "Real time: <b>{point.y} ns</b>",
+    "Bytes per second: <b>{point.y}</b>"};
 
 static const char *const highChart_Bar_Function =
     "                $('#${BENCHMARK_ID}').highcharts({\n"
@@ -82,7 +82,7 @@ static const char *const highChart_Line_Function =
     "                    },\n"
     "                    xAxis: {\n"
     "                        title: {\n"
-    "                              text: 'Amount of calculated values',\n"
+    "                              text: 'Argument 1',\n"
     "                              enabled: true\n"
     "                        },\n"
     "                        allowDecimals: true\n"
@@ -474,12 +474,18 @@ void HTMLReporter::appendRunDataTo(std::vector<BenchmarkData> *container,
   }
 
   RunData runData;
+  double const nanoSecMultiplier = 1e9;
   runData.iterations = data.iterations;
-  runData.realTime = data.real_accumulated_time;
-  runData.cpuTime = data.cpu_accumulated_time;
   runData.bytesSecond = data.bytes_per_second;
   runData.itemsSecond = data.items_per_second;
   runData.range_x = data.arg1;
+  runData.realTime = (data.real_accumulated_time*nanoSecMultiplier);
+  runData.cpuTime = (data.cpu_accumulated_time*nanoSecMultiplier);
+
+  if(data.iterations > 1) {
+    runData.realTime /= static_cast<double>(data.iterations);
+    runData.cpuTime /= static_cast<double>(data.iterations);
+  }
 
   std::vector<BenchmarkData>::iterator iter =
       find_if(container->begin(), container->end(),
