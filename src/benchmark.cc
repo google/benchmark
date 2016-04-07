@@ -250,7 +250,8 @@ static std::unique_ptr<TimerManager> timer_manager = nullptr;
 
 } // end namespace
 
-std::string generateInstanceName(const std::string& name, int arg_count,
+namespace internal {
+std::string GenerateInstanceName(const std::string& name, int arg_count,
                                  int arg1, int arg2, double min_time,
                                  bool use_real_time, bool multithreaded,
                                  int threads) {
@@ -277,8 +278,6 @@ std::string generateInstanceName(const std::string& name, int arg_count,
 
   return instanceName;
 }
-
-namespace internal {
 
 // Information kept per benchmark we may want to run
 struct Benchmark::Instance {
@@ -394,7 +393,7 @@ bool BenchmarkFamilies::FindBenchmarks(
       for (int num_threads : *thread_counts) {
 
         Benchmark::Instance instance;
-        instance.name = generateInstanceName(
+        instance.name = GenerateInstanceName(
             family->name_, family->arg_count_, args.first, args.second,
             family->min_time_, family->use_real_time_,
             !(family->thread_counts_.empty()), num_threads);

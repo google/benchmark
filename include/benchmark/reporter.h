@@ -148,31 +148,32 @@ class HTMLReporter : public BenchmarkReporter {
 
   struct RunData {
     int64_t iterations;
-    double realTime;
-    double cpuTime;
+    double real_time;
+    double cpu_time;
 
-    double bytesSecond;
-    double itemsSecond;
+    double bytes_second;
+    double items_second;
     int range_x;
   };
 
   struct BenchmarkData {
     std::string name;
-    std::vector<RunData> runData;
+    std::vector<RunData> run_data;
   };
 
  private:
-  void writeFile(const char* file) const;
+  void writeFile(const std::string& file) const;
   std::string replaceHTMLSpecialChars(const std::string& label) const;
 
   void printHTML(std::ostream& out, const std::string& html) const;
 
-  void appendRunDataTo(std::vector<BenchmarkData> *container, const Run &data, bool isStddev) const;
+  void appendRunDataTo(std::vector<BenchmarkData> *container, const Run &data, bool is_stddev) const;
 
-  std::vector<BenchmarkData> benchmarkTests_Line;
-  std::vector<BenchmarkData> benchmarkTests_Line_stddev;
-  std::vector<BenchmarkData> benchmarkTests_Bar;
-  std::vector<BenchmarkData> benchmarkTests_Bar_stddev;
+  std::string context_output;
+  std::vector<BenchmarkData> benchmark_tests_line;
+  std::vector<BenchmarkData> benchmark_tests_line_stddev;
+  std::vector<BenchmarkData> benchmark_tests_bar;
+  std::vector<BenchmarkData> benchmark_tests_bar_stddev;
 };
 
 }  // end namespace benchmark

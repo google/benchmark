@@ -12,28 +12,28 @@
 #include "string_util.h"
 #include "walltime.h"
 
-static const char *const benchmarkTitles[4] = {
-    "CPU time", "Items per second", "Real time",
-    "Bytes per second"};
+static const char *const benchmark_titles[4] = {
+    "CPU time", "Items per second", "Real time", "Bytes per second"};
 
-static const char *const yaxisTitles[4] = {
+static const char *const yaxis_titles[4] = {
     "CPU time [ns]", "Items per second [items/s]", "Real time [ns]",
     "Bytes per second [B/s]"};
 
-static const char *const line_toolTipBodies[4] = {
-    "Calculated values: <b>{point.key}</b><br/>CPU time: <b>{point.y} ns</b><br/>Argument 1: <b>{point.x}</b>",
+static const char *const line_tool_tip_bodies[4] = {
+    "Calculated values: <b>{point.key}</b><br/>CPU time: <b>{point.y} "
+    "ns</b><br/>Argument 1: <b>{point.x}</b>",
     "Calculated values: <b>{point.key}</b><br/>Items per second: "
     "<b>{point.y}</b><br/>Argument 1: <b>{point.x}</b>",
-    "Calculated values: <b>{point.key}</b><br/>Real time: <b>{point.y} ns</b><br/>Argument 1: <b>{point.x}</b>",
+    "Calculated values: <b>{point.key}</b><br/>Real time: <b>{point.y} "
+    "ns</b><br/>Argument 1: <b>{point.x}</b>",
     "Calculated values: <b>{point.key}</b><br/>Bytes per second: "
     "<b>{point.y}</b><br/>Argument 1: <b>{point.x}</b>"};
 
-static const char *const column_toolTipBodies[4] = {
+static const char *const column_tool_tip_bodies[4] = {
     "CPU time: <b>{point.y} ns</b>", "Items per second: <b>{point.y}</b>",
-    "Real time: <b>{point.y} ns</b>",
-    "Bytes per second: <b>{point.y}</b>"};
+    "Real time: <b>{point.y} ns</b>", "Bytes per second: <b>{point.y}</b>"};
 
-static const char *const highChart_Bar_Function =
+static const char *const high_chart_bar_function =
     "                $('#${BENCHMARK_ID}').highcharts({\n"
     "                    chart: {\n"
     "                        type: 'column',\n"
@@ -66,7 +66,7 @@ static const char *const highChart_Bar_Function =
     "                   ]\n"
     "                });\n${CHART}";
 
-static const char *const highChart_Line_Function =
+static const char *const high_chart_line_function =
     "                $('#${BENCHMARK_ID}').highcharts({\n"
     "                    chart: {\n"
     "                        type: 'line',\n"
@@ -117,10 +117,10 @@ static const char *const highChart_Line_Function =
     "                   ]\n"
     "                });\n${CHART}";
 
-static const char *const div_Element =
+static const char *const div_element =
     "      <div class = \"chart\" id = \"${DIV_NAME}\"></div>\n${DIV}";
 
-static const char *const HTML_Base =
+static const char *const html_base =
     "<!DOCTYPE html>\n"
     "<html>\n"
     "   <head>\n"
@@ -140,19 +140,18 @@ static const char *const HTML_Base =
     "   </head>\n"
     "   <body>\n"
     "${DIV}"
+    "${CONTEXT}"
     "   </body>\n"
     "</html>";
 
 namespace benchmark {
-std::string &replaceString(std::string &input, const std::string &from,
-                           const std::string &to) {
-  size_t position = input.find(from);
+void replaceString(std::string *input, const std::string &from,
+                   const std::string &to) {
+  size_t position = input->find(from);
 
   if (position != std::string::npos) {
-    input.replace(position, from.size(), to);
+    input->replace(position, from.size(), to);
   }
-
-  return input;
 }
 
 template <typename T>
@@ -175,51 +174,52 @@ struct ChartIt {
 };
 
 void outputAllLineCharts(
-    std::string &output, const std::array<ChartIt, 4> &lineCharts,
-    const std::vector<HTMLReporter::BenchmarkData> &benchmarkTests_Line,
+    std::string &output, const std::array<ChartIt, 4> &line_charts,
+    const std::vector<HTMLReporter::BenchmarkData> &benchmark_tests_line,
     const std::vector<HTMLReporter::BenchmarkData>
-        &benchmarkTests_Line_stddev) {
-  const char *benchmarkId[] = {
+        &benchmark_tests_line_stddev) {
+  const char *benchmark_id[] = {
       "Benchmark_TimeInCpu_Line", "Benchmark_ItemsPerSec_Line",
       "Benchmark_TimeInReal_Line", "Benchmark_BytesPerSec_Line"};
   std::string series;
-  std::string chart(highChart_Line_Function);
+  std::string chart(high_chart_line_function);
 
-  for (size_t chartNum = 0; chartNum < 4; chartNum++) {
-    for (size_t n = 0; n < benchmarkTests_Line.size(); n++) {
+  for (size_t chart_num = 0; chart_num < 4; chart_num++) {
+    for (size_t n = 0; n < benchmark_tests_line.size(); n++) {
       if (n > 0) {
         series.append(",");
       }
 
       series.append("{name: '")
-          .append(benchmarkTests_Line[n].name)
+          .append(benchmark_tests_line[n].name)
           .append("',\ndata: [");
-      for (size_t m = 0; m < benchmarkTests_Line[n].runData.size(); m++) {
+      for (size_t m = 0; m < benchmark_tests_line[n].run_data.size(); m++) {
         if (m > 0) {
           series.append(",");
         }
         series.append("[")
-            .append(std::to_string(benchmarkTests_Line[n].runData[m].range_x))
+            .append(std::to_string(benchmark_tests_line[n].run_data[m].range_x))
             .append(",");
         series.append(
-            lineCharts[chartNum].value(benchmarkTests_Line[n].runData[m]));
+            line_charts[chart_num].value(benchmark_tests_line[n].run_data[m]));
         series.append("]");
       }
       series.append("]}");
 
-      if (!benchmarkTests_Line_stddev.empty()) {
+      if (!benchmark_tests_line_stddev.empty()) {
         series.append(
             ",\n{type: 'errorbar',\nenableMouseTracking: false,\ndata: [");
-        for (size_t m = 0; m < benchmarkTests_Line[n].runData.size(); m++) {
+        for (size_t m = 0; m < benchmark_tests_line[n].run_data.size(); m++) {
           if (m > 0) {
             series.append(",");
           }
           series.append("[")
-              .append(std::to_string(benchmarkTests_Line[n].runData[m].range_x))
+              .append(
+                  std::to_string(benchmark_tests_line[n].run_data[m].range_x))
               .append(",")
-              .append(lineCharts[chartNum].error(
-                  benchmarkTests_Line[n].runData[m],
-                  benchmarkTests_Line_stddev[n].runData[m]));
+              .append(line_charts[chart_num].error(
+                  benchmark_tests_line[n].run_data[m],
+                  benchmark_tests_line_stddev[n].run_data[m]));
           series.append("]");
         }
         series.append("]}\n");
@@ -228,98 +228,105 @@ void outputAllLineCharts(
 
     series.append("\n");
 
-    replaceString(chart, "${YAXIS_TITLE}", yaxisTitles[chartNum]);
-    replaceString(chart, "${TOOLTIP_BODY}", line_toolTipBodies[chartNum]);
-    replaceString(chart, "${BENCHMARK_ID}", benchmarkId[chartNum]);
-    replaceString(chart, "${BENCHMARK_NAME}", benchmarkTitles[chartNum]);
-    replaceString(chart, "${TOOLTIP_HEADER}",
+    replaceString(&chart, "${YAXIS_TITLE}", yaxis_titles[chart_num]);
+    replaceString(&chart, "${TOOLTIP_BODY}", line_tool_tip_bodies[chart_num]);
+    replaceString(&chart, "${BENCHMARK_ID}", benchmark_id[chart_num]);
+    replaceString(&chart, "${BENCHMARK_NAME}", benchmark_titles[chart_num]);
+    replaceString(&chart, "${TOOLTIP_HEADER}",
                   "<b><center>{series.name}</center></b><br/>");
-    replaceString(chart, "${SERIES}", series);
+    replaceString(&chart, "${SERIES}", series);
 
-    replaceString(output, "${CHART}", chart);
-    replaceString(output, "${DIV}", div_Element);
-    replaceString(output, "${DIV_NAME}", benchmarkId[chartNum]);
+    replaceString(&output, "${CHART}", chart);
+    replaceString(&output, "${DIV}", div_element);
+    replaceString(&output, "${DIV_NAME}", benchmark_id[chart_num]);
 
     series.clear();
-    chart.assign(highChart_Line_Function);
+    chart.assign(high_chart_line_function);
   }
 }
 
 void outputAllBarCharts(
-    std::string &output, const std::array<ChartIt, 4> &barCharts,
-    const std::vector<HTMLReporter::BenchmarkData> &benchmarkTests_Bar,
-    const std::vector<HTMLReporter::BenchmarkData> &benchmarkTests_Bar_stddev) {
-  const char *benchmarkId[] = {
+    std::string &output, const std::array<ChartIt, 4> &bar_charts,
+    const std::vector<HTMLReporter::BenchmarkData> &benchmark_tests_bar,
+    const std::vector<HTMLReporter::BenchmarkData>
+        &benchmark_tests_bar_stddev) {
+  const char *benchmark_id[] = {
       "Benchmark_TimeInCpu_Bar", "Benchmark_ItemsPerSec_Bar",
       "Benchmark_TimeInReal_Bar", "Benchmark_BytesPerSec_Bar"};
-  std::string chart(highChart_Bar_Function);
-  std::string div(div_Element);
+  std::string chart(high_chart_bar_function);
+  std::string div(div_element);
   std::string categories("");
   std::string series("");
 
-  for (size_t chartNum = 0; chartNum < 4; chartNum++) {
-    if (benchmarkTests_Bar.size() > 0) {
-      categories + "'" + benchmarkTests_Bar[0].name + "'";
+  for (size_t chart_num = 0; chart_num < 4; chart_num++) {
+    if (benchmark_tests_bar.size() > 0) {
+      categories + "'" + benchmark_tests_bar[0].name + "'";
 
-      for (size_t n = 1; n < benchmarkTests_Bar.size(); n++) {
-        categories + ", '" + benchmarkTests_Bar[n].name + "'";
+      for (size_t n = 1; n < benchmark_tests_bar.size(); n++) {
+        categories + ", '" + benchmark_tests_bar[n].name + "'";
       }
     }
 
     series.append("{name: 'Benchmark',\ndata: [\n");
-    for (size_t n = 0; n < benchmarkTests_Bar.size(); n++) {
+    for (size_t n = 0; n < benchmark_tests_bar.size(); n++) {
       if (n > 0) {
         series.append(",");
       }
       series.append("['")
-          .append(benchmarkTests_Bar[n].name)
+          .append(benchmark_tests_bar[n].name)
           .append("',")
-          .append(barCharts[chartNum].value(benchmarkTests_Bar[n].runData[0]))
+          .append(
+              bar_charts[chart_num].value(benchmark_tests_bar[n].run_data[0]))
           .append("]");
     }
 
     series.append("]}");
-    if (!benchmarkTests_Bar_stddev.empty()) {
+    if (!benchmark_tests_bar_stddev.empty()) {
       series.append(
           ",\n{type: 'errorbar',\nenableMouseTracking: false,\ndata: [");
-      for (size_t n = 0; n < benchmarkTests_Bar_stddev.size(); n++) {
+      for (size_t n = 0; n < benchmark_tests_bar_stddev.size(); n++) {
         if (n > 0) {
           series.append(",");
         }
         series.append("[")
-            .append(barCharts[chartNum].error(
-                benchmarkTests_Bar[n].runData[0],
-                benchmarkTests_Bar_stddev[n].runData[0]))
+            .append(bar_charts[chart_num].error(
+                benchmark_tests_bar[n].run_data[0],
+                benchmark_tests_bar_stddev[n].run_data[0]))
             .append("]");
       }
       series.append("]}");
     }
     series.append("\n");
 
-    replaceString(chart, "${YAXIS_TITLE}", yaxisTitles[chartNum]);
-    replaceString(chart, "${TOOLTIP_BODY}", column_toolTipBodies[chartNum]);
-    replaceString(chart, "${TOOLTIP_HEADER}",
+    replaceString(&chart, "${YAXIS_TITLE}", yaxis_titles[chart_num]);
+    replaceString(&chart, "${TOOLTIP_BODY}", column_tool_tip_bodies[chart_num]);
+    replaceString(&chart, "${TOOLTIP_HEADER}",
                   "<b><center>{point.key}</center></b><br/>");
-    replaceString(div, "${DIV_NAME}", benchmarkId[chartNum]);
-    replaceString(chart, "${BENCHMARK_ID}", benchmarkId[chartNum]);
-    replaceString(chart, "${BENCHMARK_NAME}", benchmarkTitles[chartNum]);
-    replaceString(chart, "${CATEGORIES}", categories);
-    replaceString(chart, "${SERIES}", series);
-    replaceString(output, "${CHART}", chart);
-    replaceString(output, "${DIV}", div);
+    replaceString(&div, "${DIV_NAME}", benchmark_id[chart_num]);
+    replaceString(&chart, "${BENCHMARK_ID}", benchmark_id[chart_num]);
+    replaceString(&chart, "${BENCHMARK_NAME}", benchmark_titles[chart_num]);
+    replaceString(&chart, "${CATEGORIES}", categories);
+    replaceString(&chart, "${SERIES}", series);
+    replaceString(&output, "${CHART}", chart);
+    replaceString(&output, "${DIV}", div);
 
     categories.clear();
     series.clear();
-    chart.assign(highChart_Bar_Function);
-    div.assign(div_Element);
+    chart.assign(high_chart_bar_function);
+    div.assign(div_element);
   }
 }
 
 bool HTMLReporter::ReportContext(const Context &context) {
-  std::cerr << "Run on (" << context.num_cpus << " X " << context.mhz_per_cpu
-            << " MHz CPU " << ((context.num_cpus > 1) ? "s" : "") << ")\n";
-
-  std::cerr << LocalDateTimeString() << "\n";
+  context_output.append("<span>")
+      .append("Run on (")
+      .append(std::to_string(context.num_cpus))
+      .append(" X ")
+      .append(std::to_string(context.mhz_per_cpu));
+  context_output.append(" MHz CPU")
+      .append(((context.num_cpus > 1) ? "s" : ""))
+      .append(")<br/>");
+  context_output.append(LocalDateTimeString()).append("</span>");
 
   if (context.cpu_scaling_enabled) {
     std::cerr << "***WARNING*** CPU scaling is enabled, the benchmark "
@@ -335,8 +342,8 @@ bool HTMLReporter::ReportContext(const Context &context) {
 }
 
 void HTMLReporter::ReportRuns(std::vector<Run> const &reports) {
-  std::vector<BenchmarkData> *pBenchmarkTests = nullptr;
-  std::vector<BenchmarkData> *pBenchmarkTests_stddev = nullptr;
+  std::vector<BenchmarkData> *benchmark_tests = nullptr;
+  std::vector<BenchmarkData> *benchmark_tests_stddev = nullptr;
 
   if (reports[0].has_arg2) {
     std::cerr << "3D plotting is not available at the moment!\n";
@@ -345,50 +352,56 @@ void HTMLReporter::ReportRuns(std::vector<Run> const &reports) {
 
   // Check if bar or line
   if (reports[0].has_arg1) {
-    pBenchmarkTests = &benchmarkTests_Line;
-    pBenchmarkTests_stddev = &benchmarkTests_Line_stddev;
+    benchmark_tests = &benchmark_tests_line;
+    benchmark_tests_stddev = &benchmark_tests_line_stddev;
   } else {
-    pBenchmarkTests = &benchmarkTests_Bar;
-    pBenchmarkTests_stddev = &benchmarkTests_Bar_stddev;
+    benchmark_tests = &benchmark_tests_bar;
+    benchmark_tests_stddev = &benchmark_tests_bar_stddev;
   }
 
-  Run reportData = reports[0];
+  Run report_data = reports[0];
 
   if (reports.size() >= 2) {
-    Run stddevData = reports[0];
-    BenchmarkReporter::ComputeStats(reports, &reportData, &stddevData);
+    Run stddev_data = reports[0];
+    BenchmarkReporter::ComputeStats(reports, &report_data, &stddev_data);
 
-    appendRunDataTo(pBenchmarkTests_stddev, stddevData, true);
+    appendRunDataTo(benchmark_tests_stddev, stddev_data, true);
   }
 
-  appendRunDataTo(pBenchmarkTests, reportData, false);
+  appendRunDataTo(benchmark_tests, report_data, false);
 }
 
 void HTMLReporter::Finalize() {
-  std::string output(HTML_Base);
+  std::string output(html_base);
   const std::array<ChartIt, 4> charts = {
-      {ChartIt{[](const RunData &mean) { return std::to_string(mean.cpuTime); },
-               generateErrorbarCallable(&RunData::cpuTime)},
+      {ChartIt{
+           [](const RunData &mean) { return std::to_string(mean.cpu_time); },
+           generateErrorbarCallable(&RunData::cpu_time)},
+       ChartIt{[](const RunData &mean) {
+                 return std::to_string(mean.items_second);
+               },
+               generateErrorbarCallable(&RunData::items_second)},
        ChartIt{
-           [](const RunData &mean) { return std::to_string(mean.itemsSecond); },
-           generateErrorbarCallable(&RunData::itemsSecond)},
-       ChartIt{
-           [](const RunData &mean) { return std::to_string(mean.realTime); },
-           generateErrorbarCallable(&RunData::realTime)},
-       ChartIt{
-           [](const RunData &mean) { return std::to_string(mean.bytesSecond); },
-           generateErrorbarCallable(&RunData::bytesSecond)}}};
+           [](const RunData &mean) { return std::to_string(mean.real_time); },
+           generateErrorbarCallable(&RunData::real_time)},
+       ChartIt{[](const RunData &mean) {
+                 return std::to_string(mean.bytes_second);
+               },
+               generateErrorbarCallable(&RunData::bytes_second)}}};
 
-  outputAllLineCharts(output, charts, benchmarkTests_Line,
-                      benchmarkTests_Line_stddev);
-  outputAllBarCharts(output, charts, benchmarkTests_Bar,
-                     benchmarkTests_Bar_stddev);
+  outputAllLineCharts(output, charts, benchmark_tests_line,
+                      benchmark_tests_line_stddev);
+  outputAllBarCharts(output, charts, benchmark_tests_bar,
+                     benchmark_tests_bar_stddev);
 
-  printHTML(std::cout,
-            replaceString(replaceString(output, "${CHART}", ""), "${DIV}", ""));
+  replaceString(&output, "${CONTEXT}", context_output);
+  replaceString(&output, "${CHART}", "");
+  replaceString(&output, "${DIV}", "");
+
+  printHTML(std::cout, output);
 }
 
-void HTMLReporter::writeFile(const char *file) const {
+void HTMLReporter::writeFile(const std::string &file) const {
   std::fstream fin;
   char buffer[256];
 
@@ -405,102 +418,102 @@ void HTMLReporter::writeFile(const char *file) const {
 
 std::string HTMLReporter::replaceHTMLSpecialChars(
     const std::string &label) const {
-  std::string newLabel(label);
+  std::string new_label(label);
 
-  for (auto pos = newLabel.find_first_of("<'>"); pos != std::string::npos;
-       pos = newLabel.find_first_of("<'>", pos)) {
-    switch (newLabel[pos]) {
+  for (auto pos = new_label.find_first_of("<'>"); pos != std::string::npos;
+       pos = new_label.find_first_of("<'>", pos)) {
+    switch (new_label[pos]) {
       //< and > can't displayed by highcharts, so they have to be replaced
       case '<':
-        newLabel.replace(pos, 1, "⋖");
+        new_label.replace(pos, 1, "⋖");
         break;
       case '>':
-        newLabel.replace(pos, 1, "⋗");
+        new_label.replace(pos, 1, "⋗");
         break;
       // For ' it is enough to set a \ before it
       case '\'':
-        newLabel.insert(pos, 1, '\\');
+        new_label.insert(pos, 1, '\\');
         pos++;
         break;
     }
   }
 
-  return newLabel;
+  return new_label;
 }
 
 void HTMLReporter::printHTML(std::ostream &out, const std::string &html) const {
-  size_t markerPos = html.find("${JQUERY}");
-  size_t stringPos = 0;
+  size_t marker_pos = html.find("${JQUERY}");
+  size_t string_pos = 0;
 
-  if (markerPos != std::string::npos) {
-    out.write(html.c_str(), markerPos);
+  if (marker_pos != std::string::npos) {
+    out.write(html.c_str(), marker_pos);
     writeFile("@CMAKE_JQUERY_PATH@");
-    stringPos = (markerPos + 9);
+    string_pos = (marker_pos + 9);
   }
 
-  markerPos = html.find("${HIGHCHART}", markerPos);
+  marker_pos = html.find("${HIGHCHART}", marker_pos);
 
-  if (markerPos != std::string::npos) {
-    out.write((html.c_str() + stringPos), (markerPos - stringPos));
+  if (marker_pos != std::string::npos) {
+    out.write((html.c_str() + string_pos), (marker_pos - string_pos));
     writeFile("@CMAKE_HIGHSTOCK_PATH@");
-    stringPos = (markerPos + 12);
+    string_pos = (marker_pos + 12);
   }
 
-  markerPos = html.find("${HIGHCHART_MORE}", markerPos);
+  marker_pos = html.find("${HIGHCHART_MORE}", marker_pos);
 
-  if (markerPos != std::string::npos) {
-    out.write((html.c_str() + stringPos), (markerPos - stringPos));
+  if (marker_pos != std::string::npos) {
+    out.write((html.c_str() + string_pos), (marker_pos - string_pos));
     writeFile("@CMAKE_HIGHSTOCK_MORE_PATH@");
-    stringPos = (markerPos + 17);
+    string_pos = (marker_pos + 17);
   }
 
-  out << (html.c_str() + stringPos);
+  out << (html.c_str() + string_pos);
 }
 
 void HTMLReporter::appendRunDataTo(std::vector<BenchmarkData> *container,
                                    const Run &data, bool isStddev) const {
-  std::string dataName("");
+  std::string data_name("");
 
   if (data.has_arg1) {
-    dataName = generateInstanceName(
+    data_name = benchmark::internal::GenerateInstanceName(
         replaceHTMLSpecialChars(data.benchmark_family), 0, 0, 0, data.min_time,
         data.use_real_time, data.multithreaded, data.threads);
 
     if (isStddev) {
-      dataName.append("_stddev");
+      data_name.append("_stddev");
     }
   } else {
-    dataName = replaceHTMLSpecialChars(data.benchmark_name);
+    data_name = replaceHTMLSpecialChars(data.benchmark_name);
   }
 
-  RunData runData;
-  double const nanoSecMultiplier = 1e9;
-  runData.iterations = data.iterations;
-  runData.bytesSecond = data.bytes_per_second;
-  runData.itemsSecond = data.items_per_second;
-  runData.range_x = data.arg1;
-  runData.realTime = (data.real_accumulated_time*nanoSecMultiplier);
-  runData.cpuTime = (data.cpu_accumulated_time*nanoSecMultiplier);
+  RunData run_data;
+  double const nano_sec_multiplier = 1e9;
+  run_data.iterations = data.iterations;
+  run_data.bytes_second = data.bytes_per_second;
+  run_data.items_second = data.items_per_second;
+  run_data.range_x = data.arg1;
+  run_data.real_time = (data.real_accumulated_time * nano_sec_multiplier);
+  run_data.cpu_time = (data.cpu_accumulated_time * nano_sec_multiplier);
 
-  if(data.iterations > 1) {
-    runData.realTime /= static_cast<double>(data.iterations);
-    runData.cpuTime /= static_cast<double>(data.iterations);
+  if (data.iterations > 1) {
+    run_data.real_time /= static_cast<double>(data.iterations);
+    run_data.cpu_time /= static_cast<double>(data.iterations);
   }
 
   std::vector<BenchmarkData>::iterator iter =
       find_if(container->begin(), container->end(),
-              [&dataName](const BenchmarkData &value) {
-                return value.name == dataName;
+              [&data_name](const BenchmarkData &value) {
+                return value.name == data_name;
               });
 
   if (iter == container->end()) {
-    BenchmarkData benchmarkData;
+    BenchmarkData benchmark_data;
 
-    benchmarkData.name = std::move(dataName);
-    benchmarkData.runData.push_back(runData);
-    container->push_back(benchmarkData);
+    benchmark_data.name = std::move(data_name);
+    benchmark_data.run_data.push_back(run_data);
+    container->push_back(benchmark_data);
   } else {
-    iter->runData.push_back(runData);
+    iter->run_data.push_back(run_data);
   }
 }
 

@@ -145,6 +145,7 @@ BENCHMARK(BM_MultiThreaded)->Threads(4);
 #include <assert.h>
 #include <stddef.h>
 #include <stdint.h>
+#include <string>
 
 #include "macros.h"
 
@@ -188,6 +189,11 @@ void UseCharPointer(char const volatile*);
 // registered benchmark.
 Benchmark* RegisterBenchmarkInternal(Benchmark*);
 
+
+std::string GenerateInstanceName(const std::string& name, int arg_count,
+                                 int arg1, int arg2, double min_time,
+                                 bool use_real_time, bool multithreaded,
+                                 int threads);
 } // end namespace internal
 
 
