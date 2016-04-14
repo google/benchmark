@@ -144,8 +144,10 @@ static const char *const html_base =
     "   </body>\n"
     "</html>";
 
+
 namespace benchmark {
-void replaceString(std::string *input, const std::string &from,
+namespace {
+void ReplaceString(std::string *input, const std::string &from,
                    const std::string &to) {
   size_t position = input->find(from);
 
@@ -157,7 +159,7 @@ void replaceString(std::string *input, const std::string &from,
 template <typename T>
 std::function<std::string(const HTMLReporter::RunData &,
                           const HTMLReporter::RunData &)>
-generateErrorbarCallable(T HTMLReporter::RunData::*member) {
+GenerateErrorbarCallable(T HTMLReporter::RunData::*member) {
   return [member](const HTMLReporter::RunData &mean,
                   const HTMLReporter::RunData &stddev) -> std::string {
     T biggerVal = (mean.*member + stddev.*member);
@@ -228,17 +230,17 @@ void outputAllLineCharts(
 
     series.append("\n");
 
-    replaceString(&chart, "${YAXIS_TITLE}", yaxis_titles[chart_num]);
-    replaceString(&chart, "${TOOLTIP_BODY}", line_tool_tip_bodies[chart_num]);
-    replaceString(&chart, "${BENCHMARK_ID}", benchmark_id[chart_num]);
-    replaceString(&chart, "${BENCHMARK_NAME}", benchmark_titles[chart_num]);
-    replaceString(&chart, "${TOOLTIP_HEADER}",
+    ReplaceString(&chart, "${YAXIS_TITLE}", yaxis_titles[chart_num]);
+    ReplaceString(&chart, "${TOOLTIP_BODY}", line_tool_tip_bodies[chart_num]);
+    ReplaceString(&chart, "${BENCHMARK_ID}", benchmark_id[chart_num]);
+    ReplaceString(&chart, "${BENCHMARK_NAME}", benchmark_titles[chart_num]);
+    ReplaceString(&chart, "${TOOLTIP_HEADER}",
                   "<b><center>{series.name}</center></b><br/>");
-    replaceString(&chart, "${SERIES}", series);
+    ReplaceString(&chart, "${SERIES}", series);
 
-    replaceString(&output, "${CHART}", chart);
-    replaceString(&output, "${DIV}", div_element);
-    replaceString(&output, "${DIV_NAME}", benchmark_id[chart_num]);
+    ReplaceString(&output, "${CHART}", chart);
+    ReplaceString(&output, "${DIV}", div_element);
+    ReplaceString(&output, "${DIV_NAME}", benchmark_id[chart_num]);
 
     series.clear();
     chart.assign(high_chart_line_function);
@@ -298,23 +300,24 @@ void outputAllBarCharts(
     }
     series.append("\n");
 
-    replaceString(&chart, "${YAXIS_TITLE}", yaxis_titles[chart_num]);
-    replaceString(&chart, "${TOOLTIP_BODY}", column_tool_tip_bodies[chart_num]);
-    replaceString(&chart, "${TOOLTIP_HEADER}",
+    ReplaceString(&chart, "${YAXIS_TITLE}", yaxis_titles[chart_num]);
+    ReplaceString(&chart, "${TOOLTIP_BODY}", column_tool_tip_bodies[chart_num]);
+    ReplaceString(&chart, "${TOOLTIP_HEADER}",
                   "<b><center>{point.key}</center></b><br/>");
-    replaceString(&div, "${DIV_NAME}", benchmark_id[chart_num]);
-    replaceString(&chart, "${BENCHMARK_ID}", benchmark_id[chart_num]);
-    replaceString(&chart, "${BENCHMARK_NAME}", benchmark_titles[chart_num]);
-    replaceString(&chart, "${CATEGORIES}", categories);
-    replaceString(&chart, "${SERIES}", series);
-    replaceString(&output, "${CHART}", chart);
-    replaceString(&output, "${DIV}", div);
+    ReplaceString(&div, "${DIV_NAME}", benchmark_id[chart_num]);
+    ReplaceString(&chart, "${BENCHMARK_ID}", benchmark_id[chart_num]);
+    ReplaceString(&chart, "${BENCHMARK_NAME}", benchmark_titles[chart_num]);
+    ReplaceString(&chart, "${CATEGORIES}", categories);
+    ReplaceString(&chart, "${SERIES}", series);
+    ReplaceString(&output, "${CHART}", chart);
+    ReplaceString(&output, "${DIV}", div);
 
     categories.clear();
     series.clear();
     chart.assign(high_chart_bar_function);
     div.assign(div_element);
   }
+}
 }
 
 bool HTMLReporter::ReportContext(const Context &context) {
@@ -346,12 +349,11 @@ void HTMLReporter::ReportRuns(std::vector<Run> const &reports) {
   std::vector<BenchmarkData> *benchmark_tests_stddev = nullptr;
 
   if (reports[0].has_arg2) {
-    std::cerr << "3D plotting is not available at the moment!\n";
-    exit(1);
+    std::clog << "Warning for Benchmark \"" << reports[0].benchmark_name << "\": 3D plotting is not implemented! Data will be plotted as a chart bar.\n";
   }
 
   // Check if bar or line
-  if (reports[0].has_arg1) {
+  if (reports[0].has_arg1 && !reports[0].has_arg2) {
     benchmark_tests = &benchmark_tests_line;
     benchmark_tests_stddev = &benchmark_tests_line_stddev;
   } else {
@@ -376,27 +378,27 @@ void HTMLReporter::Finalize() {
   const std::array<ChartIt, 4> charts = {
       {ChartIt{
            [](const RunData &mean) { return std::to_string(mean.cpu_time); },
-           generateErrorbarCallable(&RunData::cpu_time)},
+           GenerateErrorbarCallable(&RunData::cpu_time)},
        ChartIt{[](const RunData &mean) {
                  return std::to_string(mean.items_second);
                },
-               generateErrorbarCallable(&RunData::items_second)},
+               GenerateErrorbarCallable(&RunData::items_second)},
        ChartIt{
            [](const RunData &mean) { return std::to_string(mean.real_time); },
-           generateErrorbarCallable(&RunData::real_time)},
+           GenerateErrorbarCallable(&RunData::real_time)},
        ChartIt{[](const RunData &mean) {
                  return std::to_string(mean.bytes_second);
                },
-               generateErrorbarCallable(&RunData::bytes_second)}}};
+               GenerateErrorbarCallable(&RunData::bytes_second)}}};
 
   outputAllLineCharts(output, charts, benchmark_tests_line,
                       benchmark_tests_line_stddev);
   outputAllBarCharts(output, charts, benchmark_tests_bar,
                      benchmark_tests_bar_stddev);
 
-  replaceString(&output, "${CONTEXT}", context_output);
-  replaceString(&output, "${CHART}", "");
-  replaceString(&output, "${DIV}", "");
+  ReplaceString(&output, "${CONTEXT}", context_output);
+  ReplaceString(&output, "${CHART}", "");
+  ReplaceString(&output, "${DIV}", "");
 
   printHTML(std::cout, output);
 }
@@ -474,8 +476,8 @@ void HTMLReporter::appendRunDataTo(std::vector<BenchmarkData> *container,
                                    const Run &data, bool isStddev) const {
   std::string data_name("");
 
-  if (data.has_arg1) {
-    data_name = benchmark::internal::GenerateInstanceName(
+  if (data.has_arg1 && !data.has_arg2) {
+    data_name = benchmark::GenerateInstanceName(
         replaceHTMLSpecialChars(data.benchmark_family), 0, 0, 0, data.min_time,
         data.use_real_time, data.multithreaded, data.threads);
 
@@ -516,5 +518,4 @@ void HTMLReporter::appendRunDataTo(std::vector<BenchmarkData> *container,
     iter->run_data.push_back(run_data);
   }
 }
-
 }  // end namespace benchmark
