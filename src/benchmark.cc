@@ -31,6 +31,7 @@
 #include <memory>
 #include <thread>
 
+#include "benchmark_util.h"
 #include "check.h"
 #include "commandlineflags.h"
 #include "log.h"
@@ -94,10 +95,6 @@ GetBenchmarkLock()
 }
 
 namespace {
-
-bool IsZero(double n) {
-    return std::abs(n) < std::numeric_limits<double>::epsilon();
-}
 
 // For non-dense Range, intermediate values are powers of kRangeMultiplier.
 static const int kRangeMultiplier = 8;

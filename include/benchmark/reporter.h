@@ -162,12 +162,12 @@ class HTMLReporter : public BenchmarkReporter {
   };
 
  private:
-  void writeFile(const std::string& file) const;
-  std::string replaceHTMLSpecialChars(const std::string& label) const;
+  void WriteFile(const std::string& file) const;
+  std::string ReplaceHTMLSpecialChars(const std::string& label) const;
 
-  void printHTML(std::ostream& out, const std::string& html) const;
+  void PrintHTML(std::ostream& out, const std::string& html) const;
 
-  void appendRunDataTo(std::vector<BenchmarkData> *container, const Run &data, bool is_stddev) const;
+  void AppendRunDataTo(std::vector<BenchmarkData> *container, const Run &data, bool is_stddev) const;
 
   std::string context_output;
   std::vector<BenchmarkData> benchmark_tests_line;

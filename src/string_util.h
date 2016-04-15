@@ -14,23 +14,19 @@ std::string HumanReadableNumber(double n);
 
 std::string StringPrintF(const char* format, ...);
 
-inline std::ostream&
-StringCatImp(std::ostream& out) BENCHMARK_NOEXCEPT
-{
+inline std::ostream& StringCatImp(std::ostream& out) BENCHMARK_NOEXCEPT {
   return out;
 }
 
-template <class First, class ...Rest>
-inline std::ostream&
-StringCatImp(std::ostream& out, First&& f, Rest&&... rest)
-{
+template <class First, class... Rest>
+inline std::ostream& StringCatImp(std::ostream& out, First&& f,
+                                  Rest&&... rest) {
   out << std::forward<First>(f);
   return StringCatImp(out, std::forward<Rest>(rest)...);
 }
 
-template<class ...Args>
-inline std::string StrCat(Args&&... args)
-{
+template <class... Args>
+inline std::string StrCat(Args&&... args) {
   std::ostringstream ss;
   StringCatImp(ss, std::forward<Args>(args)...);
   return ss.str();
@@ -38,11 +34,6 @@ inline std::string StrCat(Args&&... args)
 
 void ReplaceAll(std::string* str, const std::string& from,
                 const std::string& to);
-
-std::string GenerateInstanceName(const std::string& name, int arg_count,
-                                 int arg1, int arg2, double min_time,
-                                 bool use_real_time, bool multithreaded,
-                                 int threads);
 }  // end namespace benchmark
 
 #endif  // BENCHMARK_STRING_UTIL_H_

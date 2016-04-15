@@ -9,7 +9,7 @@
 #include <string>
 #include <vector>
 
-#include "string_util.h"
+#include "benchmark_util.h"
 #include "walltime.h"
 
 static const char *const benchmark_titles[4] = {
@@ -144,7 +144,6 @@ static const char *const html_base =
     "   </body>\n"
     "</html>";
 
-
 namespace benchmark {
 namespace {
 void ReplaceString(std::string *input, const std::string &from,
@@ -175,7 +174,7 @@ struct ChartIt {
                             const HTMLReporter::RunData &)> error;
 };
 
-void outputAllLineCharts(
+void OutputAllLineCharts(
     std::string &output, const std::array<ChartIt, 4> &line_charts,
     const std::vector<HTMLReporter::BenchmarkData> &benchmark_tests_line,
     const std::vector<HTMLReporter::BenchmarkData>
@@ -247,7 +246,7 @@ void outputAllLineCharts(
   }
 }
 
-void outputAllBarCharts(
+void OutputAllBarCharts(
     std::string &output, const std::array<ChartIt, 4> &bar_charts,
     const std::vector<HTMLReporter::BenchmarkData> &benchmark_tests_bar,
     const std::vector<HTMLReporter::BenchmarkData>
@@ -349,7 +348,9 @@ void HTMLReporter::ReportRuns(std::vector<Run> const &reports) {
   std::vector<BenchmarkData> *benchmark_tests_stddev = nullptr;
 
   if (reports[0].has_arg2) {
-    std::clog << "Warning for Benchmark \"" << reports[0].benchmark_name << "\": 3D plotting is not implemented! Data will be plotted as a chart bar.\n";
+    std::clog << "Warning for Benchmark \"" << reports[0].benchmark_name
+              << "\": 3D plotting is not implemented! Data will be plotted as "
+                 "a chart bar.\n";
   }
 
   // Check if bar or line
@@ -367,10 +368,10 @@ void HTMLReporter::ReportRuns(std::vector<Run> const &reports) {
     Run stddev_data = reports[0];
     BenchmarkReporter::ComputeStats(reports, &report_data, &stddev_data);
 
-    appendRunDataTo(benchmark_tests_stddev, stddev_data, true);
+    AppendRunDataTo(benchmark_tests_stddev, stddev_data, true);
   }
 
-  appendRunDataTo(benchmark_tests, report_data, false);
+  AppendRunDataTo(benchmark_tests, report_data, false);
 }
 
 void HTMLReporter::Finalize() {
@@ -391,19 +392,19 @@ void HTMLReporter::Finalize() {
                },
                GenerateErrorbarCallable(&RunData::bytes_second)}}};
 
-  outputAllLineCharts(output, charts, benchmark_tests_line,
+  OutputAllLineCharts(output, charts, benchmark_tests_line,
                       benchmark_tests_line_stddev);
-  outputAllBarCharts(output, charts, benchmark_tests_bar,
+  OutputAllBarCharts(output, charts, benchmark_tests_bar,
                      benchmark_tests_bar_stddev);
 
   ReplaceString(&output, "${CONTEXT}", context_output);
   ReplaceString(&output, "${CHART}", "");
   ReplaceString(&output, "${DIV}", "");
 
-  printHTML(std::cout, output);
+  PrintHTML(std::cout, output);
 }
 
-void HTMLReporter::writeFile(const std::string &file) const {
+void HTMLReporter::WriteFile(const std::string &file) const {
   std::fstream fin;
   char buffer[256];
 
@@ -418,7 +419,7 @@ void HTMLReporter::writeFile(const std::string &file) const {
   }
 }
 
-std::string HTMLReporter::replaceHTMLSpecialChars(
+std::string HTMLReporter::ReplaceHTMLSpecialChars(
     const std::string &label) const {
   std::string new_label(label);
 
@@ -443,13 +444,13 @@ std::string HTMLReporter::replaceHTMLSpecialChars(
   return new_label;
 }
 
-void HTMLReporter::printHTML(std::ostream &out, const std::string &html) const {
+void HTMLReporter::PrintHTML(std::ostream &out, const std::string &html) const {
   size_t marker_pos = html.find("${JQUERY}");
   size_t string_pos = 0;
 
   if (marker_pos != std::string::npos) {
     out.write(html.c_str(), marker_pos);
-    writeFile("@CMAKE_JQUERY_PATH@");
+    WriteFile("@CMAKE_JQUERY_PATH@");
     string_pos = (marker_pos + 9);
   }
 
@@ -457,7 +458,7 @@ void HTMLReporter::printHTML(std::ostream &out, const std::string &html) const {
 
   if (marker_pos != std::string::npos) {
     out.write((html.c_str() + string_pos), (marker_pos - string_pos));
-    writeFile("@CMAKE_HIGHSTOCK_PATH@");
+    WriteFile("@CMAKE_HIGHSTOCK_PATH@");
     string_pos = (marker_pos + 12);
   }
 
@@ -465,27 +466,27 @@ void HTMLReporter::printHTML(std::ostream &out, const std::string &html) const {
 
   if (marker_pos != std::string::npos) {
     out.write((html.c_str() + string_pos), (marker_pos - string_pos));
-    writeFile("@CMAKE_HIGHSTOCK_MORE_PATH@");
+    WriteFile("@CMAKE_HIGHSTOCK_MORE_PATH@");
     string_pos = (marker_pos + 17);
   }
 
   out << (html.c_str() + string_pos);
 }
 
-void HTMLReporter::appendRunDataTo(std::vector<BenchmarkData> *container,
+void HTMLReporter::AppendRunDataTo(std::vector<BenchmarkData> *container,
                                    const Run &data, bool isStddev) const {
   std::string data_name("");
 
   if (data.has_arg1 && !data.has_arg2) {
     data_name = benchmark::GenerateInstanceName(
-        replaceHTMLSpecialChars(data.benchmark_family), 0, 0, 0, data.min_time,
+        ReplaceHTMLSpecialChars(data.benchmark_family), 0, 0, 0, data.min_time,
         data.use_real_time, data.multithreaded, data.threads);
 
     if (isStddev) {
       data_name.append("_stddev");
     }
   } else {
-    data_name = replaceHTMLSpecialChars(data.benchmark_name);
+    data_name = ReplaceHTMLSpecialChars(data.benchmark_name);
   }
 
   RunData run_data;
