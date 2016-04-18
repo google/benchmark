@@ -305,10 +305,10 @@ public:
   // If this routine is called, the specified label is printed at the
   // end of the benchmark report line for the currently executing
   // benchmark.  Example:
-  //  static void BM_Compress(int iters) {
+  //  static void BM_Compress(benchmark::State& state) {
   //    ...
   //    double compress = input_size / output_size;
-  //    benchmark::SetLabel(StringPrintf("compress:%.1f%%", 100.0*compression));
+  //    state.SetLabel(StringPrintf("compress:%.1f%%", 100.0*compression));
   //  }
   // Produces output that looks like:
   //  BM_Compress   50         50   14115038  compress:27.3%
