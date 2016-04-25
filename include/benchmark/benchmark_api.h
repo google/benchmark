@@ -145,6 +145,7 @@ BENCHMARK(BM_MultiThreaded)->Threads(4);
 #include <assert.h>
 #include <stddef.h>
 #include <stdint.h>
+#include <string>
 
 #include "macros.h"
 

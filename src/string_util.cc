@@ -3,6 +3,7 @@
 #include <cmath>
 #include <cstdarg>
 #include <array>
+#include <limits>
 #include <memory>
 #include <sstream>
 #include <stdio.h>
@@ -11,7 +12,6 @@
 
 namespace benchmark {
 namespace {
-
 // kilo, Mega, Giga, Tera, Peta, Exa, Zetta, Yotta.
 const char kBigSIUnits[] = "kMGTPEZY";
 // Kibi, Mebi, Gibi, Tebi, Pebi, Exbi, Zebi, Yobi.
@@ -27,7 +27,7 @@ static_assert(arraysize(kSmallSIUnits) == arraysize(kBigSIUnits),
 
 static const int64_t kUnitsSize = arraysize(kBigSIUnits);
 
-} // end anonymous namespace
+}  // end anonymous namespace
 
 void ToExponentAndMantissa(double val, double thresh, int precision,
                            double one_k, std::string* mantissa,
@@ -118,8 +118,7 @@ std::string HumanReadableNumber(double n) {
   return ToBinaryStringFullySpecified(n, 1.1, 1);
 }
 
-std::string StringPrintFImp(const char *msg, va_list args)
-{
+std::string StringPrintFImp(const char* msg, va_list args) {
   // we might need a second shot at this, so pre-emptivly make a copy
   va_list args_cp;
   va_copy(args_cp, args);
@@ -128,14 +127,14 @@ std::string StringPrintFImp(const char *msg, va_list args)
   // allocation guess what the size might be
   std::array<char, 256> local_buff;
   std::size_t size = local_buff.size();
-  // 2015-10-08: vsnprintf is used instead of snd::vsnprintf due to a limitation in the android-ndk
+  // 2015-10-08: vsnprintf is used instead of snd::vsnprintf due to a limitation
+  // in the android-ndk
   auto ret = vsnprintf(local_buff.data(), size, msg, args_cp);
 
   va_end(args_cp);
 
   // handle empty expansion
-  if (ret == 0)
-    return std::string{};
+  if (ret == 0) return std::string{};
   if (static_cast<std::size_t>(ret) < size)
     return std::string(local_buff.data());
 
@@ -143,13 +142,13 @@ std::string StringPrintFImp(const char *msg, va_list args)
   // add 1 to size to account for null-byte in size cast to prevent overflow
   size = static_cast<std::size_t>(ret) + 1;
   auto buff_ptr = std::unique_ptr<char[]>(new char[size]);
-  // 2015-10-08: vsnprintf is used instead of snd::vsnprintf due to a limitation in the android-ndk
+  // 2015-10-08: vsnprintf is used instead of snd::vsnprintf due to a limitation
+  // in the android-ndk
   ret = vsnprintf(buff_ptr.get(), size, msg, args);
   return std::string(buff_ptr.get());
 }
 
-std::string StringPrintF(const char* format, ...)
-{
+std::string StringPrintF(const char* format, ...) {
   va_list args;
   va_start(args, format);
   std::string tmp = StringPrintFImp(format, args);
@@ -160,10 +159,9 @@ std::string StringPrintF(const char* format, ...)
 void ReplaceAll(std::string* str, const std::string& from,
                 const std::string& to) {
   std::size_t start = 0;
-  while((start = str->find(from, start)) != std::string::npos) {
+  while ((start = str->find(from, start)) != std::string::npos) {
     str->replace(start, from.length(), to);
     start += to.length();
   }
 }
-
-} // end namespace benchmark
+}  // end namespace benchmark

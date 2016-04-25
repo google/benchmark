@@ -18,7 +18,7 @@
 #include <utility>
 #include <vector>
 
-#include "benchmark_api.h" // For forward declaration of BenchmarkReporter
+#include "benchmark_api.h"  // For forward declaration of BenchmarkReporter
 
 namespace benchmark {
 
@@ -39,15 +39,24 @@ class BenchmarkReporter {
   };
 
   struct Run {
-    Run() :
-      iterations(1),
-      real_accumulated_time(0),
-      cpu_accumulated_time(0),
-      bytes_per_second(0),
-      items_per_second(0),
-      max_heapbytes_used(0) {}
+    Run()
+        : iterations(1),
+          real_accumulated_time(0),
+          cpu_accumulated_time(0),
+          bytes_per_second(0),
+          items_per_second(0),
+          max_heapbytes_used(0),
+          min_time(0.0),
+          arg1(0),
+          arg2(0),
+          threads(0),
+          has_arg1(false),
+          has_arg2(false),
+          use_real_time(false),
+          multithreaded(false) {}
 
     std::string benchmark_name;
+    std::string benchmark_family;
     std::string report_label;  // Empty if not set by benchmark.
     int64_t iterations;
     double real_accumulated_time;
@@ -59,6 +68,16 @@ class BenchmarkReporter {
 
     // This is set to 0.0 if memory tracing is not enabled.
     double max_heapbytes_used;
+    double min_time;
+
+    int arg1;
+    int arg2;
+    int threads;
+
+    bool has_arg1;
+    bool has_arg2;
+    bool use_real_time;
+    bool multithreaded;
   };
 
   // Called once for every suite of benchmarks run.
@@ -80,8 +99,10 @@ class BenchmarkReporter {
   virtual void Finalize();
 
   virtual ~BenchmarkReporter();
-protected:
-    static void ComputeStats(std::vector<Run> const& reports, Run* mean, Run* stddev);
+
+ protected:
+  static void ComputeStats(std::vector<Run> const& reports, Run* mean,
+                           Run* stddev);
 };
 
 // Simple reporter that outputs benchmark data to the console. This is the
@@ -90,33 +111,70 @@ class ConsoleReporter : public BenchmarkReporter {
  public:
   virtual bool ReportContext(const Context& context);
   virtual void ReportRuns(const std::vector<Run>& reports);
-protected:
+
+ protected:
   virtual void PrintRunData(const Run& report);
 
   size_t name_field_width_;
 };
 
 class JSONReporter : public BenchmarkReporter {
-public:
+ public:
   JSONReporter() : first_report_(true) {}
   virtual bool ReportContext(const Context& context);
   virtual void ReportRuns(const std::vector<Run>& reports);
   virtual void Finalize();
 
-private:
+ private:
   void PrintRunData(const Run& report);
 
   bool first_report_;
 };
 
 class CSVReporter : public BenchmarkReporter {
-public:
+ public:
   virtual bool ReportContext(const Context& context);
   virtual void ReportRuns(const std::vector<Run>& reports);
 
-private:
+ private:
   void PrintRunData(const Run& report);
 };
 
-} // end namespace benchmark
-#endif // BENCHMARK_REPORTER_H_
+class HTMLReporter : public BenchmarkReporter {
+ public:
+  virtual bool ReportContext(const Context& context);
+  virtual void ReportRuns(const std::vector<Run>& reports);
+  virtual void Finalize();
+
+  struct RunData {
+    int64_t iterations;
+    double real_time;
+    double cpu_time;
+
+    double bytes_second;
+    double items_second;
+    int range_x;
+  };
+
+  struct BenchmarkData {
+    std::string name;
+    std::vector<RunData> run_data;
+  };
+
+ private:
+  void WriteFile(const std::string& file) const;
+  std::string ReplaceHTMLSpecialChars(const std::string& label) const;
+
+  void PrintHTML(std::ostream& out, const std::string& html) const;
+
+  void AppendRunDataTo(std::vector<BenchmarkData> *container, const Run &data, bool is_stddev) const;
+
+  std::string context_output;
+  std::vector<BenchmarkData> benchmark_tests_line;
+  std::vector<BenchmarkData> benchmark_tests_line_stddev;
+  std::vector<BenchmarkData> benchmark_tests_bar;
+  std::vector<BenchmarkData> benchmark_tests_bar_stddev;
+};
+
+}  // end namespace benchmark
+#endif  // BENCHMARK_REPORTER_H_

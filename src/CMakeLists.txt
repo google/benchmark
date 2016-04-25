@@ -2,8 +2,8 @@
 include_directories(${PROJECT_SOURCE_DIR}/src)
 
 # Define the source files
-set(SOURCE_FILES "benchmark.cc" "colorprint.cc" "commandlineflags.cc"
-                 "console_reporter.cc" "csv_reporter.cc" "json_reporter.cc"
+set(SOURCE_FILES "benchmark.cc" "benchmark_util.cc" "colorprint.cc" "commandlineflags.cc"
+                 "console_reporter.cc" "csv_reporter.cc" "${PROJECT_BINARY_DIR}/src/html_reporter.cc" "json_reporter.cc"
                  "log.cc" "reporter.cc" "sleep.cc" "string_util.cc"
                  "sysinfo.cc" "walltime.cc")
 # Determine the correct regular expression engine to use
@@ -18,7 +18,6 @@ else()
 endif()
 
 add_library(benchmark ${SOURCE_FILES} ${RE_FILES})
-
 
 set_target_properties(benchmark PROPERTIES
   OUTPUT_NAME "benchmark"
@@ -35,7 +34,7 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 endif()
 
 # Expose public API
-target_include_directories(benchmark PUBLIC ${PROJECT_SOURCE_DIR}/include)
+target_include_directories(benchmark PUBLIC ${PROJECT_SOURCE_DIR}/include ${PROJECT_BINARY_DIR}/include)
 
 # Install target (will install the library to specified CMAKE_INSTALL_PREFIX variable)
 install(
@@ -49,3 +48,10 @@ install(
   DIRECTORY "${PROJECT_SOURCE_DIR}/include/benchmark"
   DESTINATION include
   FILES_MATCHING PATTERN "*.*h")
+  
+if(BENCHMARK_DOWNLOAD_JS)
+    install(
+    DIRECTORY "${PROJECT_BINARY_DIR}/include/benchmark"
+    DESTINATION "share"
+    FILES_MATCHING PATTERN "*.js")
+endif()
