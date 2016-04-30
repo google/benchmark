@@ -660,7 +660,7 @@ void RunBenchmark(const benchmark::internal::Benchmark::Instance& b,
             thread.join();
         }
         for (std::size_t ti = 0; ti < pool.size(); ++ti) {
-            pool[ti] = std::thread(&RunInThread, &b, iters, ti, &total);
+            pool[ti] = std::thread(&RunInThread, &b, iters, static_cast<int>(ti), &total);
         }
       } else {
         // Run directly in this thread
