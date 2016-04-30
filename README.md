@@ -175,6 +175,45 @@ BENCHMARK(BM_test)->Range(8, 8<<10)->UseRealTime();
 
 Without `UseRealTime`, CPU time is used by default.
 
+
+## Manual timing
+For benchmarking something for which neither CPU time nor real-time are
+correct or accurate enough, completely manual timing is supported using
+the `UseManualTime` function. 
+
+When `UseManualTime` is used, the benchmarked code must call
+`SetIterationTime` once per iteration of the `KeepRunning` loop to
+report the manually measured time.
+
+An example use case for this is benchmarking GPU execution (e.g. OpenCL
+or CUDA kernels, OpenGL or Vulkan or Direct3D draw calls), which cannot
+be accurately measured using CPU time or real-time. Instead, they can be
+measured accurately using a dedicated API, and these measurement results
+can be reported back with `SetIterationTime`.
+
+```c++
+static void BM_ManualTiming(benchmark::State& state) {
+  int microseconds = state.range_x();
+  std::chrono::duration<double, std::micro> sleep_duration {
+    static_cast<double>(microseconds)
+  };
+
+  while (state.KeepRunning()) {
+    auto start = std::chrono::high_resolution_clock::now();
+    // Simulate some useful workload with a sleep
+    std::this_thread::sleep_for(sleep_duration);
+    auto end   = std::chrono::high_resolution_clock::now();
+
+    auto elapsed_seconds =
+      std::chrono::duration_cast<std::chrono::duration<double>>(
+        end - start);
+
+    state.SetIterationTime(elapsed_seconds.count());
+  }
+}
+BENCHMARK(BM_ManualTiming)->Range(1, 1<<17)->UseManualTime();
+```
+
 ### Preventing optimisation
 To prevent a value or expression from being optimized away by the compiler
 the `benchmark::DoNotOptimize(...)` function can be used.
