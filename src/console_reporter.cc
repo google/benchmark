@@ -99,6 +99,7 @@ void ConsoleReporter::PrintRunData(const Run& result) {
 
   ColorPrintf(COLOR_GREEN, "%-*s ",
               name_field_width_, result.benchmark_name.c_str());
+
   if (result.iterations == 0) {
     ColorPrintf(COLOR_YELLOW, "%10.0f %s %10.0f %s ",
                 result.real_accumulated_time * multiplier,
@@ -114,11 +115,22 @@ void ConsoleReporter::PrintRunData(const Run& result) {
                     (static_cast<double>(result.iterations)),
                 timeLabel);
   }
+
   ColorPrintf(COLOR_CYAN, "%10lld", result.iterations);
-  ColorPrintf(COLOR_DEFAULT, "%*s %*s %s\n",
-              13, rate.c_str(),
-              18, items.c_str(),
-              result.report_label.c_str());
+
+  if (!rate.empty()) {
+    ColorPrintf(COLOR_DEFAULT, " %*s", 13, rate.c_str());
+  }
+
+  if (!items.empty()) {
+    ColorPrintf(COLOR_DEFAULT, " %*s", 18, items.c_str());
+  }
+
+  if (!result.report_label.empty()) {
+    ColorPrintf(COLOR_DEFAULT, " %s", result.report_label.c_str());
+  }
+
+  ColorPrintf(COLOR_DEFAULT, "\n");
 }
 
 }  // end namespace benchmark
