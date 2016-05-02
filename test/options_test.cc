@@ -1,5 +1,7 @@
 #include "benchmark/benchmark_api.h"
-#include "sleep.h"
+
+#include <chrono>
+#include <thread>
 
 void BM_basic(benchmark::State& state) {
   while (state.KeepRunning()) {
@@ -7,8 +9,14 @@ void BM_basic(benchmark::State& state) {
 }
 
 void BM_basic_slow(benchmark::State& state) {
+
+  int milliseconds = state.range_x();
+  std::chrono::duration<double, std::milli> sleep_duration {
+    static_cast<double>(milliseconds)
+  };
+
   while (state.KeepRunning()) {
-    benchmark::SleepForMilliseconds(state.range_x());
+    std::this_thread::sleep_for(sleep_duration);
   }
 }
 

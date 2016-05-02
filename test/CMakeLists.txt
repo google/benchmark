@@ -1,9 +1,5 @@
 # Enable the tests
 
-# Allow the test files to find headers in src/ since we rely on
-# SleepForMilliseconds(int milliseconds) in options_test.cc
-include_directories(${PROJECT_SOURCE_DIR}/src)
-
 find_package(Threads REQUIRED)
 
 set(CXX03_FLAGS "${CMAKE_CXX_FLAGS}")
