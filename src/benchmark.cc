@@ -64,9 +64,9 @@ DEFINE_int32(benchmark_repetitions, 1,
              "The number of runs of each benchmark. If greater than 1, the "
              "mean and standard deviation of the runs will be reported.");
 
-DEFINE_string(benchmark_format, "tabular",
+DEFINE_string(benchmark_format, "console",
               "The format to use for console output. Valid values are "
-              "'tabular', 'json', or 'csv'.");
+              "'console', 'json', or 'csv'.");
 
 DEFINE_bool(color_print, true, "Enables colorized logging.");
 
@@ -828,7 +828,7 @@ void RunMatchingBenchmarks(const std::string& spec,
 
 std::unique_ptr<BenchmarkReporter> GetDefaultReporter() {
   typedef std::unique_ptr<BenchmarkReporter> PtrType;
-  if (FLAGS_benchmark_format == "tabular") {
+  if (FLAGS_benchmark_format == "console") {
     return PtrType(new ConsoleReporter);
   } else if (FLAGS_benchmark_format == "json") {
     return PtrType(new JSONReporter);
@@ -874,7 +874,7 @@ void PrintUsageAndExit() {
           "          [--benchmark_filter=<regex>]\n"
           "          [--benchmark_min_time=<min_time>]\n"
           "          [--benchmark_repetitions=<num_repetitions>]\n"
-          "          [--benchmark_format=<tabular|json|csv>]\n"
+          "          [--benchmark_format=<console|json|csv>]\n"
           "          [--color_print={true|false}]\n"
           "          [--v=<verbosity>]\n");
   exit(0);
@@ -906,7 +906,7 @@ void ParseCommandLineFlags(int* argc, char** argv) {
     }
   }
 
-  if (FLAGS_benchmark_format != "tabular" &&
+  if (FLAGS_benchmark_format != "console" &&
       FLAGS_benchmark_format != "json" &&
       FLAGS_benchmark_format != "csv") {
     PrintUsageAndExit();
