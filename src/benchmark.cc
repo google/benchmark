@@ -261,6 +261,7 @@ struct Benchmark::Instance {
   int            arg1;
   bool           has_arg2;
   int            arg2;
+  TimeUnit       time_unit;
   bool           use_real_time;
   double         min_time;
   int            threads;    // Number of concurrent threads to use
@@ -294,6 +295,7 @@ public:
   ~BenchmarkImp();
 
   void Arg(int x);
+  void Unit(TimeUnit unit);
   void Range(int start, int limit);
   void DenseRange(int start, int limit);
   void ArgPair(int start, int limit);
@@ -313,6 +315,7 @@ private:
   std::string name_;
   int arg_count_;
   std::vector< std::pair<int, int> > args_;  // Args for all benchmark runs
+  TimeUnit time_unit_;
   double min_time_;
   bool use_real_time_;
   std::vector<int> thread_counts_;
@@ -372,6 +375,7 @@ bool BenchmarkFamilies::FindBenchmarks(
         instance.arg1 = args.first;
         instance.has_arg2 = family->arg_count_ == 2;
         instance.arg2 = args.second;
+        instance.time_unit = family->time_unit_;
         instance.min_time = family->min_time_;
         instance.use_real_time = family->use_real_time_;
         instance.threads = num_threads;
@@ -406,7 +410,7 @@ bool BenchmarkFamilies::FindBenchmarks(
 }
 
 BenchmarkImp::BenchmarkImp(const char* name)
-    : name_(name), arg_count_(-1),
+    : name_(name), arg_count_(-1), time_unit_(kNanosecond),
       min_time_(0.0), use_real_time_(false) {
 }
 
@@ -417,6 +421,10 @@ void BenchmarkImp::Arg(int x) {
   CHECK(arg_count_ == -1 || arg_count_ == 1);
   arg_count_ = 1;
   args_.emplace_back(x, -1);
+}
+
+void BenchmarkImp::Unit(TimeUnit unit) {
+  time_unit_ = unit;
 }
 
 void BenchmarkImp::Range(int start, int limit) {
@@ -528,6 +536,11 @@ Benchmark::Benchmark(Benchmark const& other)
 
 Benchmark* Benchmark::Arg(int x) {
   imp_->Arg(x);
+  return this;
+}
+
+Benchmark* Benchmark::Unit(TimeUnit unit) {
+  imp_->Unit(unit);
   return this;
 }
 
@@ -699,6 +712,7 @@ void RunBenchmark(const benchmark::internal::Benchmark::Instance& b,
         report.report_label = label;
         // Report the total iterations across all threads.
         report.iterations = static_cast<int64_t>(iters) * b.threads;
+        report.time_unit = b.time_unit;
         report.real_accumulated_time = real_accumulated_time;
         report.cpu_accumulated_time = cpu_accumulated_time;
         report.bytes_per_second = bytes_per_second;
@@ -891,6 +905,7 @@ void ParseCommandLineFlags(int* argc, char** argv) {
       PrintUsageAndExit();
     }
   }
+
   if (FLAGS_benchmark_format != "tabular" &&
       FLAGS_benchmark_format != "json" &&
       FLAGS_benchmark_format != "csv") {

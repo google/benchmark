@@ -190,6 +190,15 @@ static void BM_test(benchmark::State& state) {
 }
 ```
 
+### Set time unit manually
+If a benchmark runs a few milliseconds it may be hard to visually compare the
+measured times, since the output data is given in nanoseconds per default. In
+order to manually set the time unit, you can specify it manually:
+
+```c++
+BENCHMARK(BM_test)->Unit(benchmark::kMillisecond);
+```
+
 ## Controlling number of iterations
 In all cases, the number of iterations for which the benchmark is run is
 governed by the amount of time the benchmark takes. Concretely, the number of

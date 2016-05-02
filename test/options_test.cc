@@ -1,11 +1,30 @@
 #include "benchmark/benchmark_api.h"
 
+#include <chrono>
+#include <thread>
+
 void BM_basic(benchmark::State& state) {
   while (state.KeepRunning()) {
   }
 }
+
+void BM_basic_slow(benchmark::State& state) {
+
+  int milliseconds = state.range_x();
+  std::chrono::duration<double, std::milli> sleep_duration {
+    static_cast<double>(milliseconds)
+  };
+
+  while (state.KeepRunning()) {
+    std::this_thread::sleep_for(sleep_duration);
+  }
+}
+
 BENCHMARK(BM_basic);
 BENCHMARK(BM_basic)->Arg(42);
+BENCHMARK(BM_basic_slow)->Arg(10)->Unit(benchmark::kNanosecond);
+BENCHMARK(BM_basic_slow)->Arg(100)->Unit(benchmark::kMicrosecond);
+BENCHMARK(BM_basic_slow)->Arg(1000)->Unit(benchmark::kMillisecond);
 BENCHMARK(BM_basic)->Range(1, 8);
 BENCHMARK(BM_basic)->DenseRange(10, 15);
 BENCHMARK(BM_basic)->ArgPair(42, 42);
