@@ -2,6 +2,12 @@
 
 find_package(Threads REQUIRED)
 
+# sets the mpi command, if required
+unset(MPI_PREFIX)
+if(BENCHMARK_ENABLE_MPI)
+  set(MPI_PREFIX ${MPIEXEC} ${MPIEXEC_NUMPROC_FLAG} ${MPIEXEC_MAX_NUMPROCS} ${MPIEXEC_PREFLAGS})
+endif()
+
 set(CXX03_FLAGS "${CMAKE_CXX_FLAGS}")
 string(REPLACE "-std=c++11" "-std=c++03" CXX03_FLAGS "${CXX03_FLAGS}")
 string(REPLACE "-std=c++0x" "-std=c++03" CXX03_FLAGS "${CXX03_FLAGS}")
@@ -13,11 +19,11 @@ endmacro(compile_benchmark_test)
 
 # Demonstration executable
 compile_benchmark_test(benchmark_test)
-add_test(benchmark benchmark_test --benchmark_min_time=0.01)
+add_test(benchmark ${MPI_PREFIX} benchmark_test --benchmark_min_time=0.01)
 
 compile_benchmark_test(filter_test)
 macro(add_filter_test name filter expect)
-  add_test(${name} filter_test --benchmark_min_time=0.01 --benchmark_filter=${filter} ${expect})
+  add_test(${name} ${MPI_PREFIX} filter_test --benchmark_min_time=0.01 --benchmark_filter=${filter} ${expect})
 endmacro(add_filter_test)
 
 add_filter_test(filter_simple "Foo" 3)
@@ -31,13 +37,13 @@ add_filter_test(filter_regex_begin2 "^N" 1)
 add_filter_test(filter_regex_end ".*Ba$" 1)
 
 compile_benchmark_test(options_test)
-add_test(options_benchmarks options_test --benchmark_min_time=0.01)
+add_test(options_benchmarks ${MPI_PREFIX} options_test --benchmark_min_time=0.01)
 
 compile_benchmark_test(basic_test)
-add_test(basic_benchmark basic_test --benchmark_min_time=0.01)
+add_test(basic_benchmark ${MPI_PREFIX} basic_test --benchmark_min_time=0.01)
 
 compile_benchmark_test(fixture_test)
-add_test(fixture_test fixture_test --benchmark_min_time=0.01)
+add_test(fixture_test ${MPI_PREFIX} fixture_test --benchmark_min_time=0.01)
 
 compile_benchmark_test(map_test)
 add_test(map_test map_test --benchmark_min_time=0.01)
@@ -45,7 +51,7 @@ add_test(map_test map_test --benchmark_min_time=0.01)
 compile_benchmark_test(cxx03_test)
 set_target_properties(cxx03_test
     PROPERTIES COMPILE_FLAGS "${CXX03_FLAGS}")
-add_test(cxx03 cxx03_test --benchmark_min_time=0.01)
+add_test(cxx03 ${MPI_PREFIX} cxx03_test --benchmark_min_time=0.01)
 
 # Add the coverage command(s)
 if(CMAKE_BUILD_TYPE)

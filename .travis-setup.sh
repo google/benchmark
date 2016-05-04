@@ -14,6 +14,9 @@ sudo apt-get update -qq
 
 # Install
 sudo apt-get install -qq cmake
+if [ "$MPI" = "TRUE" ] ; then
+  sudo apt-get install -y -q openmpi-bin libopenmpi-dev
+fi
 if [ "$STD" = "c++11" ] && [ "$CXX" = "g++" ]; then
     sudo apt-get install -qq gcc-4.8 g++-4.8
     sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-4.8 90

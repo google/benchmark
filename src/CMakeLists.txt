@@ -19,7 +19,6 @@ endif()
 
 add_library(benchmark ${SOURCE_FILES} ${RE_FILES})
 
-
 set_target_properties(benchmark PROPERTIES
   OUTPUT_NAME "benchmark"
   VERSION ${GENERIC_LIB_VERSION}
@@ -28,6 +27,11 @@ set_target_properties(benchmark PROPERTIES
 
 # Link threads.
 target_link_libraries(benchmark ${CMAKE_THREAD_LIBS_INIT})
+
+# Link MPI if requested
+if(BENCHMARK_ENABLE_MPI)
+  target_link_libraries(benchmark ${MPI_LIBRARIES})
+endif()
 
 # We need extra libraries on Windows
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
@@ -49,3 +53,6 @@ install(
   DIRECTORY "${PROJECT_SOURCE_DIR}/include/benchmark"
   DESTINATION include
   FILES_MATCHING PATTERN "*.*h")
+install(
+  FILES "${PROJECT_BINARY_DIR}/include/benchmark/benchmark_mpi.h"
+  DESTINATION include/benchmark)

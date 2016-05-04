@@ -10,6 +10,8 @@
 #include <sstream>
 #include <string>
 
+#include "benchmark_mpi.h"
+
 namespace {
 
 class TestReporter : public benchmark::ConsoleReporter {
@@ -69,6 +71,7 @@ BENCHMARK(BM_FooBa);
 
 
 int main(int argc, char* argv[]) {
+  benchmark::initialize_mpi(argc, argv);
   benchmark::Initialize(&argc, argv);
 
   TestReporter test_reporter;
@@ -82,10 +85,12 @@ int main(int argc, char* argv[]) {
 
     const size_t count = test_reporter.GetCount();
     if (count != expected) {
+      benchmark::finalize_mpi();
       std::cerr << "ERROR: Expected " << expected << " tests to be ran but only "
                 << count << " completed" << std::endl;
       return -1;
     }
   }
+  benchmark::finalize_mpi();
   return 0;
 }

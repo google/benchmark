@@ -154,6 +154,7 @@ BENCHMARK(BM_test)->Unit(benchmark::kMillisecond);
 #include <stdint.h>
 
 #include "macros.h"
+#include "benchmark_mpi.h"
 
 namespace benchmark {
 class BenchmarkReporter;
@@ -614,10 +615,12 @@ protected:                                                  \
 
 
 // Helper macro to create a main routine in a test that runs the benchmarks
-#define BENCHMARK_MAIN()                   \
-  int main(int argc, char** argv) {        \
-    ::benchmark::Initialize(&argc, argv);  \
-    ::benchmark::RunSpecifiedBenchmarks(); \
+#define BENCHMARK_MAIN()                     \
+  int main(int argc, char** argv) {          \
+    ::benchmark::initialize_mpi(argc, argv); \
+    ::benchmark::Initialize(&argc, argv);    \
+    ::benchmark::RunSpecifiedBenchmarks();   \
+    ::benchmark::finalize_mpi();             \
   }
 
 #endif  // BENCHMARK_BENCHMARK_API_H_
