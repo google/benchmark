@@ -50,8 +50,7 @@ install(
   ARCHIVE DESTINATION lib
   LIBRARY DESTINATION lib
   RUNTIME DESTINATION bin
-  COMPONENT library
-  INCLUDES DESTINATION include)
+  COMPONENT library)
 
 install(
   DIRECTORY "${PROJECT_SOURCE_DIR}/include/benchmark"
