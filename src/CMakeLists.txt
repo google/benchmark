@@ -26,20 +26,22 @@ set_target_properties(benchmark PROPERTIES
 )
 
 # Link threads.
-target_link_libraries(benchmark ${CMAKE_THREAD_LIBS_INIT})
-
-# Link MPI if requested
-if(BENCHMARK_ENABLE_MPI)
-  target_link_libraries(benchmark ${MPI_LIBRARIES})
-endif()
+target_link_libraries(benchmark LINK_PUBLIC ${CMAKE_THREAD_LIBS_INIT})
 
 # We need extra libraries on Windows
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-  target_link_libraries(benchmark Shlwapi)
+  target_link_libraries(benchmark LINK_PRIVATE Shlwapi)
 endif()
 
-# Expose public API
-target_include_directories(benchmark PUBLIC ${PROJECT_SOURCE_DIR}/include)
+# Add MPI libraries
+if(BENCHMARK_ENABLE_MPI)
+  if(CMAKE_VERSION VERSION_GREATER "3.0.0" OR CMAKE_VERSION VERSION_EQUAL "3.0.0")
+    target_include_directories(benchmark SYSTEM PUBLIC ${MPI_CXX_INCLUDE_PATH})
+  else()
+    target_include_directories(benchmark PUBLIC ${MPI_CXX_INCLUDE_PATH})
+  endif()
+  target_link_libraries(benchmark LINK_PUBLIC ${MPI_LIBRARIES})
+endif()
 
 # Install target (will install the library to specified CMAKE_INSTALL_PREFIX variable)
 install(

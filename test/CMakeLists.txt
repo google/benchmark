@@ -14,7 +14,7 @@ string(REPLACE "-std=c++0x" "-std=c++03" CXX03_FLAGS "${CXX03_FLAGS}")
 
 macro(compile_benchmark_test name)
   add_executable(${name} "${name}.cc")
-  target_link_libraries(${name} benchmark ${CMAKE_THREAD_LIBS_INIT})
+  target_link_libraries(${name} benchmark)
 endmacro(compile_benchmark_test)
 
 # Demonstration executable
