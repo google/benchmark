@@ -1,0 +1,6 @@
+get_filename_component(Benchmark_CMAKE_DIR "${CMAKE_CURRENT_LIST_FILE}" PATH)
+message(STATUS "Linking to google benchmark package in ${Benchmark_CMAKE_DIR}")
+if(NOT TARGET google.benchmark AND EXISTS "${Benchmark_CMAKE_DIR}/BenchmarkTargets.cmake")
+  include("${Benchmark_CMAKE_DIR}/BenchmarkTargets.cmake")
+endif()
+set(GOOGLE_BENCHMARK_ENABLE_MPI @BENCHMARK_ENABLE_MPI@)

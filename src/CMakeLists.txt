@@ -46,10 +46,12 @@ endif()
 # Install target (will install the library to specified CMAKE_INSTALL_PREFIX variable)
 install(
   TARGETS google.benchmark
+  EXPORT BenchmarkTargets
   ARCHIVE DESTINATION lib
   LIBRARY DESTINATION lib
   RUNTIME DESTINATION bin
-  COMPONENT library)
+  COMPONENT library
+  INCLUDES DESTINATION include)
 
 install(
   DIRECTORY "${PROJECT_SOURCE_DIR}/include/benchmark"
