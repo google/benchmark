@@ -283,6 +283,17 @@ public:
   // within each benchmark iteration, if possible.
   void ResumeTiming();
 
+  // REQUIRES: called exactly once per iteration of the KeepRunning loop.
+  // Set the manually measured time for this benchmark iteration, which
+  // is used instead of automatically measured time if UseManualTime() was
+  // specified.
+  //
+  // For threaded benchmarks the SetIterationTime() function acts
+  // like a barrier.  I.e., the ith call by a particular thread to this
+  // function will block until all threads have made their ith call.
+  // The time will be set by the last thread to call this function.
+  void SetIterationTime(double seconds);
+
   // Set the number of bytes processed by the current benchmark
   // execution.  This routine is typically called once at the end of a
   // throughput oriented benchmark.  If this routine is called with a
@@ -443,6 +454,13 @@ public:
   // run, and in the printing of items/second or MB/seconds values.  If not
   // called, the cpu time used by the benchmark will be used.
   Benchmark* UseRealTime();
+
+  // If a benchmark must measure time manually (e.g. if GPU execution time is being
+  // measured), call this method. If called, each benchmark iteration should call
+  // SetIterationTime(seconds) to report the measured time, which will be used
+  // to control how many iterations are run, and in the printing of items/second
+  // or MB/second values.
+  Benchmark* UseManualTime();
 
   // Support for running multiple copies of the same benchmark concurrently
   // in multiple threads.  This may be useful when measuring the scaling
