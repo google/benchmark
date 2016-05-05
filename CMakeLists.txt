@@ -10,6 +10,7 @@ foreach(p
 endforeach()
 
 option(BENCHMARK_ENABLE_TESTING "Enable testing of the benchmark library." ON)
+option(BENCHMARK_ENABLE_MPI "Enable MPI" OFF)
 option(BENCHMARK_ENABLE_LTO "Enable link time optimisation of the benchmark library." OFF)
 # Make sure we can import out CMake functions
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
@@ -118,8 +119,16 @@ cxx_feature_check(STEADY_CLOCK)
 # Ensure we have pthreads
 find_package(Threads REQUIRED)
 
+# Find mpi if enabled
+if(BENCHMARK_ENABLE_MPI)
+  find_package(MPI REQUIRED)
+endif()
+# mpi file declare nullops if BENCHMARK_ENABLE_MPI False
+include_directories("${PROJECT_BINARY_DIR}/include/benchmark")
+configure_file("src/benchmark_mpi.in.h" "${PROJECT_BINARY_DIR}/include/benchmark/benchmark_mpi.h")
+
 # Set up directories
-include_directories(${PROJECT_SOURCE_DIR}/include)
+include_directories("${PROJECT_SOURCE_DIR}/include")
 
 # Build the targets
 add_subdirectory(src)
@@ -128,3 +137,5 @@ if (BENCHMARK_ENABLE_TESTING)
   enable_testing()
   add_subdirectory(test)
 endif()
+
+include("export_benchmark")

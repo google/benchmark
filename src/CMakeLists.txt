@@ -17,35 +17,46 @@ else()
   message(FATAL_ERROR "Failed to determine the source files for the regular expression backend")
 endif()
 
-add_library(benchmark ${SOURCE_FILES} ${RE_FILES})
+add_library(google.benchmark ${SOURCE_FILES} ${RE_FILES})
 
-
-set_target_properties(benchmark PROPERTIES
+set_target_properties(google.benchmark PROPERTIES
   OUTPUT_NAME "benchmark"
   VERSION ${GENERIC_LIB_VERSION}
   SOVERSION ${GENERIC_LIB_SOVERSION}
 )
 
 # Link threads.
-target_link_libraries(benchmark ${CMAKE_THREAD_LIBS_INIT})
+target_link_libraries(google.benchmark LINK_PUBLIC ${CMAKE_THREAD_LIBS_INIT})
 
 # We need extra libraries on Windows
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-  target_link_libraries(benchmark Shlwapi)
+  target_link_libraries(google.benchmark LINK_PRIVATE Shlwapi)
 endif()
 
-# Expose public API
-target_include_directories(benchmark PUBLIC ${PROJECT_SOURCE_DIR}/include)
+# Add MPI libraries
+if(BENCHMARK_ENABLE_MPI)
+  if(CMAKE_VERSION VERSION_GREATER "3.0.0" OR CMAKE_VERSION VERSION_EQUAL "3.0.0")
+    target_include_directories(google.benchmark SYSTEM PUBLIC ${MPI_CXX_INCLUDE_PATH})
+  else()
+    target_include_directories(google.benchmark PUBLIC ${MPI_CXX_INCLUDE_PATH})
+  endif()
+  target_link_libraries(google.benchmark LINK_PUBLIC ${MPI_LIBRARIES})
+endif()
 
 # Install target (will install the library to specified CMAKE_INSTALL_PREFIX variable)
 install(
-  TARGETS benchmark
+  TARGETS google.benchmark
+  EXPORT BenchmarkTargets
   ARCHIVE DESTINATION lib
   LIBRARY DESTINATION lib
   RUNTIME DESTINATION bin
-  COMPONENT library)
+  COMPONENT library
+  INCLUDES DESTINATION include)
 
 install(
   DIRECTORY "${PROJECT_SOURCE_DIR}/include/benchmark"
   DESTINATION include
   FILES_MATCHING PATTERN "*.*h")
+install(
+  FILES "${PROJECT_BINARY_DIR}/include/benchmark/benchmark_mpi.h"
+  DESTINATION include/benchmark)

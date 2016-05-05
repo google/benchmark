@@ -40,6 +40,7 @@
 #include "string_util.h"
 #include "sysinfo.h"
 #include "walltime.h"
+#include "benchmark_mpi.h"
 
 DEFINE_bool(benchmark_list_tests, false,
             "Print a list of benchmarks. This option overrides all other "
@@ -669,8 +670,8 @@ void RunBenchmark(const benchmark::internal::Benchmark::Instance& b,
       done.WaitForNotification();
       running_benchmark = false;
 
-      const double cpu_accumulated_time = timer_manager->cpu_time_used();
-      const double real_accumulated_time = timer_manager->real_time_used();
+      const double cpu_accumulated_time = mpi_world_max(timer_manager->cpu_time_used());
+      const double real_accumulated_time = mpi_world_max(timer_manager->real_time_used());
       timer_manager.reset();
 
       VLOG(2) << "Ran in " << cpu_accumulated_time << "/"
@@ -688,7 +689,8 @@ void RunBenchmark(const benchmark::internal::Benchmark::Instance& b,
         label = *GetReportLabel();
       }
 
-      const double min_time = !IsZero(b.min_time) ? b.min_time
+      const double process_min_time = mpi_world_max(b.min_time);
+      const double min_time = !IsZero(b.min_time) ? process_min_time
                                                   : FLAGS_benchmark_min_time;
 
       // If this was the first run, was elapsed time or cpu time large enough?
@@ -698,12 +700,14 @@ void RunBenchmark(const benchmark::internal::Benchmark::Instance& b,
           (seconds >= min_time) ||
           (real_accumulated_time >= 5*min_time)) {
         double bytes_per_second = 0;
-        if (total.bytes_processed > 0 && seconds > 0.0) {
-          bytes_per_second = (total.bytes_processed / seconds);
+        int64_t const total_bytes_processed = mpi_world_sum(total.bytes_processed);
+        if (total_bytes_processed > 0 && seconds > 0.0) {
+          bytes_per_second = (total_bytes_processed / seconds);
         }
+        int64_t const total_items_processed = mpi_world_sum(total.items_processed);
         double items_per_second = 0;
-        if (total.items_processed > 0 && seconds > 0.0) {
-          items_per_second = (total.items_processed / seconds);
+        if (total_items_processed > 0 && seconds > 0.0) {
+          items_per_second = (total_items_processed / seconds);
         }
 
         // Create report about this benchmark run.
@@ -877,6 +881,7 @@ void PrintUsageAndExit() {
           "          [--benchmark_format=<console|json|csv>]\n"
           "          [--color_print={true|false}]\n"
           "          [--v=<verbosity>]\n");
+  finalize_mpi();
   exit(0);
 }
 
