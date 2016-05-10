@@ -124,5 +124,19 @@ private:
   void PrintRunData(const Run& report);
 };
 
+// No-op reporter
+class NullReporter : public BenchmarkReporter {
+ public:
+  virtual bool ReportContext(const Context&) {
+    return true;
+  }
+  virtual void ReportRuns(const std::vector<Run>&) {
+  }
+
+ protected:
+  virtual void PrintRunData(const Run&) {
+  }
+};
+
 } // end namespace benchmark
 #endif // BENCHMARK_REPORTER_H_
