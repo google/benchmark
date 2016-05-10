@@ -1,7 +1,5 @@
-#ifndef BENCHMARK_MPI_H
-#define BENCHMARK_MPI_H
-
-#cmakedefine BENCHMARK_ENABLE_MPI
+#ifndef BENCHMARK_MPI_H_
+#define BENCHMARK_MPI_H_
 
 #ifdef BENCHMARK_ENABLE_MPI
 #include <mpi.h>
@@ -13,8 +11,6 @@ inline int mpi_world_size() { return 1; }
 inline int mpi_world_rank() { return 0; }
 inline double mpi_world_max(double value) { return value; }
 inline double mpi_world_sum(double value) { return value; }
-inline void initialize_mpi(int, char **) {}
-inline void finalize_mpi() {}
 #else
 inline int mpi_world_size() {
   int size;
@@ -47,8 +43,6 @@ template <class T> T mpi_world_max(T value) {
 template <class T> T mpi_world_sum(T value) {
   return mpi_world_op(value, MPI_SUM);
 }
-inline void initialize_mpi(int argc, char **argv) { MPI_Init(&argc, &argv); }
-inline void finalize_mpi() { MPI_Finalize(); }
 #endif
 inline bool mpi_is_world_root() { return mpi_world_rank() == 0; }
 }

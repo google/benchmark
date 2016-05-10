@@ -123,9 +123,6 @@ find_package(Threads REQUIRED)
 if(BENCHMARK_ENABLE_MPI)
   find_package(MPI REQUIRED)
 endif()
-# mpi file declare nullops if BENCHMARK_ENABLE_MPI False
-include_directories("${PROJECT_BINARY_DIR}/include/benchmark")
-configure_file("src/benchmark_mpi.in.h" "${PROJECT_BINARY_DIR}/include/benchmark/benchmark_mpi.h")
 
 # Set up directories
 include_directories("${PROJECT_SOURCE_DIR}/include")
