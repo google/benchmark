@@ -22,7 +22,6 @@
 
 #include "string_util.h"
 #include "walltime.h"
-#include "benchmark_mpi.h"
 
 namespace benchmark {
 
@@ -53,8 +52,6 @@ int64_t RoundDouble(double v) {
 } // end namespace
 
 bool JSONReporter::ReportContext(const Context& context) {
-  if(not mpi_is_world_root())
-    return true;
   std::ostream& out = std::cout;
 
   out << "{\n";
@@ -90,7 +87,7 @@ bool JSONReporter::ReportContext(const Context& context) {
 }
 
 void JSONReporter::ReportRuns(std::vector<Run> const& reports) {
-  if (reports.empty() or not mpi_is_world_root()) {
+  if (reports.empty()) {
     return;
   }
   std::string indent(4, ' ');
@@ -120,8 +117,7 @@ void JSONReporter::ReportRuns(std::vector<Run> const& reports) {
 
 void JSONReporter::Finalize() {
     // Close the list of benchmarks and the top level object.
-    if(mpi_is_world_root())
-      std::cout << "\n  ]\n}\n";
+    std::cout << "\n  ]\n}\n";
 }
 
 void JSONReporter::PrintRunData(Run const& run) {

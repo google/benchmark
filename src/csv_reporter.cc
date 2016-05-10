@@ -22,15 +22,12 @@
 
 #include "string_util.h"
 #include "walltime.h"
-#include "benchmark_mpi.h"
 
 // File format reference: http://edoceo.com/utilitas/csv-file-format.
 
 namespace benchmark {
 
 bool CSVReporter::ReportContext(const Context& context) {
-  if(not mpi_is_world_root())
-    return true;
   std::cerr << "Run on (" << context.num_cpus << " X " << context.mhz_per_cpu
             << " MHz CPU " << ((context.num_cpus > 1) ? "s" : "") << ")\n";
 
@@ -52,7 +49,7 @@ bool CSVReporter::ReportContext(const Context& context) {
 }
 
 void CSVReporter::ReportRuns(std::vector<Run> const& reports) {
-  if (reports.empty() or not mpi_is_world_root()) {
+  if (reports.empty()) {
     return;
   }
 

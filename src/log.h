@@ -2,7 +2,6 @@
 #define BENCHMARK_LOG_H_
 
 #include <ostream>
-#include "benchmark_mpi.h"
 
 namespace benchmark {
 namespace internal {
@@ -14,7 +13,7 @@ std::ostream& GetNullLogInstance();
 std::ostream& GetErrorLogInstance();
 
 inline std::ostream& GetLogInstanceForLevel(int level) {
-  if (level <= GetLogLevel() and mpi_is_world_root()) {
+  if (level <= GetLogLevel()) {
     return GetErrorLogInstance();
   }
   return GetNullLogInstance();

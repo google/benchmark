@@ -25,13 +25,10 @@
 #include "colorprint.h"
 #include "string_util.h"
 #include "walltime.h"
-#include "benchmark_mpi.h"
 
 namespace benchmark {
 
 bool ConsoleReporter::ReportContext(const Context& context) {
-  if(not mpi_is_world_root())
-    return true;
   name_field_width_ = context.name_field_width;
 
   std::cerr << "Run on (" << context.num_cpus << " X " << context.mhz_per_cpu
@@ -59,7 +56,7 @@ bool ConsoleReporter::ReportContext(const Context& context) {
 }
 
 void ConsoleReporter::ReportRuns(const std::vector<Run>& reports) {
-  if (reports.empty() or not mpi_is_world_root()) {
+  if (reports.empty()) {
     return;
   }
 
