@@ -10,8 +10,6 @@
 #include <sstream>
 #include <string>
 
-#include "benchmark_mpi.h"
-
 namespace {
 
 class TestReporter : public benchmark::ConsoleReporter {
