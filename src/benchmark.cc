@@ -40,7 +40,7 @@
 #include "string_util.h"
 #include "sysinfo.h"
 #include "walltime.h"
-#include "benchmark_mpi.h"
+#include "mpi_wrappers.h"
 
 DEFINE_bool(benchmark_list_tests, false,
             "Print a list of benchmarks. This option overrides all other "
@@ -700,11 +700,11 @@ void RunBenchmark(const benchmark::internal::Benchmark::Instance& b,
           (seconds >= min_time) ||
           (real_accumulated_time >= 5*min_time)) {
         double bytes_per_second = 0;
-        int64_t const total_bytes_processed = mpi_world_sum(total.bytes_processed);
+        int64_t const total_bytes_processed = total.bytes_processed;
         if (total_bytes_processed > 0 && seconds > 0.0) {
           bytes_per_second = (total_bytes_processed / seconds);
         }
-        int64_t const total_items_processed = mpi_world_sum(total.items_processed);
+        int64_t const total_items_processed = total.items_processed;
         double items_per_second = 0;
         if (total_items_processed > 0 && seconds > 0.0) {
           items_per_second = (total_items_processed / seconds);
