@@ -9,14 +9,11 @@ void BM_basic(benchmark::State& state) {
 }
 
 void BM_basic_slow(benchmark::State& state) {
-
-  int milliseconds = state.range_x();
-  std::chrono::duration<double, std::milli> sleep_duration {
-    static_cast<double>(milliseconds)
-  };
-
+  std::chrono::milliseconds sleep_duration(state.range_x());
   while (state.KeepRunning()) {
-    std::this_thread::sleep_for(sleep_duration);
+    std::this_thread::sleep_for(
+      std::chrono::duration_cast<std::chrono::nanoseconds>(sleep_duration)
+      );
   }
 }
 
