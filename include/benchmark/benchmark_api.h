@@ -444,6 +444,10 @@ public:
   // Threads, etc.
   Benchmark* Apply(void (*func)(Benchmark* benchmark));
 
+  // Set the range multiplier for non-dense range. If not called, the range multiplier 
+  // kRangeMultiplier will be used.
+  Benchmark* RangeMultiplier(int multiplier);
+
   // Set the minimum amount of time to use when running this benchmark. This
   // option overrides the `benchmark_min_time` flag.
   Benchmark* MinTime(double t);
