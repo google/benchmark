@@ -287,6 +287,7 @@ struct Benchmark::Instance {
   bool           has_arg2;
   int            arg2;
   TimeUnit       time_unit;
+  int            range_multiplier;
   bool           use_real_time;
   bool           use_manual_time;
   double         min_time;
@@ -326,6 +327,7 @@ public:
   void DenseRange(int start, int limit);
   void ArgPair(int start, int limit);
   void RangePair(int lo1, int hi1, int lo2, int hi2);
+  void RangeMultiplier(int multiplier);
   void MinTime(double n);
   void UseRealTime();
   void UseManualTime();
@@ -343,6 +345,7 @@ private:
   int arg_count_;
   std::vector< std::pair<int, int> > args_;  // Args for all benchmark runs
   TimeUnit time_unit_;
+  int range_multiplier_;
   double min_time_;
   bool use_real_time_;
   bool use_manual_time_;
@@ -404,6 +407,7 @@ bool BenchmarkFamilies::FindBenchmarks(
         instance.has_arg2 = family->arg_count_ == 2;
         instance.arg2 = args.second;
         instance.time_unit = family->time_unit_;
+        instance.range_multiplier = family->range_multiplier_;
         instance.min_time = family->min_time_;
         instance.use_real_time = family->use_real_time_;
         instance.use_manual_time = family->use_manual_time_;
@@ -442,8 +446,8 @@ bool BenchmarkFamilies::FindBenchmarks(
 
 BenchmarkImp::BenchmarkImp(const char* name)
     : name_(name), arg_count_(-1), time_unit_(kNanosecond),
-      min_time_(0.0), use_real_time_(false),
-      use_manual_time_(false) {
+      range_multiplier_(kRangeMultiplier), min_time_(0.0), 
+      use_real_time_(false), use_manual_time_(false) {
 }
 
 BenchmarkImp::~BenchmarkImp() {
@@ -463,7 +467,7 @@ void BenchmarkImp::Range(int start, int limit) {
   CHECK(arg_count_ == -1 || arg_count_ == 1);
   arg_count_ = 1;
   std::vector<int> arglist;
-  AddRange(&arglist, start, limit, kRangeMultiplier);
+  AddRange(&arglist, start, limit, range_multiplier_);
 
   for (int i : arglist) {
     args_.emplace_back(i, -1);
@@ -490,14 +494,19 @@ void BenchmarkImp::RangePair(int lo1, int hi1, int lo2, int hi2) {
   CHECK(arg_count_ == -1 || arg_count_ == 2);
   arg_count_ = 2;
   std::vector<int> arglist1, arglist2;
-  AddRange(&arglist1, lo1, hi1, kRangeMultiplier);
-  AddRange(&arglist2, lo2, hi2, kRangeMultiplier);
+  AddRange(&arglist1, lo1, hi1, range_multiplier_);
+  AddRange(&arglist2, lo2, hi2, range_multiplier_);
 
   for (int i : arglist1) {
     for (int j : arglist2) {
       args_.emplace_back(i, j);
     }
   }
+}
+
+void BenchmarkImp::RangeMultiplier(int multiplier) {
+  CHECK_GE(multiplier, 2);
+  range_multiplier_ = multiplier;
 }
 
 void BenchmarkImp::MinTime(double t) {
@@ -604,6 +613,11 @@ Benchmark* Benchmark::RangePair(int lo1, int hi1, int lo2, int hi2) {
 
 Benchmark* Benchmark::Apply(void (*custom_arguments)(Benchmark* benchmark)) {
   custom_arguments(this);
+  return this;
+}
+
+Benchmark* Benchmark::RangeMultiplier(int multiplier) {
+  imp_->RangeMultiplier(multiplier);
   return this;
 }
 

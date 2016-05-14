@@ -23,6 +23,7 @@ BENCHMARK(BM_basic_slow)->Arg(10)->Unit(benchmark::kNanosecond);
 BENCHMARK(BM_basic_slow)->Arg(100)->Unit(benchmark::kMicrosecond);
 BENCHMARK(BM_basic_slow)->Arg(1000)->Unit(benchmark::kMillisecond);
 BENCHMARK(BM_basic)->Range(1, 8);
+BENCHMARK(BM_basic)->RangeMultiplier(2)->Range(1, 8);
 BENCHMARK(BM_basic)->DenseRange(10, 15);
 BENCHMARK(BM_basic)->ArgPair(42, 42);
 BENCHMARK(BM_basic)->RangePair(64, 512, 64, 512);
