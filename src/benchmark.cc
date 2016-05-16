@@ -505,7 +505,6 @@ void BenchmarkImp::RangePair(int lo1, int hi1, int lo2, int hi2) {
 }
 
 void BenchmarkImp::RangeMultiplier(int multiplier) {
-  CHECK_GE(multiplier, 2);
   range_multiplier_ = multiplier;
 }
 
@@ -548,6 +547,7 @@ void BenchmarkImp::SetName(const char* name) {
 void BenchmarkImp::AddRange(std::vector<int>* dst, int lo, int hi, int mult) {
   CHECK_GE(lo, 0);
   CHECK_GE(hi, lo);
+  CHECK_GE(mult, 2);
 
   // Add "lo"
   dst->push_back(lo);
