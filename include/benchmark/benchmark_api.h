@@ -214,7 +214,11 @@ inline BENCHMARK_ALWAYS_INLINE void DoNotOptimize(Tp const& value) {
 #elif defined(__GNUC__)
 template <class Tp>
 inline BENCHMARK_ALWAYS_INLINE void DoNotOptimize(Tp const& value) {
-    asm volatile("" : "+rm" (const_cast<Tp&>(value)));
+    asm volatile("" : "+m" (const_cast<Tp&>(value)));
+}
+template <class Tp*>
+    inline BENCHMARK_ALWAYS_INLINE void DoNotOptimize(Tp const* value) {
+    asm volatile("" : "+rm" (const_cast<Tp*>(value)));
 }
 #else
 template <class Tp>
