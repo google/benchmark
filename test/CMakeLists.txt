@@ -47,6 +47,9 @@ set_target_properties(cxx03_test
     PROPERTIES COMPILE_FLAGS "${CXX03_FLAGS}")
 add_test(cxx03 cxx03_test --benchmark_min_time=0.01)
 
+compile_benchmark_test(complexity_test)
+add_test(complexity_benchmark complexity_test --benchmark_min_time=0.01)
+
 # Add the coverage command(s)
 if(CMAKE_BUILD_TYPE)
   string(TOLOWER ${CMAKE_BUILD_TYPE} CMAKE_BUILD_TYPE_LOWER)
@@ -66,7 +69,7 @@ if (${CMAKE_BUILD_TYPE_LOWER} MATCHES "coverage")
       COMMAND ${LCOV} -q -a before.lcov -a after.lcov --output-file final.lcov
       COMMAND ${LCOV} -q -r final.lcov "'${CMAKE_SOURCE_DIR}/test/*'" -o final.lcov
       COMMAND ${GENHTML} final.lcov -o lcov --demangle-cpp --sort -p "${CMAKE_BINARY_DIR}" -t benchmark
-      DEPENDS filter_test benchmark_test options_test basic_test fixture_test cxx03_test
+      DEPENDS filter_test benchmark_test options_test basic_test fixture_test cxx03_test complexity_test
       WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
       COMMENT "Running LCOV"
     )

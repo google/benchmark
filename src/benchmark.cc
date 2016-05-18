@@ -290,6 +290,7 @@ struct Benchmark::Instance {
   int            range_multiplier;
   bool           use_real_time;
   bool           use_manual_time;
+  BigO           complexity;
   double         min_time;
   int            threads;    // Number of concurrent threads to use
   bool           multithreaded;  // Is benchmark multi-threaded?
@@ -331,6 +332,7 @@ public:
   void MinTime(double n);
   void UseRealTime();
   void UseManualTime();
+  void Complexity(BigO complexity);
   void Threads(int t);
   void ThreadRange(int min_threads, int max_threads);
   void ThreadPerCpu();
@@ -349,6 +351,7 @@ private:
   double min_time_;
   bool use_real_time_;
   bool use_manual_time_;
+  BigO complexity_;
   std::vector<int> thread_counts_;
 
   BenchmarkImp& operator=(BenchmarkImp const&);
@@ -411,6 +414,7 @@ bool BenchmarkFamilies::FindBenchmarks(
         instance.min_time = family->min_time_;
         instance.use_real_time = family->use_real_time_;
         instance.use_manual_time = family->use_manual_time_;
+        instance.complexity = family->complexity_;
         instance.threads = num_threads;
         instance.multithreaded = !(family->thread_counts_.empty());
 
@@ -447,7 +451,8 @@ bool BenchmarkFamilies::FindBenchmarks(
 BenchmarkImp::BenchmarkImp(const char* name)
     : name_(name), arg_count_(-1), time_unit_(kNanosecond),
       range_multiplier_(kRangeMultiplier), min_time_(0.0), 
-      use_real_time_(false), use_manual_time_(false) {
+      use_real_time_(false), use_manual_time_(false),
+      complexity_(O_None) {
 }
 
 BenchmarkImp::~BenchmarkImp() {
@@ -521,6 +526,10 @@ void BenchmarkImp::UseRealTime() {
 void BenchmarkImp::UseManualTime() {
   CHECK(!use_real_time_) << "Cannot set UseRealTime and UseManualTime simultaneously.";
   use_manual_time_ = true;
+}
+
+void BenchmarkImp::Complexity(BigO complexity){
+  complexity_ = complexity;
 }
 
 void BenchmarkImp::Threads(int t) {
@@ -633,6 +642,11 @@ Benchmark* Benchmark::UseRealTime() {
 
 Benchmark* Benchmark::UseManualTime() {
   imp_->UseManualTime();
+  return this;
+}
+
+Benchmark* Benchmark::Complexity(BigO complexity) {
+  imp_->Complexity(complexity);
   return this;
 }
 

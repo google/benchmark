@@ -231,6 +231,20 @@ enum TimeUnit {
   kMillisecond
 };
 
+// BigO is passed to a benchmark in order to specify the asymptotic computational 
+// complexity for the benchmark.
+enum BigO {
+  O_None,
+  O_1,
+  O_N,
+  O_M_plus_N,
+  O_N_Squared,
+  O_N_Cubed,
+  O_log_N,
+  O_N_log_N,
+  O_Auto
+};
+
 // State is passed to a running Benchmark and contains state for the
 // benchmark to use.
 class State {
@@ -465,6 +479,10 @@ public:
   // to control how many iterations are run, and in the printing of items/second
   // or MB/second values.
   Benchmark* UseManualTime();
+  
+  // Set the asymptotic computational complexity for the benchmark. This option
+  // called the asymptotic computational complexity will be shown on the output. 
+  Benchmark* Complexity(BigO complexity);
 
   // Support for running multiple copies of the same benchmark concurrently
   // in multiple threads.  This may be useful when measuring the scaling
