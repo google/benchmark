@@ -101,7 +101,7 @@ void BM_Extreme_Cases(benchmark::State& state) {
   while (state.KeepRunning()) {
   }
 }
-BENCHMARK(BM_Extreme_Cases);
-BENCHMARK(BM_Extreme_Cases)->Arg(42);
+BENCHMARK(BM_Extreme_Cases) -> Complexity(benchmark::O_N_log_N);
+BENCHMARK(BM_Extreme_Cases)->Arg(42) -> Complexity(benchmark::O_Auto);
 
 BENCHMARK_MAIN()

@@ -291,6 +291,7 @@ struct Benchmark::Instance {
   bool           use_real_time;
   bool           use_manual_time;
   BigO           complexity;
+  bool           last_benchmark_instance;
   double         min_time;
   int            threads;    // Number of concurrent threads to use
   bool           multithreaded;  // Is benchmark multi-threaded?
@@ -414,6 +415,7 @@ bool BenchmarkFamilies::FindBenchmarks(
         instance.min_time = family->min_time_;
         instance.use_real_time = family->use_real_time_;
         instance.use_manual_time = family->use_manual_time_;
+        instance.last_benchmark_instance = (args == family->args_.back());
         instance.complexity = family->complexity_;
         instance.threads = num_threads;
         instance.multithreaded = !(family->thread_counts_.empty());
@@ -697,7 +699,8 @@ void RunInThread(const benchmark::internal::Benchmark::Instance* b,
 }
 
 void RunBenchmark(const benchmark::internal::Benchmark::Instance& b,
-                  BenchmarkReporter* br) EXCLUDES(GetBenchmarkLock()) {
+                  BenchmarkReporter* br,
+                  std::vector<BenchmarkReporter::Run>& complexity_reports) EXCLUDES(GetBenchmarkLock()) {
   size_t iters = 1;
 
   std::vector<BenchmarkReporter::Run> reports;
@@ -795,7 +798,14 @@ void RunBenchmark(const benchmark::internal::Benchmark::Instance& b,
         report.cpu_accumulated_time = cpu_accumulated_time;
         report.bytes_per_second = bytes_per_second;
         report.items_per_second = items_per_second;
+        report.arg1 = b.arg1;
+        report.arg2 = b.arg2;
+        report.complexity = b.complexity;
         reports.push_back(report);
+        
+        if(report.complexity != O_None) 
+          complexity_reports.push_back(report);
+     
         break;
       }
 
@@ -819,6 +829,12 @@ void RunBenchmark(const benchmark::internal::Benchmark::Instance& b,
     }
   }
   br->ReportRuns(reports);
+  
+  if((b.complexity != O_None) && b.last_benchmark_instance) {
+    br->ReportComplexity(complexity_reports);
+    complexity_reports.clear();
+  }
+  
   if (b.multithreaded) {
     for (std::thread& thread : pool)
       thread.join();
@@ -903,9 +919,12 @@ void RunMatchingBenchmarks(const std::string& spec,
   context.cpu_scaling_enabled = CpuScalingEnabled();
   context.name_field_width = name_field_width;
 
+  // Keep track of runing times of all instances of current benchmark
+  std::vector<BenchmarkReporter::Run> complexity_reports;
+
   if (reporter->ReportContext(context)) {
     for (const auto& benchmark : benchmarks) {
-      RunBenchmark(benchmark, reporter);
+      RunBenchmark(benchmark, reporter, complexity_reports);
     }
   }
 }

@@ -24,7 +24,7 @@ namespace benchmark {
 
 void BenchmarkReporter::ComputeStats(
     const std::vector<Run>& reports,
-    Run* mean_data, Run* stddev_data) {
+    Run& mean_data, Run& stddev_data) {
   CHECK(reports.size() >= 2) << "Cannot compute stats for less than 2 reports";
   // Accumulators.
   Stat1_d real_accumulated_time_stat;
@@ -48,33 +48,69 @@ void BenchmarkReporter::ComputeStats(
   }
 
   // Get the data from the accumulator to BenchmarkReporter::Run's.
-  mean_data->benchmark_name = reports[0].benchmark_name + "_mean";
-  mean_data->iterations = run_iterations;
-  mean_data->real_accumulated_time = real_accumulated_time_stat.Mean() *
+  mean_data.benchmark_name = reports[0].benchmark_name + "_mean";
+  mean_data.iterations = run_iterations;
+  mean_data.real_accumulated_time = real_accumulated_time_stat.Mean() *
                                      run_iterations;
-  mean_data->cpu_accumulated_time = cpu_accumulated_time_stat.Mean() *
+  mean_data.cpu_accumulated_time = cpu_accumulated_time_stat.Mean() *
                                     run_iterations;
-  mean_data->bytes_per_second = bytes_per_second_stat.Mean();
-  mean_data->items_per_second = items_per_second_stat.Mean();
+  mean_data.bytes_per_second = bytes_per_second_stat.Mean();
+  mean_data.items_per_second = items_per_second_stat.Mean();
 
   // Only add label to mean/stddev if it is same for all runs
-  mean_data->report_label = reports[0].report_label;
+  mean_data.report_label = reports[0].report_label;
   for (std::size_t i = 1; i < reports.size(); i++) {
     if (reports[i].report_label != reports[0].report_label) {
-      mean_data->report_label = "";
+      mean_data.report_label = "";
       break;
     }
   }
 
-  stddev_data->benchmark_name = reports[0].benchmark_name + "_stddev";
-  stddev_data->report_label = mean_data->report_label;
-  stddev_data->iterations = 0;
-  stddev_data->real_accumulated_time =
+  stddev_data.benchmark_name = reports[0].benchmark_name + "_stddev";
+  stddev_data.report_label = mean_data.report_label;
+  stddev_data.iterations = 0;
+  stddev_data.real_accumulated_time =
       real_accumulated_time_stat.StdDev();
-  stddev_data->cpu_accumulated_time =
+  stddev_data.cpu_accumulated_time =
       cpu_accumulated_time_stat.StdDev();
-  stddev_data->bytes_per_second = bytes_per_second_stat.StdDev();
-  stddev_data->items_per_second = items_per_second_stat.StdDev();
+  stddev_data.bytes_per_second = bytes_per_second_stat.StdDev();
+  stddev_data.items_per_second = items_per_second_stat.StdDev();
+}
+
+void BenchmarkReporter::ComputeBigO(
+    const std::vector<Run>& reports,
+    Run& bigO, Run& rms) {
+  CHECK(reports.size() >= 2) << "Cannot compute asymptotic complexity for less than 2 reports";
+  // Accumulators.
+  Stat1_d real_accumulated_time_stat;
+  Stat1_d cpu_accumulated_time_stat;
+
+  // Populate the accumulators.
+  for (Run const& run : reports) {
+    real_accumulated_time_stat +=
+        Stat1_d(run.real_accumulated_time/run.iterations, run.iterations);
+    cpu_accumulated_time_stat +=
+        Stat1_d(run.cpu_accumulated_time/run.iterations, run.iterations);
+  }
+
+  std::string benchmark_name = reports[0].benchmark_name.substr(0, reports[0].benchmark_name.find('/'));
+  
+  // Get the data from the accumulator to BenchmarkReporter::Run's.
+  bigO.benchmark_name = benchmark_name + "_BigO";
+  bigO.iterations = 0;
+  bigO.real_accumulated_time = real_accumulated_time_stat.Mean();
+  bigO.cpu_accumulated_time = cpu_accumulated_time_stat.Mean();
+
+  // Only add label to mean/stddev if it is same for all runs
+  bigO.report_label = reports[0].report_label;
+
+  rms.benchmark_name = benchmark_name + "_RMS";
+  rms.report_label = bigO.report_label;
+  rms.iterations = 0;
+  rms.real_accumulated_time =
+      real_accumulated_time_stat.StdDev();
+  rms.cpu_accumulated_time =
+      cpu_accumulated_time_stat.StdDev();
 }
 
 TimeUnitMultiplier BenchmarkReporter::GetTimeUnitAndMultiplier(TimeUnit unit) {
