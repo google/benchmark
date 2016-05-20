@@ -38,15 +38,6 @@ static void BM_Complexity_O_N(benchmark::State& state) {
 }
 BENCHMARK(BM_Complexity_O_N) -> Range(1, 1<<10) -> Complexity(benchmark::O_N);
 BENCHMARK(BM_Complexity_O_N) -> Range(1, 1<<10) -> Complexity(benchmark::O_Auto);
-
-static void BM_Complexity_O_M_plus_N(benchmark::State& state) {
-  std::string s1(state.range_x(), '-');
-  std::string s2(state.range_x(), '-');
-  while (state.KeepRunning())
-    benchmark::DoNotOptimize(s1.compare(s2));
-}
-BENCHMARK(BM_Complexity_O_M_plus_N)
-	->RangeMultiplier(2)->Range(1<<10, 1<<18) -> Complexity(benchmark::O_M_plus_N);
     
 static void BM_Complexity_O_N_Squared(benchmark::State& state) {
   std::string s1(state.range_x(), '-');
