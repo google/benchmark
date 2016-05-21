@@ -116,6 +116,27 @@ static void CustomArguments(benchmark::internal::Benchmark* b) {
 BENCHMARK(BM_SetInsert)->Apply(CustomArguments);
 ```
 
+### Calculate asymptotic complexity (Big O)
+Asymptotic complexity might be calculated for a family of benchmarks. The following code will calculate the coefficient for the high-order term in the running time and the normalized root-mean square error of string comparison.
+
+```c++
+static void BM_StringCompare(benchmark::State& state) {
+  std::string s1(state.range_x(), '-');
+  std::string s2(state.range_x(), '-');
+  while (state.KeepRunning())
+    benchmark::DoNotOptimize(s1.compare(s2));
+}
+BENCHMARK(BM_StringCompare)
+	->RangeMultiplier(2)->Range(1<<10, 1<<18)->Complexity(benchmark::O_N);
+```
+
+As shown on the following invocation, asymptotic complexity might also be calculated automatically.
+
+```c++
+BENCHMARK(BM_StringCompare)
+	->RangeMultiplier(2)->Range(1<<10, 1<<18)->Complexity(benchmark::O_Auto);
+```
+
 ### Templated benchmarks
 Templated benchmarks work the same way: This example produces and consumes
 messages of size `sizeof(v)` `range_x` times. It also outputs throughput in the
