@@ -85,11 +85,11 @@ void BenchmarkReporter::ComputeBigO(
   CHECK(reports.size() >= 2) << "Cannot compute asymptotic complexity for less than 2 reports";
   // Accumulators.
   std::vector<int> N;
-	std::vector<double> RealTime;
+  std::vector<double> RealTime;
   std::vector<double> CpuTime;
 
   // Populate the accumulators.
-  for (Run const& run : reports) {
+  for (const Run& run : reports) {
     N.push_back(run.arg1); 
     RealTime.push_back(run.real_accumulated_time/run.iterations);
     CpuTime.push_back(run.cpu_accumulated_time/run.iterations);

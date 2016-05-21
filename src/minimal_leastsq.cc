@@ -13,7 +13,7 @@
 // limitations under the License.
 
 // Source project : https://github.com/ismaelJimenez/cpp.leastsq
-// Addapted to be used with google benchmark
+// Adapted to be used with google benchmark
 
 #include "minimal_leastsq.h"
 

@@ -74,7 +74,7 @@ class BenchmarkReporter {
     int    arg1;
     int    arg2;
     
-    // Inform print function if the current run is a complexity report
+    // Inform print function whether the current run is a complexity report
     bool report_bigO;
     bool report_rms;
   };

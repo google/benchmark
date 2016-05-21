@@ -13,7 +13,7 @@
 // limitations under the License.
 
 // Source project : https://github.com/ismaelJimenez/cpp.leastsq
-// Addapted to be used with google benchmark
+// Adapted to be used with google benchmark
 
 #if !defined(MINIMAL_LEASTSQ_H_)
 #define MINIMAL_LEASTSQ_H_
@@ -22,7 +22,7 @@
 
 #include <vector>
 
-// This data structure will contain the result returned vy minimalLeastSq
+// This data structure will contain the result returned by minimalLeastSq
 //   - coef        : Estimated coeficient for the high-order term as interpolated from data.
 //   - rms         : Normalized Root Mean Squared Error.
 //   - complexity  : Scalability form (e.g. O_N, O_N_log_N). In case a scalability form has been provided to minimalLeastSq

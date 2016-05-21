@@ -232,7 +232,8 @@ enum TimeUnit {
 };
 
 // BigO is passed to a benchmark in order to specify the asymptotic computational 
-// complexity for the benchmark.
+// complexity for the benchmark. In case O_Auto is selected, complexity will be 
+// calculated automatically to the best fit.
 enum BigO {
 	O_None,
 	O_1,
@@ -479,8 +480,8 @@ public:
   // or MB/second values.
   Benchmark* UseManualTime();
   
-  // Set the asymptotic computational complexity for the benchmark. This option
-  // called the asymptotic computational complexity will be shown on the output. 
+  // Set the asymptotic computational complexity for the benchmark. If called
+  // the asymptotic computational complexity will be shown on the output. 
   Benchmark* Complexity(BigO complexity);
 
   // Support for running multiple copies of the same benchmark concurrently
