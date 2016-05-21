@@ -61,12 +61,12 @@ the specified range and will generate a benchmark for each such argument.
 BENCHMARK(BM_memcpy)->Range(8, 8<<10);
 ```
 
-By default the arguments in a range are generated in multiples of eight and the command above selects [ 8, 64, 512, 4k, 8k ]. In the following code the range multiplier is changed to multiples of two.
+By default the arguments in the range are generated in multiples of eight and the command above selects [ 8, 64, 512, 4k, 8k ]. In the following code the range multiplier is changed to multiples of two.
 
 ```c++
 BENCHMARK(BM_memcpy)->RangeMultiplier(2)->Range(8, 8<<10);
 ```
-Now the arguments generated are [ 8, 16, 32, 64, 128, 256, 512, 1024, 2k, 4k, 8k ].
+Now arguments generated are [ 8, 16, 32, 64, 128, 256, 512, 1024, 2k, 4k, 8k ].
 
 You might have a benchmark that depends on two inputs. For example, the
 following code defines a family of benchmarks for measuring the speed of set
@@ -130,7 +130,7 @@ BENCHMARK(BM_StringCompare)
 	->RangeMultiplier(2)->Range(1<<10, 1<<18)->Complexity(benchmark::O_N);
 ```
 
-As shown on the following invocation, asymptotic complexity might also be calculated automatically.
+As shown in the following invocation, asymptotic complexity might also be calculated automatically.
 
 ```c++
 BENCHMARK(BM_StringCompare)
