@@ -88,7 +88,7 @@ void ConsoleReporter::ReportComplexity(const std::vector<Run> & complexity_repor
   Run bigO_data;
   Run rms_data;
   BenchmarkReporter::ComputeBigO(complexity_reports, bigO_data, rms_data);
-  
+    
   // Output using PrintRun.
   PrintRunData(bigO_data);
   PrintRunData(rms_data);
@@ -115,7 +115,22 @@ void ConsoleReporter::PrintRunData(const Run& result) {
   ColorPrintf(COLOR_GREEN, "%-*s ",
               name_field_width_, result.benchmark_name.c_str());
 
-  if (result.iterations == 0) {
+  if(result.report_bigO) {
+    std::string big_o = result.report_bigO ? GetBigO(result.complexity) : "";
+    ColorPrintf(COLOR_YELLOW, "%10.4f %s %10.4f %s ",
+                result.real_accumulated_time * multiplier,
+                big_o.c_str(),
+                result.cpu_accumulated_time * multiplier,
+                big_o.c_str());
+  }  
+  else if(result.report_rms) {
+    ColorPrintf(COLOR_YELLOW, "%10.0f %s %10.0f %s ",
+                result.real_accumulated_time * multiplier * 100,
+                "%",
+                result.cpu_accumulated_time * multiplier * 100,
+                "%");
+  }  
+  else if (result.iterations == 0) {
     ColorPrintf(COLOR_YELLOW, "%10.0f %s %10.0f %s ",
                 result.real_accumulated_time * multiplier,
                 timeLabel,

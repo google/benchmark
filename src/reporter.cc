@@ -17,6 +17,7 @@
 
 #include <cstdlib>
 #include <vector>
+#include <tuple>
 
 #include "check.h"
 #include "stat.h"
@@ -83,35 +84,67 @@ void BenchmarkReporter::ComputeBigO(
     Run& bigO, Run& rms) {
   CHECK(reports.size() >= 2) << "Cannot compute asymptotic complexity for less than 2 reports";
   // Accumulators.
-  Stat1_d real_accumulated_time_stat;
-  Stat1_d cpu_accumulated_time_stat;
+  std::vector<int> N;
+	std::vector<double> RealTime;
+  std::vector<double> CpuTime;
 
   // Populate the accumulators.
   for (Run const& run : reports) {
-    real_accumulated_time_stat +=
-        Stat1_d(run.real_accumulated_time/run.iterations, run.iterations);
-    cpu_accumulated_time_stat +=
-        Stat1_d(run.cpu_accumulated_time/run.iterations, run.iterations);
+    N.push_back(run.arg1); 
+    RealTime.push_back(run.real_accumulated_time/run.iterations);
+    CpuTime.push_back(run.cpu_accumulated_time/run.iterations);
   }
+  
+  LeastSq resultCpu = minimalLeastSq(N, CpuTime, reports[0].complexity);
+  
+  // resultCpu.complexity is passed as parameter to resultReal because in case
+  // reports[0].complexity is O_Auto, the noise on the measured data could make 
+  // the best fit function of Cpu and Real differ. In order to solve this, we take
+  // the best fitting function for the Cpu, and apply it to Real data.
+  LeastSq resultReal = minimalLeastSq(N, RealTime, resultCpu.complexity);
 
   std::string benchmark_name = reports[0].benchmark_name.substr(0, reports[0].benchmark_name.find('/'));
   
   // Get the data from the accumulator to BenchmarkReporter::Run's.
   bigO.benchmark_name = benchmark_name + "_BigO";
   bigO.iterations = 0;
-  bigO.real_accumulated_time = real_accumulated_time_stat.Mean();
-  bigO.cpu_accumulated_time = cpu_accumulated_time_stat.Mean();
+  bigO.real_accumulated_time = resultReal.coef;
+  bigO.cpu_accumulated_time = resultCpu.coef;
+  bigO.report_bigO = true;
+  bigO.complexity = resultCpu.complexity;
+
+  double multiplier;
+  const char* timeLabel;
+  std::tie(timeLabel, multiplier) = GetTimeUnitAndMultiplier(reports[0].time_unit);
 
   // Only add label to mean/stddev if it is same for all runs
   bigO.report_label = reports[0].report_label;
-
   rms.benchmark_name = benchmark_name + "_RMS";
   rms.report_label = bigO.report_label;
   rms.iterations = 0;
-  rms.real_accumulated_time =
-      real_accumulated_time_stat.StdDev();
-  rms.cpu_accumulated_time =
-      cpu_accumulated_time_stat.StdDev();
+  rms.real_accumulated_time = resultReal.rms / multiplier;
+  rms.cpu_accumulated_time = resultCpu.rms / multiplier;
+  rms.report_rms = true;
+  rms.complexity = resultCpu.complexity;
+}
+
+std::string BenchmarkReporter::GetBigO(BigO complexity) {
+  switch (complexity) {
+    case O_N:
+      return "* N";
+    case O_N_Squared:
+      return "* N**2";
+    case O_N_Cubed:
+      return "* N**3";
+    case O_log_N:
+      return "* lgN";
+    case O_N_log_N:
+      return "* NlgN";
+    case O_1:
+      return "* 1";
+    default:
+      return "";      
+  }
 }
 
 TimeUnitMultiplier BenchmarkReporter::GetTimeUnitAndMultiplier(TimeUnit unit) {

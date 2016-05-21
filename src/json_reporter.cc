@@ -121,13 +121,23 @@ void JSONReporter::ReportComplexity(const std::vector<Run> & complexity_reports)
     return;
   }
   
+  std::string indent(4, ' ');
+  std::ostream& out = std::cout;
+  if (!first_report_) {
+    out << ",\n";
+  }
+  
   Run bigO_data;
   Run rms_data;
   BenchmarkReporter::ComputeBigO(complexity_reports, bigO_data, rms_data);
   
   // Output using PrintRun.
+  out << indent << "{\n";
   PrintRunData(bigO_data);
+  out << indent << "},\n";
+  out << indent << "{\n";
   PrintRunData(rms_data);
+  out << indent << '}';
 }
 
 void JSONReporter::Finalize() {

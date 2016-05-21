@@ -41,6 +41,6 @@ struct LeastSq {
 };
 
 // Find the coefficient for the high-order term in the running time, by minimizing the sum of squares of relative error.
-LeastSq minimalLeastSq(const std::vector<int>& N, const std::vector<int>& Time, const benchmark::BigO Complexity = benchmark::O_Auto);
+LeastSq minimalLeastSq(const std::vector<int>& N, const std::vector<double>& Time, const benchmark::BigO Complexity = benchmark::O_Auto);
 
 #endif

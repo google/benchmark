@@ -49,9 +49,11 @@ class BenchmarkReporter {
       bytes_per_second(0),
       items_per_second(0),
       max_heapbytes_used(0),
-      complexity(O_1),
+      complexity(O_None),
       arg1(0), 
-      arg2(0) {}
+      arg2(0),
+      report_bigO(false),
+      report_rms(false) {}
 
     std::string benchmark_name;
     std::string report_label;  // Empty if not set by benchmark.
@@ -71,6 +73,10 @@ class BenchmarkReporter {
     BigO   complexity;
     int    arg1;
     int    arg2;
+    
+    // Inform print function if the current run is a complexity report
+    bool report_bigO;
+    bool report_rms;
   };
 
   // Called once for every suite of benchmarks run.
@@ -102,6 +108,7 @@ protected:
   static void ComputeStats(const std::vector<Run> & reports, Run& mean, Run& stddev);
   static void ComputeBigO(const std::vector<Run> & reports, Run& bigO, Run& rms);
   static TimeUnitMultiplier GetTimeUnitAndMultiplier(TimeUnit unit);
+  static std::string GetBigO(BigO complexity);
 };
 
 // Simple reporter that outputs benchmark data to the console. This is the

@@ -41,7 +41,7 @@ double fittingCurve(double N, benchmark::BigO Complexity) {
 //   - Complexity : Fitting curve.
 // For a deeper explanation on the algorithm logic, look the README file at http://github.com/ismaelJimenez/Minimal-Cpp-Least-Squared-Fit
 
-LeastSq leastSq(const std::vector<int>& N, const std::vector<int>& Time, const benchmark::BigO Complexity) {
+LeastSq leastSq(const std::vector<int>& N, const std::vector<double>& Time, const benchmark::BigO Complexity) {
 	assert(N.size() == Time.size() && N.size() >= 2);
 	assert(Complexity != benchmark::O_None &&
 		Complexity != benchmark::O_Auto);
@@ -79,7 +79,7 @@ LeastSq leastSq(const std::vector<int>& N, const std::vector<int>& Time, const b
 
 	double mean = sigmaTime / N.size();
 
-	result.rms = sqrt(rms) / mean; // Normalized RMS by the mean of the observed values
+	result.rms = sqrt(rms / N.size()) / mean; // Normalized RMS by the mean of the observed values
 
 	return result;
 }
@@ -90,7 +90,7 @@ LeastSq leastSq(const std::vector<int>& N, const std::vector<int>& Time, const b
 //   - Complexity : If different than O_Auto, the fitting curve will stick to this one. If it is O_Auto, it will be calculated 
 //                  the best fitting curve.
 
-LeastSq minimalLeastSq(const std::vector<int>& N, const std::vector<int>& Time, const benchmark::BigO Complexity) {
+LeastSq minimalLeastSq(const std::vector<int>& N, const std::vector<double>& Time, const benchmark::BigO Complexity) {
 	assert(N.size() == Time.size() && N.size() >= 2); // Do not compute fitting curve is less than two benchmark runs are given
 	assert(Complexity != benchmark::O_None);  // Check that complexity is a valid parameter. 
 
