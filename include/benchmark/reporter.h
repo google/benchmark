@@ -52,7 +52,7 @@ class BenchmarkReporter {
       complexity(O_None),
       arg1(0), 
       arg2(0),
-      report_bigO(false),
+      report_big_o(false),
       report_rms(false) {}
 
     std::string benchmark_name;
@@ -75,7 +75,7 @@ class BenchmarkReporter {
     int    arg2;
     
     // Inform print function whether the current run is a complexity report
-    bool report_bigO;
+    bool report_big_o;
     bool report_rms;
   };
 
@@ -105,8 +105,8 @@ class BenchmarkReporter {
 
   virtual ~BenchmarkReporter();
 protected:
-  static void ComputeStats(const std::vector<Run> & reports, Run& mean, Run& stddev);
-  static void ComputeBigO(const std::vector<Run> & reports, Run& bigO, Run& rms);
+  static void ComputeStats(const std::vector<Run> & reports, Run* mean, Run* stddev);
+  static void ComputeBigO(const std::vector<Run> & reports, Run* bigO, Run* rms);
   static TimeUnitMultiplier GetTimeUnitAndMultiplier(TimeUnit unit);
   static std::string GetBigO(BigO complexity);
 };

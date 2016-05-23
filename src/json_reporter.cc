@@ -100,7 +100,7 @@ void JSONReporter::ReportRuns(std::vector<Run> const& reports) {
   if (reports.size() >= 2) {
     Run mean_data;
     Run stddev_data;
-    BenchmarkReporter::ComputeStats(reports, mean_data, stddev_data);
+    BenchmarkReporter::ComputeStats(reports, &mean_data, &stddev_data);
     reports_cp.push_back(mean_data);
     reports_cp.push_back(stddev_data);
   }
@@ -129,7 +129,7 @@ void JSONReporter::ReportComplexity(const std::vector<Run> & complexity_reports)
   
   Run bigO_data;
   Run rms_data;
-  BenchmarkReporter::ComputeBigO(complexity_reports, bigO_data, rms_data);
+  BenchmarkReporter::ComputeBigO(complexity_reports, &bigO_data, &rms_data);
   
   // Output using PrintRun.
   out << indent << "{\n";
