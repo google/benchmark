@@ -112,7 +112,7 @@ void ConsoleReporter::PrintRunData(const Run& result) {
   const char* timeLabel;
   std::tie(timeLabel, multiplier) = GetTimeUnitAndMultiplier(result.time_unit);
 
-  ColorPrintf(COLOR_GREEN, "%-*s ",
+  ColorPrintf((result.report_big_o ||result.report_rms) ? COLOR_BLUE : COLOR_GREEN, "%-*s ",
               name_field_width_, result.benchmark_name.c_str());
 
   if(result.report_big_o) {
@@ -146,7 +146,8 @@ void ConsoleReporter::PrintRunData(const Run& result) {
                 timeLabel);
   }
 
-  ColorPrintf(COLOR_CYAN, "%10lld", result.iterations);
+  if(!result.report_big_o && !result.report_rms)
+    ColorPrintf(COLOR_CYAN, "%10lld", result.iterations);
 
   if (!rate.empty()) {
     ColorPrintf(COLOR_DEFAULT, " %*s", 13, rate.c_str());

@@ -99,10 +99,20 @@ void CSVReporter::PrintRunData(const Run & run) {
   ReplaceAll(&name, "\"", "\"\"");
   std::cout << "\"" << name << "\",";
 
-  std::cout << run.iterations << ",";
+  // Do not print iteration on bigO and RMS report
+  if(!run.report_big_o && !run.report_rms)
+    std::cout << run.iterations << ",";
+  else
+    std::cout << ",";
+    
   std::cout << real_time << ",";
   std::cout << cpu_time << ",";
-  std::cout << timeLabel << ",";
+  
+  // Do not print timeLabel on RMS report
+  if(!run.report_rms)
+    std::cout << timeLabel << ",";
+  else
+    std::cout << ",";
 
   if (run.bytes_per_second > 0.0) {
     std::cout << run.bytes_per_second;

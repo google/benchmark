@@ -162,17 +162,20 @@ void JSONReporter::PrintRunData(Run const& run) {
     out << indent
         << FormatKV("name", run.benchmark_name)
         << ",\n";
-    out << indent
-        << FormatKV("iterations", run.iterations)
-        << ",\n";
+    if(!run.report_big_o && !run.report_rms) {
+        out << indent
+            << FormatKV("iterations", run.iterations)
+            << ",\n";
+    }
     out << indent
         << FormatKV("real_time", RoundDouble(real_time))
         << ",\n";
     out << indent
-        << FormatKV("cpu_time", RoundDouble(cpu_time))
-        << ",\n";
-    out << indent
-        << FormatKV("time_unit", timeLabel);
+        << FormatKV("cpu_time", RoundDouble(cpu_time));
+    if(!run.report_rms) {
+        out << ",\n" << indent
+            << FormatKV("time_unit", timeLabel);
+    }
     if (run.bytes_per_second > 0.0) {
         out << ",\n" << indent
             << FormatKV("bytes_per_second", RoundDouble(run.bytes_per_second));
