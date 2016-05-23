@@ -31,9 +31,9 @@ BENCHMARK(BM_Complexity_O1) -> Range(1, 1<<18) -> Complexity(benchmark::o1);
 
 static void BM_Complexity_O_N(benchmark::State& state) {
   auto v = ConstructRandomVector(state.range_x());
-  const int itemNotInVector = state.range_x()*2; // Test worst case scenario (item not in vector)
+  const int item_not_in_vector = state.range_x()*2; // Test worst case scenario (item not in vector)
   while (state.KeepRunning()) {
-      benchmark::DoNotOptimize(std::find(v.begin(), v.end(), itemNotInVector));
+      benchmark::DoNotOptimize(std::find(v.begin(), v.end(), item_not_in_vector));
   }
 }
 BENCHMARK(BM_Complexity_O_N) -> RangeMultiplier(2) -> Range(1<<10, 1<<16) -> Complexity(benchmark::oN);
@@ -71,9 +71,9 @@ BENCHMARK(BM_Complexity_O_N_Cubed) -> DenseRange(1, 8) -> Complexity(benchmark::
 
 static void BM_Complexity_O_log_N(benchmark::State& state) {
   auto m = ConstructRandomMap(state.range_x());
-  const int itemNotInVector = state.range_x()*2; // Test worst case scenario (item not in vector)
+  const int item_not_in_vector = state.range_x()*2; // Test worst case scenario (item not in vector)
   while (state.KeepRunning()) {
-      benchmark::DoNotOptimize(m.find(itemNotInVector));
+      benchmark::DoNotOptimize(m.find(item_not_in_vector));
   }
 }
 BENCHMARK(BM_Complexity_O_log_N) 
