@@ -128,25 +128,6 @@ void BenchmarkReporter::ComputeBigO(
   rms->complexity = result_cpu.complexity;
 }
 
-std::string BenchmarkReporter::GetBigO(BigO complexity) {
-  switch (complexity) {
-    case oN:
-      return "* N";
-    case oNSquared:
-      return "* N**2";
-    case oNCubed:
-      return "* N**3";
-    case oLogN:
-      return "* lgN";
-    case oNLogN:
-      return "* NlgN";
-    case o1:
-      return "* 1";
-    default:
-      return "";      
-  }
-}
-
 TimeUnitMultiplier BenchmarkReporter::GetTimeUnitAndMultiplier(TimeUnit unit) {
   switch (unit) {
     case kMillisecond:

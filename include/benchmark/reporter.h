@@ -108,7 +108,6 @@ protected:
   static void ComputeStats(const std::vector<Run> & reports, Run* mean, Run* stddev);
   static void ComputeBigO(const std::vector<Run> & reports, Run* bigO, Run* rms);
   static TimeUnitMultiplier GetTimeUnitAndMultiplier(TimeUnit unit);
-  static std::string GetBigO(BigO complexity);
 };
 
 // Simple reporter that outputs benchmark data to the console. This is the
