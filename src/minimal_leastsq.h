@@ -30,14 +30,14 @@
 //                   best fitting curve detected.
 
 struct LeastSq {
-	LeastSq() :
-		coef(0),
-		rms(0),
-		complexity(benchmark::oNone) {}
+  LeastSq() :
+    coef(0),
+    rms(0),
+    complexity(benchmark::oNone) {}
 
-	double coef;
-	double rms;
-	benchmark::BigO   complexity;
+  double coef;
+  double rms;
+  benchmark::BigO   complexity;
 };
 
 // Find the coefficient for the high-order term in the running time, by minimizing the sum of squares of relative error.
