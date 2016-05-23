@@ -415,7 +415,6 @@ bool BenchmarkFamilies::FindBenchmarks(
         instance.min_time = family->min_time_;
         instance.use_real_time = family->use_real_time_;
         instance.use_manual_time = family->use_manual_time_;
-        instance.last_benchmark_instance = (args == family->args_.back());
         instance.complexity = family->complexity_;
         instance.threads = num_threads;
         instance.multithreaded = !(family->thread_counts_.empty());
@@ -442,6 +441,7 @@ bool BenchmarkFamilies::FindBenchmarks(
         }
 
         if (re.Match(instance.name)) {
+          instance.last_benchmark_instance = (args == family->args_.back());
           benchmarks->push_back(instance);
         }
       }
