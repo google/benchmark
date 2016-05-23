@@ -1,8 +1,16 @@
+// Testing:
+//   State::PauseTiming()
+//   State::ResumeTiming()
+// Test that CHECK's within these function diagnose when they are called
+// outside of the KeepRunning() loop.
+//
+// NOTE: Users should NOT include or use src/check.h. This is only done in
+// order to test library internals.
 
 #include "benchmark/benchmark_api.h"
 #include "../src/check.h"
 
-void test_handler() {
+void TestHandler() {
   throw std::logic_error("");
 }
 
@@ -37,7 +45,7 @@ void BM_diagnostic_test(benchmark::State& state) {
 BENCHMARK(BM_diagnostic_test);
 
 int main(int argc, char** argv) {
-  benchmark::internal::get_abort_handler() = &test_handler;
+  benchmark::internal::GetAbortHandler() = &TestHandler;
   benchmark::Initialize(&argc, argv);
   benchmark::RunSpecifiedBenchmarks();
 }

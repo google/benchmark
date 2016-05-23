@@ -235,7 +235,8 @@ enum TimeUnit {
 // benchmark to use.
 class State {
 public:
-  State(size_t max_iters, bool has_x, int x, bool has_y, int y, int thread_i, int n_threads);
+  State(size_t max_iters, bool has_x, int x, bool has_y, int y,
+        int thread_i, int n_threads);
 
   // Returns true iff the benchmark should continue through another iteration.
   // NOTE: A benchmark may not return from the test until KeepRunning() has

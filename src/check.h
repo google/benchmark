@@ -12,13 +12,13 @@ namespace internal {
 
 typedef void(AbortHandlerT)();
 
-inline AbortHandlerT*& get_abort_handler() {
+inline AbortHandlerT*& GetAbortHandler() {
     static AbortHandlerT* handler = &std::abort;
     return handler;
 }
 
-BENCHMARK_NORETURN inline void abort_handler() {
-    get_abort_handler()();
+BENCHMARK_NORETURN inline void CallAbortHandler() {
+    GetAbortHandler()();
     std::abort(); // fallback to enforce noreturn
 }
 
@@ -39,7 +39,7 @@ public:
 
   BENCHMARK_NORETURN ~CheckHandler() noexcept(false) {
       log_ << std::endl;
-      abort_handler();
+      CallAbortHandler();
   }
 
   CheckHandler & operator=(const CheckHandler&) = delete;
