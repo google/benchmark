@@ -20,19 +20,22 @@
 #include <math.h>
 
 // Internal function to calculate the different scalability forms
-double fittingCurve(double N, benchmark::BigO Complexity) {
-	if (Complexity == benchmark::O_N)
-		return N;
-	else if (Complexity == benchmark::O_N_Squared)
-		return pow(N, 2);
-	else if (Complexity == benchmark::O_N_Cubed)
-		return pow(N, 3);
-	else if (Complexity == benchmark::O_log_N)
-		return log2(N);
-	else if (Complexity == benchmark::O_N_log_N)
-		return N * log2(N);
-
-	return 1; // Default value for O_1
+double fittingCurve(double n, benchmark::BigO complexity) {
+	switch (complexity) {
+		case benchmark::O_N:
+			return n;
+		case benchmark::O_N_Squared:
+			return pow(n, 2);
+		case benchmark::O_N_Cubed:
+			return pow(n, 3);
+		case benchmark::O_log_N:
+			return log2(n);
+		case benchmark::O_N_log_N:
+			return n * log2(n);
+		case benchmark::O_1:
+		default:
+			return 1;   
+	}
 }
 
 // Internal function to find the coefficient for the high-order term in the running time, by minimizing the sum of squares of relative error.
