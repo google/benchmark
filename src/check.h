@@ -10,6 +10,18 @@
 namespace benchmark {
 namespace internal {
 
+typedef void(AbortHandlerT)();
+
+inline AbortHandlerT*& get_abort_handler() {
+    static AbortHandlerT* handler = &std::abort;
+    return handler;
+}
+
+BENCHMARK_NORETURN inline void abort_handler() {
+    get_abort_handler()();
+    std::abort(); // fallback to enforce noreturn
+}
+
 // CheckHandler is the class constructed by failing CHECK macros. CheckHandler
 // will log information about the failures and abort when it is destructed.
 class CheckHandler {
@@ -25,9 +37,9 @@ public:
     return log_;
   }
 
-  BENCHMARK_NORETURN ~CheckHandler() {
+  BENCHMARK_NORETURN ~CheckHandler() noexcept(false) {
       log_ << std::endl;
-      std::abort();
+      abort_handler();
   }
 
   CheckHandler & operator=(const CheckHandler&) = delete;

@@ -242,15 +242,17 @@ public:
   // returned false.
   bool KeepRunning() {
     if (BENCHMARK_BUILTIN_EXPECT(!started_, false)) {
-        ResumeTiming();
+        assert(!finished_);
         started_ = true;
+        ResumeTiming();
     }
     bool const res = total_iterations_++ < max_iterations;
     if (BENCHMARK_BUILTIN_EXPECT(!res, false)) {
-        assert(started_);
+        assert(started_ && !finished_);
         PauseTiming();
         // Total iterations now is one greater than max iterations. Fix this.
         total_iterations_ = max_iterations;
+        finished_ = true;
     }
     return res;
   }
@@ -371,6 +373,7 @@ public:
 
 private:
   bool started_;
+  bool finished_;
   size_t total_iterations_;
 
   bool has_range_x_;
