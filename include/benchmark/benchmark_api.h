@@ -232,17 +232,17 @@ enum TimeUnit {
 };
 
 // BigO is passed to a benchmark in order to specify the asymptotic computational 
-// complexity for the benchmark. In case O_Auto is selected, complexity will be 
+// complexity for the benchmark. In case oAuto is selected, complexity will be 
 // calculated automatically to the best fit.
 enum BigO {
-	O_None,
-	O_1,
-	O_N,
-	O_N_Squared,
-	O_N_Cubed,
-	O_log_N,
-	O_N_log_N,
-	O_Auto
+	oNone,
+	o1,
+	oN,
+	oNSquared,
+	oNCubed,
+	oLogN,
+	oNLogN,
+	oAuto
 };
 
 // State is passed to a running Benchmark and contains state for the

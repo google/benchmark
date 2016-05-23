@@ -27,7 +27,7 @@ void BM_Complexity_O1(benchmark::State& state) {
   while (state.KeepRunning()) {
   }
 }
-BENCHMARK(BM_Complexity_O1) -> Range(1, 1<<18) -> Complexity(benchmark::O_1);
+BENCHMARK(BM_Complexity_O1) -> Range(1, 1<<18) -> Complexity(benchmark::o1);
 
 static void BM_Complexity_O_N(benchmark::State& state) {
   auto v = ConstructRandomVector(state.range_x());
@@ -36,8 +36,8 @@ static void BM_Complexity_O_N(benchmark::State& state) {
       benchmark::DoNotOptimize(std::find(v.begin(), v.end(), itemNotInVector));
   }
 }
-BENCHMARK(BM_Complexity_O_N) -> RangeMultiplier(2) -> Range(1<<10, 1<<16) -> Complexity(benchmark::O_N);
-BENCHMARK(BM_Complexity_O_N) -> RangeMultiplier(2) -> Range(1<<10, 1<<16) -> Complexity(benchmark::O_Auto);
+BENCHMARK(BM_Complexity_O_N) -> RangeMultiplier(2) -> Range(1<<10, 1<<16) -> Complexity(benchmark::oN);
+BENCHMARK(BM_Complexity_O_N) -> RangeMultiplier(2) -> Range(1<<10, 1<<16) -> Complexity(benchmark::oAuto);
    
 static void BM_Complexity_O_N_Squared(benchmark::State& state) {
   std::string s1(state.range_x(), '-');
@@ -50,7 +50,7 @@ static void BM_Complexity_O_N_Squared(benchmark::State& state) {
         }
     }
 }
-BENCHMARK(BM_Complexity_O_N_Squared) -> Range(1, 1<<8) -> Complexity(benchmark::O_N_Squared);
+BENCHMARK(BM_Complexity_O_N_Squared) -> Range(1, 1<<8) -> Complexity(benchmark::oNSquared);
     
 static void BM_Complexity_O_N_Cubed(benchmark::State& state) {
   std::string s1(state.range_x(), '-');
@@ -67,7 +67,7 @@ static void BM_Complexity_O_N_Cubed(benchmark::State& state) {
         }
     }
 }
-BENCHMARK(BM_Complexity_O_N_Cubed) -> DenseRange(1, 8) -> Complexity(benchmark::O_N_Cubed);
+BENCHMARK(BM_Complexity_O_N_Cubed) -> DenseRange(1, 8) -> Complexity(benchmark::oNCubed);
 
 static void BM_Complexity_O_log_N(benchmark::State& state) {
   auto m = ConstructRandomMap(state.range_x());
@@ -77,7 +77,7 @@ static void BM_Complexity_O_log_N(benchmark::State& state) {
   }
 }
 BENCHMARK(BM_Complexity_O_log_N) 
-    -> RangeMultiplier(2) -> Range(1<<10, 1<<16) -> Complexity(benchmark::O_log_N);
+    -> RangeMultiplier(2) -> Range(1<<10, 1<<16) -> Complexity(benchmark::oLogN);
 
 static void BM_Complexity_O_N_log_N(benchmark::State& state) {
   auto v = ConstructRandomVector(state.range_x());
@@ -85,15 +85,15 @@ static void BM_Complexity_O_N_log_N(benchmark::State& state) {
       std::sort(v.begin(), v.end());
   }
 }
-BENCHMARK(BM_Complexity_O_N_log_N) -> RangeMultiplier(2) -> Range(1<<10, 1<<16) -> Complexity(benchmark::O_N_log_N);
-BENCHMARK(BM_Complexity_O_N_log_N) -> RangeMultiplier(2) -> Range(1<<10, 1<<16) -> Complexity(benchmark::O_Auto);
+BENCHMARK(BM_Complexity_O_N_log_N) -> RangeMultiplier(2) -> Range(1<<10, 1<<16) -> Complexity(benchmark::oNLogN);
+BENCHMARK(BM_Complexity_O_N_log_N) -> RangeMultiplier(2) -> Range(1<<10, 1<<16) -> Complexity(benchmark::oAuto);
 
 // Test benchmark with no range and check no complexity is calculated.
 void BM_Extreme_Cases(benchmark::State& state) {
   while (state.KeepRunning()) {
   }
 }
-BENCHMARK(BM_Extreme_Cases) -> Complexity(benchmark::O_N_log_N);
-BENCHMARK(BM_Extreme_Cases) -> Arg(42) -> Complexity(benchmark::O_Auto);
+BENCHMARK(BM_Extreme_Cases) -> Complexity(benchmark::oNLogN);
+BENCHMARK(BM_Extreme_Cases) -> Arg(42) -> Complexity(benchmark::oAuto);
 
 BENCHMARK_MAIN()

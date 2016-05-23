@@ -22,18 +22,18 @@
 
 #include <vector>
 
-// This data structure will contain the result returned by minimalLeastSq
+// This data structure will contain the result returned by MinimalLeastSq
 //   - coef        : Estimated coeficient for the high-order term as interpolated from data.
 //   - rms         : Normalized Root Mean Squared Error.
-//   - complexity  : Scalability form (e.g. O_N, O_N_log_N). In case a scalability form has been provided to minimalLeastSq
-//                   this will return the same value. In case BigO::O_Auto has been selected, this parameter will return the 
+//   - complexity  : Scalability form (e.g. oN, oNLogN). In case a scalability form has been provided to MinimalLeastSq
+//                   this will return the same value. In case BigO::oAuto has been selected, this parameter will return the 
 //                   best fitting curve detected.
 
 struct LeastSq {
 	LeastSq() :
 		coef(0),
 		rms(0),
-		complexity(benchmark::O_None) {}
+		complexity(benchmark::oNone) {}
 
 	double coef;
 	double rms;
@@ -41,6 +41,6 @@ struct LeastSq {
 };
 
 // Find the coefficient for the high-order term in the running time, by minimizing the sum of squares of relative error.
-LeastSq minimalLeastSq(const std::vector<int>& N, const std::vector<double>& Time, const benchmark::BigO Complexity = benchmark::O_Auto);
+LeastSq MinimalLeastSq(const std::vector<int>& N, const std::vector<double>& Time, const benchmark::BigO Complexity = benchmark::oAuto);
 
 #endif

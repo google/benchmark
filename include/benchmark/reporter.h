@@ -49,7 +49,7 @@ class BenchmarkReporter {
       bytes_per_second(0),
       items_per_second(0),
       max_heapbytes_used(0),
-      complexity(O_None),
+      complexity(oNone),
       arg1(0), 
       arg2(0),
       report_big_o(false),

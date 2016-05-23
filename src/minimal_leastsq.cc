@@ -16,95 +16,94 @@
 // Adapted to be used with google benchmark
 
 #include "minimal_leastsq.h"
-
+#include "check.h"
 #include <math.h>
 
 // Internal function to calculate the different scalability forms
-double fittingCurve(double n, benchmark::BigO complexity) {
+double FittingCurve(double n, benchmark::BigO complexity) {
 	switch (complexity) {
-		case benchmark::O_N:
+		case benchmark::oN:
 			return n;
-		case benchmark::O_N_Squared:
+		case benchmark::oNSquared:
 			return pow(n, 2);
-		case benchmark::O_N_Cubed:
+		case benchmark::oNCubed:
 			return pow(n, 3);
-		case benchmark::O_log_N:
+		case benchmark::oLogN:
 			return log2(n);
-		case benchmark::O_N_log_N:
+		case benchmark::oNLogN:
 			return n * log2(n);
-		case benchmark::O_1:
+		case benchmark::o1:
 		default:
 			return 1;   
 	}
 }
 
 // Internal function to find the coefficient for the high-order term in the running time, by minimizing the sum of squares of relative error.
-//   - N          : Vector containing the size of the benchmark tests.
-//   - Time       : Vector containing the times for the benchmark tests.
-//   - Complexity : Fitting curve.
+//   - n          : Vector containing the size of the benchmark tests.
+//   - time       : Vector containing the times for the benchmark tests.
+//   - complexity : Fitting curve.
 // For a deeper explanation on the algorithm logic, look the README file at http://github.com/ismaelJimenez/Minimal-Cpp-Least-Squared-Fit
 
-LeastSq leastSq(const std::vector<int>& N, const std::vector<double>& Time, const benchmark::BigO Complexity) {
-	assert(N.size() == Time.size() && N.size() >= 2);
-	assert(Complexity != benchmark::O_None &&
-		Complexity != benchmark::O_Auto);
+LeastSq CalculateLeastSq(const std::vector<int>& n, const std::vector<double>& time, const benchmark::BigO complexity) {
+	CHECK_NE(complexity, benchmark::oAuto);
 
-	double sigmaGN = 0;
-	double sigmaGNSquared = 0;
-	double sigmaTime = 0;
-	double sigmaTimeGN = 0;
+	double sigma_gn = 0;
+	double sigma_gn_squared = 0;
+	double sigma_time = 0;
+	double sigma_time_gn = 0;
 
 	// Calculate least square fitting parameter
-	for (size_t i = 0; i < N.size(); ++i) {
-		double GNi = fittingCurve(N[i], Complexity);
-		sigmaGN += GNi;
-		sigmaGNSquared += GNi * GNi;
-		sigmaTime += Time[i];
-		sigmaTimeGN += Time[i] * GNi;
+	for (size_t i = 0; i < n.size(); ++i) {
+		double gn_i = FittingCurve(n[i], complexity);
+		sigma_gn += gn_i;
+		sigma_gn_squared += gn_i * gn_i;
+		sigma_time += time[i];
+		sigma_time_gn += time[i] * gn_i;
 	}
 
 	LeastSq result;
-	result.complexity = Complexity;
+	result.complexity = complexity;
 
 	// Calculate complexity. 
-	// O_1 is treated as an special case
-	if (Complexity != benchmark::O_1)
-		result.coef = sigmaTimeGN / sigmaGNSquared;
+	// o1 is treated as an special case
+	if (complexity != benchmark::o1)
+		result.coef = sigma_time_gn / sigma_gn_squared;
 	else
-		result.coef = sigmaTime / N.size();
+		result.coef = sigma_time / n.size();
 
 	// Calculate RMS
 	double rms = 0;
-	for (size_t i = 0; i < N.size(); ++i) {
-		double fit = result.coef * fittingCurve(N[i], Complexity);
-		rms += pow((Time[i] - fit), 2);
+	for (size_t i = 0; i < n.size(); ++i) {
+		double fit = result.coef * FittingCurve(n[i], complexity);
+		rms += pow((time[i] - fit), 2);
 	}
 
-	double mean = sigmaTime / N.size();
+	double mean = sigma_time / n.size();
 
-	result.rms = sqrt(rms / N.size()) / mean; // Normalized RMS by the mean of the observed values
+	result.rms = sqrt(rms / n.size()) / mean; // Normalized RMS by the mean of the observed values
 
 	return result;
 }
 
 // Find the coefficient for the high-order term in the running time, by minimizing the sum of squares of relative error.
-//   - N          : Vector containing the size of the benchmark tests.
-//   - Time       : Vector containing the times for the benchmark tests.
-//   - Complexity : If different than O_Auto, the fitting curve will stick to this one. If it is O_Auto, it will be calculated 
+//   - n          : Vector containing the size of the benchmark tests.
+//   - time       : Vector containing the times for the benchmark tests.
+//   - complexity : If different than oAuto, the fitting curve will stick to this one. If it is oAuto, it will be calculated 
 //                  the best fitting curve.
 
-LeastSq minimalLeastSq(const std::vector<int>& N, const std::vector<double>& Time, const benchmark::BigO Complexity) {
-	assert(N.size() == Time.size() && N.size() >= 2); // Do not compute fitting curve is less than two benchmark runs are given
-	assert(Complexity != benchmark::O_None);  // Check that complexity is a valid parameter. 
+LeastSq MinimalLeastSq(const std::vector<int>& n, const std::vector<double>& time, const benchmark::BigO complexity) {
+	CHECK_EQ(n.size(), time.size());
+	CHECK_GE(n.size(), 2);  // Do not compute fitting curve is less than two benchmark runs are given
+	CHECK_NE(complexity, benchmark::oNone);
 
-	if(Complexity == benchmark::O_Auto) {
-		std::vector<benchmark::BigO> fitCurves = { benchmark::O_log_N, benchmark::O_N, benchmark::O_N_log_N, benchmark::O_N_Squared, benchmark::O_N_Cubed };
+	if(complexity == benchmark::oAuto) {
+		std::vector<benchmark::BigO> fit_curves = { benchmark::oLogN, benchmark::oN, benchmark::oNLogN, benchmark::oNSquared, benchmark::oNCubed };
 
-		LeastSq best_fit = leastSq(N, Time, benchmark::O_1); // Take O_1 as default best fitting curve
+		LeastSq best_fit = CalculateLeastSq(n, time, benchmark::o1); // Take o1 as default best fitting curve
 
 		// Compute all possible fitting curves and stick to the best one
-		for (const auto& fit : fitCurves) {
-			LeastSq current_fit = leastSq(N, Time, fit);
+		for (const auto& fit : fit_curves) {
+			LeastSq current_fit = CalculateLeastSq(n, time, fit);
 			if (current_fit.rms < best_fit.rms)
 				best_fit = current_fit;
 		}
@@ -112,5 +111,5 @@ LeastSq minimalLeastSq(const std::vector<int>& N, const std::vector<double>& Tim
 		return best_fit;
 	}
 	else
-		return leastSq(N, Time, Complexity);
+		return CalculateLeastSq(n, time, complexity);
 }

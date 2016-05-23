@@ -95,13 +95,13 @@ void BenchmarkReporter::ComputeBigO(
     CpuTime.push_back(run.cpu_accumulated_time/run.iterations);
   }
   
-  LeastSq resultCpu = minimalLeastSq(N, CpuTime, reports[0].complexity);
+  LeastSq resultCpu = MinimalLeastSq(N, CpuTime, reports[0].complexity);
   
   // resultCpu.complexity is passed as parameter to resultReal because in case
-  // reports[0].complexity is O_Auto, the noise on the measured data could make 
+  // reports[0].complexity is oAuto, the noise on the measured data could make 
   // the best fit function of Cpu and Real differ. In order to solve this, we take
   // the best fitting function for the Cpu, and apply it to Real data.
-  LeastSq resultReal = minimalLeastSq(N, RealTime, resultCpu.complexity);
+  LeastSq resultReal = MinimalLeastSq(N, RealTime, resultCpu.complexity);
 
   std::string benchmark_name = reports[0].benchmark_name.substr(0, reports[0].benchmark_name.find('/'));
   
@@ -130,17 +130,17 @@ void BenchmarkReporter::ComputeBigO(
 
 std::string BenchmarkReporter::GetBigO(BigO complexity) {
   switch (complexity) {
-    case O_N:
+    case oN:
       return "* N";
-    case O_N_Squared:
+    case oNSquared:
       return "* N**2";
-    case O_N_Cubed:
+    case oNCubed:
       return "* N**3";
-    case O_log_N:
+    case oLogN:
       return "* lgN";
-    case O_N_log_N:
+    case oNLogN:
       return "* NlgN";
-    case O_1:
+    case o1:
       return "* 1";
     default:
       return "";      

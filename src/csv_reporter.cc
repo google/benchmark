@@ -72,12 +72,12 @@ void CSVReporter::ReportComplexity(const std::vector<Run> & complexity_reports) 
     return;
   }
   
-  Run bigO_data;
+  Run big_o_data;
   Run rms_data;
-  BenchmarkReporter::ComputeBigO(complexity_reports, &bigO_data, &rms_data);
+  BenchmarkReporter::ComputeBigO(complexity_reports, &big_o_data, &rms_data);
   
   // Output using PrintRun.
-  PrintRunData(bigO_data);
+  PrintRunData(big_o_data);
   PrintRunData(rms_data);
 }
 

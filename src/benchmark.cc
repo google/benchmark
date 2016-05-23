@@ -454,7 +454,7 @@ BenchmarkImp::BenchmarkImp(const char* name)
     : name_(name), arg_count_(-1), time_unit_(kNanosecond),
       range_multiplier_(kRangeMultiplier), min_time_(0.0), 
       use_real_time_(false), use_manual_time_(false),
-      complexity_(O_None) {
+      complexity_(oNone) {
 }
 
 BenchmarkImp::~BenchmarkImp() {
@@ -803,7 +803,7 @@ void RunBenchmark(const benchmark::internal::Benchmark::Instance& b,
         report.complexity = b.complexity;
         reports.push_back(report);
         
-        if(report.complexity != O_None) 
+        if(report.complexity != oNone) 
           complexity_reports.push_back(report);
      
         break;
@@ -830,7 +830,7 @@ void RunBenchmark(const benchmark::internal::Benchmark::Instance& b,
   }
   br->ReportRuns(reports);
   
-  if((b.complexity != O_None) && b.last_benchmark_instance) {
+  if((b.complexity != oNone) && b.last_benchmark_instance) {
     br->ReportComplexity(complexity_reports);
     complexity_reports.clear();
   }
