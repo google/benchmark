@@ -9,13 +9,23 @@
 
 #include "benchmark/benchmark_api.h"
 #include "../src/check.h"
+#include <stdexcept>
+#include <cstdlib>
+
+#if defined(__GNUC__) && !defined(__EXCEPTIONS)
+#define TEST_HAS_NO_EXCEPTIONS
+#endif
 
 void TestHandler() {
+#ifndef TEST_HAS_NO_EXCEPTIONS
   throw std::logic_error("");
+#else
+  std::abort();
+#endif
 }
 
 void try_invalid_pause_resume(benchmark::State& state) {
-#ifndef NDEBUG
+#if !defined(NDEBUG) && !defined(TEST_HAS_NO_EXCEPTIONS)
   try {
     state.PauseTiming();
     std::abort();
