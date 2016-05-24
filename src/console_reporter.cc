@@ -124,11 +124,9 @@ void ConsoleReporter::PrintRunData(const Run& result) {
                 big_o.c_str());
   }  
   else if(result.report_rms) {
-    ColorPrintf(COLOR_YELLOW, "%10.0f %s %10.0f %s ",
+    ColorPrintf(COLOR_YELLOW, "%10.0f %% %10.0f %% ",
                 result.real_accumulated_time * multiplier * 100,
-                "%",
-                result.cpu_accumulated_time * multiplier * 100,
-                "%");
+                result.cpu_accumulated_time * multiplier * 100);
   }  
   else if (result.iterations == 0) {
     ColorPrintf(COLOR_YELLOW, "%10.0f %s %10.0f %s ",
