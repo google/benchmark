@@ -863,14 +863,14 @@ void PrintBenchmarkList() {
   }
 }
 
-void RunMatchingBenchmarks(const std::string& spec,
-                           BenchmarkReporter* reporter) {
+size_t RunMatchingBenchmarks(const std::string& spec,
+                             BenchmarkReporter* reporter) {
   CHECK(reporter != nullptr);
-  if (spec.empty()) return;
+  CHECK(!spec.empty());
 
   std::vector<Benchmark::Instance> benchmarks;
   auto families = BenchmarkFamilies::GetInstance();
-  if (!families->FindBenchmarks(spec, &benchmarks)) return;
+  if (!families->FindBenchmarks(spec, &benchmarks)) return 0;
 
   // Determine the width of the name field using a minimum width of 10.
   size_t name_field_width = 10;
@@ -894,6 +894,7 @@ void RunMatchingBenchmarks(const std::string& spec,
       RunBenchmark(benchmark, reporter);
     }
   }
+  return benchmarks.size();
 }
 
 std::unique_ptr<BenchmarkReporter> GetDefaultReporter() {
@@ -913,14 +914,14 @@ std::unique_ptr<BenchmarkReporter> GetDefaultReporter() {
 } // end namespace
 } // end namespace internal
 
-void RunSpecifiedBenchmarks() {
-  RunSpecifiedBenchmarks(nullptr);
+size_t RunSpecifiedBenchmarks() {
+  return RunSpecifiedBenchmarks(nullptr);
 }
 
-void RunSpecifiedBenchmarks(BenchmarkReporter* reporter) {
+size_t RunSpecifiedBenchmarks(BenchmarkReporter* reporter) {
   if (FLAGS_benchmark_list_tests) {
     internal::PrintBenchmarkList();
-    return;
+    return 0;
   }
   std::string spec = FLAGS_benchmark_filter;
   if (spec.empty() || spec == "all")
@@ -931,8 +932,9 @@ void RunSpecifiedBenchmarks(BenchmarkReporter* reporter) {
     default_reporter = internal::GetDefaultReporter();
     reporter = default_reporter.get();
   }
-  internal::RunMatchingBenchmarks(spec, reporter);
+  size_t num_run = internal::RunMatchingBenchmarks(spec, reporter);
   reporter->Finalize();
+  return num_run;
 }
 
 namespace internal {

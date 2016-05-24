@@ -160,10 +160,14 @@ class BenchmarkReporter;
 
 void Initialize(int* argc, char** argv);
 
-// Otherwise, run all benchmarks specified by the --benchmark_filter flag,
-// and exit after running the benchmarks.
-void RunSpecifiedBenchmarks();
-void RunSpecifiedBenchmarks(BenchmarkReporter* reporter);
+// Run all benchmarks which match the specified --benchmark_filter flag.
+// The second overload reports the results using the specified 'reporter'.
+//
+// RETURNS: The number of benchmarks run, not including repetitions. If
+// '--benchmark_list_tests' is specified '0' is returned.
+size_t RunSpecifiedBenchmarks();
+size_t RunSpecifiedBenchmarks(BenchmarkReporter* reporter);
+
 
 // If this routine is called, peak memory allocation past this point in the
 // benchmark is reported at the end of the benchmark report line. (It is

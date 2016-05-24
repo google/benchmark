@@ -72,7 +72,7 @@ int main(int argc, char* argv[]) {
   benchmark::Initialize(&argc, argv);
 
   TestReporter test_reporter;
-  benchmark::RunSpecifiedBenchmarks(&test_reporter);
+  const size_t returned_count = benchmark::RunSpecifiedBenchmarks(&test_reporter);
 
   if (argc == 2) {
     // Make sure we ran all of the tests
@@ -81,9 +81,9 @@ int main(int argc, char* argv[]) {
     ss >> expected;
 
     const size_t count = test_reporter.GetCount();
-    if (count != expected) {
-      std::cerr << "ERROR: Expected " << expected << " tests to be ran but only "
-                << count << " completed" << std::endl;
+    if (count != expected || returned_count != expected) {
+      std::cerr << "ERROR: Expected " << expected << " tests to be run but returned_count = "
+                << returned_count << " and reporter_count = " << count << std::endl;
       return -1;
     }
   }
