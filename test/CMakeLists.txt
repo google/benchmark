@@ -2,10 +2,6 @@
 
 find_package(Threads REQUIRED)
 
-set(CXX03_FLAGS "${CMAKE_CXX_FLAGS}")
-string(REPLACE "-std=c++11" "-std=c++03" CXX03_FLAGS "${CXX03_FLAGS}")
-string(REPLACE "-std=c++0x" "-std=c++03" CXX03_FLAGS "${CXX03_FLAGS}")
-
 macro(compile_benchmark_test name)
   add_executable(${name} "${name}.cc")
   target_link_libraries(${name} benchmark ${CMAKE_THREAD_LIBS_INIT})
@@ -18,6 +14,7 @@ add_test(benchmark benchmark_test --benchmark_min_time=0.01)
 compile_benchmark_test(filter_test)
 macro(add_filter_test name filter expect)
   add_test(${name} filter_test --benchmark_min_time=0.01 --benchmark_filter=${filter} ${expect})
+  add_test(${name}_list_only filter_test --benchmark_list_tests --benchmark_filter=${filter} ${expect})
 endmacro(add_filter_test)
 
 add_filter_test(filter_simple "Foo" 3)
@@ -48,10 +45,21 @@ add_test(fixture_test fixture_test --benchmark_min_time=0.01)
 compile_benchmark_test(map_test)
 add_test(map_test map_test --benchmark_min_time=0.01)
 
-compile_benchmark_test(cxx03_test)
-set_target_properties(cxx03_test
-    PROPERTIES COMPILE_FLAGS "${CXX03_FLAGS}")
-add_test(cxx03 cxx03_test --benchmark_min_time=0.01)
+
+check_cxx_compiler_flag(-std=c++03 BENCHMARK_HAS_CXX03_FLAG)
+if (BENCHMARK_HAS_CXX03_FLAG)
+  set(CXX03_FLAGS "${CMAKE_CXX_FLAGS}")
+  string(REPLACE "-std=c++11" "-std=c++03" CXX03_FLAGS "${CXX03_FLAGS}")
+  string(REPLACE "-std=c++0x" "-std=c++03" CXX03_FLAGS "${CXX03_FLAGS}")
+
+  compile_benchmark_test(cxx03_test)
+  set_target_properties(cxx03_test
+      PROPERTIES COMPILE_FLAGS "${CXX03_FLAGS}")
+  add_test(cxx03 cxx03_test --benchmark_min_time=0.01)
+endif()
+
+compile_benchmark_test(complexity_test)
+add_test(complexity_benchmark complexity_test --benchmark_min_time=0.01)
 
 # Add the coverage command(s)
 if(CMAKE_BUILD_TYPE)
@@ -72,7 +80,7 @@ if (${CMAKE_BUILD_TYPE_LOWER} MATCHES "coverage")
       COMMAND ${LCOV} -q -a before.lcov -a after.lcov --output-file final.lcov
       COMMAND ${LCOV} -q -r final.lcov "'${CMAKE_SOURCE_DIR}/test/*'" -o final.lcov
       COMMAND ${GENHTML} final.lcov -o lcov --demangle-cpp --sort -p "${CMAKE_BINARY_DIR}" -t benchmark
-      DEPENDS filter_test benchmark_test options_test basic_test fixture_test cxx03_test
+      DEPENDS filter_test benchmark_test options_test basic_test fixture_test cxx03_test complexity_test
       WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
       COMMENT "Running LCOV"
     )

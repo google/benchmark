@@ -48,7 +48,7 @@ bool CSVReporter::ReportContext(const Context& context) {
   return true;
 }
 
-void CSVReporter::ReportRuns(std::vector<Run> const& reports) {
+void CSVReporter::ReportRuns(const std::vector<Run> & reports) {
   if (reports.empty()) {
     return;
   }
@@ -66,7 +66,22 @@ void CSVReporter::ReportRuns(std::vector<Run> const& reports) {
   }
 }
 
-void CSVReporter::PrintRunData(Run const& run) {
+void CSVReporter::ReportComplexity(const std::vector<Run>& complexity_reports) {
+  if (complexity_reports.size() < 2) {
+    // We don't report asymptotic complexity data if there was a single run.
+    return;
+  }
+
+  Run big_o_data;
+  Run rms_data;
+  BenchmarkReporter::ComputeBigO(complexity_reports, &big_o_data, &rms_data);
+
+  // Output using PrintRun.
+  PrintRunData(big_o_data);
+  PrintRunData(rms_data);
+}
+
+void CSVReporter::PrintRunData(const Run & run) {
   double multiplier;
   const char* timeLabel;
   std::tie(timeLabel, multiplier) = GetTimeUnitAndMultiplier(run.time_unit);
@@ -84,10 +99,20 @@ void CSVReporter::PrintRunData(Run const& run) {
   ReplaceAll(&name, "\"", "\"\"");
   std::cout << "\"" << name << "\",";
 
-  std::cout << run.iterations << ",";
+  // Do not print iteration on bigO and RMS report
+  if(!run.report_big_o && !run.report_rms) {
+    std::cout << run.iterations;
+  }
+  std::cout << ",";
+
   std::cout << real_time << ",";
   std::cout << cpu_time << ",";
-  std::cout << timeLabel << ",";
+
+  // Do not print timeLabel on RMS report
+  if(!run.report_rms) {
+    std::cout << timeLabel;
+  }
+  std::cout << ",";
 
   if (run.bytes_per_second > 0.0) {
     std::cout << run.bytes_per_second;

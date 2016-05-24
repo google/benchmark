@@ -49,7 +49,11 @@ class BenchmarkReporter {
       cpu_accumulated_time(0),
       bytes_per_second(0),
       items_per_second(0),
-      max_heapbytes_used(0) {}
+      max_heapbytes_used(0),
+      complexity(oNone),
+      complexity_n(0),
+      report_big_o(false),
+      report_rms(false) {}
 
     std::string benchmark_name;
     std::string report_label;  // Empty if not set by benchmark.
@@ -67,6 +71,14 @@ class BenchmarkReporter {
 
     // This is set to 0.0 if memory tracing is not enabled.
     double max_heapbytes_used;
+
+    // Keep track of arguments to compute asymptotic complexity
+    BigO   complexity;
+    int complexity_n;
+
+    // Inform print function whether the current run is a complexity report
+    bool report_big_o;
+    bool report_rms;
   };
 
   // Called once for every suite of benchmarks run.
@@ -83,13 +95,21 @@ class BenchmarkReporter {
   // benchmark, thus have the same name.
   virtual void ReportRuns(const std::vector<Run>& report) = 0;
 
+  // Called once at the last benchmark in a family of benchmarks, gives information
+  // about asymptotic complexity and RMS. 
+  // Note that all the benchmark runs in a range should refer to the same benchmark, 
+  // thus have the same name.
+  virtual void ReportComplexity(const std::vector<Run>& complexity_reports) = 0;
+
   // Called once and only once after ever group of benchmarks is run and
   // reported.
   virtual void Finalize();
 
   virtual ~BenchmarkReporter();
 protected:
-  static void ComputeStats(std::vector<Run> const& reports, Run* mean, Run* stddev);
+  static void ComputeStats(const std::vector<Run>& reports,
+                           Run* mean, Run* stddev);
+  static void ComputeBigO(const std::vector<Run>& reports, Run* bigO, Run* rms);
   static TimeUnitMultiplier GetTimeUnitAndMultiplier(TimeUnit unit);
 };
 
@@ -99,6 +119,7 @@ class ConsoleReporter : public BenchmarkReporter {
  public:
   virtual bool ReportContext(const Context& context);
   virtual void ReportRuns(const std::vector<Run>& reports);
+  virtual void ReportComplexity(const std::vector<Run>& complexity_reports);
 
  protected:
   virtual void PrintRunData(const Run& report);
@@ -111,6 +132,7 @@ public:
   JSONReporter() : first_report_(true) {}
   virtual bool ReportContext(const Context& context);
   virtual void ReportRuns(const std::vector<Run>& reports);
+  virtual void ReportComplexity(const std::vector<Run>& complexity_reports);
   virtual void Finalize();
 
 private:
@@ -123,6 +145,7 @@ class CSVReporter : public BenchmarkReporter {
 public:
   virtual bool ReportContext(const Context& context);
   virtual void ReportRuns(const std::vector<Run>& reports);
+  virtual void ReportComplexity(const std::vector<Run>& complexity_reports);
 
 private:
   void PrintRunData(const Run& report);

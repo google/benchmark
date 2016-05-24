@@ -154,16 +154,24 @@ BENCHMARK(BM_test)->Unit(benchmark::kMillisecond);
 #include <stdint.h>
 
 #include "macros.h"
+#include "complexity.h"
 
 namespace benchmark {
 class BenchmarkReporter;
 
 void Initialize(int* argc, char** argv);
 
-// Otherwise, run all benchmarks specified by the --benchmark_filter flag,
-// and exit after running the benchmarks.
-void RunSpecifiedBenchmarks();
-void RunSpecifiedBenchmarks(BenchmarkReporter* reporter);
+// Generate a list of benchmarks matching the specified --benchmark_filter flag
+// and if --benchmark_list_tests is specified return after printing the name
+// of each matching benchmark. Otherwise run each matching benchmark and
+// report the results.
+//
+// The second overload reports the results using the specified 'reporter'.
+//
+// RETURNS: The number of matching benchmarks.
+size_t RunSpecifiedBenchmarks();
+size_t RunSpecifiedBenchmarks(BenchmarkReporter* reporter);
+
 
 // If this routine is called, peak memory allocation past this point in the
 // benchmark is reported at the end of the benchmark report line. (It is
@@ -335,6 +343,19 @@ public:
     return bytes_processed_;
   }
 
+  // If this routine is called with complexity_n > 0 and complexity report is requested for the 
+  // family benchmark, then current benchmark will be part of the computation and complexity_n will
+  // represent the length of N.
+  BENCHMARK_ALWAYS_INLINE
+  void SetComplexityN(size_t complexity_n) {
+    complexity_n_ = complexity_n;
+  }
+
+  BENCHMARK_ALWAYS_INLINE
+  size_t complexity_length_n() {
+    return complexity_n_;
+  }
+
   // If this routine is called with items > 0, then an items/s
   // label is printed on the benchmark report line for the currently
   // executing benchmark. It is typically called at the end of a processing
@@ -406,6 +427,8 @@ private:
 
   size_t bytes_processed_;
   size_t items_processed_;
+
+  size_t complexity_n_;
 
 public:
   // FIXME: Make this private somehow.
@@ -493,6 +516,10 @@ public:
   // to control how many iterations are run, and in the printing of items/second
   // or MB/second values.
   Benchmark* UseManualTime();
+
+  // Set the asymptotic computational complexity for the benchmark. If called
+  // the asymptotic computational complexity will be shown on the output. 
+  Benchmark* Complexity(BigO complexity);
 
   // Support for running multiple copies of the same benchmark concurrently
   // in multiple threads.  This may be useful when measuring the scaling

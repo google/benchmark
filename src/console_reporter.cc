@@ -84,6 +84,21 @@ void ConsoleReporter::ReportRuns(const std::vector<Run>& reports) {
   PrintRunData(stddev_data);
 }
 
+void ConsoleReporter::ReportComplexity(const std::vector<Run> & complexity_reports) {
+  if (complexity_reports.size() < 2) {
+    // We don't report asymptotic complexity data if there was a single run.
+    return;
+  }
+
+  Run big_o_data;
+  Run rms_data;
+  BenchmarkReporter::ComputeBigO(complexity_reports, &big_o_data, &rms_data);
+
+  // Output using PrintRun.
+  PrintRunData(big_o_data);
+  PrintRunData(rms_data);
+}
+
 void ConsoleReporter::PrintRunData(const Run& result) {
   ColorPrintf(COLOR_GREEN, "%-*s ",
               name_field_width_, result.benchmark_name.c_str());
@@ -110,7 +125,23 @@ void ConsoleReporter::PrintRunData(const Run& result) {
   const char* timeLabel;
   std::tie(timeLabel, multiplier) = GetTimeUnitAndMultiplier(result.time_unit);
 
-  if (result.iterations == 0) {
+  ColorPrintf((result.report_big_o ||result.report_rms) ? COLOR_BLUE :
+              COLOR_GREEN, "%-*s ",
+              name_field_width_, result.benchmark_name.c_str());
+
+  if(result.report_big_o) {
+    std::string big_o = result.report_big_o ? GetBigO(result.complexity) : "";
+    ColorPrintf(COLOR_YELLOW, "%10.4f %s %10.4f %s ",
+                result.real_accumulated_time * multiplier,
+                big_o.c_str(),
+                result.cpu_accumulated_time * multiplier,
+                big_o.c_str());
+  } else if(result.report_rms) {
+    ColorPrintf(COLOR_YELLOW, "%10.0f %% %10.0f %% ",
+                result.real_accumulated_time * multiplier * 100,
+                result.cpu_accumulated_time * multiplier * 100);
+  } else if (result.iterations == 0) {
+
     ColorPrintf(COLOR_YELLOW, "%10.0f %s %10.0f %s ",
                 result.real_accumulated_time * multiplier,
                 timeLabel,
@@ -126,7 +157,9 @@ void ConsoleReporter::PrintRunData(const Run& result) {
                 timeLabel);
   }
 
-  ColorPrintf(COLOR_CYAN, "%10lld", result.iterations);
+  if(!result.report_big_o && !result.report_rms) {
+    ColorPrintf(COLOR_CYAN, "%10lld", result.iterations);
+  }
 
   if (!rate.empty()) {
     ColorPrintf(COLOR_DEFAULT, " %*s", 13, rate.c_str());

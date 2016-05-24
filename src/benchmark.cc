@@ -120,9 +120,10 @@ static std::atomic<const char*> error_message = ATOMIC_VAR_INIT(nullptr);
 //static benchmark::MallocCounter *benchmark_mc;
 
 struct ThreadStats {
-    ThreadStats() : bytes_processed(0), items_processed(0) {}
+    ThreadStats() : bytes_processed(0), items_processed(0), complexity_n(0) {}
     int64_t bytes_processed;
     int64_t items_processed;
+    int     complexity_n;
 };
 
 // Timer management class
@@ -312,6 +313,8 @@ struct Benchmark::Instance {
   int            range_multiplier;
   bool           use_real_time;
   bool           use_manual_time;
+  BigO           complexity;
+  bool           last_benchmark_instance;
   double         min_time;
   int            threads;    // Number of concurrent threads to use
   bool           multithreaded;  // Is benchmark multi-threaded?
@@ -353,6 +356,7 @@ public:
   void MinTime(double n);
   void UseRealTime();
   void UseManualTime();
+  void Complexity(BigO complexity);
   void Threads(int t);
   void ThreadRange(int min_threads, int max_threads);
   void ThreadPerCpu();
@@ -371,6 +375,7 @@ private:
   double min_time_;
   bool use_real_time_;
   bool use_manual_time_;
+  BigO complexity_;
   std::vector<int> thread_counts_;
 
   BenchmarkImp& operator=(BenchmarkImp const&);
@@ -433,6 +438,7 @@ bool BenchmarkFamilies::FindBenchmarks(
         instance.min_time = family->min_time_;
         instance.use_real_time = family->use_real_time_;
         instance.use_manual_time = family->use_manual_time_;
+        instance.complexity = family->complexity_;
         instance.threads = num_threads;
         instance.multithreaded = !(family->thread_counts_.empty());
 
@@ -458,6 +464,7 @@ bool BenchmarkFamilies::FindBenchmarks(
         }
 
         if (re.Match(instance.name)) {
+          instance.last_benchmark_instance = (args == family->args_.back());
           benchmarks->push_back(instance);
         }
       }
@@ -469,7 +476,8 @@ bool BenchmarkFamilies::FindBenchmarks(
 BenchmarkImp::BenchmarkImp(const char* name)
     : name_(name), arg_count_(-1), time_unit_(kNanosecond),
       range_multiplier_(kRangeMultiplier), min_time_(0.0), 
-      use_real_time_(false), use_manual_time_(false) {
+      use_real_time_(false), use_manual_time_(false),
+      complexity_(oNone) {
 }
 
 BenchmarkImp::~BenchmarkImp() {
@@ -543,6 +551,10 @@ void BenchmarkImp::UseRealTime() {
 void BenchmarkImp::UseManualTime() {
   CHECK(!use_real_time_) << "Cannot set UseRealTime and UseManualTime simultaneously.";
   use_manual_time_ = true;
+}
+
+void BenchmarkImp::Complexity(BigO complexity){
+  complexity_ = complexity;
 }
 
 void BenchmarkImp::Threads(int t) {
@@ -658,6 +670,11 @@ Benchmark* Benchmark::UseManualTime() {
   return this;
 }
 
+Benchmark* Benchmark::Complexity(BigO complexity) {
+  imp_->Complexity(complexity);
+  return this;
+}
+
 Benchmark* Benchmark::Threads(int t) {
   imp_->Threads(t);
   return this;
@@ -699,13 +716,16 @@ void RunInThread(const benchmark::internal::Benchmark::Instance* b,
     MutexLock l(GetBenchmarkLock());
     total->bytes_processed += st.bytes_processed();
     total->items_processed += st.items_processed();
+    total->complexity_n += st.complexity_length_n();
   }
 
   timer_manager->Finalize();
 }
 
 void RunBenchmark(const benchmark::internal::Benchmark::Instance& b,
-                  BenchmarkReporter* br) EXCLUDES(GetBenchmarkLock()) {
+                  BenchmarkReporter* br,
+                  std::vector<BenchmarkReporter::Run>& complexity_reports)
+  EXCLUDES(GetBenchmarkLock()) {
   size_t iters = 1;
 
   std::vector<BenchmarkReporter::Run> reports;
@@ -793,7 +813,6 @@ void RunBenchmark(const benchmark::internal::Benchmark::Instance& b,
         report.time_unit = b.time_unit;
 
         if (!report.error_occurred) {
-
           double bytes_per_second = 0;
           if (total.bytes_processed > 0 && seconds > 0.0) {
             bytes_per_second = (total.bytes_processed / seconds);
@@ -811,7 +830,12 @@ void RunBenchmark(const benchmark::internal::Benchmark::Instance& b,
           report.cpu_accumulated_time = cpu_accumulated_time;
           report.bytes_per_second = bytes_per_second;
           report.items_per_second = items_per_second;
+          report.complexity_n = total.complexity_n;
+          report.complexity = b.complexity;
+          if(report.complexity != oNone)
+            complexity_reports.push_back(report);
         }
+
         reports.push_back(report);
         break;
       }
@@ -836,6 +860,12 @@ void RunBenchmark(const benchmark::internal::Benchmark::Instance& b,
     }
   }
   br->ReportRuns(reports);
+
+  if((b.complexity != oNone) && b.last_benchmark_instance) {
+    br->ReportComplexity(complexity_reports);
+    complexity_reports.clear();
+  }
+
   if (b.multithreaded) {
     for (std::thread& thread : pool)
       thread.join();
@@ -850,6 +880,7 @@ State::State(size_t max_iters, bool has_x, int x, bool has_y, int y,
       has_range_x_(has_x), range_x_(x),
       has_range_y_(has_y), range_y_(y),
       bytes_processed_(0), items_processed_(0),
+      complexity_n_(0),
       error_occurred_(false),
       thread_index(thread_i),
       threads(n_threads),
@@ -868,7 +899,7 @@ void State::PauseTiming() {
 
 void State::ResumeTiming() {
   CHECK(running_benchmark);
-  CHECK(started_ && !finished_);
+  CHECK(started_ && !finished_ && !error_occurred_);
   timer_manager->StartTimer();
 }
 
@@ -897,24 +928,9 @@ void State::SetLabel(const char* label) {
 namespace internal {
 namespace {
 
-void PrintBenchmarkList() {
-  std::vector<Benchmark::Instance> benchmarks;
-  auto families = BenchmarkFamilies::GetInstance();
-  if (!families->FindBenchmarks(".", &benchmarks)) return;
-
-  for (const internal::Benchmark::Instance& benchmark : benchmarks) {
-    std::cout <<  benchmark.name << "\n";
-  }
-}
-
-void RunMatchingBenchmarks(const std::string& spec,
+void RunMatchingBenchmarks(const std::vector<Benchmark::Instance>& benchmarks,
                            BenchmarkReporter* reporter) {
   CHECK(reporter != nullptr);
-  if (spec.empty()) return;
-
-  std::vector<Benchmark::Instance> benchmarks;
-  auto families = BenchmarkFamilies::GetInstance();
-  if (!families->FindBenchmarks(spec, &benchmarks)) return;
 
   // Determine the width of the name field using a minimum width of 10.
   size_t name_field_width = 10;
@@ -933,9 +949,12 @@ void RunMatchingBenchmarks(const std::string& spec,
   context.cpu_scaling_enabled = CpuScalingEnabled();
   context.name_field_width = name_field_width;
 
+  // Keep track of runing times of all instances of current benchmark
+  std::vector<BenchmarkReporter::Run> complexity_reports;
+
   if (reporter->ReportContext(context)) {
     for (const auto& benchmark : benchmarks) {
-      RunBenchmark(benchmark, reporter);
+      RunBenchmark(benchmark, reporter, complexity_reports);
     }
   }
 }
@@ -957,26 +976,32 @@ std::unique_ptr<BenchmarkReporter> GetDefaultReporter() {
 } // end namespace
 } // end namespace internal
 
-void RunSpecifiedBenchmarks() {
-  RunSpecifiedBenchmarks(nullptr);
+size_t RunSpecifiedBenchmarks() {
+  return RunSpecifiedBenchmarks(nullptr);
 }
 
-void RunSpecifiedBenchmarks(BenchmarkReporter* reporter) {
-  if (FLAGS_benchmark_list_tests) {
-    internal::PrintBenchmarkList();
-    return;
-  }
+size_t RunSpecifiedBenchmarks(BenchmarkReporter* reporter) {
   std::string spec = FLAGS_benchmark_filter;
   if (spec.empty() || spec == "all")
     spec = ".";  // Regexp that matches all benchmarks
 
-  std::unique_ptr<BenchmarkReporter> default_reporter;
-  if (!reporter) {
-    default_reporter = internal::GetDefaultReporter();
-    reporter = default_reporter.get();
+  std::vector<internal::Benchmark::Instance> benchmarks;
+  auto families = internal::BenchmarkFamilies::GetInstance();
+  if (!families->FindBenchmarks(spec, &benchmarks)) return 0;
+
+  if (FLAGS_benchmark_list_tests) {
+    for (auto const& benchmark : benchmarks)
+      std::cout <<  benchmark.name << "\n";
+  } else {
+    std::unique_ptr<BenchmarkReporter> default_reporter;
+    if (!reporter) {
+      default_reporter = internal::GetDefaultReporter();
+      reporter = default_reporter.get();
+    }
+    internal::RunMatchingBenchmarks(benchmarks, reporter);
+    reporter->Finalize();
   }
-  internal::RunMatchingBenchmarks(spec, reporter);
-  reporter->Finalize();
+  return benchmarks.size();
 }
 
 namespace internal {
