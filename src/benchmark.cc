@@ -206,11 +206,10 @@ class TimerManager {
   void RemoveErroredThread() EXCLUDES(lock_) {
     MutexLock ml(lock_);
     int last_thread = --running_threads_ == 0;
-    if (last_thread && running_) {
-        InternalStop();
-    } else if (!last_thread){
+    if (last_thread && running_)
+      InternalStop();
+    else if (!last_thread)
       phase_condition_.notify_all();
-    }
   }
 
   // REQUIRES: timer is not running
@@ -279,13 +278,10 @@ class TimerManager {
         return this->phase_number_ > phase_number_cp ||
                entered_ == running_threads_; // A thread has aborted in error
       };
-      while (true) {
-        phase_condition_.wait(ml.native_handle(), cb);
-        if (phase_number_ > phase_number_cp)
+      phase_condition_.wait(ml.native_handle(), cb);
+      if (phase_number_ > phase_number_cp)
           return false;
-        else if (running_threads_ == entered_)
-          break;
-      }
+      // else (running_threads_ == entered_) and we are the last thread.
     }
     // Last thread has reached the barrier
     phase_number_++;
