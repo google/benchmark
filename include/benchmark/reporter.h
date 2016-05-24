@@ -70,7 +70,7 @@ class BenchmarkReporter {
     
     // Keep track of arguments to compute asymptotic complexity
     BigO   complexity;
-    int    complexity_n;
+    size_t complexity_n;
     
     // Inform print function whether the current run is a complexity report
     bool report_big_o;
