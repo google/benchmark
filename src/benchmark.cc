@@ -815,7 +815,7 @@ void RunBenchmark(const benchmark::internal::Benchmark::Instance& b,
 
 State::State(size_t max_iters, bool has_x, int x, bool has_y, int y,
              int thread_i, int n_threads)
-    : started_(false), total_iterations_(0),
+    : started_(false), finished_(false), total_iterations_(0),
       has_range_x_(has_x), range_x_(x),
       has_range_y_(has_y), range_y_(y),
       bytes_processed_(0), items_processed_(0),
@@ -830,11 +830,13 @@ State::State(size_t max_iters, bool has_x, int x, bool has_y, int y,
 void State::PauseTiming() {
   // Add in time accumulated so far
   CHECK(running_benchmark);
+  CHECK(started_ && !finished_);
   timer_manager->StopTimer();
 }
 
 void State::ResumeTiming() {
   CHECK(running_benchmark);
+  CHECK(started_ && !finished_);
   timer_manager->StartTimer();
 }
 
