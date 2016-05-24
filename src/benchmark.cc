@@ -116,9 +116,10 @@ std::string* GetReportLabel() {
 //static benchmark::MallocCounter *benchmark_mc;
 
 struct ThreadStats {
-    ThreadStats() : bytes_processed(0), items_processed(0) {}
+    ThreadStats() : bytes_processed(0), items_processed(0), complexity_n(0) {}
     int64_t bytes_processed;
     int64_t items_processed;
+    int     complexity_n;
 };
 
 // Timer management class
@@ -290,6 +291,8 @@ struct Benchmark::Instance {
   int            range_multiplier;
   bool           use_real_time;
   bool           use_manual_time;
+  BigO           complexity;
+  bool           last_benchmark_instance;
   double         min_time;
   int            threads;    // Number of concurrent threads to use
   bool           multithreaded;  // Is benchmark multi-threaded?
@@ -331,6 +334,7 @@ public:
   void MinTime(double n);
   void UseRealTime();
   void UseManualTime();
+  void Complexity(BigO complexity);
   void Threads(int t);
   void ThreadRange(int min_threads, int max_threads);
   void ThreadPerCpu();
@@ -349,6 +353,7 @@ private:
   double min_time_;
   bool use_real_time_;
   bool use_manual_time_;
+  BigO complexity_;
   std::vector<int> thread_counts_;
 
   BenchmarkImp& operator=(BenchmarkImp const&);
@@ -411,6 +416,7 @@ bool BenchmarkFamilies::FindBenchmarks(
         instance.min_time = family->min_time_;
         instance.use_real_time = family->use_real_time_;
         instance.use_manual_time = family->use_manual_time_;
+        instance.complexity = family->complexity_;
         instance.threads = num_threads;
         instance.multithreaded = !(family->thread_counts_.empty());
 
@@ -436,6 +442,7 @@ bool BenchmarkFamilies::FindBenchmarks(
         }
 
         if (re.Match(instance.name)) {
+          instance.last_benchmark_instance = (args == family->args_.back());
           benchmarks->push_back(instance);
         }
       }
@@ -447,7 +454,8 @@ bool BenchmarkFamilies::FindBenchmarks(
 BenchmarkImp::BenchmarkImp(const char* name)
     : name_(name), arg_count_(-1), time_unit_(kNanosecond),
       range_multiplier_(kRangeMultiplier), min_time_(0.0), 
-      use_real_time_(false), use_manual_time_(false) {
+      use_real_time_(false), use_manual_time_(false),
+      complexity_(oNone) {
 }
 
 BenchmarkImp::~BenchmarkImp() {
@@ -521,6 +529,10 @@ void BenchmarkImp::UseRealTime() {
 void BenchmarkImp::UseManualTime() {
   CHECK(!use_real_time_) << "Cannot set UseRealTime and UseManualTime simultaneously.";
   use_manual_time_ = true;
+}
+
+void BenchmarkImp::Complexity(BigO complexity){
+  complexity_ = complexity;
 }
 
 void BenchmarkImp::Threads(int t) {
@@ -636,6 +648,11 @@ Benchmark* Benchmark::UseManualTime() {
   return this;
 }
 
+Benchmark* Benchmark::Complexity(BigO complexity) {
+  imp_->Complexity(complexity);
+  return this;
+}
+
 Benchmark* Benchmark::Threads(int t) {
   imp_->Threads(t);
   return this;
@@ -677,13 +694,15 @@ void RunInThread(const benchmark::internal::Benchmark::Instance* b,
     MutexLock l(GetBenchmarkLock());
     total->bytes_processed += st.bytes_processed();
     total->items_processed += st.items_processed();
+    total->complexity_n += st.complexity_length_n();
   }
 
   timer_manager->Finalize();
 }
 
 void RunBenchmark(const benchmark::internal::Benchmark::Instance& b,
-                  BenchmarkReporter* br) EXCLUDES(GetBenchmarkLock()) {
+                  BenchmarkReporter* br,
+                  std::vector<BenchmarkReporter::Run>& complexity_reports) EXCLUDES(GetBenchmarkLock()) {
   size_t iters = 1;
 
   std::vector<BenchmarkReporter::Run> reports;
@@ -781,7 +800,13 @@ void RunBenchmark(const benchmark::internal::Benchmark::Instance& b,
         report.cpu_accumulated_time = cpu_accumulated_time;
         report.bytes_per_second = bytes_per_second;
         report.items_per_second = items_per_second;
+        report.complexity_n = total.complexity_n;
+        report.complexity = b.complexity;
         reports.push_back(report);
+        
+        if(report.complexity != oNone) 
+          complexity_reports.push_back(report);
+     
         break;
       }
 
@@ -805,6 +830,12 @@ void RunBenchmark(const benchmark::internal::Benchmark::Instance& b,
     }
   }
   br->ReportRuns(reports);
+  
+  if((b.complexity != oNone) && b.last_benchmark_instance) {
+    br->ReportComplexity(complexity_reports);
+    complexity_reports.clear();
+  }
+  
   if (b.multithreaded) {
     for (std::thread& thread : pool)
       thread.join();
@@ -819,6 +850,7 @@ State::State(size_t max_iters, bool has_x, int x, bool has_y, int y,
       has_range_x_(has_x), range_x_(x),
       has_range_y_(has_y), range_y_(y),
       bytes_processed_(0), items_processed_(0),
+      complexity_n_(0),
       thread_index(thread_i),
       threads(n_threads),
       max_iterations(max_iters)
@@ -876,9 +908,12 @@ void RunMatchingBenchmarks(const std::vector<Benchmark::Instance>& benchmarks,
   context.cpu_scaling_enabled = CpuScalingEnabled();
   context.name_field_width = name_field_width;
 
+  // Keep track of runing times of all instances of current benchmark
+  std::vector<BenchmarkReporter::Run> complexity_reports;
+
   if (reporter->ReportContext(context)) {
     for (const auto& benchmark : benchmarks) {
-      RunBenchmark(benchmark, reporter);
+      RunBenchmark(benchmark, reporter, complexity_reports);
     }
   }
 }

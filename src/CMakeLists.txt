@@ -5,7 +5,7 @@ include_directories(${PROJECT_SOURCE_DIR}/src)
 set(SOURCE_FILES "benchmark.cc" "colorprint.cc" "commandlineflags.cc"
                  "console_reporter.cc" "csv_reporter.cc" "json_reporter.cc"
                  "log.cc" "reporter.cc" "sleep.cc" "string_util.cc"
-                 "sysinfo.cc" "walltime.cc")
+                 "sysinfo.cc" "walltime.cc" "minimal_leastsq.cc")
 # Determine the correct regular expression engine to use
 if(HAVE_STD_REGEX)
   set(RE_FILES "re_std.cc")

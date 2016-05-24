@@ -115,6 +115,31 @@ void JSONReporter::ReportRuns(std::vector<Run> const& reports) {
   }
 }
 
+void JSONReporter::ReportComplexity(const std::vector<Run> & complexity_reports) {
+  if (complexity_reports.size() < 2) {
+    // We don't report asymptotic complexity data if there was a single run.
+    return;
+  }
+  
+  std::string indent(4, ' ');
+  std::ostream& out = std::cout;
+  if (!first_report_) {
+    out << ",\n";
+  }
+  
+  Run big_o_data;
+  Run rms_data;
+  BenchmarkReporter::ComputeBigO(complexity_reports, &big_o_data, &rms_data);
+  
+  // Output using PrintRun.
+  out << indent << "{\n";
+  PrintRunData(big_o_data);
+  out << indent << "},\n";
+  out << indent << "{\n";
+  PrintRunData(rms_data);
+  out << indent << '}';
+}
+
 void JSONReporter::Finalize() {
     // Close the list of benchmarks and the top level object.
     std::cout << "\n  ]\n}\n";
@@ -137,17 +162,20 @@ void JSONReporter::PrintRunData(Run const& run) {
     out << indent
         << FormatKV("name", run.benchmark_name)
         << ",\n";
-    out << indent
-        << FormatKV("iterations", run.iterations)
-        << ",\n";
+    if(!run.report_big_o && !run.report_rms) {
+        out << indent
+            << FormatKV("iterations", run.iterations)
+            << ",\n";
+    }
     out << indent
         << FormatKV("real_time", RoundDouble(real_time))
         << ",\n";
     out << indent
-        << FormatKV("cpu_time", RoundDouble(cpu_time))
-        << ",\n";
-    out << indent
-        << FormatKV("time_unit", timeLabel);
+        << FormatKV("cpu_time", RoundDouble(cpu_time));
+    if(!run.report_rms) {
+        out << ",\n" << indent
+            << FormatKV("time_unit", timeLabel);
+    }
     if (run.bytes_per_second > 0.0) {
         out << ",\n" << indent
             << FormatKV("bytes_per_second", RoundDouble(run.bytes_per_second));
