@@ -850,10 +850,10 @@ State::State(size_t max_iters, bool has_x, int x, bool has_y, int y,
       has_range_x_(has_x), range_x_(x),
       has_range_y_(has_y), range_y_(y),
       bytes_processed_(0), items_processed_(0),
+      complexity_n_(0),
       thread_index(thread_i),
       threads(n_threads),
-      max_iterations(max_iters),
-      complexity_n_(0)
+      max_iterations(max_iters)
 {
     CHECK(max_iterations != 0) << "At least one iteration must be run";
     CHECK_LT(thread_index, threads) << "thread_index must be less than threads";
