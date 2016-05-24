@@ -276,6 +276,37 @@ BENCHMARK_REGISTER_F(MyFixture, BarTest)->Threads(2);
 /* BarTest is now registered */
 ```
 
+## Exiting Benchmarks in Error
+
+When external influences such as file I/O and network errors occur within
+a benchmark the `State::SkipWithError(const char* msg)` function can be used
+to skip that run of benchmark and report the error. Note that only future
+iterations of the `KeepRunning()` are skipped. Users may explicitly return
+to exit the benchmark immediately.
+
+The `SkipWithError(...)` function may be used at any point within the benchmark,
+including before and after the `KeepRunning()` loop.
+
+For example:
+
+```c++
+static void BM_test(benchmark::State& state) {
+  auto resource = GetResource();
+  if (!resource.good()) {
+      state.SkipWithError("Resource is not good!");
+      // KeepRunning() loop will not be entered.
+  }
+  while (state.KeepRunning()) {
+      auto data = resource.read_data();
+      if (!resource.good()) {
+        state.SkipWithError("Failed to read data!");
+        break; // Needed to skip the rest of the iteration.
+     }
+     do_stuff(data);
+  }
+}
+```
+
 ## Output Formats
 The library supports multiple output formats. Use the
 `--benchmark_format=<tabular|json>` flag to set the format type. `tabular` is

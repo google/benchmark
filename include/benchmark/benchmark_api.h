@@ -260,13 +260,14 @@ public:
     return res;
   }
 
-  // REQUIRES: timer is running
+  // REQUIRES: timer is running and 'SkipWithError(...)' has not been called
+  //           in the current thread.
   // Stop the benchmark timer.  If not called, the timer will be
   // automatically stopped after KeepRunning() returns false for the first time.
   //
   // For threaded benchmarks the PauseTiming() function acts
   // like a barrier.  I.e., the ith call by a particular thread to this
-  // function will block until all threads have made their ith call.
+  // function will block until all active threads have made their ith call.
   // The timer will stop when the last thread has called this function.
   //
   // NOTE: PauseTiming()/ResumeTiming() are relatively
@@ -274,13 +275,14 @@ public:
   // within each benchmark iteration, if possible.
   void PauseTiming();
 
-  // REQUIRES: timer is not running
+  // REQUIRES: timer is not running and 'SkipWithError(...)' has not been called
+  //           in the current thread.
   // Start the benchmark timer.  The timer is NOT running on entrance to the
   // benchmark function. It begins running after the first call to KeepRunning()
   //
   // For threaded benchmarks the ResumeTiming() function acts
   // like a barrier.  I.e., the ith call by a particular thread to this
-  // function will block until all threads have made their ith call.
+  // function will block until all active threads have made their ith call.
   // The timer will start when the last thread has called this function.
   //
   // NOTE: PauseTiming()/ResumeTiming() are relatively
@@ -288,6 +290,21 @@ public:
   // within each benchmark iteration, if possible.
   void ResumeTiming();
 
+  // REQUIRES: 'SkipWithError(...)' has not been called previously in the
+  //            current thread.
+  // Skip any future iterations of the 'KeepRunning()' loop in the current
+  // thread and report an error with the specified 'msg'. After this call
+  // the user may explicitly 'return' from the benchmark.
+  //
+  // For threaded benchmarks only the current thread stops executing. If
+  // multiple threads report an error only the first error message will be used.
+  // The current thread is no longer considered 'active' thread by
+  // 'PauseTiming()' and 'ResumingTiming()'.
+  //
+  // NOTE: Calling 'SkipWithError(...)' does not cause the benchmark to exit
+  // the current scope immediately. If the function is called from within
+  // the 'KeepRunning()' loop the current iteration will finish. It is the users
+  // responsibility to exit the scope as needed.
   void SkipWithError(const char* msg);
 
   // REQUIRES: called exactly once per iteration of the KeepRunning loop.
