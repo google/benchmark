@@ -312,6 +312,19 @@ public:
     return bytes_processed_;
   }
 
+  // If this routine is called with complexity_n > 0 and complexity report is requested for the 
+  // family benchmark, then current benchmark will be part of the computation and complexity_n will
+  // represent the length of N.
+  BENCHMARK_ALWAYS_INLINE
+  void SetComplexityN(size_t complexity_n) {
+	  complexity_n_ = complexity_n;
+  }
+
+  BENCHMARK_ALWAYS_INLINE
+  size_t complexity_n() {
+    return complexity_n_;
+  }
+
   // If this routine is called with items > 0, then an items/s
   // label is printed on the benchmark report line for the currently
   // executing benchmark. It is typically called at the end of a processing
@@ -382,6 +395,8 @@ private:
 
   size_t bytes_processed_;
   size_t items_processed_;
+
+  size_t complexity_n_;
 
 public:
   // Index of the executing thread. Values from [0, threads).
@@ -466,7 +481,7 @@ public:
   // to control how many iterations are run, and in the printing of items/second
   // or MB/second values.
   Benchmark* UseManualTime();
-  
+
   // Set the asymptotic computational complexity for the benchmark. If called
   // the asymptotic computational complexity will be shown on the output. 
   Benchmark* Complexity(BigO complexity);

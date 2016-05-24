@@ -116,9 +116,10 @@ std::string* GetReportLabel() {
 //static benchmark::MallocCounter *benchmark_mc;
 
 struct ThreadStats {
-    ThreadStats() : bytes_processed(0), items_processed(0) {}
+    ThreadStats() : bytes_processed(0), items_processed(0), complexity_n(0) {}
     int64_t bytes_processed;
     int64_t items_processed;
+    size_t complexity_n;
 };
 
 // Timer management class
@@ -693,6 +694,7 @@ void RunInThread(const benchmark::internal::Benchmark::Instance* b,
     MutexLock l(GetBenchmarkLock());
     total->bytes_processed += st.bytes_processed();
     total->items_processed += st.items_processed();
+    total->complexity_n += st.complexity_n();
   }
 
   timer_manager->Finalize();
@@ -798,8 +800,7 @@ void RunBenchmark(const benchmark::internal::Benchmark::Instance& b,
         report.cpu_accumulated_time = cpu_accumulated_time;
         report.bytes_per_second = bytes_per_second;
         report.items_per_second = items_per_second;
-        report.arg1 = b.arg1;
-        report.arg2 = b.arg2;
+        report.complexity_n = total.complexity_n;
         report.complexity = b.complexity;
         reports.push_back(report);
         
@@ -851,7 +852,8 @@ State::State(size_t max_iters, bool has_x, int x, bool has_y, int y,
       bytes_processed_(0), items_processed_(0),
       thread_index(thread_i),
       threads(n_threads),
-      max_iterations(max_iters)
+      max_iterations(max_iters),
+      complexity_n_(0)
 {
     CHECK(max_iterations != 0) << "At least one iteration must be run";
     CHECK_LT(thread_index, threads) << "thread_index must be less than threads";

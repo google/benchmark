@@ -50,8 +50,7 @@ class BenchmarkReporter {
       items_per_second(0),
       max_heapbytes_used(0),
       complexity(oNone),
-      arg1(0), 
-      arg2(0),
+      complexity_n(0),
       report_big_o(false),
       report_rms(false) {}
 
@@ -71,8 +70,7 @@ class BenchmarkReporter {
     
     // Keep track of arguments to compute asymptotic complexity
     BigO   complexity;
-    int    arg1;
-    int    arg2;
+    int    complexity_n;
     
     // Inform print function whether the current run is a complexity report
     bool report_big_o;

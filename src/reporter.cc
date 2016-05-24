@@ -90,7 +90,7 @@ void BenchmarkReporter::ComputeBigO(
 
   // Populate the accumulators.
   for (const Run& run : reports) {
-    n.push_back(run.arg1); 
+    n.push_back(run.complexity_n); 
     real_time.push_back(run.real_accumulated_time/run.iterations);
     cpu_time.push_back(run.cpu_accumulated_time/run.iterations);
   }
