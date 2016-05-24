@@ -66,16 +66,16 @@ void CSVReporter::ReportRuns(const std::vector<Run> & reports) {
   }
 }
 
-void CSVReporter::ReportComplexity(const std::vector<Run> & complexity_reports) {
+void CSVReporter::ReportComplexity(const std::vector<Run>& complexity_reports) {
   if (complexity_reports.size() < 2) {
     // We don't report asymptotic complexity data if there was a single run.
     return;
   }
-  
+
   Run big_o_data;
   Run rms_data;
   BenchmarkReporter::ComputeBigO(complexity_reports, &big_o_data, &rms_data);
-  
+
   // Output using PrintRun.
   PrintRunData(big_o_data);
   PrintRunData(rms_data);
@@ -100,19 +100,19 @@ void CSVReporter::PrintRunData(const Run & run) {
   std::cout << "\"" << name << "\",";
 
   // Do not print iteration on bigO and RMS report
-  if(!run.report_big_o && !run.report_rms)
-    std::cout << run.iterations << ",";
-  else
-    std::cout << ",";
-    
+  if(!run.report_big_o && !run.report_rms) {
+    std::cout << run.iterations;
+  }
+  std::cout << ",";
+
   std::cout << real_time << ",";
   std::cout << cpu_time << ",";
-  
+
   // Do not print timeLabel on RMS report
-  if(!run.report_rms)
-    std::cout << timeLabel << ",";
-  else
-    std::cout << ",";
+  if(!run.report_rms) {
+    std::cout << timeLabel;
+  }
+  std::cout << ",";
 
   if (run.bytes_per_second > 0.0) {
     std::cout << run.bytes_per_second;

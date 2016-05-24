@@ -702,7 +702,8 @@ void RunInThread(const benchmark::internal::Benchmark::Instance* b,
 
 void RunBenchmark(const benchmark::internal::Benchmark::Instance& b,
                   BenchmarkReporter* br,
-                  std::vector<BenchmarkReporter::Run>& complexity_reports) EXCLUDES(GetBenchmarkLock()) {
+                  std::vector<BenchmarkReporter::Run>& complexity_reports)
+  EXCLUDES(GetBenchmarkLock()) {
   size_t iters = 1;
 
   std::vector<BenchmarkReporter::Run> reports;
@@ -803,10 +804,10 @@ void RunBenchmark(const benchmark::internal::Benchmark::Instance& b,
         report.complexity_n = total.complexity_n;
         report.complexity = b.complexity;
         reports.push_back(report);
-        
-        if(report.complexity != oNone) 
+
+        if(report.complexity != oNone)
           complexity_reports.push_back(report);
-     
+
         break;
       }
 
@@ -830,12 +831,12 @@ void RunBenchmark(const benchmark::internal::Benchmark::Instance& b,
     }
   }
   br->ReportRuns(reports);
-  
+
   if((b.complexity != oNone) && b.last_benchmark_instance) {
     br->ReportComplexity(complexity_reports);
     complexity_reports.clear();
   }
-  
+
   if (b.multithreaded) {
     for (std::thread& thread : pool)
       thread.join();

@@ -9,14 +9,14 @@ namespace benchmark {
 // complexity for the benchmark. In case oAuto is selected, complexity will be 
 // calculated automatically to the best fit.
 enum BigO {
-	oNone,
-	o1,
-	oN,
-	oNSquared,
-	oNCubed,
-	oLogN,
-	oNLogN,
-	oAuto
+  oNone,
+  o1,
+  oN,
+  oNSquared,
+  oNCubed,
+  oLogN,
+  oNLogN,
+  oAuto
 };
 
 inline std::string GetBigO(BigO complexity) {
@@ -34,9 +34,9 @@ inline std::string GetBigO(BigO complexity) {
     case o1:
       return "* 1";
     default:
-      return "";      
+      return "";
   }
 }
-   
+
 } // end namespace benchmark
 #endif // COMPLEXITY_H_

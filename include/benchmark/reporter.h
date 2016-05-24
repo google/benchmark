@@ -67,11 +67,11 @@ class BenchmarkReporter {
 
     // This is set to 0.0 if memory tracing is not enabled.
     double max_heapbytes_used;
-    
+
     // Keep track of arguments to compute asymptotic complexity
     BigO   complexity;
     int complexity_n;
-    
+
     // Inform print function whether the current run is a complexity report
     bool report_big_o;
     bool report_rms;
@@ -90,7 +90,7 @@ class BenchmarkReporter {
   // Note that all the grouped benchmark runs should refer to the same
   // benchmark, thus have the same name.
   virtual void ReportRuns(const std::vector<Run>& report) = 0;
-  
+
   // Called once at the last benchmark in a family of benchmarks, gives information
   // about asymptotic complexity and RMS. 
   // Note that all the benchmark runs in a range should refer to the same benchmark, 
@@ -103,8 +103,9 @@ class BenchmarkReporter {
 
   virtual ~BenchmarkReporter();
 protected:
-  static void ComputeStats(const std::vector<Run> & reports, Run* mean, Run* stddev);
-  static void ComputeBigO(const std::vector<Run> & reports, Run* bigO, Run* rms);
+  static void ComputeStats(const std::vector<Run>& reports,
+                           Run* mean, Run* stddev);
+  static void ComputeBigO(const std::vector<Run>& reports, Run* bigO, Run* rms);
   static TimeUnitMultiplier GetTimeUnitAndMultiplier(TimeUnit unit);
 };
 

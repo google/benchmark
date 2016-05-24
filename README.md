@@ -61,7 +61,9 @@ the specified range and will generate a benchmark for each such argument.
 BENCHMARK(BM_memcpy)->Range(8, 8<<10);
 ```
 
-By default the arguments in the range are generated in multiples of eight and the command above selects [ 8, 64, 512, 4k, 8k ]. In the following code the range multiplier is changed to multiples of two.
+By default the arguments in the range are generated in multiples of eight and
+the command above selects [ 8, 64, 512, 4k, 8k ]. In the following code the
+range multiplier is changed to multiples of two.
 
 ```c++
 BENCHMARK(BM_memcpy)->RangeMultiplier(2)->Range(8, 8<<10);
@@ -117,7 +119,9 @@ BENCHMARK(BM_SetInsert)->Apply(CustomArguments);
 ```
 
 ### Calculate asymptotic complexity (Big O)
-Asymptotic complexity might be calculated for a family of benchmarks. The following code will calculate the coefficient for the high-order term in the running time and the normalized root-mean square error of string comparison.
+Asymptotic complexity might be calculated for a family of benchmarks. The
+following code will calculate the coefficient for the high-order term in the
+running time and the normalized root-mean square error of string comparison.
 
 ```c++
 static void BM_StringCompare(benchmark::State& state) {
@@ -127,14 +131,15 @@ static void BM_StringCompare(benchmark::State& state) {
     benchmark::DoNotOptimize(s1.compare(s2));
 }
 BENCHMARK(BM_StringCompare)
-	->RangeMultiplier(2)->Range(1<<10, 1<<18)->Complexity(benchmark::oN);
+    ->RangeMultiplier(2)->Range(1<<10, 1<<18)->Complexity(benchmark::oN);
 ```
 
-As shown in the following invocation, asymptotic complexity might also be calculated automatically.
+As shown in the following invocation, asymptotic complexity might also be
+calculated automatically.
 
 ```c++
 BENCHMARK(BM_StringCompare)
-	->RangeMultiplier(2)->Range(1<<10, 1<<18)->Complexity(benchmark::oAuto);
+    ->RangeMultiplier(2)->Range(1<<10, 1<<18)->Complexity(benchmark::oAuto);
 ```
 
 ### Templated benchmarks

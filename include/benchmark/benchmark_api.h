@@ -327,7 +327,7 @@ public:
   // represent the length of N.
   BENCHMARK_ALWAYS_INLINE
   void SetComplexityN(size_t complexity_n) {
-	  complexity_n_ = complexity_n;
+    complexity_n_ = complexity_n;
   }
 
   BENCHMARK_ALWAYS_INLINE

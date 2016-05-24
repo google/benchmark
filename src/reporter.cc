@@ -82,7 +82,9 @@ void BenchmarkReporter::ComputeStats(
 void BenchmarkReporter::ComputeBigO(
     const std::vector<Run>& reports,
     Run* big_o, Run* rms) {
-  CHECK(reports.size() >= 2) << "Cannot compute asymptotic complexity for less than 2 reports";
+  CHECK(reports.size() >= 2)
+      << "Cannot compute asymptotic complexity for fewer than 2 reports";
+
   // Accumulators.
   std::vector<int> n;
   std::vector<double> real_time;
@@ -90,21 +92,21 @@ void BenchmarkReporter::ComputeBigO(
 
   // Populate the accumulators.
   for (const Run& run : reports) {
-    n.push_back(run.complexity_n); 
+    n.push_back(run.complexity_n);
     real_time.push_back(run.real_accumulated_time/run.iterations);
     cpu_time.push_back(run.cpu_accumulated_time/run.iterations);
   }
-  
+
   LeastSq result_cpu = MinimalLeastSq(n, cpu_time, reports[0].complexity);
-  
+
   // result_cpu.complexity is passed as parameter to result_real because in case
-  // reports[0].complexity is oAuto, the noise on the measured data could make 
-  // the best fit function of Cpu and Real differ. In order to solve this, we take
-  // the best fitting function for the Cpu, and apply it to Real data.
+  // reports[0].complexity is oAuto, the noise on the measured data could make
+  // the best fit function of Cpu and Real differ. In order to solve this, we
+  // take the best fitting function for the Cpu, and apply it to Real data.
   LeastSq result_real = MinimalLeastSq(n, real_time, result_cpu.complexity);
 
   std::string benchmark_name = reports[0].benchmark_name.substr(0, reports[0].benchmark_name.find('/'));
-  
+
   // Get the data from the accumulator to BenchmarkReporter::Run's.
   big_o->benchmark_name = benchmark_name + "_BigO";
   big_o->iterations = 0;
@@ -115,7 +117,8 @@ void BenchmarkReporter::ComputeBigO(
 
   double multiplier;
   const char* time_label;
-  std::tie(time_label, multiplier) = GetTimeUnitAndMultiplier(reports[0].time_unit);
+  std::tie(time_label, multiplier) =
+      GetTimeUnitAndMultiplier(reports[0].time_unit);
 
   // Only add label to mean/stddev if it is same for all runs
   big_o->report_label = reports[0].report_label;

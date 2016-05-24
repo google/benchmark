@@ -34,17 +34,21 @@ double FittingCurve(double n, benchmark::BigO complexity) {
       return n * log2(n);
     case benchmark::o1:
     default:
-      return 1;   
+      return 1;
   }
 }
 
-// Internal function to find the coefficient for the high-order term in the running time, by minimizing the sum of squares of relative error.
+// Internal function to find the coefficient for the high-order term in the
+// running time, by minimizing the sum of squares of relative error.
 //   - n          : Vector containing the size of the benchmark tests.
 //   - time       : Vector containing the times for the benchmark tests.
 //   - complexity : Fitting curve.
-// For a deeper explanation on the algorithm logic, look the README file at http://github.com/ismaelJimenez/Minimal-Cpp-Least-Squared-Fit
+// For a deeper explanation on the algorithm logic, look the README file at
+// http://github.com/ismaelJimenez/Minimal-Cpp-Least-Squared-Fit
 
-LeastSq CalculateLeastSq(const std::vector<int>& n, const std::vector<double>& time, const benchmark::BigO complexity) {
+LeastSq CalculateLeastSq(const std::vector<int>& n,
+                         const std::vector<double>& time,
+                         const benchmark::BigO complexity) {
   CHECK_NE(complexity, benchmark::oAuto);
 
   double sigma_gn = 0;
@@ -64,12 +68,13 @@ LeastSq CalculateLeastSq(const std::vector<int>& n, const std::vector<double>& t
   LeastSq result;
   result.complexity = complexity;
 
-  // Calculate complexity. 
+  // Calculate complexity.
   // o1 is treated as an special case
-  if (complexity != benchmark::o1)
+  if (complexity != benchmark::o1) {
     result.coef = sigma_time_gn / sigma_gn_squared;
-  else
+  } else {
     result.coef = sigma_time / n.size();
+  }
 
   // Calculate RMS
   double rms = 0;
@@ -80,36 +85,44 @@ LeastSq CalculateLeastSq(const std::vector<int>& n, const std::vector<double>& t
 
   double mean = sigma_time / n.size();
 
-  result.rms = sqrt(rms / n.size()) / mean; // Normalized RMS by the mean of the observed values
+  // Normalized RMS by the mean of the observed values
+  result.rms = sqrt(rms / n.size()) / mean;
 
   return result;
 }
 
-// Find the coefficient for the high-order term in the running time, by minimizing the sum of squares of relative error.
+// Find the coefficient for the high-order term in the running time, by
+// minimizing the sum of squares of relative error.
 //   - n          : Vector containing the size of the benchmark tests.
 //   - time       : Vector containing the times for the benchmark tests.
-//   - complexity : If different than oAuto, the fitting curve will stick to this one. If it is oAuto, it will be calculated 
-//                  the best fitting curve.
-
-LeastSq MinimalLeastSq(const std::vector<int>& n, const std::vector<double>& time, const benchmark::BigO complexity) {
+//   - complexity : If different than oAuto, the fitting curve will stick to
+//                  this one. If it is oAuto, it will be calculated the best
+//                  fitting curve.
+LeastSq MinimalLeastSq(const std::vector<int>& n,
+                       const std::vector<double>& time,
+                       const benchmark::BigO complexity) {
   CHECK_EQ(n.size(), time.size());
   CHECK_GE(n.size(), 2);  // Do not compute fitting curve is less than two benchmark runs are given
   CHECK_NE(complexity, benchmark::oNone);
 
   if(complexity == benchmark::oAuto) {
-    std::vector<benchmark::BigO> fit_curves = { benchmark::oLogN, benchmark::oN, benchmark::oNLogN, benchmark::oNSquared, benchmark::oNCubed };
+    std::vector<benchmark::BigO> fit_curves = {
+      benchmark::oLogN, benchmark::oN, benchmark::oNLogN, benchmark::oNSquared,
+      benchmark::oNCubed };
 
-    LeastSq best_fit = CalculateLeastSq(n, time, benchmark::o1); // Take o1 as default best fitting curve
+    // Take o1 as default best fitting curve
+    LeastSq best_fit = CalculateLeastSq(n, time, benchmark::o1);
 
     // Compute all possible fitting curves and stick to the best one
     for (const auto& fit : fit_curves) {
       LeastSq current_fit = CalculateLeastSq(n, time, fit);
-      if (current_fit.rms < best_fit.rms)
+      if (current_fit.rms < best_fit.rms) {
         best_fit = current_fit;
+      }
     }
 
     return best_fit;
   }
-  else
-    return CalculateLeastSq(n, time, complexity);
+
+  return CalculateLeastSq(n, time, complexity);
 }
