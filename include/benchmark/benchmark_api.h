@@ -235,22 +235,27 @@ enum TimeUnit {
 // benchmark to use.
 class State {
 public:
-  State(size_t max_iters, bool has_x, int x, bool has_y, int y, int thread_i, int n_threads);
+  State(size_t max_iters, bool has_x, int x, bool has_y, int y,
+        int thread_i, int n_threads);
 
   // Returns true iff the benchmark should continue through another iteration.
   // NOTE: A benchmark may not return from the test until KeepRunning() has
   // returned false.
   bool KeepRunning() {
     if (BENCHMARK_BUILTIN_EXPECT(!started_, false)) {
-        ResumeTiming();
+        assert(!finished_);
         started_ = true;
+        ResumeTiming();
     }
     bool const res = total_iterations_++ < max_iterations;
     if (BENCHMARK_BUILTIN_EXPECT(!res, false)) {
-        assert(started_);
-        PauseTiming();
+        assert(started_ && (!finished_ || error_occurred_));
+        if (!error_occurred_) {
+            PauseTiming();
+        }
         // Total iterations now is one greater than max iterations. Fix this.
         total_iterations_ = max_iterations;
+        finished_ = true;
     }
     return res;
   }
@@ -282,6 +287,8 @@ public:
   // heavyweight, and so their use should generally be avoided
   // within each benchmark iteration, if possible.
   void ResumeTiming();
+
+  void SkipWithError(const char* msg);
 
   // REQUIRES: called exactly once per iteration of the KeepRunning loop.
   // Set the manually measured time for this benchmark iteration, which
@@ -371,6 +378,7 @@ public:
 
 private:
   bool started_;
+  bool finished_;
   size_t total_iterations_;
 
   bool has_range_x_;
@@ -382,6 +390,9 @@ private:
   size_t bytes_processed_;
   size_t items_processed_;
 
+public:
+  // FIXME: Make this private somehow.
+  bool error_occurred_;
 public:
   // Index of the executing thread. Values from [0, threads).
   const int thread_index;

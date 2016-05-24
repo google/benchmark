@@ -16,6 +16,7 @@
 
 #include <cstdint>
 #include <cstdio>
+#include <algorithm>
 #include <iostream>
 #include <string>
 #include <tuple>
@@ -65,7 +66,11 @@ void ConsoleReporter::ReportRuns(const std::vector<Run>& reports) {
     PrintRunData(run);
   }
 
-  if (reports.size() < 2) {
+  auto error_count = std::count_if(
+      reports.begin(), reports.end(),
+      [](Run const& run) {return run.error_occurred;});
+
+  if (reports.size() - error_count < 2) {
     // We don't report aggregated data if there was a single run.
     return;
   }
@@ -80,6 +85,14 @@ void ConsoleReporter::ReportRuns(const std::vector<Run>& reports) {
 }
 
 void ConsoleReporter::PrintRunData(const Run& result) {
+  ColorPrintf(COLOR_GREEN, "%-*s ",
+              name_field_width_, result.benchmark_name.c_str());
+
+  if (result.error_occurred) {
+    ColorPrintf(COLOR_RED, "ERROR OCCURRED: \'%s\'", result.error_message.c_str());
+    ColorPrintf(COLOR_DEFAULT, "\n");
+    return;
+  }
   // Format bytes per second
   std::string rate;
   if (result.bytes_per_second > 0) {
@@ -96,9 +109,6 @@ void ConsoleReporter::PrintRunData(const Run& result) {
   double multiplier;
   const char* timeLabel;
   std::tie(timeLabel, multiplier) = GetTimeUnitAndMultiplier(result.time_unit);
-
-  ColorPrintf(COLOR_GREEN, "%-*s ",
-              name_field_width_, result.benchmark_name.c_str());
 
   if (result.iterations == 0) {
     ColorPrintf(COLOR_YELLOW, "%10.0f %s %10.0f %s ",

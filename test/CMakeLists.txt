@@ -36,6 +36,12 @@ add_test(options_benchmarks options_test --benchmark_min_time=0.01)
 compile_benchmark_test(basic_test)
 add_test(basic_benchmark basic_test --benchmark_min_time=0.01)
 
+compile_benchmark_test(diagnostics_test)
+add_test(diagnostics_test diagnostics_test --benchmark_min_time=0.01)
+
+compile_benchmark_test(skip_with_error_test)
+add_test(skip_with_error_test skip_with_error_test --benchmark_min_time=0.01)
+
 compile_benchmark_test(fixture_test)
 add_test(fixture_test fixture_test --benchmark_min_time=0.01)
 

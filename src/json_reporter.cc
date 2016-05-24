@@ -137,6 +137,14 @@ void JSONReporter::PrintRunData(Run const& run) {
     out << indent
         << FormatKV("name", run.benchmark_name)
         << ",\n";
+    if (run.error_occurred) {
+        out << indent
+            << FormatKV("error_occurred", run.error_occurred)
+            << ",\n";
+        out << indent
+            << FormatKV("error_message", run.error_message)
+            << ",\n";
+    }
     out << indent
         << FormatKV("iterations", run.iterations)
         << ",\n";
