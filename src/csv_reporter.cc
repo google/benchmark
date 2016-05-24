@@ -15,6 +15,7 @@
 #include "benchmark/reporter.h"
 
 #include <cstdint>
+#include <algorithm>
 #include <iostream>
 #include <string>
 #include <tuple>
@@ -53,8 +54,12 @@ void CSVReporter::ReportRuns(const std::vector<Run> & reports) {
     return;
   }
 
+  auto error_count = std::count_if(
+      reports.begin(), reports.end(),
+      [](Run const& run) {return run.error_occurred;});
+
   std::vector<Run> reports_cp = reports;
-  if (reports.size() >= 2) {
+  if (reports.size() - error_count >= 2) {
     Run mean_data;
     Run stddev_data;
     BenchmarkReporter::ComputeStats(reports, &mean_data, &stddev_data);
@@ -82,6 +87,20 @@ void CSVReporter::ReportComplexity(const std::vector<Run>& complexity_reports) {
 }
 
 void CSVReporter::PrintRunData(const Run & run) {
+
+
+  // Field with embedded double-quote characters must be doubled and the field
+  // delimited with double-quotes.
+  std::string name = run.benchmark_name;
+  ReplaceAll(&name, "\"", "\"\"");
+  std::cout << '"' << name << "\",";
+  if (run.error_occurred) {
+    std::cout << "error_occurred,";
+    std::string msg = run.error_message;
+    ReplaceAll(&msg, "\"", "\"\"");
+    std::cout << '"' << msg << "\",";
+  }
+
   double multiplier;
   const char* timeLabel;
   std::tie(timeLabel, multiplier) = GetTimeUnitAndMultiplier(run.time_unit);
@@ -92,12 +111,6 @@ void CSVReporter::PrintRunData(const Run & run) {
     real_time = real_time / static_cast<double>(run.iterations);
     cpu_time = cpu_time / static_cast<double>(run.iterations);
   }
-
-  // Field with embedded double-quote characters must be doubled and the field
-  // delimited with double-quotes.
-  std::string name = run.benchmark_name;
-  ReplaceAll(&name, "\"", "\"\"");
-  std::cout << "\"" << name << "\",";
 
   // Do not print iteration on bigO and RMS report
   if(!run.report_big_o && !run.report_rms) {

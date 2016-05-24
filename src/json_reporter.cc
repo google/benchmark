@@ -15,6 +15,7 @@
 #include "benchmark/reporter.h"
 
 #include <cstdint>
+#include <algorithm>
 #include <iostream>
 #include <string>
 #include <tuple>
@@ -96,8 +97,13 @@ void JSONReporter::ReportRuns(std::vector<Run> const& reports) {
     out << ",\n";
   }
   first_report_ = false;
+
+  auto error_count = std::count_if(
+      reports.begin(), reports.end(),
+      [](Run const& run) {return run.error_occurred;});
+
   std::vector<Run> reports_cp = reports;
-  if (reports.size() >= 2) {
+  if (reports.size() - error_count >= 2) {
     Run mean_data;
     Run stddev_data;
     BenchmarkReporter::ComputeStats(reports, &mean_data, &stddev_data);
