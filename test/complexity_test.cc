@@ -1,6 +1,7 @@
 
 #include "benchmark/benchmark_api.h"
 
+#include <cstdlib>
 #include <string>
 #include <vector>
 #include <map>
