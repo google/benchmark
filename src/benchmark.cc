@@ -694,7 +694,7 @@ void RunInThread(const benchmark::internal::Benchmark::Instance* b,
     MutexLock l(GetBenchmarkLock());
     total->bytes_processed += st.bytes_processed();
     total->items_processed += st.items_processed();
-    total->complexity_n += st.complexity_n();
+    total->complexity_n += st.complexity_length_n();
   }
 
   timer_manager->Finalize();
