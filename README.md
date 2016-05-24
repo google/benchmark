@@ -311,11 +311,12 @@ BENCHMARK_REGISTER_F(MyFixture, BarTest)->Threads(2);
 
 ## Exiting Benchmarks in Error
 
-When external influences such as file I/O and network errors occur within
-a benchmark the `State::SkipWithError(const char* msg)` function can be used
-to skip that run of benchmark and report the error. Note that only future
-iterations of the `KeepRunning()` are skipped. Users may explicitly return
-to exit the benchmark immediately.
+When errors caused by external influences, such as file I/O and network
+communication, occur within a benchmark the
+`State::SkipWithError(const char* msg)` function can be used to skip that run
+of benchmark and report the error. Note that only future iterations of the
+`KeepRunning()` are skipped. Users may explicitly return to exit the
+benchmark immediately.
 
 The `SkipWithError(...)` function may be used at any point within the benchmark,
 including before and after the `KeepRunning()` loop.
