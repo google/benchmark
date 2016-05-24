@@ -160,11 +160,14 @@ class BenchmarkReporter;
 
 void Initialize(int* argc, char** argv);
 
-// Run all benchmarks which match the specified --benchmark_filter flag.
+// Generate a list of benchmarks matching the specified --benchmark_filter flag
+// and if --benchmark_list_tests is specified return after printing the name
+// of each matching benchmark. Otherwise run each matching benchmark and
+// report the results.
+//
 // The second overload reports the results using the specified 'reporter'.
 //
-// RETURNS: The number of benchmarks run, not including repetitions. If
-// '--benchmark_list_tests' is specified '0' is returned.
+// RETURNS: The number of matching benchmarks.
 size_t RunSpecifiedBenchmarks();
 size_t RunSpecifiedBenchmarks(BenchmarkReporter* reporter);
 

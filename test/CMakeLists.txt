@@ -14,6 +14,7 @@ add_test(benchmark benchmark_test --benchmark_min_time=0.01)
 compile_benchmark_test(filter_test)
 macro(add_filter_test name filter expect)
   add_test(${name} filter_test --benchmark_min_time=0.01 --benchmark_filter=${filter} ${expect})
+  add_test(${name}_list_only filter_test --benchmark_list_tests --benchmark_filter=${filter} ${expect})
 endmacro(add_filter_test)
 
 add_filter_test(filter_simple "Foo" 3)

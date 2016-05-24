@@ -853,24 +853,9 @@ void State::SetLabel(const char* label) {
 namespace internal {
 namespace {
 
-void PrintBenchmarkList() {
-  std::vector<Benchmark::Instance> benchmarks;
-  auto families = BenchmarkFamilies::GetInstance();
-  if (!families->FindBenchmarks(".", &benchmarks)) return;
-
-  for (const internal::Benchmark::Instance& benchmark : benchmarks) {
-    std::cout <<  benchmark.name << "\n";
-  }
-}
-
-size_t RunMatchingBenchmarks(const std::string& spec,
-                             BenchmarkReporter* reporter) {
+void RunMatchingBenchmarks(const std::vector<Benchmark::Instance>& benchmarks,
+                           BenchmarkReporter* reporter) {
   CHECK(reporter != nullptr);
-  CHECK(!spec.empty());
-
-  std::vector<Benchmark::Instance> benchmarks;
-  auto families = BenchmarkFamilies::GetInstance();
-  if (!families->FindBenchmarks(spec, &benchmarks)) return 0;
 
   // Determine the width of the name field using a minimum width of 10.
   size_t name_field_width = 10;
@@ -894,7 +879,6 @@ size_t RunMatchingBenchmarks(const std::string& spec,
       RunBenchmark(benchmark, reporter);
     }
   }
-  return benchmarks.size();
 }
 
 std::unique_ptr<BenchmarkReporter> GetDefaultReporter() {
@@ -919,22 +903,27 @@ size_t RunSpecifiedBenchmarks() {
 }
 
 size_t RunSpecifiedBenchmarks(BenchmarkReporter* reporter) {
-  if (FLAGS_benchmark_list_tests) {
-    internal::PrintBenchmarkList();
-    return 0;
-  }
   std::string spec = FLAGS_benchmark_filter;
   if (spec.empty() || spec == "all")
     spec = ".";  // Regexp that matches all benchmarks
 
-  std::unique_ptr<BenchmarkReporter> default_reporter;
-  if (!reporter) {
-    default_reporter = internal::GetDefaultReporter();
-    reporter = default_reporter.get();
+  std::vector<internal::Benchmark::Instance> benchmarks;
+  auto families = internal::BenchmarkFamilies::GetInstance();
+  if (!families->FindBenchmarks(spec, &benchmarks)) return 0;
+
+  if (FLAGS_benchmark_list_tests) {
+    for (auto const& benchmark : benchmarks)
+      std::cout <<  benchmark.name << "\n";
+  } else {
+    std::unique_ptr<BenchmarkReporter> default_reporter;
+    if (!reporter) {
+      default_reporter = internal::GetDefaultReporter();
+      reporter = default_reporter.get();
+    }
+    internal::RunMatchingBenchmarks(benchmarks, reporter);
+    reporter->Finalize();
   }
-  size_t num_run = internal::RunMatchingBenchmarks(spec, reporter);
-  reporter->Finalize();
-  return num_run;
+  return benchmarks.size();
 }
 
 namespace internal {
