@@ -100,11 +100,14 @@ void ConsoleReporter::ReportComplexity(const std::vector<Run> & complexity_repor
 }
 
 void ConsoleReporter::PrintRunData(const Run& result) {
-  ColorPrintf(COLOR_GREEN, "%-*s ",
-              name_field_width_, result.benchmark_name.c_str());
+  auto name_color = (result.report_big_o || result.report_rms)
+      ? COLOR_BLUE : COLOR_GREEN;
+  ColorPrintf(name_color, "%-*s ", name_field_width_,
+              result.benchmark_name.c_str());
 
   if (result.error_occurred) {
-    ColorPrintf(COLOR_RED, "ERROR OCCURRED: \'%s\'", result.error_message.c_str());
+    ColorPrintf(COLOR_RED, "ERROR OCCURRED: \'%s\'",
+                result.error_message.c_str());
     ColorPrintf(COLOR_DEFAULT, "\n");
     return;
   }
@@ -124,10 +127,6 @@ void ConsoleReporter::PrintRunData(const Run& result) {
   double multiplier;
   const char* timeLabel;
   std::tie(timeLabel, multiplier) = GetTimeUnitAndMultiplier(result.time_unit);
-
-  ColorPrintf((result.report_big_o ||result.report_rms) ? COLOR_BLUE :
-              COLOR_GREEN, "%-*s ",
-              name_field_width_, result.benchmark_name.c_str());
 
   if(result.report_big_o) {
     std::string big_o = result.report_big_o ? GetBigO(result.complexity) : "";
