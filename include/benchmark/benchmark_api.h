@@ -501,7 +501,13 @@ public:
 
   // Set the minimum amount of time to use when running this benchmark. This
   // option overrides the `benchmark_min_time` flag.
+  // REQUIRES: `t > 0`
   Benchmark* MinTime(double t);
+
+  // Specify the amount of times to repeat this benchmark. This option overrides
+  // the `benchmark_repetitions` flag.
+  // REQUIRES: `n > 0`
+  Benchmark* Repetitions(int n);
 
   // If a particular benchmark is I/O bound, runs multiple threads internally or
   // if for some reason CPU timings are not representative, call this method. If
