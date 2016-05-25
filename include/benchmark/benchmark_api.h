@@ -501,7 +501,7 @@ public:
 
   // Set the asymptotic computational complexity for the benchmark. If called
   // the asymptotic computational complexity will be shown on the output. 
-  Benchmark* Complexity(BigO complexity);
+  Benchmark* Complexity(BigO complexity = benchmark::oAuto);
 
   // Support for running multiple copies of the same benchmark concurrently
   // in multiple threads.  This may be useful when measuring the scaling
