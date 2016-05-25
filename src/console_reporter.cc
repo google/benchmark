@@ -117,7 +117,7 @@ void ConsoleReporter::PrintRunData(const Run& result) {
               name_field_width_, result.benchmark_name.c_str());
 
   if(result.report_big_o) {
-    std::string big_o = result.report_big_o ? GetBigO(result.complexity) : "";
+    std::string big_o = result.report_big_o ? GetBigOString(result.complexity) : "";
     ColorPrintf(COLOR_YELLOW, "%10.4f %s %10.4f %s ",
                 result.real_accumulated_time * multiplier,
                 big_o.c_str(),

@@ -13,7 +13,6 @@
 // limitations under the License.
 
 #include "benchmark/reporter.h"
-#include "minimal_leastsq.h"
 
 #include <cstdlib>
 #include <vector>

@@ -15,43 +15,45 @@
 // Source project : https://github.com/ismaelJimenez/cpp.leastsq
 // Adapted to be used with google benchmark
 
-#include "minimal_leastsq.h"
+#include "benchmark/complexity.h"
 #include "check.h"
 #include <math.h>
 
+namespace benchmark {
+  
 // Internal function to calculate the different scalability forms
-std::function<double(int)> FittingCurve(benchmark::BigO complexity) {
+std::function<double(int)> FittingCurve(BigO complexity) {
   switch (complexity) {
-  case benchmark::oN:
+  case oN:
     return [](int n) {return n; };
-  case benchmark::oNSquared:
+  case oNSquared:
     return [](int n) {return n*n; };
-  case benchmark::oNCubed:
+  case oNCubed:
     return [](int n) {return n*n*n; };
-  case benchmark::oLogN:
+  case oLogN:
     return [](int n) {return log2(n); };
-  case benchmark::oNLogN:
+  case oNLogN:
     return [](int n) {return n * log2(n); };
-  case benchmark::o1:
+  case o1:
   default:
     return [](int) {return 1; };
   }
 }
 
-// Internal function to to return an string for the calculated complexity
-std::string GetBigOString(benchmark::BigO complexity) {
+// Function to to return an string for the calculated complexity
+std::string GetBigOString(BigO complexity) {
   switch (complexity) {
-    case benchmark::oN:
+    case oN:
       return "* N";
-    case benchmark::oNSquared:
+    case oNSquared:
       return "* N**2";
-    case benchmark::oNCubed:
+    case oNCubed:
       return "* N**3";
-    case benchmark::oLogN:
+    case oLogN:
       return "* lgN";
-    case benchmark::oNLogN:
+    case oNLogN:
       return "* NlgN";
-    case benchmark::o1:
+    case o1:
       return "* 1";
     default:
       return "";
@@ -64,6 +66,16 @@ std::string GetBigOString(benchmark::BigO complexity) {
 //   - fitting_curve : lambda expresion (e.g. [](int n) {return n; };).
 // For a deeper explanation on the algorithm logic, look the README file at
 // http://github.com/ismaelJimenez/Minimal-Cpp-Least-Squared-Fit
+
+// This interface is currently not used from the oustide, but it has been provided 
+// for future upgrades. If in the future it is not needed to support Cxx03, then 
+// all the calculations could be upgraded to use lambdas because they are more 
+// powerful and provide a cleaner inferface than enumerators, but complete 
+// implementation with lambdas will not work for Cxx03 (e.g. lack of std::function).
+// In case lambdas are implemented, the interface would be like :
+//   -> Complexity([](int n) {return n;};)
+// and any arbitrary and valid  equation would be allowed, but the option to calculate
+// the best fit to the most common scalability curves will still be kept.
 
 LeastSq CalculateLeastSq(const std::vector<int>& n, 
                          const std::vector<double>& time, 
@@ -110,22 +122,20 @@ LeastSq CalculateLeastSq(const std::vector<int>& n,
 //                  fitting curve.
 LeastSq MinimalLeastSq(const std::vector<int>& n,
                        const std::vector<double>& time,
-                       const benchmark::BigO complexity) {
+                       const BigO complexity) {
   CHECK_EQ(n.size(), time.size());
   CHECK_GE(n.size(), 2);  // Do not compute fitting curve is less than two benchmark runs are given
-  CHECK_NE(complexity, benchmark::oNone);
+  CHECK_NE(complexity, oNone);
 
   LeastSq best_fit;
 
-  if(complexity == benchmark::oAuto) {
-    std::vector<benchmark::BigO> fit_curves = {
-      benchmark::oLogN, benchmark::oN, benchmark::oNLogN, benchmark::oNSquared,
-      benchmark::oNCubed };
+  if(complexity == oAuto) {
+    std::vector<BigO> fit_curves = {
+      oLogN, oN, oNLogN, oNSquared, oNCubed };
 
     // Take o1 as default best fitting curve
-    best_fit = CalculateLeastSq(n, time, FittingCurve(benchmark::o1));
-    best_fit.complexity = benchmark::o1;
-    best_fit.caption = GetBigOString(benchmark::o1);
+    best_fit = CalculateLeastSq(n, time, FittingCurve(o1));
+    best_fit.complexity = o1;
 
     // Compute all possible fitting curves and stick to the best one
     for (const auto& fit : fit_curves) {
@@ -133,14 +143,14 @@ LeastSq MinimalLeastSq(const std::vector<int>& n,
       if (current_fit.rms < best_fit.rms) {
         best_fit = current_fit;
         best_fit.complexity = fit;
-        best_fit.caption = GetBigOString(fit);
       }
     }
   } else {
     best_fit = CalculateLeastSq(n, time, FittingCurve(complexity));
     best_fit.complexity = complexity;
-    best_fit.caption = GetBigOString(complexity);
   }
 
   return best_fit;
 }
+
+}  // end namespace benchmark
