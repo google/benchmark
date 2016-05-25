@@ -4,6 +4,7 @@
 #include "../src/check.h" // NOTE: check.h is for internal use only!
 #include "../src/re.h" // NOTE: re.h is for internal use only
 #include <cassert>
+#include <cstring>
 #include <iostream>
 #include <sstream>
 #include <vector>
@@ -17,12 +18,12 @@ namespace {
 
 enum MatchRules {
   MR_Default, // Skip non-matching lines until a match is found.
-  MR_Next,   // Match must occur on the next line.
+  MR_Next    // Match must occur on the next line.
 };
 
 struct TestCase {
   std::string regex;
-  int match_rule = MR_Default;
+  int match_rule;
 
   TestCase(std::string re, int rule = MR_Default) : regex(re), match_rule(rule) {}
 
