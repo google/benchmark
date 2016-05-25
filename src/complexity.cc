@@ -25,19 +25,19 @@ namespace benchmark {
 // Internal function to calculate the different scalability forms
 std::function<double(int)> FittingCurve(BigO complexity) {
   switch (complexity) {
-  case oN:
-    return [](int n) {return n; };
-  case oNSquared:
-    return [](int n) {return n*n; };
-  case oNCubed:
-    return [](int n) {return n*n*n; };
-  case oLogN:
-    return [](int n) {return log2(n); };
-  case oNLogN:
-    return [](int n) {return n * log2(n); };
-  case o1:
-  default:
-    return [](int) {return 1; };
+    case oN:
+      return [](int n) {return n; };
+    case oNSquared:
+      return [](int n) {return n*n; };
+    case oNCubed:
+      return [](int n) {return n*n*n; };
+    case oLogN:
+      return [](int n) {return log2(n); };
+    case oNLogN:
+      return [](int n) {return n * log2(n); };
+    case o1:
+    default:
+      return [](int) {return 1; };
   }
 }
 
