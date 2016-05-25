@@ -15,6 +15,7 @@
 #include "benchmark/reporter.h"
 
 #include <cstdint>
+#include <algorithm>
 #include <iostream>
 #include <string>
 #include <tuple>
@@ -26,6 +27,21 @@
 // File format reference: http://edoceo.com/utilitas/csv-file-format.
 
 namespace benchmark {
+
+namespace {
+std::vector<std::string> elements = {
+  "name",
+  "iterations",
+  "real_time",
+  "cpu_time",
+  "time_unit",
+  "bytes_per_second",
+  "items_per_second",
+  "label",
+  "error_occurred",
+  "error_message"
+};
+}
 
 bool CSVReporter::ReportContext(const Context& context) {
   std::cerr << "Run on (" << context.num_cpus << " X " << context.mhz_per_cpu
@@ -43,8 +59,12 @@ bool CSVReporter::ReportContext(const Context& context) {
   std::cerr << "***WARNING*** Library was built as DEBUG. Timings may be "
                "affected.\n";
 #endif
-  std::cout << "name,iterations,real_time,cpu_time,time_unit,bytes_per_second,"
-               "items_per_second,label\n";
+  for (auto B = elements.begin(); B != elements.end(); ) {
+    std::cout << *B++;
+    if (B != elements.end())
+      std::cout << ",";
+  }
+  std::cout << "\n";
   return true;
 }
 
@@ -53,8 +73,12 @@ void CSVReporter::ReportRuns(const std::vector<Run> & reports) {
     return;
   }
 
+  auto error_count = std::count_if(
+      reports.begin(), reports.end(),
+      [](Run const& run) {return run.error_occurred;});
+
   std::vector<Run> reports_cp = reports;
-  if (reports.size() >= 2) {
+  if (reports.size() - error_count >= 2) {
     Run mean_data;
     Run stddev_data;
     BenchmarkReporter::ComputeStats(reports, &mean_data, &stddev_data);
@@ -82,6 +106,22 @@ void CSVReporter::ReportComplexity(const std::vector<Run>& complexity_reports) {
 }
 
 void CSVReporter::PrintRunData(const Run & run) {
+
+
+  // Field with embedded double-quote characters must be doubled and the field
+  // delimited with double-quotes.
+  std::string name = run.benchmark_name;
+  ReplaceAll(&name, "\"", "\"\"");
+  std::cout << '"' << name << "\",";
+  if (run.error_occurred) {
+    std::cout << std::string(elements.size() - 3, ',');
+    std::cout << "true,";
+    std::string msg = run.error_message;
+    ReplaceAll(&msg, "\"", "\"\"");
+    std::cout << '"' << msg << "\"\n";
+    return;
+  }
+
   double multiplier;
   const char* timeLabel;
   std::tie(timeLabel, multiplier) = GetTimeUnitAndMultiplier(run.time_unit);
@@ -92,12 +132,6 @@ void CSVReporter::PrintRunData(const Run & run) {
     real_time = real_time / static_cast<double>(run.iterations);
     cpu_time = cpu_time / static_cast<double>(run.iterations);
   }
-
-  // Field with embedded double-quote characters must be doubled and the field
-  // delimited with double-quotes.
-  std::string name = run.benchmark_name;
-  ReplaceAll(&name, "\"", "\"\"");
-  std::cout << "\"" << name << "\",";
 
   // Do not print iteration on bigO and RMS report
   if(!run.report_big_o && !run.report_rms) {
@@ -129,6 +163,7 @@ void CSVReporter::PrintRunData(const Run & run) {
     ReplaceAll(&label, "\"", "\"\"");
     std::cout << "\"" << label << "\"";
   }
+  std::cout << ",,"; // for error_occurred and error_message
   std::cout << '\n';
 }
 
