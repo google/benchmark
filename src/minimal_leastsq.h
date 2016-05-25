@@ -21,6 +21,7 @@
 #include "benchmark/benchmark_api.h"
 
 #include <vector>
+#include <functional>
 
 // This data structure will contain the result returned by MinimalLeastSq
 //   - coef        : Estimated coeficient for the high-order term as
@@ -35,11 +36,13 @@ struct LeastSq {
   LeastSq() :
     coef(0),
     rms(0),
-    complexity(benchmark::oNone) {}
+    complexity(benchmark::oNone),
+    caption("") {}
 
   double coef;
   double rms;
   benchmark::BigO complexity;
+  std::string caption;
 };
 
 // Find the coefficient for the high-order term in the running time, by
@@ -47,5 +50,19 @@ struct LeastSq {
 LeastSq MinimalLeastSq(const std::vector<int>& n,
                        const std::vector<double>& time,
                        const benchmark::BigO complexity = benchmark::oAuto);
+
+// This interface is currently not used from the oustide, but it has been provided 
+// for future upgrades. If in the future it is not needed to support Cxx03, then 
+// all the calculations could be upgraded to use lambdas because they are more 
+// powerful and provide a cleaner inferface than enumerators, but complete 
+// implementation with lambdas will not work for Cxx03 (e.g. lack of std::function).
+// In case lambdas are implemented, the interface would be like :
+//   -> Complexity([](int n) {return n;};)
+// and any arbitrary and valid  equation would be allowed, but the option to calculate
+// the best fit to the most common scalability curves will still be kept.
+LeastSq CalculateLeastSq(const std::vector<int>& n, 
+                         const std::vector<double>& time, 
+                         std::function<double(int)> fitting_curve);
+
 
 #endif
