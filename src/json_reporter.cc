@@ -53,7 +53,7 @@ int64_t RoundDouble(double v) {
 } // end namespace
 
 bool JSONReporter::ReportContext(const Context& context) {
-  std::ostream& out = std::cout;
+  std::ostream& out = GetOutputStream();
 
   out << "{\n";
   std::string inner_indent(2, ' ');
@@ -92,7 +92,7 @@ void JSONReporter::ReportRuns(std::vector<Run> const& reports) {
     return;
   }
   std::string indent(4, ' ');
-  std::ostream& out = std::cout;
+  std::ostream& out = GetOutputStream();
   if (!first_report_) {
     out << ",\n";
   }
@@ -128,7 +128,7 @@ void JSONReporter::ReportComplexity(const std::vector<Run> & complexity_reports)
   }
 
   std::string indent(4, ' ');
-  std::ostream& out = std::cout;
+  std::ostream& out = GetOutputStream();
   if (!first_report_) {
     out << ",\n";
   }
@@ -148,7 +148,7 @@ void JSONReporter::ReportComplexity(const std::vector<Run> & complexity_reports)
 
 void JSONReporter::Finalize() {
     // Close the list of benchmarks and the top level object.
-    std::cout << "\n  ]\n}\n";
+    GetOutputStream() << "\n  ]\n}\n";
 }
 
 void JSONReporter::PrintRunData(Run const& run) {
@@ -164,7 +164,7 @@ void JSONReporter::PrintRunData(Run const& run) {
     }
 
     std::string indent(6, ' ');
-    std::ostream& out = std::cout;
+    std::ostream& out = GetOutputStream();
     out << indent
         << FormatKV("name", run.benchmark_name)
         << ",\n";
