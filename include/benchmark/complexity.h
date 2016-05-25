@@ -20,7 +20,6 @@
 
 #include <string>
 #include <vector>
-#include <functional>
 
 namespace benchmark {
 

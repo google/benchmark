@@ -18,6 +18,7 @@
 #include "benchmark/complexity.h"
 #include "check.h"
 #include <math.h>
+#include <functional>
 
 namespace benchmark {
   
