@@ -634,10 +634,10 @@ protected:
   BENCHMARK(n)->RangePair((l1), (h1), (l2), (h2))
 
 #if __cplusplus >= 201103L
-#define BENCHMARK_CAPTURE(name, desc, ...) \
-    BENCHMARK_PRIVATE_DECLARE(name)  = \
+#define BENCHMARK_CAPTURE(name, desc, ...)                        \
+    BENCHMARK_PRIVATE_DECLARE(name)  =                            \
     ::benchmark::internal::CreateLambdaBenchmark(#name "/" #desc, \
-        [=](::benchmark::State& st) { name(st, __VA_ARGS__); })
+        [](::benchmark::State& st) { name(st, __VA_ARGS__); })
 #endif
 
 // This will register a benchmark for a templatized function.  For example:
