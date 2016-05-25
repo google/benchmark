@@ -47,9 +47,13 @@ struct TestCase {
   }
 };
 
-std::vector<TestCase> ConsoleResults;
-std::vector<TestCase> JSONResults;
-std::vector<TestCase> CSVResults;
+std::vector<TestCase> ConsoleOutputTests;
+std::vector<TestCase> JSONOutputTests;
+std::vector<TestCase> CSVOutputTests;
+
+std::vector<TestCase> ConsoleErrorTests;
+std::vector<TestCase> JSONErrorTests;
+std::vector<TestCase> CSVErrorTests;
 
 // ========================================================================= //
 // -------------------------- Test Helpers --------------------------------- //
@@ -121,11 +125,11 @@ std::string dec_re = "[0-9]+\\.[0-9]+";
 // ---------------------- Testing Prologue Output -------------------------- //
 // ========================================================================= //
 
-ADD_CASES(&ConsoleResults, {
+ADD_CASES(&ConsoleOutputTests, {
     {join("^Benchmark", "Time", "CPU", "Iterations$"), MR_Next},
     {"^[-]+$", MR_Next}
 });
-ADD_CASES(&CSVResults, {
+ADD_CASES(&CSVOutputTests, {
   {"name,iterations,real_time,cpu_time,time_unit,bytes_per_second,items_per_second,"
     "label,error_occurred,error_message"}
 });
@@ -139,10 +143,10 @@ void BM_basic(benchmark::State& state) {
 }
 BENCHMARK(BM_basic);
 
-ADD_CASES(&ConsoleResults, {
+ADD_CASES(&ConsoleOutputTests, {
     {"^BM_basic[ ]+[0-9]{1,5} ns[ ]+[0-9]{1,5} ns[ ]+[0-9]+$"}
 });
-ADD_CASES(&JSONResults, {
+ADD_CASES(&JSONOutputTests, {
     {"\"name\": \"BM_basic\",$"},
     {"\"iterations\": [0-9]+,$", MR_Next},
     {"\"real_time\": [0-9],$", MR_Next},
@@ -150,7 +154,7 @@ ADD_CASES(&JSONResults, {
     {"\"time_unit\": \"ns\"$", MR_Next},
     {"}", MR_Next}
 });
-ADD_CASES(&CSVResults, {
+ADD_CASES(&CSVOutputTests, {
     {"^\"BM_basic\",[0-9]+," + dec_re + "," + dec_re + ",ns,,,,,$"}
 });
 
@@ -163,16 +167,16 @@ void BM_error(benchmark::State& state) {
     while(state.KeepRunning()) {}
 }
 BENCHMARK(BM_error);
-ADD_CASES(&ConsoleResults, {
+ADD_CASES(&ConsoleOutputTests, {
     {"^BM_error[ ]+ERROR OCCURRED: 'message'$"}
 });
-ADD_CASES(&JSONResults, {
+ADD_CASES(&JSONOutputTests, {
     {"\"name\": \"BM_error\",$"},
     {"\"error_occurred\": true,$", MR_Next},
     {"\"error_message\": \"message\",$", MR_Next}
 });
 
-ADD_CASES(&CSVResults, {
+ADD_CASES(&CSVOutputTests, {
     {"^\"BM_error\",,,,,,,,true,\"message\"$"}
 });
 
@@ -190,7 +194,7 @@ BENCHMARK(BM_Complexity_O1)->Range(1, 1<<18)->Complexity(benchmark::o1);
 
 std::string bigOStr = "[0-9]+\\.[0-9]+ \\* [0-9]+";
 
-ADD_CASES(&ConsoleResults, {
+ADD_CASES(&ConsoleOutputTests, {
    {join("^BM_Complexity_O1_BigO", bigOStr, bigOStr) + "[ ]*$"},
    {join("^BM_Complexity_O1_RMS", "[0-9]+ %", "[0-9]+ %") + "[ ]*$"}
 });
@@ -214,21 +218,24 @@ int main(int argc, char* argv[]) {
   benchmark::CSVReporter CSVR;
   struct ReporterTest {
     const char* name;
-    std::vector<TestCase>& cases;
+    std::vector<TestCase>& output_cases;
+    std::vector<TestCase>& error_cases;
     benchmark::BenchmarkReporter& reporter;
     std::stringstream out_stream;
     std::stringstream err_stream;
 
-    ReporterTest(const char* n, std::vector<TestCase>& tc,
+    ReporterTest(const char* n,
+                 std::vector<TestCase>& out_tc,
+                 std::vector<TestCase>& err_tc,
                  benchmark::BenchmarkReporter& br)
-        : name(n), cases(tc), reporter(br){
+        : name(n), output_cases(out_tc), error_cases(err_tc), reporter(br) {
         reporter.SetOutputStream(out_stream);
         reporter.SetErrorStream(err_stream);
     }
   } TestCases[] = {
-      {"ConsoleReporter", ConsoleResults, CR},
-      {"JSONReporter", JSONResults, JR},
-      {"CSVReporter", CSVResults, CSVR}
+      {"ConsoleReporter", ConsoleOutputTests, ConsoleErrorTests, CR},
+      {"JSONReporter", JSONOutputTests, JSONErrorTests, JR},
+      {"CSVReporter", CSVOutputTests, CSVErrorTests, CSVR}
   };
   TestReporter test_rep({&CR, &JR, &CSVR});
   benchmark::RunSpecifiedBenchmarks(&test_rep);
@@ -241,9 +248,10 @@ int main(int argc, char* argv[]) {
       std::cerr << rep_test.err_stream.str();
       std::cout << rep_test.out_stream.str();
 
-      for (const auto& TC : rep_test.cases) {
+      for (const auto& TC : rep_test.error_cases)
+        TC.Check(rep_test.err_stream);
+      for (const auto& TC : rep_test.output_cases)
         TC.Check(rep_test.out_stream);
-      }
       std::cout << "\n";
   }
   return 0;
