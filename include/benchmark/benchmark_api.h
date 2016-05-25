@@ -557,24 +557,6 @@ private:
     Function* func_;
 };
 
-#if __cplusplus >= 201103L
-template <class Lambda>
-class LambdaBenchmark : public Benchmark {
-public:
-  template <class L>
-  LambdaBenchmark(const char* name, L&& l)
-      : Benchmark(name), func_(std::forward<L>(l)) {}
-  virtual void Run(State& st) { func_(st); }
-private:
-  Lambda func_;
-};
-
-template <class Invoker>
-Benchmark* CreateLambdaBenchmark(const char* name, Invoker&& fn) {
-    return RegisterBenchmarkInternal(
-        new LambdaBenchmark<typename std::decay<Invoker>::type>(name, std::move(fn)));
-}
-#endif
 }  // end namespace internal
 
 // The base class for all fixture tests.
@@ -634,10 +616,12 @@ protected:
   BENCHMARK(n)->RangePair((l1), (h1), (l2), (h2))
 
 #if __cplusplus >= 201103L
-#define BENCHMARK_CAPTURE(name, desc, ...)                        \
-    BENCHMARK_PRIVATE_DECLARE(name)  =                            \
-    ::benchmark::internal::CreateLambdaBenchmark(#name "/" #desc, \
-        [](::benchmark::State& st) { name(st, __VA_ARGS__); })
+#define BENCHMARK_CAPTURE(name, desc, ...)   \
+    BENCHMARK_PRIVATE_DECLARE(n) =                               \
+        (::benchmark::internal::RegisterBenchmarkInternal(       \
+            new ::benchmark::internal::FunctionBenchmark(        \
+                    #name "/" #desc,                             \
+                    [](::benchmark::State& st) { name(st, __VA_ARGS__); })))
 #endif
 
 // This will register a benchmark for a templatized function.  For example:

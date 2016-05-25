@@ -184,9 +184,6 @@ the first argument followed by the specified `args...`.
 The `test_case_name` is appended to the name of the benchmark and
 should describe the values passed.
 
-When the benchmark is created the extra arguments are copied into
-internal storage.
-
 ```c++
 template <class ...ExtraArgs>`
 void BM_takes_args(benchmark::State& state, ExtraArgs&&... extra_args) {
@@ -196,6 +193,8 @@ void BM_takes_args(benchmark::State& state, ExtraArgs&&... extra_args) {
 // the specified values to `extra_args`.
 BENCHMARK_CAPTURE(BM_takes_args, int_string_test, 42, std::string("abc"));
 ```
+Note that elements of `...args` may refer to global variables. Users should
+avoid modifying global state inside of a benchmark.
 
 ### Multithreaded benchmarks
 In a multithreaded test (benchmark invoked by multiple threads simultaneously),
