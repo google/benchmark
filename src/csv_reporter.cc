@@ -28,6 +28,21 @@
 
 namespace benchmark {
 
+namespace {
+std::vector<std::string> elements = {
+  "name",
+  "iterations",
+  "real_time",
+  "cpu_time",
+  "time_unit",
+  "bytes_per_second",
+  "items_per_second",
+  "label",
+  "error_occurred",
+  "error_message"
+};
+}
+
 bool CSVReporter::ReportContext(const Context& context) {
   std::cerr << "Run on (" << context.num_cpus << " X " << context.mhz_per_cpu
             << " MHz CPU " << ((context.num_cpus > 1) ? "s" : "") << ")\n";
@@ -44,8 +59,12 @@ bool CSVReporter::ReportContext(const Context& context) {
   std::cerr << "***WARNING*** Library was built as DEBUG. Timings may be "
                "affected.\n";
 #endif
-  std::cout << "name,iterations,real_time,cpu_time,time_unit,bytes_per_second,"
-               "items_per_second,label\n";
+  for (auto B = elements.begin(); B != elements.end(); ) {
+    std::cout << *B++;
+    if (B != elements.end())
+      std::cout << ",";
+  }
+  std::cout << "\n";
   return true;
 }
 
@@ -95,10 +114,12 @@ void CSVReporter::PrintRunData(const Run & run) {
   ReplaceAll(&name, "\"", "\"\"");
   std::cout << '"' << name << "\",";
   if (run.error_occurred) {
-    std::cout << "error_occurred,";
+    std::cout << std::string(elements.size() - 3, ',');
+    std::cout << "true,";
     std::string msg = run.error_message;
     ReplaceAll(&msg, "\"", "\"\"");
-    std::cout << '"' << msg << "\",";
+    std::cout << '"' << msg << "\"\n";
+    return;
   }
 
   double multiplier;
@@ -142,6 +163,7 @@ void CSVReporter::PrintRunData(const Run & run) {
     ReplaceAll(&label, "\"", "\"\"");
     std::cout << "\"" << label << "\"";
   }
+  std::cout << ",,"; // for error_occurred and error_message
   std::cout << '\n';
 }
 
