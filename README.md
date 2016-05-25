@@ -279,6 +279,17 @@ the minimum time, or the wallclock time is 5x minimum time. The minimum time is
 set as a flag `--benchmark_min_time` or per benchmark by calling `MinTime` on
 the registered benchmark object.
 
+## Reporting the mean and standard devation by repeated benchmarks
+By default each benchmark is run once and that single result is reported.
+However benchmarks are often noisy and a single result may not be representative
+of the overall behavior. For this reason it's possible to repeatedly rerun the
+benchmark.
+
+The number of runs of each benchmark is specified globally by the
+`--benchmark_repetitions` flag or on a per benchmark basis by calling
+`Repetitions` on the registered benchmark object. When a benchmark is run
+more than once the mean and standard deviation of the runs will be reported.
+
 ## Fixtures
 Fixture tests are created by
 first defining a type that derives from ::benchmark::Fixture and then

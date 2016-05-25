@@ -293,6 +293,7 @@ struct Benchmark::Instance {
   bool           use_manual_time;
   BigO           complexity;
   bool           last_benchmark_instance;
+  int            repetitions;
   double         min_time;
   int            threads;    // Number of concurrent threads to use
   bool           multithreaded;  // Is benchmark multi-threaded?
@@ -332,6 +333,7 @@ public:
   void RangePair(int lo1, int hi1, int lo2, int hi2);
   void RangeMultiplier(int multiplier);
   void MinTime(double n);
+  void Repetitions(int n);
   void UseRealTime();
   void UseManualTime();
   void Complexity(BigO complexity);
@@ -351,6 +353,7 @@ private:
   TimeUnit time_unit_;
   int range_multiplier_;
   double min_time_;
+  int repetitions_;
   bool use_real_time_;
   bool use_manual_time_;
   BigO complexity_;
@@ -414,6 +417,7 @@ bool BenchmarkFamilies::FindBenchmarks(
         instance.time_unit = family->time_unit_;
         instance.range_multiplier = family->range_multiplier_;
         instance.min_time = family->min_time_;
+        instance.repetitions = family->repetitions_;
         instance.use_real_time = family->use_real_time_;
         instance.use_manual_time = family->use_manual_time_;
         instance.complexity = family->complexity_;
@@ -429,6 +433,9 @@ bool BenchmarkFamilies::FindBenchmarks(
         }
         if (!IsZero(family->min_time_)) {
           instance.name +=  StringPrintF("/min_time:%0.3f",  family->min_time_);
+        }
+        if (family->repetitions_ != 0) {
+          instance.name +=  StringPrintF("/repeats:%d",  family->repetitions_);
         }
         if (family->use_manual_time_) {
           instance.name +=  "/manual_time";
@@ -453,7 +460,7 @@ bool BenchmarkFamilies::FindBenchmarks(
 
 BenchmarkImp::BenchmarkImp(const char* name)
     : name_(name), arg_count_(-1), time_unit_(kNanosecond),
-      range_multiplier_(kRangeMultiplier), min_time_(0.0), 
+      range_multiplier_(kRangeMultiplier), min_time_(0.0), repetitions_(0),
       use_real_time_(false), use_manual_time_(false),
       complexity_(oNone) {
 }
@@ -519,6 +526,12 @@ void BenchmarkImp::RangeMultiplier(int multiplier) {
 void BenchmarkImp::MinTime(double t) {
   CHECK(t > 0.0);
   min_time_ = t;
+}
+
+
+void BenchmarkImp::Repetitions(int n) {
+  CHECK(n > 0);
+  repetitions_ = n;
 }
 
 void BenchmarkImp::UseRealTime() {
@@ -633,6 +646,12 @@ Benchmark* Benchmark::RangeMultiplier(int multiplier) {
   return this;
 }
 
+
+Benchmark* Benchmark::Repetitions(int t) {
+  imp_->Repetitions(t);
+  return this;
+}
+
 Benchmark* Benchmark::MinTime(double t) {
   imp_->MinTime(t);
   return this;
@@ -712,7 +731,9 @@ void RunBenchmark(const benchmark::internal::Benchmark::Instance& b,
   if (b.multithreaded)
     pool.resize(b.threads);
 
-  for (int i = 0; i < FLAGS_benchmark_repetitions; i++) {
+  const int repeats = b.repetitions != 0 ? b.repetitions
+                                         : FLAGS_benchmark_repetitions;
+  for (int i = 0; i < repeats; i++) {
     std::string mem;
     for (;;) {
       // Try benchmark
@@ -893,12 +914,14 @@ void RunMatchingBenchmarks(const std::vector<Benchmark::Instance>& benchmarks,
   CHECK(reporter != nullptr);
 
   // Determine the width of the name field using a minimum width of 10.
+  bool has_repetitions = FLAGS_benchmark_repetitions > 1;
   size_t name_field_width = 10;
   for (const Benchmark::Instance& benchmark : benchmarks) {
     name_field_width =
         std::max<size_t>(name_field_width, benchmark.name.size());
+    has_repetitions |= benchmark.repetitions > 1;
   }
-  if (FLAGS_benchmark_repetitions > 1)
+  if (has_repetitions)
     name_field_width += std::strlen("_stddev");
 
   // Print header here

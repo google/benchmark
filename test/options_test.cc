@@ -31,6 +31,7 @@ BENCHMARK(BM_basic)->MinTime(0.7);
 BENCHMARK(BM_basic)->UseRealTime();
 BENCHMARK(BM_basic)->ThreadRange(2, 4);
 BENCHMARK(BM_basic)->ThreadPerCpu();
+BENCHMARK(BM_basic)->Repetitions(3);
 
 void CustomArgs(benchmark::internal::Benchmark* b) {
   for (int i = 0; i < 10; ++i) {
