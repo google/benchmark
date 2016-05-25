@@ -210,19 +210,17 @@ Benchmark* RegisterBenchmarkInternal(Benchmark*);
 // expression from being optimized away by the compiler. This function is
 // intented to add little to no overhead.
 // See: http://stackoverflow.com/questions/28287064
-#if defined(__clang__) && defined(__GNUC__)
+#if defined(__GNUC__)
 // TODO(ericwf): Clang has a bug where it tries to always use a register
 // even if value must be stored in memory. This causes codegen to fail.
 // To work around this we remove the "r" modifier so the operand is always
 // loaded into memory.
+// GCC also has a bug where it complains about inconsistent operand constraints
+// when "+rm" is used for a type larger than can fit in a register or two.
+// For now force the operand to memory for both GCC and Clang.
 template <class Tp>
 inline BENCHMARK_ALWAYS_INLINE void DoNotOptimize(Tp const& value) {
     asm volatile("" : "+m" (const_cast<Tp&>(value)));
-}
-#elif defined(__GNUC__)
-template <class Tp>
-inline BENCHMARK_ALWAYS_INLINE void DoNotOptimize(Tp const& value) {
-    asm volatile("" : "+rm" (const_cast<Tp&>(value)));
 }
 #else
 template <class Tp>
