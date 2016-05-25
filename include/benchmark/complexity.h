@@ -57,7 +57,7 @@ struct LeastSq {
   benchmark::BigO complexity;
 };
 
-// Function to to return an string for the calculated complexity
+// Function to return an string for the calculated complexity
 std::string GetBigOString(benchmark::BigO complexity);
 
 // Find the coefficient for the high-order term in the running time, by

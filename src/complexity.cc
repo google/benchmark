@@ -41,7 +41,7 @@ std::function<double(int)> FittingCurve(BigO complexity) {
   }
 }
 
-// Function to to return an string for the calculated complexity
+// Function to return an string for the calculated complexity
 std::string GetBigOString(BigO complexity) {
   switch (complexity) {
     case oN:
@@ -61,22 +61,27 @@ std::string GetBigOString(BigO complexity) {
   }
 }
 
-// Find the coefficient for the high-order term in the running time, by minimizing the sum of squares of relative error, for the fitting curve given on the lambda expresion.
+// Find the coefficient for the high-order term in the running time, by 
+// minimizing the sum of squares of relative error, for the fitting curve 
+// given by the lambda expresion.
 //   - n             : Vector containing the size of the benchmark tests.
 //   - time          : Vector containing the times for the benchmark tests.
 //   - fitting_curve : lambda expresion (e.g. [](int n) {return n; };).
+
 // For a deeper explanation on the algorithm logic, look the README file at
 // http://github.com/ismaelJimenez/Minimal-Cpp-Least-Squared-Fit
 
-// This interface is currently not used from the oustide, but it has been provided 
-// for future upgrades. If in the future it is not needed to support Cxx03, then 
-// all the calculations could be upgraded to use lambdas because they are more 
-// powerful and provide a cleaner inferface than enumerators, but complete 
-// implementation with lambdas will not work for Cxx03 (e.g. lack of std::function).
+// This interface is currently not used from the oustide, but it has been 
+// provided for future upgrades. If in the future it is not needed to support 
+// Cxx03, then all the calculations could be upgraded to use lambdas because 
+// they are more powerful and provide a cleaner inferface than enumerators, 
+// but complete implementation with lambdas will not work for Cxx03 
+// (e.g. lack of std::function).
 // In case lambdas are implemented, the interface would be like :
 //   -> Complexity([](int n) {return n;};)
-// and any arbitrary and valid  equation would be allowed, but the option to calculate
-// the best fit to the most common scalability curves will still be kept.
+// and any arbitrary and valid  equation would be allowed, but the option to 
+// calculate the best fit to the most common scalability curves will still 
+// be kept.
 
 LeastSq CalculateLeastSq(const std::vector<int>& n, 
                          const std::vector<double>& time, 
