@@ -46,7 +46,7 @@ std::vector<std::string> elements = {
 bool CSVReporter::ReportContext(const Context& context) {
   std::ostream& Err = GetErrorStream();
   std::ostream& Out = GetOutputStream();
-  
+
   Err << "Run on (" << context.num_cpus << " X " << context.mhz_per_cpu
             << " MHz CPU " << ((context.num_cpus > 1) ? "s" : "") << ")\n";
 

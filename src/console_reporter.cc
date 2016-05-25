@@ -44,7 +44,7 @@ bool ConsoleReporter::ReportContext(const Context& context) {
       FLAGS_color_print = false;
   }
 #endif
-  
+
   Err << "Run on (" << context.num_cpus << " X " << context.mhz_per_cpu
             << " MHz CPU " << ((context.num_cpus > 1) ? "s" : "") << ")\n";
 
@@ -113,7 +113,7 @@ void ConsoleReporter::ReportComplexity(const std::vector<Run> & complexity_repor
 
 void ConsoleReporter::PrintRunData(const Run& result) {
   auto& Out = GetOutputStream();
-  
+
   auto name_color = (result.report_big_o || result.report_rms)
       ? COLOR_BLUE : COLOR_GREEN;
   ColorPrintf(Out, name_color, "%-*s ", name_field_width_,

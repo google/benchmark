@@ -94,8 +94,7 @@ std::string FormatString(const char *msg, va_list args) {
 
   va_end(args_cp);
 
-  // currently there is no error handling for failure, 
-  // so this is hack
+  // currently there is no error handling for failure, so this is hack.
   CHECK(ret >= 0);
 
   if (ret == 0) // handle empty expansion
