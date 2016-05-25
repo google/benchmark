@@ -112,6 +112,10 @@ std::string* GetReportLabel() {
     return &label;
 }
 
+// Global variable so that a benchmark can report an error as a human readable
+// string. If error_message is null no error occurred.
+static std::atomic<const char*> error_message = ATOMIC_VAR_INIT(nullptr);
+
 // TODO(ericwf): support MallocCounter.
 //static benchmark::MallocCounter *benchmark_mc;
 
@@ -127,6 +131,7 @@ class TimerManager {
  public:
   TimerManager(int num_threads, Notification* done)
       : num_threads_(num_threads),
+        running_threads_(num_threads),
         done_(done),
         running_(false),
         real_time_used_(0),
@@ -134,7 +139,8 @@ class TimerManager {
         manual_time_used_(0),
         num_finalized_(0),
         phase_number_(0),
-        entered_(0) {
+        entered_(0)
+  {
   }
 
   // Called by each thread
@@ -197,6 +203,15 @@ class TimerManager {
     }
   }
 
+  void RemoveErroredThread() EXCLUDES(lock_) {
+    MutexLock ml(lock_);
+    int last_thread = --running_threads_ == 0;
+    if (last_thread && running_)
+      InternalStop();
+    else if (!last_thread)
+      phase_condition_.notify_all();
+  }
+
   // REQUIRES: timer is not running
   double real_time_used() EXCLUDES(lock_) {
     MutexLock l(lock_);
@@ -222,6 +237,7 @@ class TimerManager {
   Mutex lock_;
   Condition phase_condition_;
   int num_threads_;
+  int running_threads_;
   Notification* done_;
 
   bool running_;                // Is the timer running
@@ -253,22 +269,24 @@ class TimerManager {
   // entered the barrier.  Returns iff this is the last thread to
   // enter the barrier.
   bool Barrier(MutexLock& ml) REQUIRES(lock_) {
-    CHECK_LT(entered_, num_threads_);
+    CHECK_LT(entered_, running_threads_);
     entered_++;
-    if (entered_ < num_threads_) {
+    if (entered_ < running_threads_) {
       // Wait for all threads to enter
       int phase_number_cp = phase_number_;
       auto cb = [this, phase_number_cp]() {
-        return this->phase_number_ > phase_number_cp;
+        return this->phase_number_ > phase_number_cp ||
+               entered_ == running_threads_; // A thread has aborted in error
       };
       phase_condition_.wait(ml.native_handle(), cb);
-      return false;  // I was not the last one
-    } else {
-      // Last thread has reached the barrier
-      phase_number_++;
-      entered_ = 0;
-      return true;
+      if (phase_number_ > phase_number_cp)
+          return false;
+      // else (running_threads_ == entered_) and we are the last thread.
     }
+    // Last thread has reached the barrier
+    phase_number_++;
+    entered_ = 0;
+    return true;
   }
 };
 
@@ -743,6 +761,7 @@ void RunBenchmark(const benchmark::internal::Benchmark::Instance& b,
         MutexLock l(GetBenchmarkLock());
         GetReportLabel()->clear();
       }
+      error_message = nullptr;
 
       Notification done;
       timer_manager = std::unique_ptr<TimerManager>(new TimerManager(b.threads, &done));
@@ -788,47 +807,53 @@ void RunBenchmark(const benchmark::internal::Benchmark::Instance& b,
         MutexLock l(GetBenchmarkLock());
         label = *GetReportLabel();
       }
+      const char* error_msg = error_message;
 
       const double min_time = !IsZero(b.min_time) ? b.min_time
                                                   : FLAGS_benchmark_min_time;
 
       // If this was the first run, was elapsed time or cpu time large enough?
       // If this is not the first run, go with the current value of iter.
-      if ((i > 0) ||
+      if ((i > 0) || (error_msg != nullptr) ||
           (iters >= kMaxIterations) ||
           (seconds >= min_time) ||
           (real_accumulated_time >= 5*min_time)) {
-        double bytes_per_second = 0;
-        if (total.bytes_processed > 0 && seconds > 0.0) {
-          bytes_per_second = (total.bytes_processed / seconds);
-        }
-        double items_per_second = 0;
-        if (total.items_processed > 0 && seconds > 0.0) {
-          items_per_second = (total.items_processed / seconds);
-        }
 
         // Create report about this benchmark run.
         BenchmarkReporter::Run report;
         report.benchmark_name = b.name;
+        report.error_occurred = error_msg != nullptr;
+        report.error_message = error_msg != nullptr ? error_msg : "";
         report.report_label = label;
         // Report the total iterations across all threads.
         report.iterations = static_cast<int64_t>(iters) * b.threads;
         report.time_unit = b.time_unit;
-        if (b.use_manual_time) {
-          report.real_accumulated_time = manual_accumulated_time;
-        } else {
-          report.real_accumulated_time = real_accumulated_time;
+
+        if (!report.error_occurred) {
+          double bytes_per_second = 0;
+          if (total.bytes_processed > 0 && seconds > 0.0) {
+            bytes_per_second = (total.bytes_processed / seconds);
+          }
+          double items_per_second = 0;
+          if (total.items_processed > 0 && seconds > 0.0) {
+            items_per_second = (total.items_processed / seconds);
+          }
+
+          if (b.use_manual_time) {
+            report.real_accumulated_time = manual_accumulated_time;
+          } else {
+            report.real_accumulated_time = real_accumulated_time;
+          }
+          report.cpu_accumulated_time = cpu_accumulated_time;
+          report.bytes_per_second = bytes_per_second;
+          report.items_per_second = items_per_second;
+          report.complexity_n = total.complexity_n;
+          report.complexity = b.complexity;
+          if(report.complexity != oNone)
+            complexity_reports.push_back(report);
         }
-        report.cpu_accumulated_time = cpu_accumulated_time;
-        report.bytes_per_second = bytes_per_second;
-        report.items_per_second = items_per_second;
-        report.complexity_n = total.complexity_n;
-        report.complexity = b.complexity;
+
         reports.push_back(report);
-
-        if(report.complexity != oNone)
-          complexity_reports.push_back(report);
-
         break;
       }
 
@@ -873,6 +898,7 @@ State::State(size_t max_iters, bool has_x, int x, bool has_y, int y,
       has_range_y_(has_y), range_y_(y),
       bytes_processed_(0), items_processed_(0),
       complexity_n_(0),
+      error_occurred_(false),
       thread_index(thread_i),
       threads(n_threads),
       max_iterations(max_iters)
@@ -884,14 +910,24 @@ State::State(size_t max_iters, bool has_x, int x, bool has_y, int y,
 void State::PauseTiming() {
   // Add in time accumulated so far
   CHECK(running_benchmark);
-  CHECK(started_ && !finished_);
+  CHECK(started_ && !finished_ && !error_occurred_);
   timer_manager->StopTimer();
 }
 
 void State::ResumeTiming() {
   CHECK(running_benchmark);
-  CHECK(started_ && !finished_);
+  CHECK(started_ && !finished_ && !error_occurred_);
   timer_manager->StartTimer();
+}
+
+void State::SkipWithError(const char* msg) {
+  CHECK(msg);
+  error_occurred_ = true;
+  const char* expected_no_error_msg = nullptr;
+  error_message.compare_exchange_weak(expected_no_error_msg, msg);
+  started_ = finished_ = true;
+  total_iterations_ = max_iterations;
+  timer_manager->RemoveErroredThread();
 }
 
 void State::SetIterationTime(double seconds)

@@ -41,6 +41,8 @@ void BenchmarkReporter::ComputeStats(
   for (Run const& run : reports) {
     CHECK_EQ(reports[0].benchmark_name, run.benchmark_name);
     CHECK_EQ(run_iterations, run.iterations);
+    if (run.error_occurred)
+      continue;
     real_accumulated_time_stat +=
         Stat1_d(run.real_accumulated_time/run.iterations, run.iterations);
     cpu_accumulated_time_stat +=

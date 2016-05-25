@@ -42,6 +42,7 @@ class BenchmarkReporter {
 
   struct Run {
     Run() :
+      error_occurred(false),
       iterations(1),
       time_unit(kNanosecond),
       real_accumulated_time(0),
@@ -56,6 +57,9 @@ class BenchmarkReporter {
 
     std::string benchmark_name;
     std::string report_label;  // Empty if not set by benchmark.
+    bool error_occurred;
+    std::string error_message;
+
     int64_t iterations;
     TimeUnit time_unit;
     double real_accumulated_time;
