@@ -32,6 +32,7 @@ struct TestCase {
     r.Init(regex, &err_str);
     CHECK(err_str.empty()) << "Could not construct regex \"" << regex << "\""
                            << " got Error: " << err_str;
+
     std::string line;
     while (remaining_output.eof() == false) {
         CHECK(remaining_output.good());
@@ -65,11 +66,11 @@ public:
       : reporters_(reps)  {}
 
   virtual bool ReportContext(const Context& context) {
-    bool last_ret;
+    bool last_ret = false;
     bool first = true;
     for (auto rep : reporters_) {
       bool new_ret = rep->ReportContext(context);
-      CHECK(!first && new_ret == last_ret)
+      CHECK(first || new_ret == last_ret)
           << "Reports return different values for ReportContext";
       first = false;
       last_ret = new_ret;
@@ -237,6 +238,9 @@ int main(int argc, char* argv[]) {
       {"JSONReporter", JSONOutputTests, JSONErrorTests, JR},
       {"CSVReporter", CSVOutputTests, CSVErrorTests, CSVR}
   };
+
+  // Create the test reporter and run the benchmarks.
+  std::cout << "Running benchmarks...\n";
   TestReporter test_rep({&CR, &JR, &CSVR});
   benchmark::RunSpecifiedBenchmarks(&test_rep);
 
@@ -252,6 +256,7 @@ int main(int argc, char* argv[]) {
         TC.Check(rep_test.err_stream);
       for (const auto& TC : rep_test.output_cases)
         TC.Check(rep_test.out_stream);
+
       std::cout << "\n";
   }
   return 0;
