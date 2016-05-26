@@ -13,6 +13,7 @@
 // limitations under the License.
 
 #include "benchmark/reporter.h"
+#include "benchmark/complexity.h"
 
 #include <cstdint>
 #include <cstdio>
