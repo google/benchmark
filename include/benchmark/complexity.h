@@ -48,23 +48,23 @@ enum BigO {
 
 struct LeastSq {
   LeastSq() :
-    coef(0),
-    rms(0),
-    complexity(benchmark::oNone) {}
+    coef(0.0),
+    rms(0.0),
+    complexity(oNone) {}
 
   double coef;
   double rms;
-  benchmark::BigO complexity;
+  BigO complexity;
 };
 
 // Function to return an string for the calculated complexity
-std::string GetBigOString(benchmark::BigO complexity);
+std::string GetBigOString(BigO complexity);
 
 // Find the coefficient for the high-order term in the running time, by
 // minimizing the sum of squares of relative error.
 LeastSq MinimalLeastSq(const std::vector<int>& n,
                        const std::vector<double>& time,
-                       const benchmark::BigO complexity = benchmark::oAuto);
+                       const BigO complexity = oAuto);
 
 } // end namespace benchmark
 #endif // COMPLEXITY_H_

@@ -86,10 +86,10 @@ std::string GetBigOString(BigO complexity) {
 LeastSq CalculateLeastSq(const std::vector<int>& n, 
                          const std::vector<double>& time, 
                          std::function<double(int)> fitting_curve) {
-  double sigma_gn = 0;
-  double sigma_gn_squared = 0;
-  double sigma_time = 0;
-  double sigma_time_gn = 0;
+  double sigma_gn = 0.0;
+  double sigma_gn_squared = 0.0;
+  double sigma_time = 0.0;
+  double sigma_time_gn = 0.0;
 
   // Calculate least square fitting parameter
   for (size_t i = 0; i < n.size(); ++i) {
@@ -106,7 +106,7 @@ LeastSq CalculateLeastSq(const std::vector<int>& n,
   result.coef = sigma_time_gn / sigma_gn_squared;
 
   // Calculate RMS
-  double rms = 0;
+  double rms = 0.0;
   for (size_t i = 0; i < n.size(); ++i) {
     double fit = result.coef * fitting_curve(n[i]);
     rms += pow((time[i] - fit), 2);
