@@ -15,7 +15,7 @@
 // Source project : https://github.com/ismaelJimenez/cpp.leastsq
 // Adapted to be used with google benchmark
 
-#include "benchmark/complexity.h"
+#include "complexity.h"
 #include "check.h"
 #include <math.h>
 #include <functional>

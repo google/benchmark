@@ -21,21 +21,9 @@
 #include <string>
 #include <vector>
 
-namespace benchmark {
+#include "benchmark/benchmark_api.h"
 
-// BigO is passed to a benchmark in order to specify the asymptotic computational 
-// complexity for the benchmark. In case oAuto is selected, complexity will be 
-// calculated automatically to the best fit.
-enum BigO {
-  oNone,
-  o1,
-  oN,
-  oNSquared,
-  oNCubed,
-  oLogN,
-  oNLogN,
-  oAuto
-};
+namespace benchmark {
 
 // This data structure will contain the result returned by MinimalLeastSq
 //   - coef        : Estimated coeficient for the high-order term as
@@ -54,17 +42,17 @@ struct LeastSq {
 
   double coef;
   double rms;
-  BigO complexity;
+  benchmark::BigO complexity;
 };
 
 // Function to return an string for the calculated complexity
-std::string GetBigOString(BigO complexity);
+std::string GetBigOString(benchmark::BigO complexity);
 
 // Find the coefficient for the high-order term in the running time, by
 // minimizing the sum of squares of relative error.
 LeastSq MinimalLeastSq(const std::vector<int>& n,
                        const std::vector<double>& time,
-                       const BigO complexity = oAuto);
+                       const benchmark::BigO complexity = oAuto);
 
 } // end namespace benchmark
 #endif // COMPLEXITY_H_
