@@ -13,6 +13,7 @@
 // limitations under the License.
 
 #include "benchmark/reporter.h"
+#include "complexity.h"
 
 #include <cstdint>
 #include <cstdio>
@@ -129,7 +130,7 @@ void ConsoleReporter::PrintRunData(const Run& result) {
   std::tie(timeLabel, multiplier) = GetTimeUnitAndMultiplier(result.time_unit);
 
   if(result.report_big_o) {
-    std::string big_o = result.report_big_o ? GetBigO(result.complexity) : "";
+    std::string big_o = result.report_big_o ? GetBigOString(result.complexity) : "";
     ColorPrintf(COLOR_YELLOW, "%10.4f %s %10.4f %s ",
                 result.real_accumulated_time * multiplier,
                 big_o.c_str(),
