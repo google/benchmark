@@ -42,17 +42,17 @@ struct LeastSq {
 
   double coef;
   double rms;
-  benchmark::BigO complexity;
+  BigO complexity;
 };
 
 // Function to return an string for the calculated complexity
-std::string GetBigOString(benchmark::BigO complexity);
+std::string GetBigOString(BigO complexity);
 
 // Find the coefficient for the high-order term in the running time, by
 // minimizing the sum of squares of relative error.
 LeastSq MinimalLeastSq(const std::vector<int>& n,
                        const std::vector<double>& time,
-                       const benchmark::BigO complexity = oAuto);
+                       const BigO complexity = oAuto);
 
 } // end namespace benchmark
 #endif // COMPLEXITY_H_
