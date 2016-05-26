@@ -179,7 +179,7 @@ Three macros are provided for adding benchmark templates.
 ## Passing arbitrary arguments to a benchmark
 In C++11 it is possible to define a benchmark that takes an arbitrary number
 of extra arguments. The `BENCHMARK_CAPTURE(func, test_case_name, ...args)`
-macro creates a benchmark that invokes `func`  with the `benchmark::States` as
+macro creates a benchmark that invokes `func`  with the `benchmark::State` as
 the first argument followed by the specified `args...`.
 The `test_case_name` is appended to the name of the benchmark and
 should describe the values passed.

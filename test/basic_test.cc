@@ -112,6 +112,4 @@ void BM_non_template_args(benchmark::State& state, int, double) {
 }
 BENCHMARK_CAPTURE(BM_non_template_args, basic_test, 0, 0);
 
-
-
 BENCHMARK_MAIN()

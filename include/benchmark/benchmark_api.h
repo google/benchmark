@@ -640,13 +640,26 @@ protected:
   BENCHMARK(n)->RangePair((l1), (h1), (l2), (h2))
 
 #if __cplusplus >= 201103L
-#define BENCHMARK_CAPTURE(name, desc, ...)   \
+
+// Register a benchmark which invokes the function specified by `func`
+// with the additional arguments specified by `...`.
+//
+// For example:
+//
+// template <class ...ExtraArgs>`
+// void BM_takes_args(benchmark::State& state, ExtraArgs&&... extra_args) {
+//  [...]
+//}
+// /* Registers a benchmark named "BM_takes_args/int_string_test` */
+// BENCHMARK_CAPTURE(BM_takes_args, int_string_test, 42, std::string("abc"));
+#define BENCHMARK_CAPTURE(func, test_case_name, ...)   \
     BENCHMARK_PRIVATE_DECLARE(n) =                               \
         (::benchmark::internal::RegisterBenchmarkInternal(       \
             new ::benchmark::internal::FunctionBenchmark(        \
-                    #name "/" #desc,                             \
-                    [](::benchmark::State& st) { name(st, __VA_ARGS__); })))
-#endif
+                    #func "/" #test_case_name,                             \
+                    [](::benchmark::State& st) { func(st, __VA_ARGS__); })))
+
+#endif // __cplusplus >= 11
 
 // This will register a benchmark for a templatized function.  For example:
 //
