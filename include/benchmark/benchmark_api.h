@@ -652,10 +652,10 @@ protected:
 //}
 // /* Registers a benchmark named "BM_takes_args/int_string_test` */
 // BENCHMARK_CAPTURE(BM_takes_args, int_string_test, 42, std::string("abc"));
-#define BENCHMARK_CAPTURE(func, test_case_name, ...)   \
-    BENCHMARK_PRIVATE_DECLARE(n) =                               \
-        (::benchmark::internal::RegisterBenchmarkInternal(       \
-            new ::benchmark::internal::FunctionBenchmark(        \
+#define BENCHMARK_CAPTURE(func, test_case_name, ...)                       \
+    BENCHMARK_PRIVATE_DECLARE(func) =                                      \
+        (::benchmark::internal::RegisterBenchmarkInternal(                 \
+            new ::benchmark::internal::FunctionBenchmark(                  \
                     #func "/" #test_case_name,                             \
                     [](::benchmark::State& st) { func(st, __VA_ARGS__); })))
 
