@@ -154,7 +154,6 @@ BENCHMARK(BM_test)->Unit(benchmark::kMillisecond);
 #include <stdint.h>
 
 #include "macros.h"
-#include "complexity.h"
 
 namespace benchmark {
 class BenchmarkReporter;
@@ -235,6 +234,20 @@ enum TimeUnit {
   kNanosecond,
   kMicrosecond,
   kMillisecond
+};
+
+// BigO is passed to a benchmark in order to specify the asymptotic computational 
+// complexity for the benchmark. In case oAuto is selected, complexity will be 
+// calculated automatically to the best fit.
+enum BigO {
+  oNone,
+  o1,
+  oN,
+  oNSquared,
+  oNCubed,
+  oLogN,
+  oNLogN,
+  oAuto
 };
 
 // State is passed to a running Benchmark and contains state for the
@@ -523,7 +536,7 @@ public:
 
   // Set the asymptotic computational complexity for the benchmark. If called
   // the asymptotic computational complexity will be shown on the output. 
-  Benchmark* Complexity(BigO complexity);
+  Benchmark* Complexity(BigO complexity = benchmark::oAuto);
 
   // Support for running multiple copies of the same benchmark concurrently
   // in multiple threads.  This may be useful when measuring the scaling

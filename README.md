@@ -139,7 +139,7 @@ calculated automatically.
 
 ```c++
 BENCHMARK(BM_StringCompare)
-    ->RangeMultiplier(2)->Range(1<<10, 1<<18)->Complexity(benchmark::oAuto);
+    ->RangeMultiplier(2)->Range(1<<10, 1<<18)->Complexity();
 ```
 
 ### Templated benchmarks

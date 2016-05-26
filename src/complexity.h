@@ -15,12 +15,15 @@
 // Source project : https://github.com/ismaelJimenez/cpp.leastsq
 // Adapted to be used with google benchmark
 
-#if !defined(MINIMAL_LEASTSQ_H_)
-#define MINIMAL_LEASTSQ_H_
+#ifndef COMPLEXITY_H_
+#define COMPLEXITY_H_
+
+#include <string>
+#include <vector>
 
 #include "benchmark/benchmark_api.h"
 
-#include <vector>
+namespace benchmark {
 
 // This data structure will contain the result returned by MinimalLeastSq
 //   - coef        : Estimated coeficient for the high-order term as
@@ -33,19 +36,23 @@
 
 struct LeastSq {
   LeastSq() :
-    coef(0),
-    rms(0),
-    complexity(benchmark::oNone) {}
+    coef(0.0),
+    rms(0.0),
+    complexity(oNone) {}
 
   double coef;
   double rms;
-  benchmark::BigO complexity;
+  BigO complexity;
 };
+
+// Function to return an string for the calculated complexity
+std::string GetBigOString(BigO complexity);
 
 // Find the coefficient for the high-order term in the running time, by
 // minimizing the sum of squares of relative error.
 LeastSq MinimalLeastSq(const std::vector<int>& n,
                        const std::vector<double>& time,
-                       const benchmark::BigO complexity = benchmark::oAuto);
+                       const BigO complexity = oAuto);
 
-#endif
+} // end namespace benchmark
+#endif // COMPLEXITY_H_
