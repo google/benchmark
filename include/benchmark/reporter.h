@@ -14,6 +14,7 @@
 #ifndef BENCHMARK_REPORTER_H_
 #define BENCHMARK_REPORTER_H_
 
+#include <cassert>
 #include <iosfwd>
 #include <string>
 #include <utility>
@@ -110,31 +111,24 @@ class BenchmarkReporter {
   // reported.
   virtual void Finalize();
 
-  // REQUIRES: 'out' shall be valid for the lifetime of the reporter.
-  // Set the stream used for non-error output to the value specified by 'out'.
-  void SetOutputStream(std::ostream& out) {
-    output_stream_ = &out;
+  // REQUIRES: The object referenced by 'out' is valid for the lifetime
+  // of the reporter.
+  void SetOutputStream(std::ostream* out) {
+    assert(out);
+    output_stream_ = out;
   }
 
-  // REQUIRES: 'out' shall be valid for the lifetime of the reporter.
-  // Set the stream used for error output to the value specified by 'out'.
-  void SetErrorStream(std::ostream& out) {
-    error_stream_ = &out;
+  // REQUIRES: The object referenced by 'err' is valid for the lifetime
+  // of the reporter.
+  void SetErrorStream(std::ostream* err) {
+    assert(err);
+    error_stream_ = err;
   }
 
-  // REQUIRES: 'out' shall be valid for the lifetime of the reporter.
-  // Set the stream used for both error and non-error output to the value
-  // specified by 'out'.
-  void SetStreams(std::ostream& out) {
-    output_stream_ = error_stream_ = &out;
-  }
-
-  // RETURNS: A valid output stream.
   std::ostream& GetOutputStream() const {
     return *output_stream_;
   }
 
-  // RETURNS: A valid output stream.
   std::ostream& GetErrorStream() const {
     return *error_stream_;
   }

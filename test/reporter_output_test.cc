@@ -231,8 +231,8 @@ int main(int argc, char* argv[]) {
                  std::vector<TestCase>& err_tc,
                  benchmark::BenchmarkReporter& br)
         : name(n), output_cases(out_tc), error_cases(err_tc), reporter(br) {
-        reporter.SetOutputStream(out_stream);
-        reporter.SetErrorStream(err_stream);
+        reporter.SetOutputStream(&out_stream);
+        reporter.SetErrorStream(&err_stream);
     }
   } TestCases[] = {
       {"ConsoleReporter", ConsoleOutputTests, ConsoleErrorTests, CR},

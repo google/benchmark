@@ -86,8 +86,6 @@ std::string FormatString(const char *msg, va_list args) {
   va_list args_cp;
   va_copy(args_cp, args);
 
-  //TODO, use std::array for first attempt to avoid one memory allocation
-  // guess what the size might be
   std::size_t size = 256;
   char local_buff[256];
   auto ret = std::vsnprintf(local_buff, size, msg, args_cp);
