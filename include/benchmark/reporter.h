@@ -187,5 +187,29 @@ private:
   void PrintRunData(const Run& report);
 };
 
+inline const char* GetTimeUnitString(TimeUnit unit) {
+  switch (unit) {
+    case kMillisecond:
+      return "ms";
+    case kMicrosecond:
+      return "us";
+    case kNanosecond:
+    default:
+      return "ns";
+  }
+}
+
+inline double GetTimeUnitMultiplier(TimeUnit unit) {
+    switch (unit) {
+    case kMillisecond:
+      return 1e3;
+    case kMicrosecond:
+      return 1e6;
+    case kNanosecond:
+    default:
+      return 1e9;
+  }
+}
+
 } // end namespace benchmark
 #endif // BENCHMARK_REPORTER_H_
