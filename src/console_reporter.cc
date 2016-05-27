@@ -25,6 +25,8 @@
 
 #include "check.h"
 #include "colorprint.h"
+#include "commandlineflags.h"
+#include "internal_macros.h"
 #include "string_util.h"
 #include "walltime.h"
 
@@ -33,26 +35,36 @@ namespace benchmark {
 bool ConsoleReporter::ReportContext(const Context& context) {
   name_field_width_ = context.name_field_width;
 
-  std::cerr << "Run on (" << context.num_cpus << " X " << context.mhz_per_cpu
+  auto& Out = GetOutputStream();
+  auto& Err = GetErrorStream();
+
+#ifdef BENCHMARK_OS_WINDOWS
+  if (FLAGS_color_print && &Out != &std::cout) {
+      Err << "Color printing is only supported for stdout on windows. "
+              "Disabling color printing\n";
+      FLAGS_color_print = false;
+  }
+#endif
+
+  Err << "Run on (" << context.num_cpus << " X " << context.mhz_per_cpu
             << " MHz CPU " << ((context.num_cpus > 1) ? "s" : "") << ")\n";
 
-  std::cerr << LocalDateTimeString() << "\n";
+  Err << LocalDateTimeString() << "\n";
 
   if (context.cpu_scaling_enabled) {
-    std::cerr << "***WARNING*** CPU scaling is enabled, the benchmark "
+    Err << "***WARNING*** CPU scaling is enabled, the benchmark "
                  "real time measurements may be noisy and will incur extra "
                  "overhead.\n";
   }
 
 #ifndef NDEBUG
-  std::cerr << "***WARNING*** Library was built as DEBUG. Timings may be "
+  Err << "***WARNING*** Library was built as DEBUG. Timings may be "
                "affected.\n";
 #endif
-
-  int output_width = fprintf(stdout, "%-*s %13s %13s %10s\n",
+  std::string str = FormatString("%-*s %13s %13s %10s\n",
                              static_cast<int>(name_field_width_), "Benchmark",
                              "Time", "CPU", "Iterations");
-  std::cout << std::string(output_width - 1, '-') << "\n";
+  Out << str << std::string(str.length() - 1, '-') << "\n";
 
   return true;
 }
@@ -101,15 +113,17 @@ void ConsoleReporter::ReportComplexity(const std::vector<Run> & complexity_repor
 }
 
 void ConsoleReporter::PrintRunData(const Run& result) {
+  auto& Out = GetOutputStream();
+
   auto name_color = (result.report_big_o || result.report_rms)
       ? COLOR_BLUE : COLOR_GREEN;
-  ColorPrintf(name_color, "%-*s ", name_field_width_,
+  ColorPrintf(Out, name_color, "%-*s ", name_field_width_,
               result.benchmark_name.c_str());
 
   if (result.error_occurred) {
-    ColorPrintf(COLOR_RED, "ERROR OCCURRED: \'%s\'",
+    ColorPrintf(Out, COLOR_RED, "ERROR OCCURRED: \'%s\'",
                 result.error_message.c_str());
-    ColorPrintf(COLOR_DEFAULT, "\n");
+    ColorPrintf(Out, COLOR_DEFAULT, "\n");
     return;
   }
   // Format bytes per second
@@ -131,24 +145,24 @@ void ConsoleReporter::PrintRunData(const Run& result) {
 
   if(result.report_big_o) {
     std::string big_o = result.report_big_o ? GetBigOString(result.complexity) : "";
-    ColorPrintf(COLOR_YELLOW, "%10.4f %s %10.4f %s ",
+    ColorPrintf(Out, COLOR_YELLOW, "%10.4f %s %10.4f %s ",
                 result.real_accumulated_time * multiplier,
                 big_o.c_str(),
                 result.cpu_accumulated_time * multiplier,
                 big_o.c_str());
   } else if(result.report_rms) {
-    ColorPrintf(COLOR_YELLOW, "%10.0f %% %10.0f %% ",
+    ColorPrintf(Out, COLOR_YELLOW, "%10.0f %% %10.0f %% ",
                 result.real_accumulated_time * multiplier * 100,
                 result.cpu_accumulated_time * multiplier * 100);
   } else if (result.iterations == 0) {
 
-    ColorPrintf(COLOR_YELLOW, "%10.0f %s %10.0f %s ",
+    ColorPrintf(Out, COLOR_YELLOW, "%10.0f %s %10.0f %s ",
                 result.real_accumulated_time * multiplier,
                 timeLabel,
                 result.cpu_accumulated_time * multiplier,
                 timeLabel);
   } else {
-    ColorPrintf(COLOR_YELLOW, "%10.0f %s %10.0f %s ",
+    ColorPrintf(Out, COLOR_YELLOW, "%10.0f %s %10.0f %s ",
                 (result.real_accumulated_time * multiplier) /
                     (static_cast<double>(result.iterations)),
                 timeLabel,
@@ -158,22 +172,22 @@ void ConsoleReporter::PrintRunData(const Run& result) {
   }
 
   if(!result.report_big_o && !result.report_rms) {
-    ColorPrintf(COLOR_CYAN, "%10lld", result.iterations);
+    ColorPrintf(Out, COLOR_CYAN, "%10lld", result.iterations);
   }
 
   if (!rate.empty()) {
-    ColorPrintf(COLOR_DEFAULT, " %*s", 13, rate.c_str());
+    ColorPrintf(Out, COLOR_DEFAULT, " %*s", 13, rate.c_str());
   }
 
   if (!items.empty()) {
-    ColorPrintf(COLOR_DEFAULT, " %*s", 18, items.c_str());
+    ColorPrintf(Out, COLOR_DEFAULT, " %*s", 18, items.c_str());
   }
 
   if (!result.report_label.empty()) {
-    ColorPrintf(COLOR_DEFAULT, " %s", result.report_label.c_str());
+    ColorPrintf(Out, COLOR_DEFAULT, " %s", result.report_label.c_str());
   }
 
-  ColorPrintf(COLOR_DEFAULT, "\n");
+  ColorPrintf(Out, COLOR_DEFAULT, "\n");
 }
 
 }  // end namespace benchmark

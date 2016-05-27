@@ -48,6 +48,8 @@ add_test(fixture_test fixture_test --benchmark_min_time=0.01)
 compile_benchmark_test(map_test)
 add_test(map_test map_test --benchmark_min_time=0.01)
 
+compile_benchmark_test(reporter_output_test)
+add_test(reporter_output_test reporter_output_test --benchmark_min_time=0.01)
 
 check_cxx_compiler_flag(-std=c++03 BENCHMARK_HAS_CXX03_FLAG)
 if (BENCHMARK_HAS_CXX03_FLAG)

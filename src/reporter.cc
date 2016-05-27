@@ -16,6 +16,8 @@
 #include "complexity.h"
 
 #include <cstdlib>
+
+#include <iostream>
 #include <vector>
 #include <tuple>
 
@@ -23,6 +25,11 @@
 #include "stat.h"
 
 namespace benchmark {
+
+BenchmarkReporter::BenchmarkReporter()
+    : output_stream_(&std::cout), error_stream_(&std::cerr)
+{
+}
 
 void BenchmarkReporter::ComputeStats(
     const std::vector<Run>& reports,

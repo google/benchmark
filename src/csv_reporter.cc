@@ -44,27 +44,30 @@ std::vector<std::string> elements = {
 }
 
 bool CSVReporter::ReportContext(const Context& context) {
-  std::cerr << "Run on (" << context.num_cpus << " X " << context.mhz_per_cpu
+  std::ostream& Err = GetErrorStream();
+  std::ostream& Out = GetOutputStream();
+
+  Err << "Run on (" << context.num_cpus << " X " << context.mhz_per_cpu
             << " MHz CPU " << ((context.num_cpus > 1) ? "s" : "") << ")\n";
 
-  std::cerr << LocalDateTimeString() << "\n";
+  Err << LocalDateTimeString() << "\n";
 
   if (context.cpu_scaling_enabled) {
-    std::cerr << "***WARNING*** CPU scaling is enabled, the benchmark "
+    Err << "***WARNING*** CPU scaling is enabled, the benchmark "
                  "real time measurements may be noisy and will incur extra "
                  "overhead.\n";
   }
 
 #ifndef NDEBUG
-  std::cerr << "***WARNING*** Library was built as DEBUG. Timings may be "
+  Err << "***WARNING*** Library was built as DEBUG. Timings may be "
                "affected.\n";
 #endif
   for (auto B = elements.begin(); B != elements.end(); ) {
-    std::cout << *B++;
+    Out << *B++;
     if (B != elements.end())
-      std::cout << ",";
+      Out << ",";
   }
-  std::cout << "\n";
+  Out << "\n";
   return true;
 }
 
@@ -106,19 +109,19 @@ void CSVReporter::ReportComplexity(const std::vector<Run>& complexity_reports) {
 }
 
 void CSVReporter::PrintRunData(const Run & run) {
-
+  std::ostream& Out = GetOutputStream();
 
   // Field with embedded double-quote characters must be doubled and the field
   // delimited with double-quotes.
   std::string name = run.benchmark_name;
   ReplaceAll(&name, "\"", "\"\"");
-  std::cout << '"' << name << "\",";
+  Out << '"' << name << "\",";
   if (run.error_occurred) {
-    std::cout << std::string(elements.size() - 3, ',');
-    std::cout << "true,";
+    Out << std::string(elements.size() - 3, ',');
+    Out << "true,";
     std::string msg = run.error_message;
     ReplaceAll(&msg, "\"", "\"\"");
-    std::cout << '"' << msg << "\"\n";
+    Out << '"' << msg << "\"\n";
     return;
   }
 
@@ -135,36 +138,36 @@ void CSVReporter::PrintRunData(const Run & run) {
 
   // Do not print iteration on bigO and RMS report
   if(!run.report_big_o && !run.report_rms) {
-    std::cout << run.iterations;
+    Out << run.iterations;
   }
-  std::cout << ",";
+  Out << ",";
 
-  std::cout << real_time << ",";
-  std::cout << cpu_time << ",";
+  Out << real_time << ",";
+  Out << cpu_time << ",";
 
   // Do not print timeLabel on RMS report
   if(!run.report_rms) {
-    std::cout << timeLabel;
+    Out << timeLabel;
   }
-  std::cout << ",";
+  Out << ",";
 
   if (run.bytes_per_second > 0.0) {
-    std::cout << run.bytes_per_second;
+    Out << run.bytes_per_second;
   }
-  std::cout << ",";
+  Out << ",";
   if (run.items_per_second > 0.0) {
-    std::cout << run.items_per_second;
+    Out << run.items_per_second;
   }
-  std::cout << ",";
+  Out << ",";
   if (!run.report_label.empty()) {
     // Field with embedded double-quote characters must be doubled and the field
     // delimited with double-quotes.
     std::string label = run.report_label;
     ReplaceAll(&label, "\"", "\"\"");
-    std::cout << "\"" << label << "\"";
+    Out << "\"" << label << "\"";
   }
-  std::cout << ",,"; // for error_occurred and error_message
-  std::cout << '\n';
+  Out << ",,"; // for error_occurred and error_message
+  Out << '\n';
 }
 
 }  // end namespace benchmark

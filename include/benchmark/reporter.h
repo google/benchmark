@@ -14,6 +14,8 @@
 #ifndef BENCHMARK_REPORTER_H_
 #define BENCHMARK_REPORTER_H_
 
+#include <cassert>
+#include <iosfwd>
 #include <string>
 #include <utility>
 #include <vector>
@@ -81,6 +83,10 @@ class BenchmarkReporter {
     bool report_rms;
   };
 
+  // Construct a BenchmarkReporter with the output stream set to 'std::cout'
+  // and the error stream set to 'std::cerr'
+  BenchmarkReporter();
+
   // Called once for every suite of benchmarks run.
   // The parameter "context" contains information that the
   // reporter may wish to use when generating its report, for example the
@@ -105,12 +111,38 @@ class BenchmarkReporter {
   // reported.
   virtual void Finalize();
 
+  // REQUIRES: The object referenced by 'out' is valid for the lifetime
+  // of the reporter.
+  void SetOutputStream(std::ostream* out) {
+    assert(out);
+    output_stream_ = out;
+  }
+
+  // REQUIRES: The object referenced by 'err' is valid for the lifetime
+  // of the reporter.
+  void SetErrorStream(std::ostream* err) {
+    assert(err);
+    error_stream_ = err;
+  }
+
+  std::ostream& GetOutputStream() const {
+    return *output_stream_;
+  }
+
+  std::ostream& GetErrorStream() const {
+    return *error_stream_;
+  }
+
   virtual ~BenchmarkReporter();
 protected:
   static void ComputeStats(const std::vector<Run>& reports,
                            Run* mean, Run* stddev);
   static void ComputeBigO(const std::vector<Run>& reports, Run* bigO, Run* rms);
   static TimeUnitMultiplier GetTimeUnitAndMultiplier(TimeUnit unit);
+
+private:
+  std::ostream* output_stream_;
+  std::ostream* error_stream_;
 };
 
 // Simple reporter that outputs benchmark data to the console. This is the
