@@ -72,25 +72,8 @@ bool CSVReporter::ReportContext(const Context& context) {
 }
 
 void CSVReporter::ReportRuns(const std::vector<Run> & reports) {
-  if (reports.empty()) {
-    return;
-  }
-
-  auto error_count = std::count_if(
-      reports.begin(), reports.end(),
-      [](Run const& run) {return run.error_occurred;});
-
-  std::vector<Run> reports_cp = reports;
-  if (reports.size() - error_count >= 2) {
-    Run mean_data;
-    Run stddev_data;
-    BenchmarkReporter::ComputeStats(reports, &mean_data, &stddev_data);
-    reports_cp.push_back(mean_data);
-    reports_cp.push_back(stddev_data);
-  }
-  for (auto it = reports_cp.begin(); it != reports_cp.end(); ++it) {
-    PrintRunData(*it);
-  }
+  for (const auto& run : reports)
+    PrintRunData(run);
 }
 
 void CSVReporter::ReportComplexity(const std::vector<Run>& complexity_reports) {

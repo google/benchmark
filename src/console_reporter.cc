@@ -70,31 +70,8 @@ bool ConsoleReporter::ReportContext(const Context& context) {
 }
 
 void ConsoleReporter::ReportRuns(const std::vector<Run>& reports) {
-  if (reports.empty()) {
-    return;
-  }
-
-  for (Run const& run : reports) {
-    CHECK_EQ(reports[0].benchmark_name, run.benchmark_name);
+  for (const auto& run : reports)
     PrintRunData(run);
-  }
-
-  auto error_count = std::count_if(
-      reports.begin(), reports.end(),
-      [](Run const& run) {return run.error_occurred;});
-
-  if (reports.size() - error_count < 2) {
-    // We don't report aggregated data if there was a single run.
-    return;
-  }
-
-  Run mean_data;
-  Run stddev_data;
-  BenchmarkReporter::ComputeStats(reports, &mean_data, &stddev_data);
-
-  // Output using PrintRun.
-  PrintRunData(mean_data);
-  PrintRunData(stddev_data);
 }
 
 void ConsoleReporter::ReportComplexity(const std::vector<Run> & complexity_reports) {

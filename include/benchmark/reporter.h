@@ -135,8 +135,6 @@ class BenchmarkReporter {
 
   virtual ~BenchmarkReporter();
 protected:
-  static void ComputeStats(const std::vector<Run>& reports,
-                           Run* mean, Run* stddev);
   static void ComputeBigO(const std::vector<Run>& reports, Run* bigO, Run* rms);
   static TimeUnitMultiplier GetTimeUnitAndMultiplier(TimeUnit unit);
 

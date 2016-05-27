@@ -98,24 +98,12 @@ void JSONReporter::ReportRuns(std::vector<Run> const& reports) {
   }
   first_report_ = false;
 
-  auto error_count = std::count_if(
-      reports.begin(), reports.end(),
-      [](Run const& run) {return run.error_occurred;});
-
-  std::vector<Run> reports_cp = reports;
-  if (reports.size() - error_count >= 2) {
-    Run mean_data;
-    Run stddev_data;
-    BenchmarkReporter::ComputeStats(reports, &mean_data, &stddev_data);
-    reports_cp.push_back(mean_data);
-    reports_cp.push_back(stddev_data);
-  }
-  for (auto it = reports_cp.begin(); it != reports_cp.end(); ++it) {
+  for (auto it = reports.begin(); it != reports.end(); ++it) {
      out << indent << "{\n";
      PrintRunData(*it);
      out << indent << '}';
      auto it_cp = it;
-     if (++it_cp != reports_cp.end()) {
+     if (++it_cp != reports.end()) {
          out << ",\n";
      }
   }
