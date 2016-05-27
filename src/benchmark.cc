@@ -115,8 +115,7 @@ std::string* GetReportLabel() {
 
 // Global variable so that a benchmark can report an error as a human readable
 // string. If error_message is null no error occurred.
-static std::atomic<const char*> error_message = ATOMIC_VAR_INIT(
-    (const char*) nullptr);
+static std::atomic<const char*> error_message = ATOMIC_VAR_INIT(nullptr);
 
 // TODO(ericwf): support MallocCounter.
 //static benchmark::MallocCounter *benchmark_mc;
