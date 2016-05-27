@@ -141,6 +141,12 @@ class BenchmarkReporter {
   }
 
   virtual ~BenchmarkReporter();
+
+  // Write a human readable string to 'out' representing the specified
+  // 'context'.
+  // REQUIRES: 'out' is non-null.
+  static void PrintBasicContext(std::ostream* out, Context const& context);
+
 private:
   std::ostream* output_stream_;
   std::ostream* error_stream_;

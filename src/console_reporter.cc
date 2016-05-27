@@ -35,36 +35,19 @@ namespace benchmark {
 bool ConsoleReporter::ReportContext(const Context& context) {
   name_field_width_ = context.name_field_width;
 
-  auto& Out = GetOutputStream();
-  auto& Err = GetErrorStream();
+  PrintBasicContext(&GetErrorStream(), context);
 
 #ifdef BENCHMARK_OS_WINDOWS
-  if (FLAGS_color_print && &Out != &std::cout) {
-      Err << "Color printing is only supported for stdout on windows. "
-              "Disabling color printing\n";
+  if (FLAGS_color_print && &Out != &GetOutputStream()) {
+      GetErrorString() << "Color printing is only supported for stdout on windows."
+                          " Disabling color printing\n";
       FLAGS_color_print = false;
   }
-#endif
-
-  Err << "Run on (" << context.num_cpus << " X " << context.mhz_per_cpu
-            << " MHz CPU " << ((context.num_cpus > 1) ? "s" : "") << ")\n";
-
-  Err << LocalDateTimeString() << "\n";
-
-  if (context.cpu_scaling_enabled) {
-    Err << "***WARNING*** CPU scaling is enabled, the benchmark "
-                 "real time measurements may be noisy and will incur extra "
-                 "overhead.\n";
-  }
-
-#ifndef NDEBUG
-  Err << "***WARNING*** Library was built as DEBUG. Timings may be "
-               "affected.\n";
 #endif
   std::string str = FormatString("%-*s %13s %13s %10s\n",
                              static_cast<int>(name_field_width_), "Benchmark",
                              "Time", "CPU", "Iterations");
-  Out << str << std::string(str.length() - 1, '-') << "\n";
+  GetOutputStream() << str << std::string(str.length() - 1, '-') << "\n";
 
   return true;
 }

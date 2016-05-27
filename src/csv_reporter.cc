@@ -44,24 +44,9 @@ std::vector<std::string> elements = {
 }
 
 bool CSVReporter::ReportContext(const Context& context) {
-  std::ostream& Err = GetErrorStream();
+  PrintBasicContext(&GetErrorStream(), context);
+
   std::ostream& Out = GetOutputStream();
-
-  Err << "Run on (" << context.num_cpus << " X " << context.mhz_per_cpu
-            << " MHz CPU " << ((context.num_cpus > 1) ? "s" : "") << ")\n";
-
-  Err << LocalDateTimeString() << "\n";
-
-  if (context.cpu_scaling_enabled) {
-    Err << "***WARNING*** CPU scaling is enabled, the benchmark "
-                 "real time measurements may be noisy and will incur extra "
-                 "overhead.\n";
-  }
-
-#ifndef NDEBUG
-  Err << "***WARNING*** Library was built as DEBUG. Timings may be "
-               "affected.\n";
-#endif
   for (auto B = elements.begin(); B != elements.end(); ) {
     Out << *B++;
     if (B != elements.end())

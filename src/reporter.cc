@@ -13,7 +13,7 @@
 // limitations under the License.
 
 #include "benchmark/reporter.h"
-#include "complexity.h"
+#include "walltime.h"
 
 #include <cstdlib>
 
@@ -32,6 +32,28 @@ BenchmarkReporter::BenchmarkReporter()
 }
 
 BenchmarkReporter::~BenchmarkReporter() {
+}
+
+void BenchmarkReporter::PrintBasicContext(std::ostream *out_ptr,
+                                          Context const &context) {
+  CHECK(out_ptr) << "cannot be null";
+  auto& Out = *out_ptr;
+
+  Out << "Run on (" << context.num_cpus << " X " << context.mhz_per_cpu
+            << " MHz CPU " << ((context.num_cpus > 1) ? "s" : "") << ")\n";
+
+  Out << LocalDateTimeString() << "\n";
+
+  if (context.cpu_scaling_enabled) {
+    Out << "***WARNING*** CPU scaling is enabled, the benchmark "
+                 "real time measurements may be noisy and will incur extra "
+                 "overhead.\n";
+  }
+
+#ifndef NDEBUG
+  Out << "***WARNING*** Library was built as DEBUG. Timings may be "
+               "affected.\n";
+#endif
 }
 
 double BenchmarkReporter::Run::GetAdjustedRealTime() const {
