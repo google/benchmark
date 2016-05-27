@@ -7,6 +7,13 @@
 #include "internal_macros.h"
 #include "log.h"
 
+#ifndef _MSC_VER
+#define NOEXCEPT noexcept
+#else
+#include <yvals.h>
+#define NOEXCEPT _NOEXCEPT
+#endif
+
 namespace benchmark {
 namespace internal {
 
