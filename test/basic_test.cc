@@ -99,21 +99,4 @@ void BM_empty_stop_start(benchmark::State& state) {
 BENCHMARK(BM_empty_stop_start);
 BENCHMARK(BM_empty_stop_start)->ThreadPerCpu();
 
-#if __cplusplus >= 201103L
-
-template <class ...Args>
-void BM_with_args(benchmark::State& state, Args&&...) {
-  while (state.KeepRunning()) {}
-}
-BENCHMARK_CAPTURE(BM_with_args, int_test, 42, 43, 44);
-BENCHMARK_CAPTURE(BM_with_args, string_and_pair_test,
-                  std::string("abc"), std::pair<int, double>(42, 3.8));
-
-void BM_non_template_args(benchmark::State& state, int, double) {
-  while(state.KeepRunning()) {}
-}
-BENCHMARK_CAPTURE(BM_non_template_args, basic_test, 0, 0);
-
-#endif // __cplusplus >= 201103L
-
 BENCHMARK_MAIN()
