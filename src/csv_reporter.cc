@@ -44,24 +44,9 @@ std::vector<std::string> elements = {
 }
 
 bool CSVReporter::ReportContext(const Context& context) {
-  std::ostream& Err = GetErrorStream();
+  PrintBasicContext(&GetErrorStream(), context);
+
   std::ostream& Out = GetOutputStream();
-
-  Err << "Run on (" << context.num_cpus << " X " << context.mhz_per_cpu
-            << " MHz CPU " << ((context.num_cpus > 1) ? "s" : "") << ")\n";
-
-  Err << LocalDateTimeString() << "\n";
-
-  if (context.cpu_scaling_enabled) {
-    Err << "***WARNING*** CPU scaling is enabled, the benchmark "
-                 "real time measurements may be noisy and will incur extra "
-                 "overhead.\n";
-  }
-
-#ifndef NDEBUG
-  Err << "***WARNING*** Library was built as DEBUG. Timings may be "
-               "affected.\n";
-#endif
   for (auto B = elements.begin(); B != elements.end(); ) {
     Out << *B++;
     if (B != elements.end())
@@ -72,40 +57,8 @@ bool CSVReporter::ReportContext(const Context& context) {
 }
 
 void CSVReporter::ReportRuns(const std::vector<Run> & reports) {
-  if (reports.empty()) {
-    return;
-  }
-
-  auto error_count = std::count_if(
-      reports.begin(), reports.end(),
-      [](Run const& run) {return run.error_occurred;});
-
-  std::vector<Run> reports_cp = reports;
-  if (reports.size() - error_count >= 2) {
-    Run mean_data;
-    Run stddev_data;
-    BenchmarkReporter::ComputeStats(reports, &mean_data, &stddev_data);
-    reports_cp.push_back(mean_data);
-    reports_cp.push_back(stddev_data);
-  }
-  for (auto it = reports_cp.begin(); it != reports_cp.end(); ++it) {
-    PrintRunData(*it);
-  }
-}
-
-void CSVReporter::ReportComplexity(const std::vector<Run>& complexity_reports) {
-  if (complexity_reports.size() < 2) {
-    // We don't report asymptotic complexity data if there was a single run.
-    return;
-  }
-
-  Run big_o_data;
-  Run rms_data;
-  BenchmarkReporter::ComputeBigO(complexity_reports, &big_o_data, &rms_data);
-
-  // Output using PrintRun.
-  PrintRunData(big_o_data);
-  PrintRunData(rms_data);
+  for (const auto& run : reports)
+    PrintRunData(run);
 }
 
 void CSVReporter::PrintRunData(const Run & run) {
@@ -125,29 +78,18 @@ void CSVReporter::PrintRunData(const Run & run) {
     return;
   }
 
-  double multiplier;
-  const char* timeLabel;
-  std::tie(timeLabel, multiplier) = GetTimeUnitAndMultiplier(run.time_unit);
-
-  double cpu_time = run.cpu_accumulated_time * multiplier;
-  double real_time = run.real_accumulated_time * multiplier;
-  if (run.iterations != 0) {
-    real_time = real_time / static_cast<double>(run.iterations);
-    cpu_time = cpu_time / static_cast<double>(run.iterations);
-  }
-
   // Do not print iteration on bigO and RMS report
   if(!run.report_big_o && !run.report_rms) {
     Out << run.iterations;
   }
   Out << ",";
 
-  Out << real_time << ",";
-  Out << cpu_time << ",";
+  Out << run.GetAdjustedRealTime() << ",";
+  Out << run.GetAdjustedCPUTime() << ",";
 
   // Do not print timeLabel on RMS report
   if(!run.report_rms) {
-    Out << timeLabel;
+    Out << GetTimeUnitString(run.time_unit);
   }
   Out << ",";
 

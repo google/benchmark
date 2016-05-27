@@ -24,8 +24,6 @@
 
 namespace benchmark {
 
-typedef std::pair<const char*,double> TimeUnitMultiplier;
-
 // Interface for custom benchmark result printers.
 // By default, benchmark reports are printed to stdout. However an application
 // can control the destination of the reports by calling
@@ -67,6 +65,18 @@ class BenchmarkReporter {
     double real_accumulated_time;
     double cpu_accumulated_time;
 
+    // Return a value representing the real time per iteration in the unit
+    // specified by 'time_unit'.
+    // NOTE: If 'iterations' is zero the returned value represents the
+    // accumulated time.
+    double GetAdjustedRealTime() const;
+
+    // Return a value representing the cpu time per iteration in the unit
+    // specified by 'time_unit'.
+    // NOTE: If 'iterations' is zero the returned value represents the
+    // accumulated time.
+    double GetAdjustedCPUTime() const;
+
     // Zero if not set by benchmark.
     double bytes_per_second;
     double items_per_second;
@@ -96,20 +106,17 @@ class BenchmarkReporter {
   virtual bool ReportContext(const Context& context) = 0;
 
   // Called once for each group of benchmark runs, gives information about
-  // cpu-time and heap memory usage during the benchmark run.
-  // Note that all the grouped benchmark runs should refer to the same
-  // benchmark, thus have the same name.
+  // cpu-time and heap memory usage during the benchmark run. If the group
+  // of runs contained more than two entries then 'report' contains additional
+  // elements representing the mean and standard deviation of those runs.
+  // Additionally if this group of runs was the last in a family of benchmarks
+  // 'reports' contains additional entries representing the asymptotic
+  // complexity and RMS of that benchmark family.
   virtual void ReportRuns(const std::vector<Run>& report) = 0;
-
-  // Called once at the last benchmark in a family of benchmarks, gives information
-  // about asymptotic complexity and RMS. 
-  // Note that all the benchmark runs in a range should refer to the same benchmark, 
-  // thus have the same name.
-  virtual void ReportComplexity(const std::vector<Run>& complexity_reports) = 0;
 
   // Called once and only once after ever group of benchmarks is run and
   // reported.
-  virtual void Finalize();
+  virtual void Finalize() {}
 
   // REQUIRES: The object referenced by 'out' is valid for the lifetime
   // of the reporter.
@@ -134,11 +141,11 @@ class BenchmarkReporter {
   }
 
   virtual ~BenchmarkReporter();
-protected:
-  static void ComputeStats(const std::vector<Run>& reports,
-                           Run* mean, Run* stddev);
-  static void ComputeBigO(const std::vector<Run>& reports, Run* bigO, Run* rms);
-  static TimeUnitMultiplier GetTimeUnitAndMultiplier(TimeUnit unit);
+
+  // Write a human readable string to 'out' representing the specified
+  // 'context'.
+  // REQUIRES: 'out' is non-null.
+  static void PrintBasicContext(std::ostream* out, Context const& context);
 
 private:
   std::ostream* output_stream_;
@@ -151,9 +158,8 @@ class ConsoleReporter : public BenchmarkReporter {
  public:
   virtual bool ReportContext(const Context& context);
   virtual void ReportRuns(const std::vector<Run>& reports);
-  virtual void ReportComplexity(const std::vector<Run>& complexity_reports);
 
- protected:
+protected:
   virtual void PrintRunData(const Run& report);
 
   size_t name_field_width_;
@@ -164,7 +170,6 @@ public:
   JSONReporter() : first_report_(true) {}
   virtual bool ReportContext(const Context& context);
   virtual void ReportRuns(const std::vector<Run>& reports);
-  virtual void ReportComplexity(const std::vector<Run>& complexity_reports);
   virtual void Finalize();
 
 private:
@@ -177,7 +182,6 @@ class CSVReporter : public BenchmarkReporter {
 public:
   virtual bool ReportContext(const Context& context);
   virtual void ReportRuns(const std::vector<Run>& reports);
-  virtual void ReportComplexity(const std::vector<Run>& complexity_reports);
 
 private:
   void PrintRunData(const Run& report);

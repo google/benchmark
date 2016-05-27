@@ -33,6 +33,7 @@
 
 #include "check.h"
 #include "commandlineflags.h"
+#include "complexity.h"
 #include "log.h"
 #include "mutex.h"
 #include "re.h"
@@ -717,7 +718,6 @@ void FunctionBenchmark::Run(State& st) {
 
 namespace {
 
-
 // Execute one thread of benchmark b for the specified number of iterations.
 // Adds the stats collected for the thread into *total.
 void RunInThread(const benchmark::internal::Benchmark::Instance* b,
@@ -876,12 +876,18 @@ void RunBenchmark(const benchmark::internal::Benchmark::Instance& b,
       iters = static_cast<int>(next_iters + 0.5);
     }
   }
-  br->ReportRuns(reports);
+  std::vector<BenchmarkReporter::Run> additional_run_stats = ComputeStats(reports);
+  reports.insert(reports.end(), additional_run_stats.begin(),
+                    additional_run_stats.end());
 
   if((b.complexity != oNone) && b.last_benchmark_instance) {
-    br->ReportComplexity(complexity_reports);
+    additional_run_stats = ComputeBigO(complexity_reports);
+    reports.insert(reports.end(), additional_run_stats.begin(),
+                   additional_run_stats.end());
     complexity_reports.clear();
   }
+
+  br->ReportRuns(reports);
 
   if (b.multithreaded) {
     for (std::thread& thread : pool)

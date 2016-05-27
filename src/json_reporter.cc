@@ -98,52 +98,15 @@ void JSONReporter::ReportRuns(std::vector<Run> const& reports) {
   }
   first_report_ = false;
 
-  auto error_count = std::count_if(
-      reports.begin(), reports.end(),
-      [](Run const& run) {return run.error_occurred;});
-
-  std::vector<Run> reports_cp = reports;
-  if (reports.size() - error_count >= 2) {
-    Run mean_data;
-    Run stddev_data;
-    BenchmarkReporter::ComputeStats(reports, &mean_data, &stddev_data);
-    reports_cp.push_back(mean_data);
-    reports_cp.push_back(stddev_data);
-  }
-  for (auto it = reports_cp.begin(); it != reports_cp.end(); ++it) {
+  for (auto it = reports.begin(); it != reports.end(); ++it) {
      out << indent << "{\n";
      PrintRunData(*it);
      out << indent << '}';
      auto it_cp = it;
-     if (++it_cp != reports_cp.end()) {
+     if (++it_cp != reports.end()) {
          out << ",\n";
      }
   }
-}
-
-void JSONReporter::ReportComplexity(const std::vector<Run> & complexity_reports) {
-  if (complexity_reports.size() < 2) {
-    // We don't report asymptotic complexity data if there was a single run.
-    return;
-  }
-
-  std::string indent(4, ' ');
-  std::ostream& out = GetOutputStream();
-  if (!first_report_) {
-    out << ",\n";
-  }
-
-  Run big_o_data;
-  Run rms_data;
-  BenchmarkReporter::ComputeBigO(complexity_reports, &big_o_data, &rms_data);
-
-  // Output using PrintRun.
-  out << indent << "{\n";
-  PrintRunData(big_o_data);
-  out << indent << "},\n";
-  out << indent << "{\n";
-  PrintRunData(rms_data);
-  out << indent << '}';
 }
 
 void JSONReporter::Finalize() {
@@ -152,17 +115,6 @@ void JSONReporter::Finalize() {
 }
 
 void JSONReporter::PrintRunData(Run const& run) {
-    double multiplier;
-    const char* timeLabel;
-    std::tie(timeLabel, multiplier) = GetTimeUnitAndMultiplier(run.time_unit);
-
-    double cpu_time = run.cpu_accumulated_time * multiplier;
-    double real_time = run.real_accumulated_time * multiplier;
-    if (run.iterations != 0) {
-        real_time = real_time / static_cast<double>(run.iterations);
-        cpu_time = cpu_time / static_cast<double>(run.iterations);
-    }
-
     std::string indent(6, ' ');
     std::ostream& out = GetOutputStream();
     out << indent
@@ -182,13 +134,13 @@ void JSONReporter::PrintRunData(Run const& run) {
             << ",\n";
     }
     out << indent
-        << FormatKV("real_time", RoundDouble(real_time))
+        << FormatKV("real_time", RoundDouble(run.GetAdjustedRealTime()))
         << ",\n";
     out << indent
-        << FormatKV("cpu_time", RoundDouble(cpu_time));
+        << FormatKV("cpu_time", RoundDouble(run.GetAdjustedCPUTime()));
     if(!run.report_rms) {
         out << ",\n" << indent
-            << FormatKV("time_unit", timeLabel);
+            << FormatKV("time_unit", GetTimeUnitString(run.time_unit));
     }
     if (run.bytes_per_second > 0.0) {
         out << ",\n" << indent
