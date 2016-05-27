@@ -40,7 +40,7 @@ static void BM_Complexity_O_N(benchmark::State& state) {
   state.SetComplexityN(state.range_x());
 }
 BENCHMARK(BM_Complexity_O_N) -> RangeMultiplier(2) -> Range(1<<10, 1<<16) -> Complexity(benchmark::oN);
-BENCHMARK(BM_Complexity_O_N) -> RangeMultiplier(2) -> Range(1<<10, 1<<16) -> Complexity(benchmark::oAuto);
+BENCHMARK(BM_Complexity_O_N) -> RangeMultiplier(2) -> Range(1<<10, 1<<16) -> Complexity();
 
 static void BM_Complexity_O_N_Squared(benchmark::State& state) {
   std::string s1(state.range_x(), '-');
@@ -93,7 +93,7 @@ static void BM_Complexity_O_N_log_N(benchmark::State& state) {
   state.SetComplexityN(state.range_x());
 }
 BENCHMARK(BM_Complexity_O_N_log_N) -> RangeMultiplier(2) -> Range(1<<10, 1<<16) -> Complexity(benchmark::oNLogN);
-BENCHMARK(BM_Complexity_O_N_log_N) -> RangeMultiplier(2) -> Range(1<<10, 1<<16) -> Complexity(benchmark::oAuto);
+BENCHMARK(BM_Complexity_O_N_log_N) -> RangeMultiplier(2) -> Range(1<<10, 1<<16) -> Complexity();
 
 // Test benchmark with no range and check no complexity is calculated.
 void BM_Extreme_Cases(benchmark::State& state) {
@@ -101,6 +101,6 @@ void BM_Extreme_Cases(benchmark::State& state) {
   }
 }
 BENCHMARK(BM_Extreme_Cases) -> Complexity(benchmark::oNLogN);
-BENCHMARK(BM_Extreme_Cases) -> Arg(42) -> Complexity(benchmark::oAuto);
+BENCHMARK(BM_Extreme_Cases) -> Arg(42) -> Complexity();
 
 BENCHMARK_MAIN()
