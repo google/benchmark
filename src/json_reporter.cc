@@ -110,28 +110,7 @@ void JSONReporter::ReportRuns(std::vector<Run> const& reports) {
 }
 
 void JSONReporter::ReportComplexity(const std::vector<Run> & complexity_reports) {
-  if (complexity_reports.size() < 2) {
-    // We don't report asymptotic complexity data if there was a single run.
-    return;
-  }
-
-  std::string indent(4, ' ');
-  std::ostream& out = GetOutputStream();
-  if (!first_report_) {
-    out << ",\n";
-  }
-
-  Run big_o_data;
-  Run rms_data;
-  BenchmarkReporter::ComputeBigO(complexity_reports, &big_o_data, &rms_data);
-
-  // Output using PrintRun.
-  out << indent << "{\n";
-  PrintRunData(big_o_data);
-  out << indent << "},\n";
-  out << indent << "{\n";
-  PrintRunData(rms_data);
-  out << indent << '}';
+  ReportRuns(complexity_reports);
 }
 
 void JSONReporter::Finalize() {

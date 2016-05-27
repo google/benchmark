@@ -75,18 +75,7 @@ void ConsoleReporter::ReportRuns(const std::vector<Run>& reports) {
 }
 
 void ConsoleReporter::ReportComplexity(const std::vector<Run> & complexity_reports) {
-  if (complexity_reports.size() < 2) {
-    // We don't report asymptotic complexity data if there was a single run.
-    return;
-  }
-
-  Run big_o_data;
-  Run rms_data;
-  BenchmarkReporter::ComputeBigO(complexity_reports, &big_o_data, &rms_data);
-
-  // Output using PrintRun.
-  PrintRunData(big_o_data);
-  PrintRunData(rms_data);
+  ReportRuns(complexity_reports);
 }
 
 void ConsoleReporter::PrintRunData(const Run& result) {

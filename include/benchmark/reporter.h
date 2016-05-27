@@ -111,10 +111,9 @@ class BenchmarkReporter {
   // benchmark, thus have the same name.
   virtual void ReportRuns(const std::vector<Run>& report) = 0;
 
-  // Called once at the last benchmark in a family of benchmarks, gives information
-  // about asymptotic complexity and RMS. 
-  // Note that all the benchmark runs in a range should refer to the same benchmark, 
-  // thus have the same name.
+  // Called once at the last benchmark in a family of benchmarks.
+  // If 'complexity_reports' is not empty it will contain two entries
+  // giving information about about asymptotic complexity and RMS.
   virtual void ReportComplexity(const std::vector<Run>& complexity_reports) = 0;
 
   // Called once and only once after ever group of benchmarks is run and
@@ -144,9 +143,6 @@ class BenchmarkReporter {
   }
 
   virtual ~BenchmarkReporter();
-protected:
-  static void ComputeBigO(const std::vector<Run>& reports, Run* bigO, Run* rms);
-
 private:
   std::ostream* output_stream_;
   std::ostream* error_stream_;

@@ -33,6 +33,7 @@
 
 #include "check.h"
 #include "commandlineflags.h"
+#include "complexity.h"
 #include "log.h"
 #include "mutex.h"
 #include "re.h"
@@ -952,7 +953,8 @@ void RunBenchmark(const benchmark::internal::Benchmark::Instance& b,
   br->ReportRuns(reports);
 
   if((b.complexity != oNone) && b.last_benchmark_instance) {
-    br->ReportComplexity(complexity_reports);
+    additional_run_stats = ComputeBigO(complexity_reports);
+    br->ReportComplexity(additional_run_stats);
     complexity_reports.clear();
   }
 
