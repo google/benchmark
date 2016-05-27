@@ -164,9 +164,10 @@ LeastSq MinimalLeastSq(const std::vector<int>& n,
 std::vector<BenchmarkReporter::Run> ComputeBigO(
     const std::vector<BenchmarkReporter::Run>& reports)
 {
-  using Run = BenchmarkReporter::Run;
+  typedef BenchmarkReporter::Run Run;
+  std::vector<Run> results;
 
-  if (reports.size() < 2) return {};
+  if (reports.size() < 2) return results;
 
   // Accumulators.
   std::vector<int> n;
@@ -212,7 +213,9 @@ std::vector<BenchmarkReporter::Run> ComputeBigO(
   rms.report_rms = true;
   rms.complexity = result_cpu.complexity;
 
-  return {big_o, rms};
+  results.push_back(big_o);
+  results.push_back(rms);
+  return results;
 }
 
 }  // end namespace benchmark

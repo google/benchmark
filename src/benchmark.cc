@@ -721,7 +721,8 @@ namespace {
 std::vector<BenchmarkReporter::Run> ComputeStats(
     const std::vector<BenchmarkReporter::Run>& reports)
 {
-  using Run = BenchmarkReporter::Run;
+  typedef BenchmarkReporter::Run Run;
+  std::vector<Run> results;
 
   auto error_count = std::count_if(
       reports.begin(), reports.end(),
@@ -729,7 +730,7 @@ std::vector<BenchmarkReporter::Run> ComputeStats(
 
   if (reports.size() - error_count < 2) {
     // We don't report aggregated data if there was a single run.
-    return {};
+    return results;
   }
   // Accumulators.
   Stat1_d real_accumulated_time_stat;
@@ -785,7 +786,9 @@ std::vector<BenchmarkReporter::Run> ComputeStats(
   stddev_data.bytes_per_second = bytes_per_second_stat.StdDev();
   stddev_data.items_per_second = items_per_second_stat.StdDev();
 
-  return {mean_data, stddev_data};
+  results.push_back(mean_data);
+  results.push_back(stddev_data);
+  return results;
 }
 
 
