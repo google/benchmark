@@ -7,13 +7,6 @@
 #include "internal_macros.h"
 #include "log.h"
 
-#ifndef _MSC_VER
-#define NOEXCEPT noexcept
-#else
-#include <yvals.h>
-#define NOEXCEPT _NOEXCEPT
-#endif
-
 namespace benchmark {
 namespace internal {
 
@@ -44,7 +37,7 @@ public:
     return log_;
   }
 
-  BENCHMARK_NORETURN ~CheckHandler() NOEXCEPT(false) {
+  BENCHMARK_NORETURN ~CheckHandler() BENCHMARK_NOEXCEPT_OP(false) {
       log_ << std::endl;
       CallAbortHandler();
   }
