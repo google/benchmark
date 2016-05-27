@@ -154,7 +154,6 @@ BENCHMARK(BM_test)->Unit(benchmark::kMillisecond);
 #include <stdint.h>
 
 #include "macros.h"
-#include "complexity.h"
 
 namespace benchmark {
 class BenchmarkReporter;
@@ -210,19 +209,17 @@ Benchmark* RegisterBenchmarkInternal(Benchmark*);
 // expression from being optimized away by the compiler. This function is
 // intented to add little to no overhead.
 // See: http://stackoverflow.com/questions/28287064
-#if defined(__clang__) && defined(__GNUC__)
+#if defined(__GNUC__)
 // TODO(ericwf): Clang has a bug where it tries to always use a register
 // even if value must be stored in memory. This causes codegen to fail.
 // To work around this we remove the "r" modifier so the operand is always
 // loaded into memory.
+// GCC also has a bug where it complains about inconsistent operand constraints
+// when "+rm" is used for a type larger than can fit in a register or two.
+// For now force the operand to memory for both GCC and Clang.
 template <class Tp>
 inline BENCHMARK_ALWAYS_INLINE void DoNotOptimize(Tp const& value) {
     asm volatile("" : "+m" (const_cast<Tp&>(value)));
-}
-#elif defined(__GNUC__)
-template <class Tp>
-inline BENCHMARK_ALWAYS_INLINE void DoNotOptimize(Tp const& value) {
-    asm volatile("" : "+rm" (const_cast<Tp&>(value)));
 }
 #else
 template <class Tp>
@@ -237,6 +234,20 @@ enum TimeUnit {
   kNanosecond,
   kMicrosecond,
   kMillisecond
+};
+
+// BigO is passed to a benchmark in order to specify the asymptotic computational 
+// complexity for the benchmark. In case oAuto is selected, complexity will be 
+// calculated automatically to the best fit.
+enum BigO {
+  oNone,
+  o1,
+  oN,
+  oNSquared,
+  oNCubed,
+  oLogN,
+  oNLogN,
+  oAuto
 };
 
 // State is passed to a running Benchmark and contains state for the
@@ -525,7 +536,7 @@ public:
 
   // Set the asymptotic computational complexity for the benchmark. If called
   // the asymptotic computational complexity will be shown on the output. 
-  Benchmark* Complexity(BigO complexity);
+  Benchmark* Complexity(BigO complexity = benchmark::oAuto);
 
   // Support for running multiple copies of the same benchmark concurrently
   // in multiple threads.  This may be useful when measuring the scaling

@@ -39,6 +39,9 @@ add_test(diagnostics_test diagnostics_test --benchmark_min_time=0.01)
 compile_benchmark_test(skip_with_error_test)
 add_test(skip_with_error_test skip_with_error_test --benchmark_min_time=0.01)
 
+compile_benchmark_test(donotoptimize_test)
+add_test(donotoptimize_test donotoptimize_test --benchmark_min_time=0.01)
+
 compile_benchmark_test(fixture_test)
 add_test(fixture_test fixture_test --benchmark_min_time=0.01)
 
