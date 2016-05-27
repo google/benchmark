@@ -176,6 +176,26 @@ Three macros are provided for adding benchmark templates.
 #define BENCHMARK_TEMPLATE2(func, arg1, arg2)
 ```
 
+## Passing arbitrary arguments to a benchmark
+In C++11 it is possible to define a benchmark that takes an arbitrary number
+of extra arguments. The `BENCHMARK_CAPTURE(func, test_case_name, ...args)`
+macro creates a benchmark that invokes `func`  with the `benchmark::State` as
+the first argument followed by the specified `args...`.
+The `test_case_name` is appended to the name of the benchmark and
+should describe the values passed.
+
+```c++
+template <class ...ExtraArgs>`
+void BM_takes_args(benchmark::State& state, ExtraArgs&&... extra_args) {
+  [...]
+}
+// Registers a benchmark named "BM_takes_args/int_string_test` that passes
+// the specified values to `extra_args`.
+BENCHMARK_CAPTURE(BM_takes_args, int_string_test, 42, std::string("abc"));
+```
+Note that elements of `...args` may refer to global variables. Users should
+avoid modifying global state inside of a benchmark.
+
 ### Multithreaded benchmarks
 In a multithreaded test (benchmark invoked by multiple threads simultaneously),
 it is guaranteed that none of the threads will start until all have called
