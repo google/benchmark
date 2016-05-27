@@ -24,8 +24,6 @@
 
 namespace benchmark {
 
-typedef std::pair<const char*,double> TimeUnitMultiplier;
-
 // Interface for custom benchmark result printers.
 // By default, benchmark reports are printed to stdout. However an application
 // can control the destination of the reports by calling
@@ -66,6 +64,18 @@ class BenchmarkReporter {
     TimeUnit time_unit;
     double real_accumulated_time;
     double cpu_accumulated_time;
+
+    // Return a value representing the real time per iteration in the unit
+    // specified by 'time_unit'.
+    // NOTE: If 'iterations' is zero the returned value represents the
+    // accumulated time.
+    double GetAdjustedRealTime() const;
+
+    // Return a value representing the cpu time per iteration in the unit
+    // specified by 'time_unit'.
+    // NOTE: If 'iterations' is zero the returned value represents the
+    // accumulated time.
+    double GetAdjustedCPUTime() const;
 
     // Zero if not set by benchmark.
     double bytes_per_second;
@@ -109,7 +119,7 @@ class BenchmarkReporter {
 
   // Called once and only once after ever group of benchmarks is run and
   // reported.
-  virtual void Finalize();
+  virtual void Finalize() {}
 
   // REQUIRES: The object referenced by 'out' is valid for the lifetime
   // of the reporter.
@@ -136,7 +146,6 @@ class BenchmarkReporter {
   virtual ~BenchmarkReporter();
 protected:
   static void ComputeBigO(const std::vector<Run>& reports, Run* bigO, Run* rms);
-  static TimeUnitMultiplier GetTimeUnitAndMultiplier(TimeUnit unit);
 
 private:
   std::ostream* output_stream_;

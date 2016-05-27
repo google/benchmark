@@ -140,17 +140,6 @@ void JSONReporter::Finalize() {
 }
 
 void JSONReporter::PrintRunData(Run const& run) {
-    double multiplier;
-    const char* timeLabel;
-    std::tie(timeLabel, multiplier) = GetTimeUnitAndMultiplier(run.time_unit);
-
-    double cpu_time = run.cpu_accumulated_time * multiplier;
-    double real_time = run.real_accumulated_time * multiplier;
-    if (run.iterations != 0) {
-        real_time = real_time / static_cast<double>(run.iterations);
-        cpu_time = cpu_time / static_cast<double>(run.iterations);
-    }
-
     std::string indent(6, ' ');
     std::ostream& out = GetOutputStream();
     out << indent
@@ -170,13 +159,13 @@ void JSONReporter::PrintRunData(Run const& run) {
             << ",\n";
     }
     out << indent
-        << FormatKV("real_time", RoundDouble(real_time))
+        << FormatKV("real_time", RoundDouble(run.GetAdjustedRealTime()))
         << ",\n";
     out << indent
-        << FormatKV("cpu_time", RoundDouble(cpu_time));
+        << FormatKV("cpu_time", RoundDouble(run.GetAdjustedCPUTime()));
     if(!run.report_rms) {
         out << ",\n" << indent
-            << FormatKV("time_unit", timeLabel);
+            << FormatKV("time_unit", GetTimeUnitString(run.time_unit));
     }
     if (run.bytes_per_second > 0.0) {
         out << ",\n" << indent

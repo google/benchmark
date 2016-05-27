@@ -236,6 +236,30 @@ enum TimeUnit {
   kMillisecond
 };
 
+inline const char* GetTimeUnitString(TimeUnit unit) {
+  switch (unit) {
+    case kMillisecond:
+      return "ms";
+    case kMicrosecond:
+      return "us";
+    case kNanosecond:
+    default:
+      return "ns";
+  }
+}
+
+inline double GetTimeUnitMultiplier(TimeUnit unit) {
+    switch (unit) {
+    case kMillisecond:
+      return 1e3;
+    case kMicrosecond:
+      return 1e6;
+    case kNanosecond:
+    default:
+      return 1e9;
+  }
+}
+
 // BigO is passed to a benchmark in order to specify the asymptotic computational 
 // complexity for the benchmark. In case oAuto is selected, complexity will be 
 // calculated automatically to the best fit.

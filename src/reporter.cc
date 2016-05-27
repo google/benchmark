@@ -31,6 +31,23 @@ BenchmarkReporter::BenchmarkReporter()
 {
 }
 
+BenchmarkReporter::~BenchmarkReporter() {
+}
+
+double BenchmarkReporter::Run::GetAdjustedRealTime() const {
+  double new_time = real_accumulated_time * GetTimeUnitMultiplier(time_unit);
+  if (iterations != 0)
+    new_time /= static_cast<double>(iterations);
+  return new_time;
+}
+
+double BenchmarkReporter::Run::GetAdjustedCPUTime() const {
+  double new_time = cpu_accumulated_time * GetTimeUnitMultiplier(time_unit);
+  if (iterations != 0)
+    new_time /= static_cast<double>(iterations);
+  return new_time;
+}
+
 void BenchmarkReporter::ComputeBigO(
     const std::vector<Run>& reports,
     Run* big_o, Run* rms) {
@@ -67,10 +84,7 @@ void BenchmarkReporter::ComputeBigO(
   big_o->report_big_o = true;
   big_o->complexity = result_cpu.complexity;
 
-  double multiplier;
-  const char* time_label;
-  std::tie(time_label, multiplier) =
-      GetTimeUnitAndMultiplier(reports[0].time_unit);
+  double multiplier = GetTimeUnitMultiplier(reports[0].time_unit);
 
   // Only add label to mean/stddev if it is same for all runs
   big_o->report_label = reports[0].report_label;
@@ -83,22 +97,5 @@ void BenchmarkReporter::ComputeBigO(
   rms->complexity = result_cpu.complexity;
 }
 
-TimeUnitMultiplier BenchmarkReporter::GetTimeUnitAndMultiplier(TimeUnit unit) {
-  switch (unit) {
-    case kMillisecond:
-      return std::make_pair("ms", 1e3);
-    case kMicrosecond:
-      return std::make_pair("us", 1e6);
-    case kNanosecond:
-    default:
-      return std::make_pair("ns", 1e9);
-  }
-}
-
-void BenchmarkReporter::Finalize() {
-}
-
-BenchmarkReporter::~BenchmarkReporter() {
-}
 
 } // end namespace benchmark

@@ -116,36 +116,20 @@ void ConsoleReporter::PrintRunData(const Run& result) {
                    " items/s");
   }
 
-  double multiplier;
-  const char* timeLabel;
-  std::tie(timeLabel, multiplier) = GetTimeUnitAndMultiplier(result.time_unit);
+  const double real_time = result.GetAdjustedRealTime();
+  const double cpu_time = result.GetAdjustedCPUTime();
 
   if(result.report_big_o) {
     std::string big_o = result.report_big_o ? GetBigOString(result.complexity) : "";
     ColorPrintf(Out, COLOR_YELLOW, "%10.4f %s %10.4f %s ",
-                result.real_accumulated_time * multiplier,
-                big_o.c_str(),
-                result.cpu_accumulated_time * multiplier,
-                big_o.c_str());
+                real_time, big_o.c_str(), cpu_time, big_o.c_str());
   } else if(result.report_rms) {
     ColorPrintf(Out, COLOR_YELLOW, "%10.0f %% %10.0f %% ",
-                result.real_accumulated_time * multiplier * 100,
-                result.cpu_accumulated_time * multiplier * 100);
-  } else if (result.iterations == 0) {
-
-    ColorPrintf(Out, COLOR_YELLOW, "%10.0f %s %10.0f %s ",
-                result.real_accumulated_time * multiplier,
-                timeLabel,
-                result.cpu_accumulated_time * multiplier,
-                timeLabel);
+                real_time * 100, cpu_time * 100);
   } else {
+    const char* timeLabel = GetTimeUnitString(result.time_unit);
     ColorPrintf(Out, COLOR_YELLOW, "%10.0f %s %10.0f %s ",
-                (result.real_accumulated_time * multiplier) /
-                    (static_cast<double>(result.iterations)),
-                timeLabel,
-                (result.cpu_accumulated_time * multiplier) /
-                    (static_cast<double>(result.iterations)),
-                timeLabel);
+                real_time, timeLabel, cpu_time, timeLabel);
   }
 
   if(!result.report_big_o && !result.report_rms) {

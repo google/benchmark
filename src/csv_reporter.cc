@@ -108,29 +108,18 @@ void CSVReporter::PrintRunData(const Run & run) {
     return;
   }
 
-  double multiplier;
-  const char* timeLabel;
-  std::tie(timeLabel, multiplier) = GetTimeUnitAndMultiplier(run.time_unit);
-
-  double cpu_time = run.cpu_accumulated_time * multiplier;
-  double real_time = run.real_accumulated_time * multiplier;
-  if (run.iterations != 0) {
-    real_time = real_time / static_cast<double>(run.iterations);
-    cpu_time = cpu_time / static_cast<double>(run.iterations);
-  }
-
   // Do not print iteration on bigO and RMS report
   if(!run.report_big_o && !run.report_rms) {
     Out << run.iterations;
   }
   Out << ",";
 
-  Out << real_time << ",";
-  Out << cpu_time << ",";
+  Out << run.GetAdjustedRealTime() << ",";
+  Out << run.GetAdjustedCPUTime() << ",";
 
   // Do not print timeLabel on RMS report
   if(!run.report_rms) {
-    Out << timeLabel;
+    Out << GetTimeUnitString(run.time_unit);
   }
   Out << ",";
 
