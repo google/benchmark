@@ -950,13 +950,15 @@ void RunBenchmark(const benchmark::internal::Benchmark::Instance& b,
   std::vector<BenchmarkReporter::Run> additional_run_stats = ComputeStats(reports);
   reports.insert(reports.end(), additional_run_stats.begin(),
                     additional_run_stats.end());
-  br->ReportRuns(reports);
 
   if((b.complexity != oNone) && b.last_benchmark_instance) {
     additional_run_stats = ComputeBigO(complexity_reports);
-    br->ReportComplexity(additional_run_stats);
+    reports.insert(reports.end(), additional_run_stats.begin(),
+                   additional_run_stats.end());
     complexity_reports.clear();
   }
+
+  br->ReportRuns(reports);
 
   if (b.multithreaded) {
     for (std::thread& thread : pool)

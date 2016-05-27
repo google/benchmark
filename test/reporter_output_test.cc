@@ -84,11 +84,6 @@ public:
       rep->ReportRuns(report);
   }
 
-  virtual void ReportComplexity(const std::vector<Run>& complexity_reports) {
-    for (auto rep : reporters_)
-    rep->ReportComplexity(complexity_reports);
-  }
-
   virtual void Finalize() {
       for (auto rep : reporters_)
         rep->Finalize();

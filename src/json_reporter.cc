@@ -109,10 +109,6 @@ void JSONReporter::ReportRuns(std::vector<Run> const& reports) {
   }
 }
 
-void JSONReporter::ReportComplexity(const std::vector<Run> & complexity_reports) {
-  ReportRuns(complexity_reports);
-}
-
 void JSONReporter::Finalize() {
     // Close the list of benchmarks and the top level object.
     GetOutputStream() << "\n  ]\n}\n";

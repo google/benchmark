@@ -76,10 +76,6 @@ void CSVReporter::ReportRuns(const std::vector<Run> & reports) {
     PrintRunData(run);
 }
 
-void CSVReporter::ReportComplexity(const std::vector<Run>& complexity_reports) {
-  ReportRuns(complexity_reports);
-}
-
 void CSVReporter::PrintRunData(const Run & run) {
   std::ostream& Out = GetOutputStream();
 

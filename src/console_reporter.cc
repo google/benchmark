@@ -74,10 +74,6 @@ void ConsoleReporter::ReportRuns(const std::vector<Run>& reports) {
     PrintRunData(run);
 }
 
-void ConsoleReporter::ReportComplexity(const std::vector<Run> & complexity_reports) {
-  ReportRuns(complexity_reports);
-}
-
 void ConsoleReporter::PrintRunData(const Run& result) {
   auto& Out = GetOutputStream();
 

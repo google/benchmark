@@ -106,15 +106,13 @@ class BenchmarkReporter {
   virtual bool ReportContext(const Context& context) = 0;
 
   // Called once for each group of benchmark runs, gives information about
-  // cpu-time and heap memory usage during the benchmark run.
-  // Note that all the grouped benchmark runs should refer to the same
-  // benchmark, thus have the same name.
+  // cpu-time and heap memory usage during the benchmark run. If the group
+  // of runs contained more than two entries then 'report' contains additional
+  // elements representing the mean and standard deviation of those runs.
+  // Additionally if this group of runs was the last in a family of benchmarks
+  // 'reports' contains additional entries representing the asymptotic
+  // complexity and RMS of that benchmark family.
   virtual void ReportRuns(const std::vector<Run>& report) = 0;
-
-  // Called once at the last benchmark in a family of benchmarks.
-  // If 'complexity_reports' is not empty it will contain two entries
-  // giving information about about asymptotic complexity and RMS.
-  virtual void ReportComplexity(const std::vector<Run>& complexity_reports) = 0;
 
   // Called once and only once after ever group of benchmarks is run and
   // reported.
@@ -154,9 +152,8 @@ class ConsoleReporter : public BenchmarkReporter {
  public:
   virtual bool ReportContext(const Context& context);
   virtual void ReportRuns(const std::vector<Run>& reports);
-  virtual void ReportComplexity(const std::vector<Run>& complexity_reports);
 
- protected:
+protected:
   virtual void PrintRunData(const Run& report);
 
   size_t name_field_width_;
@@ -167,7 +164,6 @@ public:
   JSONReporter() : first_report_(true) {}
   virtual bool ReportContext(const Context& context);
   virtual void ReportRuns(const std::vector<Run>& reports);
-  virtual void ReportComplexity(const std::vector<Run>& complexity_reports);
   virtual void Finalize();
 
 private:
@@ -180,7 +176,6 @@ class CSVReporter : public BenchmarkReporter {
 public:
   virtual bool ReportContext(const Context& context);
   virtual void ReportRuns(const std::vector<Run>& reports);
-  virtual void ReportComplexity(const std::vector<Run>& complexity_reports);
 
 private:
   void PrintRunData(const Run& report);
