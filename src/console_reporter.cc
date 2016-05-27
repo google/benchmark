@@ -30,7 +30,9 @@
 #include "string_util.h"
 #include "walltime.h"
 
+#ifdef BENCHMARK_OS_WINDOWS
 DECLARE_bool(color_print);
+#endif  // BENCHMARK_OS_WINDOWS
 
 namespace benchmark {
 
@@ -41,8 +43,8 @@ bool ConsoleReporter::ReportContext(const Context& context) {
 
 #ifdef BENCHMARK_OS_WINDOWS
   if (FLAGS_color_print && &std::cout != &GetOutputStream()) {
-      GetErrorStream() << "Color printing is only supported for stdout on windows."
-                          " Disabling color printing\n";
+      GetErrorStream() << "Color printing is only supported for std::cout "
+                          "on windows. Disabling color printing\n";
       FLAGS_color_print = false;
   }
 #endif

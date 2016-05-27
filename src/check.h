@@ -37,7 +37,7 @@ public:
     return log_;
   }
 
-  BENCHMARK_NORETURN ~CheckHandler() noexcept(false) {
+  BENCHMARK_NORETURN ~CheckHandler() BENCHMARK_NOEXCEPT_OP(false) {
       log_ << std::endl;
       CallAbortHandler();
   }
