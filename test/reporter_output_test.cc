@@ -146,8 +146,8 @@ ADD_CASES(&ConsoleOutputTests, {
 ADD_CASES(&JSONOutputTests, {
     {"\"name\": \"BM_basic\",$"},
     {"\"iterations\": [0-9]+,$", MR_Next},
-    {"\"real_time\": [0-9],$", MR_Next},
-    {"\"cpu_time\": [0-9],$", MR_Next},
+    {"\"real_time\": [0-9]{1,5},$", MR_Next},
+    {"\"cpu_time\": [0-9]{1,5},$", MR_Next},
     {"\"time_unit\": \"ns\"$", MR_Next},
     {"}", MR_Next}
 });
