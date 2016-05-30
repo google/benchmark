@@ -30,6 +30,8 @@
 #include "string_util.h"
 #include "walltime.h"
 
+DECLARE_bool(color_print);
+
 namespace benchmark {
 
 bool ConsoleReporter::ReportContext(const Context& context) {
