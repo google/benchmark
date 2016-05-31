@@ -115,7 +115,13 @@ std::string* GetReportLabel() {
 
 // Global variable so that a benchmark can report an error as a human readable
 // string. If error_message is null no error occurred.
-static std::atomic<const char*> error_message = ATOMIC_VAR_INIT(nullptr);
+#if defined(_MSC_VER) && _MSC_VER <= 1800
+typedef char* error_message_type;
+#else
+typedef const char* error_message_type;
+#endif
+
+static std::atomic<error_message_type> error_message = ATOMIC_VAR_INIT(nullptr);
 
 // TODO(ericwf): support MallocCounter.
 //static benchmark::MallocCounter *benchmark_mc;
@@ -807,7 +813,7 @@ void RunBenchmark(const benchmark::internal::Benchmark::Instance& b,
         MutexLock l(GetBenchmarkLock());
         label = *GetReportLabel();
       }
-      const char* error_msg = error_message;
+      error_message_type error_msg = error_message;
 
       const double min_time = !IsZero(b.min_time) ? b.min_time
                                                   : FLAGS_benchmark_min_time;
@@ -929,8 +935,9 @@ void State::ResumeTiming() {
 void State::SkipWithError(const char* msg) {
   CHECK(msg);
   error_occurred_ = true;
-  const char* expected_no_error_msg = nullptr;
-  error_message.compare_exchange_weak(expected_no_error_msg, msg);
+  error_message_type expected_no_error_msg = nullptr;
+  error_message.compare_exchange_weak(expected_no_error_msg,
+    const_cast<error_message_type>(msg));
   started_ = finished_ = true;
   total_iterations_ = max_iterations;
   timer_manager->RemoveErroredThread();
