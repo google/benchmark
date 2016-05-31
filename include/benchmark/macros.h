@@ -28,15 +28,23 @@
 # define BENCHMARK_UNUSED __attribute__((unused))
 # define BENCHMARK_ALWAYS_INLINE __attribute__((always_inline))
 # define BENCHMARK_NOEXCEPT noexcept
+# define BENCHMARK_NOEXCEPT_OP(x) noexcept(x)
 #elif defined(_MSC_VER) && !defined(__clang__)
 # define BENCHMARK_UNUSED
 # define BENCHMARK_ALWAYS_INLINE __forceinline
-# define BENCHMARK_NOEXCEPT
+# if _MSC_VER >= 1900
+#  define BENCHMARK_NOEXCEPT noexcept
+#  define BENCHMARK_NOEXCEPT_OP(x) noexcept(x)
+# else
+#  define BENCHMARK_NOEXCEPT
+#  define BENCHMARK_NOEXCEPT_OP(x)
+# endif
 # define __func__ __FUNCTION__
 #else
 # define BENCHMARK_UNUSED
 # define BENCHMARK_ALWAYS_INLINE
 # define BENCHMARK_NOEXCEPT
+# define BENCHMARK_NOEXCEPT_OP(x)
 #endif
 
 #if defined(__GNUC__)
