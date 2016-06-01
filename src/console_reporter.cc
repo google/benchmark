@@ -90,8 +90,8 @@ void ConsoleReporter::PrintRunData(const Run& result) {
   const double cpu_time = result.GetAdjustedCPUTime();
 
   if(result.report_big_o) {
-    std::string big_o = result.report_big_o ? GetBigOString(result.complexity) : "";
-    ColorPrintf(Out, COLOR_YELLOW, "%10.4f %s %10.4f %s ",
+    std::string big_o = GetBigOString(result.complexity);
+    ColorPrintf(Out, COLOR_YELLOW, "%10.2f %s %10.2f %s ",
                 real_time, big_o.c_str(), cpu_time, big_o.c_str());
   } else if(result.report_rms) {
     ColorPrintf(Out, COLOR_YELLOW, "%10.0f %% %10.0f %% ",

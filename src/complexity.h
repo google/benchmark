@@ -26,15 +26,15 @@
 
 namespace benchmark {
 
-// Return a vector containing the mean and standard devation information for
-// the specified list of reports. If 'reports' contains less than two
-// non-errored runs an empty vector is returned
-std::vector<BenchmarkReporter::Run> ComputeStats(
+  // Return a vector containing the mean and standard devation information for
+  // the specified list of reports. If 'reports' contains less than two
+  // non-errored runs an empty vector is returned
+  std::vector<BenchmarkReporter::Run> ComputeStats(
     const std::vector<BenchmarkReporter::Run>& reports);
 
-// Return a vector containing the bigO and RMS information for the specified
-// list of reports. If 'reports.size() < 2' an empty vector is returned.
-std::vector<BenchmarkReporter::Run> ComputeBigO(
+  // Return a vector containing the bigO and RMS information for the specified
+  // list of reports. If 'reports.size() < 2' an empty vector is returned.
+  std::vector<BenchmarkReporter::Run> ComputeBigO(
     const std::vector<BenchmarkReporter::Run>& reports);
 
 // This data structure will contain the result returned by MinimalLeastSq
@@ -59,12 +59,6 @@ struct LeastSq {
 
 // Function to return an string for the calculated complexity
 std::string GetBigOString(BigO complexity);
-
-// Find the coefficient for the high-order term in the running time, by
-// minimizing the sum of squares of relative error.
-LeastSq MinimalLeastSq(const std::vector<int>& n,
-                       const std::vector<double>& time,
-                       const BigO complexity = oAuto);
 
 } // end namespace benchmark
 #endif // COMPLEXITY_H_

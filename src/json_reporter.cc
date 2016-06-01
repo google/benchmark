@@ -13,6 +13,7 @@
 // limitations under the License.
 
 #include "benchmark/reporter.h"
+#include "complexity.h"
 
 #include <cstdint>
 #include <algorithm>
@@ -132,15 +133,29 @@ void JSONReporter::PrintRunData(Run const& run) {
         out << indent
             << FormatKV("iterations", run.iterations)
             << ",\n";
-    }
-    out << indent
-        << FormatKV("real_time", RoundDouble(run.GetAdjustedRealTime()))
-        << ",\n";
-    out << indent
-        << FormatKV("cpu_time", RoundDouble(run.GetAdjustedCPUTime()));
-    if(!run.report_rms) {
+        out << indent
+            << FormatKV("real_time", RoundDouble(run.GetAdjustedRealTime()))
+            << ",\n";
+        out << indent
+            << FormatKV("cpu_time", RoundDouble(run.GetAdjustedCPUTime()));
         out << ",\n" << indent
             << FormatKV("time_unit", GetTimeUnitString(run.time_unit));
+    } else if(run.report_big_o) {
+        out << indent
+            << FormatKV("cpu_coefficient", RoundDouble(run.GetAdjustedCPUTime()))
+            << ",\n";
+        out << indent
+            << FormatKV("real_coefficient", RoundDouble(run.GetAdjustedRealTime()))
+            << ",\n";
+        out << indent
+            << FormatKV("big_o", GetBigOString(run.complexity))
+            << ",\n";
+        out << indent
+            << FormatKV("time_unit", GetTimeUnitString(run.time_unit));
+    } else if(run.report_rms) {
+        out << indent
+            << FormatKV("rms", RoundDouble(run.GetAdjustedCPUTime()*100))
+            << "%";
     }
     if (run.bytes_per_second > 0.0) {
         out << ",\n" << indent

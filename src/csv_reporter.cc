@@ -13,6 +13,7 @@
 // limitations under the License.
 
 #include "benchmark/reporter.h"
+#include "complexity.h"
 
 #include <cstdint>
 #include <algorithm>
@@ -87,8 +88,10 @@ void CSVReporter::PrintRunData(const Run & run) {
   Out << run.GetAdjustedRealTime() << ",";
   Out << run.GetAdjustedCPUTime() << ",";
 
-  // Do not print timeLabel on RMS report
-  if(!run.report_rms) {
+  // Do not print timeLabel on bigO and RMS report
+  if(run.report_big_o) {
+    Out << GetBigOString(run.complexity);
+  } else if(!run.report_rms){
     Out << GetTimeUnitString(run.time_unit);
   }
   Out << ",";

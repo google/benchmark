@@ -83,11 +83,12 @@ class BenchmarkReporter {
 
     // This is set to 0.0 if memory tracing is not enabled.
     double max_heapbytes_used;
-
+    
     // Keep track of arguments to compute asymptotic complexity
-    BigO   complexity;
-    int complexity_n;
-
+    BigO complexity;
+    BigOFunc* complexity_lambda;
+    size_t complexity_n;
+    
     // Inform print function whether the current run is a complexity report
     bool report_big_o;
     bool report_rms;
@@ -113,7 +114,7 @@ class BenchmarkReporter {
   // 'reports' contains additional entries representing the asymptotic
   // complexity and RMS of that benchmark family.
   virtual void ReportRuns(const std::vector<Run>& report) = 0;
-
+  
   // Called once and only once after ever group of benchmarks is run and
   // reported.
   virtual void Finalize() {}
@@ -159,7 +160,7 @@ class ConsoleReporter : public BenchmarkReporter {
   virtual bool ReportContext(const Context& context);
   virtual void ReportRuns(const std::vector<Run>& reports);
 
-protected:
+ protected:
   virtual void PrintRunData(const Run& report);
 
   size_t name_field_width_;
@@ -189,25 +190,25 @@ private:
 
 inline const char* GetTimeUnitString(TimeUnit unit) {
   switch (unit) {
-    case kMillisecond:
-      return "ms";
-    case kMicrosecond:
-      return "us";
-    case kNanosecond:
-    default:
-      return "ns";
+  case kMillisecond:
+    return "ms";
+  case kMicrosecond:
+    return "us";
+  case kNanosecond:
+  default:
+    return "ns";
   }
 }
 
 inline double GetTimeUnitMultiplier(TimeUnit unit) {
-    switch (unit) {
-    case kMillisecond:
-      return 1e3;
-    case kMicrosecond:
-      return 1e6;
-    case kNanosecond:
-    default:
-      return 1e9;
+  switch (unit) {
+  case kMillisecond:
+    return 1e3;
+  case kMicrosecond:
+    return 1e6;
+  case kNanosecond:
+  default:
+    return 1e9;
   }
 }
 

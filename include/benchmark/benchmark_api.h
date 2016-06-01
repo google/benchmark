@@ -152,6 +152,7 @@ BENCHMARK(BM_test)->Unit(benchmark::kMillisecond);
 #include <assert.h>
 #include <stddef.h>
 #include <stdint.h>
+#include <functional>
 
 #include "macros.h"
 
@@ -247,15 +248,20 @@ enum BigO {
   oNCubed,
   oLogN,
   oNLogN,
-  oAuto
+  oAuto,
+  oLambda
 };
+
+// BigOFunc is passed to a benchmark in order to specify the asymptotic 
+// computational complexity for the benchmark.
+typedef double(BigOFunc)(size_t);
 
 // State is passed to a running Benchmark and contains state for the
 // benchmark to use.
 class State {
 public:
   State(size_t max_iters, bool has_x, int x, bool has_y, int y,
-        int thread_i, int n_threads);
+    int thread_i, int n_threads);
 
   // Returns true iff the benchmark should continue through another iteration.
   // NOTE: A benchmark may not return from the test until KeepRunning() has
@@ -268,13 +274,13 @@ public:
     }
     bool const res = total_iterations_++ < max_iterations;
     if (BENCHMARK_BUILTIN_EXPECT(!res, false)) {
-        assert(started_ && (!finished_ || error_occurred_));
-        if (!error_occurred_) {
-            PauseTiming();
-        }
-        // Total iterations now is one greater than max iterations. Fix this.
-        total_iterations_ = max_iterations;
-        finished_ = true;
+      assert(started_ && (!finished_ || error_occurred_));
+      if (!error_occurred_) {
+        PauseTiming();
+      }
+      // Total iterations now is one greater than max iterations. Fix this.
+      total_iterations_ = max_iterations;
+      finished_ = true;
     }
     return res;
   }
@@ -359,7 +365,7 @@ public:
   // represent the length of N.
   BENCHMARK_ALWAYS_INLINE
   void SetComplexityN(size_t complexity_n) {
-    complexity_n_ = complexity_n;
+	  complexity_n_ = complexity_n;
   }
 
   BENCHMARK_ALWAYS_INLINE
@@ -533,10 +539,14 @@ public:
   // to control how many iterations are run, and in the printing of items/second
   // or MB/second values.
   Benchmark* UseManualTime();
-
+  
   // Set the asymptotic computational complexity for the benchmark. If called
   // the asymptotic computational complexity will be shown on the output. 
   Benchmark* Complexity(BigO complexity = benchmark::oAuto);
+  
+  // Set the asymptotic computational complexity for the benchmark. If called
+  // the asymptotic computational complexity will be shown on the output.
+  Benchmark* Complexity(BigOFunc* complexity);
 
   // Support for running multiple copies of the same benchmark concurrently
   // in multiple threads.  This may be useful when measuring the scaling
