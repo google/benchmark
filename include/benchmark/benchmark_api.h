@@ -363,7 +363,7 @@ public:
   // family benchmark, then current benchmark will be part of the computation and complexity_n will
   // represent the length of N.
   BENCHMARK_ALWAYS_INLINE
-  void SetComplexityN(size_t complexity_n) {
+  void SetComplexityN(int complexity_n) {
     complexity_n_ = complexity_n;
   }
 
@@ -444,7 +444,7 @@ private:
   size_t bytes_processed_;
   size_t items_processed_;
 
-  size_t complexity_n_;
+  int complexity_n_;
 
 public:
   // FIXME: Make this private somehow.

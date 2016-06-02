@@ -87,7 +87,7 @@ class BenchmarkReporter {
     // Keep track of arguments to compute asymptotic complexity
     BigO complexity;
     BigOFunc* complexity_lambda;
-    size_t complexity_n;
+    int complexity_n;
 
     // Inform print function whether the current run is a complexity report
     bool report_big_o;
@@ -133,14 +133,14 @@ class BenchmarkReporter {
     error_stream_ = err;
   }
 
-   std::ostream& GetOutputStream() const {
+  std::ostream& GetOutputStream() const {
     return *output_stream_;
   }
 
   std::ostream& GetErrorStream() const {
     return *error_stream_;
   }
-  
+
   virtual ~BenchmarkReporter();
 
   // Write a human readable string to 'out' representing the specified
