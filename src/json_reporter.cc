@@ -15,8 +15,8 @@
 #include "benchmark/reporter.h"
 #include "complexity.h"
 
-#include <cstdint>
 #include <algorithm>
+#include <cstdint>
 #include <iostream>
 #include <string>
 #include <tuple>
@@ -100,24 +100,24 @@ void JSONReporter::ReportRuns(std::vector<Run> const& reports) {
   first_report_ = false;
 
   for (auto it = reports.begin(); it != reports.end(); ++it) {
-     out << indent << "{\n";
-     PrintRunData(*it);
-     out << indent << '}';
-     auto it_cp = it;
-     if (++it_cp != reports.end()) {
-         out << ",\n";
-     }
+    out << indent << "{\n";
+    PrintRunData(*it);
+    out << indent << '}';
+    auto it_cp = it;
+    if (++it_cp != reports.end()) {
+      out << ",\n";
+    }
   }
 }
 
 void JSONReporter::Finalize() {
-    // Close the list of benchmarks and the top level object.
-    GetOutputStream() << "\n  ]\n}\n";
+  // Close the list of benchmarks and the top level object.
+  GetOutputStream() << "\n  ]\n}\n";
 }
 
 void JSONReporter::PrintRunData(Run const& run) {
-    std::string indent(6, ' ');
-    std::ostream& out = GetOutputStream();
+  std::string indent(6, ' ');
+  std::ostream& out = GetOutputStream();
     out << indent
         << FormatKV("name", run.benchmark_name)
         << ",\n";
@@ -129,7 +129,7 @@ void JSONReporter::PrintRunData(Run const& run) {
             << FormatKV("error_message", run.error_message)
             << ",\n";
     }
-    if(!run.report_big_o && !run.report_rms) {
+  if (!run.report_big_o && !run.report_rms) {
         out << indent
             << FormatKV("iterations", run.iterations)
             << ",\n";
@@ -140,14 +140,14 @@ void JSONReporter::PrintRunData(Run const& run) {
             << FormatKV("cpu_time", RoundDouble(run.GetAdjustedCPUTime()));
         out << ",\n" << indent
             << FormatKV("time_unit", GetTimeUnitString(run.time_unit));
-    } else if(run.report_big_o) {
-        out << indent
-            << FormatKV("cpu_coefficient", RoundDouble(run.GetAdjustedCPUTime()))
-            << ",\n";
-        out << indent
-            << FormatKV("real_coefficient", RoundDouble(run.GetAdjustedRealTime()))
-            << ",\n";
-        out << indent
+  } else if (run.report_big_o) {
+    out << indent
+        << FormatKV("cpu_coefficient", RoundDouble(run.GetAdjustedCPUTime()))
+        << ",\n";
+    out << indent
+        << FormatKV("real_coefficient", RoundDouble(run.GetAdjustedRealTime()))
+        << ",\n";
+    out << indent
             << FormatKV("big_o", GetBigOString(run.complexity))
             << ",\n";
         out << indent
@@ -156,20 +156,23 @@ void JSONReporter::PrintRunData(Run const& run) {
         out << indent
             << FormatKV("rms", RoundDouble(run.GetAdjustedCPUTime()*100))
             << '%';
-    }
-    if (run.bytes_per_second > 0.0) {
-        out << ",\n" << indent
-            << FormatKV("bytes_per_second", RoundDouble(run.bytes_per_second));
-    }
-    if (run.items_per_second > 0.0) {
-        out << ",\n" << indent
-            << FormatKV("items_per_second", RoundDouble(run.items_per_second));
-    }
-    if (!run.report_label.empty()) {
-        out << ",\n" << indent
-            << FormatKV("label", run.report_label);
-    }
-    out << '\n';
+  }
+  if (run.bytes_per_second > 0.0) {
+    out << ",\n"
+        << indent
+        << FormatKV("bytes_per_second", RoundDouble(run.bytes_per_second));
+  }
+  if (run.items_per_second > 0.0) {
+    out << ",\n"
+        << indent
+        << FormatKV("items_per_second", RoundDouble(run.items_per_second));
+  }
+  if (!run.report_label.empty()) {
+    out << ",\n"
+        << indent
+        << FormatKV("label", run.report_label);
+  }
+  out << '\n';
 }
 
-} // end namespace benchmark
+}  // end namespace benchmark

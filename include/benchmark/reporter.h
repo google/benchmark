@@ -20,7 +20,7 @@
 #include <utility>
 #include <vector>
 
-#include "benchmark_api.h" // For forward declaration of BenchmarkReporter
+#include "benchmark_api.h"  // For forward declaration of BenchmarkReporter
 
 namespace benchmark {
 
@@ -133,14 +133,14 @@ class BenchmarkReporter {
     error_stream_ = err;
   }
 
-  std::ostream& GetOutputStream() const {
+   std::ostream& GetOutputStream() const {
     return *output_stream_;
   }
 
   std::ostream& GetErrorStream() const {
     return *error_stream_;
   }
-
+  
   virtual ~BenchmarkReporter();
 
   // Write a human readable string to 'out' representing the specified
@@ -148,7 +148,7 @@ class BenchmarkReporter {
   // REQUIRES: 'out' is non-null.
   static void PrintBasicContext(std::ostream* out, Context const& context);
 
-private:
+ private:
   std::ostream* output_stream_;
   std::ostream* error_stream_;
 };
@@ -156,61 +156,61 @@ private:
 // Simple reporter that outputs benchmark data to the console. This is the
 // default reporter used by RunSpecifiedBenchmarks().
 class ConsoleReporter : public BenchmarkReporter {
-public:
+ public:
   virtual bool ReportContext(const Context& context);
   virtual void ReportRuns(const std::vector<Run>& reports);
 
-protected:
+ protected:
   virtual void PrintRunData(const Run& report);
 
   size_t name_field_width_;
 };
 
 class JSONReporter : public BenchmarkReporter {
-public:
+ public:
   JSONReporter() : first_report_(true) {}
   virtual bool ReportContext(const Context& context);
   virtual void ReportRuns(const std::vector<Run>& reports);
   virtual void Finalize();
 
-private:
+ private:
   void PrintRunData(const Run& report);
 
   bool first_report_;
 };
 
 class CSVReporter : public BenchmarkReporter {
-public:
+ public:
   virtual bool ReportContext(const Context& context);
   virtual void ReportRuns(const std::vector<Run>& reports);
 
-private:
+ private:
   void PrintRunData(const Run& report);
 };
 
 inline const char* GetTimeUnitString(TimeUnit unit) {
   switch (unit) {
-  case kMillisecond:
-    return "ms";
-  case kMicrosecond:
-    return "us";
-  case kNanosecond:
-  default:
-    return "ns";
+    case kMillisecond:
+      return "ms";
+    case kMicrosecond:
+      return "us";
+    case kNanosecond:
+    default:
+      return "ns";
   }
 }
 
 inline double GetTimeUnitMultiplier(TimeUnit unit) {
   switch (unit) {
-  case kMillisecond:
-    return 1e3;
-  case kMicrosecond:
-    return 1e6;
-  case kNanosecond:
-  default:
-    return 1e9;
+    case kMillisecond:
+      return 1e3;
+    case kMicrosecond:
+      return 1e6;
+    case kNanosecond:
+    default:
+      return 1e9;
   }
 }
 
-} // end namespace benchmark
-#endif // BENCHMARK_REPORTER_H_
+}  // end namespace benchmark
+#endif  // BENCHMARK_REPORTER_H_

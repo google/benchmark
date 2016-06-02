@@ -17,55 +17,55 @@
 
 #include "benchmark/benchmark_api.h"
 
-#include "complexity.h"
-#include "check.h"
-#include "stat.h"
-#include <cmath>
 #include <algorithm>
+#include <cmath>
+#include "check.h"
+#include "complexity.h"
+#include "stat.h"
 
 namespace benchmark {
 
 // Internal function to calculate the different scalability forms
 BigOFunc* FittingCurve(BigO complexity) {
   switch (complexity) {
-  case oN:
-    return [](size_t n) -> double {return n; };
-  case oNSquared:
-    return [](size_t n) -> double {return n * n; };
-  case oNCubed:
-    return [](size_t n) -> double {return n * n * n; };
-  case oLogN:
-    return [](size_t n) {return log2(n); };
-  case oNLogN:
-    return [](size_t n) {return n * log2(n); };
-  case o1:
-  default:
-    return [](size_t) {return 1.0; };
+    case oN:
+      return [](size_t n) -> double { return n; };
+    case oNSquared:
+      return [](size_t n) -> double { return n * n; };
+    case oNCubed:
+      return [](size_t n) -> double { return n * n * n; };
+    case oLogN:
+      return [](size_t n) { return log2(n); };
+    case oNLogN:
+      return [](size_t n) { return n * log2(n); };
+    case o1:
+    default:
+      return [](size_t) { return 1.0; };
   }
 }
 
 // Function to return an string for the calculated complexity
 std::string GetBigOString(BigO complexity) {
   switch (complexity) {
-  case oN:
-    return "N";
-  case oNSquared:
-    return "N^2";
-  case oNCubed:
-    return "N^3";
-  case oLogN:
-    return "lgN";
-  case oNLogN:
-    return "NlgN";
-  case o1:
-    return "(1)";
-  default:
-    return "f(N)";
+    case oN:
+      return "N";
+    case oNSquared:
+      return "N^2";
+    case oNCubed:
+      return "N^3";
+    case oLogN:
+      return "lgN";
+    case oNLogN:
+      return "NlgN";
+    case o1:
+      return "(1)";
+    default:
+      return "f(N)";
   }
 }
 
-// Find the coefficient for the high-order term in the running time, by 
-// minimizing the sum of squares of relative error, for the fitting curve 
+// Find the coefficient for the high-order term in the running time, by
+// minimizing the sum of squares of relative error, for the fitting curve
 // given by the lambda expresion.
 //   - n             : Vector containing the size of the benchmark tests.
 //   - time          : Vector containing the times for the benchmark tests.
@@ -122,14 +122,14 @@ LeastSq MinimalLeastSq(const std::vector<int>& n,
                        const std::vector<double>& time,
                        const BigO complexity) {
   CHECK_EQ(n.size(), time.size());
-  CHECK_GE(n.size(), 2);  // Do not compute fitting curve is less than two benchmark runs are given
+  CHECK_GE(n.size(), 2);  // Do not compute fitting curve is less than two
+                          // benchmark runs are given
   CHECK_NE(complexity, oNone);
 
   LeastSq best_fit;
 
-  if(complexity == oAuto) {
-    std::vector<BigO> fit_curves = {
-      oLogN, oN, oNLogN, oNSquared, oNCubed };
+  if (complexity == oAuto) {
+    std::vector<BigO> fit_curves = {oLogN, oN, oNLogN, oNSquared, oNCubed};
 
     // Take o1 as default best fitting curve
     best_fit = MinimalLeastSq(n, time, FittingCurve(o1));
@@ -152,14 +152,13 @@ LeastSq MinimalLeastSq(const std::vector<int>& n,
 }
 
 std::vector<BenchmarkReporter::Run> ComputeStats(
-  const std::vector<BenchmarkReporter::Run>& reports)
-{
+    const std::vector<BenchmarkReporter::Run>& reports) {
   typedef BenchmarkReporter::Run Run;
   std::vector<Run> results;
 
-  auto error_count = std::count_if(
-    reports.begin(), reports.end(),
-    [](Run const& run) {return run.error_occurred;});
+  auto error_count =
+      std::count_if(reports.begin(), reports.end(),
+                    [](Run const& run) { return run.error_occurred; });
 
   if (reports.size() - error_count < 2) {
     // We don't report aggregated data if there was a single run.
@@ -178,12 +177,11 @@ std::vector<BenchmarkReporter::Run> ComputeStats(
   for (Run const& run : reports) {
     CHECK_EQ(reports[0].benchmark_name, run.benchmark_name);
     CHECK_EQ(run_iterations, run.iterations);
-    if (run.error_occurred)
-      continue;
+    if (run.error_occurred) continue;
     real_accumulated_time_stat +=
-      Stat1_d(run.real_accumulated_time/run.iterations, run.iterations);
+        Stat1_d(run.real_accumulated_time / run.iterations, run.iterations);
     cpu_accumulated_time_stat +=
-      Stat1_d(run.cpu_accumulated_time/run.iterations, run.iterations);
+        Stat1_d(run.cpu_accumulated_time / run.iterations, run.iterations);
     items_per_second_stat += Stat1_d(run.items_per_second, run.iterations);
     bytes_per_second_stat += Stat1_d(run.bytes_per_second, run.iterations);
   }
@@ -192,10 +190,10 @@ std::vector<BenchmarkReporter::Run> ComputeStats(
   Run mean_data;
   mean_data.benchmark_name = reports[0].benchmark_name + "_mean";
   mean_data.iterations = run_iterations;
-  mean_data.real_accumulated_time = real_accumulated_time_stat.Mean() *
-                                    run_iterations;
-  mean_data.cpu_accumulated_time = cpu_accumulated_time_stat.Mean() *
-                                   run_iterations;
+  mean_data.real_accumulated_time =
+      real_accumulated_time_stat.Mean() * run_iterations;
+  mean_data.cpu_accumulated_time =
+      cpu_accumulated_time_stat.Mean() * run_iterations;
   mean_data.bytes_per_second = bytes_per_second_stat.Mean();
   mean_data.items_per_second = items_per_second_stat.Mean();
 
@@ -212,10 +210,8 @@ std::vector<BenchmarkReporter::Run> ComputeStats(
   stddev_data.benchmark_name = reports[0].benchmark_name + "_stddev";
   stddev_data.report_label = mean_data.report_label;
   stddev_data.iterations = 0;
-  stddev_data.real_accumulated_time =
-    real_accumulated_time_stat.StdDev();
-  stddev_data.cpu_accumulated_time =
-    cpu_accumulated_time_stat.StdDev();
+  stddev_data.real_accumulated_time = real_accumulated_time_stat.StdDev();
+  stddev_data.cpu_accumulated_time = cpu_accumulated_time_stat.StdDev();
   stddev_data.bytes_per_second = bytes_per_second_stat.StdDev();
   stddev_data.items_per_second = items_per_second_stat.StdDev();
 
@@ -225,8 +221,7 @@ std::vector<BenchmarkReporter::Run> ComputeStats(
 }
 
 std::vector<BenchmarkReporter::Run> ComputeBigO(
-  const std::vector<BenchmarkReporter::Run>& reports)
-{
+    const std::vector<BenchmarkReporter::Run>& reports) {
   typedef BenchmarkReporter::Run Run;
   std::vector<Run> results;
 
@@ -240,8 +235,8 @@ std::vector<BenchmarkReporter::Run> ComputeBigO(
   // Populate the accumulators.
   for (const Run& run : reports) {
     n.push_back(run.complexity_n);
-    real_time.push_back(run.real_accumulated_time/run.iterations);
-    cpu_time.push_back(run.cpu_accumulated_time/run.iterations);
+    real_time.push_back(run.real_accumulated_time / run.iterations);
+    cpu_time.push_back(run.cpu_accumulated_time / run.iterations);
   }
 
   LeastSq result_cpu;
@@ -254,7 +249,8 @@ std::vector<BenchmarkReporter::Run> ComputeBigO(
     result_cpu = MinimalLeastSq(n, cpu_time, reports[0].complexity_lambda);
     result_real = MinimalLeastSq(n, real_time, reports[0].complexity_lambda);
   }
-  std::string benchmark_name = reports[0].benchmark_name.substr(0, reports[0].benchmark_name.find('/'));
+  std::string benchmark_name =
+      reports[0].benchmark_name.substr(0, reports[0].benchmark_name.find('/'));
 
   // Get the data from the accumulator to BenchmarkReporter::Run's.
   Run big_o;

@@ -15,9 +15,9 @@
 #include "benchmark/reporter.h"
 #include "complexity.h"
 
+#include <algorithm>
 #include <cstdint>
 #include <cstdio>
-#include <algorithm>
 #include <iostream>
 #include <string>
 #include <tuple>
@@ -62,8 +62,8 @@ void ConsoleReporter::ReportRuns(const std::vector<Run>& reports) {
 void ConsoleReporter::PrintRunData(const Run& result) {
   auto& Out = GetOutputStream();
 
-  auto name_color = (result.report_big_o || result.report_rms)
-      ? COLOR_BLUE : COLOR_GREEN;
+  auto name_color =
+      (result.report_big_o || result.report_rms) ? COLOR_BLUE : COLOR_GREEN;
   ColorPrintf(Out, name_color, "%-*s ", name_field_width_,
               result.benchmark_name.c_str());
 
@@ -84,25 +84,25 @@ void ConsoleReporter::PrintRunData(const Run& result) {
   if (result.items_per_second > 0) {
     items = StrCat(" ", HumanReadableNumber(result.items_per_second),
                    " items/s");
-  }
+ }
 
   const double real_time = result.GetAdjustedRealTime();
   const double cpu_time = result.GetAdjustedCPUTime();
 
-  if(result.report_big_o) {
+  if (result.report_big_o) {
     std::string big_o = GetBigOString(result.complexity);
-    ColorPrintf(Out, COLOR_YELLOW, "%10.2f %s %10.2f %s ",
-                real_time, big_o.c_str(), cpu_time, big_o.c_str());
-  } else if(result.report_rms) {
-    ColorPrintf(Out, COLOR_YELLOW, "%10.0f %% %10.0f %% ",
-                real_time * 100, cpu_time * 100);
+    ColorPrintf(Out, COLOR_YELLOW, "%10.2f %s %10.2f %s ", real_time,
+                big_o.c_str(), cpu_time, big_o.c_str());
+  } else if (result.report_rms) {
+    ColorPrintf(Out, COLOR_YELLOW, "%10.0f %% %10.0f %% ", real_time * 100,
+                cpu_time * 100);
   } else {
     const char* timeLabel = GetTimeUnitString(result.time_unit);
-    ColorPrintf(Out, COLOR_YELLOW, "%10.0f %s %10.0f %s ",
-                real_time, timeLabel, cpu_time, timeLabel);
+    ColorPrintf(Out, COLOR_YELLOW, "%10.0f %s %10.0f %s ", real_time, timeLabel,
+                cpu_time, timeLabel);
   }
 
-  if(!result.report_big_o && !result.report_rms) {
+  if (!result.report_big_o && !result.report_rms) {
     ColorPrintf(Out, COLOR_CYAN, "%10lld", result.iterations);
   }
 
