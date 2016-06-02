@@ -29,18 +29,18 @@ namespace benchmark {
 BigOFunc* FittingCurve(BigO complexity) {
   switch (complexity) {
     case oN:
-      return [](size_t n) -> double { return n; };
+      return [](int n) -> double { return n; };
     case oNSquared:
-      return [](size_t n) -> double { return n * n; };
+      return [](int n) -> double { return n * n; };
     case oNCubed:
-      return [](size_t n) -> double { return n * n * n; };
+      return [](int n) -> double { return n * n * n; };
     case oLogN:
-      return [](size_t n) { return log2(n); };
+      return [](int n) { return log2(n); };
     case oNLogN:
-      return [](size_t n) { return n * log2(n); };
+      return [](int n) { return n * log2(n); };
     case o1:
     default:
-      return [](size_t) { return 1.0; };
+      return [](int) { return 1.0; };
   }
 }
 

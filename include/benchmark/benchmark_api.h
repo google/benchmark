@@ -253,7 +253,7 @@ enum BigO {
 
 // BigOFunc is passed to a benchmark in order to specify the asymptotic 
 // computational complexity for the benchmark.
-typedef double(BigOFunc)(size_t);
+typedef double(BigOFunc)(int);
 
 // State is passed to a running Benchmark and contains state for the
 // benchmark to use.

@@ -154,7 +154,7 @@ void BM_Complexity_O1(benchmark::State& state) {
   state.SetComplexityN(state.range_x());
 }
 BENCHMARK(BM_Complexity_O1) -> Range(1, 1<<18) -> Complexity(benchmark::o1);
-BENCHMARK(BM_Complexity_O1) -> Range(1, 1<<18) -> Complexity([](size_t){return 1.0; });
+BENCHMARK(BM_Complexity_O1) -> Range(1, 1<<18) -> Complexity([](int){return 1.0; });
 BENCHMARK(BM_Complexity_O1) -> Range(1, 1<<18) -> Complexity();
 
 std::string big_o_1_test_name = "BM_Complexity_O1_BigO";
@@ -192,7 +192,7 @@ void BM_Complexity_O_N(benchmark::State& state) {
   state.SetComplexityN(state.range_x());
 }
 BENCHMARK(BM_Complexity_O_N) -> RangeMultiplier(2) -> Range(1<<10, 1<<16) -> Complexity(benchmark::oN);
-BENCHMARK(BM_Complexity_O_N) -> RangeMultiplier(2) -> Range(1<<10, 1<<16) -> Complexity([](size_t n) -> double{return n; });
+BENCHMARK(BM_Complexity_O_N) -> RangeMultiplier(2) -> Range(1<<10, 1<<16) -> Complexity([](int n) -> double{return n; });
 BENCHMARK(BM_Complexity_O_N) -> RangeMultiplier(2) -> Range(1<<10, 1<<16) -> Complexity();
 
 std::string big_o_n_test_name = "BM_Complexity_O_N_BigO";
@@ -220,7 +220,7 @@ static void BM_Complexity_O_N_log_N(benchmark::State& state) {
   state.SetComplexityN(state.range_x());
 }
 BENCHMARK(BM_Complexity_O_N_log_N) -> RangeMultiplier(2) -> Range(1<<10, 1<<16) -> Complexity(benchmark::oNLogN);
-BENCHMARK(BM_Complexity_O_N_log_N) -> RangeMultiplier(2) -> Range(1<<10, 1<<16) -> Complexity([](size_t n) {return n * log2(n); });
+BENCHMARK(BM_Complexity_O_N_log_N) -> RangeMultiplier(2) -> Range(1<<10, 1<<16) -> Complexity([](int n) {return n * log2(n); });
 BENCHMARK(BM_Complexity_O_N_log_N) -> RangeMultiplier(2) -> Range(1<<10, 1<<16) -> Complexity();
 
 std::string big_o_n_lg_n_test_name = "BM_Complexity_O_N_log_N_BigO";

@@ -147,7 +147,7 @@ that might be used to customize high-order term calculation.
 
 ```c++
 BENCHMARK(BM_StringCompare)->RangeMultiplier(2)
-    ->Range(1<<10, 1<<18)->Complexity([](size_t n)->double{return n; });
+    ->Range(1<<10, 1<<18)->Complexity([](int n)->double{return n; });
 ```
 
 ### Templated benchmarks
