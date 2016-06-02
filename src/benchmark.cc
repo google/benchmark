@@ -140,7 +140,7 @@ class TimerManager {
         manual_time_used_(0),
         num_finalized_(0),
         phase_number_(0),
-        entered_(0) 
+        entered_(0)
   {
   }
 
@@ -277,7 +277,7 @@ class TimerManager {
       int phase_number_cp = phase_number_;
       auto cb = [this, phase_number_cp]() {
         return this->phase_number_ > phase_number_cp ||
-          entered_ == running_threads_; // A thread has aborted in error
+               entered_ == running_threads_; // A thread has aborted in error
       };
       phase_condition_.wait(ml.native_handle(), cb);
       if (phase_number_ > phase_number_cp)
@@ -731,7 +731,7 @@ void FunctionBenchmark::Run(State& st) {
 } // end namespace internal
 
 namespace {
-  
+
 // Execute one thread of benchmark b for the specified number of iterations.
 // Adds the stats collected for the thread into *total.
 void RunInThread(const benchmark::internal::Benchmark::Instance* b,
@@ -745,15 +745,15 @@ void RunInThread(const benchmark::internal::Benchmark::Instance* b,
     MutexLock l(GetBenchmarkLock());
     total->bytes_processed += st.bytes_processed();
     total->items_processed += st.items_processed();
-	total->complexity_n += st.complexity_length_n();
+    total->complexity_n += st.complexity_length_n();
   }
 
   timer_manager->Finalize();
 }
 
 void RunBenchmark(const benchmark::internal::Benchmark::Instance& b,
-  BenchmarkReporter* br,
-  std::vector<BenchmarkReporter::Run>& complexity_reports)
+                  BenchmarkReporter* br,
+                  std::vector<BenchmarkReporter::Run>& complexity_reports)
   EXCLUDES(GetBenchmarkLock()) {
   size_t iters = 1;
 
@@ -764,7 +764,7 @@ void RunBenchmark(const benchmark::internal::Benchmark::Instance& b,
     pool.resize(b.threads);
 
   const int repeats = b.repetitions != 0 ? b.repetitions
-    : FLAGS_benchmark_repetitions;
+                                         : FLAGS_benchmark_repetitions;
   for (int i = 0; i < repeats; i++) {
     std::string mem;
     for (;;) {
@@ -844,28 +844,28 @@ void RunBenchmark(const benchmark::internal::Benchmark::Instance& b,
         report.time_unit = b.time_unit;
 
         if (!report.error_occurred) {
-        double bytes_per_second = 0;
-        if (total.bytes_processed > 0 && seconds > 0.0) {
-          bytes_per_second = (total.bytes_processed / seconds);
-        }
-        double items_per_second = 0;
-        if (total.items_processed > 0 && seconds > 0.0) {
-          items_per_second = (total.items_processed / seconds);
-        }
+          double bytes_per_second = 0;
+          if (total.bytes_processed > 0 && seconds > 0.0) {
+            bytes_per_second = (total.bytes_processed / seconds);
+          }
+          double items_per_second = 0;
+          if (total.items_processed > 0 && seconds > 0.0) {
+            items_per_second = (total.items_processed / seconds);
+          }
 
-        if (b.use_manual_time) {
-          report.real_accumulated_time = manual_accumulated_time;
-        } else {
-          report.real_accumulated_time = real_accumulated_time;
-        }
-        report.cpu_accumulated_time = cpu_accumulated_time;
-        report.bytes_per_second = bytes_per_second;
-        report.items_per_second = items_per_second;
-        report.complexity_n = total.complexity_n;
-        report.complexity = b.complexity;
-        report.complexity_lambda = b.complexity_lambda;
-        if(report.complexity != oNone)
-          complexity_reports.push_back(report);
+          if (b.use_manual_time) {
+            report.real_accumulated_time = manual_accumulated_time;
+          } else {
+            report.real_accumulated_time = real_accumulated_time;
+          }
+          report.cpu_accumulated_time = cpu_accumulated_time;
+          report.bytes_per_second = bytes_per_second;
+          report.items_per_second = items_per_second;
+          report.complexity_n = total.complexity_n;
+          report.complexity = b.complexity;
+          report.complexity_lambda = b.complexity_lambda;
+          if(report.complexity != oNone)
+            complexity_reports.push_back(report);
         }
 
         reports.push_back(report);
@@ -893,17 +893,17 @@ void RunBenchmark(const benchmark::internal::Benchmark::Instance& b,
   }
   std::vector<BenchmarkReporter::Run> additional_run_stats = ComputeStats(reports);
   reports.insert(reports.end(), additional_run_stats.begin(),
-    additional_run_stats.end());
+                 additional_run_stats.end());
 
   if((b.complexity != oNone) && b.last_benchmark_instance) {
     additional_run_stats = ComputeBigO(complexity_reports);
     reports.insert(reports.end(), additional_run_stats.begin(),
-      additional_run_stats.end());
+                   additional_run_stats.end());
     complexity_reports.clear();
   }
 
   br->ReportRuns(reports);
-  
+
   if (b.multithreaded) {
     for (std::thread& thread : pool)
       thread.join();
@@ -964,56 +964,56 @@ void State::SetLabel(const char* label) {
 }
 
 namespace internal {
-  namespace {
+namespace {
 
-    void RunMatchingBenchmarks(const std::vector<Benchmark::Instance>& benchmarks,
-      BenchmarkReporter* reporter) {
-      CHECK(reporter != nullptr);
+void RunMatchingBenchmarks(const std::vector<Benchmark::Instance>& benchmarks,
+                           BenchmarkReporter* reporter) {
+  CHECK(reporter != nullptr);
 
-      // Determine the width of the name field using a minimum width of 10.
-      bool has_repetitions = FLAGS_benchmark_repetitions > 1;
-      size_t name_field_width = 10;
-      for (const Benchmark::Instance& benchmark : benchmarks) {
-        name_field_width =
-          std::max<size_t>(name_field_width, benchmark.name.size());
-        has_repetitions |= benchmark.repetitions > 1;
-      }
-      if (has_repetitions)
-        name_field_width += std::strlen("_stddev");
+  // Determine the width of the name field using a minimum width of 10.
+  bool has_repetitions = FLAGS_benchmark_repetitions > 1;
+  size_t name_field_width = 10;
+  for (const Benchmark::Instance& benchmark : benchmarks) {
+    name_field_width =
+        std::max<size_t>(name_field_width, benchmark.name.size());
+    has_repetitions |= benchmark.repetitions > 1;
+  }
+  if (has_repetitions)
+    name_field_width += std::strlen("_stddev");
 
-      // Print header here
-      BenchmarkReporter::Context context;
-      context.num_cpus = NumCPUs();
-      context.mhz_per_cpu = CyclesPerSecond() / 1000000.0f;
+  // Print header here
+  BenchmarkReporter::Context context;
+  context.num_cpus = NumCPUs();
+  context.mhz_per_cpu = CyclesPerSecond() / 1000000.0f;
 
-      context.cpu_scaling_enabled = CpuScalingEnabled();
-      context.name_field_width = name_field_width;
+  context.cpu_scaling_enabled = CpuScalingEnabled();
+  context.name_field_width = name_field_width;
 
-      // Keep track of runing times of all instances of current benchmark
-      std::vector<BenchmarkReporter::Run> complexity_reports;
+  // Keep track of runing times of all instances of current benchmark
+  std::vector<BenchmarkReporter::Run> complexity_reports;
 
-      if (reporter->ReportContext(context)) {
-        for (const auto& benchmark : benchmarks) {
-          RunBenchmark(benchmark, reporter, complexity_reports);
-        }
-      }
+  if (reporter->ReportContext(context)) {
+    for (const auto& benchmark : benchmarks) {
+      RunBenchmark(benchmark, reporter, complexity_reports);
     }
+  }
+}
 
-    std::unique_ptr<BenchmarkReporter> GetDefaultReporter() {
-      typedef std::unique_ptr<BenchmarkReporter> PtrType;
-      if (FLAGS_benchmark_format == "console") {
-        return PtrType(new ConsoleReporter);
-      } else if (FLAGS_benchmark_format == "json") {
-        return PtrType(new JSONReporter);
-      } else if (FLAGS_benchmark_format == "csv") {
-        return PtrType(new CSVReporter);
-      } else {
-        std::cerr << "Unexpected format: '" << FLAGS_benchmark_format << "'\n";
-        std::exit(1);
-      }
-    }
+std::unique_ptr<BenchmarkReporter> GetDefaultReporter() {
+  typedef std::unique_ptr<BenchmarkReporter> PtrType;
+  if (FLAGS_benchmark_format == "console") {
+    return PtrType(new ConsoleReporter);
+  } else if (FLAGS_benchmark_format == "json") {
+    return PtrType(new JSONReporter);
+  } else if (FLAGS_benchmark_format == "csv") {
+    return PtrType(new CSVReporter);
+  } else {
+    std::cerr << "Unexpected format: '" << FLAGS_benchmark_format << "'\n";
+    std::exit(1);
+  }
+}
 
-  } // end namespace
+} // end namespace
 } // end namespace internal
 
 size_t RunSpecifiedBenchmarks() {

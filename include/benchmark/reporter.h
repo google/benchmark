@@ -83,12 +83,12 @@ class BenchmarkReporter {
 
     // This is set to 0.0 if memory tracing is not enabled.
     double max_heapbytes_used;
-    
+
     // Keep track of arguments to compute asymptotic complexity
     BigO complexity;
     BigOFunc* complexity_lambda;
     size_t complexity_n;
-    
+
     // Inform print function whether the current run is a complexity report
     bool report_big_o;
     bool report_rms;
@@ -114,7 +114,7 @@ class BenchmarkReporter {
   // 'reports' contains additional entries representing the asymptotic
   // complexity and RMS of that benchmark family.
   virtual void ReportRuns(const std::vector<Run>& report) = 0;
-  
+
   // Called once and only once after ever group of benchmarks is run and
   // reported.
   virtual void Finalize() {}
@@ -156,11 +156,11 @@ private:
 // Simple reporter that outputs benchmark data to the console. This is the
 // default reporter used by RunSpecifiedBenchmarks().
 class ConsoleReporter : public BenchmarkReporter {
- public:
+public:
   virtual bool ReportContext(const Context& context);
   virtual void ReportRuns(const std::vector<Run>& reports);
 
- protected:
+protected:
   virtual void PrintRunData(const Run& report);
 
   size_t name_field_width_;

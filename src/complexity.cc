@@ -194,9 +194,9 @@ std::vector<BenchmarkReporter::Run> ComputeStats(
   mean_data.benchmark_name = reports[0].benchmark_name + "_mean";
   mean_data.iterations = run_iterations;
   mean_data.real_accumulated_time = real_accumulated_time_stat.Mean() *
-    run_iterations;
+                                    run_iterations;
   mean_data.cpu_accumulated_time = cpu_accumulated_time_stat.Mean() *
-    run_iterations;
+                                   run_iterations;
   mean_data.bytes_per_second = bytes_per_second_stat.Mean();
   mean_data.items_per_second = items_per_second_stat.Mean();
 

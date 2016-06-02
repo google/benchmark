@@ -261,16 +261,16 @@ typedef double(BigOFunc)(size_t);
 class State {
 public:
   State(size_t max_iters, bool has_x, int x, bool has_y, int y,
-    int thread_i, int n_threads);
+        int thread_i, int n_threads);
 
-  // Returns true iff the benchmark should continue through another iteration.
+  // Returns true if the benchmark should continue through another iteration.
   // NOTE: A benchmark may not return from the test until KeepRunning() has
   // returned false.
   bool KeepRunning() {
     if (BENCHMARK_BUILTIN_EXPECT(!started_, false)) {
-        assert(!finished_);
-        started_ = true;
-        ResumeTiming();
+      assert(!finished_);
+      started_ = true;
+      ResumeTiming();
     }
     bool const res = total_iterations_++ < max_iterations;
     if (BENCHMARK_BUILTIN_EXPECT(!res, false)) {
@@ -365,7 +365,7 @@ public:
   // represent the length of N.
   BENCHMARK_ALWAYS_INLINE
   void SetComplexityN(size_t complexity_n) {
-	  complexity_n_ = complexity_n;
+    complexity_n_ = complexity_n;
   }
 
   BENCHMARK_ALWAYS_INLINE
@@ -539,11 +539,11 @@ public:
   // to control how many iterations are run, and in the printing of items/second
   // or MB/second values.
   Benchmark* UseManualTime();
-  
+
   // Set the asymptotic computational complexity for the benchmark. If called
   // the asymptotic computational complexity will be shown on the output. 
   Benchmark* Complexity(BigO complexity = benchmark::oAuto);
-  
+
   // Set the asymptotic computational complexity for the benchmark. If called
   // the asymptotic computational complexity will be shown on the output.
   Benchmark* Complexity(BigOFunc* complexity);

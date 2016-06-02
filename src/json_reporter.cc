@@ -155,7 +155,7 @@ void JSONReporter::PrintRunData(Run const& run) {
     } else if(run.report_rms) {
         out << indent
             << FormatKV("rms", RoundDouble(run.GetAdjustedCPUTime()*100))
-            << "%";
+            << '%';
     }
     if (run.bytes_per_second > 0.0) {
         out << ",\n" << indent
