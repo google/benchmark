@@ -152,7 +152,6 @@ BENCHMARK(BM_test)->Unit(benchmark::kMillisecond);
 #include <assert.h>
 #include <stddef.h>
 #include <stdint.h>
-#include <functional>
 
 #include "macros.h"
 

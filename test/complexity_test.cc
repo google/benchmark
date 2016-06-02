@@ -153,9 +153,9 @@ void BM_Complexity_O1(benchmark::State& state) {
   }
   state.SetComplexityN(state.range_x());
 }
-BENCHMARK(BM_Complexity_O1)->Range(1, 1<<18)->Complexity(benchmark::o1);
-BENCHMARK(BM_Complexity_O1)->Range(1, 1<<18)->Complexity([](size_t){return 1.0; });
-BENCHMARK(BM_Complexity_O1)->Range(1, 1<<18)->Complexity();
+BENCHMARK(BM_Complexity_O1) -> Range(1, 1<<18) -> Complexity(benchmark::o1);
+BENCHMARK(BM_Complexity_O1) -> Range(1, 1<<18) -> Complexity([](size_t){return 1.0; });
+BENCHMARK(BM_Complexity_O1) -> Range(1, 1<<18) -> Complexity();
 
 std::string big_o_1_test_name = "BM_Complexity_O1_BigO";
 std::string rms_o_1_test_name = "BM_Complexity_O1_RMS";

@@ -22,7 +22,6 @@
 #include "stat.h"
 #include <cmath>
 #include <algorithm>
-#include <functional>
 
 namespace benchmark {
 
