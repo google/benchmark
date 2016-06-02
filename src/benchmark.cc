@@ -130,7 +130,7 @@ struct ThreadStats {
     ThreadStats() : bytes_processed(0), items_processed(0), complexity_n(0) {}
     int64_t bytes_processed;
     int64_t items_processed;
-    size_t  complexity_n;
+    int  complexity_n;
 };
 
 // Timer management class
