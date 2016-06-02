@@ -153,18 +153,14 @@ void BM_Complexity_O1(benchmark::State& state) {
   }
   state.SetComplexityN(state.range_x());
 }
-BENCHMARK(BM_Complexity_O1)->Range(1, 1<<18)->Complexity();
 BENCHMARK(BM_Complexity_O1)->Range(1, 1<<18)->Complexity(benchmark::o1);
 BENCHMARK(BM_Complexity_O1)->Range(1, 1<<18)->Complexity([](size_t){return 1.0; });
+BENCHMARK(BM_Complexity_O1)->Range(1, 1<<18)->Complexity();
 
 std::string big_o_1_test_name = "BM_Complexity_O1_BigO";
 std::string rms_o_1_test_name = "BM_Complexity_O1_RMS";
 std::string enum_auto_big_o_1 = "\\([0-9]+\\)";
 std::string lambda_big_o_1 = "f\\(N\\)";
-
-// Add automatic tests
-ADD_COMPLEXITY_CASES(&ConsoleOutputTests, &JSONOutputTests, &CSVOutputTests, 
-                     big_o_1_test_name, rms_o_1_test_name, enum_auto_big_o_1);
 
 // Add enum tests
 ADD_COMPLEXITY_CASES(&ConsoleOutputTests, &JSONOutputTests, &CSVOutputTests, 
@@ -195,18 +191,14 @@ void BM_Complexity_O_N(benchmark::State& state) {
   }
   state.SetComplexityN(state.range_x());
 }
-BENCHMARK(BM_Complexity_O_N) -> RangeMultiplier(2) -> Range(1<<10, 1<<16) -> Complexity();
 BENCHMARK(BM_Complexity_O_N) -> RangeMultiplier(2) -> Range(1<<10, 1<<16) -> Complexity(benchmark::oN);
 BENCHMARK(BM_Complexity_O_N) -> RangeMultiplier(2) -> Range(1<<10, 1<<16) -> Complexity([](size_t n) -> double{return n; });
+BENCHMARK(BM_Complexity_O_N) -> RangeMultiplier(2) -> Range(1<<10, 1<<16) -> Complexity();
 
 std::string big_o_n_test_name = "BM_Complexity_O_N_BigO";
 std::string rms_o_n_test_name = "BM_Complexity_O_N_RMS";
 std::string enum_auto_big_o_n = "N";
 std::string lambda_big_o_n = "f\\(N\\)";
-
-// Add automatic tests
-ADD_COMPLEXITY_CASES(&ConsoleOutputTests, &JSONOutputTests, &CSVOutputTests, 
-                     big_o_n_test_name, rms_o_n_test_name, enum_auto_big_o_n);
 
 // Add enum tests
 ADD_COMPLEXITY_CASES(&ConsoleOutputTests, &JSONOutputTests, &CSVOutputTests, 
@@ -227,18 +219,14 @@ static void BM_Complexity_O_N_log_N(benchmark::State& state) {
   }
   state.SetComplexityN(state.range_x());
 }
-BENCHMARK(BM_Complexity_O_N_log_N) -> RangeMultiplier(2) -> Range(1<<10, 1<<16) -> Complexity();
 BENCHMARK(BM_Complexity_O_N_log_N) -> RangeMultiplier(2) -> Range(1<<10, 1<<16) -> Complexity(benchmark::oNLogN);
 BENCHMARK(BM_Complexity_O_N_log_N) -> RangeMultiplier(2) -> Range(1<<10, 1<<16) -> Complexity([](size_t n) {return n * log2(n); });
+BENCHMARK(BM_Complexity_O_N_log_N) -> RangeMultiplier(2) -> Range(1<<10, 1<<16) -> Complexity();
 
 std::string big_o_n_lg_n_test_name = "BM_Complexity_O_N_log_N_BigO";
 std::string rms_o_n_lg_n_test_name = "BM_Complexity_O_N_log_N_RMS";
 std::string enum_auto_big_o_n_lg_n = "NlgN";
 std::string lambda_big_o_n_lg_n = "f\\(N\\)";
-
-// Add automatic tests
-ADD_COMPLEXITY_CASES(&ConsoleOutputTests, &JSONOutputTests, &CSVOutputTests, 
-                     big_o_n_lg_n_test_name, rms_o_n_lg_n_test_name, enum_auto_big_o_n_lg_n);
 
 // Add enum tests
 ADD_COMPLEXITY_CASES(&ConsoleOutputTests, &JSONOutputTests, &CSVOutputTests, 
