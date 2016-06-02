@@ -157,10 +157,10 @@ BENCHMARK(BM_Complexity_O1) -> Range(1, 1<<18) -> Complexity(benchmark::o1);
 BENCHMARK(BM_Complexity_O1) -> Range(1, 1<<18) -> Complexity([](int){return 1.0; });
 BENCHMARK(BM_Complexity_O1) -> Range(1, 1<<18) -> Complexity();
 
-std::string big_o_1_test_name = "BM_Complexity_O1_BigO";
-std::string rms_o_1_test_name = "BM_Complexity_O1_RMS";
-std::string enum_auto_big_o_1 = "\\([0-9]+\\)";
-std::string lambda_big_o_1 = "f\\(N\\)";
+const char* big_o_1_test_name = "BM_Complexity_O1_BigO";
+const char* rms_o_1_test_name = "BM_Complexity_O1_RMS";
+const char* enum_auto_big_o_1 = "\\([0-9]+\\)";
+const char* lambda_big_o_1 = "f\\(N\\)";
 
 // Add enum tests
 ADD_COMPLEXITY_CASES(&ConsoleOutputTests, &JSONOutputTests, &CSVOutputTests, 
@@ -195,10 +195,10 @@ BENCHMARK(BM_Complexity_O_N) -> RangeMultiplier(2) -> Range(1<<10, 1<<16) -> Com
 BENCHMARK(BM_Complexity_O_N) -> RangeMultiplier(2) -> Range(1<<10, 1<<16) -> Complexity([](int n) -> double{return n; });
 BENCHMARK(BM_Complexity_O_N) -> RangeMultiplier(2) -> Range(1<<10, 1<<16) -> Complexity();
 
-std::string big_o_n_test_name = "BM_Complexity_O_N_BigO";
-std::string rms_o_n_test_name = "BM_Complexity_O_N_RMS";
-std::string enum_auto_big_o_n = "N";
-std::string lambda_big_o_n = "f\\(N\\)";
+const char* big_o_n_test_name = "BM_Complexity_O_N_BigO";
+const char* rms_o_n_test_name = "BM_Complexity_O_N_RMS";
+const char* enum_auto_big_o_n = "N";
+const char* lambda_big_o_n = "f\\(N\\)";
 
 // Add enum tests
 ADD_COMPLEXITY_CASES(&ConsoleOutputTests, &JSONOutputTests, &CSVOutputTests, 
@@ -223,10 +223,10 @@ BENCHMARK(BM_Complexity_O_N_log_N) -> RangeMultiplier(2) -> Range(1<<10, 1<<16) 
 BENCHMARK(BM_Complexity_O_N_log_N) -> RangeMultiplier(2) -> Range(1<<10, 1<<16) -> Complexity([](int n) {return n * log2(n); });
 BENCHMARK(BM_Complexity_O_N_log_N) -> RangeMultiplier(2) -> Range(1<<10, 1<<16) -> Complexity();
 
-std::string big_o_n_lg_n_test_name = "BM_Complexity_O_N_log_N_BigO";
-std::string rms_o_n_lg_n_test_name = "BM_Complexity_O_N_log_N_RMS";
-std::string enum_auto_big_o_n_lg_n = "NlgN";
-std::string lambda_big_o_n_lg_n = "f\\(N\\)";
+const char* big_o_n_lg_n_test_name = "BM_Complexity_O_N_log_N_BigO";
+const char* rms_o_n_lg_n_test_name = "BM_Complexity_O_N_log_N_RMS";
+const char* enum_auto_big_o_n_lg_n = "NlgN";
+const char* lambda_big_o_n_lg_n = "f\\(N\\)";
 
 // Add enum tests
 ADD_COMPLEXITY_CASES(&ConsoleOutputTests, &JSONOutputTests, &CSVOutputTests, 
