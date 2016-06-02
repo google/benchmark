@@ -247,8 +247,13 @@ enum BigO {
   oNCubed,
   oLogN,
   oNLogN,
-  oAuto
+  oAuto,
+  oLambda
 };
+
+// BigOFunc is passed to a benchmark in order to specify the asymptotic 
+// computational complexity for the benchmark.
+typedef double(BigOFunc)(int);
 
 // State is passed to a running Benchmark and contains state for the
 // benchmark to use.
@@ -257,24 +262,24 @@ public:
   State(size_t max_iters, bool has_x, int x, bool has_y, int y,
         int thread_i, int n_threads);
 
-  // Returns true iff the benchmark should continue through another iteration.
+  // Returns true if the benchmark should continue through another iteration.
   // NOTE: A benchmark may not return from the test until KeepRunning() has
   // returned false.
   bool KeepRunning() {
     if (BENCHMARK_BUILTIN_EXPECT(!started_, false)) {
-        assert(!finished_);
-        started_ = true;
-        ResumeTiming();
+      assert(!finished_);
+      started_ = true;
+      ResumeTiming();
     }
     bool const res = total_iterations_++ < max_iterations;
     if (BENCHMARK_BUILTIN_EXPECT(!res, false)) {
-        assert(started_ && (!finished_ || error_occurred_));
-        if (!error_occurred_) {
-            PauseTiming();
-        }
-        // Total iterations now is one greater than max iterations. Fix this.
-        total_iterations_ = max_iterations;
-        finished_ = true;
+      assert(started_ && (!finished_ || error_occurred_));
+      if (!error_occurred_) {
+        PauseTiming();
+      }
+      // Total iterations now is one greater than max iterations. Fix this.
+      total_iterations_ = max_iterations;
+      finished_ = true;
     }
     return res;
   }
@@ -358,7 +363,7 @@ public:
   // family benchmark, then current benchmark will be part of the computation and complexity_n will
   // represent the length of N.
   BENCHMARK_ALWAYS_INLINE
-  void SetComplexityN(size_t complexity_n) {
+  void SetComplexityN(int complexity_n) {
     complexity_n_ = complexity_n;
   }
 
@@ -439,7 +444,7 @@ private:
   size_t bytes_processed_;
   size_t items_processed_;
 
-  size_t complexity_n_;
+  int complexity_n_;
 
 public:
   // FIXME: Make this private somehow.
@@ -537,6 +542,10 @@ public:
   // Set the asymptotic computational complexity for the benchmark. If called
   // the asymptotic computational complexity will be shown on the output. 
   Benchmark* Complexity(BigO complexity = benchmark::oAuto);
+
+  // Set the asymptotic computational complexity for the benchmark. If called
+  // the asymptotic computational complexity will be shown on the output.
+  Benchmark* Complexity(BigOFunc* complexity);
 
   // Support for running multiple copies of the same benchmark concurrently
   // in multiple threads.  This may be useful when measuring the scaling

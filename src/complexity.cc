@@ -17,31 +17,30 @@
 
 #include "benchmark/benchmark_api.h"
 
-#include "complexity.h"
-#include "check.h"
-#include "stat.h"
-#include <cmath>
 #include <algorithm>
-#include <functional>
+#include <cmath>
+#include "check.h"
+#include "complexity.h"
+#include "stat.h"
 
 namespace benchmark {
-  
+
 // Internal function to calculate the different scalability forms
-std::function<double(int)> FittingCurve(BigO complexity) {
+BigOFunc* FittingCurve(BigO complexity) {
   switch (complexity) {
     case oN:
-      return [](int n) {return n; };
+      return [](int n) -> double { return n; };
     case oNSquared:
-      return [](int n) {return n*n; };
+      return [](int n) -> double { return n * n; };
     case oNCubed:
-      return [](int n) {return n*n*n; };
+      return [](int n) -> double { return n * n * n; };
     case oLogN:
-      return [](int n) {return log2(n); };
+      return [](int n) { return log2(n); };
     case oNLogN:
-      return [](int n) {return n * log2(n); };
+      return [](int n) { return n * log2(n); };
     case o1:
     default:
-      return [](int) {return 1; };
+      return [](int) { return 1.0; };
   }
 }
 
@@ -49,24 +48,24 @@ std::function<double(int)> FittingCurve(BigO complexity) {
 std::string GetBigOString(BigO complexity) {
   switch (complexity) {
     case oN:
-      return "* N";
+      return "N";
     case oNSquared:
-      return "* N**2";
+      return "N^2";
     case oNCubed:
-      return "* N**3";
+      return "N^3";
     case oLogN:
-      return "* lgN";
+      return "lgN";
     case oNLogN:
-      return "* NlgN";
+      return "NlgN";
     case o1:
-      return "* 1";
+      return "(1)";
     default:
-      return "";
+      return "f(N)";
   }
 }
 
-// Find the coefficient for the high-order term in the running time, by 
-// minimizing the sum of squares of relative error, for the fitting curve 
+// Find the coefficient for the high-order term in the running time, by
+// minimizing the sum of squares of relative error, for the fitting curve
 // given by the lambda expresion.
 //   - n             : Vector containing the size of the benchmark tests.
 //   - time          : Vector containing the times for the benchmark tests.
@@ -75,21 +74,9 @@ std::string GetBigOString(BigO complexity) {
 // For a deeper explanation on the algorithm logic, look the README file at
 // http://github.com/ismaelJimenez/Minimal-Cpp-Least-Squared-Fit
 
-// This interface is currently not used from the oustide, but it has been 
-// provided for future upgrades. If in the future it is not needed to support 
-// Cxx03, then all the calculations could be upgraded to use lambdas because 
-// they are more powerful and provide a cleaner inferface than enumerators, 
-// but complete implementation with lambdas will not work for Cxx03 
-// (e.g. lack of std::function).
-// In case lambdas are implemented, the interface would be like :
-//   -> Complexity([](int n) {return n;};)
-// and any arbitrary and valid  equation would be allowed, but the option to 
-// calculate the best fit to the most common scalability curves will still 
-// be kept.
-
-LeastSq CalculateLeastSq(const std::vector<int>& n, 
-                         const std::vector<double>& time, 
-                         std::function<double(int)> fitting_curve) {
+LeastSq MinimalLeastSq(const std::vector<int>& n,
+                       const std::vector<double>& time,
+                       BigOFunc* fitting_curve) {
   double sigma_gn = 0.0;
   double sigma_gn_squared = 0.0;
   double sigma_time = 0.0;
@@ -105,6 +92,7 @@ LeastSq CalculateLeastSq(const std::vector<int>& n,
   }
 
   LeastSq result;
+  result.complexity = oLambda;
 
   // Calculate complexity.
   result.coef = sigma_time_gn / sigma_gn_squared;
@@ -134,29 +122,29 @@ LeastSq MinimalLeastSq(const std::vector<int>& n,
                        const std::vector<double>& time,
                        const BigO complexity) {
   CHECK_EQ(n.size(), time.size());
-  CHECK_GE(n.size(), 2);  // Do not compute fitting curve is less than two benchmark runs are given
+  CHECK_GE(n.size(), 2);  // Do not compute fitting curve is less than two
+                          // benchmark runs are given
   CHECK_NE(complexity, oNone);
 
   LeastSq best_fit;
 
-  if(complexity == oAuto) {
-    std::vector<BigO> fit_curves = {
-      oLogN, oN, oNLogN, oNSquared, oNCubed };
+  if (complexity == oAuto) {
+    std::vector<BigO> fit_curves = {oLogN, oN, oNLogN, oNSquared, oNCubed};
 
     // Take o1 as default best fitting curve
-    best_fit = CalculateLeastSq(n, time, FittingCurve(o1));
+    best_fit = MinimalLeastSq(n, time, FittingCurve(o1));
     best_fit.complexity = o1;
 
     // Compute all possible fitting curves and stick to the best one
     for (const auto& fit : fit_curves) {
-      LeastSq current_fit = CalculateLeastSq(n, time, FittingCurve(fit));
+      LeastSq current_fit = MinimalLeastSq(n, time, FittingCurve(fit));
       if (current_fit.rms < best_fit.rms) {
         best_fit = current_fit;
         best_fit.complexity = fit;
       }
     }
   } else {
-    best_fit = CalculateLeastSq(n, time, FittingCurve(complexity));
+    best_fit = MinimalLeastSq(n, time, FittingCurve(complexity));
     best_fit.complexity = complexity;
   }
 
@@ -164,14 +152,13 @@ LeastSq MinimalLeastSq(const std::vector<int>& n,
 }
 
 std::vector<BenchmarkReporter::Run> ComputeStats(
-    const std::vector<BenchmarkReporter::Run>& reports)
-{
+    const std::vector<BenchmarkReporter::Run>& reports) {
   typedef BenchmarkReporter::Run Run;
   std::vector<Run> results;
 
-  auto error_count = std::count_if(
-      reports.begin(), reports.end(),
-      [](Run const& run) {return run.error_occurred;});
+  auto error_count =
+      std::count_if(reports.begin(), reports.end(),
+                    [](Run const& run) { return run.error_occurred; });
 
   if (reports.size() - error_count < 2) {
     // We don't report aggregated data if there was a single run.
@@ -190,12 +177,11 @@ std::vector<BenchmarkReporter::Run> ComputeStats(
   for (Run const& run : reports) {
     CHECK_EQ(reports[0].benchmark_name, run.benchmark_name);
     CHECK_EQ(run_iterations, run.iterations);
-    if (run.error_occurred)
-      continue;
+    if (run.error_occurred) continue;
     real_accumulated_time_stat +=
-        Stat1_d(run.real_accumulated_time/run.iterations, run.iterations);
+        Stat1_d(run.real_accumulated_time / run.iterations, run.iterations);
     cpu_accumulated_time_stat +=
-        Stat1_d(run.cpu_accumulated_time/run.iterations, run.iterations);
+        Stat1_d(run.cpu_accumulated_time / run.iterations, run.iterations);
     items_per_second_stat += Stat1_d(run.items_per_second, run.iterations);
     bytes_per_second_stat += Stat1_d(run.bytes_per_second, run.iterations);
   }
@@ -204,10 +190,10 @@ std::vector<BenchmarkReporter::Run> ComputeStats(
   Run mean_data;
   mean_data.benchmark_name = reports[0].benchmark_name + "_mean";
   mean_data.iterations = run_iterations;
-  mean_data.real_accumulated_time = real_accumulated_time_stat.Mean() *
-                                     run_iterations;
-  mean_data.cpu_accumulated_time = cpu_accumulated_time_stat.Mean() *
-                                    run_iterations;
+  mean_data.real_accumulated_time =
+      real_accumulated_time_stat.Mean() * run_iterations;
+  mean_data.cpu_accumulated_time =
+      cpu_accumulated_time_stat.Mean() * run_iterations;
   mean_data.bytes_per_second = bytes_per_second_stat.Mean();
   mean_data.items_per_second = items_per_second_stat.Mean();
 
@@ -224,10 +210,8 @@ std::vector<BenchmarkReporter::Run> ComputeStats(
   stddev_data.benchmark_name = reports[0].benchmark_name + "_stddev";
   stddev_data.report_label = mean_data.report_label;
   stddev_data.iterations = 0;
-  stddev_data.real_accumulated_time =
-      real_accumulated_time_stat.StdDev();
-  stddev_data.cpu_accumulated_time =
-      cpu_accumulated_time_stat.StdDev();
+  stddev_data.real_accumulated_time = real_accumulated_time_stat.StdDev();
+  stddev_data.cpu_accumulated_time = cpu_accumulated_time_stat.StdDev();
   stddev_data.bytes_per_second = bytes_per_second_stat.StdDev();
   stddev_data.items_per_second = items_per_second_stat.StdDev();
 
@@ -237,8 +221,7 @@ std::vector<BenchmarkReporter::Run> ComputeStats(
 }
 
 std::vector<BenchmarkReporter::Run> ComputeBigO(
-    const std::vector<BenchmarkReporter::Run>& reports)
-{
+    const std::vector<BenchmarkReporter::Run>& reports) {
   typedef BenchmarkReporter::Run Run;
   std::vector<Run> results;
 
@@ -252,19 +235,22 @@ std::vector<BenchmarkReporter::Run> ComputeBigO(
   // Populate the accumulators.
   for (const Run& run : reports) {
     n.push_back(run.complexity_n);
-    real_time.push_back(run.real_accumulated_time/run.iterations);
-    cpu_time.push_back(run.cpu_accumulated_time/run.iterations);
+    real_time.push_back(run.real_accumulated_time / run.iterations);
+    cpu_time.push_back(run.cpu_accumulated_time / run.iterations);
   }
 
-  LeastSq result_cpu = MinimalLeastSq(n, cpu_time, reports[0].complexity);
+  LeastSq result_cpu;
+  LeastSq result_real;
 
-  // result_cpu.complexity is passed as parameter to result_real because in case
-  // reports[0].complexity is oAuto, the noise on the measured data could make
-  // the best fit function of Cpu and Real differ. In order to solve this, we
-  // take the best fitting function for the Cpu, and apply it to Real data.
-  LeastSq result_real = MinimalLeastSq(n, real_time, result_cpu.complexity);
-
-  std::string benchmark_name = reports[0].benchmark_name.substr(0, reports[0].benchmark_name.find('/'));
+  if (reports[0].complexity == oLambda) {
+    result_cpu = MinimalLeastSq(n, cpu_time, reports[0].complexity_lambda);
+    result_real = MinimalLeastSq(n, real_time, reports[0].complexity_lambda);
+  } else {
+    result_cpu = MinimalLeastSq(n, cpu_time, reports[0].complexity);
+    result_real = MinimalLeastSq(n, real_time, result_cpu.complexity);
+  }
+  std::string benchmark_name =
+      reports[0].benchmark_name.substr(0, reports[0].benchmark_name.find('/'));
 
   // Get the data from the accumulator to BenchmarkReporter::Run's.
   Run big_o;

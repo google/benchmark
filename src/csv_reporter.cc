@@ -13,9 +13,10 @@
 // limitations under the License.
 
 #include "benchmark/reporter.h"
+#include "complexity.h"
 
-#include <cstdint>
 #include <algorithm>
+#include <cstdint>
 #include <iostream>
 #include <string>
 #include <tuple>
@@ -79,7 +80,7 @@ void CSVReporter::PrintRunData(const Run & run) {
   }
 
   // Do not print iteration on bigO and RMS report
-  if(!run.report_big_o && !run.report_rms) {
+  if (!run.report_big_o && !run.report_rms) {
     Out << run.iterations;
   }
   Out << ",";
@@ -87,8 +88,10 @@ void CSVReporter::PrintRunData(const Run & run) {
   Out << run.GetAdjustedRealTime() << ",";
   Out << run.GetAdjustedCPUTime() << ",";
 
-  // Do not print timeLabel on RMS report
-  if(!run.report_rms) {
+  // Do not print timeLabel on bigO and RMS report
+  if (run.report_big_o) {
+    Out << GetBigOString(run.complexity);
+  } else if (!run.report_rms) {
     Out << GetTimeUnitString(run.time_unit);
   }
   Out << ",";
@@ -108,7 +111,7 @@ void CSVReporter::PrintRunData(const Run & run) {
     ReplaceAll(&label, "\"", "\"\"");
     Out << "\"" << label << "\"";
   }
-  Out << ",,"; // for error_occurred and error_message
+  Out << ",,";  // for error_occurred and error_message
   Out << '\n';
 }
 
