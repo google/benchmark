@@ -130,7 +130,7 @@ struct ThreadStats {
     ThreadStats() : bytes_processed(0), items_processed(0), complexity_n(0) {}
     int64_t bytes_processed;
     int64_t items_processed;
-    int     complexity_n;
+    size_t  complexity_n;
 };
 
 // Timer management class
@@ -287,7 +287,7 @@ class TimerManager {
       };
       phase_condition_.wait(ml.native_handle(), cb);
       if (phase_number_ > phase_number_cp)
-          return false;
+        return false;
       // else (running_threads_ == entered_) and we are the last thread.
     }
     // Last thread has reached the barrier
@@ -317,6 +317,7 @@ struct Benchmark::Instance {
   bool           use_real_time;
   bool           use_manual_time;
   BigO           complexity;
+  BigOFunc*      complexity_lambda;
   bool           last_benchmark_instance;
   int            repetitions;
   double         min_time;
@@ -362,6 +363,7 @@ public:
   void UseRealTime();
   void UseManualTime();
   void Complexity(BigO complexity);
+  void ComplexityLambda(BigOFunc* complexity);
   void Threads(int t);
   void ThreadRange(int min_threads, int max_threads);
   void ThreadPerCpu();
@@ -382,6 +384,7 @@ private:
   bool use_real_time_;
   bool use_manual_time_;
   BigO complexity_;
+  BigOFunc* complexity_lambda_;
   std::vector<int> thread_counts_;
 
   BenchmarkImp& operator=(BenchmarkImp const&);
@@ -446,6 +449,7 @@ bool BenchmarkFamilies::FindBenchmarks(
         instance.use_real_time = family->use_real_time_;
         instance.use_manual_time = family->use_manual_time_;
         instance.complexity = family->complexity_;
+        instance.complexity_lambda = family->complexity_lambda_;
         instance.threads = num_threads;
         instance.multithreaded = !(family->thread_counts_.empty());
 
@@ -573,6 +577,10 @@ void BenchmarkImp::Complexity(BigO complexity){
   complexity_ = complexity;
 }
 
+void BenchmarkImp::ComplexityLambda(BigOFunc* complexity) {
+  complexity_lambda_ = complexity;
+}
+
 void BenchmarkImp::Threads(int t) {
   CHECK_GT(t, 0);
   thread_counts_.push_back(t);
@@ -694,6 +702,12 @@ Benchmark* Benchmark::UseManualTime() {
 
 Benchmark* Benchmark::Complexity(BigO complexity) {
   imp_->Complexity(complexity);
+  return this;
+}
+
+Benchmark* Benchmark::Complexity(BigOFunc* complexity) {
+  imp_->Complexity(oLambda);
+  imp_->ComplexityLambda(complexity);
   return this;
 }
 
@@ -855,6 +869,7 @@ void RunBenchmark(const benchmark::internal::Benchmark::Instance& b,
           report.items_per_second = items_per_second;
           report.complexity_n = total.complexity_n;
           report.complexity = b.complexity;
+          report.complexity_lambda = b.complexity_lambda;
           if(report.complexity != oNone)
             complexity_reports.push_back(report);
         }
@@ -884,7 +899,7 @@ void RunBenchmark(const benchmark::internal::Benchmark::Instance& b,
   }
   std::vector<BenchmarkReporter::Run> additional_run_stats = ComputeStats(reports);
   reports.insert(reports.end(), additional_run_stats.begin(),
-                    additional_run_stats.end());
+                 additional_run_stats.end());
 
   if((b.complexity != oNone) && b.last_benchmark_instance) {
     additional_run_stats = ComputeBigO(complexity_reports);

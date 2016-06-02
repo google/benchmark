@@ -142,6 +142,14 @@ BENCHMARK(BM_StringCompare)
     ->RangeMultiplier(2)->Range(1<<10, 1<<18)->Complexity();
 ```
 
+The following code will specify asymptotic complexity with a lambda function,
+that might be used to customize high-order term calculation.
+
+```c++
+BENCHMARK(BM_StringCompare)->RangeMultiplier(2)
+    ->Range(1<<10, 1<<18)->Complexity([](int n)->double{return n; });
+```
+
 ### Templated benchmarks
 Templated benchmarks work the same way: This example produces and consumes
 messages of size `sizeof(v)` `range_x` times. It also outputs throughput in the

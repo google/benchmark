@@ -20,7 +20,7 @@
 #include <utility>
 #include <vector>
 
-#include "benchmark_api.h" // For forward declaration of BenchmarkReporter
+#include "benchmark_api.h"  // For forward declaration of BenchmarkReporter
 
 namespace benchmark {
 
@@ -85,7 +85,8 @@ class BenchmarkReporter {
     double max_heapbytes_used;
 
     // Keep track of arguments to compute asymptotic complexity
-    BigO   complexity;
+    BigO complexity;
+    BigOFunc* complexity_lambda;
     int complexity_n;
 
     // Inform print function whether the current run is a complexity report
@@ -147,7 +148,7 @@ class BenchmarkReporter {
   // REQUIRES: 'out' is non-null.
   static void PrintBasicContext(std::ostream* out, Context const& context);
 
-private:
+ private:
   std::ostream* output_stream_;
   std::ostream* error_stream_;
 };
@@ -159,31 +160,31 @@ class ConsoleReporter : public BenchmarkReporter {
   virtual bool ReportContext(const Context& context);
   virtual void ReportRuns(const std::vector<Run>& reports);
 
-protected:
+ protected:
   virtual void PrintRunData(const Run& report);
 
   size_t name_field_width_;
 };
 
 class JSONReporter : public BenchmarkReporter {
-public:
+ public:
   JSONReporter() : first_report_(true) {}
   virtual bool ReportContext(const Context& context);
   virtual void ReportRuns(const std::vector<Run>& reports);
   virtual void Finalize();
 
-private:
+ private:
   void PrintRunData(const Run& report);
 
   bool first_report_;
 };
 
 class CSVReporter : public BenchmarkReporter {
-public:
+ public:
   virtual bool ReportContext(const Context& context);
   virtual void ReportRuns(const std::vector<Run>& reports);
 
-private:
+ private:
   void PrintRunData(const Run& report);
 };
 
@@ -200,7 +201,7 @@ inline const char* GetTimeUnitString(TimeUnit unit) {
 }
 
 inline double GetTimeUnitMultiplier(TimeUnit unit) {
-    switch (unit) {
+  switch (unit) {
     case kMillisecond:
       return 1e3;
     case kMicrosecond:
@@ -211,5 +212,5 @@ inline double GetTimeUnitMultiplier(TimeUnit unit) {
   }
 }
 
-} // end namespace benchmark
-#endif // BENCHMARK_REPORTER_H_
+}  // end namespace benchmark
+#endif  // BENCHMARK_REPORTER_H_

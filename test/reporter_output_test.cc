@@ -189,7 +189,7 @@ void BM_Complexity_O1(benchmark::State& state) {
 }
 BENCHMARK(BM_Complexity_O1)->Range(1, 1<<18)->Complexity(benchmark::o1);
 
-std::string bigOStr = "[0-9]+\\.[0-9]+ \\* [0-9]+";
+std::string bigOStr = "[0-9]+\\.[0-9]+ \\([0-9]+\\)";
 
 ADD_CASES(&ConsoleOutputTests, {
    {join("^BM_Complexity_O1_BigO", bigOStr, bigOStr) + "[ ]*$"},
