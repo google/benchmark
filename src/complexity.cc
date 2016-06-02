@@ -242,12 +242,12 @@ std::vector<BenchmarkReporter::Run> ComputeBigO(
   LeastSq result_cpu;
   LeastSq result_real;
 
-  if (reports[0].complexity != oLambda) {
-    result_cpu = MinimalLeastSq(n, cpu_time, reports[0].complexity);
-    result_real = MinimalLeastSq(n, real_time, result_cpu.complexity);
-  } else {
+  if (reports[0].complexity == oLambda) {
     result_cpu = MinimalLeastSq(n, cpu_time, reports[0].complexity_lambda);
     result_real = MinimalLeastSq(n, real_time, reports[0].complexity_lambda);
+  } else {
+    result_cpu = MinimalLeastSq(n, cpu_time, reports[0].complexity);
+    result_real = MinimalLeastSq(n, real_time, result_cpu.complexity);
   }
   std::string benchmark_name =
       reports[0].benchmark_name.substr(0, reports[0].benchmark_name.find('/'));
