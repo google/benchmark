@@ -35,9 +35,9 @@ BigOFunc* FittingCurve(BigO complexity) {
     case oNCubed:
       return [](int n) -> double { return n * n * n; };
     case oLogN:
-      return [](int n) { return log2(n); };
+      return [](int n) { return std::log2(n); };
     case oNLogN:
-      return [](int n) { return n * log2(n); };
+      return [](int n) { return n * std::log2(n); };
     case o1:
     default:
       return [](int) { return 1.0; };
