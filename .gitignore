@@ -5,6 +5,7 @@
 *.exe
 *.dylib
 *.cmake
+!CTestConfig.cmake
 !/cmake/*.cmake
 *~
 *.pyc
