@@ -10,6 +10,7 @@
 #include <vector>
 #include <utility>
 #include <algorithm>
+#include <cmath>
 
 namespace {
 
@@ -220,7 +221,7 @@ static void BM_Complexity_O_N_log_N(benchmark::State& state) {
   state.SetComplexityN(state.range_x());
 }
 BENCHMARK(BM_Complexity_O_N_log_N) -> RangeMultiplier(2) -> Range(1<<10, 1<<16) -> Complexity(benchmark::oNLogN);
-BENCHMARK(BM_Complexity_O_N_log_N) -> RangeMultiplier(2) -> Range(1<<10, 1<<16) -> Complexity([](int n) {return n * log2(n); });
+BENCHMARK(BM_Complexity_O_N_log_N) -> RangeMultiplier(2) -> Range(1<<10, 1<<16) -> Complexity([](int n) {return n * std::log2(n); });
 BENCHMARK(BM_Complexity_O_N_log_N) -> RangeMultiplier(2) -> Range(1<<10, 1<<16) -> Complexity();
 
 const char* big_o_n_lg_n_test_name = "BM_Complexity_O_N_log_N_BigO";
