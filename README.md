@@ -61,6 +61,15 @@ the specified range and will generate a benchmark for each such argument.
 BENCHMARK(BM_memcpy)->Range(8, 8<<10);
 ```
 
+By default the arguments in the range are generated in multiples of eight and
+the command above selects [ 8, 64, 512, 4k, 8k ]. In the following code the
+range multiplier is changed to multiples of two.
+
+```c++
+BENCHMARK(BM_memcpy)->RangeMultiplier(2)->Range(8, 8<<10);
+```
+Now arguments generated are [ 8, 16, 32, 64, 128, 256, 512, 1024, 2k, 4k, 8k ].
+
 You might have a benchmark that depends on two inputs. For example, the
 following code defines a family of benchmarks for measuring the speed of set
 insertion.
@@ -109,6 +118,38 @@ static void CustomArguments(benchmark::internal::Benchmark* b) {
 BENCHMARK(BM_SetInsert)->Apply(CustomArguments);
 ```
 
+### Calculate asymptotic complexity (Big O)
+Asymptotic complexity might be calculated for a family of benchmarks. The
+following code will calculate the coefficient for the high-order term in the
+running time and the normalized root-mean square error of string comparison.
+
+```c++
+static void BM_StringCompare(benchmark::State& state) {
+  std::string s1(state.range_x(), '-');
+  std::string s2(state.range_x(), '-');
+  while (state.KeepRunning())
+    benchmark::DoNotOptimize(s1.compare(s2));
+}
+BENCHMARK(BM_StringCompare)
+    ->RangeMultiplier(2)->Range(1<<10, 1<<18)->Complexity(benchmark::oN);
+```
+
+As shown in the following invocation, asymptotic complexity might also be
+calculated automatically.
+
+```c++
+BENCHMARK(BM_StringCompare)
+    ->RangeMultiplier(2)->Range(1<<10, 1<<18)->Complexity();
+```
+
+The following code will specify asymptotic complexity with a lambda function,
+that might be used to customize high-order term calculation.
+
+```c++
+BENCHMARK(BM_StringCompare)->RangeMultiplier(2)
+    ->Range(1<<10, 1<<18)->Complexity([](int n)->double{return n; });
+```
+
 ### Templated benchmarks
 Templated benchmarks work the same way: This example produces and consumes
 messages of size `sizeof(v)` `range_x` times. It also outputs throughput in the
@@ -142,6 +183,26 @@ Three macros are provided for adding benchmark templates.
 #define BENCHMARK_TEMPLATE1(func, arg1)
 #define BENCHMARK_TEMPLATE2(func, arg1, arg2)
 ```
+
+## Passing arbitrary arguments to a benchmark
+In C++11 it is possible to define a benchmark that takes an arbitrary number
+of extra arguments. The `BENCHMARK_CAPTURE(func, test_case_name, ...args)`
+macro creates a benchmark that invokes `func`  with the `benchmark::State` as
+the first argument followed by the specified `args...`.
+The `test_case_name` is appended to the name of the benchmark and
+should describe the values passed.
+
+```c++
+template <class ...ExtraArgs>`
+void BM_takes_args(benchmark::State& state, ExtraArgs&&... extra_args) {
+  [...]
+}
+// Registers a benchmark named "BM_takes_args/int_string_test` that passes
+// the specified values to `extra_args`.
+BENCHMARK_CAPTURE(BM_takes_args, int_string_test, 42, std::string("abc"));
+```
+Note that elements of `...args` may refer to global variables. Users should
+avoid modifying global state inside of a benchmark.
 
 ### Multithreaded benchmarks
 In a multithreaded test (benchmark invoked by multiple threads simultaneously),
@@ -246,6 +307,17 @@ the minimum time, or the wallclock time is 5x minimum time. The minimum time is
 set as a flag `--benchmark_min_time` or per benchmark by calling `MinTime` on
 the registered benchmark object.
 
+## Reporting the mean and standard devation by repeated benchmarks
+By default each benchmark is run once and that single result is reported.
+However benchmarks are often noisy and a single result may not be representative
+of the overall behavior. For this reason it's possible to repeatedly rerun the
+benchmark.
+
+The number of runs of each benchmark is specified globally by the
+`--benchmark_repetitions` flag or on a per benchmark basis by calling
+`Repetitions` on the registered benchmark object. When a benchmark is run
+more than once the mean and standard deviation of the runs will be reported.
+
 ## Fixtures
 Fixture tests are created by
 first defining a type that derives from ::benchmark::Fixture and then
@@ -274,6 +346,38 @@ BENCHMARK_DEFINE_F(MyFixture, BarTest)(benchmark::State& st) {
 /* BarTest is NOT registered */
 BENCHMARK_REGISTER_F(MyFixture, BarTest)->Threads(2);
 /* BarTest is now registered */
+```
+
+## Exiting Benchmarks in Error
+
+When errors caused by external influences, such as file I/O and network
+communication, occur within a benchmark the
+`State::SkipWithError(const char* msg)` function can be used to skip that run
+of benchmark and report the error. Note that only future iterations of the
+`KeepRunning()` are skipped. Users may explicitly return to exit the
+benchmark immediately.
+
+The `SkipWithError(...)` function may be used at any point within the benchmark,
+including before and after the `KeepRunning()` loop.
+
+For example:
+
+```c++
+static void BM_test(benchmark::State& state) {
+  auto resource = GetResource();
+  if (!resource.good()) {
+      state.SkipWithError("Resource is not good!");
+      // KeepRunning() loop will not be entered.
+  }
+  while (state.KeepRunning()) {
+      auto data = resource.read_data();
+      if (!resource.good()) {
+        state.SkipWithError("Failed to read data!");
+        break; // Needed to skip the rest of the iteration.
+     }
+     do_stuff(data);
+  }
+}
 ```
 
 ## Output Formats

@@ -33,6 +33,7 @@
 
 #include "check.h"
 #include "commandlineflags.h"
+#include "complexity.h"
 #include "log.h"
 #include "mutex.h"
 #include "re.h"
@@ -112,6 +113,16 @@ std::string* GetReportLabel() {
     return &label;
 }
 
+// Global variable so that a benchmark can report an error as a human readable
+// string. If error_message is null no error occurred.
+#if defined(_MSC_VER) && _MSC_VER <= 1800
+typedef char* error_message_type;
+#else
+typedef const char* error_message_type;
+#endif
+
+static std::atomic<error_message_type> error_message = ATOMIC_VAR_INIT(nullptr);
+
 // TODO(ericwf): support MallocCounter.
 //static benchmark::MallocCounter *benchmark_mc;
 
@@ -120,6 +131,7 @@ class TimerManager {
  public:
   TimerManager(int num_threads, Notification* done)
       : num_threads_(num_threads),
+        running_threads_(num_threads),
         done_(done),
         running_(false),
         real_time_used_(0),
@@ -127,7 +139,8 @@ class TimerManager {
         manual_time_used_(0),
         num_finalized_(0),
         phase_number_(0),
-        entered_(0) {
+        entered_(0)
+  {
   }
 
   // Called by each thread
@@ -190,6 +203,15 @@ class TimerManager {
     }
   }
 
+  void RemoveErroredThread() EXCLUDES(lock_) {
+    MutexLock ml(lock_);
+    int last_thread = --running_threads_ == 0;
+    if (last_thread && running_)
+      InternalStop();
+    else if (!last_thread)
+      phase_condition_.notify_all();
+  }
+
   // REQUIRES: timer is not running
   double real_time_used() EXCLUDES(lock_) {
     MutexLock l(lock_);
@@ -215,6 +237,7 @@ class TimerManager {
   Mutex lock_;
   Condition phase_condition_;
   int num_threads_;
+  int running_threads_;
   Notification* done_;
 
   bool running_;                // Is the timer running
@@ -246,22 +269,24 @@ class TimerManager {
   // entered the barrier.  Returns iff this is the last thread to
   // enter the barrier.
   bool Barrier(MutexLock& ml) REQUIRES(lock_) {
-    CHECK_LT(entered_, num_threads_);
+    CHECK_LT(entered_, running_threads_);
     entered_++;
-    if (entered_ < num_threads_) {
+    if (entered_ < running_threads_) {
       // Wait for all threads to enter
       int phase_number_cp = phase_number_;
       auto cb = [this, phase_number_cp]() {
-        return this->phase_number_ > phase_number_cp;
+        return this->phase_number_ > phase_number_cp ||
+               entered_ == running_threads_; // A thread has aborted in error
       };
       phase_condition_.wait(ml.native_handle(), cb);
-      return false;  // I was not the last one
-    } else {
-      // Last thread has reached the barrier
-      phase_number_++;
-      entered_ = 0;
-      return true;
+      if (phase_number_ > phase_number_cp)
+        return false;
+      // else (running_threads_ == entered_) and we are the last thread.
     }
+    // Last thread has reached the barrier
+    phase_number_++;
+    entered_ = 0;
+    return true;
   }
 };
 
@@ -270,208 +295,8 @@ static std::unique_ptr<TimerManager> timer_manager = nullptr;
 
 } // end namespace
 
-
-
-Counter::Counter(std::string const& n, std::string const& fmt, uint32_t f)
-  : name(n), format(fmt), flags(f), value(0.)
-{}
-
-Counter::Counter(std::string const& n, double v, std::string const& fmt, uint32_t f)
-  : name(n), format(fmt), flags(f), value(v)
-{}
-
-void Counter::Finish(double cpu_time, double num_threads) {
-  if(flags & kIsRate) {
-    value /= cpu_time;
-  }
-  if(flags & kAvgThreads) {
-    value /= num_threads;
-  }
-}
-
-std::string Counter::ToString() const {
-  std::string s;
-  if(flags & kHumanReadable) {
-    s = HumanReadableNumber(value);
-    s += name;
-  } else {
-    char tmp[256];
-    snprintf(tmp, sizeof(tmp), format.c_str(), value);
-    s = tmp;
-  }
-  return s;
-}
-
-
-BenchmarkCounters::BenchmarkCounters(size_t capacity) {
-  // minimize reallocations
-  counters_.reserve(capacity);
-}
-
-size_t BenchmarkCounters::Add(Counter const& c) {
-  CHECK_GE(_Find(c.name), counters_.size());
-  size_t pos = counters_.size();
-  counters_.push_back(c);
-  return pos;
-}
-size_t BenchmarkCounters::Add(const char *n, const char *fmt, uint32_t f) {
-  CHECK_GE(_Find(n), counters_.size());
-  size_t pos = counters_.size();
-  counters_.emplace_back(n, fmt, f);
-  return pos;
-}
-size_t BenchmarkCounters::Add(const char *n, double v, const char *fmt, uint32_t f) {
-  CHECK_GE(_Find(n), counters_.size());
-  size_t pos = counters_.size();
-  counters_.emplace_back(n, v, fmt, f);
-  return pos;
-}
-size_t BenchmarkCounters::Add(std::string const& n, std::string const& fmt, uint32_t f) {
-  CHECK_GE(_Find(n), counters_.size());
-  size_t pos = counters_.size();
-  counters_.emplace_back(n, fmt, f);
-  return pos;
-}
-size_t BenchmarkCounters::Add(std::string const& n, double v, std::string const& fmt, uint32_t f) {
-  CHECK_GE(_Find(n), counters_.size());
-  size_t pos = counters_.size();
-  counters_.emplace_back(n, v, fmt, f);
-  return pos;
-}
-
-void BenchmarkCounters::Set(size_t counter_id, double value) {
-  CHECK_LT(counter_id, counters_.size()) << "Invalid counter handle: " << counter_id;
-  counters_[counter_id].value = value;
-}
-void BenchmarkCounters::Set(const char *name, double value) {
-  size_t pos = _Find(name);
-  CHECK_LT(pos, counters_.size()) << "Counter not found: " << name;
-  counters_[pos].value = value;
-}
-void BenchmarkCounters::Set(std::string const& name, double value) {
-  size_t pos = _Find(name);
-  CHECK_LT(pos, counters_.size()) << "Counter not found: " << name;
-  counters_[pos].value = value;
-}
-
-Counter& BenchmarkCounters::Get(size_t id) {
-  CHECK_LT(id, counters_.size()) << "Invalid counter handle: " << id;
-  return counters_[id];
-}
-Counter const& BenchmarkCounters::Get(size_t id) const {
-  CHECK_LT(id, counters_.size()) << "Invalid counter handle: " << id;
-  return counters_[id];
-}
-Counter& BenchmarkCounters::Get(const char *name) {
-  size_t id = _Find(name);
-  CHECK_LT(id, counters_.size()) << "Counter not found: " << name;
-  return counters_[id];
-}
-Counter const& BenchmarkCounters::Get(const char *name) const {
-  size_t id = _Find(name);
-  CHECK_LT(id, counters_.size()) << "Counter not found: " << name;
-  return counters_[id];
-}
-Counter& BenchmarkCounters::Get(std::string const& name) {
-  size_t id = _Find(name);
-  CHECK_LT(id, counters_.size()) << "Counter not found: " << name;
-  return counters_[id];
-}
-Counter const& BenchmarkCounters::Get(std::string const& name) const {
-  size_t id = _Find(name);
-  CHECK_LT(id, counters_.size()) << "Counter not found: " << name;
-  return counters_[id];
-}
-
-// returns the index where name is located,
-// or a value ==size() if the name was not found
-size_t BenchmarkCounters::_Find(const char *name) const {
-  size_t pos = 0;
-  for(auto &p : counters_) {
-    if(p.name == name) break;
-    ++pos;
-  }
-  return pos;
-}
-// returns the index where name is located,
-// or a value ==size() if the name was not found
-size_t BenchmarkCounters::_Find(std::string const& name) const {
-  size_t pos = 0;
-  for(auto &p : counters_) {
-    if(p.name == name) break;
-    ++pos;
-  }
-  return pos;
-}
-
-void BenchmarkCounters::Add(BenchmarkCounters const& that) {
-  if(counters_.empty()) {
-      counters_ = that.counters_;
-      return;
-  }
-  CHECK_EQ(this->counters_.size(), that.counters_.size()) << "Incompatible objects";
-  for(size_t i = 0, s = counters_.size(); i < s; ++i) {
-    CHECK_EQ(this->counters_[i].name, that.counters_[i].name) << "Incompatible objects";
-  }
-  for(size_t i = 0, s = counters_.size(); i < s; ++i) {
-    counters_[i].value += that.counters_[i].value;
-  }
-}
-
-void BenchmarkCounters::Finish(double time, double num_threads) {
-  for(auto &c : counters_) {
-    c.Finish(time, num_threads);
-  }
-}
-
-void BenchmarkCounters::Clear() {
-  for(auto &p : counters_) {
-    p.value = 0.;
-  }
-}
-
-
-// Common counters
-Counter const& BenchmarkCounters::GetBytesPerSecond() const {
-    size_t pos = _Find("B/s");
-    CHECK_LT(pos, counters_.size()) << "Could not find counter for B/s";
-    return counters_[pos];
-}
-size_t  BenchmarkCounters::BytesPerSecond() const {
-    size_t pos = _Find("B/s");
-    return pos < counters_.size() ? counters_[pos].value : 0;
-}
-void    BenchmarkCounters::BytesPerSecond(size_t b) {
-    size_t pos = _Find("B/s");
-    if(pos < counters_.size()) {
-        counters_[pos].value = double(b);
-    } else {
-        Add("B/s", double(b), "", Counter::kBytesProcessed);
-    }
-}
-
-Counter const& BenchmarkCounters::GetItemsPerSecond() const {
-    size_t pos = _Find(" items/s");
-    CHECK_LT(pos, counters_.size()) << "Could not find counter for items/s";
-    return counters_[pos];
-}
-size_t  BenchmarkCounters::ItemsPerSecond() const
-{
-    size_t pos = _Find(" items/s");
-    return pos < counters_.size() ? counters_[pos].value : 0;
-}
-void    BenchmarkCounters::ItemsPerSecond(size_t i) {
-    size_t pos = _Find(" items/s");
-    if(pos < counters_.size()) {
-        counters_[pos].value = double(i);
-    } else {
-        Add(" items/s", double(i), "", Counter::kItemsProcessed);
-    }
-}
-
-
-
 namespace internal {
+
 // Information kept per benchmark we may want to run
 struct Benchmark::Instance {
   std::string    name;
@@ -484,6 +309,10 @@ struct Benchmark::Instance {
   int            range_multiplier;
   bool           use_real_time;
   bool           use_manual_time;
+  BigO           complexity;
+  BigOFunc*      complexity_lambda;
+  bool           last_benchmark_instance;
+  int            repetitions;
   double         min_time;
   int            threads;    // Number of concurrent threads to use
   bool           multithreaded;  // Is benchmark multi-threaded?
@@ -523,8 +352,11 @@ public:
   void RangePair(int lo1, int hi1, int lo2, int hi2);
   void RangeMultiplier(int multiplier);
   void MinTime(double n);
+  void Repetitions(int n);
   void UseRealTime();
   void UseManualTime();
+  void Complexity(BigO complexity);
+  void ComplexityLambda(BigOFunc* complexity);
   void Threads(int t);
   void ThreadRange(int min_threads, int max_threads);
   void ThreadPerCpu();
@@ -541,8 +373,11 @@ private:
   TimeUnit time_unit_;
   int range_multiplier_;
   double min_time_;
+  int repetitions_;
   bool use_real_time_;
   bool use_manual_time_;
+  BigO complexity_;
+  BigOFunc* complexity_lambda_;
   std::vector<int> thread_counts_;
 
   BenchmarkImp& operator=(BenchmarkImp const&);
@@ -603,8 +438,11 @@ bool BenchmarkFamilies::FindBenchmarks(
         instance.time_unit = family->time_unit_;
         instance.range_multiplier = family->range_multiplier_;
         instance.min_time = family->min_time_;
+        instance.repetitions = family->repetitions_;
         instance.use_real_time = family->use_real_time_;
         instance.use_manual_time = family->use_manual_time_;
+        instance.complexity = family->complexity_;
+        instance.complexity_lambda = family->complexity_lambda_;
         instance.threads = num_threads;
         instance.multithreaded = !(family->thread_counts_.empty());
 
@@ -618,6 +456,9 @@ bool BenchmarkFamilies::FindBenchmarks(
         if (!IsZero(family->min_time_)) {
           instance.name +=  StringPrintF("/min_time:%0.3f",  family->min_time_);
         }
+        if (family->repetitions_ != 0) {
+          instance.name +=  StringPrintF("/repeats:%d",  family->repetitions_);
+        }
         if (family->use_manual_time_) {
           instance.name +=  "/manual_time";
         } else if (family->use_real_time_) {
@@ -630,6 +471,7 @@ bool BenchmarkFamilies::FindBenchmarks(
         }
 
         if (re.Match(instance.name)) {
+          instance.last_benchmark_instance = (args == family->args_.back());
           benchmarks->push_back(instance);
         }
       }
@@ -640,8 +482,9 @@ bool BenchmarkFamilies::FindBenchmarks(
 
 BenchmarkImp::BenchmarkImp(const char* name)
     : name_(name), arg_count_(-1), time_unit_(kNanosecond),
-      range_multiplier_(kRangeMultiplier), min_time_(0.0), 
-      use_real_time_(false), use_manual_time_(false) {
+      range_multiplier_(kRangeMultiplier), min_time_(0.0), repetitions_(0),
+      use_real_time_(false), use_manual_time_(false),
+      complexity_(oNone) {
 }
 
 BenchmarkImp::~BenchmarkImp() {
@@ -707,6 +550,12 @@ void BenchmarkImp::MinTime(double t) {
   min_time_ = t;
 }
 
+
+void BenchmarkImp::Repetitions(int n) {
+  CHECK(n > 0);
+  repetitions_ = n;
+}
+
 void BenchmarkImp::UseRealTime() {
   CHECK(!use_manual_time_) << "Cannot set UseRealTime and UseManualTime simultaneously.";
   use_real_time_ = true;
@@ -715,6 +564,14 @@ void BenchmarkImp::UseRealTime() {
 void BenchmarkImp::UseManualTime() {
   CHECK(!use_real_time_) << "Cannot set UseRealTime and UseManualTime simultaneously.";
   use_manual_time_ = true;
+}
+
+void BenchmarkImp::Complexity(BigO complexity){
+  complexity_ = complexity;
+}
+
+void BenchmarkImp::ComplexityLambda(BigOFunc* complexity) {
+  complexity_lambda_ = complexity;
 }
 
 void BenchmarkImp::Threads(int t) {
@@ -815,6 +672,12 @@ Benchmark* Benchmark::RangeMultiplier(int multiplier) {
   return this;
 }
 
+
+Benchmark* Benchmark::Repetitions(int t) {
+  imp_->Repetitions(t);
+  return this;
+}
+
 Benchmark* Benchmark::MinTime(double t) {
   imp_->MinTime(t);
   return this;
@@ -827,6 +690,17 @@ Benchmark* Benchmark::UseRealTime() {
 
 Benchmark* Benchmark::UseManualTime() {
   imp_->UseManualTime();
+  return this;
+}
+
+Benchmark* Benchmark::Complexity(BigO complexity) {
+  imp_->Complexity(complexity);
+  return this;
+}
+
+Benchmark* Benchmark::Complexity(BigOFunc* complexity) {
+  imp_->Complexity(oLambda);
+  imp_->ComplexityLambda(complexity);
   return this;
 }
 
@@ -870,13 +744,16 @@ void RunInThread(const benchmark::internal::Benchmark::Instance* b,
   {
     MutexLock l(GetBenchmarkLock());
     total->Add(st.Counters());
+    total->complexity_n += st.complexity_length_n();
   }
 
   timer_manager->Finalize();
 }
 
 void RunBenchmark(const benchmark::internal::Benchmark::Instance& b,
-                  BenchmarkReporter* br) EXCLUDES(GetBenchmarkLock()) {
+                  BenchmarkReporter* br,
+                  std::vector<BenchmarkReporter::Run>& complexity_reports)
+  EXCLUDES(GetBenchmarkLock()) {
   size_t iters = 1;
 
   std::vector<BenchmarkReporter::Run> reports;
@@ -885,7 +762,9 @@ void RunBenchmark(const benchmark::internal::Benchmark::Instance& b,
   if (b.multithreaded)
     pool.resize(b.threads);
 
-  for (int i = 0; i < FLAGS_benchmark_repetitions; i++) {
+  const int repeats = b.repetitions != 0 ? b.repetitions
+                                         : FLAGS_benchmark_repetitions;
+  for (int i = 0; i < repeats; i++) {
     std::string mem;
     for (;;) {
       // Try benchmark
@@ -895,6 +774,7 @@ void RunBenchmark(const benchmark::internal::Benchmark::Instance& b,
         MutexLock l(GetBenchmarkLock());
         GetReportLabel()->clear();
       }
+      error_message = nullptr;
 
       Notification done;
       timer_manager = std::unique_ptr<TimerManager>(new TimerManager(b.threads, &done));
@@ -940,41 +820,51 @@ void RunBenchmark(const benchmark::internal::Benchmark::Instance& b,
         MutexLock l(GetBenchmarkLock());
         label = *GetReportLabel();
       }
+      error_message_type error_msg = error_message;
 
       const double min_time = !IsZero(b.min_time) ? b.min_time
                                                   : FLAGS_benchmark_min_time;
 
-      total.Finish(seconds, b.threads);
-
       // If this was the first run, was elapsed time or cpu time large enough?
       // If this is not the first run, go with the current value of iter.
-      if ((i > 0) ||
+      if ((i > 0) || (error_msg != nullptr) ||
           (iters >= kMaxIterations) ||
           (seconds >= min_time) ||
           (real_accumulated_time >= 5*min_time)) {
-        double bytes_per_second = 0;
-        if (total.BytesPerSecond() > 0 && seconds > 0.0) {
-          bytes_per_second = total.BytesPerSecond();
-        }
-        double items_per_second = 0;
-        if (total.ItemsPerSecond() > 0 && seconds > 0.0) {
-          items_per_second = total.ItemsPerSecond();
-        }
 
         // Create report about this benchmark run.
         BenchmarkReporter::Run report;
         report.benchmark_name = b.name;
+        report.error_occurred = error_msg != nullptr;
+        report.error_message = error_msg != nullptr ? error_msg : "";
         report.report_label = label;
         // Report the total iterations across all threads.
         report.iterations = static_cast<int64_t>(iters) * b.threads;
         report.time_unit = b.time_unit;
-        if (b.use_manual_time) {
-          report.real_accumulated_time = manual_accumulated_time;
-        } else {
-          report.real_accumulated_time = real_accumulated_time;
+
+        if (!report.error_occurred) {
+          double bytes_per_second = 0;
+          if (total.BytesPerSecond() > 0 && seconds > 0.0) {
+            bytes_per_second = total.BytesPerSecond();
+          }
+          double items_per_second = 0;
+          if (total.ItemsPerSecond() > 0 && seconds > 0.0) {
+            items_per_second = total.ItemsPerSecond();
+          }
+
+          if (b.use_manual_time) {
+            report.real_accumulated_time = manual_accumulated_time;
+          } else {
+            report.real_accumulated_time = real_accumulated_time;
+          }
+          report.cpu_accumulated_time = cpu_accumulated_time;
+          report.complexity_n = total.complexity_n;
+          report.complexity = b.complexity;
+          report.complexity_lambda = b.complexity_lambda;
+          if(report.complexity != oNone)
+            complexity_reports.push_back(report);
+          report.counters = std::move(total);
         }
-        report.cpu_accumulated_time = cpu_accumulated_time;
-        report.counters = std::move(total);
         reports.push_back(report);
         break;
       }
@@ -998,7 +888,19 @@ void RunBenchmark(const benchmark::internal::Benchmark::Instance& b,
       iters = static_cast<int>(next_iters + 0.5);
     }
   }
+  std::vector<BenchmarkReporter::Run> additional_run_stats = ComputeStats(reports);
+  reports.insert(reports.end(), additional_run_stats.begin(),
+                 additional_run_stats.end());
+
+  if((b.complexity != oNone) && b.last_benchmark_instance) {
+    additional_run_stats = ComputeBigO(complexity_reports);
+    reports.insert(reports.end(), additional_run_stats.begin(),
+                   additional_run_stats.end());
+    complexity_reports.clear();
+  }
+
   br->ReportRuns(reports);
+
   if (b.multithreaded) {
     for (std::thread& thread : pool)
       thread.join();
@@ -1009,10 +911,12 @@ void RunBenchmark(const benchmark::internal::Benchmark::Instance& b,
 
 State::State(size_t max_iters, bool has_x, int x, bool has_y, int y,
              int thread_i, int n_threads)
-    : started_(false), total_iterations_(0),
+    : started_(false), finished_(false), total_iterations_(0),
       has_range_x_(has_x), range_x_(x),
       has_range_y_(has_y), range_y_(y),
-      counters_(),
+      counters(),
+      complexity_n_(0),
+      error_occurred_(false),
       thread_index(thread_i),
       threads(n_threads),
       max_iterations(max_iters)
@@ -1024,12 +928,25 @@ State::State(size_t max_iters, bool has_x, int x, bool has_y, int y,
 void State::PauseTiming() {
   // Add in time accumulated so far
   CHECK(running_benchmark);
+  CHECK(started_ && !finished_ && !error_occurred_);
   timer_manager->StopTimer();
 }
 
 void State::ResumeTiming() {
   CHECK(running_benchmark);
+  CHECK(started_ && !finished_ && !error_occurred_);
   timer_manager->StartTimer();
+}
+
+void State::SkipWithError(const char* msg) {
+  CHECK(msg);
+  error_occurred_ = true;
+  error_message_type expected_no_error_msg = nullptr;
+  error_message.compare_exchange_weak(expected_no_error_msg,
+    const_cast<error_message_type>(msg));
+  started_ = finished_ = true;
+  total_iterations_ = max_iterations;
+  timer_manager->RemoveErroredThread();
 }
 
 void State::SetIterationTime(double seconds)
@@ -1047,32 +964,19 @@ void State::SetLabel(const char* label) {
 namespace internal {
 namespace {
 
-void PrintBenchmarkList() {
-  std::vector<Benchmark::Instance> benchmarks;
-  auto families = BenchmarkFamilies::GetInstance();
-  if (!families->FindBenchmarks(".", &benchmarks)) return;
-
-  for (const internal::Benchmark::Instance& benchmark : benchmarks) {
-    std::cout <<  benchmark.name << "\n";
-  }
-}
-
-void RunMatchingBenchmarks(const std::string& spec,
+void RunMatchingBenchmarks(const std::vector<Benchmark::Instance>& benchmarks,
                            BenchmarkReporter* reporter) {
   CHECK(reporter != nullptr);
-  if (spec.empty()) return;
-
-  std::vector<Benchmark::Instance> benchmarks;
-  auto families = BenchmarkFamilies::GetInstance();
-  if (!families->FindBenchmarks(spec, &benchmarks)) return;
 
   // Determine the width of the name field using a minimum width of 10.
+  bool has_repetitions = FLAGS_benchmark_repetitions > 1;
   size_t name_field_width = 10;
   for (const Benchmark::Instance& benchmark : benchmarks) {
     name_field_width =
         std::max<size_t>(name_field_width, benchmark.name.size());
+    has_repetitions |= benchmark.repetitions > 1;
   }
-  if (FLAGS_benchmark_repetitions > 1)
+  if (has_repetitions)
     name_field_width += std::strlen("_stddev");
 
   // Print header here
@@ -1083,11 +987,13 @@ void RunMatchingBenchmarks(const std::string& spec,
   context.cpu_scaling_enabled = CpuScalingEnabled();
   context.name_field_width = name_field_width;
 
+  // Keep track of runing times of all instances of current benchmark
+  std::vector<BenchmarkReporter::Run> complexity_reports;
+
   if (reporter->ReportContext(context)) {
     for (const auto& benchmark : benchmarks) {
-      RunBenchmark(benchmark, reporter);
+      RunBenchmark(benchmark, reporter, complexity_reports);
     }
-    reporter->ReportContext(context);
   }
 }
 
@@ -1108,26 +1014,32 @@ std::unique_ptr<BenchmarkReporter> GetDefaultReporter() {
 } // end namespace
 } // end namespace internal
 
-void RunSpecifiedBenchmarks() {
-  RunSpecifiedBenchmarks(nullptr);
+size_t RunSpecifiedBenchmarks() {
+  return RunSpecifiedBenchmarks(nullptr);
 }
 
-void RunSpecifiedBenchmarks(BenchmarkReporter* reporter) {
-  if (FLAGS_benchmark_list_tests) {
-    internal::PrintBenchmarkList();
-    return;
-  }
+size_t RunSpecifiedBenchmarks(BenchmarkReporter* reporter) {
   std::string spec = FLAGS_benchmark_filter;
   if (spec.empty() || spec == "all")
     spec = ".";  // Regexp that matches all benchmarks
 
-  std::unique_ptr<BenchmarkReporter> default_reporter;
-  if (!reporter) {
-    default_reporter = internal::GetDefaultReporter();
-    reporter = default_reporter.get();
+  std::vector<internal::Benchmark::Instance> benchmarks;
+  auto families = internal::BenchmarkFamilies::GetInstance();
+  if (!families->FindBenchmarks(spec, &benchmarks)) return 0;
+
+  if (FLAGS_benchmark_list_tests) {
+    for (auto const& benchmark : benchmarks)
+      std::cout <<  benchmark.name << "\n";
+  } else {
+    std::unique_ptr<BenchmarkReporter> default_reporter;
+    if (!reporter) {
+      default_reporter = internal::GetDefaultReporter();
+      reporter = default_reporter.get();
+    }
+    internal::RunMatchingBenchmarks(benchmarks, reporter);
+    reporter->Finalize();
   }
-  internal::RunMatchingBenchmarks(spec, reporter);
-  reporter->Finalize();
+  return benchmarks.size();
 }
 
 namespace internal {
