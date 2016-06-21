@@ -46,8 +46,6 @@ class BenchmarkReporter {
       time_unit(kNanosecond),
       real_accumulated_time(0),
       cpu_accumulated_time(0),
-      bytes_per_second(0),
-      items_per_second(0),
       max_heapbytes_used(0) {}
 
     std::string benchmark_name;
@@ -57,12 +55,10 @@ class BenchmarkReporter {
     double real_accumulated_time;
     double cpu_accumulated_time;
 
-    // Zero if not set by benchmark.
-    double bytes_per_second;
-    double items_per_second;
-
     // This is set to 0.0 if memory tracing is not enabled.
     double max_heapbytes_used;
+
+    BenchmarkCounters counters;
   };
 
   // Called once for every suite of benchmarks run.

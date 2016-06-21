@@ -202,5 +202,23 @@ static void BM_ManualTiming(benchmark::State& state) {
 BENCHMARK(BM_ManualTiming)->Range(1, 1 << 14)->UseRealTime();
 BENCHMARK(BM_ManualTiming)->Range(1, 1 << 14)->UseManualTime();
 
+
+static void BM_UserCounter(benchmark::State& state) {
+  static const int depth = 1024;
+  while (state.KeepRunning()) {
+    benchmark::DoNotOptimize(CalculatePi(depth));
+  }
+  state.SetCounter("Foo", 1);
+  state.SetCounter("Bar", 2);
+  state.SetCounter("Baz", 3);
+  state.SetCounter("Bat", 5);
+#if __cplusplus >= 201103L
+  state.SetCounter({{"Foo", 2}, {"Bar", 3}, {"Baz", 5}, {"Bat", 6}});
+#endif
+}
+BENCHMARK(BM_UserCounter)->Threads(8);
+BENCHMARK(BM_UserCounter)->ThreadRange(1, 32);
+BENCHMARK(BM_UserCounter)->ThreadPerCpu();
+
 BENCHMARK_MAIN()
 

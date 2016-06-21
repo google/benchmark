@@ -22,6 +22,7 @@
 # define BENCHMARK_DISALLOW_COPY_AND_ASSIGN(TypeName)  \
     TypeName(const TypeName&) = delete;                \
     TypeName& operator=(const TypeName&) = delete
+# define BENCHMARK_INITLIST
 #endif
 
 #if defined(__GNUC__)

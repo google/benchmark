@@ -61,8 +61,9 @@ void CSVReporter::ReportRuns(std::vector<Run> const& reports) {
     reports_cp.push_back(mean_data);
     reports_cp.push_back(stddev_data);
   }
-  for (auto it = reports_cp.begin(); it != reports_cp.end(); ++it) {
-    PrintRunData(*it);
+
+  for(auto &r : reports) {
+    PrintRunData(r);
   }
 }
 
@@ -89,12 +90,13 @@ void CSVReporter::PrintRunData(Run const& run) {
   std::cout << cpu_time << ",";
   std::cout << timeLabel << ",";
 
-  if (run.bytes_per_second > 0.0) {
-    std::cout << run.bytes_per_second;
+  auto &cnt = run.counters;
+  if (cnt.BytesPerSecond() > 0.0) {
+    std::cout << cnt.BytesPerSecond();
   }
   std::cout << ",";
-  if (run.items_per_second > 0.0) {
-    std::cout << run.items_per_second;
+  if (cnt.ItemsPerSecond() > 0.0) {
+    std::cout << cnt.ItemsPerSecond();
   }
   std::cout << ",";
   if (!run.report_label.empty()) {

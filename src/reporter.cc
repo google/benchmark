@@ -39,12 +39,13 @@ void BenchmarkReporter::ComputeStats(
   for (Run const& run : reports) {
     CHECK_EQ(reports[0].benchmark_name, run.benchmark_name);
     CHECK_EQ(run_iterations, run.iterations);
+    auto &cnt = run.counters;
     real_accumulated_time_stat +=
         Stat1_d(run.real_accumulated_time/run.iterations, run.iterations);
     cpu_accumulated_time_stat +=
         Stat1_d(run.cpu_accumulated_time/run.iterations, run.iterations);
-    items_per_second_stat += Stat1_d(run.items_per_second, run.iterations);
-    bytes_per_second_stat += Stat1_d(run.bytes_per_second, run.iterations);
+    items_per_second_stat += Stat1_d(cnt.ItemsPerSecond(), run.iterations);
+    bytes_per_second_stat += Stat1_d(cnt.BytesPerSecond(), run.iterations);
   }
 
   // Get the data from the accumulator to BenchmarkReporter::Run's.
@@ -54,8 +55,8 @@ void BenchmarkReporter::ComputeStats(
                                      run_iterations;
   mean_data->cpu_accumulated_time = cpu_accumulated_time_stat.Mean() *
                                     run_iterations;
-  mean_data->bytes_per_second = bytes_per_second_stat.Mean();
-  mean_data->items_per_second = items_per_second_stat.Mean();
+  mean_data->counters.BytesPerSecond(bytes_per_second_stat.Mean());
+  mean_data->counters.BytesPerSecond(items_per_second_stat.Mean());
 
   // Only add label to mean/stddev if it is same for all runs
   mean_data->report_label = reports[0].report_label;
@@ -73,8 +74,8 @@ void BenchmarkReporter::ComputeStats(
       real_accumulated_time_stat.StdDev();
   stddev_data->cpu_accumulated_time =
       cpu_accumulated_time_stat.StdDev();
-  stddev_data->bytes_per_second = bytes_per_second_stat.StdDev();
-  stddev_data->items_per_second = items_per_second_stat.StdDev();
+  stddev_data->counters.BytesPerSecond(bytes_per_second_stat.StdDev());
+  stddev_data->counters.ItemsPerSecond(items_per_second_stat.StdDev());
 }
 
 TimeUnitMultiplier BenchmarkReporter::GetTimeUnitAndMultiplier(TimeUnit unit) {

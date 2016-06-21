@@ -155,6 +155,13 @@ BENCHMARK(BM_test)->Unit(benchmark::kMillisecond);
 
 #include "macros.h"
 
+#include <utility> // for std::pair in UserCounters
+#include <vector>
+#include <string>
+#ifdef BENCHMARK_INITLIST
+#include <initializer_list>
+#endif
+
 namespace benchmark {
 class BenchmarkReporter;
 
@@ -223,6 +230,115 @@ inline BENCHMARK_ALWAYS_INLINE void DoNotOptimize(Tp const& value) {
 }
 #endif
 
+
+
+#define BENCHMARK_COUNTER_FMT "%8lg"
+
+struct Counter {
+
+  std::string name;
+  std::string format;
+  uint32_t    flags;
+  double      value;
+  // <jppm> maybe we could add a description field...
+
+  enum {
+    kDefaults       = 0x00,
+    kIsRate         = 0x01 << 0,
+    kAvgThreads     = 0x01 << 1,
+    kHumanReadable  = 0x01 << 2,
+    kItemsProcessed = kIsRate|kHumanReadable,
+    kBytesProcessed = kIsRate|kHumanReadable
+  };
+
+  Counter(std::string const& n = "",      std::string const& fmt = BENCHMARK_COUNTER_FMT, uint32_t f = kDefaults);
+  Counter(std::string const& n, double v, std::string const& fmt = BENCHMARK_COUNTER_FMT, uint32_t f = kDefaults);
+
+  void Finish(double cpu_time, double num_threads);
+
+  std::string ToString() const;
+
+};
+
+
+
+class BenchmarkCounters {
+public:
+
+  typedef Counter                         value_type;
+  typedef std::vector< Counter >          container_type;
+  typedef container_type::const_iterator  const_iterator;
+
+public:
+
+  BenchmarkCounters(size_t initial_capacity = 24);
+
+  size_t  Add(Counter const& c);
+  size_t  Add(const char* n,           const char* fmt = BENCHMARK_COUNTER_FMT, uint32_t f = Counter::kDefaults);
+  size_t  Add(const char* n, double v, const char* fmt = BENCHMARK_COUNTER_FMT, uint32_t f = Counter::kDefaults);
+  size_t  Add(std::string const& n,           std::string const& fmt = BENCHMARK_COUNTER_FMT, uint32_t f = Counter::kDefaults);
+  size_t  Add(std::string const& n, double v, std::string const& fmt = BENCHMARK_COUNTER_FMT, uint32_t f = Counter::kDefaults);
+
+  void    Set(size_t               id, double value);
+  void    Set(const char*        name, double value);
+  void    Set(std::string const& name, double value);
+
+  Counter      & Get(size_t               id);
+  Counter const& Get(size_t               id) const;
+  Counter      & Get(const char*        name);
+  Counter const& Get(const char*        name) const;
+  Counter      & Get(std::string const& name);
+  Counter const& Get(std::string const& name) const;
+
+#ifdef BENCHMARK_INITLIST
+  void Add(std::initializer_list< Counter > il);
+  template< class T > void Set(std::initializer_list< std::pair<T, double> > il);
+#endif
+
+  void    Add(BenchmarkCounters const& that);
+  void    Finish(double time, double num_threads);
+  void    Clear();
+
+  size_t          size() const { return counters_.size();  }
+  const_iterator begin() const { return counters_.begin(); }
+  const_iterator end  () const { return counters_.end();   }
+
+public:
+
+  // Common counters
+  Counter const& GetBytesPerSecond() const;
+  Counter const& GetItemsPerSecond() const;
+  size_t  BytesPerSecond() const;
+  size_t  ItemsPerSecond() const;
+  void    BytesPerSecond(size_t b);
+  void    ItemsPerSecond(size_t i);
+
+private:
+
+  size_t _Find(const char*        name) const;
+  size_t _Find(std::string const& name) const;
+
+private:
+
+  std::vector< Counter > counters_;
+
+};
+#ifdef BENCHMARK_INITLIST
+inline void BenchmarkCounters::Add(std::initializer_list< Counter > il) {
+  for(auto &c : il) {
+    counters_.push_back(c);
+  }
+}
+template< class T >
+void BenchmarkCounters::Set(std::initializer_list< std::pair<T, double> > il) {
+  for(auto &c : il) {
+    Set(c.first, c.second);
+  }
+}
+#endif
+
+
+
 // TimeUnit is passed to a benchmark in order to specify the order of magnitude
 // for the measured time.
 enum TimeUnit {
@@ -231,10 +347,13 @@ enum TimeUnit {
   kMillisecond
 };
 
+
+
 // State is passed to a running Benchmark and contains state for the
 // benchmark to use.
 class State {
 public:
+
   State(size_t max_iters, bool has_x, int x, bool has_y, int y, int thread_i, int n_threads);
 
   // Returns true iff the benchmark should continue through another iteration.
@@ -303,12 +422,12 @@ public:
   // REQUIRES: a benchmark has exited its KeepRunning loop.
   BENCHMARK_ALWAYS_INLINE
   void SetBytesProcessed(size_t bytes) {
-    bytes_processed_ = bytes;
+    counters_.BytesPerSecond(bytes);
   }
 
   BENCHMARK_ALWAYS_INLINE
   size_t bytes_processed() const {
-    return bytes_processed_;
+    return counters_.BytesPerSecond();
   }
 
   // If this routine is called with items > 0, then an items/s
@@ -319,12 +438,12 @@ public:
   // REQUIRES: a benchmark has exited its KeepRunning loop.
   BENCHMARK_ALWAYS_INLINE
   void SetItemsProcessed(size_t items) {
-    items_processed_ = items;
+    counters_.ItemsPerSecond(items);
   }
 
   BENCHMARK_ALWAYS_INLINE
   size_t items_processed() const {
-    return items_processed_;
+    return counters_.BytesPerSecond();
   }
 
   // If this routine is called, the specified label is printed at the
@@ -369,6 +488,49 @@ public:
   BENCHMARK_ALWAYS_INLINE
   size_t iterations() const { return total_iterations_; }
 
+
+  // Add a user counter. This will return a handle with which you can
+  // later set the counter value via a call to SetUserCounter().
+  BENCHMARK_ALWAYS_INLINE
+  size_t AddCounter(Counter const& c) { return counters_.Add(c); }
+  // Add a user counter. This will return a handle with which you can
+  // later set the counter value via a call to SetUserCounter().
+  BENCHMARK_ALWAYS_INLINE
+  size_t AddCounter(const char* n,           const char* fmt = BENCHMARK_COUNTER_FMT, uint32_t f = Counter::kDefaults) { return counters_.Add(n, fmt, f); }
+  size_t AddCounter(const char* n, double v, const char* fmt = BENCHMARK_COUNTER_FMT, uint32_t f = Counter::kDefaults) { return counters_.Add(n, v, fmt, f); }
+  size_t AddCounter(std::string const& n,           const char* fmt = BENCHMARK_COUNTER_FMT, uint32_t f = Counter::kDefaults) { return counters_.Add(n, fmt, f); }
+  size_t AddCounter(std::string const& n, double v, const char* fmt = BENCHMARK_COUNTER_FMT, uint32_t f = Counter::kDefaults) { return counters_.Add(n, v, fmt, f); }
+
+  // Set the value of a previously existing counter.
+  BENCHMARK_ALWAYS_INLINE
+  void   SetCounter(size_t id, double value) { counters_.Set(id, value);  }
+  // Set the value of a previously existing counter.
+  BENCHMARK_ALWAYS_INLINE
+  void   SetCounter(const char* name, double value) { counters_.Set(name, value);  }
+  // Set the value of a previously existing counter.
+  BENCHMARK_ALWAYS_INLINE
+  void   SetCounter(std::string const& name, double value) { counters_.Set(name, value);  }
+
+#ifdef BENCHMARK_INITLIST
+  // Set several counters at once.
+  BENCHMARK_ALWAYS_INLINE
+  void   AddCounter(std::initializer_list< Counter > il) { counters_.Add(il); }
+  // Set several previously existing counters at once.
+  BENCHMARK_ALWAYS_INLINE
+  void   SetCounter(std::initializer_list< std::pair<size_t, double> > il) { counters_.Set(il); }
+  // Set several previously existing counters at once.
+  BENCHMARK_ALWAYS_INLINE
+  void   SetCounter(std::initializer_list< std::pair<const char*, double> > il) { counters_.Set(il); }
+#endif
+
+  BENCHMARK_ALWAYS_INLINE Counter      & GetCounter(size_t id)       { return counters_.Get(id);  }
+  BENCHMARK_ALWAYS_INLINE Counter const& GetCounter(size_t id) const { return counters_.Get(id);  }
+  BENCHMARK_ALWAYS_INLINE Counter      & GetCounter(const char *name)       { return counters_.Get(name); }
+  BENCHMARK_ALWAYS_INLINE Counter const& GetCounter(const char *name) const { return counters_.Get(name); }
+
+  BENCHMARK_ALWAYS_INLINE
+  BenchmarkCounters const& Counters() { return counters_; }
+
 private:
   bool started_;
   size_t total_iterations_;
@@ -379,8 +541,7 @@ private:
   bool has_range_y_;
   int range_y_;
 
-  size_t bytes_processed_;
-  size_t items_processed_;
+  mutable BenchmarkCounters counters_;
 
 public:
   // Index of the executing thread. Values from [0, threads).
@@ -507,6 +668,8 @@ private:
   Benchmark& operator=(Benchmark const&);
 };
 
+
+
 // The class used to hold all Benchmarks created from static function.
 // (ie those created using the BENCHMARK(...) macros.
 class FunctionBenchmark : public Benchmark {
@@ -529,11 +692,15 @@ public:
 
     virtual void Run(State& st) {
       this->SetUp(st);
+      this->InitState(st);
       this->BenchmarkCase(st);
+      this->TerminateState(st);
       this->TearDown(st);
     }
 
     virtual void SetUp(const State&) {}
+    virtual void InitState(State &) {}
+    virtual void TerminateState(State &) {}
     virtual void TearDown(const State&) {}
 
 protected:

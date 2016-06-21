@@ -134,6 +134,7 @@ void JSONReporter::PrintRunData(Run const& run) {
 
     std::string indent(6, ' ');
     std::ostream& out = std::cout;
+    auto &cnt  = run.counters;
     out << indent
         << FormatKV("name", run.benchmark_name)
         << ",\n";
@@ -148,13 +149,13 @@ void JSONReporter::PrintRunData(Run const& run) {
         << ",\n";
     out << indent
         << FormatKV("time_unit", timeLabel);
-    if (run.bytes_per_second > 0.0) {
+    if (cnt.BytesPerSecond() > 0.0) {
         out << ",\n" << indent
-            << FormatKV("bytes_per_second", RoundDouble(run.bytes_per_second));
+            << FormatKV("bytes_per_second", RoundDouble(cnt.BytesPerSecond()));
     }
-    if (run.items_per_second > 0.0) {
+    if (cnt.ItemsPerSecond() > 0.0) {
         out << ",\n" << indent
-            << FormatKV("items_per_second", RoundDouble(run.items_per_second));
+            << FormatKV("items_per_second", RoundDouble(cnt.ItemsPerSecond()));
     }
     if (!run.report_label.empty()) {
         out << ",\n" << indent

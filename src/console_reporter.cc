@@ -29,7 +29,6 @@
 namespace benchmark {
 
 bool ConsoleReporter::ReportContext(const Context& context) {
-  name_field_width_ = context.name_field_width;
 
   std::cerr << "Run on (" << context.num_cpus << " X " << context.mhz_per_cpu
             << " MHz CPU " << ((context.num_cpus > 1) ? "s" : "") << ")\n";
@@ -47,9 +46,14 @@ bool ConsoleReporter::ReportContext(const Context& context) {
                "affected.\n";
 #endif
 
+  name_field_width_ = context.name_field_width;
   int output_width = fprintf(stdout, "%-*s %13s %13s %10s\n",
                              static_cast<int>(name_field_width_), "Benchmark",
                              "Time", "CPU", "Iterations");
+/*  for(auto &c : result.counters) {
+    output_width += fprintf(" %13s", c.first.c_str());
+  }*/
+
   std::cout << std::string(output_width - 1, '-') << "\n";
 
   return true;
@@ -59,6 +63,7 @@ void ConsoleReporter::ReportRuns(const std::vector<Run>& reports) {
   if (reports.empty()) {
     return;
   }
+
 
   for (Run const& run : reports) {
     CHECK_EQ(reports[0].benchmark_name, run.benchmark_name);
@@ -80,18 +85,8 @@ void ConsoleReporter::ReportRuns(const std::vector<Run>& reports) {
 }
 
 void ConsoleReporter::PrintRunData(const Run& result) {
-  // Format bytes per second
-  std::string rate;
-  if (result.bytes_per_second > 0) {
-    rate = StrCat(" ", HumanReadableNumber(result.bytes_per_second), "B/s");
-  }
 
-  // Format items per second
-  std::string items;
-  if (result.items_per_second > 0) {
-    items = StrCat(" ", HumanReadableNumber(result.items_per_second),
-                   " items/s");
-  }
+  auto &counts = result.counters;
 
   double multiplier;
   const char* timeLabel;
@@ -118,14 +113,19 @@ void ConsoleReporter::PrintRunData(const Run& result) {
 
   ColorPrintf(COLOR_CYAN, "%10lld", result.iterations);
 
-  if (!rate.empty()) {
-    ColorPrintf(COLOR_DEFAULT, " %*s", 13, rate.c_str());
+
+  for(auto &c : counts) {
+    ColorPrintf(COLOR_DEFAULT, " %13lg", c.ToString().c_str());
+  }
+/*
+  if (counts.BytesPerSecond() > 0) {
+    ColorPrintf(COLOR_DEFAULT, " %*s", 13, counts.GetBytesPerSecond().ToString().c_str());
   }
 
-  if (!items.empty()) {
-    ColorPrintf(COLOR_DEFAULT, " %*s", 18, items.c_str());
+  if (counts.ItemsPerSecond()> 0) {
+    ColorPrintf(COLOR_DEFAULT, " %*s", 18, counts.GetItemsPerSecond().ToString().c_str());
   }
-
+*/
   if (!result.report_label.empty()) {
     ColorPrintf(COLOR_DEFAULT, " %s", result.report_label.c_str());
   }
