@@ -295,6 +295,209 @@ static std::unique_ptr<TimerManager> timer_manager = nullptr;
 
 } // end namespace
 
+
+
+Counter::Counter(std::string const& n, std::string const& fmt, uint32_t f)
+  : name(n), format(fmt), flags(f), value(0.)
+{}
+
+Counter::Counter(std::string const& n, double v, std::string const& fmt, uint32_t f)
+  : name(n), format(fmt), flags(f), value(v)
+{}
+
+void Counter::Finish(double cpu_time, double num_threads) {
+  if(flags & kIsRate) {
+    value /= cpu_time;
+  }
+  if(flags & kAvgThreads) {
+    value /= num_threads;
+  }
+}
+
+std::string Counter::ToString() const {
+  std::string s;
+  if(flags & kHumanReadable) {
+    s = HumanReadableNumber(value);
+    s += name;
+  } else {
+    char tmp[256];
+    snprintf(tmp, sizeof(tmp), format.c_str(), value);
+    s = tmp;
+  }
+  return s;
+}
+
+
+BenchmarkCounters::BenchmarkCounters(size_t capacity) {
+  // minimize reallocations
+  counters_.reserve(capacity);
+}
+
+size_t BenchmarkCounters::Add(Counter const& c) {
+  CHECK_GE(_Find(c.name), counters_.size());
+  size_t pos = counters_.size();
+  counters_.push_back(c);
+  return pos;
+}
+size_t BenchmarkCounters::Add(const char *n, const char *fmt, uint32_t f) {
+  CHECK_GE(_Find(n), counters_.size());
+  size_t pos = counters_.size();
+  counters_.emplace_back(n, fmt, f);
+  return pos;
+}
+size_t BenchmarkCounters::Add(const char *n, double v, const char *fmt, uint32_t f) {
+  CHECK_GE(_Find(n), counters_.size());
+  size_t pos = counters_.size();
+  counters_.emplace_back(n, v, fmt, f);
+  return pos;
+}
+size_t BenchmarkCounters::Add(std::string const& n, std::string const& fmt, uint32_t f) {
+  CHECK_GE(_Find(n), counters_.size());
+  size_t pos = counters_.size();
+  counters_.emplace_back(n, fmt, f);
+  return pos;
+}
+size_t BenchmarkCounters::Add(std::string const& n, double v, std::string const& fmt, uint32_t f) {
+  CHECK_GE(_Find(n), counters_.size());
+  size_t pos = counters_.size();
+  counters_.emplace_back(n, v, fmt, f);
+  return pos;
+}
+
+void BenchmarkCounters::Set(size_t counter_id, double value) {
+  CHECK_LT(counter_id, counters_.size()) << "Invalid counter handle: " << counter_id;
+  counters_[counter_id].value = value;
+}
+void BenchmarkCounters::Set(const char *name, double value) {
+  size_t pos = _Find(name);
+  CHECK_LT(pos, counters_.size()) << "Counter not found: " << name;
+  counters_[pos].value = value;
+}
+void BenchmarkCounters::Set(std::string const& name, double value) {
+  size_t pos = _Find(name);
+  CHECK_LT(pos, counters_.size()) << "Counter not found: " << name;
+  counters_[pos].value = value;
+}
+
+Counter& BenchmarkCounters::Get(size_t id) {
+  CHECK_LT(id, counters_.size()) << "Invalid counter handle: " << id;
+  return counters_[id];
+}
+Counter const& BenchmarkCounters::Get(size_t id) const {
+  CHECK_LT(id, counters_.size()) << "Invalid counter handle: " << id;
+  return counters_[id];
+}
+Counter& BenchmarkCounters::Get(const char *name) {
+  size_t id = _Find(name);
+  CHECK_LT(id, counters_.size()) << "Counter not found: " << name;
+  return counters_[id];
+}
+Counter const& BenchmarkCounters::Get(const char *name) const {
+  size_t id = _Find(name);
+  CHECK_LT(id, counters_.size()) << "Counter not found: " << name;
+  return counters_[id];
+}
+Counter& BenchmarkCounters::Get(std::string const& name) {
+  size_t id = _Find(name);
+  CHECK_LT(id, counters_.size()) << "Counter not found: " << name;
+  return counters_[id];
+}
+Counter const& BenchmarkCounters::Get(std::string const& name) const {
+  size_t id = _Find(name);
+  CHECK_LT(id, counters_.size()) << "Counter not found: " << name;
+  return counters_[id];
+}
+
+// returns the index where name is located,
+// or a value ==size() if the name was not found
+size_t BenchmarkCounters::_Find(const char *name) const {
+  size_t pos = 0;
+  for(auto &p : counters_) {
+    if(p.name == name) break;
+    ++pos;
+  }
+  return pos;
+}
+// returns the index where name is located,
+// or a value ==size() if the name was not found
+size_t BenchmarkCounters::_Find(std::string const& name) const {
+  size_t pos = 0;
+  for(auto &p : counters_) {
+    if(p.name == name) break;
+    ++pos;
+  }
+  return pos;
+}
+
+void BenchmarkCounters::Add(BenchmarkCounters const& that) {
+  if(counters_.empty()) {
+      counters_ = that.counters_;
+      return;
+  }
+  CHECK_EQ(this->counters_.size(), that.counters_.size()) << "Incompatible objects";
+  for(size_t i = 0, s = counters_.size(); i < s; ++i) {
+    CHECK_EQ(this->counters_[i].name, that.counters_[i].name) << "Incompatible objects";
+  }
+  for(size_t i = 0, s = counters_.size(); i < s; ++i) {
+    counters_[i].value += that.counters_[i].value;
+  }
+}
+
+void BenchmarkCounters::Finish(double time, double num_threads) {
+  for(auto &c : counters_) {
+    c.Finish(time, num_threads);
+  }
+}
+
+void BenchmarkCounters::Clear() {
+  for(auto &p : counters_) {
+    p.value = 0.;
+  }
+}
+
+
+// Common counters
+Counter const& BenchmarkCounters::GetBytesPerSecond() const {
+    size_t pos = _Find("B/s");
+    CHECK_LT(pos, counters_.size()) << "Could not find counter for B/s";
+    return counters_[pos];
+}
+size_t  BenchmarkCounters::BytesPerSecond() const {
+    size_t pos = _Find("B/s");
+    return pos < counters_.size() ? counters_[pos].value : 0;
+}
+void    BenchmarkCounters::BytesPerSecond(size_t b) {
+    size_t pos = _Find("B/s");
+    if(pos < counters_.size()) {
+        counters_[pos].value = double(b);
+    } else {
+        Add("B/s", double(b), "", Counter::kBytesProcessed);
+    }
+}
+
+Counter const& BenchmarkCounters::GetItemsPerSecond() const {
+    size_t pos = _Find(" items/s");
+    CHECK_LT(pos, counters_.size()) << "Could not find counter for items/s";
+    return counters_[pos];
+}
+size_t  BenchmarkCounters::ItemsPerSecond() const
+{
+    size_t pos = _Find(" items/s");
+    return pos < counters_.size() ? counters_[pos].value : 0;
+}
+void    BenchmarkCounters::ItemsPerSecond(size_t i) {
+    size_t pos = _Find(" items/s");
+    if(pos < counters_.size()) {
+        counters_[pos].value = double(i);
+    } else {
+        Add(" items/s", double(i), "", Counter::kItemsProcessed);
+    }
+}
+
+
+
+
+
 namespace internal {
 
 // Information kept per benchmark we may want to run
@@ -736,7 +939,8 @@ namespace {
 // Adds the stats collected for the thread into *total.
 void RunInThread(const benchmark::internal::Benchmark::Instance* b,
                  size_t iters, int thread_id,
-                 BenchmarkCounters* total) EXCLUDES(GetBenchmarkLock()) {
+                 BenchmarkCounters* total,
+                 size_t *total_complexity) EXCLUDES(GetBenchmarkLock()) {
   State st(iters, b->has_arg1, b->arg1, b->has_arg2, b->arg2, thread_id, b->threads);
   b->benchmark->Run(st);
   CHECK(st.iterations() == st.max_iterations) <<
@@ -744,7 +948,7 @@ void RunInThread(const benchmark::internal::Benchmark::Instance* b,
   {
     MutexLock l(GetBenchmarkLock());
     total->Add(st.Counters());
-    total->complexity_n += st.complexity_length_n();
+    *total_complexity += st.complexity_length_n();
   }
 
   timer_manager->Finalize();
@@ -780,6 +984,7 @@ void RunBenchmark(const benchmark::internal::Benchmark::Instance& b,
       timer_manager = std::unique_ptr<TimerManager>(new TimerManager(b.threads, &done));
 
       BenchmarkCounters total;
+      size_t total_complexity = 0;
       running_benchmark = true;
       if (b.multithreaded) {
         // If this is out first iteration of the while(true) loop then the
@@ -790,11 +995,11 @@ void RunBenchmark(const benchmark::internal::Benchmark::Instance& b,
             thread.join();
         }
         for (std::size_t ti = 0; ti < pool.size(); ++ti) {
-            pool[ti] = std::thread(&RunInThread, &b, iters, static_cast<int>(ti), &total);
+            pool[ti] = std::thread(&RunInThread, &b, iters, static_cast<int>(ti), &total, &total_complexity);
         }
       } else {
         // Run directly in this thread
-        RunInThread(&b, iters, 0, &total);
+        RunInThread(&b, iters, 0, &total, &total_complexity);
       }
       done.WaitForNotification();
       running_benchmark = false;
@@ -858,7 +1063,7 @@ void RunBenchmark(const benchmark::internal::Benchmark::Instance& b,
             report.real_accumulated_time = real_accumulated_time;
           }
           report.cpu_accumulated_time = cpu_accumulated_time;
-          report.complexity_n = total.complexity_n;
+          report.complexity_n = (int)total_complexity;
           report.complexity = b.complexity;
           report.complexity_lambda = b.complexity_lambda;
           if(report.complexity != oNone)
@@ -914,7 +1119,7 @@ State::State(size_t max_iters, bool has_x, int x, bool has_y, int y,
     : started_(false), finished_(false), total_iterations_(0),
       has_range_x_(has_x), range_x_(x),
       has_range_y_(has_y), range_y_(y),
-      counters(),
+      counters_(),
       complexity_n_(0),
       error_occurred_(false),
       thread_index(thread_i),

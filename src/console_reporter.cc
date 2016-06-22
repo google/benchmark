@@ -108,7 +108,7 @@ void ConsoleReporter::PrintRunData(const Run& result) {
   }
 
   for(auto &c : counts) {
-    ColorPrintf(COLOR_DEFAULT, " %13lg", c.ToString().c_str());
+    ColorPrintf(Out, COLOR_DEFAULT, " %13s", c.ToString().c_str());
   }
 /*
   if (counts.BytesPerSecond() > 0) {
