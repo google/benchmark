@@ -382,7 +382,7 @@ static void BM_test(benchmark::State& state) {
 
 ## Output Formats
 The library supports multiple output formats. Use the
-`--benchmark_format=<tabular|json>` flag to set the format type. `tabular` is
+`--benchmark_format=<tabular|json|csv>` flag to set the format type. `tabular` is
 the default format.
 
 The Tabular format is intended to be a human readable format. By default
