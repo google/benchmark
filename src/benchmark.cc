@@ -549,6 +549,7 @@ void BenchmarkImp::RangePair(int lo1, int hi1, int lo2, int hi2) {
 }
 
 void BenchmarkImp::RangeMultiplier(int multiplier) {
+  CHECK(multiplier > 1);
   range_multiplier_ = multiplier;
 }
 
