@@ -127,8 +127,10 @@ running time and the normalized root-mean square error of string comparison.
 static void BM_StringCompare(benchmark::State& state) {
   std::string s1(state.range_x(), '-');
   std::string s2(state.range_x(), '-');
-  while (state.KeepRunning())
+  while (state.KeepRunning()) {
     benchmark::DoNotOptimize(s1.compare(s2));
+  }
+  state.SetComplexityN(state.range_x());
 }
 BENCHMARK(BM_StringCompare)
     ->RangeMultiplier(2)->Range(1<<10, 1<<18)->Complexity(benchmark::oN);
