@@ -279,7 +279,8 @@ BENCHMARK(BM_ManualTiming)->Range(1, 1<<17)->UseManualTime();
 
 ### Preventing optimisation
 To prevent a value or expression from being optimized away by the compiler
-the `benchmark::DoNotOptimize(...)` function can be used.
+the `benchmark::DoNotOptimize(...)` and `benchmark::ClobberMemory()`
+functions can be used.
 
 ```c++
 static void BM_test(benchmark::State& state) {
@@ -291,6 +292,48 @@ static void BM_test(benchmark::State& state) {
   }
 }
 ```
+
+`DoNotOptimize(<expr>)` forces the  *result* of `<expr>` to be stored in either
+memory or a register. For GNU based compilers it acts as read/write barrier
+for global memory. More specifically it forces the compiler to flush pending
+writes to memory and reload any other values as necessary.
+
+Note that `DoNotOptimize(<expr>)` does not prevent optimizations on `<expr>`
+in any way. `<expr>` may even be removed entirely when the result is already
+known. For example:
+
+```c++
+  /* Example 1: `<expr>` is removed entirely. */
+  int foo(int x) { return x + 42; }
+  while (...) DoNotOptimize(foo(0)); // Optimized to DoNotOptimize(42);
+
+  /*  Example 2: Result of '<expr>' is only reused */
+  int bar(int) __attribute__((const));
+  while (...) DoNotOptimize(bar(0)); // Optimized to:
+  // int __result__ = bar(0);
+  // while (...) DoNotOptimize(__result__);
+```
+
+The second tool for preventing optimizations is `ClobberMemory()`. In essence
+`ClobberMemory()` forces the compiler to perform all pending writes to global
+memory. Memory managed by block scope objects must be "escaped" using
+`DoNotOptimize(...)` before it can be clobbered. In the below example
+`ClobberMemory()` prevents the call to `v.push_back(42)` from being optimized
+away.
+
+```c++
+static void BM_vector_push_back(benchmark::State& state) {
+  while (state.KeepRunning()) {
+    std::vector<int> v;
+    v.reserve(1);
+    benchmark::DoNotOptimize(v.data()); // Allow v.data() to be clobbered.
+    v.push_back(42);
+    benchmark::ClobberMemory(); // Force 42 to be written to memory.
+  }
+}
+```
+
+Note that `ClobberMemory()` is only available for GNU based compilers.
 
 ### Set time unit manually
 If a benchmark runs a few milliseconds it may be hard to visually compare the

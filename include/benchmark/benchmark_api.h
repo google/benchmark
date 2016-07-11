@@ -207,25 +207,24 @@ Benchmark* RegisterBenchmarkInternal(Benchmark*);
 
 // The DoNotOptimize(...) function can be used to prevent a value or
 // expression from being optimized away by the compiler. This function is
-// intented to add little to no overhead.
-// See: http://stackoverflow.com/questions/28287064
+// intended to add little to no overhead.
+// See: https://youtu.be/nXaxk27zwlk?t=2441
 #if defined(__GNUC__)
-// TODO(ericwf): Clang has a bug where it tries to always use a register
-// even if value must be stored in memory. This causes codegen to fail.
-// To work around this we remove the "r" modifier so the operand is always
-// loaded into memory.
-// GCC also has a bug where it complains about inconsistent operand constraints
-// when "+rm" is used for a type larger than can fit in a register or two.
-// For now force the operand to memory for both GCC and Clang.
 template <class Tp>
 inline BENCHMARK_ALWAYS_INLINE void DoNotOptimize(Tp const& value) {
-    asm volatile("" : "+m" (const_cast<Tp&>(value)));
+    asm volatile("" : : "g"(value) : "memory");
+}
+// Force the compiler to flush pending writes to global memory. Acts as an
+// effective read/write barrier
+inline BENCHMARK_ALWAYS_INLINE void ClobberMemory() {
+    asm volatile("" : : : "memory");
 }
 #else
 template <class Tp>
 inline BENCHMARK_ALWAYS_INLINE void DoNotOptimize(Tp const& value) {
     internal::UseCharPointer(&reinterpret_cast<char const volatile&>(value));
 }
+// FIXME Add ClobberMemory() for non-gnu compilers
 #endif
 
 // TimeUnit is passed to a benchmark in order to specify the order of magnitude
