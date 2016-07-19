@@ -3,6 +3,7 @@ project (benchmark)
 
 foreach(p
     CMP0054 # CMake 3.1
+    CMP0056 # export EXE_LINKER_FLAGS to try_run
     )
   if(POLICY ${p})
     cmake_policy(SET ${p} NEW)
