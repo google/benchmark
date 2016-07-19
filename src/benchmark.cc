@@ -306,23 +306,20 @@ namespace internal {
 
 // Information kept per benchmark we may want to run
 struct Benchmark::Instance {
-  std::string    name;
-  Benchmark*     benchmark;
-  bool           has_arg1;
-  int            arg1;
-  bool           has_arg2;
-  int            arg2;
-  TimeUnit       time_unit;
-  int            range_multiplier;
-  bool           use_real_time;
-  bool           use_manual_time;
-  BigO           complexity;
-  BigOFunc*      complexity_lambda;
-  bool           last_benchmark_instance;
-  int            repetitions;
-  double         min_time;
-  int            threads;    // Number of concurrent threads to use
-  bool           multithreaded;  // Is benchmark multi-threaded?
+  std::string      name;
+  Benchmark*       benchmark;
+  std::vector<int> arg;
+  TimeUnit         time_unit;
+  int              range_multiplier;
+  bool             use_real_time;
+  bool             use_manual_time;
+  BigO             complexity;
+  BigOFunc*        complexity_lambda;
+  bool             last_benchmark_instance;
+  int              repetitions;
+  double           min_time;
+  int              threads;    // Number of concurrent threads to use
+  bool             multithreaded;  // Is benchmark multi-threaded?
 };
 
 // Class for managing registered benchmarks.  Note that each registered
@@ -357,6 +354,8 @@ public:
   void DenseRange(int start, int limit);
   void ArgPair(int start, int limit);
   void RangePair(int lo1, int hi1, int lo2, int hi2);
+  void Args(const std::vector<int>& args);
+  void Ranges(const std::vector<int>& starts, const std::vector<int>& limits);
   void RangeMultiplier(int multiplier);
   void MinTime(double n);
   void Repetitions(int n);
@@ -371,12 +370,13 @@ public:
 
   static void AddRange(std::vector<int>* dst, int lo, int hi, int mult);
 
+  int ArgsCnt() const { return args_.size() ? static_cast<int>(args_.front().size()) : -1; }
+
 private:
   friend class BenchmarkFamilies;
 
   std::string name_;
-  int arg_count_;
-  std::vector< std::pair<int, int> > args_;  // Args for all benchmark runs
+  std::vector< std::vector<int> > args_;  // Args for all benchmark runs
   TimeUnit time_unit_;
   int range_multiplier_;
   double min_time_;
@@ -424,10 +424,10 @@ bool BenchmarkFamilies::FindBenchmarks(
     if (!bench_family) continue;
     BenchmarkImp* family = bench_family->imp_;
 
-    if (family->arg_count_ == -1) {
-      family->arg_count_ = 0;
-      family->args_.emplace_back(-1, -1);
+    if (family->ArgsCnt() == -1) {
+      family->Args({});
     }
+
     for (auto const& args : family->args_) {
       const std::vector<int>* thread_counts =
         (family->thread_counts_.empty()
@@ -438,10 +438,7 @@ bool BenchmarkFamilies::FindBenchmarks(
         Benchmark::Instance instance;
         instance.name = family->name_;
         instance.benchmark = bench_family.get();
-        instance.has_arg1 = family->arg_count_ >= 1;
-        instance.arg1 = args.first;
-        instance.has_arg2 = family->arg_count_ == 2;
-        instance.arg2 = args.second;
+        instance.arg = args;
         instance.time_unit = family->time_unit_;
         instance.range_multiplier = family->range_multiplier_;
         instance.min_time = family->min_time_;
@@ -454,12 +451,10 @@ bool BenchmarkFamilies::FindBenchmarks(
         instance.multithreaded = !(family->thread_counts_.empty());
 
         // Add arguments to instance name
-        if (family->arg_count_ >= 1) {
-          AppendHumanReadable(instance.arg1, &instance.name);
+        for (auto const& arg : args) {
+          AppendHumanReadable(arg, &instance.name);
         }
-        if (family->arg_count_ >= 2) {
-          AppendHumanReadable(instance.arg2, &instance.name);
-        }
+
         if (!IsZero(family->min_time_)) {
           instance.name +=  StringPrintF("/min_time:%0.3f",  family->min_time_);
         }
@@ -488,7 +483,7 @@ bool BenchmarkFamilies::FindBenchmarks(
 }
 
 BenchmarkImp::BenchmarkImp(const char* name)
-    : name_(name), arg_count_(-1), time_unit_(kNanosecond),
+    : name_(name), time_unit_(kNanosecond),
       range_multiplier_(kRangeMultiplier), min_time_(0.0), repetitions_(0),
       use_real_time_(false), use_manual_time_(false),
       complexity_(oNone) {
@@ -498,9 +493,8 @@ BenchmarkImp::~BenchmarkImp() {
 }
 
 void BenchmarkImp::Arg(int x) {
-  CHECK(arg_count_ == -1 || arg_count_ == 1);
-  arg_count_ = 1;
-  args_.emplace_back(x, -1);
+  CHECK(ArgsCnt() == -1 || ArgsCnt() == 1);
+  args_.push_back({x});
 }
 
 void BenchmarkImp::Unit(TimeUnit unit) {
@@ -508,42 +502,72 @@ void BenchmarkImp::Unit(TimeUnit unit) {
 }
 
 void BenchmarkImp::Range(int start, int limit) {
-  CHECK(arg_count_ == -1 || arg_count_ == 1);
-  arg_count_ = 1;
+  CHECK(ArgsCnt() == -1 || ArgsCnt() == 1);
   std::vector<int> arglist;
   AddRange(&arglist, start, limit, range_multiplier_);
 
   for (int i : arglist) {
-    args_.emplace_back(i, -1);
+    args_.push_back({i});
   }
 }
 
 void BenchmarkImp::DenseRange(int start, int limit) {
-  CHECK(arg_count_ == -1 || arg_count_ == 1);
-  arg_count_ = 1;
+  CHECK(ArgsCnt() == -1 || ArgsCnt() == 1);
   CHECK_GE(start, 0);
   CHECK_LE(start, limit);
   for (int arg = start; arg <= limit; arg++) {
-    args_.emplace_back(arg, -1);
+    args_.push_back({arg});
   }
 }
 
 void BenchmarkImp::ArgPair(int x, int y) {
-  CHECK(arg_count_ == -1 || arg_count_ == 2);
-  arg_count_ = 2;
-  args_.emplace_back(x, y);
+  CHECK(ArgsCnt() == -1 || ArgsCnt() == 2);
+  args_.push_back({x, y});
 }
 
 void BenchmarkImp::RangePair(int lo1, int hi1, int lo2, int hi2) {
-  CHECK(arg_count_ == -1 || arg_count_ == 2);
-  arg_count_ = 2;
+  CHECK(ArgsCnt() == -1 || ArgsCnt() == 2);
   std::vector<int> arglist1, arglist2;
   AddRange(&arglist1, lo1, hi1, range_multiplier_);
   AddRange(&arglist2, lo2, hi2, range_multiplier_);
 
   for (int i : arglist1) {
     for (int j : arglist2) {
-      args_.emplace_back(i, j);
+      args_.push_back({i, j});
+    }
+  }
+}
+
+void BenchmarkImp::Args(const std::vector<int>& args)
+{
+  args_.push_back(args);
+}
+
+void BenchmarkImp::Ranges(const std::vector<int>& starts, const std::vector<int>& limits) {
+  std::vector<std::vector<int>> arglists(starts.size());
+  int total = 1;
+  for (std::size_t i = 0; i < starts.size(); i++) {
+    AddRange(&arglists[i], starts[i], limits[i], range_multiplier_);
+    total *= arglists[i].size();
+  }
+
+  std::vector<std::size_t> ctr(total, 0);
+
+  for (int i = 0; i < total; i++) {
+    std::vector<int> tmp;
+
+    for (std::size_t j = 0; j < arglists.size(); j++) {
+      tmp.push_back(arglists[j][ctr[j]]);
+    }
+
+    args_.push_back(tmp);
+
+    for (std::size_t j = 0; j < arglists.size(); j++) {
+      if (ctr[j] + 1 < arglists[j].size()) {
+        ++ctr[j];
+        break;
+      }
+      ctr[j] = 0;
     }
   }
 }
@@ -641,6 +665,7 @@ Benchmark::Benchmark(Benchmark const& other)
 }
 
 Benchmark* Benchmark::Arg(int x) {
+  CHECK(imp_->ArgsCnt() == -1 || imp_->ArgsCnt() == 1);
   imp_->Arg(x);
   return this;
 }
@@ -651,22 +676,40 @@ Benchmark* Benchmark::Unit(TimeUnit unit) {
 }
 
 Benchmark* Benchmark::Range(int start, int limit) {
+  CHECK(imp_->ArgsCnt() == -1 || imp_->ArgsCnt() == 1);
   imp_->Range(start, limit);
   return this;
 }
 
+Benchmark* Benchmark::Ranges(const std::vector<int>& starts, const std::vector<int>& limits)
+{
+  CHECK(starts.size() == limits.size());
+  CHECK(imp_->ArgsCnt() == -1 || imp_->ArgsCnt() == static_cast<int>(starts.size()));
+  imp_->Ranges(starts, limits);
+  return this;
+}
+
 Benchmark* Benchmark::DenseRange(int start, int limit) {
+  CHECK(imp_->ArgsCnt() == -1 || imp_->ArgsCnt() == 1);
   imp_->DenseRange(start, limit);
   return this;
 }
 
 Benchmark* Benchmark::ArgPair(int x, int y) {
+  CHECK(imp_->ArgsCnt() == -1 || imp_->ArgsCnt() == 2);
   imp_->ArgPair(x, y);
   return this;
 }
 
 Benchmark* Benchmark::RangePair(int lo1, int hi1, int lo2, int hi2) {
+  CHECK(imp_->ArgsCnt() == -1 || imp_->ArgsCnt() == 2);
   imp_->RangePair(lo1, hi1, lo2, hi2);
+  return this;
+}
+
+Benchmark* Benchmark::Args(const std::vector<int>& args) {
+  CHECK(imp_->ArgsCnt() == -1 || imp_->ArgsCnt() == static_cast<int>(args.size()));
+  imp_->Args(args);
   return this;
 }
 
@@ -744,7 +787,7 @@ namespace {
 void RunInThread(const benchmark::internal::Benchmark::Instance* b,
                  size_t iters, int thread_id,
                  ThreadStats* total) EXCLUDES(GetBenchmarkLock()) {
-  State st(iters, b->has_arg1, b->arg1, b->has_arg2, b->arg2, thread_id, b->threads);
+  State st(iters, b->arg, thread_id, b->threads);
   b->benchmark->Run(st);
   CHECK(st.iterations() == st.max_iterations) <<
     "Benchmark returned before State::KeepRunning() returned false!";
@@ -919,11 +962,10 @@ void RunBenchmark(const benchmark::internal::Benchmark::Instance& b,
 
 }  // namespace
 
-State::State(size_t max_iters, bool has_x, int x, bool has_y, int y,
+State::State(size_t max_iters, const std::vector<int>& ranges,
              int thread_i, int n_threads)
     : started_(false), finished_(false), total_iterations_(0),
-      has_range_x_(has_x), range_x_(x),
-      has_range_y_(has_y), range_y_(y),
+      range_(ranges),
       bytes_processed_(0), items_processed_(0),
       complexity_n_(0),
       error_occurred_(false),
