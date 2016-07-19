@@ -153,6 +153,8 @@ BENCHMARK(BM_test)->Unit(benchmark::kMillisecond);
 #include <stddef.h>
 #include <stdint.h>
 
+#include <vector>
+
 #include "macros.h"
 
 namespace benchmark {
@@ -258,7 +260,7 @@ typedef double(BigOFunc)(int);
 // benchmark to use.
 class State {
 public:
-  State(size_t max_iters, bool has_x, int x, bool has_y, int y,
+  State(size_t max_iters, const std::vector<int>& ranges,
         int thread_i, int n_threads);
 
   // Returns true if the benchmark should continue through another iteration.
@@ -414,16 +416,18 @@ public:
   // Range arguments for this run. CHECKs if the argument has been set.
   BENCHMARK_ALWAYS_INLINE
   int range_x() const {
-    assert(has_range_x_);
-    ((void)has_range_x_); // Prevent unused warning.
-    return range_x_;
+    return range(0);
   }
 
   BENCHMARK_ALWAYS_INLINE
   int range_y() const {
-    assert(has_range_y_);
-    ((void)has_range_y_); // Prevent unused warning.
-    return range_y_;
+      return range(1);
+  }
+
+  BENCHMARK_ALWAYS_INLINE
+  int range(std::size_t pos) const {
+      assert(range_.size() > pos);
+      return range_[pos];
   }
 
   BENCHMARK_ALWAYS_INLINE
@@ -434,11 +438,7 @@ private:
   bool finished_;
   size_t total_iterations_;
 
-  bool has_range_x_;
-  int range_x_;
-
-  bool has_range_y_;
-  int range_y_;
+  std::vector<int> range_;
 
   size_t bytes_processed_;
   size_t items_processed_;
@@ -504,6 +504,16 @@ public:
   // (i.e., for all combinations of the values in A and B).
   // REQUIRES: The function passed to the constructor must accept arg1,arg2.
   Benchmark* RangePair(int lo1, int hi1, int lo2, int hi2);
+
+  // Run this benchmark once with "args" as the extra arguments passed
+  // to the function.
+  // REQUIRES: The function passed to the constructor must accept arg1, arg2 ...
+  Benchmark* Args(const std::vector<int>& args);
+
+  // Run this benchmark once for a number of values picked from the
+  // ranges [start..limit].  (starts and limits are always picked.)
+  // REQUIRES: The function passed to the constructor must accept arg1, arg2 ...
+  Benchmark* Ranges(const std::vector<int>& starts, const std::vector<int>& limits);
 
   // Pass this benchmark object to *func, which can customize
   // the benchmark by calling various methods like Arg, ArgPair,
