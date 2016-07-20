@@ -98,13 +98,13 @@ void CSVReporter::PrintRunData(const Run & run) {
 
   auto &cnt = run.counters;
   if (cnt.BytesPerSecond() > 0.0) {
-    std::cout << cnt.BytesPerSecond();
+    Out << cnt.BytesPerSecond();
   }
-  std::cout << ",";
+  Out << ",";
   if (cnt.ItemsPerSecond() > 0.0) {
-    std::cout << cnt.ItemsPerSecond();
+    Out << cnt.ItemsPerSecond();
   }
-  std::cout << ",";
+  Out << ",";
   if (!run.report_label.empty()) {
     // Field with embedded double-quote characters must be doubled and the field
     // delimited with double-quotes.

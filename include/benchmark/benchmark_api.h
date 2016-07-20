@@ -241,9 +241,9 @@ inline BENCHMARK_ALWAYS_INLINE void DoNotOptimize(Tp const& value) {
 struct Counter {
 
   std::string name;
+  double      value;
   std::string format;
   uint32_t    flags;
-  double      value;
   // <jppm> maybe we could add a description field...
 
   enum {
@@ -278,8 +278,8 @@ public:
   BenchmarkCounters(size_t initial_capacity = 24);
 
   size_t  Add(Counter const& c);
-  size_t  Add(const char* n,           const char* fmt = BENCHMARK_COUNTER_FMT, uint32_t f = Counter::kDefaults);
-  size_t  Add(const char* n, double v, const char* fmt = BENCHMARK_COUNTER_FMT, uint32_t f = Counter::kDefaults);
+  size_t  Add(const char* n,                  const char* fmt = BENCHMARK_COUNTER_FMT, uint32_t f = Counter::kDefaults);
+  size_t  Add(const char* n,        double v, const char* fmt = BENCHMARK_COUNTER_FMT, uint32_t f = Counter::kDefaults);
   size_t  Add(std::string const& n,           std::string const& fmt = BENCHMARK_COUNTER_FMT, uint32_t f = Counter::kDefaults);
   size_t  Add(std::string const& n, double v, std::string const& fmt = BENCHMARK_COUNTER_FMT, uint32_t f = Counter::kDefaults);
 
