@@ -75,8 +75,8 @@ void ConsoleReporter::PrintRunData(const Run& result) {
   }
   // Format bytes per second
   std::string rate;
-  if (result.bytes_per_second > 0) {
-    rate = StrCat(" ", HumanReadableNumber(result.bytes_per_second), "B/s");
+  if (result.counters.BytesPerSecond() > 0) {
+    rate = StrCat(" ", HumanReadableNumber(result.counters.BytesPerSecond()), "B/s");
   }
 
   auto &counts = result.counters;

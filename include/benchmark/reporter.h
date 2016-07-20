@@ -76,10 +76,6 @@ class BenchmarkReporter {
     // accumulated time.
     double GetAdjustedCPUTime() const;
 
-    // Zero if not set by benchmark.
-    double bytes_per_second;
-    double items_per_second;
-
     // This is set to 0.0 if memory tracing is not enabled.
     double max_heapbytes_used;
 

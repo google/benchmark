@@ -298,11 +298,11 @@ static std::unique_ptr<TimerManager> timer_manager = nullptr;
 
 
 Counter::Counter(std::string const& n, std::string const& fmt, uint32_t f)
-  : name(n), format(fmt), flags(f), value(0.)
+  : name(n), value(0.), format(fmt), flags(f)
 {}
 
 Counter::Counter(std::string const& n, double v, std::string const& fmt, uint32_t f)
-  : name(n), format(fmt), flags(f), value(v)
+  : name(n), value(v), format(fmt), flags(f)
 {}
 
 void Counter::Finish(double cpu_time, double num_threads) {
@@ -1049,14 +1049,6 @@ void RunBenchmark(const benchmark::internal::Benchmark::Instance& b,
         report.time_unit = b.time_unit;
 
         if (!report.error_occurred) {
-          double bytes_per_second = 0;
-          if (total.BytesPerSecond() > 0 && seconds > 0.0) {
-            bytes_per_second = total.BytesPerSecond();
-          }
-          double items_per_second = 0;
-          if (total.ItemsPerSecond() > 0 && seconds > 0.0) {
-            items_per_second = total.ItemsPerSecond();
-          }
 
           if (b.use_manual_time) {
             report.real_accumulated_time = manual_accumulated_time;
