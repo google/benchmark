@@ -14,7 +14,11 @@
 #ifndef BENCHMARK_MACROS_H_
 #define BENCHMARK_MACROS_H_
 
-#if __cplusplus < 201103L
+#if __cplusplus >= 201103L
+#define BENCHMARK_HAS_CXX11
+#endif
+
+#ifndef BENCHMARK_HAS_CXX11
 # define BENCHMARK_DISALLOW_COPY_AND_ASSIGN(TypeName)  \
     TypeName(const TypeName&);                         \
     TypeName& operator=(const TypeName&)
