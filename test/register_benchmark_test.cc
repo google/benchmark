@@ -111,7 +111,7 @@ void TestRegistrationAtRuntime() {
       st.SetLabel(std::to_string(x));
     };
     benchmark::RegisterBenchmark("lambda_benchmark", capturing_lam);
-    AddCases({"lambda_benchmark", "42"});
+    AddCases({{"lambda_benchmark", "42"}});
   }
 }
 
