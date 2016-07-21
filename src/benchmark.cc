@@ -302,7 +302,7 @@ Counter::Counter(std::string const& n, std::string const& fmt, uint32_t f)
 {}
 
 Counter::Counter(std::string const& n, double v, std::string const& fmt, uint32_t f)
-  : name(n), value(v), format(fmt), flags(f)
+  : name(n), value(v), format(fmt), flags(f | _kWasReported)
 {}
 
 void Counter::Finish(double cpu_time, double num_threads) {
@@ -316,21 +316,22 @@ void Counter::Finish(double cpu_time, double num_threads) {
 
 std::string Counter::ToString() const {
   std::string s;
-  if(flags & kHumanReadable) {
-    s = HumanReadableNumber(value);
-    s += name;
-  } else {
-    char tmp[256];
-    snprintf(tmp, sizeof(tmp), format.c_str(), value);
-    s = tmp;
+  if(flags & _kWasReported) {
+    if(flags & kHumanReadable) {
+      s = HumanReadableNumber(value);
+      s += name;
+    } else {
+      char tmp[256];
+      snprintf(tmp, sizeof(tmp), format.c_str(), value);
+      s = tmp;
+    }
   }
   return s;
 }
 
 
-BenchmarkCounters::BenchmarkCounters(size_t capacity) {
-  // minimize reallocations
-  counters_.reserve(capacity);
+BenchmarkCounters::BenchmarkCounters(size_t initial_capacity) {
+  counters_.reserve(initial_capacity); // minimize reallocations
 }
 
 size_t BenchmarkCounters::Add(Counter const& c) {
@@ -366,17 +367,17 @@ size_t BenchmarkCounters::Add(std::string const& n, double v, std::string const&
 
 void BenchmarkCounters::Set(size_t counter_id, double value) {
   CHECK_LT(counter_id, counters_.size()) << "Invalid counter handle: " << counter_id;
-  counters_[counter_id].value = value;
+  counters_[counter_id].Set(value);
 }
 void BenchmarkCounters::Set(const char *name, double value) {
   size_t pos = _Find(name);
   CHECK_LT(pos, counters_.size()) << "Counter not found: " << name;
-  counters_[pos].value = value;
+  counters_[pos].Set(value);
 }
 void BenchmarkCounters::Set(std::string const& name, double value) {
   size_t pos = _Find(name);
   CHECK_LT(pos, counters_.size()) << "Counter not found: " << name;
-  counters_[pos].value = value;
+  counters_[pos].Set(value);
 }
 
 Counter& BenchmarkCounters::Get(size_t id) {
@@ -409,7 +410,7 @@ Counter const& BenchmarkCounters::Get(std::string const& name) const {
 }
 
 // returns the index where name is located,
-// or a value ==size() if the name was not found
+// or size() if the name was not found
 size_t BenchmarkCounters::_Find(const char *name) const {
   size_t pos = 0;
   for(auto &p : counters_) {
@@ -419,7 +420,7 @@ size_t BenchmarkCounters::_Find(const char *name) const {
   return pos;
 }
 // returns the index where name is located,
-// or a value ==size() if the name was not found
+// or size() if the name was not found
 size_t BenchmarkCounters::_Find(std::string const& name) const {
   size_t pos = 0;
   for(auto &p : counters_) {
@@ -429,17 +430,24 @@ size_t BenchmarkCounters::_Find(std::string const& name) const {
   return pos;
 }
 
-void BenchmarkCounters::Add(BenchmarkCounters const& that) {
+void BenchmarkCounters::Sum(BenchmarkCounters const& that) {
   if(counters_.empty()) {
       counters_ = that.counters_;
       return;
   }
-  CHECK_EQ(this->counters_.size(), that.counters_.size()) << "Incompatible objects";
-  for(size_t i = 0, s = counters_.size(); i < s; ++i) {
-    CHECK_EQ(this->counters_[i].name, that.counters_[i].name) << "Incompatible objects";
+  // add counters present in both or just in this
+  for(Counter &c : counters_) {
+    size_t j = that._Find(c.name);
+    if(j < that.counters_.size()) {
+      c.value += that.counters_[j].value;
+    }
   }
-  for(size_t i = 0, s = counters_.size(); i < s; ++i) {
-    counters_[i].value += that.counters_[i].value;
+  // add counters present in that, but not in this
+  for(Counter const &tc : that.counters_) {
+    size_t j = _Find(tc.name);
+    if(j >= counters_.size()) {
+      Add(tc);
+    }
   }
 }
 
@@ -459,7 +467,7 @@ void BenchmarkCounters::Clear() {
 // Common counters
 Counter const& BenchmarkCounters::GetBytesPerSecond() const {
     size_t pos = _Find("B/s");
-    CHECK_LT(pos, counters_.size()) << "Could not find counter for B/s";
+    CHECK_LT(pos, counters_.size()) << "Could not find counter \"B/s\"";
     return counters_[pos];
 }
 size_t  BenchmarkCounters::BytesPerSecond() const {
@@ -476,21 +484,21 @@ void    BenchmarkCounters::BytesPerSecond(size_t b) {
 }
 
 Counter const& BenchmarkCounters::GetItemsPerSecond() const {
-    size_t pos = _Find(" items/s");
-    CHECK_LT(pos, counters_.size()) << "Could not find counter for items/s";
+    size_t pos = _Find("items/s");
+    CHECK_LT(pos, counters_.size()) << "Could not find counter \" items/s\"";
     return counters_[pos];
 }
 size_t  BenchmarkCounters::ItemsPerSecond() const
 {
-    size_t pos = _Find(" items/s");
+    size_t pos = _Find("items/s");
     return pos < counters_.size() ? counters_[pos].value : 0;
 }
 void    BenchmarkCounters::ItemsPerSecond(size_t i) {
-    size_t pos = _Find(" items/s");
+    size_t pos = _Find("items/s");
     if(pos < counters_.size()) {
         counters_[pos].value = double(i);
     } else {
-        Add(" items/s", double(i), "", Counter::kItemsProcessed);
+        Add("items/s", double(i), "", Counter::kItemsProcessed);
     }
 }
 
@@ -948,7 +956,7 @@ void RunInThread(const benchmark::internal::Benchmark::Instance* b,
     "Benchmark returned before State::KeepRunning() returned false!";
   {
     MutexLock l(GetBenchmarkLock());
-    total->Add(st.Counters());
+    total->Sum(st.Counters());
     *total_complexity += st.complexity_length_n();
   }
 

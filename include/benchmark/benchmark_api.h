@@ -255,10 +255,21 @@ struct Counter {
     kBytesProcessed = kIsRate|kHumanReadable
   };
 
+private:
+
+  enum {
+    // this flag marks whether the value was set
+    _kWasReported   = 0x01 << 7
+  };
+
+public:
+
   Counter(std::string const& n = "",      std::string const& fmt = BENCHMARK_COUNTER_FMT, uint32_t f = kDefaults);
   Counter(std::string const& n, double v, std::string const& fmt = BENCHMARK_COUNTER_FMT, uint32_t f = kDefaults);
 
+  void Set(double v) { value = v; flags |= _kWasReported; }
   void Finish(double cpu_time, double num_threads);
+  bool WasReported() const { return (flags & _kWasReported) != 0; }
 
   std::string ToString() const;
 
@@ -275,14 +286,16 @@ public:
 
 public:
 
-  BenchmarkCounters(size_t initial_capacity = 24);
+  BenchmarkCounters(size_t initial_capacity = 16);
 
+  // Add counters. The return value for these functions is the counter id.
   size_t  Add(Counter const& c);
-  size_t  Add(const char* n,                  const char* fmt = BENCHMARK_COUNTER_FMT, uint32_t f = Counter::kDefaults);
-  size_t  Add(const char* n,        double v, const char* fmt = BENCHMARK_COUNTER_FMT, uint32_t f = Counter::kDefaults);
+  size_t  Add(const char*        n,           const char*        fmt = BENCHMARK_COUNTER_FMT, uint32_t f = Counter::kDefaults);
+  size_t  Add(const char*        n, double v, const char*        fmt = BENCHMARK_COUNTER_FMT, uint32_t f = Counter::kDefaults);
   size_t  Add(std::string const& n,           std::string const& fmt = BENCHMARK_COUNTER_FMT, uint32_t f = Counter::kDefaults);
   size_t  Add(std::string const& n, double v, std::string const& fmt = BENCHMARK_COUNTER_FMT, uint32_t f = Counter::kDefaults);
 
+  // Report a counter value. The counter must have been previously added with Add()
   void    Set(size_t               id, double value);
   void    Set(const char*        name, double value);
   void    Set(std::string const& name, double value);
@@ -299,7 +312,7 @@ public:
   template< class T > void Set(std::initializer_list< std::pair<T, double> > il);
 #endif
 
-  void    Add(BenchmarkCounters const& that);
+  void    Sum(BenchmarkCounters const& that);
   void    Finish(double time, double num_threads);
   void    Clear();
 
