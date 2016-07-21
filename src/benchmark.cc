@@ -983,7 +983,8 @@ namespace {
 void RunMatchingBenchmarks(const std::vector<Benchmark::Instance>& benchmarks,
                            BenchmarkReporter* console_reporter,
                            BenchmarkReporter* file_reporter) {
-  CHECK(reporter != nullptr);
+  // Note the file_reporter can be null.
+  CHECK(console_reporter != nullptr);
 
   // Determine the width of the name field using a minimum width of 10.
   bool has_repetitions = FLAGS_benchmark_repetitions > 1;

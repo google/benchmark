@@ -123,6 +123,8 @@ void ColorPrintf(std::ostream& out, LogColor color, const char* fmt, ...) {
 
 void ColorPrintf(std::ostream& out, LogColor color, const char* fmt, va_list args) {
 #ifdef BENCHMARK_OS_WINDOWS
+  ((void)out); // suppress unused warning
+
   const HANDLE stdout_handle = GetStdHandle(STD_OUTPUT_HANDLE);
 
   // Gets the current text color.
