@@ -43,7 +43,7 @@ bool ConsoleReporter::ReportContext(const Context& context) {
   if (color_output_ && &std::cout != &GetOutputStream()) {
       GetErrorStream() << "Color printing is only supported for stdout on windows."
                           " Disabling color printing\n";
-      color_print_ = false;
+      color_output_ = false;
   }
 #endif
   std::string str = FormatString("%-*s %13s %13s %10s\n",
