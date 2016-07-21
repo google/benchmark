@@ -157,13 +157,18 @@ class BenchmarkReporter {
 // default reporter used by RunSpecifiedBenchmarks().
 class ConsoleReporter : public BenchmarkReporter {
  public:
+  explicit ConsoleReporter(bool color_output = true)
+      : color_output_(color_output) {}
+
   virtual bool ReportContext(const Context& context);
   virtual void ReportRuns(const std::vector<Run>& reports);
 
- protected:
+protected:
   virtual void PrintRunData(const Run& report);
-
   size_t name_field_width_;
+
+private:
+  bool color_output_;
 };
 
 class JSONReporter : public BenchmarkReporter {

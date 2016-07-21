@@ -20,15 +20,12 @@
 #include <string>
 #include <memory>
 
-#include "commandlineflags.h"
 #include "check.h"
 #include "internal_macros.h"
 
 #ifdef BENCHMARK_OS_WINDOWS
 #include <Windows.h>
 #endif
-
-DECLARE_bool(color_print);
 
 namespace benchmark {
 namespace {
@@ -120,13 +117,11 @@ std::string FormatString(const char *msg, ...) {
 void ColorPrintf(std::ostream& out, LogColor color, const char* fmt, ...) {
   va_list args;
   va_start(args, fmt);
+  ColorPrintf(out, color, fmt, args);
+  va_end(args);
+}
 
-  if (!FLAGS_color_print) {
-    out << FormatString(fmt, args);
-    va_end(args);
-    return;
-  }
-
+void ColorPrintf(std::ostream& out, LogColor color, const char* fmt, va_list args) {
 #ifdef BENCHMARK_OS_WINDOWS
   const HANDLE stdout_handle = GetStdHandle(STD_OUTPUT_HANDLE);
 
@@ -152,7 +147,6 @@ void ColorPrintf(std::ostream& out, LogColor color, const char* fmt, ...) {
   out << FormatString(fmt, args) << "\033[m";
 #endif
 
-  va_end(args);
 }
 
 }  // end namespace benchmark

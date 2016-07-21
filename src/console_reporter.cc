@@ -40,10 +40,10 @@ bool ConsoleReporter::ReportContext(const Context& context) {
   PrintBasicContext(&GetErrorStream(), context);
 
 #ifdef BENCHMARK_OS_WINDOWS
-  if (FLAGS_color_print && &std::cout != &GetOutputStream()) {
+  if (color_output_ && &std::cout != &GetOutputStream()) {
       GetErrorStream() << "Color printing is only supported for stdout on windows."
                           " Disabling color printing\n";
-      FLAGS_color_print = false;
+      color_print_ = false;
   }
 #endif
   std::string str = FormatString("%-*s %13s %13s %10s\n",
@@ -59,18 +59,29 @@ void ConsoleReporter::ReportRuns(const std::vector<Run>& reports) {
     PrintRunData(run);
 }
 
-void ConsoleReporter::PrintRunData(const Run& result) {
-  auto& Out = GetOutputStream();
+static void  IgnoreColorPrint(std::ostream& out, LogColor,
+                               const char* fmt, ...)
+{
+    va_list args;
+    va_start(args, fmt);
+    out << FormatString(fmt, args);
+    va_end(args);
+}
 
+void ConsoleReporter::PrintRunData(const Run& result) {
+  typedef void(PrinterFn)(std::ostream&, LogColor, const char*, ...);
+  auto& Out = GetOutputStream();
+  PrinterFn* printer = color_output_ ? (PrinterFn*)ColorPrintf
+                                     : IgnoreColorPrint;
   auto name_color =
       (result.report_big_o || result.report_rms) ? COLOR_BLUE : COLOR_GREEN;
-  ColorPrintf(Out, name_color, "%-*s ", name_field_width_,
+  printer(Out, name_color, "%-*s ", name_field_width_,
               result.benchmark_name.c_str());
 
   if (result.error_occurred) {
-    ColorPrintf(Out, COLOR_RED, "ERROR OCCURRED: \'%s\'",
+    printer(Out, COLOR_RED, "ERROR OCCURRED: \'%s\'",
                 result.error_message.c_str());
-    ColorPrintf(Out, COLOR_DEFAULT, "\n");
+    printer(Out, COLOR_DEFAULT, "\n");
     return;
   }
   // Format bytes per second
