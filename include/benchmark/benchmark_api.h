@@ -250,16 +250,15 @@ struct Counter {
     kDefaults       = 0x00,
     kIsRate         = 0x01 << 0,
     kAvgThreads     = 0x01 << 1,
-    kHumanReadable  = 0x01 << 2,
-    kItemsProcessed = kIsRate|kHumanReadable,
-    kBytesProcessed = kIsRate|kHumanReadable
+    kHumanReadable  = 0x01 << 2
+    //kItemsProcessed = kIsRate|kHumanReadable,
+    //kBytesProcessed = kIsRate|kHumanReadable
   };
 
 private:
 
   enum {
-    // this flag marks whether the value was set
-    _kWasReported   = 0x01 << 7
+    _kWasReported   = 0x01 << 7  // this flag marks whether the value was set
   };
 
 public:
@@ -320,6 +319,7 @@ public:
   const_iterator begin() const { return counters_.begin(); }
   const_iterator end  () const { return counters_.end();   }
 
+/* <jppm> Keeping for now the old bytes_processed and items_processed logic.
 public:
 
   // Common counters
@@ -329,6 +329,7 @@ public:
   size_t  ItemsPerSecond() const;
   void    BytesPerSecond(size_t b);
   void    ItemsPerSecond(size_t i);
+*/
 
 private:
 
@@ -479,12 +480,12 @@ public:
   // REQUIRES: a benchmark has exited its KeepRunning loop.
   BENCHMARK_ALWAYS_INLINE
   void SetBytesProcessed(size_t bytes) {
-    counters_.BytesPerSecond(bytes);
+    bytes_processed_ = bytes;
   }
 
   BENCHMARK_ALWAYS_INLINE
   size_t bytes_processed() const {
-    return counters_.BytesPerSecond();
+    return bytes_processed_;
   }
 
   // If this routine is called with complexity_n > 0 and complexity report is requested for the 
@@ -508,12 +509,12 @@ public:
   // REQUIRES: a benchmark has exited its KeepRunning loop.
   BENCHMARK_ALWAYS_INLINE
   void SetItemsProcessed(size_t items) {
-    counters_.ItemsPerSecond(items);
+    items_processed_ = items;
   }
 
   BENCHMARK_ALWAYS_INLINE
   size_t items_processed() const {
-    return counters_.BytesPerSecond();
+    return items_processed_;
   }
 
   // If this routine is called, the specified label is printed at the
@@ -612,9 +613,12 @@ private:
   bool has_range_y_;
   int range_y_;
 
-  mutable BenchmarkCounters counters_;
+  size_t bytes_processed_;
+  size_t items_processed_;
 
   int complexity_n_;
+
+  mutable BenchmarkCounters counters_;
 
 public:
   // FIXME: Make this private somehow.

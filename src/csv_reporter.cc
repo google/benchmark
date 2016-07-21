@@ -96,13 +96,12 @@ void CSVReporter::PrintRunData(const Run & run) {
   }
   Out << ",";
 
-  auto &cnt = run.counters;
-  if (cnt.BytesPerSecond() > 0.0) {
-    Out << cnt.BytesPerSecond();
+  if (run.bytes_per_second > 0.0) {
+    Out << run.bytes_per_second;
   }
   Out << ",";
-  if (cnt.ItemsPerSecond() > 0.0) {
-    Out << cnt.ItemsPerSecond();
+  if (run.items_per_second > 0.0) {
+    Out << run.items_per_second;
   }
   Out << ",";
   if (!run.report_label.empty()) {

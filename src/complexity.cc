@@ -22,6 +22,7 @@
 #include "check.h"
 #include "complexity.h"
 #include "stat.h"
+#include <map>
 
 namespace benchmark {
 
@@ -172,6 +173,16 @@ std::vector<BenchmarkReporter::Run> ComputeStats(
   // All repetitions should be run with the same number of iterations so we
   // can take this information from the first benchmark.
   int64_t const run_iterations = reports.front().iterations;
+  // create stats for user counters
+  std::map< std::string, Stat1_d > counter_stats;
+  for(Run const& r : reports) {
+    for(Counter & cnt : r.counters) {
+      auto it = counter_stats.find(cnt.name);
+      if(it == counter_stats.end()) {
+        counter_stats.insert({cnt.name, Stat1_d{}}).second;
+      }
+    }
+  }
 
   // Populate the accumulators.
   for (Run const& run : reports) {
@@ -182,8 +193,14 @@ std::vector<BenchmarkReporter::Run> ComputeStats(
         Stat1_d(run.real_accumulated_time / run.iterations, run.iterations);
     cpu_accumulated_time_stat +=
         Stat1_d(run.cpu_accumulated_time / run.iterations, run.iterations);
-    items_per_second_stat += Stat1_d(run.counters.ItemsPerSecond(), run.iterations);
-    bytes_per_second_stat += Stat1_d(run.counters.BytesPerSecond(), run.iterations);
+    items_per_second_stat += Stat1_d(run.items_per_second, run.iterations);
+    bytes_per_second_stat += Stat1_d(run.bytes_per_second, run.iterations);
+    // user counters
+    for(Counter & cnt : run.counters) {
+      auto it = counter_stats.find(cnt.name);
+      CHECK_NE(it, counter_stats.end());
+      it->second += Stat1_d(cnt.value, run.iterations);
+    }
   }
 
   // Get the data from the accumulator to BenchmarkReporter::Run's.
@@ -194,8 +211,12 @@ std::vector<BenchmarkReporter::Run> ComputeStats(
       real_accumulated_time_stat.Mean() * run_iterations;
   mean_data.cpu_accumulated_time =
       cpu_accumulated_time_stat.Mean() * run_iterations;
-  mean_data.counters.BytesPerSecond(bytes_per_second_stat.Mean());
-  mean_data.counters.ItemsPerSecond(items_per_second_stat.Mean());
+  mean_data.bytes_per_second = bytes_per_second_stat.Mean();
+  mean_data.items_per_second = items_per_second_stat.Mean();
+  // user counters
+  for(auto const& kv : counter_stats) {
+    mean_data.counters.Add(kv.first, kv.second.Mean(), /**@todo add the rest of the settings (fmt,flags)*/);
+  }
 
   // Only add label to mean/stddev if it is same for all runs
   mean_data.report_label = reports[0].report_label;
@@ -212,8 +233,12 @@ std::vector<BenchmarkReporter::Run> ComputeStats(
   stddev_data.iterations = 0;
   stddev_data.real_accumulated_time = real_accumulated_time_stat.StdDev();
   stddev_data.cpu_accumulated_time = cpu_accumulated_time_stat.StdDev();
-  stddev_data.counters.BytesPerSecond(bytes_per_second_stat.StdDev());
-  stddev_data.counters.ItemsPerSecond(items_per_second_stat.StdDev());
+  stddev_data.bytes_per_second = bytes_per_second_stat.StdDev();
+  stddev_data.items_per_second = items_per_second_stat.StdDev();
+  // user counters
+  for(auto const& kv : counter_stats) {
+    stddev_data.counters.Add(kv.first, kv.second.StdDev(), /**@todo add the rest of the settings (fmt,flags)*/);
+  }
 
   results.push_back(mean_data);
   results.push_back(stddev_data);

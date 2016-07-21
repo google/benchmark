@@ -47,6 +47,8 @@ class BenchmarkReporter {
       time_unit(kNanosecond),
       real_accumulated_time(0),
       cpu_accumulated_time(0),
+      bytes_per_second(0),
+      items_per_second(0),
       max_heapbytes_used(0),
       complexity(oNone),
       complexity_n(0),
@@ -75,6 +77,10 @@ class BenchmarkReporter {
     // NOTE: If 'iterations' is zero the returned value represents the
     // accumulated time.
     double GetAdjustedCPUTime() const;
+
+    // Zero if not set by benchmark.
+    double bytes_per_second;
+    double items_per_second;
 
     // This is set to 0.0 if memory tracing is not enabled.
     double max_heapbytes_used;
@@ -164,13 +170,13 @@ class ConsoleReporter : public BenchmarkReporter {
 };
 
 class JSONReporter : public BenchmarkReporter {
-public:
+ public:
   JSONReporter() : first_report_(true) {}
   virtual bool ReportContext(const Context& context);
   virtual void ReportRuns(const std::vector<Run>& reports);
   virtual void Finalize();
 
-private:
+ private:
   void PrintRunData(const Run& report);
 
   bool first_report_;

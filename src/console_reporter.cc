@@ -75,17 +75,16 @@ void ConsoleReporter::PrintRunData(const Run& result) {
   }
   // Format bytes per second
   std::string rate;
-  if (result.counters.BytesPerSecond() > 0) {
-    rate = StrCat(" ", HumanReadableNumber(result.counters.BytesPerSecond()), "B/s");
+  if (result.bytes_per_second > 0) {
+    rate = StrCat(" ", HumanReadableNumber(result.bytes_per_second), "B/s");
   }
 
-  auto &counts = result.counters;
- /* // Format items per second
+  // Format items per second
   std::string items;
   if (result.items_per_second > 0) {
     items = StrCat(" ", HumanReadableNumber(result.items_per_second),
                    " items/s");
- }*/
+ }
 
   const double real_time = result.GetAdjustedRealTime();
   const double cpu_time = result.GetAdjustedCPUTime();
@@ -107,18 +106,18 @@ void ConsoleReporter::PrintRunData(const Run& result) {
     ColorPrintf(Out, COLOR_CYAN, "%10lld", result.iterations);
   }
 
-  for(auto &c : counts) {
+  for(auto &c : result.counters) {
     ColorPrintf(Out, COLOR_DEFAULT, " %13s", c.ToString().c_str());
   }
-/*
-  if (counts.BytesPerSecond() > 0) {
-    ColorPrintf(COLOR_DEFAULT, " %*s", 13, counts.GetBytesPerSecond().ToString().c_str());
+
+  if (!rate.empty()) {
+    ColorPrintf(Out, COLOR_DEFAULT, " %*s", 13, rate.c_str());
   }
 
-  if (counts.ItemsPerSecond()> 0) {
-    ColorPrintf(COLOR_DEFAULT, " %*s", 18, counts.GetItemsPerSecond().ToString().c_str());
+  if (!items.empty()) {
+    ColorPrintf(Out, COLOR_DEFAULT, " %*s", 18, items.c_str());
   }
-*/
+
   if (!result.report_label.empty()) {
     ColorPrintf(Out, COLOR_DEFAULT, " %s", result.report_label.c_str());
   }

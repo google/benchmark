@@ -126,6 +126,13 @@ static std::atomic<error_message_type> error_message = ATOMIC_VAR_INIT(nullptr);
 // TODO(ericwf): support MallocCounter.
 //static benchmark::MallocCounter *benchmark_mc;
 
+struct ThreadStats {
+    ThreadStats() : bytes_processed(0), items_processed(0), complexity_n(0) {}
+    int64_t bytes_processed;
+    int64_t items_processed;
+    int  complexity_n;
+};
+
 // Timer management class
 class TimerManager {
  public:
@@ -463,7 +470,7 @@ void BenchmarkCounters::Clear() {
   }
 }
 
-
+/*
 // Common counters
 Counter const& BenchmarkCounters::GetBytesPerSecond() const {
     size_t pos = _Find("B/s");
@@ -501,7 +508,7 @@ void    BenchmarkCounters::ItemsPerSecond(size_t i) {
         Add("items/s", double(i), "", Counter::kItemsProcessed);
     }
 }
-
+*/
 
 
 
@@ -948,16 +955,18 @@ namespace {
 // Adds the stats collected for the thread into *total.
 void RunInThread(const benchmark::internal::Benchmark::Instance* b,
                  size_t iters, int thread_id,
-                 BenchmarkCounters* total,
-                 size_t *total_complexity) EXCLUDES(GetBenchmarkLock()) {
+                 ThreadStats* total,
+                 BenchmarkCounters* counters_total) EXCLUDES(GetBenchmarkLock()) {
   State st(iters, b->has_arg1, b->arg1, b->has_arg2, b->arg2, thread_id, b->threads);
   b->benchmark->Run(st);
   CHECK(st.iterations() == st.max_iterations) <<
     "Benchmark returned before State::KeepRunning() returned false!";
   {
     MutexLock l(GetBenchmarkLock());
-    total->Sum(st.Counters());
-    *total_complexity += st.complexity_length_n();
+    total->bytes_processed += st.bytes_processed();
+    total->items_processed += st.items_processed();
+    total->complexity_n += st.complexity_length_n();
+    counters_total->Sum(st.Counters());
   }
 
   timer_manager->Finalize();
@@ -992,8 +1001,8 @@ void RunBenchmark(const benchmark::internal::Benchmark::Instance& b,
       Notification done;
       timer_manager = std::unique_ptr<TimerManager>(new TimerManager(b.threads, &done));
 
-      BenchmarkCounters total;
-      size_t total_complexity = 0;
+      ThreadStats total;
+      BenchmarkCounters counters_total;
       running_benchmark = true;
       if (b.multithreaded) {
         // If this is out first iteration of the while(true) loop then the
@@ -1004,11 +1013,11 @@ void RunBenchmark(const benchmark::internal::Benchmark::Instance& b,
             thread.join();
         }
         for (std::size_t ti = 0; ti < pool.size(); ++ti) {
-            pool[ti] = std::thread(&RunInThread, &b, iters, static_cast<int>(ti), &total, &total_complexity);
+            pool[ti] = std::thread(&RunInThread, &b, iters, static_cast<int>(ti), &total, &counters_total);
         }
       } else {
         // Run directly in this thread
-        RunInThread(&b, iters, 0, &total, &total_complexity);
+        RunInThread(&b, iters, 0, &total, &counters_total);
       }
       done.WaitForNotification();
       running_benchmark = false;
@@ -1057,6 +1066,14 @@ void RunBenchmark(const benchmark::internal::Benchmark::Instance& b,
         report.time_unit = b.time_unit;
 
         if (!report.error_occurred) {
+          double bytes_per_second = 0;
+          if (total.bytes_processed > 0 && seconds > 0.0) {
+            bytes_per_second = (total.bytes_processed / seconds);
+          }
+          double items_per_second = 0;
+          if (total.items_processed > 0 && seconds > 0.0) {
+            items_per_second = (total.items_processed / seconds);
+          }
 
           if (b.use_manual_time) {
             report.real_accumulated_time = manual_accumulated_time;
@@ -1064,13 +1081,16 @@ void RunBenchmark(const benchmark::internal::Benchmark::Instance& b,
             report.real_accumulated_time = real_accumulated_time;
           }
           report.cpu_accumulated_time = cpu_accumulated_time;
-          report.complexity_n = (int)total_complexity;
+          report.bytes_per_second = bytes_per_second;
+          report.items_per_second = items_per_second;
+          report.complexity_n = total.complexity_n;
           report.complexity = b.complexity;
           report.complexity_lambda = b.complexity_lambda;
           if(report.complexity != oNone)
             complexity_reports.push_back(report);
-          report.counters = std::move(total);
+          report.counters = std::move(counters_total);
         }
+
         reports.push_back(report);
         break;
       }
@@ -1120,15 +1140,16 @@ State::State(size_t max_iters, bool has_x, int x, bool has_y, int y,
     : started_(false), finished_(false), total_iterations_(0),
       has_range_x_(has_x), range_x_(x),
       has_range_y_(has_y), range_y_(y),
-      counters_(),
+      bytes_processed_(0), items_processed_(0),
       complexity_n_(0),
+      counters_(),
       error_occurred_(false),
       thread_index(thread_i),
       threads(n_threads),
       max_iterations(max_iters)
 {
-  CHECK(max_iterations != 0) << "At least one iteration must be run";
-  CHECK_LT(thread_index, threads) << "thread_index must be less than threads";
+    CHECK(max_iterations != 0) << "At least one iteration must be run";
+    CHECK_LT(thread_index, threads) << "thread_index must be less than threads";
 }
 
 void State::PauseTiming() {
