@@ -27,7 +27,7 @@ class TestReporter : public benchmark::ConsoleReporter {
 struct TestCase {
   std::string name;
   const char* label;
-  TestCase(const char* xname) : name(xname) {}
+  TestCase(const char* xname) : name(xname), label(nullptr) {}
   TestCase(const char* xname, const char* xlabel)
     : name(xname), label(xlabel) {}
 
