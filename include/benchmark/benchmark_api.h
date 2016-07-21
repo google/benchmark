@@ -372,7 +372,7 @@ public:
   }
 
   BENCHMARK_ALWAYS_INLINE
-  size_t complexity_length_n() {
+  int complexity_length_n() {
     return complexity_n_;
   }
 
