@@ -176,10 +176,10 @@ std::vector<BenchmarkReporter::Run> ComputeStats(
   // create stats for user counters
   std::map< std::string, Stat1_d > counter_stats;
   for(Run const& r : reports) {
-    for(Counter & cnt : r.counters) {
+    for(Counter const& cnt : r.counters) {
       auto it = counter_stats.find(cnt.name);
       if(it == counter_stats.end()) {
-        counter_stats.insert({cnt.name, Stat1_d{}}).second;
+        counter_stats.insert({cnt.name, Stat1_d{}});
       }
     }
   }
@@ -196,7 +196,7 @@ std::vector<BenchmarkReporter::Run> ComputeStats(
     items_per_second_stat += Stat1_d(run.items_per_second, run.iterations);
     bytes_per_second_stat += Stat1_d(run.bytes_per_second, run.iterations);
     // user counters
-    for(Counter & cnt : run.counters) {
+    for(Counter const& cnt : run.counters) {
       auto it = counter_stats.find(cnt.name);
       CHECK_NE(it, counter_stats.end());
       it->second += Stat1_d(cnt.value, run.iterations);
@@ -215,7 +215,7 @@ std::vector<BenchmarkReporter::Run> ComputeStats(
   mean_data.items_per_second = items_per_second_stat.Mean();
   // user counters
   for(auto const& kv : counter_stats) {
-    mean_data.counters.Add(kv.first, kv.second.Mean(), /**@todo add the rest of the settings (fmt,flags)*/);
+    mean_data.counters.Add(kv.first, kv.second.Mean() /**@todo add the rest of the settings (fmt,flags)*/);
   }
 
   // Only add label to mean/stddev if it is same for all runs
@@ -237,7 +237,7 @@ std::vector<BenchmarkReporter::Run> ComputeStats(
   stddev_data.items_per_second = items_per_second_stat.StdDev();
   // user counters
   for(auto const& kv : counter_stats) {
-    stddev_data.counters.Add(kv.first, kv.second.StdDev(), /**@todo add the rest of the settings (fmt,flags)*/);
+    stddev_data.counters.Add(kv.first, kv.second.StdDev() /**@todo add the rest of the settings (fmt,flags)*/);
   }
 
   results.push_back(mean_data);

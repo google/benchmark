@@ -36,6 +36,8 @@ namespace benchmark {
 
 bool ConsoleReporter::ReportContext(const Context& context) {
   name_field_width_ = context.name_field_width;
+  printed_header_ = false;
+  prev_counters_ = {};
 
   PrintBasicContext(&GetErrorStream(), context);
 
@@ -46,17 +48,33 @@ bool ConsoleReporter::ReportContext(const Context& context) {
       FLAGS_color_print = false;
   }
 #endif
-  std::string str = FormatString("%-*s %13s %13s %10s\n",
-                             static_cast<int>(name_field_width_), "Benchmark",
-                             "Time", "CPU", "Iterations");
-  GetOutputStream() << str << std::string(str.length() - 1, '-') << "\n";
 
   return true;
 }
 
+void ConsoleReporter::PrintHeader(const Run& run) {
+  std::string str = FormatString("%-*s %13s %13s %10s",
+                             static_cast<int>(name_field_width_), "Benchmark",
+                             "Time", "CPU", "Iterations");
+  for(auto const& c : run.counters) {
+    str += FormatString(" %13s", c.name.c_str());
+  }
+  std::string line = std::string(str.length(), '-');
+  GetOutputStream() << line << "\n" << str << "\n" << line << "\n";
+}
+
 void ConsoleReporter::ReportRuns(const std::vector<Run>& reports) {
-  for (const auto& run : reports)
+  for (const auto& run : reports) {
+    // print the header:
+    // --- if none was printed yet
+    // --- if this run has different fields from the prev header
+    if((!printed_header_) || (!run.counters.SameFields(prev_counters_))) {
+      printed_header_ = true;
+      prev_counters_ = run.counters;
+      PrintHeader(run);
+    }
     PrintRunData(run);
+  }
 }
 
 void ConsoleReporter::PrintRunData(const Run& result) {

@@ -165,8 +165,11 @@ class ConsoleReporter : public BenchmarkReporter {
 
  protected:
   virtual void PrintRunData(const Run& report);
+  virtual void PrintHeader(const Run& report);
 
   size_t name_field_width_;
+  BenchmarkCounters prev_counters_;
+  bool printed_header_;
 };
 
 class JSONReporter : public BenchmarkReporter {

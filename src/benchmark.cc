@@ -416,6 +416,19 @@ Counter const& BenchmarkCounters::Get(std::string const& name) const {
   return counters_[id];
 }
 
+bool BenchmarkCounters::SameFields(BenchmarkCounters const& that) const {
+  if(this == &that) return true;
+  if(that.counters_.size() != counters_.size()) {
+    return false;
+  }
+  for(auto const& c : counters_) {
+    if(that._Find(c.name) == that.counters_.size()) {
+      return false;
+    }
+  }
+  return true;
+}
+
 // returns the index where name is located,
 // or size() if the name was not found
 size_t BenchmarkCounters::_Find(const char *name) const {

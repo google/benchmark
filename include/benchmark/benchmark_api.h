@@ -272,6 +272,10 @@ public:
 
   std::string ToString() const;
 
+  Counter& operator+= (double v) { value += v; flags |= _kWasReported; return *this; }
+  Counter& operator-= (double v) { value -= v; flags |= _kWasReported; return *this; }
+  Counter& operator*= (double v) { value *= v; flags |= _kWasReported; return *this; }
+  Counter& operator/= (double v) { value /= v; flags |= _kWasReported; return *this; }
 };
 
 
@@ -311,6 +315,8 @@ public:
   template< class T > void Set(std::initializer_list< std::pair<T, double> > il);
 #endif
 
+  bool    SameFields(BenchmarkCounters const& that) const;
+
   void    Sum(BenchmarkCounters const& that);
   void    Finish(double time, double num_threads);
   void    Clear();
@@ -319,7 +325,7 @@ public:
   const_iterator begin() const { return counters_.begin(); }
   const_iterator end  () const { return counters_.end();   }
 
-/* <jppm> Keeping for now the old bytes_processed and items_processed logic.
+/* <jppm> Keeping for now the old bytes_processed and items_processed.
 public:
 
   // Common counters
