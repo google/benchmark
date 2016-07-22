@@ -186,11 +186,9 @@ static void BM_ManualTiming(benchmark::State& state) {
 
   while (state.KeepRunning()) {
     auto start   = std::chrono::high_resolution_clock::now();
-    // Simulate some useful workload by sleeping.
-    // Note: std::this_thread::sleep_for doesn't work with GCC 4.7 on some
-    // platforms.
-    const auto sleep_end = std::chrono::steady_clock::now() + sleep_duration;
-    while (std::chrono::steady_clock::now() < sleep_end) {}
+    // Simulate some useful workload with a sleep
+    std::this_thread::sleep_for(std::chrono::duration_cast<
+      std::chrono::nanoseconds>(sleep_duration));
     auto end     = std::chrono::high_resolution_clock::now();
 
     auto elapsed =
