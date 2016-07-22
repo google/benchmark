@@ -310,6 +310,9 @@ public:
   Counter      & Get(std::string const& name);
   Counter const& Get(std::string const& name) const;
 
+  bool   Exists(const char*        name) const { return _Find(name) != counters_.size(); }
+  bool   Exists(std::string const& name) const { return _Find(name) != counters_.size(); }
+
 #ifdef BENCHMARK_INITLIST
   void Add(std::initializer_list< Counter > il);
   template< class T > void Set(std::initializer_list< std::pair<T, double> > il);

@@ -25,6 +25,8 @@
 #include "string_util.h"
 #include "walltime.h"
 
+#include <set>
+
 // File format reference: http://edoceo.com/utilitas/csv-file-format.
 
 namespace benchmark {
@@ -46,20 +48,51 @@ std::vector<std::string> elements = {
 
 bool CSVReporter::ReportContext(const Context& context) {
   PrintBasicContext(&GetErrorStream(), context);
+  return true;
+}
 
+void CSVReporter::ReportRuns(const std::vector<Run> & reports) {
+
+  // find the names of all the user counters
+  std::set< std::string > user_counter_names;
+  for (const auto& run : reports) {
+    for (const auto& cnt : run.counters) {
+      user_counter_names.insert(cnt.name);
+    }
+  }
+
+  // print the header
   std::ostream& Out = GetOutputStream();
   for (auto B = elements.begin(); B != elements.end(); ) {
     Out << *B++;
     if (B != elements.end())
       Out << ",";
   }
+  for (const auto& name : user_counter_names) {
+    Out << "," << name;
+  }
   Out << "\n";
-  return true;
-}
 
-void CSVReporter::ReportRuns(const std::vector<Run> & reports) {
-  for (const auto& run : reports)
+  // print results for each run
+  for (const auto& run : reports) {
     PrintRunData(run);
+
+    // Print user counters
+    // <jppm> .... this should be done in PrintRunData(), but that would require
+    // storing user_counter_names either in the anon namespace above
+    // or as a member in the CSVReporterClass, which in turn would
+    // #include <set> in the public reporter.h header. Passing it as an argument
+    // would also require the include.
+    // So I'll defer judgment here.
+    for (const auto &name : user_counter_names) {
+      Out << ",";
+      if(run.counters.Exists(name)) {
+        Out << run.counters.Get(name).value;
+      }
+    }
+    Out << '\n';
+  }
+
 }
 
 void CSVReporter::PrintRunData(const Run & run) {
@@ -112,7 +145,7 @@ void CSVReporter::PrintRunData(const Run & run) {
     Out << "\"" << label << "\"";
   }
   Out << ",,";  // for error_occurred and error_message
-  Out << '\n';
+
 }
 
 }  // end namespace benchmark
