@@ -54,8 +54,8 @@ class CounterFixture : public ::benchmark::Fixture {
   public:
 
   void InitState(benchmark::State &st) override {
-      posFoo = st.AddCounter("Foo");
-      posBar = st.AddCounter("Bar");
+      posFoo = st.SetCounter("Foo");
+      posBar = st.SetCounter("Bar");
   }
 
   size_t posFoo = -1, posBar = -1;
@@ -67,8 +67,7 @@ BENCHMARK_DEFINE_F(CounterFixture, BumpById)(benchmark::State& st) {
       st.GetCounter(posFoo) += 1.;
       st.GetCounter(posBar) += 1.;
   }
-  assert(st.GetCounter(posFoo).value != 0.);
-  assert(st.GetCounter(posFoo).WasReported());
+  assert(st.GetCounter(posFoo).Value() != 0.);
   st.SetItemsProcessed(st.iterations());
 }
 BENCHMARK_REGISTER_F(CounterFixture, BumpById);
@@ -78,8 +77,7 @@ BENCHMARK_DEFINE_F(CounterFixture, BumpByName)(benchmark::State& st) {
       st.GetCounter("Foo") += 1.;
       st.GetCounter("Bar") += 1.;
   }
-  assert(st.GetCounter(posFoo).value != 0.);
-  assert(st.GetCounter(posFoo).WasReported());
+  assert(st.GetCounter(posFoo).Value() != 0.);
   st.SetItemsProcessed(st.iterations());
 }
 BENCHMARK_REGISTER_F(CounterFixture, BumpByName);

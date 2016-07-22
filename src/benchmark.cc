@@ -304,23 +304,19 @@ static std::unique_ptr<TimerManager> timer_manager = nullptr;
 
 
 
-Counter::Counter(std::string const& n, std::string const& fmt, uint32_t f)
-  : name(n), value(0.), format(fmt), flags(f)
-{}
-
-Counter::Counter(std::string const& n, double v, std::string const& fmt, uint32_t f)
-  : name(n), value(v), format(fmt), flags(f | _kWasReported)
+Counter::Counter(std::string const& n, double v, uint32_t f)
+  : name_(n), value_(v), flags_(f)
 {}
 
 void Counter::Finish(double cpu_time, double num_threads) {
-  if(flags & kIsRate) {
-    value /= cpu_time;
+  if(flags_ & kIsRate) {
+    value_ /= cpu_time;
   }
-  if(flags & kAvgThreads) {
-    value /= num_threads;
+  if(flags_ & kAvgThreads) {
+    value_ /= num_threads;
   }
 }
-
+/*
 std::string Counter::ToString() const {
   std::string s;
   if(flags & _kWasReported) {
@@ -335,56 +331,43 @@ std::string Counter::ToString() const {
   }
   return s;
 }
+*/
+
 
 
 BenchmarkCounters::BenchmarkCounters(size_t initial_capacity) {
   counters_.reserve(initial_capacity); // minimize reallocations
 }
 
-size_t BenchmarkCounters::Add(Counter const& c) {
-  CHECK_GE(_Find(c.name), counters_.size());
-  size_t pos = counters_.size();
-  counters_.push_back(c);
+size_t BenchmarkCounters::Set(Counter const& c) {
+  size_t pos = Find(c.Name());
+  if(pos < counters_.size()) {
+    counters_[pos] = c;
+  } else {
+    pos = counters_.size();
+    counters_.push_back(c);
+  }
   return pos;
 }
-size_t BenchmarkCounters::Add(const char *n, const char *fmt, uint32_t f) {
-  CHECK_GE(_Find(n), counters_.size());
-  size_t pos = counters_.size();
-  counters_.emplace_back(n, fmt, f);
+size_t BenchmarkCounters::Set(const char *n, double v, uint32_t f) {
+  size_t pos = Find(n);
+  if(pos < counters_.size()) {
+    counters_[pos].Set(v);
+  } else {
+    pos = counters_.size();
+    counters_.emplace_back(n, v, f);
+  }
   return pos;
 }
-size_t BenchmarkCounters::Add(const char *n, double v, const char *fmt, uint32_t f) {
-  CHECK_GE(_Find(n), counters_.size());
-  size_t pos = counters_.size();
-  counters_.emplace_back(n, v, fmt, f);
+size_t BenchmarkCounters::Set(std::string const& n, double v, uint32_t f) {
+  size_t pos = Find(n);
+  if(pos < counters_.size()) {
+    counters_[pos].Set(v);
+  } else {
+    pos = counters_.size();
+    counters_.emplace_back(n, v, f);
+  }
   return pos;
-}
-size_t BenchmarkCounters::Add(std::string const& n, std::string const& fmt, uint32_t f) {
-  CHECK_GE(_Find(n), counters_.size());
-  size_t pos = counters_.size();
-  counters_.emplace_back(n, fmt, f);
-  return pos;
-}
-size_t BenchmarkCounters::Add(std::string const& n, double v, std::string const& fmt, uint32_t f) {
-  CHECK_GE(_Find(n), counters_.size());
-  size_t pos = counters_.size();
-  counters_.emplace_back(n, v, fmt, f);
-  return pos;
-}
-
-void BenchmarkCounters::Set(size_t counter_id, double value) {
-  CHECK_LT(counter_id, counters_.size()) << "Invalid counter handle: " << counter_id;
-  counters_[counter_id].Set(value);
-}
-void BenchmarkCounters::Set(const char *name, double value) {
-  size_t pos = _Find(name);
-  CHECK_LT(pos, counters_.size()) << "Counter not found: " << name;
-  counters_[pos].Set(value);
-}
-void BenchmarkCounters::Set(std::string const& name, double value) {
-  size_t pos = _Find(name);
-  CHECK_LT(pos, counters_.size()) << "Counter not found: " << name;
-  counters_[pos].Set(value);
 }
 
 Counter& BenchmarkCounters::Get(size_t id) {
@@ -396,33 +379,34 @@ Counter const& BenchmarkCounters::Get(size_t id) const {
   return counters_[id];
 }
 Counter& BenchmarkCounters::Get(const char *name) {
-  size_t id = _Find(name);
-  CHECK_LT(id, counters_.size()) << "Counter not found: " << name;
+  size_t id = Find(name);
+  CHECK_EQ(Exists(name), true) << "Counter not found: " << name;
   return counters_[id];
 }
 Counter const& BenchmarkCounters::Get(const char *name) const {
-  size_t id = _Find(name);
-  CHECK_LT(id, counters_.size()) << "Counter not found: " << name;
+  size_t id = Find(name);
+  CHECK_EQ(Exists(name), true) << "Counter not found: " << name;
   return counters_[id];
 }
 Counter& BenchmarkCounters::Get(std::string const& name) {
-  size_t id = _Find(name);
-  CHECK_LT(id, counters_.size()) << "Counter not found: " << name;
+  size_t id = Find(name);
+  CHECK_EQ(Exists(name), true) << "Counter not found: " << name;
   return counters_[id];
 }
 Counter const& BenchmarkCounters::Get(std::string const& name) const {
-  size_t id = _Find(name);
-  CHECK_LT(id, counters_.size()) << "Counter not found: " << name;
+  CHECK_EQ(Exists(name), true) << "Counter not found: " << name;
+  size_t id = Find(name);
   return counters_[id];
 }
 
-bool BenchmarkCounters::SameFields(BenchmarkCounters const& that) const {
+
+bool BenchmarkCounters::SameNames(BenchmarkCounters const& that) const {
   if(this == &that) return true;
   if(that.counters_.size() != counters_.size()) {
     return false;
   }
   for(auto const& c : counters_) {
-    if(that._Find(c.name) == that.counters_.size()) {
+    if(that.Find(c.Name()) == that.counters_.size()) {
       return false;
     }
   }
@@ -431,20 +415,20 @@ bool BenchmarkCounters::SameFields(BenchmarkCounters const& that) const {
 
 // returns the index where name is located,
 // or size() if the name was not found
-size_t BenchmarkCounters::_Find(const char *name) const {
+size_t BenchmarkCounters::Find(const char *name) const {
   size_t pos = 0;
   for(auto &p : counters_) {
-    if(p.name == name) break;
+    if(p.Name() == name) break;
     ++pos;
   }
   return pos;
 }
 // returns the index where name is located,
 // or size() if the name was not found
-size_t BenchmarkCounters::_Find(std::string const& name) const {
+size_t BenchmarkCounters::Find(std::string const& name) const {
   size_t pos = 0;
   for(auto &p : counters_) {
-    if(p.name == name) break;
+    if(p.Name() == name) break;
     ++pos;
   }
   return pos;
@@ -457,29 +441,29 @@ void BenchmarkCounters::Sum(BenchmarkCounters const& that) {
   }
   // add counters present in both or just in this
   for(Counter &c : counters_) {
-    size_t j = that._Find(c.name);
+    size_t j = that.Find(c.Name());
     if(j < that.counters_.size()) {
-      c.value += that.counters_[j].value;
+      c.Set(c.Value() + that.counters_[j].Value());
     }
   }
   // add counters present in that, but not in this
   for(Counter const &tc : that.counters_) {
-    size_t j = _Find(tc.name);
+    size_t j = Find(tc.Name());
     if(j >= counters_.size()) {
-      Add(tc);
+      Set(tc);
     }
   }
 }
 
-void BenchmarkCounters::Finish(double time, double num_threads) {
+void BenchmarkCounters::Finish(double cpu_time, double num_threads) {
   for(auto &c : counters_) {
-    c.Finish(time, num_threads);
+    c.Finish(cpu_time, num_threads);
   }
 }
 
 void BenchmarkCounters::Clear() {
   for(auto &p : counters_) {
-    p.value = 0.;
+    p.Set(0.);
   }
 }
 

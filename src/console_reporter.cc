@@ -57,7 +57,7 @@ void ConsoleReporter::PrintHeader(const Run& run) {
                              static_cast<int>(name_field_width_), "Benchmark",
                              "Time", "CPU", "Iterations");
   for(auto const& c : run.counters) {
-    str += FormatString(" %13s", c.name.c_str());
+    str += FormatString(" %13s", c.Name().c_str());
   }
   std::string line = std::string(str.length(), '-');
   GetOutputStream() << line << "\n" << str << "\n" << line << "\n";
@@ -68,11 +68,13 @@ void ConsoleReporter::ReportRuns(const std::vector<Run>& reports) {
     // print the header:
     // --- if none was printed yet
     // --- if this run has different fields from the prev header
-    if((!printed_header_) || (!run.counters.SameFields(prev_counters_))) {
+    if((!printed_header_) || (!run.counters.SameNames(prev_counters_))) {
       printed_header_ = true;
       prev_counters_ = run.counters;
       PrintHeader(run);
     }
+    // As an alternative to printing the headers like this, we could sort
+    // the benchmarks by header and then print like that.
     PrintRunData(run);
   }
 }
@@ -125,7 +127,8 @@ void ConsoleReporter::PrintRunData(const Run& result) {
   }
 
   for(auto &c : result.counters) {
-    ColorPrintf(Out, COLOR_DEFAULT, " %13s", c.ToString().c_str());
+    auto const& s = HumanReadableNumber(c.Value());
+    ColorPrintf(Out, COLOR_DEFAULT, " %13s", s.c_str());
   }
 
   if (!rate.empty()) {

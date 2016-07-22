@@ -159,7 +159,7 @@ BENCHMARK(BM_test)->Unit(benchmark::kMillisecond);
 #include <vector>
 #include <string>
 #ifdef BENCHMARK_INITLIST
-#include <initializer_list>
+# include <initializer_list>
 #endif
 
 namespace benchmark {
@@ -236,46 +236,40 @@ inline BENCHMARK_ALWAYS_INLINE void DoNotOptimize(Tp const& value) {
 
 
 
-#define BENCHMARK_COUNTER_FMT "%8lg"
+class Counter {
+public:
 
-struct Counter {
-
-  std::string name;
-  double      value;
-  std::string format;
-  uint32_t    flags;
-  // <jppm> maybe we could add a description field...
-
-  enum {
+  typedef enum {
     kDefaults       = 0x00,
+    /** Mark the counter as a rate. It will be presented divided by the duration of the benchmark. */
     kIsRate         = 0x01 << 0,
-    kAvgThreads     = 0x01 << 1,
-    kHumanReadable  = 0x01 << 2
-    //kItemsProcessed = kIsRate|kHumanReadable,
-    //kBytesProcessed = kIsRate|kHumanReadable
-  };
-
-private:
-
-  enum {
-    _kWasReported   = 0x01 << 7  // this flag marks whether the value was set
-  };
+    /** Mark the counter as a thread-average quantity. It will be presented divided by the number of threads. */
+    kAvgThreads     = 0x01 << 1
+  } Flags_e;
 
 public:
 
-  Counter(std::string const& n = "",      std::string const& fmt = BENCHMARK_COUNTER_FMT, uint32_t f = kDefaults);
-  Counter(std::string const& n, double v, std::string const& fmt = BENCHMARK_COUNTER_FMT, uint32_t f = kDefaults);
+  Counter(std::string const& n, double v = 0., uint32_t flags = kDefaults);
 
-  void Set(double v) { value = v; flags |= _kWasReported; }
+  std::string const& Name() const { return name_; }
+  double Value() const { return value_; }
+
+  void Set(double v) { value_ = v; }
+
+  Counter& operator+= (double v) { value_ += v; return *this; }
+  Counter& operator-= (double v) { value_ -= v; return *this; }
+  Counter& operator*= (double v) { value_ *= v; return *this; }
+  Counter& operator/= (double v) { value_ /= v; return *this; }
+
   void Finish(double cpu_time, double num_threads);
-  bool WasReported() const { return (flags & _kWasReported) != 0; }
 
-  std::string ToString() const;
+private:
 
-  Counter& operator+= (double v) { value += v; flags |= _kWasReported; return *this; }
-  Counter& operator-= (double v) { value -= v; flags |= _kWasReported; return *this; }
-  Counter& operator*= (double v) { value *= v; flags |= _kWasReported; return *this; }
-  Counter& operator/= (double v) { value /= v; flags |= _kWasReported; return *this; }
+  std::string name_;
+  double      value_;
+  uint32_t    flags_;
+  // <jppm> maybe we could add a description field...
+
 };
 
 
@@ -291,17 +285,24 @@ public:
 
   BenchmarkCounters(size_t initial_capacity = 16);
 
-  // Add counters. The return value for these functions is the counter id.
-  size_t  Add(Counter const& c);
-  size_t  Add(const char*        n,           const char*        fmt = BENCHMARK_COUNTER_FMT, uint32_t f = Counter::kDefaults);
-  size_t  Add(const char*        n, double v, const char*        fmt = BENCHMARK_COUNTER_FMT, uint32_t f = Counter::kDefaults);
-  size_t  Add(std::string const& n,           std::string const& fmt = BENCHMARK_COUNTER_FMT, uint32_t f = Counter::kDefaults);
-  size_t  Add(std::string const& n, double v, std::string const& fmt = BENCHMARK_COUNTER_FMT, uint32_t f = Counter::kDefaults);
+  // Add/Set a counter. Will overwrite any additional counter properties.
+  size_t  Set(Counter const& c);
+  // Add/Set a counter. When the counter already exists, f is ignored.
+  size_t  Set(const char*        n, double v, uint32_t f = Counter::kDefaults);
+  // Add/Set a counter. When the counter already exists, f is ignored.
+  size_t  Set(std::string const& n, double v, uint32_t f = Counter::kDefaults);
 
-  // Report a counter value. The counter must have been previously added with Add()
-  void    Set(size_t               id, double value);
-  void    Set(const char*        name, double value);
-  void    Set(std::string const& name, double value);
+#ifdef BENCHMARK_INITLIST
+  void    Set(std::initializer_list< Counter > il) { for(auto &c : il) { Set(c); } }
+#endif
+
+  // Returns the index where name is located, or size() if the name was not found.
+  size_t  Find(const char*        name) const;
+  // Returns the index where name is located, or size() if the name was not found.
+  size_t  Find(std::string const& name) const;
+
+  bool    Exists(const char*        name) const { return Find(name) != counters_.size(); }
+  bool    Exists(std::string const& name) const { return Find(name) != counters_.size(); }
 
   Counter      & Get(size_t               id);
   Counter const& Get(size_t               id) const;
@@ -310,15 +311,7 @@ public:
   Counter      & Get(std::string const& name);
   Counter const& Get(std::string const& name) const;
 
-  bool   Exists(const char*        name) const { return _Find(name) != counters_.size(); }
-  bool   Exists(std::string const& name) const { return _Find(name) != counters_.size(); }
-
-#ifdef BENCHMARK_INITLIST
-  void Add(std::initializer_list< Counter > il);
-  template< class T > void Set(std::initializer_list< std::pair<T, double> > il);
-#endif
-
-  bool    SameFields(BenchmarkCounters const& that) const;
+  bool    SameNames(BenchmarkCounters const& that) const;
 
   void    Sum(BenchmarkCounters const& that);
   void    Finish(double time, double num_threads);
@@ -342,27 +335,9 @@ public:
 
 private:
 
-  size_t _Find(const char*        name) const;
-  size_t _Find(std::string const& name) const;
-
-private:
-
   std::vector< Counter > counters_;
 
 };
-#ifdef BENCHMARK_INITLIST
-inline void BenchmarkCounters::Add(std::initializer_list< Counter > il) {
-  for(auto &c : il) {
-    counters_.push_back(c);
-  }
-}
-template< class T >
-void BenchmarkCounters::Set(std::initializer_list< std::pair<T, double> > il) {
-  for(auto &c : il) {
-    Set(c.first, c.second);
-  }
-}
-#endif
 
 
 
@@ -569,47 +544,33 @@ public:
   size_t iterations() const { return total_iterations_; }
 
 
-  // Add a user counter. This will return a handle with which you can
-  // later set the counter value via a call to SetUserCounter().
+  // Add/set a user counter. Return the counter handle.
   BENCHMARK_ALWAYS_INLINE
-  size_t AddCounter(Counter const& c) { return counters_.Add(c); }
-  // Add a user counter. This will return a handle with which you can
-  // later set the counter value via a call to SetUserCounter().
+  size_t SetCounter(Counter const& c) { return counters_.Set(c); }
+  // Add/set a user counter. Return the counter handle.
   BENCHMARK_ALWAYS_INLINE
-  size_t AddCounter(const char* n,           const char* fmt = BENCHMARK_COUNTER_FMT, uint32_t f = Counter::kDefaults) { return counters_.Add(n, fmt, f); }
-  size_t AddCounter(const char* n, double v, const char* fmt = BENCHMARK_COUNTER_FMT, uint32_t f = Counter::kDefaults) { return counters_.Add(n, v, fmt, f); }
-  size_t AddCounter(std::string const& n,           const char* fmt = BENCHMARK_COUNTER_FMT, uint32_t f = Counter::kDefaults) { return counters_.Add(n, fmt, f); }
-  size_t AddCounter(std::string const& n, double v, const char* fmt = BENCHMARK_COUNTER_FMT, uint32_t f = Counter::kDefaults) { return counters_.Add(n, v, fmt, f); }
-
-  // Set the value of a previously existing counter.
+  size_t SetCounter(const char* n, double v = 0., uint32_t f = Counter::kDefaults) { return counters_.Set(n, v, f); }
+  // Add/set a user counter. Return the counter handle.
   BENCHMARK_ALWAYS_INLINE
-  void   SetCounter(size_t id, double value) { counters_.Set(id, value);  }
-  // Set the value of a previously existing counter.
+  size_t SetCounter(std::string const& n, double v = 0., uint32_t f = Counter::kDefaults) { return counters_.Set(n, v, f); }
+  // Given a counter handle, set a previously existing user counter.
   BENCHMARK_ALWAYS_INLINE
-  void   SetCounter(const char* name, double value) { counters_.Set(name, value);  }
-  // Set the value of a previously existing counter.
-  BENCHMARK_ALWAYS_INLINE
-  void   SetCounter(std::string const& name, double value) { counters_.Set(name, value);  }
+  void   SetCounter(size_t counter_id, double v) { counters_.Get(counter_id).Set(v); }
 
 #ifdef BENCHMARK_INITLIST
-  // Set several counters at once.
-  BENCHMARK_ALWAYS_INLINE
-  void   AddCounter(std::initializer_list< Counter > il) { counters_.Add(il); }
   // Set several previously existing counters at once.
   BENCHMARK_ALWAYS_INLINE
-  void   SetCounter(std::initializer_list< std::pair<size_t, double> > il) { counters_.Set(il); }
-  // Set several previously existing counters at once.
-  BENCHMARK_ALWAYS_INLINE
-  void   SetCounter(std::initializer_list< std::pair<const char*, double> > il) { counters_.Set(il); }
+  void   SetCounter(std::initializer_list< Counter > il) { counters_.Set(il); }
 #endif
 
-  BENCHMARK_ALWAYS_INLINE Counter      & GetCounter(size_t id)       { return counters_.Get(id);  }
-  BENCHMARK_ALWAYS_INLINE Counter const& GetCounter(size_t id) const { return counters_.Get(id);  }
-  BENCHMARK_ALWAYS_INLINE Counter      & GetCounter(const char *name)       { return counters_.Get(name); }
-  BENCHMARK_ALWAYS_INLINE Counter const& GetCounter(const char *name) const { return counters_.Get(name); }
+  BENCHMARK_ALWAYS_INLINE Counter      & GetCounter(size_t               id)       { return counters_.Get(id);   }
+  BENCHMARK_ALWAYS_INLINE Counter const& GetCounter(size_t               id) const { return counters_.Get(id);   }
+  BENCHMARK_ALWAYS_INLINE Counter      & GetCounter(const char *       name)       { return counters_.Get(name); }
+  BENCHMARK_ALWAYS_INLINE Counter const& GetCounter(const char *       name) const { return counters_.Get(name); }
+  BENCHMARK_ALWAYS_INLINE Counter      & GetCounter(std::string const& name)       { return counters_.Get(name); }
+  BENCHMARK_ALWAYS_INLINE Counter const& GetCounter(std::string const& name) const { return counters_.Get(name); }
 
-  BENCHMARK_ALWAYS_INLINE
-  BenchmarkCounters const& Counters() { return counters_; }
+  BENCHMARK_ALWAYS_INLINE BenchmarkCounters const& Counters() { return counters_; }
 
 private:
   bool started_;

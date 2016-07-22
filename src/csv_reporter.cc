@@ -57,7 +57,7 @@ void CSVReporter::ReportRuns(const std::vector<Run> & reports) {
   std::set< std::string > user_counter_names;
   for (const auto& run : reports) {
     for (const auto& cnt : run.counters) {
-      user_counter_names.insert(cnt.name);
+      user_counter_names.insert(cnt.Name());
     }
   }
 
@@ -87,7 +87,7 @@ void CSVReporter::ReportRuns(const std::vector<Run> & reports) {
     for (const auto &name : user_counter_names) {
       Out << ",";
       if(run.counters.Exists(name)) {
-        Out << run.counters.Get(name).value;
+        Out << run.counters.Get(name).Value();
       }
     }
     Out << '\n';

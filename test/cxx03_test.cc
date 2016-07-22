@@ -33,7 +33,7 @@ void BM_counters(benchmark::State& state) {
         volatile std::size_t x = state.iterations();
         ((void)x);
     }
-    state.AddCounter("Foo", 2);
+    state.SetCounter("Foo", 2);
 }
 BENCHMARK(BM_counters);
 
