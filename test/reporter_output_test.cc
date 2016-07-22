@@ -123,6 +123,7 @@ std::string dec_re = "[0-9]+\\.[0-9]+";
 // ========================================================================= //
 
 ADD_CASES(&ConsoleOutputTests, {
+    {"^[-]+$", MR_Next},
     {join("^Benchmark", "Time", "CPU", "Iterations$"), MR_Next},
     {"^[-]+$", MR_Next}
 });

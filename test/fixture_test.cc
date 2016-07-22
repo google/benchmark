@@ -64,19 +64,22 @@ BENCHMARK_DEFINE_F(CounterFixture, BumpById)(benchmark::State& st) {
   assert(posFoo == 0);
   assert(posBar == 1);
   while (st.KeepRunning()) {
-      st.GetCounter(posFoo).value += 1.f;
-      st.GetCounter(posBar).value += 1.f;
+      st.GetCounter(posFoo) += 1.;
+      st.GetCounter(posBar) += 1.;
   }
   assert(st.GetCounter(posFoo).value != 0.);
+  assert(st.GetCounter(posFoo).WasReported());
   st.SetItemsProcessed(st.iterations());
 }
 BENCHMARK_REGISTER_F(CounterFixture, BumpById);
 
 BENCHMARK_DEFINE_F(CounterFixture, BumpByName)(benchmark::State& st) {
   while (st.KeepRunning()) {
-      st.GetCounter("Foo").value += 1.f;
-      st.GetCounter("Bar").value += 1.f;
+      st.GetCounter("Foo") += 1.;
+      st.GetCounter("Bar") += 1.;
   }
+  assert(st.GetCounter(posFoo).value != 0.);
+  assert(st.GetCounter(posFoo).WasReported());
   st.SetItemsProcessed(st.iterations());
 }
 BENCHMARK_REGISTER_F(CounterFixture, BumpByName);
