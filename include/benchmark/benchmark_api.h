@@ -668,7 +668,6 @@ internal::Benchmark* RegisterBenchmark(const char* name, Lambda&& fn,
 #endif
 #endif // BENCHMARK_HAS_CXX11
 
-
 // The base class for all fixture tests.
 class Fixture: public internal::Benchmark {
 public:

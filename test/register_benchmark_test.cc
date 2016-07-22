@@ -8,7 +8,7 @@
 namespace {
 
 class TestReporter : public benchmark::ConsoleReporter {
- public:
+public:
   virtual void ReportRuns(const std::vector<Run>& report) {
     all_runs_.insert(all_runs_.end(), begin(report), end(report));
     ConsoleReporter::ReportRuns(report);
@@ -65,7 +65,6 @@ ReturnVal dummy = benchmark::RegisterBenchmark(
     "BM_function_manual_registration",
      BM_function);
 ADD_CASES({"BM_function"}, {"BM_function_manual_registration"});
-
 
 //----------------------------------------------------------------------------//
 // Test RegisterBenchmark with additional arguments
