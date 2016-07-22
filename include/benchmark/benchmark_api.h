@@ -656,13 +656,17 @@ internal::Benchmark* RegisterBenchmark(const char* name, Lambda&& fn) {
         ::new BenchType(name, std::forward<Lambda>(fn)));
 }
 
+#if !defined(BENCHMARK_GCC_VERSION) || BENCHMARK_GCC_VERSION >= 409
 template <class Lambda, class ...Args>
 internal::Benchmark* RegisterBenchmark(const char* name, Lambda&& fn,
                                        Args&&... args) {
     return benchmark::RegisterBenchmark(name,
         [=](benchmark::State& st) { fn(st, args...); });
 }
+#else
+#define BENCHMARK_HAS_NO_VARIADIC_REGISTER_BENCHMARK
 #endif
+#endif // BENCHMARK_HAS_CXX11
 
 
 // The base class for all fixture tests.

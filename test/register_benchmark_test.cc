@@ -9,19 +9,12 @@ namespace {
 
 class TestReporter : public benchmark::ConsoleReporter {
  public:
-  virtual bool ReportContext(const Context& context) {
-    return ConsoleReporter::ReportContext(context);
-  };
-
   virtual void ReportRuns(const std::vector<Run>& report) {
     all_runs_.insert(all_runs_.end(), begin(report), end(report));
     ConsoleReporter::ReportRuns(report);
   }
 
-  TestReporter()  {}
-  virtual ~TestReporter() {}
-
-  mutable std::vector<Run> all_runs_;
+  std::vector<Run> all_runs_;
 };
 
 struct TestCase {
@@ -34,9 +27,11 @@ struct TestCase {
   typedef benchmark::BenchmarkReporter::Run Run;
 
   void CheckRun(Run const& run) const {
-    CHECK(name == run.benchmark_name) << "expected " << name << " got " << run.benchmark_name;
+    CHECK(name == run.benchmark_name) << "expected " << name
+                                      << " got " << run.benchmark_name;
     if (label) {
-      CHECK(run.report_label == label) << "expected " << label << " got " << run.report_label;
+      CHECK(run.report_label == label) << "expected " << label
+                                       << " got " << run.report_label;
     } else {
       CHECK(run.report_label == "");
     }
@@ -61,15 +56,23 @@ int CONCAT(dummy, __LINE__) = AddCases({__VA_ARGS__})
 
 typedef benchmark::internal::Benchmark* ReturnVal;
 
-void BM_function(benchmark::State& state) {
-  while (state.KeepRunning()) {}
-}
+//----------------------------------------------------------------------------//
+// Test RegisterBenchmark with no additional arguments
+//----------------------------------------------------------------------------//
+void BM_function(benchmark::State& state) { while (state.KeepRunning()) {} }
 BENCHMARK(BM_function);
 ReturnVal dummy = benchmark::RegisterBenchmark(
     "BM_function_manual_registration",
      BM_function);
 ADD_CASES({"BM_function"}, {"BM_function_manual_registration"});
 
+
+//----------------------------------------------------------------------------//
+// Test RegisterBenchmark with additional arguments
+// Note: GCC <= 4.8 do not support this form of RegisterBenchmark because they
+//       reject the variadic pack expansion of lambda captures.
+//----------------------------------------------------------------------------//
+#ifndef BENCHMARK_HAS_NO_VARIADIC_REGISTER_BENCHMARK
 
 void BM_extra_args(benchmark::State& st, const char* label) {
   while (st.KeepRunning()) {}
@@ -92,6 +95,12 @@ ADD_CASES(
   {"test3", "Three"}
 );
 
+#endif // BENCHMARK_HAS_NO_VARIADIC_REGISTER_BENCHMARK
+
+//----------------------------------------------------------------------------//
+// Test RegisterBenchmark with different callable types
+//----------------------------------------------------------------------------//
+
 struct CustomFixture {
   void operator()(benchmark::State& st) {
     while (st.KeepRunning()) {}
@@ -104,6 +113,7 @@ void TestRegistrationAtRuntime() {
     benchmark::RegisterBenchmark("custom_fixture", fx);
     AddCases({"custom_fixture"});
   }
+#ifndef BENCHMARK_HAS_NO_VARIADIC_REGISTER_BENCHMARK
   {
     int x = 42;
     auto capturing_lam = [=](benchmark::State& st) {
@@ -113,6 +123,7 @@ void TestRegistrationAtRuntime() {
     benchmark::RegisterBenchmark("lambda_benchmark", capturing_lam);
     AddCases({{"lambda_benchmark", "42"}});
   }
+#endif
 }
 
 int main(int argc, char* argv[]) {

@@ -57,4 +57,8 @@
 # define BENCHMARK_BUILTIN_EXPECT(x, y) x
 #endif
 
+#if defined(__GNUC__) && !defined(__clang__)
+#define BENCHMARK_GCC_VERSION (__GNUC__ * 100 + __GNUC_MINOR__)
+#endif
+
 #endif  // BENCHMARK_MACROS_H_
