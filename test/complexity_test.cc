@@ -36,18 +36,27 @@ struct TestCase {
     CHECK(err_str.empty()) << "Could not construct regex \"" << regex << "\""
                            << " got Error: " << err_str;
 
+    std::string near = "<EOF>";
     std::string line;
+    bool first = true;
     while (remaining_output.eof() == false) {
         CHECK(remaining_output.good());
         std::getline(remaining_output, line);
+        // Keep the first line as context.
+        if (first) {
+            near = line;
+            first = false;
+        }
         if (r.Match(line)) return;
         CHECK(match_rule != MR_Next) << "Expected line \"" << line
-                                     << "\" to match regex \"" << regex << "\"";
+                                     << "\" to match regex \"" << regex << "\""
+                                     << "\nstarted matching at line: \"" << near << "\"";
     }
 
     CHECK(remaining_output.eof() == false)
         << "End of output reached before match for regex \"" << regex
-        << "\" was found";
+        << "\" was found"
+        << "\nstarted matching at line: \"" << near << "\"";
   }
 };
 
