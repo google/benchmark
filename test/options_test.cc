@@ -11,9 +11,11 @@ void BM_basic(benchmark::State& state) {
 void BM_basic_slow(benchmark::State& state) {
   std::chrono::milliseconds sleep_duration(state.range_x());
   while (state.KeepRunning()) {
-    std::this_thread::sleep_for(
-      std::chrono::duration_cast<std::chrono::nanoseconds>(sleep_duration)
-      );
+    // Simulate some useful workload by sleeping.
+    // Note: std::this_thread::sleep_for doesn't work with GCC 4.7 on some
+    // platforms.
+    const auto sleep_end = std::chrono::steady_clock::now() + sleep_duration;
+    while (std::chrono::steady_clock::now() < sleep_end) {}
   }
 }
 
