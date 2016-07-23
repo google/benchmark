@@ -185,7 +185,7 @@ ADD_CASES(&CSVOutputTests, {
 void BM_Complexity_O1(benchmark::State& state) {
   while (state.KeepRunning()) {
   }
-  state.SetComplexityN(state.range_x());
+  state.SetComplexityN(state.range(0));
 }
 BENCHMARK(BM_Complexity_O1)->Range(1, 1<<18)->Complexity(benchmark::o1);
 

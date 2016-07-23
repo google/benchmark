@@ -359,8 +359,6 @@ public:
   void Unit(TimeUnit unit);
   void Range(int start, int limit);
   void DenseRange(int start, int limit, int step = 1);
-  void ArgPair(int start, int limit);
-  void RangePair(int lo1, int hi1, int lo2, int hi2);
   void Args(const std::vector<int>& args);
   void Ranges(const std::vector<std::pair<int, int>>& ranges);
   void RangeMultiplier(int multiplier);
@@ -527,24 +525,6 @@ void BenchmarkImp::DenseRange(int start, int limit, int step) {
   }
 }
 
-void BenchmarkImp::ArgPair(int x, int y) {
-  CHECK(ArgsCnt() == -1 || ArgsCnt() == 2);
-  args_.push_back({x, y});
-}
-
-void BenchmarkImp::RangePair(int lo1, int hi1, int lo2, int hi2) {
-  CHECK(ArgsCnt() == -1 || ArgsCnt() == 2);
-  std::vector<int> arglist1, arglist2;
-  AddRange(&arglist1, lo1, hi1, range_multiplier_);
-  AddRange(&arglist2, lo2, hi2, range_multiplier_);
-
-  for (int i : arglist1) {
-    for (int j : arglist2) {
-      args_.push_back({i, j});
-    }
-  }
-}
-
 void BenchmarkImp::Args(const std::vector<int>& args)
 {
   args_.push_back(args);
@@ -698,18 +678,6 @@ Benchmark* Benchmark::Ranges(const std::vector<std::pair<int, int>>& ranges)
 Benchmark* Benchmark::DenseRange(int start, int limit, int step) {
   CHECK(imp_->ArgsCnt() == -1 || imp_->ArgsCnt() == 1);
   imp_->DenseRange(start, limit, step);
-  return this;
-}
-
-Benchmark* Benchmark::ArgPair(int x, int y) {
-  CHECK(imp_->ArgsCnt() == -1 || imp_->ArgsCnt() == 2);
-  imp_->ArgPair(x, y);
-  return this;
-}
-
-Benchmark* Benchmark::RangePair(int lo1, int hi1, int lo2, int hi2) {
-  CHECK(imp_->ArgsCnt() == -1 || imp_->ArgsCnt() == 2);
-  imp_->RangePair(lo1, hi1, lo2, hi2);
   return this;
 }
 

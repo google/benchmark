@@ -161,7 +161,7 @@ int AddComplexityTest(std::vector<TestCase>* console_out, std::vector<TestCase>*
 void BM_Complexity_O1(benchmark::State& state) {
   while (state.KeepRunning()) {
   }
-  state.SetComplexityN(state.range_x());
+  state.SetComplexityN(state.range(0));
 }
 BENCHMARK(BM_Complexity_O1) -> Range(1, 1<<18) -> Complexity(benchmark::o1);
 BENCHMARK(BM_Complexity_O1) -> Range(1, 1<<18) -> Complexity();
@@ -198,12 +198,12 @@ std::vector<int> ConstructRandomVector(int size) {
 }
 
 void BM_Complexity_O_N(benchmark::State& state) {
-  auto v = ConstructRandomVector(state.range_x());
-  const int item_not_in_vector = state.range_x()*2; // Test worst case scenario (item not in vector)
+  auto v = ConstructRandomVector(state.range(0));
+  const int item_not_in_vector = state.range(0)*2; // Test worst case scenario (item not in vector)
   while (state.KeepRunning()) {
       benchmark::DoNotOptimize(std::find(v.begin(), v.end(), item_not_in_vector));
   }
-  state.SetComplexityN(state.range_x());
+  state.SetComplexityN(state.range(0));
 }
 BENCHMARK(BM_Complexity_O_N) -> RangeMultiplier(2) -> Range(1<<10, 1<<16) -> Complexity(benchmark::oN);
 BENCHMARK(BM_Complexity_O_N) -> RangeMultiplier(2) -> Range(1<<10, 1<<16) -> Complexity([](int n) -> double{return n; });
@@ -227,11 +227,11 @@ ADD_COMPLEXITY_CASES(&ConsoleOutputTests, &JSONOutputTests, &CSVOutputTests,
 // ========================================================================= //
 
 static void BM_Complexity_O_N_log_N(benchmark::State& state) {
-  auto v = ConstructRandomVector(state.range_x());
+  auto v = ConstructRandomVector(state.range(0));
   while (state.KeepRunning()) {
       std::sort(v.begin(), v.end());
   }
-  state.SetComplexityN(state.range_x());
+  state.SetComplexityN(state.range(0));
 }
 BENCHMARK(BM_Complexity_O_N_log_N) -> RangeMultiplier(2) -> Range(1<<10, 1<<16) -> Complexity(benchmark::oNLogN);
 BENCHMARK(BM_Complexity_O_N_log_N) -> RangeMultiplier(2) -> Range(1<<10, 1<<16) -> Complexity([](int n) {return n * std::log2(n); });
