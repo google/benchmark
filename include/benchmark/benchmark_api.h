@@ -489,9 +489,9 @@ public:
   // REQUIRES: The function passed to the constructor must accept an arg1.
   Benchmark* Range(int start, int limit);
 
-  // Run this benchmark once for every value in the range [start..limit]
+  // Run this benchmark once for all values in the range [start..limit] with specific step
   // REQUIRES: The function passed to the constructor must accept an arg1.
-  Benchmark* DenseRange(int start, int limit);
+  Benchmark* DenseRange(int start, int limit, int step = 1);
 
   // Run this benchmark once with "x,y" as the extra arguments passed
   // to the function.
