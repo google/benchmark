@@ -121,7 +121,7 @@ std::string join(First f, Args&&... args) {
     return std::string(std::move(f)) + "[ ]+" + join(std::forward<Args>(args)...);
 }
 
-std::string dec_re = "[0-9]+\\.[0-9]+";
+std::string dec_re = "[0-9]*[.]?[0-9]+([eE][-+][0-9]+)?";
 
 #define ADD_COMPLEXITY_CASES(...) \
     int CONCAT(dummy, __LINE__) = AddComplexityTest(__VA_ARGS__)
@@ -147,7 +147,7 @@ int AddComplexityTest(std::vector<TestCase>* console_out, std::vector<TestCase>*
   });
   AddCases(csv_out, {
     {"^\"" + big_o_test_name + "\",," + dec_re + "," + dec_re + "," + big_o + ",,,,,$"},
-    {"^\"" + rms_test_name + "\",," + dec_re + "," + dec_re + ",,,,,,$"}
+    {"^\"" + rms_test_name + "\",," + dec_re + "," + dec_re + ",,,,,,$", MR_Next}
   });
   return 0;
 }
@@ -164,8 +164,8 @@ void BM_Complexity_O1(benchmark::State& state) {
   state.SetComplexityN(state.range_x());
 }
 BENCHMARK(BM_Complexity_O1) -> Range(1, 1<<18) -> Complexity(benchmark::o1);
-BENCHMARK(BM_Complexity_O1) -> Range(1, 1<<18) -> Complexity([](int){return 1.0; });
 BENCHMARK(BM_Complexity_O1) -> Range(1, 1<<18) -> Complexity();
+BENCHMARK(BM_Complexity_O1) -> Range(1, 1<<18) -> Complexity([](int){return 1.0; });
 
 const char* big_o_1_test_name = "BM_Complexity_O1_BigO";
 const char* rms_o_1_test_name = "BM_Complexity_O1_RMS";
@@ -174,6 +174,10 @@ const char* lambda_big_o_1 = "f\\(N\\)";
 
 // Add enum tests
 ADD_COMPLEXITY_CASES(&ConsoleOutputTests, &JSONOutputTests, &CSVOutputTests, 
+                     big_o_1_test_name, rms_o_1_test_name, enum_auto_big_o_1);
+
+// Add auto enum tests
+ADD_COMPLEXITY_CASES(&ConsoleOutputTests, &JSONOutputTests, &CSVOutputTests,
                      big_o_1_test_name, rms_o_1_test_name, enum_auto_big_o_1);
 
 // Add lambda tests

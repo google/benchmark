@@ -562,7 +562,7 @@ public:
   void Arg(int x);
   void Unit(TimeUnit unit);
   void Range(int start, int limit);
-  void DenseRange(int start, int limit);
+  void DenseRange(int start, int limit, int step = 1);
   void ArgPair(int start, int limit);
   void RangePair(int lo1, int hi1, int lo2, int hi2);
   void RangeMultiplier(int multiplier);
@@ -726,12 +726,12 @@ void BenchmarkImp::Range(int start, int limit) {
   }
 }
 
-void BenchmarkImp::DenseRange(int start, int limit) {
+void BenchmarkImp::DenseRange(int start, int limit, int step) {
   CHECK(arg_count_ == -1 || arg_count_ == 1);
   arg_count_ = 1;
   CHECK_GE(start, 0);
   CHECK_LE(start, limit);
-  for (int arg = start; arg <= limit; arg++) {
+  for (int arg = start; arg <= limit; arg += step) {
     args_.emplace_back(arg, -1);
   }
 }
@@ -863,8 +863,8 @@ Benchmark* Benchmark::Range(int start, int limit) {
   return this;
 }
 
-Benchmark* Benchmark::DenseRange(int start, int limit) {
-  imp_->DenseRange(start, limit);
+Benchmark* Benchmark::DenseRange(int start, int limit, int step) {
+  imp_->DenseRange(start, limit, step);
   return this;
 }
 

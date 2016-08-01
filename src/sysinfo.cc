@@ -253,7 +253,7 @@ void InitializeSystemInfo() {
   else
     cpuinfo_cycles_per_second = static_cast<double>(EstimateCyclesPerSecond());
 
-  SYSTEM_INFO sysinfo = { 0 };
+  SYSTEM_INFO sysinfo = {};
   GetSystemInfo(&sysinfo);
   cpuinfo_num_cpus = sysinfo.dwNumberOfProcessors; // number of logical processors in the current group
 
