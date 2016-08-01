@@ -340,7 +340,7 @@ BenchmarkCounters::BenchmarkCounters() {
 }
 
 size_t BenchmarkCounters::Set(Counter const& c) {
-  size_t pos = Find(c.Name());
+  size_t pos = Find(c.Name().c_str());
   if(pos < counters_.size()) {
     counters_[pos] = c;
   } else {
@@ -350,16 +350,6 @@ size_t BenchmarkCounters::Set(Counter const& c) {
   return pos;
 }
 size_t BenchmarkCounters::Set(const char *n, double v, uint32_t f) {
-  size_t pos = Find(n);
-  if(pos < counters_.size()) {
-    counters_[pos].Set(v);
-  } else {
-    pos = counters_.size();
-    counters_.emplace_back(n, v, f);
-  }
-  return pos;
-}
-size_t BenchmarkCounters::Set(std::string const& n, double v, uint32_t f) {
   size_t pos = Find(n);
   if(pos < counters_.size()) {
     counters_[pos].Set(v);
@@ -388,16 +378,6 @@ Counter const& BenchmarkCounters::Get(const char *name) const {
   CHECK_EQ(Exists(name), true) << "Counter not found: " << name;
   return counters_[id];
 }
-Counter& BenchmarkCounters::Get(std::string const& name) {
-  size_t id = Find(name);
-  CHECK_EQ(Exists(name), true) << "Counter not found: " << name;
-  return counters_[id];
-}
-Counter const& BenchmarkCounters::Get(std::string const& name) const {
-  CHECK_EQ(Exists(name), true) << "Counter not found: " << name;
-  size_t id = Find(name);
-  return counters_[id];
-}
 
 
 bool BenchmarkCounters::SameNames(BenchmarkCounters const& that) const {
@@ -406,7 +386,7 @@ bool BenchmarkCounters::SameNames(BenchmarkCounters const& that) const {
     return false;
   }
   for(auto const& c : counters_) {
-    if(that.Find(c.Name()) == that.counters_.size()) {
+    if(that.Find(c.Name().c_str()) == that.counters_.size()) {
       return false;
     }
   }
@@ -423,16 +403,6 @@ size_t BenchmarkCounters::Find(const char *name) const {
   }
   return pos;
 }
-// returns the index where name is located,
-// or size() if the name was not found
-size_t BenchmarkCounters::Find(std::string const& name) const {
-  size_t pos = 0;
-  for(auto &p : counters_) {
-    if(p.Name() == name) break;
-    ++pos;
-  }
-  return pos;
-}
 
 void BenchmarkCounters::Sum(BenchmarkCounters const& that) {
   if(counters_.empty()) {
@@ -441,14 +411,14 @@ void BenchmarkCounters::Sum(BenchmarkCounters const& that) {
   }
   // add counters present in both or just in this
   for(Counter &c : counters_) {
-    size_t j = that.Find(c.Name());
+    size_t j = that.Find(c.Name().c_str());
     if(j < that.counters_.size()) {
       c.Set(c.Value() + that.counters_[j].Value());
     }
   }
   // add counters present in that, but not in this
   for(Counter const &tc : that.counters_) {
-    size_t j = Find(tc.Name());
+    size_t j = Find(tc.Name().c_str());
     if(j >= counters_.size()) {
       Set(tc);
     }

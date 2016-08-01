@@ -288,28 +288,21 @@ public:
   // Add/Set a counter. Will overwrite any additional counter properties.
   size_t  Set(Counter const& c);
   // Add/Set a counter. When the counter already exists, f is ignored.
-  size_t  Set(const char*        n, double v, uint32_t f = Counter::kDefaults);
-  // Add/Set a counter. When the counter already exists, f is ignored.
-  size_t  Set(std::string const& n, double v, uint32_t f = Counter::kDefaults);
+  size_t  Set(const char* n, double v, uint32_t f = Counter::kDefaults);
 
 #ifdef BENCHMARK_HAS_CXX11
   void    Set(std::initializer_list< Counter > il) { for(auto &c : il) { Set(c); } }
 #endif
 
   // Returns the index where name is located, or size() if the name was not found.
-  size_t  Find(const char*        name) const;
-  // Returns the index where name is located, or size() if the name was not found.
-  size_t  Find(std::string const& name) const;
+  size_t  Find(const char* name) const;
 
-  bool    Exists(const char*        name) const { return Find(name) != counters_.size(); }
-  bool    Exists(std::string const& name) const { return Find(name) != counters_.size(); }
+  bool    Exists(const char* name) const { return Find(name) < counters_.size(); }
 
-  Counter      & Get(size_t               id);
-  Counter const& Get(size_t               id) const;
-  Counter      & Get(const char*        name);
-  Counter const& Get(const char*        name) const;
-  Counter      & Get(std::string const& name);
-  Counter const& Get(std::string const& name) const;
+  Counter & Get(size_t id);
+  Counter & Get(const char* name);
+  Counter const& Get(size_t id) const;
+  Counter const& Get(const char* name) const;
 
   bool    SameNames(BenchmarkCounters const& that) const;
 
@@ -546,29 +539,21 @@ public:
 
   // Add/set a user counter. Return the counter handle.
   BENCHMARK_ALWAYS_INLINE
-  size_t SetCounter(Counter const& c) { return counters_.Set(c); }
-  // Add/set a user counter. Return the counter handle.
-  BENCHMARK_ALWAYS_INLINE
   size_t SetCounter(const char* n, double v = 0., uint32_t f = Counter::kDefaults) { return counters_.Set(n, v, f); }
-  // Add/set a user counter. Return the counter handle.
-  BENCHMARK_ALWAYS_INLINE
-  size_t SetCounter(std::string const& n, double v = 0., uint32_t f = Counter::kDefaults) { return counters_.Set(n, v, f); }
   // Given a counter handle, set a previously existing user counter.
   BENCHMARK_ALWAYS_INLINE
-  void   SetCounter(size_t counter_id, double v) { counters_.Get(counter_id).Set(v); }
+  void SetCounter(size_t counter_id, double v) { counters_.Get(counter_id).Set(v); }
 
 #ifdef BENCHMARK_HAS_CXX11
   // Set several previously existing counters at once.
   BENCHMARK_ALWAYS_INLINE
-  void   SetCounter(std::initializer_list< Counter > il) { counters_.Set(il); }
+  void SetCounter(std::initializer_list< Counter > il) { counters_.Set(il); }
 #endif
 
-  BENCHMARK_ALWAYS_INLINE Counter      & GetCounter(size_t               id)       { return counters_.Get(id);   }
-  BENCHMARK_ALWAYS_INLINE Counter const& GetCounter(size_t               id) const { return counters_.Get(id);   }
-  BENCHMARK_ALWAYS_INLINE Counter      & GetCounter(const char *       name)       { return counters_.Get(name); }
-  BENCHMARK_ALWAYS_INLINE Counter const& GetCounter(const char *       name) const { return counters_.Get(name); }
-  BENCHMARK_ALWAYS_INLINE Counter      & GetCounter(std::string const& name)       { return counters_.Get(name); }
-  BENCHMARK_ALWAYS_INLINE Counter const& GetCounter(std::string const& name) const { return counters_.Get(name); }
+  BENCHMARK_ALWAYS_INLINE Counter & GetCounter(size_t id) { return counters_.Get(id);   }
+  BENCHMARK_ALWAYS_INLINE Counter & GetCounter(const char* name) { return counters_.Get(name); }
+  BENCHMARK_ALWAYS_INLINE Counter const& GetCounter(size_t id) const { return counters_.Get(id);   }
+  BENCHMARK_ALWAYS_INLINE Counter const& GetCounter(const char* name) const { return counters_.Get(name); }
 
   BENCHMARK_ALWAYS_INLINE BenchmarkCounters const& Counters() { return counters_; }
 
@@ -588,7 +573,7 @@ private:
 
   int complexity_n_;
 
-  mutable BenchmarkCounters counters_;
+  BenchmarkCounters counters_;
 
 public:
   // FIXME: Make this private somehow.

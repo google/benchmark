@@ -215,7 +215,7 @@ std::vector<BenchmarkReporter::Run> ComputeStats(
   mean_data.items_per_second = items_per_second_stat.Mean();
   // user counters
   for(auto const& kv : counter_stats) {
-    mean_data.counters.Set(kv.first, kv.second.Mean() /**@todo add the rest of the settings (fmt,flags)*/);
+    mean_data.counters.Set(kv.first.c_str(), kv.second.Mean() /**@todo add the rest of the settings (fmt,flags)*/);
   }
 
   // Only add label to mean/stddev if it is same for all runs
@@ -237,7 +237,7 @@ std::vector<BenchmarkReporter::Run> ComputeStats(
   stddev_data.items_per_second = items_per_second_stat.StdDev();
   // user counters
   for(auto const& kv : counter_stats) {
-    stddev_data.counters.Set(kv.first, kv.second.StdDev() /**@todo add the rest of the settings (fmt,flags)*/);
+    stddev_data.counters.Set(kv.first.c_str(), kv.second.StdDev() /**@todo add the rest of the settings (fmt,flags)*/);
   }
 
   results.push_back(mean_data);

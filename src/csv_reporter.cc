@@ -86,8 +86,8 @@ void CSVReporter::ReportRuns(const std::vector<Run> & reports) {
     // So I'll defer judgment here.
     for (const auto &name : user_counter_names) {
       Out << ",";
-      if(run.counters.Exists(name)) {
-        Out << run.counters.Get(name).Value();
+      if(run.counters.Exists(name.c_str())) {
+        Out << run.counters.Get(name.c_str()).Value();
       }
     }
     Out << '\n';
