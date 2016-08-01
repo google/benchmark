@@ -155,9 +155,7 @@ BENCHMARK(BM_test)->Unit(benchmark::kMillisecond);
 
 #include "macros.h"
 
-#include <utility> // for std::pair in UserCounters
 #include <vector>
-#include <string>
 #ifdef BENCHMARK_HAS_CXX11
 # include <initializer_list>
 #endif
@@ -249,27 +247,37 @@ public:
 
 public:
 
-  Counter(std::string const& n, double v = 0., uint32_t flags = kDefaults);
-
-  std::string const& Name() const { return name_; }
-  double Value() const { return value_; }
+  Counter(const char *name = NULL, double v = 0., uint32_t flags = kDefaults);
+  ~Counter();
+  Counter(Counter const& that);
+  Counter& operator= (Counter const& that);
+#ifdef BENCHMARK_HAS_CXX11
+  Counter(Counter && that);
+  Counter& operator= (Counter && that);
+#endif
 
   void Set(double v) { value_ = v; }
+
+  void Finish(double cpu_time, double num_threads);
+
+  const char* Name() const { return name_; }
+  double Value() const { return value_; }
+
+  bool SameName(const char *n) const;
 
   Counter& operator+= (double v) { value_ += v; return *this; }
   Counter& operator-= (double v) { value_ -= v; return *this; }
   Counter& operator*= (double v) { value_ *= v; return *this; }
   Counter& operator/= (double v) { value_ /= v; return *this; }
 
-  void Finish(double cpu_time, double num_threads);
-
 private:
 
-  std::string name_;
+  char*       name_;
   double      value_;
   uint32_t    flags_;
   // <jppm> maybe we could add a description field...
 
+  void _SetName(const char *name);
 };
 
 
@@ -285,10 +293,12 @@ public:
 
   BenchmarkCounters();
 
-  // Add/Set a counter. Will overwrite any additional counter properties.
+  // Add/Set a counter.
   size_t  Set(Counter const& c);
+  // Add/Set a counter.
+  size_t  Set(const char* n, double v) { return Set(n, v, Counter::kDefaults); }
   // Add/Set a counter. When the counter already exists, f is ignored.
-  size_t  Set(const char* n, double v, uint32_t f = Counter::kDefaults);
+  size_t  Set(const char* n, double v, uint32_t f);
 
 #ifdef BENCHMARK_HAS_CXX11
   void    Set(std::initializer_list< Counter > il) { for(auto &c : il) { Set(c); } }
@@ -537,9 +547,15 @@ public:
   size_t iterations() const { return total_iterations_; }
 
 
+  // Add a user counter. Return the counter handle.
+  BENCHMARK_ALWAYS_INLINE
+  size_t SetCounter(const char* n) { return counters_.Set(n); }
   // Add/set a user counter. Return the counter handle.
   BENCHMARK_ALWAYS_INLINE
-  size_t SetCounter(const char* n, double v = 0., uint32_t f = Counter::kDefaults) { return counters_.Set(n, v, f); }
+  size_t SetCounter(const char* n, double v) { return counters_.Set(n, v); }
+  // Add/set a user counter. Return the counter handle.
+  BENCHMARK_ALWAYS_INLINE
+  size_t SetCounter(const char* n, double v, uint32_t f) { return counters_.Set(n, v, f); }
   // Given a counter handle, set a previously existing user counter.
   BENCHMARK_ALWAYS_INLINE
   void SetCounter(size_t counter_id, double v) { counters_.Get(counter_id).Set(v); }

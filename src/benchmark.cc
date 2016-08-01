@@ -303,11 +303,62 @@ static std::unique_ptr<TimerManager> timer_manager = nullptr;
 } // end namespace
 
 
+Counter::Counter(const char* name, double v, uint32_t f)
+  : name_(nullptr), value_(v), flags_(f) {
+  _SetName(name);
+}
 
-Counter::Counter(std::string const& n, double v, uint32_t f)
-  : name_(n), value_(v), flags_(f)
-{}
+Counter::Counter(Counter const& that)
+  : name_(nullptr), value_(that.value_), flags_(that.flags_) {
+  _SetName(that.name_);
+}
+Counter& Counter::operator= (Counter const& that) {
+  if(&that == this) return *this;
+  _SetName(NULL);
+  _SetName(that.name_);
+  value_ = that.value_;
+  flags_ = that.flags_;
+  return *this;
+}
 
+#ifdef BENCHMARK_HAS_CXX11
+Counter::Counter(Counter && that)
+  : name_(that.name_), value_(that.value_), flags_(that.flags_) {
+  that._SetName(NULL);
+}
+Counter& Counter::operator= (Counter && that) {
+  if(&that == this) return *this;
+  _SetName(NULL);
+  name_ = that.name_;
+  value_ = that.value_;
+  flags_ = that.flags_;
+  that._SetName(NULL);
+  return *this;
+}
+#endif // BENCHMARK_HAS_CXX11
+
+Counter::~Counter() {
+  _SetName(NULL);
+}
+
+void Counter::_SetName(const char *n) {
+  if(n) {
+    size_t sz = strlen(n);
+    name_ = new char [sz + 1];
+    strncpy(name_, n, sz);
+    name_[sz] = '\0';
+  } else {
+    if(name_) {
+      delete [] name_;
+      name_ = nullptr;
+    }
+  }
+}
+
+bool Counter::SameName(const char *n) const {
+    int stat = strcmp(name_, n);
+    return stat == 0;
+}
 void Counter::Finish(double cpu_time, double num_threads) {
   if(flags_ & kIsRate) {
     value_ /= cpu_time;
@@ -340,7 +391,7 @@ BenchmarkCounters::BenchmarkCounters() {
 }
 
 size_t BenchmarkCounters::Set(Counter const& c) {
-  size_t pos = Find(c.Name().c_str());
+  size_t pos = Find(c.Name());
   if(pos < counters_.size()) {
     counters_[pos] = c;
   } else {
@@ -349,6 +400,7 @@ size_t BenchmarkCounters::Set(Counter const& c) {
   }
   return pos;
 }
+
 size_t BenchmarkCounters::Set(const char *n, double v, uint32_t f) {
   size_t pos = Find(n);
   if(pos < counters_.size()) {
@@ -386,7 +438,7 @@ bool BenchmarkCounters::SameNames(BenchmarkCounters const& that) const {
     return false;
   }
   for(auto const& c : counters_) {
-    if(that.Find(c.Name().c_str()) == that.counters_.size()) {
+    if(that.Find(c.Name()) == that.counters_.size()) {
       return false;
     }
   }
@@ -398,7 +450,7 @@ bool BenchmarkCounters::SameNames(BenchmarkCounters const& that) const {
 size_t BenchmarkCounters::Find(const char *name) const {
   size_t pos = 0;
   for(auto &p : counters_) {
-    if(p.Name() == name) break;
+    if(p.SameName(name)) break;
     ++pos;
   }
   return pos;
@@ -411,14 +463,14 @@ void BenchmarkCounters::Sum(BenchmarkCounters const& that) {
   }
   // add counters present in both or just in this
   for(Counter &c : counters_) {
-    size_t j = that.Find(c.Name().c_str());
+    size_t j = that.Find(c.Name());
     if(j < that.counters_.size()) {
       c.Set(c.Value() + that.counters_[j].Value());
     }
   }
   // add counters present in that, but not in this
   for(Counter const &tc : that.counters_) {
-    size_t j = Find(tc.Name().c_str());
+    size_t j = Find(tc.Name());
     if(j >= counters_.size()) {
       Set(tc);
     }

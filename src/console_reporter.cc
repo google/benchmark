@@ -57,7 +57,7 @@ void ConsoleReporter::PrintHeader(const Run& run) {
                              static_cast<int>(name_field_width_), "Benchmark",
                              "Time", "CPU", "Iterations");
   for(auto const& c : run.counters) {
-    str += FormatString(" %13s", c.Name().c_str());
+    str += FormatString(" %13s", c.Name());
   }
   std::string line = std::string(str.length(), '-');
   GetOutputStream() << line << "\n" << str << "\n" << line << "\n";
