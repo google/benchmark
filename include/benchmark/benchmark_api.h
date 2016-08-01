@@ -158,7 +158,7 @@ BENCHMARK(BM_test)->Unit(benchmark::kMillisecond);
 #include <utility> // for std::pair in UserCounters
 #include <vector>
 #include <string>
-#ifdef BENCHMARK_INITLIST
+#ifdef BENCHMARK_HAS_CXX11
 # include <initializer_list>
 #endif
 
@@ -292,7 +292,7 @@ public:
   // Add/Set a counter. When the counter already exists, f is ignored.
   size_t  Set(std::string const& n, double v, uint32_t f = Counter::kDefaults);
 
-#ifdef BENCHMARK_INITLIST
+#ifdef BENCHMARK_HAS_CXX11
   void    Set(std::initializer_list< Counter > il) { for(auto &c : il) { Set(c); } }
 #endif
 
@@ -557,7 +557,7 @@ public:
   BENCHMARK_ALWAYS_INLINE
   void   SetCounter(size_t counter_id, double v) { counters_.Get(counter_id).Set(v); }
 
-#ifdef BENCHMARK_INITLIST
+#ifdef BENCHMARK_HAS_CXX11
   // Set several previously existing counters at once.
   BENCHMARK_ALWAYS_INLINE
   void   SetCounter(std::initializer_list< Counter > il) { counters_.Set(il); }

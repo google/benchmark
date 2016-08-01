@@ -230,7 +230,7 @@ static void BM_UserCounter(benchmark::State& state) {
   state.SetCounter("Bar", 2);
   state.SetCounter("Baz", 3);
   state.SetCounter("Bat", 5);
-#if __cplusplus >= 201103L
+#ifdef BENCHMARK_HAS_CXX11
   state.SetCounter({{"Foo", 2}, {"Bar", 3}, {"Baz", 5}, {"Bat", 6}});
 #endif
 }
