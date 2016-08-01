@@ -303,6 +303,20 @@ static std::unique_ptr<TimerManager> timer_manager = nullptr;
 } // end namespace
 
 
+Counter::Counter()
+  : name_(nullptr), value_(0.), flags_(kDefaults) {
+}
+
+Counter::Counter(const char* name)
+  : name_(nullptr), value_(0.), flags_(kDefaults) {
+  _SetName(name);
+}
+
+Counter::Counter(const char* name, double v)
+  : name_(nullptr), value_(v), flags_(kDefaults) {
+  _SetName(name);
+}
+
 Counter::Counter(const char* name, double v, uint32_t f)
   : name_(nullptr), value_(v), flags_(f) {
   _SetName(name);

@@ -247,7 +247,10 @@ public:
 
 public:
 
-  Counter(const char *name = NULL, double v = 0., uint32_t flags = kDefaults);
+  Counter();
+  Counter(const char *name);
+  Counter(const char *name, double v);
+  Counter(const char *name, double v, uint32_t flags);
   ~Counter();
   Counter(Counter const& that);
   Counter& operator= (Counter const& that);
