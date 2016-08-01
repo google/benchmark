@@ -155,7 +155,6 @@ BENCHMARK(BM_test)->Unit(benchmark::kMillisecond);
 
 #include "macros.h"
 
-#include <vector>
 #ifdef BENCHMARK_HAS_CXX11
 # include <initializer_list>
 #endif
@@ -275,6 +274,7 @@ public:
 
 private:
 
+  // use raw C strings here to avoid inclusion of std::string in the public api
   char*       name_;
   double      value_;
   uint32_t    flags_;
@@ -288,13 +288,19 @@ private:
 class BenchmarkCounters {
 public:
 
-  typedef Counter                         value_type;
-  typedef std::vector< Counter >          container_type;
-  typedef container_type::const_iterator  const_iterator;
+  typedef Counter        value_type;
+  typedef Counter const* const_iterator;
 
 public:
 
   BenchmarkCounters();
+  ~BenchmarkCounters();
+  BenchmarkCounters(BenchmarkCounters const& that);
+  BenchmarkCounters& operator= (BenchmarkCounters const& that);
+#ifdef BENCHMARK_HAS_CXX11
+  BenchmarkCounters(BenchmarkCounters && that);
+  BenchmarkCounters& operator= (BenchmarkCounters && that);
+#endif
 
   // Add/Set a counter.
   size_t  Set(Counter const& c);
@@ -310,22 +316,23 @@ public:
   // Returns the index where name is located, or size() if the name was not found.
   size_t  Find(const char* name) const;
 
-  bool    Exists(const char* name) const { return Find(name) < counters_.size(); }
+  bool Exists(const char* name) const { return Find(name) < num_counters_; }
 
   Counter & Get(size_t id);
   Counter & Get(const char* name);
   Counter const& Get(size_t id) const;
   Counter const& Get(const char* name) const;
 
-  bool    SameNames(BenchmarkCounters const& that) const;
+  bool SameNames(BenchmarkCounters const& that) const;
 
-  void    Sum(BenchmarkCounters const& that);
-  void    Finish(double time, double num_threads);
-  void    Clear();
+  void Sum(BenchmarkCounters const& that);
+  void Finish(double time, double num_threads);
+  void Clear();
 
-  size_t          size() const { return counters_.size();  }
-  const_iterator begin() const { return counters_.begin(); }
-  const_iterator end  () const { return counters_.end();   }
+  size_t size() const { return num_counters_;  }
+
+  const_iterator begin() const { return counters_; }
+  const_iterator end () const { return counters_ + num_counters_; }
 
 /* <jppm> Keeping for now the old bytes_processed and items_processed.
 public:
@@ -341,7 +348,13 @@ public:
 
 private:
 
-  std::vector< Counter > counters_;
+  // use raw C pointers here to avoid inclusion of std::vector in the public api
+  Counter * counters_;
+  size_t num_counters_;
+  size_t capacity_;
+
+  void _Reserve(size_t sz);
+  size_t _Add();
 
 };
 

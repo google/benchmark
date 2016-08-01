@@ -328,7 +328,7 @@ Counter::Counter(Counter const& that)
 }
 Counter& Counter::operator= (Counter const& that) {
   if(&that == this) return *this;
-  _SetName(NULL);
+  _SetName(nullptr);
   _SetName(that.name_);
   value_ = that.value_;
   flags_ = that.flags_;
@@ -338,21 +338,21 @@ Counter& Counter::operator= (Counter const& that) {
 #ifdef BENCHMARK_HAS_CXX11
 Counter::Counter(Counter && that)
   : name_(that.name_), value_(that.value_), flags_(that.flags_) {
-  that._SetName(NULL);
+  that._SetName(nullptr);
 }
 Counter& Counter::operator= (Counter && that) {
   if(&that == this) return *this;
-  _SetName(NULL);
+  _SetName(nullptr);
   name_ = that.name_;
   value_ = that.value_;
   flags_ = that.flags_;
-  that._SetName(NULL);
+  that._SetName(nullptr);
   return *this;
 }
 #endif // BENCHMARK_HAS_CXX11
 
 Counter::~Counter() {
-  _SetName(NULL);
+  _SetName(nullptr);
 }
 
 void Counter::_SetName(const char *n) {
@@ -399,39 +399,111 @@ std::string Counter::ToString() const {
 */
 
 
+BenchmarkCounters::BenchmarkCounters()
+ : counters_(nullptr), num_counters_(0), capacity_(0) {
+  _Reserve(16); // minimize reallocations
+}
 
-BenchmarkCounters::BenchmarkCounters() {
-  counters_.reserve(16); // minimize reallocations
+BenchmarkCounters::~BenchmarkCounters() {
+  _Reserve(0);
+}
+
+#ifdef BENCHMARK_HAS_CXX11
+BenchmarkCounters::BenchmarkCounters(BenchmarkCounters && that)
+ : counters_(that.counters_), num_counters_(that.num_counters_), capacity_(that.capacity_) {
+  that.counters_ = nullptr;
+  that.num_counters_ = 0;
+  that.capacity_ = 0;
+}
+BenchmarkCounters& BenchmarkCounters::operator= (BenchmarkCounters && that) {
+  counters_ = that.counters_;
+  num_counters_ = that.num_counters_;
+  capacity_ = that.capacity_;
+  that.counters_ = nullptr;
+  that.num_counters_ = 0;
+  that.capacity_ = 0;
+  return *this;
+}
+#endif // BENCHMARK_HAS_CXX11
+
+BenchmarkCounters::BenchmarkCounters(BenchmarkCounters const& that)
+ : counters_(nullptr), num_counters_(0), capacity_(0) {
+  _Reserve(that.num_counters_);
+  num_counters_ = that.num_counters_; // reserve does not change num_counters_ unless it's cleaning up
+  memcpy(counters_, that.counters_, num_counters_ * sizeof(Counter));
+}
+BenchmarkCounters& BenchmarkCounters::operator= (BenchmarkCounters const& that) {
+  _Reserve(that.num_counters_);
+  num_counters_ = that.num_counters_; // reserve does not change num_counters_ unless it's cleaning up
+  memcpy(counters_, that.counters_, num_counters_ * sizeof(Counter));
+  return *this;
+}
+
+void BenchmarkCounters::_Reserve(size_t sz) {
+  if(sz == 0) {
+    // call the destructor in the counters
+    for(size_t i = 0; i < num_counters_; ++i) {
+      counters_[i].~Counter();
+    }
+    delete [] counters_;
+    num_counters_ = 0;
+    capacity_ = 0;
+    counters_ = nullptr;
+  } else if(sz != capacity_) {
+    Counter *tmp = new Counter[sz];
+    size_t min = sz < num_counters_ ? sz : num_counters_;
+    if(counters_) {
+      memcpy(tmp, counters_, min * sizeof(Counter));
+      delete [] counters_;
+    }
+    counters_ = tmp;
+    capacity_ = sz;
+  }
+}
+
+// this just creates memory space - it does not invoke the constructor
+size_t BenchmarkCounters::_Add() {
+  if(capacity_ == 0) {
+    _Reserve(16);
+  } else if(num_counters_ == capacity_-1) {
+    _Reserve(2 * capacity_);
+  }
+  size_t c = num_counters_++;
+  return c;
 }
 
 size_t BenchmarkCounters::Set(Counter const& c) {
   size_t pos = Find(c.Name());
-  if(pos < counters_.size()) {
+  if(pos < num_counters_) {
     counters_[pos] = c;
   } else {
-    pos = counters_.size();
-    counters_.push_back(c);
+    pos = _Add(); // get room
+    Counter *tmp = counters_ + pos; // it's here
+    tmp = new (tmp) Counter(c); // call the ctor using placement new
+    (void)tmp; // prevent unused warning
   }
   return pos;
 }
 
 size_t BenchmarkCounters::Set(const char *n, double v, uint32_t f) {
   size_t pos = Find(n);
-  if(pos < counters_.size()) {
+  if(pos < num_counters_) {
     counters_[pos].Set(v);
   } else {
-    pos = counters_.size();
-    counters_.emplace_back(n, v, f);
+    pos = _Add(); // get room
+    Counter *tmp = counters_ + pos; // it's here
+    tmp = new (tmp) Counter(n, v, f); // call the ctor placement new
+    (void)tmp; // prevent unused warning
   }
   return pos;
 }
 
 Counter& BenchmarkCounters::Get(size_t id) {
-  CHECK_LT(id, counters_.size()) << "Invalid counter handle: " << id;
+  CHECK_LT(id, num_counters_) << "Invalid counter handle: " << id;
   return counters_[id];
 }
 Counter const& BenchmarkCounters::Get(size_t id) const {
-  CHECK_LT(id, counters_.size()) << "Invalid counter handle: " << id;
+  CHECK_LT(id, num_counters_) << "Invalid counter handle: " << id;
   return counters_[id];
 }
 Counter& BenchmarkCounters::Get(const char *name) {
@@ -448,11 +520,12 @@ Counter const& BenchmarkCounters::Get(const char *name) const {
 
 bool BenchmarkCounters::SameNames(BenchmarkCounters const& that) const {
   if(this == &that) return true;
-  if(that.counters_.size() != counters_.size()) {
+  if(that.num_counters_ != num_counters_) {
     return false;
   }
-  for(auto const& c : counters_) {
-    if(that.Find(c.Name()) == that.counters_.size()) {
+  for(size_t i = 0; i < num_counters_; ++i) {
+    Counter const& c = counters_[i];
+    if(that.Find(c.Name()) == that.num_counters_) {
       return false;
     }
   }
@@ -463,43 +536,44 @@ bool BenchmarkCounters::SameNames(BenchmarkCounters const& that) const {
 // or size() if the name was not found
 size_t BenchmarkCounters::Find(const char *name) const {
   size_t pos = 0;
-  for(auto &p : counters_) {
-    if(p.SameName(name)) break;
+  for(size_t i = 0; i < num_counters_; ++i) {
+    Counter const& c = counters_[i];
+    if(c.SameName(name)) break;
     ++pos;
   }
   return pos;
 }
 
 void BenchmarkCounters::Sum(BenchmarkCounters const& that) {
-  if(counters_.empty()) {
-      counters_ = that.counters_;
-      return;
-  }
   // add counters present in both or just in this
-  for(Counter &c : counters_) {
+  for(size_t i = 0; i < num_counters_; ++i) {
+    Counter & c = counters_[i];
     size_t j = that.Find(c.Name());
-    if(j < that.counters_.size()) {
+    if(j < that.num_counters_) {
       c.Set(c.Value() + that.counters_[j].Value());
     }
   }
   // add counters present in that, but not in this
-  for(Counter const &tc : that.counters_) {
+  for(size_t i = 0; i < that.num_counters_; ++i) {
+    Counter const& tc = that.counters_[i];
     size_t j = Find(tc.Name());
-    if(j >= counters_.size()) {
+    if(j >= num_counters_) {
       Set(tc);
     }
   }
 }
 
 void BenchmarkCounters::Finish(double cpu_time, double num_threads) {
-  for(auto &c : counters_) {
+  for(size_t i = 0; i < num_counters_; ++i) {
+    Counter & c = counters_[i];
     c.Finish(cpu_time, num_threads);
   }
 }
 
 void BenchmarkCounters::Clear() {
-  for(auto &p : counters_) {
-    p.Set(0.);
+  for(size_t i = 0; i < num_counters_; ++i) {
+    Counter & c = counters_[i];
+    c.Set(0.);
   }
 }
 
