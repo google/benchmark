@@ -508,3 +508,20 @@ cmake -DCMAKE_BUILD_TYPE=Release -DBENCHMARK_ENABLE_LTO=true
 
 ## Linking against the library
 When using gcc, it is necessary to link against pthread to avoid runtime exceptions. This is due to how gcc implements std::thread. See [issue #67](https://github.com/google/benchmark/issues/67) for more details.
+
+
+## Running a subset of the benchmarks
+
+Similar to the `--gtest_filter` functionality of `googletest`, `benchmark` has a `--benchmark_filter` option:
+
+```bash
+$ ./run_benchmarks.x --benchmark_filter=BM_memcpy/32
+Run on (1 X 2300 MHz CPU )
+2016-06-25 19:34:24
+Benchmark              Time           CPU Iterations
+----------------------------------------------------
+BM_memcpy/32          11 ns         11 ns   79545455   2.76944GB/s
+BM_memcpy/32k       2181 ns       2185 ns     324074   13.9689GB/s
+BM_memcpy/32          12 ns         12 ns   54687500   2.46942GB/s
+BM_memcpy/32k       1834 ns       1837 ns     357143   16.6145GB/s
+```
