@@ -335,8 +335,8 @@ std::string Counter::ToString() const {
 
 
 
-BenchmarkCounters::BenchmarkCounters(size_t initial_capacity) {
-  counters_.reserve(initial_capacity); // minimize reallocations
+BenchmarkCounters::BenchmarkCounters() {
+  counters_.reserve(16); // minimize reallocations
 }
 
 size_t BenchmarkCounters::Set(Counter const& c) {

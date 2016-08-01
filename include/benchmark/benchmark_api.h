@@ -283,7 +283,7 @@ public:
 
 public:
 
-  BenchmarkCounters(size_t initial_capacity = 16);
+  BenchmarkCounters();
 
   // Add/Set a counter. Will overwrite any additional counter properties.
   size_t  Set(Counter const& c);
