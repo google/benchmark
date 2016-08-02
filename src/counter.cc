@@ -45,7 +45,6 @@ Counter::Counter(Counter const& that)
 }
 Counter& Counter::operator= (Counter const& that) {
   if(&that == this) return *this;
-  _SetName(nullptr);
   _SetName(that.name_);
   value_ = that.value_;
   flags_ = that.flags_;
@@ -55,7 +54,7 @@ Counter& Counter::operator= (Counter const& that) {
 #ifdef BENCHMARK_HAS_CXX11
 Counter::Counter(Counter && that)
   : name_(that.name_), value_(that.value_), flags_(that.flags_) {
-  that._SetName(nullptr);
+  that.name_ = nullptr;
 }
 Counter& Counter::operator= (Counter && that) {
   if(&that == this) return *this;
@@ -63,7 +62,7 @@ Counter& Counter::operator= (Counter && that) {
   name_ = that.name_;
   value_ = that.value_;
   flags_ = that.flags_;
-  that._SetName(nullptr);
+  that.name_ = nullptr;
   return *this;
 }
 #endif // BENCHMARK_HAS_CXX11
@@ -73,22 +72,27 @@ Counter::~Counter() {
 }
 
 void Counter::_SetName(const char *n) {
-  if(n) {
-    size_t sz = strlen(n);
-    name_ = new char [sz + 1];
-    strncpy(name_, n, sz);
-    name_[sz] = '\0';
-  } else {
-    if(name_) {
+  if(n == nullptr) {
+    if(name_ != nullptr) {
       delete [] name_;
-      name_ = nullptr;
     }
+    name_ = nullptr;
+  } else {
+    size_t sz = strlen(n);
+    if(name_ == nullptr) {
+      name_ = new char [sz + 1];
+    } else if(strlen(name_) < sz) {
+      delete [] name_;
+      name_ = new char [sz + 1];
+    }
+    strcpy(name_, n);
   }
 }
 
 bool Counter::SameName(const char *n) const {
-    int stat = strcmp(name_, n);
-    return stat == 0;
+  if(!n || !name_) return false;
+  int stat = strcmp(name_, n);
+  return stat == 0;
 }
 void Counter::Finish(double cpu_time, double num_threads) {
   if(flags_ & kIsRate) {
@@ -115,7 +119,6 @@ std::string Counter::ToString() const {
 }
 */
 
-
 BenchmarkCounters::BenchmarkCounters()
  : counters_(nullptr), num_counters_(0), capacity_(0) {
   _Reserve(16); // minimize reallocations
@@ -133,6 +136,8 @@ BenchmarkCounters::BenchmarkCounters(BenchmarkCounters && that)
   that.capacity_ = 0;
 }
 BenchmarkCounters& BenchmarkCounters::operator= (BenchmarkCounters && that) {
+  if(&that == this) return *this;
+  _Reserve(0); // free existing memory
   counters_ = that.counters_;
   num_counters_ = that.num_counters_;
   capacity_ = that.capacity_;
@@ -147,12 +152,19 @@ BenchmarkCounters::BenchmarkCounters(BenchmarkCounters const& that)
  : counters_(nullptr), num_counters_(0), capacity_(0) {
   _Reserve(that.num_counters_);
   num_counters_ = that.num_counters_; // reserve does not change num_counters_ unless it's cleaning up
-  memcpy(counters_, that.counters_, num_counters_ * sizeof(Counter));
+  for(size_t i = 0; i < num_counters_; ++i) {
+    Counter *slot = counters_ + i;
+    new (slot) Counter(that.counters_[i]);
+  }
 }
 BenchmarkCounters& BenchmarkCounters::operator= (BenchmarkCounters const& that) {
+  if(&that == this) return *this;
   _Reserve(that.num_counters_);
   num_counters_ = that.num_counters_; // reserve does not change num_counters_ unless it's cleaning up
-  memcpy(counters_, that.counters_, num_counters_ * sizeof(Counter));
+  for(size_t i = 0; i < num_counters_; ++i) {
+    Counter *slot = counters_ + i;
+    new (slot) Counter(that.counters_[i]);
+  }
   return *this;
 }
 
@@ -166,10 +178,10 @@ void BenchmarkCounters::_Reserve(size_t sz) {
     num_counters_ = 0;
     capacity_ = 0;
     counters_ = nullptr;
-  } else if(sz != capacity_) {
+  } else if(sz > capacity_) {
     Counter *tmp = new Counter[sz];
-    size_t min = sz < num_counters_ ? sz : num_counters_;
     if(counters_) {
+      size_t min = sz < num_counters_ ? sz : num_counters_;
       memcpy(tmp, counters_, min * sizeof(Counter));
       delete [] counters_;
     }
@@ -185,8 +197,8 @@ size_t BenchmarkCounters::_Add() {
   } else if(num_counters_ == capacity_-1) {
     _Reserve(2 * capacity_);
   }
-  size_t c = num_counters_++;
-  return c;
+  size_t pos = num_counters_++;
+  return pos;
 }
 
 size_t BenchmarkCounters::Set(Counter const& c) {
@@ -194,10 +206,9 @@ size_t BenchmarkCounters::Set(Counter const& c) {
   if(pos < num_counters_) {
     counters_[pos] = c;
   } else {
-    pos = _Add(); // get room
-    Counter *tmp = counters_ + pos; // it's here
-    tmp = new (tmp) Counter(c); // call the ctor using placement new
-    (void)tmp; // prevent unused warning
+    pos = _Add(); // get a slot
+    Counter *slot = counters_ + pos;
+    new (slot) Counter(c); // construct in place using placement new
   }
   return pos;
 }
@@ -207,10 +218,9 @@ size_t BenchmarkCounters::Set(const char *n, double v, uint32_t f) {
   if(pos < num_counters_) {
     counters_[pos].Set(v);
   } else {
-    pos = _Add(); // get room
-    Counter *tmp = counters_ + pos; // it's here
-    tmp = new (tmp) Counter(n, v, f); // call the ctor placement new
-    (void)tmp; // prevent unused warning
+    pos = _Add(); // get a slot
+    Counter *slot = counters_ + pos;
+    new (slot) Counter(n, v, f); // construct in place using placement new
   }
   return pos;
 }
