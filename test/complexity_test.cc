@@ -258,7 +258,7 @@ ADD_COMPLEXITY_CASES(&ConsoleOutputTests, &JSONOutputTests, &CSVOutputTests,
 
 int main(int argc, char* argv[]) {
   benchmark::Initialize(&argc, argv);
-  benchmark::ConsoleReporter CR(/*color_print*/false);
+  benchmark::ConsoleReporter CR(benchmark::ConsoleReporter::OO_None);
   benchmark::JSONReporter JR;
   benchmark::CSVReporter CSVR;
   struct ReporterTest {

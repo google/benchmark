@@ -156,9 +156,13 @@ class BenchmarkReporter {
 // Simple reporter that outputs benchmark data to the console. This is the
 // default reporter used by RunSpecifiedBenchmarks().
 class ConsoleReporter : public BenchmarkReporter {
- public:
-  explicit ConsoleReporter(bool color_output = true)
-      : color_output_(color_output) {}
+public:
+  enum OutputOptions {
+    OO_None,
+    OO_Color
+  };
+  explicit ConsoleReporter(OutputOptions color_output = OO_Color)
+      : color_output_(color_output == OO_Color) {}
 
   virtual bool ReportContext(const Context& context);
   virtual void ReportRuns(const std::vector<Run>& reports);

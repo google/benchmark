@@ -70,11 +70,11 @@ DEFINE_string(benchmark_format, "console",
               "The format to use for console output. Valid values are "
               "'console', 'json', or 'csv'.");
 
-DEFINE_string(benchmark_output_format, "json",
+DEFINE_string(benchmark_out_format, "json",
               "The format to use for file output. Valid values are "
               "'console', 'json', or 'csv'.");
 
-DEFINE_string(benchmark_output, "", "The file to write additonal output to");
+DEFINE_string(benchmark_out, "", "The file to write additonal output to");
 
 DEFINE_bool(color_print, true, "Enables colorized logging.");
 
@@ -1022,7 +1022,7 @@ void RunMatchingBenchmarks(const std::vector<Benchmark::Instance>& benchmarks,
 }
 
 std::unique_ptr<BenchmarkReporter>
-CreateReporter(std::string const& name, bool allow_color) {
+CreateReporter(std::string const& name, ConsoleReporter::OutputOptions allow_color) {
   typedef std::unique_ptr<BenchmarkReporter> PtrType;
   if (name == "console") {
     return PtrType(new ConsoleReporter(allow_color));
@@ -1068,14 +1068,16 @@ size_t RunSpecifiedBenchmarks(BenchmarkReporter* console_reporter,
     std::unique_ptr<BenchmarkReporter> default_console_reporter;
     std::unique_ptr<BenchmarkReporter> default_file_reporter;
     if (!console_reporter) {
+      auto output_opts = FLAGS_color_print ? ConsoleReporter::OO_Color
+                                           : ConsoleReporter::OO_None;
       default_console_reporter = internal::CreateReporter(
-          FLAGS_benchmark_format, FLAGS_color_print);
+          FLAGS_benchmark_format, output_opts);
       console_reporter = default_console_reporter.get();
     }
-    std::string const& fname = FLAGS_benchmark_output;
+    std::string const& fname = FLAGS_benchmark_out;
     if (fname == "" && file_reporter) {
       std::cerr << "A custom file reporter was provided but "
-                   "--benchmark_output=<file> was not specified." << std::endl;
+                   "--benchmark_out=<file> was not specified." << std::endl;
       std::exit(1);
     }
     if (fname != "") {
@@ -1086,7 +1088,7 @@ size_t RunSpecifiedBenchmarks(BenchmarkReporter* console_reporter,
       }
       if (!file_reporter) {
         default_file_reporter = internal::CreateReporter(
-            FLAGS_benchmark_output_format, /*allow_color*/false);
+            FLAGS_benchmark_out_format, ConsoleReporter::OO_None);
         file_reporter = default_file_reporter.get();
       }
       file_reporter->SetOutputStream(&output_file);
@@ -1107,8 +1109,8 @@ void PrintUsageAndExit() {
           "          [--benchmark_min_time=<min_time>]\n"
           "          [--benchmark_repetitions=<num_repetitions>]\n"
           "          [--benchmark_format=<console|json|csv>]\n"
-          "          [--benchmark_output=<filename>]\n"
-          "          [--benchmark_output_format=<json|console|csv>]\n"
+          "          [--benchmark_out=<filename>]\n"
+          "          [--benchmark_out_format=<json|console|csv>]\n"
           "          [--color_print={true|false}]\n"
           "          [--v=<verbosity>]\n");
   exit(0);
@@ -1128,10 +1130,10 @@ void ParseCommandLineFlags(int* argc, char** argv) {
                        &FLAGS_benchmark_repetitions) ||
         ParseStringFlag(argv[i], "benchmark_format",
                         &FLAGS_benchmark_format) ||
-        ParseStringFlag(argv[i], "benchmark_output",
-                        &FLAGS_benchmark_output) ||
-        ParseStringFlag(argv[i], "benchmark_output_format",
-                        &FLAGS_benchmark_output_format) ||
+        ParseStringFlag(argv[i], "benchmark_out",
+                        &FLAGS_benchmark_out) ||
+        ParseStringFlag(argv[i], "benchmark_out_format",
+                        &FLAGS_benchmark_out_format) ||
         ParseBoolFlag(argv[i], "color_print",
                        &FLAGS_color_print) ||
         ParseInt32Flag(argv[i], "v", &FLAGS_v)) {
@@ -1144,7 +1146,7 @@ void ParseCommandLineFlags(int* argc, char** argv) {
     }
   }
   for (auto const* flag : {&FLAGS_benchmark_format,
-                           &FLAGS_benchmark_output_format})
+                           &FLAGS_benchmark_out_format})
   if (*flag != "console" && *flag != "json" && *flag != "csv") {
     PrintUsageAndExit();
   }

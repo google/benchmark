@@ -495,9 +495,9 @@ name,iterations,real_time,cpu_time,bytes_per_second,items_per_second,label
 
 ## Output Files
 The library supports writing the output of the benchmark to a file specified
-by `--benchmark_output=<filename>`. The format of the output can be specified
-using `--benchmark_output_format={json|console|csv}`. Specifying
-`--benchmark_output` does not suppress the console output.
+by `--benchmark_out=<filename>`. The format of the output can be specified
+using `--benchmark_out_format={json|console|csv}`. Specifying
+`--benchmark_out` does not suppress the console output.
 
 ## Debug vs Release
 By default, benchmark builds as a debug library. You will see a warning in the output when this is the case. To build it as a release library instead, use:
