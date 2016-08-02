@@ -4,22 +4,10 @@ import tempfile
 import subprocess
 import sys
 
+# Input file type enumeration
 IT_Invalid    = 0
 IT_JSON       = 1
 IT_Executable = 2
-
-def __try_load_json_file(filename):
-    """
-    Attempt to open and decode JSON from the file named by 'filename'.
-    RETURNS: 'None' if 'filename' does not name a valid JSON file. Otherwise
-             return a json object decoded from 'filename'
-    """
-    try:
-        with open(filename, 'r') as f:
-            return json.load(f)
-    except:
-        return None
-
 
 _num_magic_bytes = 2 if sys.platform.startswith('win') else 4
 def is_executable_file(filename):
@@ -52,7 +40,13 @@ def is_json_file(filename):
     Returns 'True' if 'filename' names a valid JSON output file.
     'False' otherwise.
     """
-    return __try_load_json_file(filename) is not None
+    try:
+        with open(filename, 'r') as f:
+            json.load(f)
+        return True
+    except:
+        pass
+    return False
 
 
 def classify_input_file(filename):
@@ -113,7 +107,10 @@ def run_benchmark(exe_name, benchmark_flags):
     if exitCode != 0:
         print('TEST FAILED...')
         sys.exit(exitCode)
-    return load_benchmark_results(tname)
+    json_res = load_benchmark_results(tname)
+    os.unlink(tname)
+    return json_res
+
 
 def run_or_load_benchmark(filename, benchmark_flags):
     ftype = check_input_file(filename)
