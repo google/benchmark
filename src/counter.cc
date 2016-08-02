@@ -21,26 +21,27 @@
 namespace benchmark {
 
 Counter::Counter()
-  : name_buf_{0}, name_mem_(nullptr), mem_size_(0), name_(nullptr), value_(0.), flags_(kDefaults) {
+  : name_buf_(), name_mem_(nullptr), mem_size_(0), name_(nullptr), value_(0.), flags_(kDefaults) {
+  name_buf[0] = '\0';
 }
 
 Counter::Counter(const char* name)
-  : name_buf_{0}, name_mem_(nullptr), mem_size_(0), name_(nullptr), value_(0.), flags_(kDefaults) {
+  : name_buf_(), name_mem_(nullptr), mem_size_(0), name_(nullptr), value_(0.), flags_(kDefaults) {
   _SetName(name);
 }
 
 Counter::Counter(const char* name, double v)
-  : name_buf_{0}, name_mem_(nullptr), mem_size_(0), name_(nullptr), value_(v), flags_(kDefaults) {
+  : name_buf_(), name_mem_(nullptr), mem_size_(0), name_(nullptr), value_(v), flags_(kDefaults) {
   _SetName(name);
 }
 
 Counter::Counter(const char* name, double v, uint32_t f)
-  : name_buf_{0}, name_mem_(nullptr), mem_size_(0), name_(nullptr), value_(v), flags_(f) {
+  : name_buf_(), name_mem_(nullptr), mem_size_(0), name_(nullptr), value_(v), flags_(f) {
   _SetName(name);
 }
 
 Counter::Counter(Counter const& that)
-  : name_buf_{0}, name_mem_(nullptr), mem_size_(0), name_(nullptr), value_(that.value_), flags_(that.flags_) {
+  : name_buf_(), name_mem_(nullptr), mem_size_(0), name_(nullptr), value_(that.value_), flags_(that.flags_) {
   _SetName(that.name_);
 }
 Counter& Counter::operator= (Counter const& that) {
