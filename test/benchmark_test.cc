@@ -218,6 +218,7 @@ void BM_non_template_args(benchmark::State& state, int, double) {
 }
 BENCHMARK_CAPTURE(BM_non_template_args, basic_test, 0, 0);
 
+#endif // BENCHMARK_HAS_CXX11
 
 
 static void BM_UserCounter(benchmark::State& state) {
@@ -236,9 +237,6 @@ static void BM_UserCounter(benchmark::State& state) {
 BENCHMARK(BM_UserCounter)->Threads(8);
 BENCHMARK(BM_UserCounter)->ThreadRange(1, 32);
 BENCHMARK(BM_UserCounter)->ThreadPerCpu();
-
-#endif // BENCHMARK_HAS_CXX11
-
 
 BENCHMARK_MAIN()
 
