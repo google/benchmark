@@ -294,45 +294,4 @@ void BenchmarkCounters::Clear() {
   }
 }
 
-/*
-// Common counters
-Counter const& BenchmarkCounters::GetBytesPerSecond() const {
-    size_t pos = _Find("B/s");
-    CHECK_LT(pos, counters_.size()) << "Could not find counter \"B/s\"";
-    return counters_[pos];
-}
-size_t  BenchmarkCounters::BytesPerSecond() const {
-    size_t pos = _Find("B/s");
-    return pos < counters_.size() ? counters_[pos].value : 0;
-}
-void    BenchmarkCounters::BytesPerSecond(size_t b) {
-    size_t pos = _Find("B/s");
-    if(pos < counters_.size()) {
-        counters_[pos].value = double(b);
-    } else {
-        Add("B/s", double(b), "", Counter::kBytesProcessed);
-    }
-}
-
-Counter const& BenchmarkCounters::GetItemsPerSecond() const {
-    size_t pos = _Find("items/s");
-    CHECK_LT(pos, counters_.size()) << "Could not find counter \" items/s\"";
-    return counters_[pos];
-}
-size_t  BenchmarkCounters::ItemsPerSecond() const
-{
-    size_t pos = _Find("items/s");
-    return pos < counters_.size() ? counters_[pos].value : 0;
-}
-void    BenchmarkCounters::ItemsPerSecond(size_t i) {
-    size_t pos = _Find("items/s");
-    if(pos < counters_.size()) {
-        counters_[pos].value = double(i);
-    } else {
-        Add("items/s", double(i), "", Counter::kItemsProcessed);
-    }
-}
-*/
-
-
 } // end namespace benchmark

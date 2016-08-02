@@ -278,7 +278,6 @@ private:
   char*       name_;
   double      value_;
   uint32_t    flags_;
-  // <jppm> maybe we could add a description field...
 
   void _SetName(const char *name);
 };
@@ -333,18 +332,6 @@ public:
 
   const_iterator begin() const { return counters_; }
   const_iterator end () const { return counters_ + num_counters_; }
-
-/* <jppm> Keeping for now the old bytes_processed and items_processed.
-public:
-
-  // Common counters
-  Counter const& GetBytesPerSecond() const;
-  Counter const& GetItemsPerSecond() const;
-  size_t  BytesPerSecond() const;
-  size_t  ItemsPerSecond() const;
-  void    BytesPerSecond(size_t b);
-  void    ItemsPerSecond(size_t i);
-*/
 
 private:
 
