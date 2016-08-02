@@ -127,10 +127,11 @@ static std::atomic<error_message_type> error_message = ATOMIC_VAR_INIT(nullptr);
 //static benchmark::MallocCounter *benchmark_mc;
 
 struct ThreadStats {
-    ThreadStats() : bytes_processed(0), items_processed(0), complexity_n(0) {}
+    ThreadStats() : bytes_processed(0), items_processed(0), complexity_n(0), counters() {}
     int64_t bytes_processed;
     int64_t items_processed;
     int  complexity_n;
+    BenchmarkCounters counters;
 };
 
 // Timer management class
@@ -745,8 +746,7 @@ namespace {
 // Adds the stats collected for the thread into *total.
 void RunInThread(const benchmark::internal::Benchmark::Instance* b,
                  size_t iters, int thread_id,
-                 ThreadStats* total,
-                 BenchmarkCounters* counters_total) EXCLUDES(GetBenchmarkLock()) {
+                 ThreadStats* total) EXCLUDES(GetBenchmarkLock()) {
   State st(iters, b->has_arg1, b->arg1, b->has_arg2, b->arg2, thread_id, b->threads);
   b->benchmark->Run(st);
   CHECK(st.iterations() == st.max_iterations) <<
@@ -756,7 +756,7 @@ void RunInThread(const benchmark::internal::Benchmark::Instance* b,
     total->bytes_processed += st.bytes_processed();
     total->items_processed += st.items_processed();
     total->complexity_n += st.complexity_length_n();
-    counters_total->Sum(st.Counters());
+    total->counters.Sum(st.Counters());
   }
 
   timer_manager->Finalize();
@@ -792,7 +792,6 @@ void RunBenchmark(const benchmark::internal::Benchmark::Instance& b,
       timer_manager = std::unique_ptr<TimerManager>(new TimerManager(b.threads, &done));
 
       ThreadStats total;
-      BenchmarkCounters counters_total;
       running_benchmark = true;
       if (b.multithreaded) {
         // If this is out first iteration of the while(true) loop then the
@@ -803,11 +802,11 @@ void RunBenchmark(const benchmark::internal::Benchmark::Instance& b,
             thread.join();
         }
         for (std::size_t ti = 0; ti < pool.size(); ++ti) {
-            pool[ti] = std::thread(&RunInThread, &b, iters, static_cast<int>(ti), &total, &counters_total);
+            pool[ti] = std::thread(&RunInThread, &b, iters, static_cast<int>(ti), &total);
         }
       } else {
         // Run directly in this thread
-        RunInThread(&b, iters, 0, &total, &counters_total);
+        RunInThread(&b, iters, 0, &total);
       }
       done.WaitForNotification();
       running_benchmark = false;
@@ -878,7 +877,7 @@ void RunBenchmark(const benchmark::internal::Benchmark::Instance& b,
           report.complexity_lambda = b.complexity_lambda;
           if(report.complexity != oNone)
             complexity_reports.push_back(report);
-          report.counters = std::move(counters_total);
+          report.counters = std::move(total.counters);
         }
 
         reports.push_back(report);
