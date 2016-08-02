@@ -206,6 +206,34 @@ BENCHMARK_CAPTURE(BM_takes_args, int_string_test, 42, std::string("abc"));
 Note that elements of `...args` may refer to global variables. Users should
 avoid modifying global state inside of a benchmark.
 
+## Using RegisterBenchmark(name, fn, args...)
+
+The `RegisterBenchmark(name, func, args...)` function provides an alternative
+way to create and register benchmarks.
+`RegisterBenchmark(name, func, args...)` creates, registers, and returns a
+pointer to a new benchmark with the specified `name` that invokes
+`func(st, args...)` where `st` is a `benchmark::State` object.
+
+Unlike the `BENCHMARK` registration macros, which can only be used at the global
+scope, the `RegisterBenchmark` can be called anywhere. This allows for
+benchmark tests to be registered programmatically.
+
+Additionally `RegisterBenchmark` allows any callable object to be registered
+as a benchmark. Including capturing lambdas and function objects. This
+allows the creation
+
+For Example:
+```c++
+auto BM_test = [](benchmark::State& st, auto Inputs) { /* ... */ };
+
+int main(int argc, char** argv) {
+  for (auto& test_input : { /* ... */ })
+      benchmark::RegisterBenchmark(test_input.name(), BM_test, test_input);
+  benchmark::Initialize(&argc, argv);
+  benchmark::RunSpecifiedBenchmarks();
+}
+```
+
 ### Multithreaded benchmarks
 In a multithreaded test (benchmark invoked by multiple threads simultaneously),
 it is guaranteed that none of the threads will start until all have called
