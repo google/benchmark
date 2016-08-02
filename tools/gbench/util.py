@@ -44,7 +44,7 @@ def is_executable_file(filename):
     elif sys.platform.startswith('win'):
         return magic_bytes == 'MZ'
     else:
-        return magic_bytes == '\x7fELF'
+        return magic_bytes == '\x7FELF'
 
 
 def is_json_file(filename):
@@ -88,16 +88,15 @@ def check_input_file(filename):
         sys.exit(1)
     return ftype
 
+
 def load_benchmark_results(fname):
     """
     Read benchmark output from a file and return the JSON object.
     REQUIRES: 'fname' names a file containing JSON benchmark output.
     """
-    res, err_msg = __try_load_json_file(fname)
-    if res is None:
-        print("Failed to open file: %s" % err_msg)
-        sys.exit(1)
-    return err_msg
+    with open(fname, 'r') as f:
+        return json.load(f)
+
 
 def run_benchmark(exe_name, benchmark_flags):
     """
@@ -117,7 +116,7 @@ def run_benchmark(exe_name, benchmark_flags):
     return load_benchmark_results(tname)
 
 def run_or_load_benchmark(filename, benchmark_flags):
-    ftype = classify_input_file(filename)
+    ftype = check_input_file(filename)
     if ftype == IT_JSON:
         return load_benchmark_results(filename)
     elif ftype == IT_Executable:

@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 import sys
+import gbench
 import gbench.report as greport
 import gbench.util as gutil
 
@@ -15,9 +16,9 @@ def main():
     bench_opts = sys.argv[3:]
     bench_opts = list(bench_opts)
     # Run the benchmarks and report the results
-    json1 = gutil.run_or_load_benchmark(tests[0], bench_opts)
-    json2 = gutil.run_or_load_benchmark(tests[1], bench_opts)
-    greport.report_difference(json1, json2)
+    json1 = gbench.util.run_or_load_benchmark(tests[0], bench_opts)
+    json2 = gbench.util.run_or_load_benchmark(tests[1], bench_opts)
+    gbench.report.report_difference(json1, json2)
 
 
 if __name__ == '__main__':
