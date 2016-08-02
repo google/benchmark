@@ -165,11 +165,16 @@ void Initialize(int* argc, char** argv);
 // of each matching benchmark. Otherwise run each matching benchmark and
 // report the results.
 //
-// The second overload reports the results using the specified 'reporter'.
+// The second and third overload use the specified 'console_reporter' and
+//  'file_reporter' respectively. 'file_reporter' will write to the file specified
+//   by '--benchmark_output'. If '--benchmark_output' is not given the
+//  'file_reporter' is ignored.
 //
 // RETURNS: The number of matching benchmarks.
 size_t RunSpecifiedBenchmarks();
-size_t RunSpecifiedBenchmarks(BenchmarkReporter* reporter);
+size_t RunSpecifiedBenchmarks(BenchmarkReporter* console_reporter);
+size_t RunSpecifiedBenchmarks(BenchmarkReporter* console_reporter,
+                              BenchmarkReporter* file_reporter);
 
 
 // If this routine is called, peak memory allocation past this point in the

@@ -257,14 +257,8 @@ ADD_COMPLEXITY_CASES(&ConsoleOutputTests, &JSONOutputTests, &CSVOutputTests,
 
 
 int main(int argc, char* argv[]) {
-  // Add --color_print=false to argv since we don't want to match color codes.
-  char new_arg[64];
-  char* new_argv[64];
-  std::copy(argv, argv + argc, new_argv);
-  new_argv[argc++] = std::strcpy(new_arg, "--color_print=false");
-  benchmark::Initialize(&argc, new_argv);
-
-  benchmark::ConsoleReporter CR;
+  benchmark::Initialize(&argc, argv);
+  benchmark::ConsoleReporter CR(benchmark::ConsoleReporter::OO_None);
   benchmark::JSONReporter JR;
   benchmark::CSVReporter CSVR;
   struct ReporterTest {

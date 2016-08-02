@@ -28,6 +28,7 @@
 #include <atomic>
 #include <condition_variable>
 #include <iostream>
+#include <fstream>
 #include <memory>
 #include <thread>
 
@@ -68,6 +69,12 @@ DEFINE_int32(benchmark_repetitions, 1,
 DEFINE_string(benchmark_format, "console",
               "The format to use for console output. Valid values are "
               "'console', 'json', or 'csv'.");
+
+DEFINE_string(benchmark_out_format, "json",
+              "The format to use for file output. Valid values are "
+              "'console', 'json', or 'csv'.");
+
+DEFINE_string(benchmark_out, "", "The file to write additonal output to");
 
 DEFINE_bool(color_print, true, "Enables colorized logging.");
 
@@ -758,13 +765,12 @@ void RunInThread(const benchmark::internal::Benchmark::Instance* b,
   timer_manager->Finalize();
 }
 
-void RunBenchmark(const benchmark::internal::Benchmark::Instance& b,
-                  BenchmarkReporter* br,
-                  std::vector<BenchmarkReporter::Run>& complexity_reports)
+std::vector<BenchmarkReporter::Run>
+RunBenchmark(const benchmark::internal::Benchmark::Instance& b,
+             std::vector<BenchmarkReporter::Run>* complexity_reports)
   EXCLUDES(GetBenchmarkLock()) {
+   std::vector<BenchmarkReporter::Run> reports; // return value
   size_t iters = 1;
-
-  std::vector<BenchmarkReporter::Run> reports;
 
   std::vector<std::thread> pool;
   if (b.multithreaded)
@@ -872,7 +878,7 @@ void RunBenchmark(const benchmark::internal::Benchmark::Instance& b,
           report.complexity = b.complexity;
           report.complexity_lambda = b.complexity_lambda;
           if(report.complexity != oNone)
-            complexity_reports.push_back(report);
+            complexity_reports->push_back(report);
         }
 
         reports.push_back(report);
@@ -903,18 +909,18 @@ void RunBenchmark(const benchmark::internal::Benchmark::Instance& b,
                  additional_run_stats.end());
 
   if((b.complexity != oNone) && b.last_benchmark_instance) {
-    additional_run_stats = ComputeBigO(complexity_reports);
+    additional_run_stats = ComputeBigO(*complexity_reports);
     reports.insert(reports.end(), additional_run_stats.begin(),
                    additional_run_stats.end());
-    complexity_reports.clear();
+    complexity_reports->clear();
   }
-
-  br->ReportRuns(reports);
 
   if (b.multithreaded) {
     for (std::thread& thread : pool)
       thread.join();
   }
+
+  return reports;
 }
 
 }  // namespace
@@ -975,8 +981,10 @@ namespace internal {
 namespace {
 
 void RunMatchingBenchmarks(const std::vector<Benchmark::Instance>& benchmarks,
-                           BenchmarkReporter* reporter) {
-  CHECK(reporter != nullptr);
+                           BenchmarkReporter* console_reporter,
+                           BenchmarkReporter* file_reporter) {
+  // Note the file_reporter can be null.
+  CHECK(console_reporter != nullptr);
 
   // Determine the width of the name field using a minimum width of 10.
   bool has_repetitions = FLAGS_benchmark_repetitions > 1;
@@ -1000,23 +1008,30 @@ void RunMatchingBenchmarks(const std::vector<Benchmark::Instance>& benchmarks,
   // Keep track of runing times of all instances of current benchmark
   std::vector<BenchmarkReporter::Run> complexity_reports;
 
-  if (reporter->ReportContext(context)) {
+  if (console_reporter->ReportContext(context)
+      && (!file_reporter || file_reporter->ReportContext(context))) {
     for (const auto& benchmark : benchmarks) {
-      RunBenchmark(benchmark, reporter, complexity_reports);
+      std::vector<BenchmarkReporter::Run> reports =
+          RunBenchmark(benchmark, &complexity_reports);
+      console_reporter->ReportRuns(reports);
+      if (file_reporter) file_reporter->ReportRuns(reports);
     }
   }
+  console_reporter->Finalize();
+  if (file_reporter) file_reporter->Finalize();
 }
 
-std::unique_ptr<BenchmarkReporter> GetDefaultReporter() {
+std::unique_ptr<BenchmarkReporter>
+CreateReporter(std::string const& name, ConsoleReporter::OutputOptions allow_color) {
   typedef std::unique_ptr<BenchmarkReporter> PtrType;
-  if (FLAGS_benchmark_format == "console") {
-    return PtrType(new ConsoleReporter);
-  } else if (FLAGS_benchmark_format == "json") {
+  if (name == "console") {
+    return PtrType(new ConsoleReporter(allow_color));
+  } else if (name == "json") {
     return PtrType(new JSONReporter);
-  } else if (FLAGS_benchmark_format == "csv") {
+  } else if (name == "csv") {
     return PtrType(new CSVReporter);
   } else {
-    std::cerr << "Unexpected format: '" << FLAGS_benchmark_format << "'\n";
+    std::cerr << "Unexpected format: '" << name << "'\n";
     std::exit(1);
   }
 }
@@ -1025,10 +1040,17 @@ std::unique_ptr<BenchmarkReporter> GetDefaultReporter() {
 } // end namespace internal
 
 size_t RunSpecifiedBenchmarks() {
-  return RunSpecifiedBenchmarks(nullptr);
+  return RunSpecifiedBenchmarks(nullptr, nullptr);
 }
 
-size_t RunSpecifiedBenchmarks(BenchmarkReporter* reporter) {
+
+size_t RunSpecifiedBenchmarks(BenchmarkReporter* console_reporter) {
+  return RunSpecifiedBenchmarks(console_reporter, nullptr);
+}
+
+
+size_t RunSpecifiedBenchmarks(BenchmarkReporter* console_reporter,
+                              BenchmarkReporter* file_reporter) {
   std::string spec = FLAGS_benchmark_filter;
   if (spec.empty() || spec == "all")
     spec = ".";  // Regexp that matches all benchmarks
@@ -1041,13 +1063,38 @@ size_t RunSpecifiedBenchmarks(BenchmarkReporter* reporter) {
     for (auto const& benchmark : benchmarks)
       std::cout <<  benchmark.name << "\n";
   } else {
-    std::unique_ptr<BenchmarkReporter> default_reporter;
-    if (!reporter) {
-      default_reporter = internal::GetDefaultReporter();
-      reporter = default_reporter.get();
+    // Setup the reporters
+    std::ofstream output_file;
+    std::unique_ptr<BenchmarkReporter> default_console_reporter;
+    std::unique_ptr<BenchmarkReporter> default_file_reporter;
+    if (!console_reporter) {
+      auto output_opts = FLAGS_color_print ? ConsoleReporter::OO_Color
+                                           : ConsoleReporter::OO_None;
+      default_console_reporter = internal::CreateReporter(
+          FLAGS_benchmark_format, output_opts);
+      console_reporter = default_console_reporter.get();
     }
-    internal::RunMatchingBenchmarks(benchmarks, reporter);
-    reporter->Finalize();
+    std::string const& fname = FLAGS_benchmark_out;
+    if (fname == "" && file_reporter) {
+      std::cerr << "A custom file reporter was provided but "
+                   "--benchmark_out=<file> was not specified." << std::endl;
+      std::exit(1);
+    }
+    if (fname != "") {
+      output_file.open(fname);
+      if (!output_file.is_open()) {
+        std::cerr << "invalid file name: '" << fname << std::endl;
+        std::exit(1);
+      }
+      if (!file_reporter) {
+        default_file_reporter = internal::CreateReporter(
+            FLAGS_benchmark_out_format, ConsoleReporter::OO_None);
+        file_reporter = default_file_reporter.get();
+      }
+      file_reporter->SetOutputStream(&output_file);
+      file_reporter->SetErrorStream(&output_file);
+    }
+    internal::RunMatchingBenchmarks(benchmarks, console_reporter, file_reporter);
   }
   return benchmarks.size();
 }
@@ -1062,6 +1109,8 @@ void PrintUsageAndExit() {
           "          [--benchmark_min_time=<min_time>]\n"
           "          [--benchmark_repetitions=<num_repetitions>]\n"
           "          [--benchmark_format=<console|json|csv>]\n"
+          "          [--benchmark_out=<filename>]\n"
+          "          [--benchmark_out_format=<json|console|csv>]\n"
           "          [--color_print={true|false}]\n"
           "          [--v=<verbosity>]\n");
   exit(0);
@@ -1081,6 +1130,10 @@ void ParseCommandLineFlags(int* argc, char** argv) {
                        &FLAGS_benchmark_repetitions) ||
         ParseStringFlag(argv[i], "benchmark_format",
                         &FLAGS_benchmark_format) ||
+        ParseStringFlag(argv[i], "benchmark_out",
+                        &FLAGS_benchmark_out) ||
+        ParseStringFlag(argv[i], "benchmark_out_format",
+                        &FLAGS_benchmark_out_format) ||
         ParseBoolFlag(argv[i], "color_print",
                        &FLAGS_color_print) ||
         ParseInt32Flag(argv[i], "v", &FLAGS_v)) {
@@ -1092,10 +1145,9 @@ void ParseCommandLineFlags(int* argc, char** argv) {
       PrintUsageAndExit();
     }
   }
-
-  if (FLAGS_benchmark_format != "console" &&
-      FLAGS_benchmark_format != "json" &&
-      FLAGS_benchmark_format != "csv") {
+  for (auto const* flag : {&FLAGS_benchmark_format,
+                           &FLAGS_benchmark_out_format})
+  if (*flag != "console" && *flag != "json" && *flag != "csv") {
     PrintUsageAndExit();
   }
 }
