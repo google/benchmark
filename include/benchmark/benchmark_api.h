@@ -274,10 +274,14 @@ public:
 
 private:
 
-  // use raw C strings here to avoid inclusion of std::string in the public api
-  char*       name_;
-  double      value_;
-  uint32_t    flags_;
+  // using raw C strings here to avoid inclusion of std::string in the public api
+  char name_buf_[16]; // strings smaller than 15 characters are stored here
+  char* name_mem_;    // whereas longer strings are stored here
+  size_t mem_size_;   // current size of name_mem_
+  char* name_;        // this points to the right one
+
+  double   value_;
+  uint32_t flags_;
 
   void _SetName(const char *name);
 };
@@ -335,7 +339,7 @@ public:
 
 private:
 
-  // use raw C pointers here to avoid inclusion of std::vector in the public api
+  // using raw pointers here to avoid inclusion of std::vector in the public api
   Counter * counters_;
   size_t num_counters_;
   size_t capacity_;

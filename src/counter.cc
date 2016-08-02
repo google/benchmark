@@ -21,26 +21,26 @@
 namespace benchmark {
 
 Counter::Counter()
-  : name_(nullptr), value_(0.), flags_(kDefaults) {
+  : name_buf_{0}, name_mem_(nullptr), mem_size_(0), name_(nullptr), value_(0.), flags_(kDefaults) {
 }
 
 Counter::Counter(const char* name)
-  : name_(nullptr), value_(0.), flags_(kDefaults) {
+  : name_buf_{0}, name_mem_(nullptr), mem_size_(0), name_(nullptr), value_(0.), flags_(kDefaults) {
   _SetName(name);
 }
 
 Counter::Counter(const char* name, double v)
-  : name_(nullptr), value_(v), flags_(kDefaults) {
+  : name_buf_{0}, name_mem_(nullptr), mem_size_(0), name_(nullptr), value_(v), flags_(kDefaults) {
   _SetName(name);
 }
 
 Counter::Counter(const char* name, double v, uint32_t f)
-  : name_(nullptr), value_(v), flags_(f) {
+  : name_buf_{0}, name_mem_(nullptr), mem_size_(0), name_(nullptr), value_(v), flags_(f) {
   _SetName(name);
 }
 
 Counter::Counter(Counter const& that)
-  : name_(nullptr), value_(that.value_), flags_(that.flags_) {
+  : name_buf_{0}, name_mem_(nullptr), mem_size_(0), name_(nullptr), value_(that.value_), flags_(that.flags_) {
   _SetName(that.name_);
 }
 Counter& Counter::operator= (Counter const& that) {
@@ -53,15 +53,23 @@ Counter& Counter::operator= (Counter const& that) {
 
 #ifdef BENCHMARK_HAS_CXX11
 Counter::Counter(Counter && that)
-  : name_(that.name_), value_(that.value_), flags_(that.flags_) {
+  : name_buf_{0}, name_mem_(that.name_mem_), mem_size_(that.mem_size_), name_(that.name_), value_(that.value_), flags_(that.flags_) {
+  memcpy(name_buf_, that.name_buf_, sizeof(name_buf_));
+  that.name_mem_ = nullptr;
+  that.mem_size_ = 0;
   that.name_ = nullptr;
 }
 Counter& Counter::operator= (Counter && that) {
   if(&that == this) return *this;
   _SetName(nullptr);
+  memcpy(name_buf_, that.name_buf_, sizeof(name_buf_));
+  name_mem_ = that.name_mem_;
+  mem_size_ = that.mem_size_;
   name_ = that.name_;
   value_ = that.value_;
   flags_ = that.flags_;
+  that.name_mem_ = nullptr;
+  that.mem_size_ = 0;
   that.name_ = nullptr;
   return *this;
 }
@@ -73,19 +81,30 @@ Counter::~Counter() {
 
 void Counter::_SetName(const char *n) {
   if(n == nullptr) {
-    if(name_ != nullptr) {
-      delete [] name_;
+    if(name_mem_ != nullptr) {
+      delete [] name_mem_;
     }
+    name_buf_[0] = '\0';
+    name_mem_ = nullptr;
+    mem_size_ = 0;
     name_ = nullptr;
   } else {
     size_t sz = strlen(n);
-    if(name_ == nullptr) {
-      name_ = new char [sz + 1];
-    } else if(strlen(name_) < sz) {
-      delete [] name_;
-      name_ = new char [sz + 1];
+    if(sz < sizeof(name_buf_)) { // new name fits in fixed buffer
+      name_ = name_buf_;
+      // keep any allocated memory as it is
+    } else { // new name does not fit buffer; must use allocated memory
+      if(mem_size_ == 0) { // allocate mem
+        mem_size_ = sz + 1;
+        name_mem_ = new char[mem_size_];
+      } else if(mem_size_ <= sz) { // resize mem
+        delete [] name_mem_;
+        mem_size_ = sz + 1;
+        name_mem_ = new char[mem_size_];
+      }
+      name_ = name_mem_;
     }
-    strcpy(name_, n);
+    strcpy(name_, n); // finally, copy the string to its right place.
   }
 }
 
