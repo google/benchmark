@@ -22,7 +22,7 @@ namespace benchmark {
 
 Counter::Counter()
   : name_buf_(), name_mem_(nullptr), mem_size_(0), name_(nullptr), value_(0.), flags_(kDefaults) {
-  name_buf[0] = '\0';
+  name_buf_[0] = '\0';
 }
 
 Counter::Counter(const char* name)
