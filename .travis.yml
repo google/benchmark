@@ -1,3 +1,5 @@
+sudo: required
+dist: trusty
 language: cpp
 
 # NOTE: The COMPILER variable is unused. It simply makes the display on
@@ -5,22 +7,17 @@ language: cpp
 matrix:
     include:
         - compiler: gcc
-          env: COMPILER=g++-4.6     STD=c++0x BUILD_TYPE=Coverage
+          env: COMPILER=g++         STD=c++11 BUILD_TYPE=Coverage
         - compiler: gcc
-          env: COMPILER=g++-4.6     STD=c++0x BUILD_TYPE=Debug
+          env: COMPILER=g++         STD=c++11 BUILD_TYPE=Debug
         - compiler: gcc
-          env: COMPILER=g++-4.6     STD=c++0x BUILD_TYPE=Release
-        - compiler: gcc
-          env: COMPILER=g++-4.8     STD=c++11 BUILD_TYPE=Debug
-        - compiler: gcc
-          env: COMPILER=g++-4.8     STD=c++11 BUILD_TYPE=Release
+          env: COMPILER=g++         STD=c++11 BUILD_TYPE=Release
         - compiler: clang
-          env: COMPILER=clang++-3.6 STD=c++11 BUILD_TYPE=Debug
+          env: COMPILER=clang++     STD=c++11 BUILD_TYPE=Debug
         - compiler: clang
-          env: COMPILER=clang++-3.6 STD=c++11 BUILD_TYPE=Release
+          env: COMPILER=clang++     STD=c++11 BUILD_TYPE=Release
 
 before_script:
-    - source .travis-setup.sh
     - mkdir build && cd build
 
 install:
