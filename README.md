@@ -206,6 +206,34 @@ BENCHMARK_CAPTURE(BM_takes_args, int_string_test, 42, std::string("abc"));
 Note that elements of `...args` may refer to global variables. Users should
 avoid modifying global state inside of a benchmark.
 
+## Using RegisterBenchmark(name, fn, args...)
+
+The `RegisterBenchmark(name, func, args...)` function provides an alternative
+way to create and register benchmarks.
+`RegisterBenchmark(name, func, args...)` creates, registers, and returns a
+pointer to a new benchmark with the specified `name` that invokes
+`func(st, args...)` where `st` is a `benchmark::State` object.
+
+Unlike the `BENCHMARK` registration macros, which can only be used at the global
+scope, the `RegisterBenchmark` can be called anywhere. This allows for
+benchmark tests to be registered programmatically.
+
+Additionally `RegisterBenchmark` allows any callable object to be registered
+as a benchmark. Including capturing lambdas and function objects. This
+allows the creation
+
+For Example:
+```c++
+auto BM_test = [](benchmark::State& st, auto Inputs) { /* ... */ };
+
+int main(int argc, char** argv) {
+  for (auto& test_input : { /* ... */ })
+      benchmark::RegisterBenchmark(test_input.name(), BM_test, test_input);
+  benchmark::Initialize(&argc, argv);
+  benchmark::RunSpecifiedBenchmarks();
+}
+```
+
 ### Multithreaded benchmarks
 In a multithreaded test (benchmark invoked by multiple threads simultaneously),
 it is guaranteed that none of the threads will start until all have called
@@ -512,10 +540,10 @@ static void BM_test(benchmark::State& state) {
 
 ## Output Formats
 The library supports multiple output formats. Use the
-`--benchmark_format=<tabular|json|csv>` flag to set the format type. `tabular` is
-the default format.
+`--benchmark_format=<console|json|csv>` flag to set the format type. `console`
+is the default format.
 
-The Tabular format is intended to be a human readable format. By default
+The Console format is intended to be a human readable format. By default
 the format generates color output. Context is output on stderr and the 
 tabular data on stdout. Example tabular output looks like:
 ```
@@ -579,6 +607,12 @@ name,iterations,real_time,cpu_time,bytes_per_second,items_per_second,label
 "BM_SetInsert/1024/8",116606,18810.1,9766.64,3.27646e+06,819115,
 "BM_SetInsert/1024/10",106365,17238.4,8421.53,4.74973e+06,1.18743e+06,
 ```
+
+## Output Files
+The library supports writing the output of the benchmark to a file specified
+by `--benchmark_out=<filename>`. The format of the output can be specified
+using `--benchmark_out_format={json|console|csv}`. Specifying
+`--benchmark_out` does not suppress the console output.
 
 ## Debug vs Release
 By default, benchmark builds as a debug library. You will see a warning in the output when this is the case. To build it as a release library instead, use:

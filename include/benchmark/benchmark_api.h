@@ -155,9 +155,10 @@ BENCHMARK(BM_test)->Unit(benchmark::kMillisecond);
 
 #include "macros.h"
 
-#ifdef BENCHMARK_HAS_CXX11
+#if defined(BENCHMARK_HAS_CXX11)
+#include <type_traits>
 # include <initializer_list>
-# include <utility>
+#include <utility>
 #endif
 
 namespace benchmark {
@@ -170,11 +171,16 @@ void Initialize(int* argc, char** argv);
 // of each matching benchmark. Otherwise run each matching benchmark and
 // report the results.
 //
-// The second overload reports the results using the specified 'reporter'.
+// The second and third overload use the specified 'console_reporter' and
+//  'file_reporter' respectively. 'file_reporter' will write to the file specified
+//   by '--benchmark_output'. If '--benchmark_output' is not given the
+//  'file_reporter' is ignored.
 //
 // RETURNS: The number of matching benchmarks.
 size_t RunSpecifiedBenchmarks();
-size_t RunSpecifiedBenchmarks(BenchmarkReporter* reporter);
+size_t RunSpecifiedBenchmarks(BenchmarkReporter* console_reporter);
+size_t RunSpecifiedBenchmarks(BenchmarkReporter* console_reporter,
+                              BenchmarkReporter* file_reporter);
 
 
 // If this routine is called, peak memory allocation past this point in the
@@ -733,8 +739,20 @@ private:
   Benchmark& operator=(Benchmark const&);
 };
 
+} // namespace internal
 
+// Create and register a benchmark with the specified 'name' that invokes
+// the specified functor 'fn'.
+//
+// RETURNS: A pointer to the registered benchmark.
+internal::Benchmark* RegisterBenchmark(const char* name, internal::Function* fn);
 
+#if defined(BENCHMARK_HAS_CXX11)
+template <class Lambda>
+internal::Benchmark* RegisterBenchmark(const char* name, Lambda&& fn);
+#endif
+
+namespace internal {
 // The class used to hold all Benchmarks created from static function.
 // (ie those created using the BENCHMARK(...) macros.
 class FunctionBenchmark : public Benchmark {
@@ -748,7 +766,56 @@ private:
     Function* func_;
 };
 
+#ifdef BENCHMARK_HAS_CXX11
+template <class Lambda>
+class LambdaBenchmark : public Benchmark {
+public:
+    virtual void Run(State& st) { lambda_(st); }
+
+private:
+  template <class OLambda>
+  LambdaBenchmark(const char* name, OLambda&& lam)
+      : Benchmark(name), lambda_(std::forward<OLambda>(lam)) {}
+
+  LambdaBenchmark(LambdaBenchmark const&) = delete;
+
+private:
+  template <class Lam>
+  friend Benchmark* ::benchmark::RegisterBenchmark(const char*, Lam&&);
+
+  Lambda lambda_;
+};
+#endif
+
 }  // end namespace internal
+
+inline internal::Benchmark*
+RegisterBenchmark(const char* name, internal::Function* fn) {
+    return internal::RegisterBenchmarkInternal(
+        ::new internal::FunctionBenchmark(name, fn));
+}
+
+#ifdef BENCHMARK_HAS_CXX11
+template <class Lambda>
+internal::Benchmark* RegisterBenchmark(const char* name, Lambda&& fn) {
+    using BenchType = internal::LambdaBenchmark<typename std::decay<Lambda>::type>;
+    return internal::RegisterBenchmarkInternal(
+        ::new BenchType(name, std::forward<Lambda>(fn)));
+}
+#endif
+
+#if defined(BENCHMARK_HAS_CXX11) && \
+     (!defined(BENCHMARK_GCC_VERSION) || BENCHMARK_GCC_VERSION >= 409)
+template <class Lambda, class ...Args>
+internal::Benchmark* RegisterBenchmark(const char* name, Lambda&& fn,
+                                       Args&&... args) {
+    return benchmark::RegisterBenchmark(name,
+        [=](benchmark::State& st) { fn(st, args...); });
+}
+#else
+#define BENCHMARK_HAS_NO_VARIADIC_REGISTER_BENCHMARK
+#endif
+
 
 // The base class for all fixture tests.
 class Fixture: public internal::Benchmark {

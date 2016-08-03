@@ -159,17 +159,26 @@ class BenchmarkReporter {
 // Simple reporter that outputs benchmark data to the console. This is the
 // default reporter used by RunSpecifiedBenchmarks().
 class ConsoleReporter : public BenchmarkReporter {
- public:
+public:
+  enum OutputOptions {
+    OO_None,
+    OO_Color
+  };
+  explicit ConsoleReporter(OutputOptions color_output = OO_Color)
+      : color_output_(color_output == OO_Color) {}
+
   virtual bool ReportContext(const Context& context);
   virtual void ReportRuns(const std::vector<Run>& reports);
 
- protected:
+protected:
   virtual void PrintRunData(const Run& report);
   virtual void PrintHeader(const Run& report);
 
   size_t name_field_width_;
   BenchmarkCounters prev_counters_;
   bool printed_header_;
+private:
+  bool color_output_;
 };
 
 class JSONReporter : public BenchmarkReporter {
