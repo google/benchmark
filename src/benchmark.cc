@@ -66,6 +66,11 @@ DEFINE_int32(benchmark_repetitions, 1,
              "The number of runs of each benchmark. If greater than 1, the "
              "mean and standard deviation of the runs will be reported.");
 
+DEFINE_bool(benchmark_report_repetitions, true,
+            "Report the result of each benchmark repetitions. When 'false' is "
+            "specified only the mean, standard deviation, and other statistics "
+            "are reported for repeated benchmarks.");
+
 DEFINE_string(benchmark_format, "console",
               "The format to use for console output. Valid values are "
               "'console', 'json', or 'csv'.");
@@ -311,10 +316,48 @@ static std::unique_ptr<TimerManager> timer_manager = nullptr;
 
 namespace internal {
 
+enum ReportOptions : unsigned {
+    RO_Unspecified = 0, // No options have been manually specified
+    RO_Default = 1, // Options are user-specified as default
+    RO_NoReportRepetitions = RO_Default << 1
+};
+
+inline ReportOptions operator~(ReportOptions V) {
+    return static_cast<ReportOptions>(~static_cast<unsigned>(V));
+}
+
+inline ReportOptions operator&(ReportOptions L, ReportOptions R) {
+    return static_cast<ReportOptions>(
+        static_cast<unsigned>(L) & static_cast<unsigned>(R));
+}
+
+inline ReportOptions operator|(ReportOptions L, ReportOptions R) {
+    return static_cast<ReportOptions>(
+        static_cast<unsigned>(L) | static_cast<unsigned>(R));
+}
+
+inline ReportOptions operator^(ReportOptions L, ReportOptions R) {
+    return static_cast<ReportOptions>(
+        static_cast<unsigned>(L) ^ static_cast<unsigned>(R));
+}
+
+inline ReportOptions& operator&=(ReportOptions& L, ReportOptions R) {
+    return (L = L & R);
+}
+
+inline ReportOptions& operator|=(ReportOptions& L, ReportOptions R) {
+    return (L = L | R);
+}
+
+inline ReportOptions& operator^=(ReportOptions& L, ReportOptions R) {
+    return (L = L ^ R);
+}
+
 // Information kept per benchmark we may want to run
 struct Benchmark::Instance {
   std::string    name;
   Benchmark*     benchmark;
+  ReportOptions  report_options;
   bool           has_arg1;
   int            arg1;
   bool           has_arg2;
@@ -367,6 +410,7 @@ public:
   void RangeMultiplier(int multiplier);
   void MinTime(double n);
   void Repetitions(int n);
+  void ReportRepetitions(bool v);
   void UseRealTime();
   void UseManualTime();
   void Complexity(BigO complexity);
@@ -382,6 +426,7 @@ private:
   friend class BenchmarkFamilies;
 
   std::string name_;
+  ReportOptions report_options_;
   int arg_count_;
   std::vector< std::pair<int, int> > args_;  // Args for all benchmark runs
   TimeUnit time_unit_;
@@ -445,6 +490,7 @@ bool BenchmarkFamilies::FindBenchmarks(
         Benchmark::Instance instance;
         instance.name = family->name_;
         instance.benchmark = bench_family.get();
+        instance.report_options = family->report_options_;
         instance.has_arg1 = family->arg_count_ >= 1;
         instance.arg1 = args.first;
         instance.has_arg2 = family->arg_count_ == 2;
@@ -495,10 +541,11 @@ bool BenchmarkFamilies::FindBenchmarks(
 }
 
 BenchmarkImp::BenchmarkImp(const char* name)
-    : name_(name), arg_count_(-1), time_unit_(kNanosecond),
-      range_multiplier_(kRangeMultiplier), min_time_(0.0), repetitions_(0),
-      use_real_time_(false), use_manual_time_(false),
-      complexity_(oNone) {
+    : name_(name), report_options_(RO_Unspecified), arg_count_(-1),
+      time_unit_(kNanosecond), range_multiplier_(kRangeMultiplier),
+      min_time_(0.0), repetitions_(0), use_real_time_(false),
+      use_manual_time_(false), complexity_(oNone)
+{
 }
 
 BenchmarkImp::~BenchmarkImp() {
@@ -569,6 +616,13 @@ void BenchmarkImp::MinTime(double t) {
 void BenchmarkImp::Repetitions(int n) {
   CHECK(n > 0);
   repetitions_ = n;
+}
+
+void BenchmarkImp::ReportRepetitions(bool value) {
+  if (report_options_ == RO_Unspecified)
+      report_options_ = RO_Default;
+  if (value) report_options_ &= ~RO_NoReportRepetitions;
+  else report_options_ |= RO_NoReportRepetitions;
 }
 
 void BenchmarkImp::UseRealTime() {
@@ -693,6 +747,11 @@ Benchmark* Benchmark::Repetitions(int t) {
   return this;
 }
 
+Benchmark* Benchmark::ReportRepetitions(bool value) {
+  imp_->ReportRepetitions(value);
+  return this;
+}
+
 Benchmark* Benchmark::MinTime(double t) {
   imp_->MinTime(t);
   return this;
@@ -769,7 +828,8 @@ std::vector<BenchmarkReporter::Run>
 RunBenchmark(const benchmark::internal::Benchmark::Instance& b,
              std::vector<BenchmarkReporter::Run>* complexity_reports)
   EXCLUDES(GetBenchmarkLock()) {
-   std::vector<BenchmarkReporter::Run> reports; // return value
+  std::vector<BenchmarkReporter::Run> reports; // return value
+
   size_t iters = 1;
 
   std::vector<std::thread> pool;
@@ -778,6 +838,10 @@ RunBenchmark(const benchmark::internal::Benchmark::Instance& b,
 
   const int repeats = b.repetitions != 0 ? b.repetitions
                                          : FLAGS_benchmark_repetitions;
+  const bool report_repeats = repeats == 1 ||
+      (b.report_options == internal::RO_Unspecified
+        ? FLAGS_benchmark_report_repetitions
+        : (b.report_options & internal::RO_NoReportRepetitions) == 0);
   for (int i = 0; i < repeats; i++) {
     std::string mem;
     for (;;) {
@@ -904,22 +968,21 @@ RunBenchmark(const benchmark::internal::Benchmark::Instance& b,
       iters = static_cast<int>(next_iters + 0.5);
     }
   }
-  std::vector<BenchmarkReporter::Run> additional_run_stats = ComputeStats(reports);
-  reports.insert(reports.end(), additional_run_stats.begin(),
-                 additional_run_stats.end());
-
-  if((b.complexity != oNone) && b.last_benchmark_instance) {
-    additional_run_stats = ComputeBigO(*complexity_reports);
-    reports.insert(reports.end(), additional_run_stats.begin(),
-                   additional_run_stats.end());
-    complexity_reports->clear();
-  }
-
   if (b.multithreaded) {
     for (std::thread& thread : pool)
       thread.join();
   }
+  // Calculate additional statistics
+  auto stat_reports = ComputeStats(reports);
+  if((b.complexity != oNone) && b.last_benchmark_instance) {
+    auto additional_run_stats = ComputeBigO(*complexity_reports);
+    stat_reports.insert(stat_reports.end(), additional_run_stats.begin(),
+                   additional_run_stats.end());
+    complexity_reports->clear();
+  }
 
+  if (!report_repeats) reports.clear();
+  reports.insert(reports.end(), stat_reports.begin(), stat_reports.end());
   return reports;
 }
 
@@ -1108,6 +1171,7 @@ void PrintUsageAndExit() {
           "          [--benchmark_filter=<regex>]\n"
           "          [--benchmark_min_time=<min_time>]\n"
           "          [--benchmark_repetitions=<num_repetitions>]\n"
+          "          [--benchmark_report_repetitions={true|false}\n"
           "          [--benchmark_format=<console|json|csv>]\n"
           "          [--benchmark_out=<filename>]\n"
           "          [--benchmark_out_format=<json|console|csv>]\n"
@@ -1128,6 +1192,8 @@ void ParseCommandLineFlags(int* argc, char** argv) {
                         &FLAGS_benchmark_min_time) ||
         ParseInt32Flag(argv[i], "benchmark_repetitions",
                        &FLAGS_benchmark_repetitions) ||
+        ParseBoolFlag(argv[i], "benchmark_report_repetitions",
+                       &FLAGS_benchmark_report_repetitions) ||
         ParseStringFlag(argv[i], "benchmark_format",
                         &FLAGS_benchmark_format) ||
         ParseStringFlag(argv[i], "benchmark_out",
