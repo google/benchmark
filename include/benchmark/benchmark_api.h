@@ -157,7 +157,7 @@ BENCHMARK(BM_test)->Unit(benchmark::kMillisecond);
 
 #if defined(BENCHMARK_HAS_CXX11)
 #include <type_traits>
-# include <initializer_list>
+#include <initializer_list>
 #include <utility>
 #endif
 

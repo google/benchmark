@@ -224,7 +224,8 @@ int main(int argc, char* argv[]) {
         reporter.SetOutputStream(&out_stream);
         reporter.SetErrorStream(&err_stream);
     }
-  } TestCases[] = {
+  }
+  TestCases[] = {
       {"ConsoleReporter", ConsoleOutputTests, ConsoleErrorTests, CR},
       {"JSONReporter", JSONOutputTests, JSONErrorTests, JR},
       {"CSVReporter", CSVOutputTests, CSVErrorTests, CSVR}

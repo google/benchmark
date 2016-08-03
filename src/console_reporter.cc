@@ -137,7 +137,7 @@ void ConsoleReporter::PrintRunData(const Run& result) {
 
   for(auto &c : result.counters) {
     auto const& s = HumanReadableNumber(c.Value());
-    ColorPrintf(Out, COLOR_DEFAULT, " %13s", s.c_str());
+    printer(Out, COLOR_DEFAULT, " %13s", s.c_str());
   }
 
   if (!rate.empty()) {
