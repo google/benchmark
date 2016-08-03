@@ -249,7 +249,7 @@ public:
     kIsRate         = 0x01 << 0,
     /** Mark the counter as a thread-average quantity. It will be presented divided by the number of threads. */
     kAvgThreads     = 0x01 << 1
-  } Flags_e;
+  } Flags;
 
 public:
 
