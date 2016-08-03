@@ -107,11 +107,13 @@ struct CustomFixture {
 };
 
 void TestRegistrationAtRuntime() {
+#ifdef BENCHMARK_HAS_CXX11
   {
     CustomFixture fx;
     benchmark::RegisterBenchmark("custom_fixture", fx);
     AddCases({"custom_fixture"});
   }
+#endif
 #ifndef BENCHMARK_HAS_NO_VARIADIC_REGISTER_BENCHMARK
   {
     int x = 42;
