@@ -312,8 +312,11 @@ public:
   // Add/Set a counter. When the counter already exists, f is ignored.
   size_t  Set(const char* n, double v, uint32_t f);
 
+  // Set a counter. id must have been obtained with a previous call to Set().
+  void Set(size_t id, double v) { return Get(id).Set(v); }
+
 #ifdef BENCHMARK_HAS_CXX11
-  void    Set(std::initializer_list< Counter > il) { for(auto &c : il) { Set(c); } }
+  void Set(std::initializer_list< Counter > il) { for(auto &c : il) { Set(c); } }
 #endif
 
   // Returns the index where name is located, or size() if the name was not found.
@@ -553,33 +556,6 @@ public:
   BENCHMARK_ALWAYS_INLINE
   size_t iterations() const { return total_iterations_; }
 
-
-  // Add a user counter. Return the counter handle.
-  BENCHMARK_ALWAYS_INLINE
-  size_t SetCounter(const char* n) { return counters_.Set(n); }
-  // Add/set a user counter. Return the counter handle.
-  BENCHMARK_ALWAYS_INLINE
-  size_t SetCounter(const char* n, double v) { return counters_.Set(n, v); }
-  // Add/set a user counter. Return the counter handle.
-  BENCHMARK_ALWAYS_INLINE
-  size_t SetCounter(const char* n, double v, uint32_t f) { return counters_.Set(n, v, f); }
-  // Given a counter handle, set a previously existing user counter.
-  BENCHMARK_ALWAYS_INLINE
-  void SetCounter(size_t counter_id, double v) { counters_.Get(counter_id).Set(v); }
-
-#ifdef BENCHMARK_HAS_CXX11
-  // Set several previously existing counters at once.
-  BENCHMARK_ALWAYS_INLINE
-  void SetCounter(std::initializer_list< Counter > il) { counters_.Set(il); }
-#endif
-
-  BENCHMARK_ALWAYS_INLINE Counter & GetCounter(size_t id) { return counters_.Get(id);   }
-  BENCHMARK_ALWAYS_INLINE Counter & GetCounter(const char* name) { return counters_.Get(name); }
-  BENCHMARK_ALWAYS_INLINE Counter const& GetCounter(size_t id) const { return counters_.Get(id);   }
-  BENCHMARK_ALWAYS_INLINE Counter const& GetCounter(const char* name) const { return counters_.Get(name); }
-
-  BENCHMARK_ALWAYS_INLINE BenchmarkCounters const& Counters() { return counters_; }
-
 private:
   bool started_;
   bool finished_;
@@ -596,7 +572,9 @@ private:
 
   int complexity_n_;
 
-  BenchmarkCounters counters_;
+public:
+
+  BenchmarkCounters counters;
 
 public:
   // FIXME: Make this private somehow.

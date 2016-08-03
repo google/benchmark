@@ -756,7 +756,7 @@ void RunInThread(const benchmark::internal::Benchmark::Instance* b,
     total->bytes_processed += st.bytes_processed();
     total->items_processed += st.items_processed();
     total->complexity_n += st.complexity_length_n();
-    total->counters.Sum(st.Counters());
+    total->counters.Sum(st.counters);
   }
 
   timer_manager->Finalize();
@@ -931,7 +931,7 @@ State::State(size_t max_iters, bool has_x, int x, bool has_y, int y,
       has_range_y_(has_y), range_y_(y),
       bytes_processed_(0), items_processed_(0),
       complexity_n_(0),
-      counters_(),
+      counters(),
       error_occurred_(false),
       thread_index(thread_i),
       threads(n_threads),

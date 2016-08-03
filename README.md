@@ -277,8 +277,6 @@ static void BM_ManualTiming(benchmark::State& state) {
 BENCHMARK(BM_ManualTiming)->Range(1, 1<<17)->UseManualTime();
 ```
 
-
-
 ### Preventing optimisation
 To prevent a value or expression from being optimized away by the compiler
 the `benchmark::DoNotOptimize(...)` and `benchmark::ClobberMemory()`
@@ -407,59 +405,61 @@ static void BM_UserCountersExample(benchmark::State& state) {
   while (state.KeepRunning()) {
     // ... count Foo,Bar,Baz events
   }
-  state.SetCounter("Foo", numFoos);
-  state.SetCounter("Bar", numBars);
-  state.SetCounter("Baz", numBars);
+  state.counters.Set("Foo", numFoos);
+  state.counters.Set("Bar", numBars);
+  state.counters.Set("Baz", numBars);
 }
 ```
 
 If you are compiling in C++11 mode or later, then overloads with
-std::initializer_list will be enabled. The calls to `SetCounter()` in the
+std::initializer_list will be enabled. The calls to `Set()` in the
 example above could then be written instead in a single call:
 
 ```c++
-  state.SetCounter({{"Foo", numFoos}, {"Bar", numBars}, {"Baz", numBazs}});
+  state.counters.Set({{"Foo", numFoos}, {"Bar", numBars}, {"Baz", numBazs}});
 ```
 
-`state.SetCounter()` works
-as expected with new or previously existing counters: if the counter already
-exists, then its value will be overwritten. If the counter does not exist,
-then `state.SetCounter()` will create a counter initialized with the provided
-value.
+`state.counters.Set()` works as expected with new or previously existing
+counters: if the counter already exists, then its value will be overwritten.
+If the counter does not exist, then `state.counters.Set()` will create a
+counter initialized with the provided value.
 
 You can mark counters as rates and/or as per-thread averages:
 
 ```c++
   // Set the counter as a rate. It will be presented divided
   // by the duration of the benchmark.
-  state.SetCounter("FooRate", numFoos, benchmark::Counter::kIsRate);
+  state.counters.Set("FooRate", numFoos, benchmark::Counter::kIsRate);
 
   // Set the counter as a thread-average quantity. It will
   // be presented divided by the number of threads. */
-  state.SetCounter("FooRate", numFoos, benchmark::Counter::kAvgThreads);
+  state.counters.Set("FooAvg", numFoos, benchmark::Counter::kAvgThreads);
 
   // the third argument is a bitwise mask, so you can combine.
   // This will mark as a thread-average rate:
-  state.SetCounter("FooRate", numFoos, benchmark::Counter::kIsRate|benchmark::Counter::kAvgThreads);
+  state.counters.Set("FooAvgRate", numFoos, benchmark::Counter::kIsRate|benchmark::Counter::kAvgThreads);
 ```
 
-Note that setting the counter flags only works on the first call to `state.SetCounter()`; any subsequent values will be silently ignored.
+Note that setting the counter flags only works on the first call
+to `state.counters.Set()`; any subsequent flag values will be silently
+ignored. This is intended as 
 
-The return value of `state.SetCounter()` is of type `size_t` and is the handle
+The return value of `state.counters.Set()` is of type `size_t` and is the handle
 to the counter. You can use this handle to get the counter with the method
-`state.GetCounter()`. You can also get the counter by name, either with
-`const char*` or `std::string const&`; this will do a string lookup, linear
-in the number of counters. The counter object has compound
-assignment overloads `+=`, `-=`, `*=`, `/=`. You can then change the counter
+`state.counters.Get()`. You can also get the counter by name with a
+null-terminated C-string; this will do a string lookup, linear in the
+number of counters times the length of the string. The counter object has
+assignment `=` and compound assignment overloads `+=`, `-=`, `*=`, `/=`
+with double arguments. You can then change the counter
 as needed. For example:
 
 ```c++
 static void BM_UserCountersExample(benchmark::State& state) {
-  state.SetCounter("LighterCounter"); // counter value defaults to 0
+  state.counters.Set("LightCounter"); // counter value defaults to 0
   size_t handle = state.SetCounter("HeavyCounter"); // also 0
   while (state.KeepRunning()) {
-    state.GetCounter("LighterCounter") += numLighterEvents; // will do a string lookup, linear in number of counters
-    state.GetCounter(handle) += bigNumEvents; // faster, no lookup
+    state.counters.Get("LightCounter") += numLighterEvents; // will do a string lookup, linear in number of counters * string length
+    state.counters.Get(handle) += bigNumEvents; // faster, no lookup
   }
 }
 ```
