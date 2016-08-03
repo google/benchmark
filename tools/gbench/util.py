@@ -123,7 +123,6 @@ def run_or_load_benchmark(filename, benchmark_flags):
     """
     ftype = check_input_file(filename)
     if ftype == IT_JSON:
-        print('LOADING RESULTS: %s' % fname)
         return load_benchmark_results(filename)
     elif ftype == IT_Executable:
         return run_benchmark(filename, benchmark_flags)
