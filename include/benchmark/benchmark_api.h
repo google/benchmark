@@ -157,6 +157,7 @@ BENCHMARK(BM_test)->Unit(benchmark::kMillisecond);
 
 #ifdef BENCHMARK_HAS_CXX11
 # include <initializer_list>
+# include <utility>
 #endif
 
 namespace benchmark {
@@ -267,6 +268,7 @@ public:
 
   bool SameName(const char *n) const;
 
+  Counter& operator = (double v) { value_  = v; return *this; }
   Counter& operator+= (double v) { value_ += v; return *this; }
   Counter& operator-= (double v) { value_ -= v; return *this; }
   Counter& operator*= (double v) { value_ *= v; return *this; }
@@ -305,35 +307,41 @@ public:
   BenchmarkCounters& operator= (BenchmarkCounters && that);
 #endif
 
-  // Add/Set a counter.
-  size_t  Set(Counter const& c);
-  // Add/Set a counter.
-  size_t  Set(const char* n, double v) { return Set(n, v, Counter::kDefaults); }
-  // Add/Set a counter. When the counter already exists, f is ignored.
-  size_t  Set(const char* n, double v, uint32_t f);
+  // Get a counter by name. Complexity: O(nameLength*size())
+  Counter const& operator[] (const char *name) const;
+  // Get (or insert) a counter by name. Complexity: O(nameLength*size())
+  Counter & operator[] (const char *name);
 
-  // Set a counter. id must have been obtained with a previous call to Set().
-  void Set(size_t id, double v) { return Get(id).Set(v); }
 
+  // Get a counter by id. Complexity: O(1)
+  Counter & operator[] (size_t id);
+  // Get a counter by id. Complexity: O(1)
+  Counter const& operator[] (size_t id) const;
+
+
+  // Insert a counter. Return its id. Complexity: O(nameLength*size())
+  size_t Insert(const char* name);
+  // Insert or update a counter. Return its id. Complexity: O(nameLength*size())
+  size_t Insert(const char *name, double value);
+  // Insert or update a counter. Return its id. Complexity: O(nameLength*size())
+  size_t Insert(const char *name, double value, uint32_t flags);
+  // Insert or update a counter. Return its id. Complexity: O(nameLength*size())
+  size_t Insert(Counter const& c);
 #ifdef BENCHMARK_HAS_CXX11
-  void Set(std::initializer_list< Counter > il) { for(auto &c : il) { Set(c); } }
+  // Insert or update a counter. Return its id. Complexity: O(nameLength*size())
+  void   Insert(std::initializer_list< Counter > il);
 #endif
 
+
   // Returns the index where name is located, or size() if the name was not found.
-  size_t  Find(const char* name) const;
+  size_t Find(const char* name) const;
 
   bool Exists(const char* name) const { return Find(name) < num_counters_; }
-
-  Counter & Get(size_t id);
-  Counter & Get(const char* name);
-  Counter const& Get(size_t id) const;
-  Counter const& Get(const char* name) const;
 
   bool SameNames(BenchmarkCounters const& that) const;
 
   void Sum(BenchmarkCounters const& that);
   void Finish(double time, double num_threads);
-  void Clear();
 
   size_t size() const { return num_counters_;  }
 
@@ -352,6 +360,13 @@ private:
 
 };
 
+#ifdef BENCHMARK_HAS_CXX11
+inline void BenchmarkCounters::Insert(std::initializer_list< Counter > il) {
+  for(auto &c : il) {
+    Insert(c);
+  }
+}
+#endif
 
 
 // TimeUnit is passed to a benchmark in order to specify the order of magnitude

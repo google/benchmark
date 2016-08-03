@@ -226,12 +226,12 @@ static void BM_UserCounter(benchmark::State& state) {
   while (state.KeepRunning()) {
     benchmark::DoNotOptimize(CalculatePi(depth));
   }
-  state.counters.Set("Foo", 1);
-  state.counters.Set("Bar", 2);
-  state.counters.Set("Baz", 3);
-  state.counters.Set("Bat", 5);
+  state.counters["Foo"] = 1;
+  state.counters["Bar"] = 2;
+  state.counters["Baz"] = 3;
+  state.counters["Bat"] = 5;
 #ifdef BENCHMARK_HAS_CXX11
-  state.counters.Set({{"Foo", 2}, {"Bar", 3}, {"Baz", 5}, {"Bat", 6}});
+  state.counters.Insert({{"Foo", 2}, {"Bar", 3}, {"Baz", 5}, {"Bat", 6}});
 #endif
 }
 BENCHMARK(BM_UserCounter)->Threads(8);

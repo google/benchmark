@@ -54,8 +54,8 @@ class CounterFixture : public ::benchmark::Fixture {
   public:
 
   void InitState(benchmark::State &st) {
-      posFoo = st.counters.Set("Foo");
-      posBar = st.counters.Set("Bar");
+    posFoo = st.counters.Insert("Foo");
+    posBar = st.counters.Insert("Bar");
   }
 
   size_t posFoo, posBar;
@@ -64,20 +64,20 @@ BENCHMARK_DEFINE_F(CounterFixture, BumpById)(benchmark::State& st) {
   assert(posFoo == 0);
   assert(posBar == 1);
   while (st.KeepRunning()) {
-      st.counters.Get(posFoo) += 1.;
-      st.counters.Get(posBar) += 1.;
+      st.counters[posFoo] += 1.;
+      st.counters[posBar] += 1.;
   }
-  assert(st.GetCounter(posFoo).Value() > 0.);
+  assert(st.counters[posFoo].Value() > 0.);
   st.SetItemsProcessed(st.iterations());
 }
 BENCHMARK_REGISTER_F(CounterFixture, BumpById);
 
 BENCHMARK_DEFINE_F(CounterFixture, BumpByName)(benchmark::State& st) {
   while (st.KeepRunning()) {
-      st.counters.Get("Foo") += 1.;
-      st.counters.Get("Bar") += 1.;
+      st.counters["Foo"] += 1.;
+      st.counters["Bar"] += 1.;
   }
-  assert(st.GetCounter(posFoo).Value() > 0.);
+  assert(st.counters[posFoo].Value() > 0.);
   st.SetItemsProcessed(st.iterations());
 }
 BENCHMARK_REGISTER_F(CounterFixture, BumpByName);

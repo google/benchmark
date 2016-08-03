@@ -400,68 +400,81 @@ You can add your own counters with user-defined names. The example below
 will add columns "Foo", "Bar" and "Baz" in its output:
 
 ```c++
-static void BM_UserCountersExample(benchmark::State& state) {
+static void UserCountersExample1(benchmark::State& state) {
   double numFoos = 0, numBars = 0, numBazs = 0;
   while (state.KeepRunning()) {
     // ... count Foo,Bar,Baz events
   }
-  state.counters.Set("Foo", numFoos);
-  state.counters.Set("Bar", numBars);
-  state.counters.Set("Baz", numBars);
+  state.counters["Foo"] = numFoos;
+  state.counters["Bar"] = numBars;
+  state.counters["Baz"] = numBazs;
 }
 ```
 
-If you are compiling in C++11 mode or later, then overloads with
-std::initializer_list will be enabled. The calls to `Set()` in the
-example above could then be written instead in a single call:
+The `state.counters` object is a map-like container of `Counter` objects.
+Its `operator[](const char* name)` returns the counter with the given name or,
+if none is present, inserts and then returns a new `Counter` with that name.
+The `Counter` class has assignment (`=`) and compound assignment overloads
+(`+=`, `-=`, `*=`, `/=`) receiving a `double` as argument.
+
+`state.counters` also offers an `Insert()` method. This method can be used both
+to insert a new counter or update an existing counter:
 
 ```c++
-  state.counters.Set({{"Foo", numFoos}, {"Bar", numBars}, {"Baz", numBazs}});
+  state.counters.Insert("name"); // inserts a new counter, with value of 0
+  double someValue;
+  state.counters.Insert("name", someValue); // inserts a new counter or updates an existing counter
 ```
 
-`state.counters.Set()` works as expected with new or previously existing
-counters: if the counter already exists, then its value will be overwritten.
-If the counter does not exist, then `state.counters.Set()` will create a
-counter initialized with the provided value.
-
-You can mark counters as rates and/or as per-thread averages:
+An additional overload to `state.counters.Insert()` allows you to mark
+counters as rates and/or as per-thread averages:
 
 ```c++
   // Set the counter as a rate. It will be presented divided
   // by the duration of the benchmark.
-  state.counters.Set("FooRate", numFoos, benchmark::Counter::kIsRate);
+  state.counters.Insert("FooRate", numFoos, benchmark::Counter::kIsRate);
 
   // Set the counter as a thread-average quantity. It will
   // be presented divided by the number of threads. */
-  state.counters.Set("FooAvg", numFoos, benchmark::Counter::kAvgThreads);
+  state.counters.Insert("FooAvg", numFoos, benchmark::Counter::kAvgThreads);
 
   // the third argument is a bitwise mask, so you can combine.
   // This will mark as a thread-average rate:
-  state.counters.Set("FooAvgRate", numFoos, benchmark::Counter::kIsRate|benchmark::Counter::kAvgThreads);
+  state.counters.Insert("FooAvgRate", numFoos, benchmark::Counter::kIsRate|benchmark::Counter::kAvgThreads);
 ```
 
-Note that setting the counter flags only works on the first call
-to `state.counters.Set()`; any subsequent flag values will be silently
-ignored. This is intended as 
-
-The return value of `state.counters.Set()` is of type `size_t` and is the handle
-to the counter. You can use this handle to get the counter with the method
-`state.counters.Get()`. You can also get the counter by name with a
-null-terminated C-string; this will do a string lookup, linear in the
-number of counters times the length of the string. The counter object has
-assignment `=` and compound assignment overloads `+=`, `-=`, `*=`, `/=`
-with double arguments. You can then change the counter
-as needed. For example:
+A further use of `state.counters.Insert()` is to minimize lookup time.
+This may be needed as calling `state.counters[someName]` is of complexity
+`O(someNameLength*numCounters)` and in some cases may be too heavy to call
+inside the `while(state.KeepRunning())` loop. In such cases, using the
+counter id is the solution. This id is the value returned by
+`state.counters.Insert()`, and is of type `size_t`. You can then use this
+handle to get the counter with the method `state.counters[id]`, which has
+complexity `O(1)` and just indexes into a simple array to return the wanted
+counter. This is possible because internally the counters are stored in an
+array and new counters are pushed back to the end of the array. For example:
 
 ```c++
-static void BM_UserCountersExample(benchmark::State& state) {
-  state.counters.Set("LightCounter"); // counter value defaults to 0
-  size_t handle = state.SetCounter("HeavyCounter"); // also 0
+static void BM_UserCountersFastLookupExample(benchmark::State& state) {
+  // insert Foo counter and store its handle
+  size_t idFoo = state.counters.Insert("Foo");
   while (state.KeepRunning()) {
-    state.counters.Get("LightCounter") += numLighterEvents; // will do a string lookup, linear in number of counters * string length
-    state.counters.Get(handle) += bigNumEvents; // faster, no lookup
+    state.counters["Foo"] += numFoos; // will do a string lookup, linear in number of counters * name length
+    state.counters[idFoo] += numFoos; // faster, no lookup
   }
 }
+```
+
+If you are compiling in C++11 mode or later, then an overload with
+`std::initializer_list` will be enabled::
+
+```c++
+  // With C++11, this can be done:
+  state.counters.Insert({{"Foo", numFoos}, {"Bar", numBars}, {"Baz", numBazs}});
+  // ... instead of:
+  state.counters["Foo"] = numFoos;
+  state.counters["Bar"] = numBars;
+  state.counters["Baz"] = numBazs;
 ```
 
 

@@ -94,7 +94,7 @@ void Counter::_SetName(const char *n) {
     if(sz < sizeof(name_buf_)) { // new name fits in fixed buffer
       name_ = name_buf_;
       // keep any allocated memory as it is
-    } else { // new name does not fit buffer; must use allocated memory
+    } else { // new name does not fit fixed buffer; must use allocated memory
       if(mem_size_ == 0) { // allocate mem
         mem_size_ = sz + 1;
         name_mem_ = new char[mem_size_];
@@ -221,47 +221,75 @@ size_t BenchmarkCounters::_Add() {
   return pos;
 }
 
-size_t BenchmarkCounters::Set(Counter const& c) {
-  size_t pos = Find(c.Name());
-  if(pos < num_counters_) {
-    counters_[pos] = c;
+
+Counter& BenchmarkCounters::operator[] (size_t id) {
+  CHECK_LT(id, num_counters_) << "Invalid counter handle: " << id;
+  return counters_[id];
+}
+Counter const& BenchmarkCounters::operator[] (size_t id) const {
+  CHECK_LT(id, num_counters_) << "Invalid counter handle: " << id;
+  return counters_[id];
+}
+Counter const& BenchmarkCounters::operator[] (const char *name) const {
+  size_t id = Find(name);
+  CHECK_EQ(Exists(name), true) << "Counter not found: " << name;
+  return counters_[id];
+}
+Counter& BenchmarkCounters::operator[] (const char *name) {
+  size_t id = Find(name);
+  if(id < num_counters_) {
+    return counters_[id];
   } else {
-    pos = _Add(); // get a slot
-    Counter *slot = counters_ + pos;
+    id = _Add(); // get a slot
+    Counter *slot = counters_ + id;
+    new (slot) Counter(name); // construct in place using placement new
+    return *slot;
+  }
+}
+
+size_t BenchmarkCounters::Insert(const char* name) {
+  size_t id = Find(name);
+  if(id < num_counters_) {
+    return id;
+  } else {
+    id = _Add(); // get a slot
+    Counter *slot = counters_ + id;
+    new (slot) Counter(name); // construct in place using placement new
+    return id;
+  }
+}
+size_t BenchmarkCounters::Insert(const char *name, double value) {
+  size_t id = Find(name);
+  if(id < num_counters_) {
+    return id;
+  } else {
+    id = _Add(); // get a slot
+    Counter *slot = counters_ + id;
+    new (slot) Counter(name, value); // construct in place using placement new
+    return id;
+  }
+}
+size_t BenchmarkCounters::Insert(const char *name, double value, uint32_t flags) {
+  size_t id = Find(name);
+  if(id < num_counters_) {
+    return id;
+  } else {
+    id = _Add(); // get a slot
+    Counter *slot = counters_ + id;
+    new (slot) Counter(name, value, flags); // construct in place using placement new
+    return id;
+  }
+}
+size_t BenchmarkCounters::Insert(Counter const& c) {
+  size_t id = Find(c.Name());
+  if(id < num_counters_) {
+    return id;
+  } else {
+    id = _Add(); // get a slot
+    Counter *slot = counters_ + id;
     new (slot) Counter(c); // construct in place using placement new
+    return id;
   }
-  return pos;
-}
-
-size_t BenchmarkCounters::Set(const char *n, double v, uint32_t f) {
-  size_t pos = Find(n);
-  if(pos < num_counters_) {
-    counters_[pos].Set(v);
-  } else {
-    pos = _Add(); // get a slot
-    Counter *slot = counters_ + pos;
-    new (slot) Counter(n, v, f); // construct in place using placement new
-  }
-  return pos;
-}
-
-Counter& BenchmarkCounters::Get(size_t id) {
-  CHECK_LT(id, num_counters_) << "Invalid counter handle: " << id;
-  return counters_[id];
-}
-Counter const& BenchmarkCounters::Get(size_t id) const {
-  CHECK_LT(id, num_counters_) << "Invalid counter handle: " << id;
-  return counters_[id];
-}
-Counter& BenchmarkCounters::Get(const char *name) {
-  size_t id = Find(name);
-  CHECK_EQ(Exists(name), true) << "Counter not found: " << name;
-  return counters_[id];
-}
-Counter const& BenchmarkCounters::Get(const char *name) const {
-  size_t id = Find(name);
-  CHECK_EQ(Exists(name), true) << "Counter not found: " << name;
-  return counters_[id];
 }
 
 
@@ -285,7 +313,9 @@ size_t BenchmarkCounters::Find(const char *name) const {
   size_t pos = 0;
   for(size_t i = 0; i < num_counters_; ++i) {
     Counter const& c = counters_[i];
-    if(c.SameName(name)) break;
+    if(c.SameName(name)) {
+      break;
+    }
     ++pos;
   }
   return pos;
@@ -305,7 +335,7 @@ void BenchmarkCounters::Sum(BenchmarkCounters const& that) {
     Counter const& tc = that.counters_[i];
     size_t j = Find(tc.Name());
     if(j >= num_counters_) {
-      Set(tc);
+      (*this)[tc.Name()] = tc;
     }
   }
 }
@@ -314,13 +344,6 @@ void BenchmarkCounters::Finish(double cpu_time, double num_threads) {
   for(size_t i = 0; i < num_counters_; ++i) {
     Counter & c = counters_[i];
     c.Finish(cpu_time, num_threads);
-  }
-}
-
-void BenchmarkCounters::Clear() {
-  for(size_t i = 0; i < num_counters_; ++i) {
-    Counter & c = counters_[i];
-    c.Set(0.);
   }
 }
 
