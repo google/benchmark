@@ -291,7 +291,7 @@ private:
   double   value_;
   uint32_t flags_;
 
-  void _SetName(const char *name);
+  void SetName_(const char *name);
 };
 
 
@@ -361,8 +361,8 @@ private:
   size_t num_counters_;
   size_t capacity_;
 
-  void _Reserve(size_t sz);
-  size_t _Add();
+  void Reserve_(size_t sz);
+  size_t Add_();
 
 };
 

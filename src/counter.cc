@@ -37,7 +37,7 @@ Counter::Counter(const char* name)
       name_(nullptr),
       value_(0.),
       flags_(kDefaults) {
-  _SetName(name);
+  SetName_(name);
 }
 
 Counter::Counter(const char* name, double v)
@@ -47,7 +47,7 @@ Counter::Counter(const char* name, double v)
       name_(nullptr),
       value_(v),
       flags_(kDefaults) {
-  _SetName(name);
+  SetName_(name);
 }
 
 Counter::Counter(const char* name, double v, uint32_t f)
@@ -57,7 +57,7 @@ Counter::Counter(const char* name, double v, uint32_t f)
       name_(nullptr),
       value_(v),
       flags_(f) {
-  _SetName(name);
+  SetName_(name);
 }
 
 Counter::Counter(Counter const& that)
@@ -67,11 +67,11 @@ Counter::Counter(Counter const& that)
       name_(nullptr),
       value_(that.value_),
       flags_(that.flags_) {
-  _SetName(that.name_);
+  SetName_(that.name_);
 }
 Counter& Counter::operator=(Counter const& that) {
   if (&that == this) return *this;
-  _SetName(that.name_);
+  SetName_(that.name_);
   value_ = that.value_;
   flags_ = that.flags_;
   return *this;
@@ -92,7 +92,7 @@ Counter::Counter(Counter&& that)
 }
 Counter& Counter::operator=(Counter&& that) {
   if (&that == this) return *this;
-  _SetName(nullptr);
+  SetName_(nullptr);
   memcpy(name_buf_, that.name_buf_, sizeof(name_buf_));
   name_mem_ = that.name_mem_;
   mem_size_ = that.mem_size_;
@@ -106,9 +106,9 @@ Counter& Counter::operator=(Counter&& that) {
 }
 #endif  // BENCHMARK_HAS_CXX11
 
-Counter::~Counter() { _SetName(nullptr); }
+Counter::~Counter() { SetName_(nullptr); }
 
-void Counter::_SetName(const char* n) {
+void Counter::SetName_(const char* n) {
   if (n == nullptr) {
     if (name_mem_ != nullptr) {
       delete[] name_mem_;
@@ -169,10 +169,10 @@ std::string Counter::ToString() const {
 
 BenchmarkCounters::BenchmarkCounters()
     : counters_(nullptr), num_counters_(0), capacity_(0) {
-  _Reserve(16);  // minimize reallocations
+  Reserve_(16);  // minimize reallocations
 }
 
-BenchmarkCounters::~BenchmarkCounters() { _Reserve(0); }
+BenchmarkCounters::~BenchmarkCounters() { Reserve_(0); }
 
 #ifdef BENCHMARK_HAS_CXX11
 BenchmarkCounters::BenchmarkCounters(BenchmarkCounters&& that)
@@ -185,7 +185,7 @@ BenchmarkCounters::BenchmarkCounters(BenchmarkCounters&& that)
 }
 BenchmarkCounters& BenchmarkCounters::operator=(BenchmarkCounters&& that) {
   if (&that == this) return *this;
-  _Reserve(0);  // free existing memory
+  Reserve_(0);  // free existing memory
   counters_ = that.counters_;
   num_counters_ = that.num_counters_;
   capacity_ = that.capacity_;
@@ -198,7 +198,7 @@ BenchmarkCounters& BenchmarkCounters::operator=(BenchmarkCounters&& that) {
 
 BenchmarkCounters::BenchmarkCounters(BenchmarkCounters const& that)
     : counters_(nullptr), num_counters_(0), capacity_(0) {
-  _Reserve(that.num_counters_);
+  Reserve_(that.num_counters_);
   num_counters_ = that.num_counters_;  // reserve does not change num_counters_
                                        // unless it's cleaning up
   for (size_t i = 0; i < num_counters_; ++i) {
@@ -208,7 +208,7 @@ BenchmarkCounters::BenchmarkCounters(BenchmarkCounters const& that)
 }
 BenchmarkCounters& BenchmarkCounters::operator=(BenchmarkCounters const& that) {
   if (&that == this) return *this;
-  _Reserve(that.num_counters_);
+  Reserve_(that.num_counters_);
   num_counters_ = that.num_counters_;  // reserve does not change num_counters_
                                        // unless it's cleaning up
   for (size_t i = 0; i < num_counters_; ++i) {
@@ -218,7 +218,7 @@ BenchmarkCounters& BenchmarkCounters::operator=(BenchmarkCounters const& that) {
   return *this;
 }
 
-void BenchmarkCounters::_Reserve(size_t sz) {
+void BenchmarkCounters::Reserve_(size_t sz) {
   if (sz == 0) {
     // call the destructor in the counters
     for (size_t i = 0; i < num_counters_; ++i) {
@@ -241,11 +241,11 @@ void BenchmarkCounters::_Reserve(size_t sz) {
 }
 
 // this just creates memory space - it does not invoke the constructor
-size_t BenchmarkCounters::_Add() {
+size_t BenchmarkCounters::Add_() {
   if (capacity_ == 0) {
-    _Reserve(16);
+    Reserve_(16);
   } else if (num_counters_ == capacity_ - 1) {
-    _Reserve(2 * capacity_);
+    Reserve_(2 * capacity_);
   }
   size_t pos = num_counters_++;
   return pos;
@@ -269,7 +269,7 @@ Counter& BenchmarkCounters::operator[](const char* name) {
   if (id < num_counters_) {
     return counters_[id];
   } else {
-    id = _Add();  // get a slot
+    id = Add_();  // get a slot
     Counter* slot = counters_ + id;
     new (slot) Counter(name);  // construct in place using placement new
     return *slot;
@@ -281,7 +281,7 @@ size_t BenchmarkCounters::Insert(const char* name) {
   if (id < num_counters_) {
     return id;
   } else {
-    id = _Add();  // get a slot
+    id = Add_();  // get a slot
     Counter* slot = counters_ + id;
     new (slot) Counter(name);  // construct in place using placement new
     return id;
@@ -292,7 +292,7 @@ size_t BenchmarkCounters::Insert(const char* name, double value) {
   if (id < num_counters_) {
     return id;
   } else {
-    id = _Add();  // get a slot
+    id = Add_();  // get a slot
     Counter* slot = counters_ + id;
     new (slot) Counter(name, value);  // construct in place using placement new
     return id;
@@ -304,7 +304,7 @@ size_t BenchmarkCounters::Insert(const char* name, double value,
   if (id < num_counters_) {
     return id;
   } else {
-    id = _Add();  // get a slot
+    id = Add_();  // get a slot
     Counter* slot = counters_ + id;
     new (slot)
         Counter(name, value, flags);  // construct in place using placement new
@@ -316,7 +316,7 @@ size_t BenchmarkCounters::Insert(Counter const& c) {
   if (id < num_counters_) {
     return id;
   } else {
-    id = _Add();  // get a slot
+    id = Add_();  // get a slot
     Counter* slot = counters_ + id;
     new (slot) Counter(c);  // construct in place using placement new
     return id;
