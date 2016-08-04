@@ -171,7 +171,9 @@ BenchmarkCounters::BenchmarkCounters()
   Reserve_(16);  // minimize reallocations
 }
 
-BenchmarkCounters::~BenchmarkCounters() { Reserve_(0); }
+BenchmarkCounters::~BenchmarkCounters() {
+  Reserve_(0);
+}
 
 #ifdef BENCHMARK_HAS_CXX11
 BenchmarkCounters::BenchmarkCounters(BenchmarkCounters&& that)
@@ -231,7 +233,9 @@ void BenchmarkCounters::Reserve_(size_t sz) {
     Counter* tmp = new Counter[sz];
     if (counters_) {
       size_t min = sz < num_counters_ ? sz : num_counters_;
-      memcpy(tmp, counters_, min * sizeof(Counter));
+      for (size_t i = 0; i < min; ++i) {
+        new (tmp + i) Counter(std::move(counters_[i])); // placement new with move ctor
+      }
       delete[] counters_;
     }
     counters_ = tmp;
@@ -251,11 +255,13 @@ size_t BenchmarkCounters::Add_() {
 }
 
 Counter& BenchmarkCounters::operator[](size_t id) {
-  CHECK_LT(id, num_counters_) << "Invalid counter handle: " << id;
+  assert("invalid counter handle" && id < num_counters_);
+  //this is slow.... CHECK_LT(id, num_counters_) << "Invalid counter handle: " << id;
   return counters_[id];
 }
 Counter const& BenchmarkCounters::operator[](size_t id) const {
-  CHECK_LT(id, num_counters_) << "Invalid counter handle: " << id;
+  assert("invalid counter handle" && id < num_counters_);
+  //this is slow.... CHECK_LT(id, num_counters_) << "Invalid counter handle: " << id;
   return counters_[id];
 }
 Counter const& BenchmarkCounters::operator[](const char* name) const {
