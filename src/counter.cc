@@ -167,7 +167,8 @@ std::string Counter::ToString() const {
 */
 
 BenchmarkCounters::BenchmarkCounters()
-    : counters_(nullptr), num_counters_(0), capacity_(0) {
+    : counters_(nullptr), num_counters_(0), capacity_(0),
+      skipZeroCounters(false) {
   Reserve_(16);  // minimize reallocations
 }
 
@@ -179,7 +180,8 @@ BenchmarkCounters::~BenchmarkCounters() {
 BenchmarkCounters::BenchmarkCounters(BenchmarkCounters&& that)
     : counters_(that.counters_),
       num_counters_(that.num_counters_),
-      capacity_(that.capacity_) {
+      capacity_(that.capacity_),
+      skipZeroCounters(that.skipZeroCounters) {
   that.counters_ = nullptr;
   that.num_counters_ = 0;
   that.capacity_ = 0;
@@ -190,6 +192,7 @@ BenchmarkCounters& BenchmarkCounters::operator=(BenchmarkCounters&& that) {
   counters_ = that.counters_;
   num_counters_ = that.num_counters_;
   capacity_ = that.capacity_;
+  skipZeroCounters = that.skipZeroCounters;
   that.counters_ = nullptr;
   that.num_counters_ = 0;
   that.capacity_ = 0;
@@ -198,7 +201,8 @@ BenchmarkCounters& BenchmarkCounters::operator=(BenchmarkCounters&& that) {
 #endif  // BENCHMARK_HAS_CXX11
 
 BenchmarkCounters::BenchmarkCounters(BenchmarkCounters const& that)
-    : counters_(nullptr), num_counters_(0), capacity_(0) {
+    : counters_(nullptr), num_counters_(0), capacity_(0),
+      skipZeroCounters(that.skipZeroCounters) {
   Reserve_(that.num_counters_);
   num_counters_ = that.num_counters_;  // reserve does not change num_counters_
                                        // unless it's cleaning up
@@ -216,6 +220,7 @@ BenchmarkCounters& BenchmarkCounters::operator=(BenchmarkCounters const& that) {
     Counter* slot = counters_ + i;
     new (slot) Counter(that.counters_[i]);
   }
+  skipZeroCounters = that.skipZeroCounters;
   return *this;
 }
 
@@ -266,7 +271,8 @@ Counter const& BenchmarkCounters::operator[](size_t id) const {
 }
 Counter const& BenchmarkCounters::operator[](const char* name) const {
   size_t id = Find(name);
-  CHECK_EQ(Exists(name), true) << "Counter not found: " << name;
+  assert("counter not found" && id < num_counters_);
+  //this is slow.... CHECK_EQ(Exists(name), true) << "Counter not found: " << name;
   return counters_[id];
 }
 Counter& BenchmarkCounters::operator[](const char* name) {
@@ -330,13 +336,41 @@ size_t BenchmarkCounters::Insert(Counter const& c) {
 
 bool BenchmarkCounters::SameNames(BenchmarkCounters const& that) const {
   if (this == &that) return true;
-  if (that.num_counters_ != num_counters_) {
-    return false;
-  }
-  for (size_t i = 0; i < num_counters_; ++i) {
-    Counter const& c = counters_[i];
-    if (that.Find(c.Name()) == that.num_counters_) {
+  if ( ! skipZeroCounters) {
+    if (that.num_counters_ != num_counters_) {
       return false;
+    }
+    for (size_t i = 0; i < num_counters_; ++i) {
+      Counter const& c = counters_[i];
+      if ( ! that.Exists(c.Name())) {
+        return false;
+      }
+    }
+  } else {
+    for (size_t i = 0; i < num_counters_; ++i) {
+      Counter const& c = counters_[i];
+      size_t j = that.Find(c.Name());
+      if(size_t(c.Value()) == 0) {
+        if(j < that.num_counters_ && size_t(that.counters_[j].Value()) != 0) {
+          return false;
+        }
+      } else {
+        if(j >= that.num_counters_) {
+          return false;
+        } else if(size_t(that.counters_[j].Value()) == 0) {
+          return false;
+        }
+      }
+    }
+    for (size_t i = 0; i < that.num_counters_; ++i) {
+      Counter const& c = that.counters_[i];
+      size_t j = Find(c.Name());
+      if(j < num_counters_) {
+        continue; // was checked in the prev loop
+      }
+      if(size_t(c.Value()) != 0) {
+        return false;
+      }
     }
   }
   return true;
@@ -357,6 +391,7 @@ size_t BenchmarkCounters::Find(const char* name) const {
 }
 
 void BenchmarkCounters::Sum(BenchmarkCounters const& that) {
+  skipZeroCounters = that.skipZeroCounters;
   // add counters present in both or just in this
   for (size_t i = 0; i < num_counters_; ++i) {
     Counter& c = counters_[i];

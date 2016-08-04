@@ -56,6 +56,7 @@ void ConsoleReporter::PrintHeader(const Run& run) {
       FormatString("%-*s %13s %13s %10s", static_cast<int>(name_field_width_),
                    "Benchmark", "Time", "CPU", "Iterations");
   for (auto const& c : run.counters) {
+    if(run.counters.skipZeroCounters && size_t(c.Value()) == 0) continue;
     str += FormatString(" %13s", c.Name());
   }
   std::string line = std::string(str.length(), '-');
@@ -136,6 +137,7 @@ void ConsoleReporter::PrintRunData(const Run& result) {
   }
 
   for (auto& c : result.counters) {
+    if(result.counters.skipZeroCounters && size_t(c.Value()) == 0) continue;
     auto const& s = HumanReadableNumber(c.Value());
     printer(Out, COLOR_DEFAULT, " %13s", s.c_str());
   }

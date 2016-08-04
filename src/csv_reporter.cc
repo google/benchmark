@@ -57,6 +57,7 @@ void CSVReporter::ReportRuns(const std::vector<Run> & reports) {
   std::set< std::string > user_counter_names;
   for (const auto& run : reports) {
     for (const auto& cnt : run.counters) {
+      if(run.counters.skipZeroCounters && size_t(cnt.Value()) == 0) continue;
       user_counter_names.insert(cnt.Name());
     }
   }
@@ -85,9 +86,11 @@ void CSVReporter::ReportRuns(const std::vector<Run> & reports) {
     // would also require the include.
     // So I'll defer judgment here.
     for (const auto &name : user_counter_names) {
+      auto const& c = run.counters[name.c_str()];
+      if(run.counters.skipZeroCounters && size_t(c.Value()) == 0) continue;
       Out << ",";
       if(run.counters.Exists(name.c_str())) {
-        Out << run.counters[name.c_str()].Value();
+        Out << c.Value();
       }
     }
     Out << '\n';

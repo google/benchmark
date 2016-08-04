@@ -364,6 +364,10 @@ private:
   void Reserve_(size_t sz);
   size_t Add_();
 
+public:
+
+  bool skipZeroCounters;
+
 };
 
 #ifdef BENCHMARK_HAS_CXX11
