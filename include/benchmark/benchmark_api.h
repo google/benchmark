@@ -283,13 +283,13 @@ public:
 private:
 
   // using raw C strings here to avoid inclusion of std::string in the public api
-  char name_buf_[16]; // strings smaller than 15 characters are stored here
-  char* name_mem_;    // whereas longer strings are stored here
-  size_t mem_size_;   // current size of name_mem_
-  char* name_;        // this points to the right one
-
+  char*    name_;     // this points to either name_buf_ or name_mem_
   double   value_;
   uint32_t flags_;
+
+  char name_buf_[16]; // names smaller than 15 characters are stored here
+  char* name_mem_;    // whereas longer strings are stored here
+  size_t mem_size_;   // current size of name_mem_
 
   void SetName_(const char *name);
 };

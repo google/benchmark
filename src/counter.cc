@@ -21,52 +21,51 @@
 namespace benchmark {
 
 Counter::Counter()
-    : name_buf_(),
-      name_mem_(nullptr),
-      mem_size_(0),
-      name_(nullptr),
+    : name_(nullptr),
       value_(0.),
-      flags_(kDefaults) {
-  name_buf_[0] = '\0';
+      flags_(kDefaults),
+      name_buf_(),
+      name_mem_(nullptr),
+      mem_size_(0) {
 }
 
 Counter::Counter(const char* name)
-    : name_buf_(),
-      name_mem_(nullptr),
-      mem_size_(0),
-      name_(nullptr),
+    : name_(nullptr),
       value_(0.),
-      flags_(kDefaults) {
+      flags_(kDefaults),
+      name_buf_(),
+      name_mem_(nullptr),
+      mem_size_(0) {
   SetName_(name);
 }
 
 Counter::Counter(const char* name, double v)
-    : name_buf_(),
-      name_mem_(nullptr),
-      mem_size_(0),
-      name_(nullptr),
+    : name_(nullptr),
       value_(v),
-      flags_(kDefaults) {
+      flags_(kDefaults),
+      name_buf_(),
+      name_mem_(nullptr),
+      mem_size_(0) {
   SetName_(name);
 }
 
 Counter::Counter(const char* name, double v, uint32_t f)
-    : name_buf_(),
-      name_mem_(nullptr),
-      mem_size_(0),
-      name_(nullptr),
+    : name_(nullptr),
       value_(v),
-      flags_(f) {
+      flags_(f),
+      name_buf_(),
+      name_mem_(nullptr),
+      mem_size_(0) {
   SetName_(name);
 }
 
 Counter::Counter(Counter const& that)
-    : name_buf_(),
-      name_mem_(nullptr),
-      mem_size_(0),
-      name_(nullptr),
+    : name_(nullptr),
       value_(that.value_),
-      flags_(that.flags_) {
+      flags_(that.flags_),
+      name_buf_(),
+      name_mem_(nullptr),
+      mem_size_(0) {
   SetName_(that.name_);
 }
 Counter& Counter::operator=(Counter const& that) {
@@ -79,12 +78,12 @@ Counter& Counter::operator=(Counter const& that) {
 
 #ifdef BENCHMARK_HAS_CXX11
 Counter::Counter(Counter&& that)
-    : name_buf_{0},
-      name_mem_(that.name_mem_),
-      mem_size_(that.mem_size_),
-      name_(that.name_),
+    : name_(that.name_ == that.name_mem_ ? that.name_mem_ : this->name_buf_),
       value_(that.value_),
-      flags_(that.flags_) {
+      flags_(that.flags_),
+      name_buf_(),
+      name_mem_(that.name_mem_),
+      mem_size_(that.mem_size_) {
   memcpy(name_buf_, that.name_buf_, sizeof(name_buf_));
   that.name_mem_ = nullptr;
   that.mem_size_ = 0;
@@ -96,7 +95,7 @@ Counter& Counter::operator=(Counter&& that) {
   memcpy(name_buf_, that.name_buf_, sizeof(name_buf_));
   name_mem_ = that.name_mem_;
   mem_size_ = that.mem_size_;
-  name_ = that.name_;
+  name_ = that.name_ == that.name_mem_ ? that.name_mem_ : this->name_buf_;
   value_ = that.value_;
   flags_ = that.flags_;
   that.name_mem_ = nullptr;
