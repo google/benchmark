@@ -69,6 +69,9 @@ endif()
 compile_benchmark_test(complexity_test)
 add_test(complexity_benchmark complexity_test --benchmark_min_time=0.01)
 
+compile_benchmark_test(counter_access_test)
+add_test(counter_access_test reporter_output_test --benchmark_min_time=0.01)
+
 
 # Add the coverage command(s)
 if(CMAKE_BUILD_TYPE)
