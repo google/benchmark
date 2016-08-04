@@ -824,16 +824,16 @@ public:
 
     virtual void Run(State& st) {
       this->SetUp(st);
-      this->InitState(st);
       this->BenchmarkCase(st);
-      this->TerminateState(st);
       this->TearDown(st);
     }
 
+    // These will be deprecated ...
     virtual void SetUp(const State&) {}
-    virtual void InitState(State &) {}
-    virtual void TerminateState(State &) {}
     virtual void TearDown(const State&) {}
+    // ... In favor of these.
+    virtual void SetUp(State& st) { SetUp(static_cast<State const&>(st)); }
+    virtual void TearDown(State& st) { TearDown(static_cast<State const&>(st)); }
 
 protected:
     virtual void BenchmarkCase(State&) = 0;
