@@ -38,12 +38,12 @@ int main(int argc, char** argv) {
 // of memcpy() calls of different lengths:
 
 static void BM_memcpy(benchmark::State& state) {
-  char* src = new char[state.range_x()]; char* dst = new char[state.range_x()];
-  memset(src, 'x', state.range_x());
+  char* src = new char[state.range(0)]; char* dst = new char[state.range(0)];
+  memset(src, 'x', state.range(0));
   while (state.KeepRunning())
-    memcpy(dst, src, state.range_x());
+    memcpy(dst, src, state.range(0));
   state.SetBytesProcessed(int64_t(state.iterations()) *
-                          int64_t(state.range_x()));
+                          int64_t(state.range(0)));
   delete[] src; delete[] dst;
 }
 BENCHMARK(BM_memcpy)->Arg(8)->Arg(64)->Arg(512)->Arg(1<<10)->Arg(8<<10);
@@ -60,27 +60,27 @@ BENCHMARK(BM_memcpy)->Range(8, 8<<10);
 static void BM_SetInsert(benchmark::State& state) {
   while (state.KeepRunning()) {
     state.PauseTiming();
-    set<int> data = ConstructRandomSet(state.range_x());
+    set<int> data = ConstructRandomSet(state.range(0));
     state.ResumeTiming();
-    for (int j = 0; j < state.range_y(); ++j)
+    for (int j = 0; j < state.range(1); ++j)
       data.insert(RandomNumber());
   }
 }
 BENCHMARK(BM_SetInsert)
-   ->ArgPair(1<<10, 1)
-   ->ArgPair(1<<10, 8)
-   ->ArgPair(1<<10, 64)
-   ->ArgPair(1<<10, 512)
-   ->ArgPair(8<<10, 1)
-   ->ArgPair(8<<10, 8)
-   ->ArgPair(8<<10, 64)
-   ->ArgPair(8<<10, 512);
+   ->Args({1<<10, 1})
+   ->Args({1<<10, 8})
+   ->Args({1<<10, 64})
+   ->Args({1<<10, 512})
+   ->Args({8<<10, 1})
+   ->Args({8<<10, 8})
+   ->Args({8<<10, 64})
+   ->Args({8<<10, 512});
 
 // The preceding code is quite repetitive, and can be replaced with
 // the following short-hand.  The following macro will pick a few
 // appropriate arguments in the product of the two specified ranges
 // and will generate a microbenchmark for each such pair.
-BENCHMARK(BM_SetInsert)->RangePair(1<<10, 8<<10, 1, 512);
+BENCHMARK(BM_SetInsert)->Ranges({{1<<10, 8<<10}, {1, 512}});
 
 // For more complex patterns of inputs, passing a custom function
 // to Apply allows programmatic specification of an
@@ -90,7 +90,7 @@ BENCHMARK(BM_SetInsert)->RangePair(1<<10, 8<<10, 1, 512);
 static void CustomArguments(benchmark::internal::Benchmark* b) {
   for (int i = 0; i <= 10; ++i)
     for (int j = 32; j <= 1024*1024; j *= 8)
-      b->ArgPair(i, j);
+      b->Args({i, j});
 }
 BENCHMARK(BM_SetInsert)->Apply(CustomArguments);
 
@@ -101,14 +101,14 @@ template <class Q> int BM_Sequential(benchmark::State& state) {
   Q q;
   typename Q::value_type v;
   while (state.KeepRunning()) {
-    for (int i = state.range_x(); i--; )
+    for (int i = state.range(0); i--; )
       q.push(v);
-    for (int e = state.range_x(); e--; )
+    for (int e = state.range(0); e--; )
       q.Wait(&v);
   }
   // actually messages, not bytes:
   state.SetBytesProcessed(
-      static_cast<int64_t>(state.iterations())*state.range_x());
+      static_cast<int64_t>(state.iterations())*state.range(0));
 }
 BENCHMARK_TEMPLATE(BM_Sequential, WaitQueue<int>)->Range(1<<0, 1<<10);
 
@@ -152,6 +152,8 @@ BENCHMARK(BM_test)->Unit(benchmark::kMillisecond);
 #include <assert.h>
 #include <stddef.h>
 #include <stdint.h>
+
+#include <vector>
 
 #include "macros.h"
 
@@ -268,7 +270,7 @@ typedef double(BigOFunc)(int);
 // benchmark to use.
 class State {
 public:
-  State(size_t max_iters, bool has_x, int x, bool has_y, int y,
+  State(size_t max_iters, const std::vector<int>& ranges,
         int thread_i, int n_threads);
 
   // Returns true if the benchmark should continue through another iteration.
@@ -423,17 +425,9 @@ public:
 
   // Range arguments for this run. CHECKs if the argument has been set.
   BENCHMARK_ALWAYS_INLINE
-  int range_x() const {
-    assert(has_range_x_);
-    ((void)has_range_x_); // Prevent unused warning.
-    return range_x_;
-  }
-
-  BENCHMARK_ALWAYS_INLINE
-  int range_y() const {
-    assert(has_range_y_);
-    ((void)has_range_y_); // Prevent unused warning.
-    return range_y_;
+  int range(std::size_t pos) const {
+      assert(range_.size() > pos);
+      return range_[pos];
   }
 
   BENCHMARK_ALWAYS_INLINE
@@ -444,11 +438,7 @@ private:
   bool finished_;
   size_t total_iterations_;
 
-  bool has_range_x_;
-  int range_x_;
-
-  bool has_range_y_;
-  int range_y_;
+  std::vector<int> range_;
 
   size_t bytes_processed_;
   size_t items_processed_;
@@ -503,20 +493,18 @@ public:
   // REQUIRES: The function passed to the constructor must accept an arg1.
   Benchmark* DenseRange(int start, int limit, int step = 1);
 
-  // Run this benchmark once with "x,y" as the extra arguments passed
+  // Run this benchmark once with "args" as the extra arguments passed
   // to the function.
-  // REQUIRES: The function passed to the constructor must accept arg1,arg2.
-  Benchmark* ArgPair(int x, int y);
+  // REQUIRES: The function passed to the constructor must accept arg1, arg2 ...
+  Benchmark* Args(const std::vector<int>& args);
 
-  // Pick a set of values A from the range [lo1..hi1] and a set
-  // of values B from the range [lo2..hi2].  Run the benchmark for
-  // every pair of values in the cartesian product of A and B
-  // (i.e., for all combinations of the values in A and B).
-  // REQUIRES: The function passed to the constructor must accept arg1,arg2.
-  Benchmark* RangePair(int lo1, int hi1, int lo2, int hi2);
+  // Run this benchmark once for a number of values picked from the
+  // ranges [start..limit].  (starts and limits are always picked.)
+  // REQUIRES: The function passed to the constructor must accept arg1, arg2 ...
+  Benchmark* Ranges(const std::vector<std::pair<int, int> >& ranges);
 
   // Pass this benchmark object to *func, which can customize
-  // the benchmark by calling various methods like Arg, ArgPair,
+  // the benchmark by calling various methods like Arg, Args,
   // Threads, etc.
   Benchmark* Apply(void (*func)(Benchmark* benchmark));
 
@@ -725,11 +713,11 @@ protected:
 
 // Old-style macros
 #define BENCHMARK_WITH_ARG(n, a) BENCHMARK(n)->Arg((a))
-#define BENCHMARK_WITH_ARG2(n, a1, a2) BENCHMARK(n)->ArgPair((a1), (a2))
+#define BENCHMARK_WITH_ARG2(n, a1, a2) BENCHMARK(n)->Args({(a1), (a2)})
 #define BENCHMARK_WITH_UNIT(n, t) BENCHMARK(n)->Unit((t))
 #define BENCHMARK_RANGE(n, lo, hi) BENCHMARK(n)->Range((lo), (hi))
 #define BENCHMARK_RANGE2(n, l1, h1, l2, h2) \
-  BENCHMARK(n)->RangePair((l1), (h1), (l2), (h2))
+  BENCHMARK(n)->RangePair({{(l1), (h1)}, {(l2), (h2)}})
 
 #if __cplusplus >= 201103L
 
