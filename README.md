@@ -487,8 +487,8 @@ static void BM_UserCountersFastLookupExample(benchmark::State& state) {
   // insert Foo counter and store its handle
   size_t idFoo = state.counters.Insert("Foo");
   while (state.KeepRunning()) {
-    state.counters["Foo"] += numFoos; // will do a string lookup, linear in number of counters * name length
-    state.counters[idFoo] += numFoos; // faster, no lookup
+    state.counters["Foo"] += numFoos; // SLOW. Does a string lookup, O(number of counters * name length)
+    state.counters[idFoo] += numFoos; // fast. No lookup, O(1)
   }
 }
 ```
