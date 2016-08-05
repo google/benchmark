@@ -19,7 +19,7 @@ public:
     posFoo = st.counters.Insert("Foo");
     // add padding counters to make lookup more expensive
     char buf[64];
-    for(int i = 1; i < st.range_x() - 1; ++i) {
+    for(int i = 1; i < st.range(0) - 1; ++i) {
       snprintf(buf, sizeof(buf), "Ct%d", i);
       st.counters.Insert(buf);
     }
