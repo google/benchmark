@@ -59,7 +59,7 @@ public:
     st.SetItemsProcessed(2 * st.iterations());
   }
 
-  size_t posFoo = -1, posBar = -1;
+  size_t posFoo = size_t(-1), posBar = size_t(-1);
 
   //-----------------------------------
   // helper accelerator structures
@@ -115,8 +115,8 @@ BENCHMARK_DEFINE_F(CounterAccess, ByName__)(benchmark::State& st) {
  * stored in an std::map. */
 BENCHMARK_DEFINE_F(CounterAccess, VsMap___)(benchmark::State& st) {
   while (st.KeepRunning()) {
-    maps["Foo"] += 1.;
-    maps["Bar"] += 1.;
+    maps["Foo"] += 1;
+    maps["Bar"] += 1;
   }
   st.counters["Foo"] = maps["Foo"];
   st.counters["Bar"] = maps["Bar"];
