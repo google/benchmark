@@ -335,6 +335,8 @@ public:
   size_t Insert(Counter const& c);
 #ifdef BENCHMARK_HAS_CXX11
   // Insert or update a counter. Return its id. Complexity: O(nameLength*size())
+  size_t Insert(Counter     && c);
+  // Insert or update a counter. Return its id. Complexity: O(nameLength*size())
   void   Insert(std::initializer_list< Counter > il);
 #endif
 
@@ -372,7 +374,7 @@ public:
 
 #ifdef BENCHMARK_HAS_CXX11
 inline void BenchmarkCounters::Insert(std::initializer_list< Counter > il) {
-  for(auto &c : il) {
+  for(Counter const& c : il) {
     Insert(c);
   }
 }

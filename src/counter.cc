@@ -282,7 +282,7 @@ Counter& BenchmarkCounters::operator[](const char* name) {
   } else {
     id = Add_();  // get a slot
     Counter* slot = counters_ + id;
-    new (slot) Counter(name);  // construct in place using placement new
+    new (slot) Counter(name);  // construct using placement new
     return *slot;
   }
 }
@@ -294,7 +294,7 @@ size_t BenchmarkCounters::Insert(const char* name) {
   } else {
     id = Add_();  // get a slot
     Counter* slot = counters_ + id;
-    new (slot) Counter(name);  // construct in place using placement new
+    new (slot) Counter(name);  // construct using placement new
     return id;
   }
 }
@@ -305,7 +305,7 @@ size_t BenchmarkCounters::Insert(const char* name, double value) {
   } else {
     id = Add_();  // get a slot
     Counter* slot = counters_ + id;
-    new (slot) Counter(name, value);  // construct in place using placement new
+    new (slot) Counter(name, value);  // construct using placement new
     return id;
   }
 }
@@ -317,8 +317,7 @@ size_t BenchmarkCounters::Insert(const char* name, double value,
   } else {
     id = Add_();  // get a slot
     Counter* slot = counters_ + id;
-    new (slot)
-        Counter(name, value, flags);  // construct in place using placement new
+    new (slot) Counter(name, value, flags);  // construct using placement new
     return id;
   }
 }
@@ -329,10 +328,23 @@ size_t BenchmarkCounters::Insert(Counter const& c) {
   } else {
     id = Add_();  // get a slot
     Counter* slot = counters_ + id;
-    new (slot) Counter(c);  // construct in place using placement new
+    new (slot) Counter(c);  // construct using placement new + copy ctor
     return id;
   }
 }
+#ifdef BENCHMARK_HAS_CXX11
+size_t BenchmarkCounters::Insert(Counter && c) {
+  size_t id = Find(c.Name());
+  if (id < num_counters_) {
+    return id;
+  } else {
+    id = Add_();  // get a slot
+    Counter* slot = counters_ + id;
+    new (slot) Counter(std::move(c));  // construct using placement new + move ctor
+    return id;
+  }
+}
+#endif
 
 bool BenchmarkCounters::SameNames(BenchmarkCounters const& that) const {
   if (this == &that) return true;
