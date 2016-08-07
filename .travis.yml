@@ -21,7 +21,7 @@ matrix:
             apt:
               packages:
                 clang-3.8
-          env: COMPILER=clang++-3.8 STD=c++11 BUILD_TYPE=Debug EXTRA_FLAGS="-fno-omit-frame-pointer -g -O2 -fsanitize=undefined -fno-sanitize-recover=all"
+          env: COMPILER=clang++-3.8 STD=c++11 VERBOSE=1 BUILD_TYPE=Debug EXTRA_FLAGS="-fno-omit-frame-pointer -g -O2 -fsanitize=undefined -fno-sanitize-recover=all"
 
 before_script:
     - mkdir build && cd build
