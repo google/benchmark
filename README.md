@@ -40,13 +40,13 @@ measuring the speed of `memcpy()` calls of different lengths:
 
 ```c++
 static void BM_memcpy(benchmark::State& state) {
-  char* src = new char[state.range_x()];
-  char* dst = new char[state.range_x()];
-  memset(src, 'x', state.range_x());
+  char* src = new char[state.range(0)];
+  char* dst = new char[state.range(0)];
+  memset(src, 'x', state.range(0));
   while (state.KeepRunning())
-    memcpy(dst, src, state.range_x());
+    memcpy(dst, src, state.range(0));
   state.SetBytesProcessed(int64_t(state.iterations()) *
-                          int64_t(state.range_x()));
+                          int64_t(state.range(0)));
   delete[] src;
   delete[] dst;
 }
@@ -70,7 +70,7 @@ BENCHMARK(BM_memcpy)->RangeMultiplier(2)->Range(8, 8<<10);
 ```
 Now arguments generated are [ 8, 16, 32, 64, 128, 256, 512, 1024, 2k, 4k, 8k ].
 
-You might have a benchmark that depends on two inputs. For example, the
+You might have a benchmark that depends on two or more inputs. For example, the
 following code defines a family of benchmarks for measuring the speed of set
 insertion.
 
@@ -78,21 +78,21 @@ insertion.
 static void BM_SetInsert(benchmark::State& state) {
   while (state.KeepRunning()) {
     state.PauseTiming();
-    std::set<int> data = ConstructRandomSet(state.range_x());
+    std::set<int> data = ConstructRandomSet(state.range(0));
     state.ResumeTiming();
-    for (int j = 0; j < state.range_y(); ++j)
+    for (int j = 0; j < state.range(1); ++j)
       data.insert(RandomNumber());
   }
 }
 BENCHMARK(BM_SetInsert)
-    ->ArgPair(1<<10, 1)
-    ->ArgPair(1<<10, 8)
-    ->ArgPair(1<<10, 64)
-    ->ArgPair(1<<10, 512)
-    ->ArgPair(8<<10, 1)
-    ->ArgPair(8<<10, 8)
-    ->ArgPair(8<<10, 64)
-    ->ArgPair(8<<10, 512);
+    ->Args({1<<10, 1})
+    ->Args({1<<10, 8})
+    ->Args({1<<10, 64})
+    ->Args({1<<10, 512})
+    ->Args({8<<10, 1})
+    ->Args({8<<10, 8})
+    ->Args({8<<10, 64})
+    ->Args({8<<10, 512});
 ```
 
 The preceding code is quite repetitive, and can be replaced with the following
@@ -101,7 +101,7 @@ product of the two specified ranges and will generate a benchmark for each such
 pair.
 
 ```c++
-BENCHMARK(BM_SetInsert)->RangePair(1<<10, 8<<10, 1, 512);
+BENCHMARK(BM_SetInsert)->Ranges({{1<<10, 8<<10}, {1, 512}});
 ```
 
 For more complex patterns of inputs, passing a custom function to `Apply` allows
@@ -113,7 +113,7 @@ and a sparse range on the second.
 static void CustomArguments(benchmark::internal::Benchmark* b) {
   for (int i = 0; i <= 10; ++i)
     for (int j = 32; j <= 1024*1024; j *= 8)
-      b->ArgPair(i, j);
+      b->Args({i, j});
 }
 BENCHMARK(BM_SetInsert)->Apply(CustomArguments);
 ```
@@ -125,12 +125,12 @@ running time and the normalized root-mean square error of string comparison.
 
 ```c++
 static void BM_StringCompare(benchmark::State& state) {
-  std::string s1(state.range_x(), '-');
-  std::string s2(state.range_x(), '-');
+  std::string s1(state.range(0), '-');
+  std::string s2(state.range(0), '-');
   while (state.KeepRunning()) {
     benchmark::DoNotOptimize(s1.compare(s2));
   }
-  state.SetComplexityN(state.range_x());
+  state.SetComplexityN(state.range(0));
 }
 BENCHMARK(BM_StringCompare)
     ->RangeMultiplier(2)->Range(1<<10, 1<<18)->Complexity(benchmark::oN);
@@ -162,14 +162,14 @@ template <class Q> int BM_Sequential(benchmark::State& state) {
   Q q;
   typename Q::value_type v;
   while (state.KeepRunning()) {
-    for (int i = state.range_x(); i--; )
+    for (int i = state.range(0); i--; )
       q.push(v);
-    for (int e = state.range_x(); e--; )
+    for (int e = state.range(0); e--; )
       q.Wait(&v);
   }
   // actually messages, not bytes:
   state.SetBytesProcessed(
-      static_cast<int64_t>(state.iterations())*state.range_x());
+      static_cast<int64_t>(state.iterations())*state.range(0));
 }
 BENCHMARK_TEMPLATE(BM_Sequential, WaitQueue<int>)->Range(1<<0, 1<<10);
 ```
@@ -284,7 +284,7 @@ can be reported back with `SetIterationTime`.
 
 ```c++
 static void BM_ManualTiming(benchmark::State& state) {
-  int microseconds = state.range_x();
+  int microseconds = state.range(0);
   std::chrono::duration<double, std::micro> sleep_duration {
     static_cast<double>(microseconds)
   };
