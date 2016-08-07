@@ -12,7 +12,7 @@ platform:
 
 environment:
   matrix:
-#    - compiler: msvc-12-seh
+    - compiler: msvc-12-seh
     - compiler: msvc-14-seh
     - compiler: gcc-4.9.2-posix
 #    - compiler: gcc-4.8.4-posix
