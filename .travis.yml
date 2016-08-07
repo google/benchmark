@@ -16,6 +16,8 @@ matrix:
           env: COMPILER=clang++     STD=c++11 BUILD_TYPE=Debug
         - compiler: clang
           env: COMPILER=clang++     STD=c++11 BUILD_TYPE=Release
+        - compiler: clang
+          env: COMPILER=clang++     STD=c++11 BUILD_TYPE=Debug EXTRA_FLAGS="-fno-omit-frame-pointer -g -O2 -fsanitize=undefined -fno-sanitize-recover=all"
 
 before_script:
     - mkdir build && cd build
@@ -28,7 +30,7 @@ install:
     fi
 
 script:
-    - cmake .. -DCMAKE_BUILD_TYPE=${BUILD_TYPE} -DCMAKE_CXX_FLAGS="-std=${STD}"
+    - cmake .. -DCMAKE_BUILD_TYPE=${BUILD_TYPE} -DCMAKE_CXX_FLAGS="-std=${STD} ${EXTRA_FLAGS}"
     - make
     - make CTEST_OUTPUT_ON_FAILURE=1 test
 
