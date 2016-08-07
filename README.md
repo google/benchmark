@@ -541,4 +541,6 @@ cmake -DCMAKE_BUILD_TYPE=Release -DBENCHMARK_ENABLE_LTO=true
 ```
 
 ## Linking against the library
-When using gcc, it is necessary to link against pthread to avoid runtime exceptions. This is due to how gcc implements std::thread. See [issue #67](https://github.com/google/benchmark/issues/67) for more details.
+When using gcc, it is necessary to link against pthread to avoid runtime
+exceptions. This is due to how gcc implements std::thread.
+See [issue #67](https://github.com/google/benchmark/issues/67) for more details.
