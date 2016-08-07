@@ -222,9 +222,10 @@ ADD_CASES(&ConsoleOutputTests, {
 
 
 // ========================================================================= //
-// ----------------------- Testing Repetition Output ----------------------- //
+// ----------------------- Testing Aggregate Output ------------------------ //
 // ========================================================================= //
 
+// Test that non-aggregate data is printed by default
 void BM_Repeat(benchmark::State& state) { while (state.KeepRunning()) {} }
 BENCHMARK(BM_Repeat)->Repetitions(3);
 ADD_CASES(&ConsoleOutputTests, {
@@ -249,8 +250,23 @@ ADD_CASES(&CSVOutputTests, {
     {"^\"BM_Repeat/repeats:3_stddev\",[0-9]+," + dec_re + "," + dec_re + ",ns,,,,,$"}
 });
 
+// Test that a non-repeated test still prints non-aggregate results even when
+// only-aggregate reports have been requested
+void BM_RepeatOnce(benchmark::State& state) { while (state.KeepRunning()) {} }
+BENCHMARK(BM_RepeatOnce)->Repetitions(1)->ReportAggregatesOnly();
+ADD_CASES(&ConsoleOutputTests, {
+    {"^BM_RepeatOnce[ ]+[0-9]{1,5} ns[ ]+[0-9]{1,5} ns[ ]+[0-9]+$"}
+});
+ADD_CASES(&JSONOutputTests, {
+    {"\"name\": \"BM_RepeatOnce\",$"}
+});
+ADD_CASES(&CSVOutputTests, {
+    {"^\"BM_RepeatOnce\",[0-9]+," + dec_re + "," + dec_re + ",ns,,,,,$"}
+});
+
+// Test that non-aggregate data is not reported
 void BM_SummaryRepeat(benchmark::State& state) { while (state.KeepRunning()) {} }
-BENCHMARK(BM_SummaryRepeat)->Repetitions(3)->ReportRepetitions(false);
+BENCHMARK(BM_SummaryRepeat)->Repetitions(3)->ReportAggregatesOnly();
 ADD_CASES(&ConsoleOutputTests, {
     {".*BM_SummaryRepeat/repeats:3 ", MR_Not},
     {"^BM_SummaryRepeat/repeats:3_mean[ ]+[0-9]{1,5} ns[ ]+[0-9]{1,5} ns[ ]+[0-9]+$"},

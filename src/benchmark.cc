@@ -66,7 +66,7 @@ DEFINE_int32(benchmark_repetitions, 1,
              "The number of runs of each benchmark. If greater than 1, the "
              "mean and standard deviation of the runs will be reported.");
 
-DEFINE_bool(benchmark_report_repetitions, true,
+DEFINE_bool(benchmark_report_aggregates_only, false,
             "Report the result of each benchmark repetitions. When 'false' is "
             "specified only the mean, standard deviation, and other statistics "
             "are reported for repeated benchmarks.");
@@ -319,7 +319,7 @@ namespace internal {
 enum ReportOptions : unsigned {
     RO_Unspecified = 0, // No options have been manually specified
     RO_Default = 1, // Options are user-specified as default
-    RO_NoReportRepetitions = RO_Default << 1
+    RO_ReportAggregatesOnly = RO_Default << 1
 };
 
 inline ReportOptions operator~(ReportOptions V) {
@@ -407,7 +407,7 @@ public:
   void RangeMultiplier(int multiplier);
   void MinTime(double n);
   void Repetitions(int n);
-  void ReportRepetitions(bool v);
+  void ReportAggregatesOnly(bool v);
   void UseRealTime();
   void UseManualTime();
   void Complexity(BigO complexity);
@@ -621,11 +621,11 @@ void BenchmarkImp::Repetitions(int n) {
   repetitions_ = n;
 }
 
-void BenchmarkImp::ReportRepetitions(bool value) {
+void BenchmarkImp::ReportAggregatesOnly(bool value) {
   if (report_options_ == RO_Unspecified)
       report_options_ = RO_Default;
-  if (value) report_options_ &= ~RO_NoReportRepetitions;
-  else report_options_ |= RO_NoReportRepetitions;
+  if (value) report_options_ &= ~RO_ReportAggregatesOnly;
+  else report_options_ |= RO_ReportAggregatesOnly;
 }
 
 void BenchmarkImp::UseRealTime() {
@@ -756,8 +756,8 @@ Benchmark* Benchmark::Repetitions(int t) {
   return this;
 }
 
-Benchmark* Benchmark::ReportRepetitions(bool value) {
-  imp_->ReportRepetitions(value);
+Benchmark* Benchmark::ReportAggregatesOnly(bool value) {
+  imp_->ReportAggregatesOnly(value);
   return this;
 }
 
@@ -847,10 +847,10 @@ RunBenchmark(const benchmark::internal::Benchmark::Instance& b,
 
   const int repeats = b.repetitions != 0 ? b.repetitions
                                          : FLAGS_benchmark_repetitions;
-  const bool report_repeats = repeats == 1 ||
+  const bool report_aggregates_only = repeats != 1 &&
       (b.report_options == internal::RO_Unspecified
-        ? FLAGS_benchmark_report_repetitions
-        : (b.report_options & internal::RO_NoReportRepetitions) == 0);
+        ? FLAGS_benchmark_report_aggregates_only
+        : (b.report_options & internal::RO_ReportAggregatesOnly) == 0);
   for (int i = 0; i < repeats; i++) {
     std::string mem;
     for (;;) {
@@ -990,7 +990,7 @@ RunBenchmark(const benchmark::internal::Benchmark::Instance& b,
     complexity_reports->clear();
   }
 
-  if (!report_repeats) reports.clear();
+  if (report_aggregates_only) reports.clear();
   reports.insert(reports.end(), stat_reports.begin(), stat_reports.end());
   return reports;
 }
@@ -1179,7 +1179,7 @@ void PrintUsageAndExit() {
           "          [--benchmark_filter=<regex>]\n"
           "          [--benchmark_min_time=<min_time>]\n"
           "          [--benchmark_repetitions=<num_repetitions>]\n"
-          "          [--benchmark_report_repetitions={true|false}\n"
+          "          [--benchmark_report_aggregates_only={true|false}\n"
           "          [--benchmark_format=<console|json|csv>]\n"
           "          [--benchmark_out=<filename>]\n"
           "          [--benchmark_out_format=<json|console|csv>]\n"
@@ -1200,8 +1200,8 @@ void ParseCommandLineFlags(int* argc, char** argv) {
                         &FLAGS_benchmark_min_time) ||
         ParseInt32Flag(argv[i], "benchmark_repetitions",
                        &FLAGS_benchmark_repetitions) ||
-        ParseBoolFlag(argv[i], "benchmark_report_repetitions",
-                       &FLAGS_benchmark_report_repetitions) ||
+        ParseBoolFlag(argv[i], "benchmark_report_aggregates_only",
+                       &FLAGS_benchmark_report_aggregates_only) ||
         ParseStringFlag(argv[i], "benchmark_format",
                         &FLAGS_benchmark_format) ||
         ParseStringFlag(argv[i], "benchmark_out",

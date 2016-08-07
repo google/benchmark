@@ -525,7 +525,7 @@ public:
   // Specify if each repetition of the benchmark should be reported separately
   // or if only the final statistics should be reported. If the benchmark
   // is not repeated then the single result is always reported.
-  Benchmark* ReportRepetitions(bool v = true);
+  Benchmark* ReportAggregatesOnly(bool v = true);
 
   // If a particular benchmark is I/O bound, runs multiple threads internally or
   // if for some reason CPU timings are not representative, call this method. If
