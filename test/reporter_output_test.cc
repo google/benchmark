@@ -255,13 +255,13 @@ ADD_CASES(&CSVOutputTests, {
 void BM_RepeatOnce(benchmark::State& state) { while (state.KeepRunning()) {} }
 BENCHMARK(BM_RepeatOnce)->Repetitions(1)->ReportAggregatesOnly();
 ADD_CASES(&ConsoleOutputTests, {
-    {"^BM_RepeatOnce[ ]+[0-9]{1,5} ns[ ]+[0-9]{1,5} ns[ ]+[0-9]+$"}
+    {"^BM_RepeatOnce/repeats:1[ ]+[0-9]{1,5} ns[ ]+[0-9]{1,5} ns[ ]+[0-9]+$"}
 });
 ADD_CASES(&JSONOutputTests, {
-    {"\"name\": \"BM_RepeatOnce\",$"}
+    {"\"name\": \"BM_RepeatOnce/repeats:1\",$"}
 });
 ADD_CASES(&CSVOutputTests, {
-    {"^\"BM_RepeatOnce\",[0-9]+," + dec_re + "," + dec_re + ",ns,,,,,$"}
+    {"^\"BM_RepeatOnce/repeats:1\",[0-9]+," + dec_re + "," + dec_re + ",ns,,,,,$"}
 });
 
 // Test that non-aggregate data is not reported
