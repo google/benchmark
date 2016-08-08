@@ -50,7 +50,7 @@ public:
       vecmapc.emplace_back();
       auto &b = vecmapc.back();
       assert(strlen(c.first.c_str()) < sizeof(b.first));
-      strcpy(b.first, c.first.c_str());
+      strcpy(b.first.arr, c.first.c_str());
       b.second = c.second;
     }
 
@@ -70,7 +70,21 @@ public:
   //-----------------------------------
   // helper accelerator structures
 
-  typedef char arrtype[16];
+  // Use a name structure as we cannot use char[] as
+  // a member of std::pair (at least not in Visual Studio 2013)
+  struct arrtype {
+    char arr[16];
+
+    arrtype() { arr[0] = '\0'; }
+    arrtype(const char* s) { assert(strlen(s) < sizeof(arr)-1); strncpy(arr, s, sizeof(arr)); }
+    arrtype& operator= (const char* s) { assert(strlen(s) < sizeof(arr)-1); strncpy(arr, s, sizeof(arr)); return *this; }
+    arrtype(arrtype const& that) { strncpy(arr, that.arr, sizeof(arr)); }
+    arrtype& operator= (arrtype const& that) { strncpy(arr, that.arr, sizeof(arr)); return *this; }
+    arrtype(arrtype && that) { strncpy(arr, that.arr, sizeof(arr)); }
+    arrtype& operator= (arrtype && that) { strncpy(arr, that.arr, sizeof(arr)); return *this; }
+    const char* c_str() const { return arr; }
+  };
+
   typedef std::pair< std::string, size_t > vtypes;
   typedef std::pair< arrtype,     size_t > vtypec;
 
@@ -93,10 +107,10 @@ public:
   size_t flookupc(const char *name) const {
     auto b = vecmapc.begin(), e = vecmapc.end();
     auto it = std::lower_bound(b, e, name, [](vtypec const& l, const char *r){
-      return strcmp(l.first, r) < 0;
+      return strcmp(l.first.c_str(), r) < 0;
     });
     assert(it != e);
-    assert(strcmp(it->first, name) == 0);
+    assert(strcmp(it->first.c_str(), name) == 0);
     return it->second;
   }
 
