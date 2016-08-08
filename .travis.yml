@@ -46,7 +46,7 @@ matrix:
 
 
 before_script:
-    - if [ -z ${LIBCXX_BUILD} ]; then
+    - if [ -n "${LIBCXX_BUILD}" ]; then
         git clone --depth=1 https://github.com/llvm-mirror/llvm.git llvm-source
         cd llvm-source/projects
         git clone --depth=1 https://github.com/llvm-mirror/libcxx.git
