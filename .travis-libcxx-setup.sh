@@ -11,5 +11,7 @@ cd ../.. && mkdir llvm-build && cd llvm-build
 cmake -DCMAKE_C_COMPILER=${C_COMPILER} -DCMAKE_CXX_COMPILER=${COMPILER} -DCMAKE_BUILD_TYPE=Release -DLLVM_USE_SANITIZER=${LLVM_SAN} ../llvm-source
 make cxx
 sudo make install-libcxxabi install-libcxx
+# Put the libc++ headers along clang++-3.8's build path, which should be /usr/lib/llvm-3.8/
+sudo ln -s /usr/local/include/c++ /usr/lib/llvm-3.8/include/c++
 cd ../
 

@@ -11,7 +11,6 @@ foreach(p
 endforeach()
 
 option(BENCHMARK_ENABLE_TESTING "Enable testing of the benchmark library." ON)
-option(BENCHMARK_ENABLE_LIBCXX "Build and test against libc++ using -stdlib=libc++" OFF)
 option(BENCHMARK_ENABLE_LTO "Enable link time optimisation of the benchmark library." OFF)
 # Make sure we can import out CMake functions
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
