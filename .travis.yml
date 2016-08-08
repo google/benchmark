@@ -46,7 +46,7 @@ matrix:
 
 before_script:
     - if [ -n "${LIBCXX_BUILD}" ]; then
-        source .travis-libcxx-setup.sh
+        source .travis-libcxx-setup.sh;
       fi
     - mkdir build && cd build
 
