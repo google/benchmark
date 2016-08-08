@@ -47,7 +47,7 @@ before_build:
   - if "%compiler_name%"=="msvc" if "%compiler_version%"=="14" if "%platform%"=="x86" (set "generator=Visual Studio 14 2015")
   - if "%compiler_name%"=="msvc" if "%compiler_version%"=="14" if "%platform%"=="x64" (set "generator=Visual Studio 14 2015 Win64")
   - if "%compiler_name%"=="msvc" (set "build=cmake --build . --config %variant%")
-  - if "%compiler_name%"=="msvc" (set "test=ctest -c Release --timeout 90 --output-on-failure")
+  - if "%compiler_name%"=="msvc" (set "test=ctest -c Release --timeout 300 --output-on-failure")
   # add the compiler path if needed
   - if not "%compiler_path%"=="" (set "PATH=%PATH%;%compiler_path%")
   # git bash conflicts with MinGW makefiles
@@ -57,7 +57,7 @@ build_script:
 - ps: |
     md _build -Force
     cd _build
-    & cmake -G "$env:generator" "-DCMAKE_BUILD_TYPE=$env:variant" "-DBUILD_SHARED_LIBS=$env:shared" ..
+    & cmake -G "$env:generator" "-DCMAKE_BUILD_TYPE=$env:variant" ..
     if ($LastExitCode -ne 0) {
         throw "Exec: $ErrorMessage"
     }
