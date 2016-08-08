@@ -11,6 +11,10 @@ env:
 matrix:
     include:
         - compiler: gcc
+          addons:
+            apt:
+              packages:
+                - lcov
           env: COMPILER=g++ C_COMPILER=gcc       BUILD_TYPE=Coverage
         - compiler: gcc
           env: COMPILER=g++ C_COMPILER=gcc       BUILD_TYPE=Debug
