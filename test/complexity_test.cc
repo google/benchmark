@@ -160,6 +160,9 @@ int AddComplexityTest(std::vector<TestCase>* console_out, std::vector<TestCase>*
 
 void BM_Complexity_O1(benchmark::State& state) {
   while (state.KeepRunning()) {
+      for (int i=0; i < 1024; ++i) {
+          benchmark::DoNotOptimize(&i);
+      }
   }
   state.SetComplexityN(state.range(0));
 }

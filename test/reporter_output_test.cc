@@ -114,7 +114,9 @@ std::string join(First f, Args&&... args) {
     return std::string(std::move(f)) + "[ ]+" + join(std::forward<Args>(args)...);
 }
 
-std::string dec_re = "[0-9]+\\.[0-9]+";
+
+
+std::string dec_re = "[0-9]*[.]?[0-9]+([eE][-+][0-9]+)?";
 
 }  // end namespace
 

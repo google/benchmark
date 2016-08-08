@@ -253,7 +253,9 @@ void InitializeSystemInfo() {
   else
     cpuinfo_cycles_per_second = static_cast<double>(EstimateCyclesPerSecond());
 
-  SYSTEM_INFO sysinfo = {};
+  SYSTEM_INFO sysinfo;
+  // Use memset as opposed to = {} to avoid GCC missing initializer false positives.
+  std::memset(&sysinfo, 0, sizeof(SYSTEM_INFO));
   GetSystemInfo(&sysinfo);
   cpuinfo_num_cpus = sysinfo.dwNumberOfProcessors; // number of logical processors in the current group
 
