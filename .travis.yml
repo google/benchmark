@@ -80,7 +80,8 @@ install:
     fi
 
 script:
-    - cmake .. -DCMAKE_C_COMPILER=${C_COMPILER} -DCMAKE_CXX_COMPILER=${COMPILER} -DCMAKE_BUILD_TYPE=${BUILD_TYPE} -DCMAKE_CXX_FLAGS="${EXTRA_FLAGS}"
+    - unset CC CXX
+    - cmake --debug-trycompile --debug-output -DCMAKE_C_COMPILER=${C_COMPILER} -DCMAKE_CXX_COMPILER=${COMPILER} -DCMAKE_BUILD_TYPE=${BUILD_TYPE} -DCMAKE_CXX_FLAGS="${EXTRA_FLAGS}" ..
     - make
     - make CTEST_OUTPUT_ON_FAILURE=1 test
 
