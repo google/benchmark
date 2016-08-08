@@ -21,7 +21,7 @@ matrix:
                 - g++-6
           env:
             - COMPILER=g++-6 C_COMPILER=gcc-6  BUILD_TYPE=Debug
-            - EXTRA_FLAGS="-fno-omit-frame-pointer -g -O2 -fsanitize=undefined,address"
+            - EXTRA_FLAGS="-fno-omit-frame-pointer -g -O2 -fsanitize=undefined,address -fuse-ld=gold"
         - compiler: clang
           env: COMPILER=clang++ C_COMPILER=clang BUILD_TYPE=Debug
         - compiler: clang
