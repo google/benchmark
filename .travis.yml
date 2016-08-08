@@ -12,6 +12,16 @@ matrix:
           env: COMPILER=g++ C_COMPILER=gcc       BUILD_TYPE=Debug
         - compiler: gcc
           env: COMPILER=g++ C_COMPILER=gcc       BUILD_TYPE=Release
+        - compiler: gcc
+          addons:
+            apt:
+              sources:
+                - ubuntu-toolchain-r-test
+              packages:
+                - g++-6
+          env:
+            - COMPILER=g++-6 C_COMPILER=gcc-6  BUILD_TYPE=Debug
+            - EXTRA_FLAGS="-fno-omit-frame-pointer -g -O2 -fsanitize=undefined,address"
         - compiler: clang
           env: COMPILER=clang++ C_COMPILER=clang BUILD_TYPE=Debug
         - compiler: clang
