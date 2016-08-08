@@ -7,15 +7,35 @@ language: cpp
 matrix:
     include:
         - compiler: gcc
-          env: COMPILER=g++         STD=c++11 BUILD_TYPE=Coverage
+          env: COMPILER=g++ C_COMPILER=gcc       BUILD_TYPE=Coverage
         - compiler: gcc
-          env: COMPILER=g++         STD=c++11 BUILD_TYPE=Debug
+          env: COMPILER=g++ C_COMPILER=gcc       BUILD_TYPE=Debug
         - compiler: gcc
-          env: COMPILER=g++         STD=c++11 BUILD_TYPE=Release
+          env: COMPILER=g++ C_COMPILER=gcc       BUILD_TYPE=Release
+        - compiler: gcc
+          addons:
+            apt:
+              sources:
+                - ubuntu-toolchain-r-test
+              packages:
+                - g++-6
+          env:
+            - COMPILER=g++-6 C_COMPILER=gcc-6  BUILD_TYPE=Debug
+            - EXTRA_FLAGS="-fno-omit-frame-pointer -g -O2 -fsanitize=undefined,address -fuse-ld=gold"
         - compiler: clang
-          env: COMPILER=clang++     STD=c++11 BUILD_TYPE=Debug
+          env: COMPILER=clang++ C_COMPILER=clang BUILD_TYPE=Debug
         - compiler: clang
-          env: COMPILER=clang++     STD=c++11 BUILD_TYPE=Release
+          env: COMPILER=clang++ C_COMPILER=clang BUILD_TYPE=Release
+        - compiler: clang
+          addons:
+            apt:
+              packages:
+                clang-3.8
+          env:
+            - COMPILER=clang++-3.8 C_COMPILER=clang-3.8 BUILD_TYPE=Debug
+            - EXTRA_FLAGS="-fno-omit-frame-pointer -g -O2 -fsanitize=undefined,address -fno-sanitize-recover=all"
+            - UBSAN_OPTIONS=print_stacktrace=1
+
 
 before_script:
     - mkdir build && cd build
@@ -28,7 +48,7 @@ install:
     fi
 
 script:
-    - cmake .. -DCMAKE_BUILD_TYPE=${BUILD_TYPE} -DCMAKE_CXX_FLAGS="-std=${STD}"
+    - cmake .. -DCMAKE_C_COMPILER=${C_COMPILER} -DCMAKE_CXX_COMPILER=${COMPILER} -DCMAKE_BUILD_TYPE=${BUILD_TYPE} -DCMAKE_CXX_FLAGS="${EXTRA_FLAGS}"
     - make
     - make CTEST_OUTPUT_ON_FAILURE=1 test
 
