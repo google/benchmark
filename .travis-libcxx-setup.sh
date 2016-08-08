@@ -13,5 +13,6 @@ make cxx
 sudo make install-libcxxabi install-libcxx
 # Put the libc++ headers along clang++-3.8's build path, which should be /usr/lib/llvm-3.8/
 sudo ln -s /usr/local/include/c++ /usr/lib/llvm-3.8/include/c++
+sudo ldconfig
 cd ../
 
