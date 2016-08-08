@@ -19,4 +19,3 @@ cmake -DCMAKE_C_COMPILER=${C_COMPILER} -DCMAKE_CXX_COMPILER=${COMPILER} \
 make cxx
 sudo make install-libcxxabi install-libcxx
 cd ../
-
