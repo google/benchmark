@@ -2,6 +2,8 @@ sudo: required
 dist: trusty
 language: cpp
 
+env: /usr/local/bin:$PATH
+
 # NOTE: The COMPILER variable is unused. It simply makes the display on
 # travis-ci.org more readable.
 matrix:
