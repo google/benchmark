@@ -10,43 +10,55 @@ env:
 # travis-ci.org more readable.
 matrix:
     include:
-#        - compiler: gcc
-#          env: COMPILER=g++ C_COMPILER=gcc       BUILD_TYPE=Coverage
-#        - compiler: gcc
-#          env: COMPILER=g++ C_COMPILER=gcc       BUILD_TYPE=Debug
-#        - compiler: gcc
-#          env: COMPILER=g++ C_COMPILER=gcc       BUILD_TYPE=Release
-#        - compiler: gcc
-#          addons:
-#            apt:
-#              sources:
-#                - ubuntu-toolchain-r-test
-#              packages:
-#                - g++-6
-#          env:
-#            - COMPILER=g++-6 C_COMPILER=gcc-6  BUILD_TYPE=Debug
-#            - EXTRA_FLAGS="-fno-omit-frame-pointer -g -O2 -fsanitize=undefined,address -fuse-ld=gold"
-#        - compiler: clang
-#          env: COMPILER=clang++ C_COMPILER=clang BUILD_TYPE=Debug
-#        - compiler: clang
-#          env: COMPILER=clang++ C_COMPILER=clang BUILD_TYPE=Release
-#        - compiler: clang
-#          addons:
-#            apt:
-#              packages:
-#                clang-3.8
-#          env:
-#            - COMPILER=clang++-3.8 C_COMPILER=clang-3.8 BUILD_TYPE=Debug
-#            - EXTRA_FLAGS="-fno-omit-frame-pointer -g -O2 -fsanitize=undefined,address -fno-sanitize-recover=all"
-#            - UBSAN_OPTIONS=print_stacktrace=1
+        - compiler: gcc
+          env: COMPILER=g++ C_COMPILER=gcc       BUILD_TYPE=Coverage
+        - compiler: gcc
+          env: COMPILER=g++ C_COMPILER=gcc       BUILD_TYPE=Debug
+        - compiler: gcc
+          env: COMPILER=g++ C_COMPILER=gcc       BUILD_TYPE=Release
+        - compiler: gcc
+          addons:
+            apt:
+              sources:
+                - ubuntu-toolchain-r-test
+              packages:
+                - g++-6
+          env:
+            - COMPILER=g++-6 C_COMPILER=gcc-6  BUILD_TYPE=Debug
+            - EXTRA_FLAGS="-fno-omit-frame-pointer -g -O2 -fsanitize=undefined,address -fuse-ld=gold"
+        - compiler: clang
+          env: COMPILER=clang++ C_COMPILER=clang BUILD_TYPE=Debug
+        - compiler: clang
+          env: COMPILER=clang++ C_COMPILER=clang BUILD_TYPE=Release
         - compiler: clang
           addons:
             apt:
               packages:
                 clang-3.8
           env:
-            - COMPILER=clang++-3.8 C_COMPILER=clang-3.8 BUILD_TYPE=Debug LIBCXX_BUILD=1
-            - EXTRA_FLAGS="-stdlib=libc++" EXTRA_LD_FLAGS="-stdlib=libc++"
+            - COMPILER=clang++-3.8 C_COMPILER=clang-3.8 BUILD_TYPE=Debug
+            - EXTRA_FLAGS="-fno-omit-frame-pointer -g -O2 -fsanitize=undefined,address -fno-sanitize-recover=all"
+            - UBSAN_OPTIONS=print_stacktrace=1
+        # Clang w/ libc++
+        - compiler: clang
+          addons:
+            apt:
+              packages:
+                clang-3.8
+          env:
+            - COMPILER=clang++-3.8 C_COMPILER=clang-3.8 BUILD_TYPE=Debug
+            - LIBCXX_BUILD=1
+            - EXTRA_FLAGS="-stdlib=libc++"
+        # Clang w/ libc++ and MSAN
+        - compiler: clang
+          addons:
+            apt:
+              packages:
+                clang-3.8
+          env:
+            - COMPILER=clang++-3.8 C_COMPILER=clang-3.8 BUILD_TYPE=Debug
+            - LIBCXX_BUILD=1 LIBCXX_SANITIZER=MemoryWithOrigins
+            - EXTRA_FLAGS="-stdlib=libc++ -g -O2 -fno-omit-frame-pointer -fsanitize=memory -fsanitize-memory-track-origins"
 
 before_script:
     - if [ -n "${LIBCXX_BUILD}" ]; then
