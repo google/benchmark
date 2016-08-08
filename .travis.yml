@@ -33,14 +33,6 @@ matrix:
           env:
             - COMPILER=clang++-3.8 C_COMPILER=clang-3.8 BUILD_TYPE=Debug
             - EXTRA_FLAGS="-fno-omit-frame-pointer -g -O2 -fsanitize=address"
-        - compiler: clang
-          addons:
-            apt:
-              packages:
-                clang-3.8
-          env:
-            - COMPILER=clang++-3.8 C_COMPILER=clang-3.8 BUILD_TYPE=Debug
-            - EXTRA_FLAGS="-fno-omit-frame-pointer -g -O2 -fsanitize=memory"
 
 before_script:
     - mkdir build && cd build
