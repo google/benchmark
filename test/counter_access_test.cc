@@ -7,6 +7,12 @@
 #include <cstdio>
 #include <algorithm>
 
+#if defined(_MSC_VER)
+# if _MSC_VER < 1900 // VS2015
+#   define snprintf _snprintf
+# endif
+#endif
+
 
 /** All the tests here lookup counters Foo and Bar inside the
  * KeepRunning() loop. These counters are padded in between
