@@ -541,6 +541,22 @@ cmake -DCMAKE_BUILD_TYPE=Release -DBENCHMARK_ENABLE_LTO=true
 ```
 
 ## Linking against the library
-When using gcc, it is necessary to link against pthread to avoid runtime
-exceptions. This is due to how gcc implements std::thread.
+When using gcc, it is necessary to link against pthread to avoid runtime exceptions.
+This is due to how gcc implements std::thread.
 See [issue #67](https://github.com/google/benchmark/issues/67) for more details.
+
+## Compiler Support
+
+Google Benchmark uses C++11 when building the library. As such we require
+a modern C++ toolchain, both compiler and standard library.
+
+The following minimum versions are strongly recommended build the library:
+
+* GCC 4.8
+* Clang 3.4
+* Visual Studio 2013
+
+Anything older *may* work.
+
+Note: Using the library and its headers in C++03 is supported. C++11 is only
+required to build the library.
