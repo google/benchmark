@@ -316,48 +316,17 @@ static std::unique_ptr<TimerManager> timer_manager = nullptr;
 
 namespace internal {
 
-enum ReportOptions : unsigned {
-    RO_Unspecified = 0, // No options have been manually specified
-    RO_Default = 1, // Options are user-specified as default
-    RO_ReportAggregatesOnly = RO_Default << 1
+enum ReportMode : unsigned {
+    RM_Unspecified, // The mode has not been manually specified
+    RM_Default,     // The mode is user-specified as default.
+    RM_ReportAggregatesOnly
 };
-
-inline ReportOptions operator~(ReportOptions V) {
-    return static_cast<ReportOptions>(~static_cast<unsigned>(V));
-}
-
-inline ReportOptions operator&(ReportOptions L, ReportOptions R) {
-    return static_cast<ReportOptions>(
-        static_cast<unsigned>(L) & static_cast<unsigned>(R));
-}
-
-inline ReportOptions operator|(ReportOptions L, ReportOptions R) {
-    return static_cast<ReportOptions>(
-        static_cast<unsigned>(L) | static_cast<unsigned>(R));
-}
-
-inline ReportOptions operator^(ReportOptions L, ReportOptions R) {
-    return static_cast<ReportOptions>(
-        static_cast<unsigned>(L) ^ static_cast<unsigned>(R));
-}
-
-inline ReportOptions& operator&=(ReportOptions& L, ReportOptions R) {
-    return (L = L & R);
-}
-
-inline ReportOptions& operator|=(ReportOptions& L, ReportOptions R) {
-    return (L = L | R);
-}
-
-inline ReportOptions& operator^=(ReportOptions& L, ReportOptions R) {
-    return (L = L ^ R);
-}
 
 // Information kept per benchmark we may want to run
 struct Benchmark::Instance {
   std::string      name;
   Benchmark*       benchmark;
-  ReportOptions    report_options;
+  ReportMode       report_mode;
   std::vector<int> arg;
   TimeUnit         time_unit;
   int              range_multiplier;
@@ -425,7 +394,7 @@ private:
   friend class BenchmarkFamilies;
 
   std::string name_;
-  ReportOptions report_options_;
+  ReportMode report_mode_;
   std::vector< std::vector<int> > args_;  // Args for all benchmark runs
   TimeUnit time_unit_;
   int range_multiplier_;
@@ -488,7 +457,7 @@ bool BenchmarkFamilies::FindBenchmarks(
         Benchmark::Instance instance;
         instance.name = family->name_;
         instance.benchmark = bench_family.get();
-        instance.report_options = family->report_options_;
+        instance.report_mode = family->report_mode_;
         instance.arg = args;
         instance.time_unit = family->time_unit_;
         instance.range_multiplier = family->range_multiplier_;
@@ -534,7 +503,7 @@ bool BenchmarkFamilies::FindBenchmarks(
 }
 
 BenchmarkImp::BenchmarkImp(const char* name)
-    : name_(name), report_options_(RO_Unspecified), time_unit_(kNanosecond),
+    : name_(name), report_mode_(RM_Unspecified), time_unit_(kNanosecond),
       range_multiplier_(kRangeMultiplier), min_time_(0.0), repetitions_(0),
       use_real_time_(false), use_manual_time_(false),
       complexity_(oNone) {
@@ -622,10 +591,7 @@ void BenchmarkImp::Repetitions(int n) {
 }
 
 void BenchmarkImp::ReportAggregatesOnly(bool value) {
-  if (report_options_ == RO_Unspecified)
-      report_options_ = RO_Default;
-  if (value) report_options_ &= ~RO_ReportAggregatesOnly;
-  else report_options_ |= RO_ReportAggregatesOnly;
+  report_mode_ = value ? RM_ReportAggregatesOnly : RM_Default;
 }
 
 void BenchmarkImp::UseRealTime() {
@@ -848,9 +814,9 @@ RunBenchmark(const benchmark::internal::Benchmark::Instance& b,
   const int repeats = b.repetitions != 0 ? b.repetitions
                                          : FLAGS_benchmark_repetitions;
   const bool report_aggregates_only = repeats != 1 &&
-      (b.report_options == internal::RO_Unspecified
+      (b.report_mode == internal::RM_Unspecified
         ? FLAGS_benchmark_report_aggregates_only
-        : (b.report_options & internal::RO_ReportAggregatesOnly) == 0);
+        : b.report_mode == internal::RM_ReportAggregatesOnly);
   for (int i = 0; i < repeats; i++) {
     std::string mem;
     for (;;) {
