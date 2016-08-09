@@ -67,7 +67,7 @@ DEFINE_int32(benchmark_repetitions, 1,
              "mean and standard deviation of the runs will be reported.");
 
 DEFINE_bool(benchmark_report_aggregates_only, false,
-            "Report the result of each benchmark repetitions. When 'false' is "
+            "Report the result of each benchmark repetitions. When 'true' is "
             "specified only the mean, standard deviation, and other statistics "
             "are reported for repeated benchmarks.");
 
