@@ -6,6 +6,7 @@
 #include <cassert>
 #include <cstring>
 #include <iostream>
+#include <memory>
 #include <sstream>
 #include <vector>
 #include <utility>
@@ -18,34 +19,57 @@ namespace {
 
 enum MatchRules {
   MR_Default, // Skip non-matching lines until a match is found.
-  MR_Next    // Match must occur on the next line.
+  MR_Next,    // Match must occur on the next line.
+  MR_Not      // No line between the current position and the next match matches
+              // the regex
 };
 
 struct TestCase {
-  std::string regex;
+  std::string regex_str;
   int match_rule;
+  std::shared_ptr<benchmark::Regex> regex;
 
-  TestCase(std::string re, int rule = MR_Default) : regex(re), match_rule(rule) {}
-
-  void Check(std::stringstream& remaining_output) const {
-    benchmark::Regex r;
+  TestCase(std::string re, int rule = MR_Default)
+      : regex_str(re), match_rule(rule), regex(std::make_shared<benchmark::Regex>()) {
     std::string err_str;
-    r.Init(regex, &err_str);
-    CHECK(err_str.empty()) << "Could not construct regex \"" << regex << "\""
+    regex->Init(regex_str, &err_str);
+    CHECK(err_str.empty()) << "Could not construct regex \"" << regex_str << "\""
                            << " got Error: " << err_str;
+  }
 
+  void Check(std::stringstream& remaining_output,
+             std::vector<TestCase>& not_checks) const {
     std::string line;
     while (remaining_output.eof() == false) {
         CHECK(remaining_output.good());
         std::getline(remaining_output, line);
-        if (r.Match(line)) return;
+        for (auto& NC : not_checks) {
+            CHECK(!NC.regex->Match(line)) << "Unexpected match for line \""
+                                          << line << "\" for MR_Not regex \""
+                                          << NC.regex_str << "\"";
+        }
+        if (regex->Match(line)) return;
         CHECK(match_rule != MR_Next) << "Expected line \"" << line
-                                     << "\" to match regex \"" << regex << "\"";
+                                     << "\" to match regex \"" << regex_str << "\"";
     }
 
     CHECK(remaining_output.eof() == false)
-        << "End of output reached before match for regex \"" << regex
+        << "End of output reached before match for regex \"" << regex_str
         << "\" was found";
+  }
+
+  static void CheckCases(std::vector<TestCase> const& checks,
+                         std::stringstream& output) {
+      std::vector<TestCase> not_checks;
+      for (size_t i=0; i < checks.size(); ++i) {
+          const auto& TC = checks[i];
+          if (TC.match_rule == MR_Not) {
+              not_checks.push_back(TC);
+              continue;
+          }
+          TC.Check(output, not_checks);
+          not_checks.clear();
+      }
   }
 };
 
@@ -113,8 +137,6 @@ template <class First, class ...Args>
 std::string join(First f, Args&&... args) {
     return std::string(std::move(f)) + "[ ]+" + join(std::forward<Args>(args)...);
 }
-
-
 
 std::string dec_re = "[0-9]*[.]?[0-9]+([eE][-+][0-9]+)?";
 
@@ -200,6 +222,68 @@ ADD_CASES(&ConsoleOutputTests, {
 
 
 // ========================================================================= //
+// ----------------------- Testing Aggregate Output ------------------------ //
+// ========================================================================= //
+
+// Test that non-aggregate data is printed by default
+void BM_Repeat(benchmark::State& state) { while (state.KeepRunning()) {} }
+BENCHMARK(BM_Repeat)->Repetitions(3);
+ADD_CASES(&ConsoleOutputTests, {
+    {"^BM_Repeat/repeats:3[ ]+[0-9]{1,5} ns[ ]+[0-9]{1,5} ns[ ]+[0-9]+$"},
+    {"^BM_Repeat/repeats:3[ ]+[0-9]{1,5} ns[ ]+[0-9]{1,5} ns[ ]+[0-9]+$"},
+    {"^BM_Repeat/repeats:3[ ]+[0-9]{1,5} ns[ ]+[0-9]{1,5} ns[ ]+[0-9]+$"},
+    {"^BM_Repeat/repeats:3_mean[ ]+[0-9]{1,5} ns[ ]+[0-9]{1,5} ns[ ]+[0-9]+$"},
+    {"^BM_Repeat/repeats:3_stddev[ ]+[0-9]{1,5} ns[ ]+[0-9]{1,5} ns[ ]+[0-9]+$"}
+});
+ADD_CASES(&JSONOutputTests, {
+    {"\"name\": \"BM_Repeat/repeats:3\",$"},
+    {"\"name\": \"BM_Repeat/repeats:3\",$"},
+    {"\"name\": \"BM_Repeat/repeats:3\",$"},
+    {"\"name\": \"BM_Repeat/repeats:3_mean\",$"},
+    {"\"name\": \"BM_Repeat/repeats:3_stddev\",$"}
+});
+ADD_CASES(&CSVOutputTests, {
+    {"^\"BM_Repeat/repeats:3\",[0-9]+," + dec_re + "," + dec_re + ",ns,,,,,$"},
+    {"^\"BM_Repeat/repeats:3\",[0-9]+," + dec_re + "," + dec_re + ",ns,,,,,$"},
+    {"^\"BM_Repeat/repeats:3\",[0-9]+," + dec_re + "," + dec_re + ",ns,,,,,$"},
+    {"^\"BM_Repeat/repeats:3_mean\",[0-9]+," + dec_re + "," + dec_re + ",ns,,,,,$"},
+    {"^\"BM_Repeat/repeats:3_stddev\",[0-9]+," + dec_re + "," + dec_re + ",ns,,,,,$"}
+});
+
+// Test that a non-repeated test still prints non-aggregate results even when
+// only-aggregate reports have been requested
+void BM_RepeatOnce(benchmark::State& state) { while (state.KeepRunning()) {} }
+BENCHMARK(BM_RepeatOnce)->Repetitions(1)->ReportAggregatesOnly();
+ADD_CASES(&ConsoleOutputTests, {
+    {"^BM_RepeatOnce/repeats:1[ ]+[0-9]{1,5} ns[ ]+[0-9]{1,5} ns[ ]+[0-9]+$"}
+});
+ADD_CASES(&JSONOutputTests, {
+    {"\"name\": \"BM_RepeatOnce/repeats:1\",$"}
+});
+ADD_CASES(&CSVOutputTests, {
+    {"^\"BM_RepeatOnce/repeats:1\",[0-9]+," + dec_re + "," + dec_re + ",ns,,,,,$"}
+});
+
+// Test that non-aggregate data is not reported
+void BM_SummaryRepeat(benchmark::State& state) { while (state.KeepRunning()) {} }
+BENCHMARK(BM_SummaryRepeat)->Repetitions(3)->ReportAggregatesOnly();
+ADD_CASES(&ConsoleOutputTests, {
+    {".*BM_SummaryRepeat/repeats:3 ", MR_Not},
+    {"^BM_SummaryRepeat/repeats:3_mean[ ]+[0-9]{1,5} ns[ ]+[0-9]{1,5} ns[ ]+[0-9]+$"},
+    {"^BM_SummaryRepeat/repeats:3_stddev[ ]+[0-9]{1,5} ns[ ]+[0-9]{1,5} ns[ ]+[0-9]+$"}
+});
+ADD_CASES(&JSONOutputTests, {
+    {".*BM_SummaryRepeat/repeats:3 ", MR_Not},
+    {"\"name\": \"BM_SummaryRepeat/repeats:3_mean\",$"},
+    {"\"name\": \"BM_SummaryRepeat/repeats:3_stddev\",$"}
+});
+ADD_CASES(&CSVOutputTests, {
+    {".*BM_SummaryRepeat/repeats:3 ", MR_Not},
+    {"^\"BM_SummaryRepeat/repeats:3_mean\",[0-9]+," + dec_re + "," + dec_re + ",ns,,,,,$"},
+    {"^\"BM_SummaryRepeat/repeats:3_stddev\",[0-9]+," + dec_re + "," + dec_re + ",ns,,,,,$"}
+});
+
+// ========================================================================= //
 // --------------------------- TEST CASES END ------------------------------ //
 // ========================================================================= //
 
@@ -244,10 +328,8 @@ int main(int argc, char* argv[]) {
       std::cerr << rep_test.err_stream.str();
       std::cout << rep_test.out_stream.str();
 
-      for (const auto& TC : rep_test.error_cases)
-        TC.Check(rep_test.err_stream);
-      for (const auto& TC : rep_test.output_cases)
-        TC.Check(rep_test.out_stream);
+      TestCase::CheckCases(rep_test.error_cases, rep_test.err_stream);
+      TestCase::CheckCases(rep_test.output_cases, rep_test.out_stream);
 
       std::cout << "\n";
   }
