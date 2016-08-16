@@ -32,6 +32,9 @@ BENCHMARK(BM_StringCopy);
 BENCHMARK_MAIN();
 ```
 
+You only need to have `BENCHMARK_MAIN` in your program if you are linking against `benchmark` library.
+Alternatively, you can sue `benchmark_main` library that has `BENCHMARK_MAIN` compiled in.
+
 ### Passing arguments
 Sometimes a family of benchmarks can be implemented with just one routine that
 takes an extra argument to specify which one of the family of benchmarks to
