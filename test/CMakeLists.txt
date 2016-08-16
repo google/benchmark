@@ -2,16 +2,21 @@
 
 find_package(Threads REQUIRED)
 
-macro(compile_benchmark_test name)
+macro(compile_benchmark_test_no_main name)
   add_executable(${name} "${name}.cc")
   target_link_libraries(${name} benchmark ${CMAKE_THREAD_LIBS_INIT})
+endmacro(compile_benchmark_test_no_main)
+
+macro(compile_benchmark_test name)
+  add_executable(${name} "${name}.cc")
+  target_link_libraries(${name} benchmark_main ${CMAKE_THREAD_LIBS_INIT})
 endmacro(compile_benchmark_test)
 
 # Demonstration executable
 compile_benchmark_test(benchmark_test)
 add_test(benchmark benchmark_test --benchmark_min_time=0.01)
 
-compile_benchmark_test(filter_test)
+compile_benchmark_test_no_main(filter_test)
 macro(add_filter_test name filter expect)
   add_test(${name} filter_test --benchmark_min_time=0.01 --benchmark_filter=${filter} ${expect})
   add_test(${name}_list_only filter_test --benchmark_list_tests --benchmark_filter=${filter} ${expect})
@@ -30,22 +35,25 @@ add_filter_test(filter_regex_end ".*Ba$" 1)
 compile_benchmark_test(options_test)
 add_test(options_benchmarks options_test --benchmark_min_time=0.01)
 
+compile_benchmark_test_no_main(no_main_test)
+add_test(no_main_test no_main_test --benchmark_min_time=0.01)
+
 compile_benchmark_test(basic_test)
 add_test(basic_benchmark basic_test --benchmark_min_time=0.01)
 
-compile_benchmark_test(diagnostics_test)
+compile_benchmark_test_no_main(diagnostics_test)
 add_test(diagnostics_test diagnostics_test --benchmark_min_time=0.01)
 
-compile_benchmark_test(skip_with_error_test)
+compile_benchmark_test_no_main(skip_with_error_test)
 add_test(skip_with_error_test skip_with_error_test --benchmark_min_time=0.01)
 
-compile_benchmark_test(donotoptimize_test)
+compile_benchmark_test_no_main(donotoptimize_test)
 add_test(donotoptimize_test donotoptimize_test --benchmark_min_time=0.01)
 
 compile_benchmark_test(fixture_test)
 add_test(fixture_test fixture_test --benchmark_min_time=0.01)
 
-compile_benchmark_test(register_benchmark_test)
+compile_benchmark_test_no_main(register_benchmark_test)
 add_test(register_benchmark_test register_benchmark_test --benchmark_min_time=0.01)
 
 compile_benchmark_test(map_test)
@@ -54,7 +62,7 @@ add_test(map_test map_test --benchmark_min_time=0.01)
 compile_benchmark_test(multiple_ranges_test)
 add_test(multiple_ranges_test multiple_ranges_test --benchmark_min_time=0.01)
 
-compile_benchmark_test(reporter_output_test)
+compile_benchmark_test_no_main(reporter_output_test)
 add_test(reporter_output_test reporter_output_test --benchmark_min_time=0.01)
 
 check_cxx_compiler_flag(-std=c++03 BENCHMARK_HAS_CXX03_FLAG)
@@ -69,7 +77,7 @@ if (BENCHMARK_HAS_CXX03_FLAG)
   add_test(cxx03 cxx03_test --benchmark_min_time=0.01)
 endif()
 
-compile_benchmark_test(complexity_test)
+compile_benchmark_test_no_main(complexity_test)
 add_test(complexity_benchmark complexity_test --benchmark_min_time=0.01)
 
 # Add the coverage command(s)

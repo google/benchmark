@@ -1,5 +1,10 @@
 # Allow the source files to find headers in src/
 include_directories(${PROJECT_SOURCE_DIR}/src)
+# Allow the source files to find headers in include/
+# This is now required because BENCHMARK_MAIN() is only
+# define in the publicly exposed interface that is under
+# include/
+include_directories(${PROJECT_SOURCE_DIR}/include)
 
 # Define the source files
 set(SOURCE_FILES "benchmark.cc" "colorprint.cc" "commandlineflags.cc"
@@ -18,6 +23,8 @@ else()
 endif()
 
 add_library(benchmark ${SOURCE_FILES} ${RE_FILES})
+add_library(benchmark_main main.cc)
+target_link_libraries(benchmark_main benchmark)
 
 
 set_target_properties(benchmark PROPERTIES

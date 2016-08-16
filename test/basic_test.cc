@@ -98,5 +98,3 @@ void BM_empty_stop_start(benchmark::State& state) {
 }
 BENCHMARK(BM_empty_stop_start);
 BENCHMARK(BM_empty_stop_start)->ThreadPerCpu();
-
-BENCHMARK_MAIN()

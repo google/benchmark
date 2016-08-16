@@ -40,5 +40,3 @@ void CustomArgs(benchmark::internal::Benchmark* b) {
 }
 
 BENCHMARK(BM_basic)->Apply(CustomArgs);
-
-BENCHMARK_MAIN()
