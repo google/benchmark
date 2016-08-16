@@ -2,9 +2,14 @@
 
 find_package(Threads REQUIRED)
 
-macro(compile_benchmark_test name)
+macro(compile_benchmark_test_no_main name)
   add_executable(${name} "${name}.cc")
   target_link_libraries(${name} benchmark ${CMAKE_THREAD_LIBS_INIT})
+endmacro(compile_benchmark_test_no_main)
+
+macro(compile_benchmark_test name)
+  add_executable(${name} "${name}.cc")
+  target_link_libraries(${name} benchmark_main ${CMAKE_THREAD_LIBS_INIT})
 endmacro(compile_benchmark_test)
 
 # Demonstration executable
@@ -29,6 +34,9 @@ add_filter_test(filter_regex_end ".*Ba$" 1)
 
 compile_benchmark_test(options_test)
 add_test(options_benchmarks options_test --benchmark_min_time=0.01)
+
+compile_benchmark_test_no_main(no_main_test)
+add_test(no_main_test no_main_test --benchmark_min_time=0.01)
 
 compile_benchmark_test(basic_test)
 add_test(basic_benchmark basic_test --benchmark_min_time=0.01)

@@ -27,5 +27,3 @@ void BM_template1(benchmark::State& state) {
 }
 BENCHMARK_TEMPLATE(BM_template1, long);
 BENCHMARK_TEMPLATE1(BM_template1, int);
-
-BENCHMARK_MAIN()
