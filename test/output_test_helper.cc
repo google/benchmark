@@ -15,7 +15,12 @@ using SubMap = std::vector<std::pair<std::string, std::string>>;
 TestCaseList& GetTestCaseList(TestCaseID ID) {
     // Uses function-local statics to ensure initialization occurs
     // before first use.
-    static TestCaseList lists[TC_NumID] = {
+    static TestCaseList lists[TC_NumID];
+    return lists[ID];
+}
+
+SubMap& GetSubstitutions() {
+    static SubMap map = {
         {"%float", dec_re},
         {"%int", "[ ]*[0-9]+"},
         {" %s ", "[ ]+"},
@@ -23,11 +28,6 @@ TestCaseList& GetTestCaseList(TestCaseID ID) {
         {"%console_report", "[ ]*[0-9]{1,5} ns [ ]*[0-9]{1,5} ns [ ]*[0-9]+"},
         {"%csv_report", "[0-9]+," + dec_re + "," + dec_re + ",ns,,,,,"}
     };
-    return lists[ID];
-}
-
-SubMap& GetSubstitutions() {
-    static SubMap map;
     return map;
 }
 
