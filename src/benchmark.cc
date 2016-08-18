@@ -115,6 +115,9 @@ bool IsZero(double n) {
 
 // For non-dense Range, intermediate values are powers of kRangeMultiplier.
 static const int kRangeMultiplier = 8;
+// The size of a benchmark family determines is the number of inputs to repeat
+// the benchmark on. If this is "large" then warn the user during configuration.
+static const size_t kMaxFamilySize = 100;
 static const size_t kMaxIterations = 1000000000;
 
 bool running_benchmark = false;
@@ -434,8 +437,7 @@ bool BenchmarkFamilies::FindBenchmarks(
   }
 
   // Special list of thread counts to use when none are specified
-  std::vector<int> one_thread;
-  one_thread.push_back(1);
+  const std::vector<int> one_thread = {1};
 
   MutexLock l(mutex_);
   for (std::unique_ptr<Benchmark>& bench_family : families_) {
@@ -446,12 +448,23 @@ bool BenchmarkFamilies::FindBenchmarks(
     if (family->ArgsCnt() == -1) {
       family->Args({});
     }
-
-    for (auto const& args : family->args_) {
-      const std::vector<int>* thread_counts =
+    const std::vector<int>* thread_counts =
         (family->thread_counts_.empty()
          ? &one_thread
-         : &family->thread_counts_);
+         : &static_cast<const std::vector<int>&>(family->thread_counts_));
+    const size_t family_size = family->args_.size() * thread_counts->size();
+    // The benchmark will be run at least 'total' different inputs. If 'total'
+    // is very large warn the user.
+    if (family_size > kMaxFamilySize) {
+      std::cerr <<  "The number of inputs is very large. " << family->name_
+                << " will be repeated at least " << family_size << " times.\n";
+    }
+    // reserve in the special case the regex ".", since we know the final
+    // family size.
+    if (spec == ".")
+      benchmarks->reserve(family_size);
+
+    for (auto const& args : family->args_) {
       for (int num_threads : *thread_counts) {
 
         Benchmark::Instance instance;
@@ -493,8 +506,8 @@ bool BenchmarkFamilies::FindBenchmarks(
         }
 
         if (re.Match(instance.name)) {
-          instance.last_benchmark_instance = (args == family->args_.back());
-          benchmarks->push_back(instance);
+          instance.last_benchmark_instance = (&args == &family->args_.back());
+          benchmarks->push_back(std::move(instance));
         }
       }
     }
@@ -547,7 +560,7 @@ void BenchmarkImp::Args(const std::vector<int>& args)
 
 void BenchmarkImp::Ranges(const std::vector<std::pair<int, int>>& ranges) {
   std::vector<std::vector<int>> arglists(ranges.size());
-  int total = 1;
+  size_t total = 1;
   for (std::size_t i = 0; i < ranges.size(); i++) {
     AddRange(&arglists[i], ranges[i].first, ranges[i].second, range_multiplier_);
     total *= arglists[i].size();
@@ -555,14 +568,14 @@ void BenchmarkImp::Ranges(const std::vector<std::pair<int, int>>& ranges) {
 
   std::vector<std::size_t> ctr(total, 0);
 
-  for (int i = 0; i < total; i++) {
+  for (std::size_t i = 0; i < total; i++) {
     std::vector<int> tmp;
 
     for (std::size_t j = 0; j < arglists.size(); j++) {
-      tmp.push_back(arglists[j][ctr[j]]);
+      tmp.push_back(arglists[j].at(ctr[j]));
     }
 
-    args_.push_back(tmp);
+    args_.push_back(std::move(tmp));
 
     for (std::size_t j = 0; j < arglists.size(); j++) {
       if (ctr[j] + 1 < arglists[j].size()) {
