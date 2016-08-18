@@ -203,7 +203,7 @@ static void BM_ManualTiming(benchmark::State& state) {
 BENCHMARK(BM_ManualTiming)->Range(1, 1 << 14)->UseRealTime();
 BENCHMARK(BM_ManualTiming)->Range(1, 1 << 14)->UseManualTime();
 
-#if __cplusplus >= 201103L
+#ifdef BENCHMARK_HAS_CXX11
 
 template <class ...Args>
 void BM_with_args(benchmark::State& state, Args&&...) {
@@ -218,7 +218,25 @@ void BM_non_template_args(benchmark::State& state, int, double) {
 }
 BENCHMARK_CAPTURE(BM_non_template_args, basic_test, 0, 0);
 
-#endif // __cplusplus >= 201103L
+#endif // BENCHMARK_HAS_CXX11
+
+
+static void BM_UserCounter(benchmark::State& state) {
+  static const int depth = 1024;
+  while (state.KeepRunning()) {
+    benchmark::DoNotOptimize(CalculatePi(depth));
+  }
+  state.counters["Foo"] = 1;
+  state.counters["Bar"] = 2;
+  state.counters["Baz"] = 3;
+  state.counters["Bat"] = 5;
+#ifdef BENCHMARK_HAS_CXX11
+  state.counters.insert({{"Foo", 2}, {"Bar", 3}, {"Baz", 5}, {"Bat", 6}});
+#endif
+}
+BENCHMARK(BM_UserCounter)->Threads(8);
+BENCHMARK(BM_UserCounter)->ThreadRange(1, 32);
+BENCHMARK(BM_UserCounter)->ThreadPerCpu();
 
 BENCHMARK_MAIN()
 

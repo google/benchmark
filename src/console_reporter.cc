@@ -126,6 +126,12 @@ void ConsoleReporter::PrintRunData(const Run& result) {
   if (!result.report_label.empty()) {
     printer(Out, COLOR_DEFAULT, " %s", result.report_label.c_str());
   }
+  for (const auto& KV : result.counters) {
+    const Counter& C = KV.second;
+    printer(Out, COLOR_DEFAULT, " %s=%0.0f%s", KV.first.c_str(),
+            C.FormatValue(result.cpu_accumulated_time, result.threads),
+            C.FormatType(result.time_unit).c_str());
+  }
 
   printer(Out, COLOR_DEFAULT, "\n");
 }

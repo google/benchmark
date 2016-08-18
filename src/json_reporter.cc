@@ -29,6 +29,10 @@ namespace benchmark {
 
 namespace {
 
+struct StartDictTag {};
+struct StartListTag {};
+StartListTag StartList{};
+
 std::string FormatKV(std::string const& key, std::string const& value) {
   return StringPrintF("\"%s\": \"%s\"", key.c_str(), value.c_str());
 }
@@ -46,6 +50,19 @@ std::string FormatKV(std::string const& key, int64_t value) {
   ss << '"' << key << "\": " << value;
   return ss.str();
 }
+
+std::string FormatKV(std::string const& key, double value) {
+  std::stringstream ss;
+  ss << '"' << key << "\": " << value;
+  return ss.str();
+}
+
+std::string FormatKV(std::string const& key, StartListTag) {
+  std::stringstream ss;
+  ss << '"' << key << "\": " << "[";
+  return ss.str();
+}
+
 
 int64_t RoundDouble(double v) {
     return static_cast<int64_t>(v + 0.5);
@@ -167,6 +184,24 @@ void JSONReporter::PrintRunData(Run const& run) {
         << indent
         << FormatKV("items_per_second", RoundDouble(run.items_per_second));
   }
+  if (run.counters.size() != 0) {
+      out << ",\n" << indent
+          << FormatKV("counters", StartList);
+      std::string outer_indent = indent + "  ";
+      std::string inner_indent = outer_indent + "  ";
+      const auto first = run.counters.begin();
+      for(auto It=run.counters.begin(); It != run.counters.end(); ++It) {
+        out << (It == first ? "\n" : ",\n");
+        const Counter& C = It->second;
+        const double adjusted_val = C.FormatValue(run.cpu_accumulated_time, run.threads);
+        out << outer_indent << "{\n"
+            << inner_indent << FormatKV("name", It->first) << ",\n"
+            << inner_indent << FormatKV("value", adjusted_val) << ",\n"
+            << inner_indent << FormatKV("type", "unit" + C.FormatType(run.time_unit)) << "\n"
+            << outer_indent << "}";
+      }
+      out << "\n" << indent << "]";
+  }
   if (!run.report_label.empty()) {
     out << ",\n"
         << indent
@@ -175,4 +210,4 @@ void JSONReporter::PrintRunData(Run const& run) {
   out << '\n';
 }
 
-}  // end namespace benchmark
+} // end namespace benchmark

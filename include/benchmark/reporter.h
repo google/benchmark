@@ -19,6 +19,7 @@
 #include <string>
 #include <utility>
 #include <vector>
+#include <map>
 
 #include "benchmark_api.h"  // For forward declaration of BenchmarkReporter
 
@@ -44,6 +45,7 @@ class BenchmarkReporter {
     Run() :
       error_occurred(false),
       iterations(1),
+      threads(1),
       time_unit(kNanosecond),
       real_accumulated_time(0),
       cpu_accumulated_time(0),
@@ -61,6 +63,7 @@ class BenchmarkReporter {
     std::string error_message;
 
     int64_t iterations;
+    int64_t threads;
     TimeUnit time_unit;
     double real_accumulated_time;
     double cpu_accumulated_time;
@@ -92,6 +95,8 @@ class BenchmarkReporter {
     // Inform print function whether the current run is a complexity report
     bool report_big_o;
     bool report_rms;
+
+    BenchmarkCounters counters;
   };
 
   // Construct a BenchmarkReporter with the output stream set to 'std::cout'

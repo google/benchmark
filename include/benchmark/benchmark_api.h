@@ -154,6 +154,8 @@ BENCHMARK(BM_test)->Unit(benchmark::kMillisecond);
 #include <stdint.h>
 
 #include <vector>
+#include <map>
+#include <string>
 
 #include "macros.h"
 
@@ -265,6 +267,43 @@ enum BigO {
 // BigOFunc is passed to a benchmark in order to specify the asymptotic 
 // computational complexity for the benchmark.
 typedef double(BigOFunc)(int);
+
+enum CounterType  {
+    CT_Default           = 0,
+    /** Mark the counter as a rate. It will be presented divided by the duration of the benchmark. */
+    CT_Rate              = 1,
+    /** Mark the counter as a thread-average quantity. It will be presented divided by the number of threads. */
+    CT_ThreadAverage     = CT_Rate << 1,
+    CT_ThreadAverageRate = CT_Rate | CT_ThreadAverage
+};
+
+class Counter {
+public:
+   // Allow direct access to both the type and the value.
+  double   value;
+  CounterType type;
+public:
+
+  BENCHMARK_ALWAYS_INLINE
+  Counter(double v = 0, CounterType t = CT_Default)
+      : value(v), type(t) {}
+
+  BENCHMARK_ALWAYS_INLINE Counter& operator=(double v) {
+      value = v;
+      return *this;
+  }
+
+  // Allow Counter to implicitly convert to double to allow use of
+  // binary and compound operators. ie c += c2.
+  BENCHMARK_ALWAYS_INLINE operator       double&() { return value; }
+  BENCHMARK_ALWAYS_INLINE operator const double&() const { return value; }
+
+  // Return 'value' after adjusting for'type'.
+  double FormatValue(double cpu_time, double num_threads) const;
+  std::string FormatType(TimeUnit cpu_time_unit) const;
+};
+
+typedef std::map<std::string, Counter> BenchmarkCounters;
 
 // State is passed to a running Benchmark and contains state for the
 // benchmark to use.
@@ -432,6 +471,8 @@ public:
 
   BENCHMARK_ALWAYS_INLINE
   size_t iterations() const { return total_iterations_; }
+
+  BenchmarkCounters counters;
 
 private:
   bool started_;

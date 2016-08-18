@@ -283,6 +283,79 @@ ADD_CASES(&CSVOutputTests, {
     {"^\"BM_SummaryRepeat/repeats:3_stddev\",[0-9]+," + dec_re + "," + dec_re + ",ns,,,,,$"}
 });
 
+
+// ========================================================================= //
+// ------------------ Testing Custom Counter Output ------------------------ //
+// ========================================================================= //
+
+// Test that non-aggregate data is printed by default
+void BM_CustomCounters(benchmark::State& state) {
+    while (state.KeepRunning()) {}
+    switch (state.range(0)) {
+    case 0:
+        state.counters["foo"] = 0;
+        break;
+    case 1:
+        state.counters["bar"] = {42, benchmark::CT_Rate};
+        break;
+    case 2:
+        state.counters["baz"] = {4, benchmark::CT_ThreadAverage};
+        break;
+    case 3:
+        state.counters["boo"] = {8, benchmark::CT_ThreadAverageRate};
+        break;
+    case 4:
+        state.counters["foo"] = 0;
+        state.counters["bar"] = {42, benchmark::CT_Rate};
+        break;
+    default:
+        assert(false && "Test case not supported");
+    }
+    //
+}
+BENCHMARK(BM_CustomCounters)->Arg(0)->Arg(1);
+BENCHMARK(BM_CustomCounters)->Threads(4)->Arg(2)->Arg(3);
+BENCHMARK(BM_CustomCounters)->Arg(4);
+std::string ConsoleRE = "[0-9]{1,5} ns[ ]+[0-9]{1,5} ns[ ]+[0-9]+";
+ADD_CASES(&ConsoleOutputTests, {
+    {join("^BM_CustomCounters/0", ConsoleRE, "foo=0$")},
+    {join("^BM_CustomCounters/1", ConsoleRE, "bar=" + dec_re + "/ns$")},
+    {join("^BM_CustomCounters/2/threads:4", ConsoleRE, "baz=" + dec_re + "/thread$")},
+    {join("^BM_CustomCounters/3/threads:4", ConsoleRE, "boo=" + dec_re + "/ns/thread$")},
+    {join("^BM_CustomCounters/4", ConsoleRE, "((foo=0 bar=" + dec_re + "/ns)|(bar=" + dec_re + "/ns foo=0))$")}
+});
+static int MakeJSONCase(std::string name, std::string cname,
+                        std::string value, std::string type)
+{
+    AddCases(&JSONOutputTests, {
+        {"\"name\": \"" + name + "\",$"},
+        {"\"counters\": \\["},
+        {"\\{", MR_Next},
+        {"\"name\": \"" + cname + "\",$", MR_Next},
+        {"\"value\": " + value + ",$", MR_Next},
+        {"\"type\": \"" + type + "\"$", MR_Next},
+        {"}$", MR_Next},
+        {"]$", MR_Next}
+    });
+    return 0;
+}
+int json_test_anchor = (
+      MakeJSONCase("BM_CustomCounters/0", "foo", "0", "unit")
+    , MakeJSONCase("BM_CustomCounters/1", "bar", dec_re, "unit/ns")
+    , MakeJSONCase("BM_CustomCounters/2/threads:4", "baz", dec_re, "unit/thread")
+    , MakeJSONCase("BM_CustomCounters/3/threads:4", "boo", dec_re, "unit/ns/thread")
+);
+
+/*
+ADD_CASES(&CSVOutputTests, {
+    {"^\"BM_Repeat/repeats:3\",[0-9]+," + dec_re + "," + dec_re + ",ns,,,,,$"},
+    {"^\"BM_Repeat/repeats:3\",[0-9]+," + dec_re + "," + dec_re + ",ns,,,,,$"},
+    {"^\"BM_Repeat/repeats:3\",[0-9]+," + dec_re + "," + dec_re + ",ns,,,,,$"},
+    {"^\"BM_Repeat/repeats:3_mean\",[0-9]+," + dec_re + "," + dec_re + ",ns,,,,,$"},
+    {"^\"BM_Repeat/repeats:3_stddev\",[0-9]+," + dec_re + "," + dec_re + ",ns,,,,,$"}
+});
+*/
+
 // ========================================================================= //
 // --------------------------- TEST CASES END ------------------------------ //
 // ========================================================================= //
@@ -309,7 +382,8 @@ int main(int argc, char* argv[]) {
         reporter.SetOutputStream(&out_stream);
         reporter.SetErrorStream(&err_stream);
     }
-  } TestCases[] = {
+  }
+  TestCases[] = {
       {"ConsoleReporter", ConsoleOutputTests, ConsoleErrorTests, CR},
       {"JSONReporter", JSONOutputTests, JSONErrorTests, JR},
       {"CSVReporter", CSVOutputTests, CSVErrorTests, CSVR}

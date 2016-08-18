@@ -28,4 +28,13 @@ void BM_template1(benchmark::State& state) {
 BENCHMARK_TEMPLATE(BM_template1, long);
 BENCHMARK_TEMPLATE1(BM_template1, int);
 
+void BM_counters(benchmark::State& state) {
+    while (state.KeepRunning()) {
+        volatile std::size_t x = state.iterations();
+        ((void)x);
+    }
+    state.counters["Foo"] = 2;
+}
+BENCHMARK(BM_counters);
+
 BENCHMARK_MAIN()
