@@ -26,6 +26,16 @@ enum MatchRules {
               // the regex
 };
 
+enum TestCaseID {
+  TC_ConsoleOut,
+  TC_ConsoleErr,
+  TC_JSONOut,
+  TC_JSONErr,
+  TC_CSVOut,
+  TC_CSVErr,
+  TC_NumID
+};
+
 struct TestCase {
   std::string regex_str;
   int match_rule;
@@ -40,21 +50,12 @@ private:
 };
 
 
-enum TestCaseID {
-  TC_ConsoleOut,
-  TC_ConsoleErr,
-  TC_JSONOut,
-  TC_JSONErr,
-  TC_CSVOut,
-  TC_CSVErr,
-  TC_NumID
-};
-
 // Add a list of test cases to be run against the output specified by
 // 'ID'
 int AddCases(TestCaseID ID, std::initializer_list<TestCase> il);
 
-// Add or set a list of substitutions to be performed on constructed regexes
+// Add or set a list of substitutions to be performed on constructed regex's
+// See 'output_test_helper.cc' for a list of default substitutions.
 int SetSubstitutions(
     std::initializer_list<std::pair<std::string, std::string>> il);
 
@@ -69,15 +70,7 @@ namespace {
 
 std::string dec_re = "[0-9]*[.]?[0-9]+([eE][-+][0-9]+)?";
 
-int default_sub_anchor = SetSubstitutions({
-        {"%float", dec_re},
-        {"%int", "[ ]*[0-9]+"},
-        {" %s ", "[ ]+"},
-        {"%time", "[ ]*[0-9]{1,5} ns"},
-        {"%console_report", "[ ]*[0-9]{1,5} ns [ ]*[0-9]{1,5} ns [ ]*[0-9]+"},
-        {"%csv_report", "[0-9]+," + dec_re + "," + dec_re + ",ns,,,,,"}
-});
-
 } //  end namespace
+
 
 #endif // TEST_OUTPUT_TEST_H

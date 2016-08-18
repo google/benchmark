@@ -13,7 +13,16 @@ using TestCaseList = std::vector<TestCase>;
 using SubMap = std::vector<std::pair<std::string, std::string>>;
 
 TestCaseList& GetTestCaseList(TestCaseID ID) {
-    static TestCaseList lists[TC_NumID];
+    // Uses function-local statics to ensure initialization occurs
+    // before first use.
+    static TestCaseList lists[TC_NumID] = {
+        {"%float", dec_re},
+        {"%int", "[ ]*[0-9]+"},
+        {" %s ", "[ ]+"},
+        {"%time", "[ ]*[0-9]{1,5} ns"},
+        {"%console_report", "[ ]*[0-9]{1,5} ns [ ]*[0-9]{1,5} ns [ ]*[0-9]+"},
+        {"%csv_report", "[0-9]+," + dec_re + "," + dec_re + ",ns,,,,,"}
+    };
     return lists[ID];
 }
 
@@ -22,7 +31,8 @@ SubMap& GetSubstitutions() {
     return map;
 }
 
-std::string PerformSubstitutions(std::string source, SubMap const& subs) {
+std::string PerformSubstitutions(std::string source) {
+    SubMap const& subs = GetSubstitutions();
     using SizeT = std::string::size_type;
     for (auto const& KV : subs) {
         SizeT pos;
@@ -30,10 +40,6 @@ std::string PerformSubstitutions(std::string source, SubMap const& subs) {
             source.replace(pos, KV.first.size(), KV.second);
     }
     return source;
-}
-
-std::string PerformSubstitutions(std::string source) {
-    return PerformSubstitutions(std::move(source), GetSubstitutions());
 }
 
 void ProcessAndCheckCases(std::vector<TestCase> const& checks,
