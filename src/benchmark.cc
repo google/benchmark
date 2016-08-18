@@ -801,7 +801,7 @@ void RunInThread(const benchmark::internal::Benchmark::Instance* b,
       std::pair<Iter, bool> res = total->counters.insert(KV);
       if (!res.second) {
         benchmark::Counter& dest = res.first->second;
-        CHECK_EQ(dest.Type(), KV.second.Type())
+        CHECK_EQ(dest.type, KV.second.type)
             << "Cannot sum counters with different types";
         dest += KV.second;
       }
