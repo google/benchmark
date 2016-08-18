@@ -143,6 +143,7 @@ struct ThreadStats {
     int64_t bytes_processed;
     int64_t items_processed;
     int  complexity_n;
+    BenchmarkCounters counters;
 };
 
 // Timer management class
@@ -794,6 +795,17 @@ void RunInThread(const benchmark::internal::Benchmark::Instance* b,
     total->bytes_processed += st.bytes_processed();
     total->items_processed += st.items_processed();
     total->complexity_n += st.complexity_length_n();
+
+    for (auto const& KV : st.counters) {
+      using Iter = benchmark::BenchmarkCounters::iterator;
+      std::pair<Iter, bool> res = total->counters.insert(KV);
+      if (!res.second) {
+        benchmark::Counter& dest = res.first->second;
+        CHECK_EQ(dest.Type(), KV.second.Type())
+            << "Cannot sum counters with different types";
+        dest += KV.second;
+      }
+    }
   }
 
   timer_manager->Finalize();
@@ -893,6 +905,7 @@ RunBenchmark(const benchmark::internal::Benchmark::Instance& b,
         report.report_label = label;
         // Report the total iterations across all threads.
         report.iterations = static_cast<int64_t>(iters) * b.threads;
+        report.threads = b.threads;
         report.time_unit = b.time_unit;
 
         if (!report.error_occurred) {
@@ -916,6 +929,7 @@ RunBenchmark(const benchmark::internal::Benchmark::Instance& b,
           report.complexity_n = total.complexity_n;
           report.complexity = b.complexity;
           report.complexity_lambda = b.complexity_lambda;
+          report.counters = std::move(total.counters);
           if(report.complexity != oNone)
             complexity_reports->push_back(report);
         }
