@@ -2,6 +2,7 @@
 #define BENCHMARK_INTERNAL_MACROS_H_
 
 #include "benchmark/macros.h"
+#include <cassert>
 
 #ifndef __has_feature
 # define __has_feature(x) 0
@@ -13,6 +14,12 @@
 # define BENCHMARK_NORETURN __attribute__((noreturn))
 #else
 # define BENCHMARK_NORETURN
+#endif
+
+#if defined(__GNUC__)
+# define BENCHMARK_UNREACHABLE() __builtin_unreachable()
+#else
+# define BENCHMARK_UNREACHABLE() assert(false && "unreachable")
 #endif
 
 #if defined(__CYGWIN__)

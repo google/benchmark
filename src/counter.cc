@@ -28,12 +28,11 @@ double Counter::FormatValue(double cpu_time, double num_threads) const {
   case CT_ThreadAverage: return value / num_threads;
   case CT_ThreadAverageRate: return (value / cpu_time) / num_threads;
   default:
-    assert(false && "unreachable");
+    BENCHMARK_UNREACHABLE();
   }
 }
 
 std::string Counter::FormatType(TimeUnit cpu_time_unit) const {
-  std::string str;
   std::string const unit_str = GetTimeUnitString(cpu_time_unit);
   switch (type) {
   case CT_Default: return "";
@@ -41,7 +40,7 @@ std::string Counter::FormatType(TimeUnit cpu_time_unit) const {
   case CT_ThreadAverage: return "/thread";
   case CT_ThreadAverageRate: return "/" + unit_str + "/thread";
   default:
-    assert(false && "unreachable");
+    BENCHMARK_UNREACHABLE();
   }
 }
 
