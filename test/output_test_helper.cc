@@ -104,10 +104,16 @@ void TestCase::Check(
     std::stringstream& remaining_output,
     std::vector<TestCase> const& not_checks) const
 {
+    std::string first_line;
+    bool on_first = true;
     std::string line;
     while (remaining_output.eof() == false) {
         CHECK(remaining_output.good());
         std::getline(remaining_output, line);
+        if (on_first) {
+            first_line = line;
+            on_first = false;
+        }
         for (auto& NC : not_checks) {
             CHECK(!NC.regex->Match(line)) << "Unexpected match for line \""
                                           << line << "\" for MR_Not regex \""
@@ -121,7 +127,8 @@ void TestCase::Check(
     CHECK(remaining_output.eof() == false)
         << "End of output reached before match for regex \"" << regex_str
         << "\" was found"
-        << "\n    actual regex string \"" << substituted_regex << "\"";
+        << "\n    actual regex string \"" << substituted_regex << "\""
+        << "\n    started matching near: " << first_line;
 }
 
 
