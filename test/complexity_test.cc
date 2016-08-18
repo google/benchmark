@@ -1,10 +1,10 @@
-
 #undef NDEBUG
 #include "benchmark/benchmark.h"
 #include "output_test.h"
 #include <cassert>
 #include <vector>
 #include <algorithm>
+#include <cstdlib>
 #include <cmath>
 
 namespace {
@@ -86,7 +86,7 @@ std::vector<int> ConstructRandomVector(int size) {
   std::vector<int> v;
   v.reserve(size);
   for (int i = 0; i < size; ++i) {
-    v.push_back(rand() % size);
+    v.push_back(std::rand() % size);
   }
   return v;
 }
