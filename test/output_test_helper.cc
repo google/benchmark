@@ -20,8 +20,10 @@ TestCaseList& GetTestCaseList(TestCaseID ID) {
 }
 
 SubMap& GetSubstitutions() {
+    // Don't use 'dec_re' from header because it may not yet be initialized.
+    static std::string dec_re = "[0-9]*[.]?[0-9]+([eE][-+][0-9]+)?";
     static SubMap map = {
-        {"%float", dec_re},
+        {"%float", "[0-9]*[.]?[0-9]+([eE][-+][0-9]+)?"},
         {"%int", "[ ]*[0-9]+"},
         {" %s ", "[ ]+"},
         {"%time", "[ ]*[0-9]{1,5} ns"},
