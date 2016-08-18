@@ -72,8 +72,18 @@ endif()
 compile_benchmark_test(complexity_test)
 add_test(complexity_benchmark complexity_test --benchmark_min_time=0.01)
 
-compile_benchmark_test(counter_access_test)
-add_test(counter_access_test reporter_output_test --benchmark_min_time=0.01)
+if(UNIX)
+    find_path(PAPI_PREFIX NAMES include/papi.h)
+    find_path(PAPI_INCLUDE_DIRS NAMES papi.h HINTS ${PAPI_PREFIX}/include)
+    find_library(PAPI_LIBRARIES NAMES libpapi.a papi HINTS ${PAPI_PREFIX}/lib)
+    if(PAPI_INCLUDE_DIRS AND PAPI_LIBRARIES)
+        find_library(LIBPFM pfm) # needed in Ubuntu 16.04
+        include_directories(${PAPI_INCLUDE_DIRS})
+        compile_benchmark_test(papi_test)
+        add_test(papi_test papi_test --benchmark_min_time=0.01)
+        target_link_libraries(papi_test ${PAPI_LIBRARIES} ${LIBPFM})
+    endif()
+endif(UNIX)
 
 
 # Add the coverage command(s)

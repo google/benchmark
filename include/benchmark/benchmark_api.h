@@ -154,6 +154,8 @@ BENCHMARK(BM_test)->Unit(benchmark::kMillisecond);
 #include <stdint.h>
 
 #include <vector>
+#include <string>
+#include <map>
 
 #include "macros.h"
 
@@ -246,141 +248,37 @@ class Counter {
 public:
 
   typedef enum {
-    kDefaults       = 0x00,
-    /** Mark the counter as a rate. It will be presented divided by the duration of the benchmark. */
-    kIsRate         = 0x01 << 0,
-    /** Mark the counter as a thread-average quantity. It will be presented divided by the number of threads. */
-    kAvgThreads     = 0x01 << 1
+    kDefaults   = 0x00,
+    // Mark the counter as a rate. It will be presented divided by the duration of the benchmark.
+    kIsRate     = 0x01 << 0,
+    // Mark the counter as a thread-average quantity. It will be presented divided by the number of threads.
+    kAvgThreads = 0x01 << 1
   } Flags;
 
 public:
 
-  Counter();
-  Counter(const char *name);
-  Counter(const char *name, double v);
-  Counter(const char *name, double v, uint32_t flags);
-  ~Counter();
-  Counter(Counter const& that);
-  Counter& operator= (Counter const& that);
-#ifdef BENCHMARK_HAS_CXX11
-  Counter(Counter && that);
-  Counter& operator= (Counter && that);
-#endif
-
-  void Set(double v) { value_ = v; }
-
-  void Finish(double cpu_time, double num_threads);
-
-  const char* Name() const { return name_; }
-  double Value() const { return value_; }
-
-  bool SameName(const char *n) const;
-
-  Counter& operator = (double v) { value_  = v; return *this; }
-  Counter& operator+= (double v) { value_ += v; return *this; }
-  Counter& operator-= (double v) { value_ -= v; return *this; }
-  Counter& operator*= (double v) { value_ *= v; return *this; }
-  Counter& operator/= (double v) { value_ /= v; return *this; }
-
-private:
-
-  // using raw C strings here to avoid inclusion of std::string in the public api
-  char*    name_;     // this points to either name_buf_ or name_mem_
-  double   value_;
-  uint32_t flags_;
-
-  char name_buf_[16]; // names smaller than 15 characters are stored here
-  char* name_mem_;    // whereas longer strings are stored here
-  size_t mem_size_;   // current size of name_mem_
-
-  void SetName_(const char *name);
-};
-
-
-
-class BenchmarkCounters {
-public:
-
-  typedef Counter        value_type;
-  typedef Counter const* const_iterator;
+  double   value;
+  uint32_t flags;
 
 public:
 
-  BenchmarkCounters();
-  ~BenchmarkCounters();
-  BenchmarkCounters(BenchmarkCounters const& that);
-  BenchmarkCounters& operator= (BenchmarkCounters const& that);
-#ifdef BENCHMARK_HAS_CXX11
-  BenchmarkCounters(BenchmarkCounters && that);
-  BenchmarkCounters& operator= (BenchmarkCounters && that);
-#endif
+  BENCHMARK_ALWAYS_INLINE Counter(double v, uint32_t flags_) : value(v), flags(flags_) {}
+  BENCHMARK_ALWAYS_INLINE Counter(double v) : value(v), flags(kDefaults) {}
+  BENCHMARK_ALWAYS_INLINE Counter() : value(0.), flags(kDefaults) {}
 
-  // Get a counter by name. Complexity: O(nameLength*size())
-  Counter const& operator[] (const char *name) const;
-  // Get (or insert) a counter by name. Complexity: O(nameLength*size())
-  Counter & operator[] (const char *name);
-
-
-  // Get a counter by id. Complexity: O(1)
-  Counter & operator[] (size_t id);
-  // Get a counter by id. Complexity: O(1)
-  Counter const& operator[] (size_t id) const;
-
-
-  // Insert a counter. Return its id. Complexity: O(nameLength*size())
-  size_t Insert(const char* name);
-  // Insert or update a counter. Return its id. Complexity: O(nameLength*size())
-  size_t Insert(const char *name, double value);
-  // Insert or update a counter. Return its id. Complexity: O(nameLength*size())
-  size_t Insert(const char *name, double value, uint32_t flags);
-  // Insert or update a counter. Return its id. Complexity: O(nameLength*size())
-  size_t Insert(Counter const& c);
-#ifdef BENCHMARK_HAS_CXX11
-  // Insert or update a counter. Return its id. Complexity: O(nameLength*size())
-  size_t Insert(Counter     && c);
-  // Insert or update a counter. Return its id. Complexity: O(nameLength*size())
-  void   Insert(std::initializer_list< Counter > il);
-#endif
-
-
-  // Returns the index where name is located, or size() if the name was not found.
-  size_t Find(const char* name) const;
-
-  bool Exists(const char* name) const { return Find(name) < num_counters_; }
-
-  bool SameNames(BenchmarkCounters const& that) const;
-
-  void Sum(BenchmarkCounters const& that);
-  void Finish(double time, double num_threads);
-
-  size_t size() const { return num_counters_;  }
-
-  const_iterator begin() const { return counters_; }
-  const_iterator end () const { return counters_ + num_counters_; }
-
-private:
-
-  // using raw pointers here to avoid inclusion of std::vector in the public api
-  Counter * counters_;
-  size_t num_counters_;
-  size_t capacity_;
-
-  void Reserve_(size_t sz);
-  size_t Add_();
-
-public:
-
-  bool skipZeroCounters;
+  BENCHMARK_ALWAYS_INLINE operator double const& () const { return value; }
+  BENCHMARK_ALWAYS_INLINE operator double      & ()       { return value; }
 
 };
 
-#ifdef BENCHMARK_HAS_CXX11
-inline void BenchmarkCounters::Insert(std::initializer_list< Counter > il) {
-  for(Counter const& c : il) {
-    Insert(c);
-  }
-}
-#endif
+typedef std::map< std::string, Counter > BenchmarkCounters;
+
+// these counter-related functions are hidden to reduce API surface.
+namespace internal {
+void Finish(BenchmarkCounters *l, double time, double num_threads);
+void Increment(BenchmarkCounters *l, BenchmarkCounters const& r);
+bool SameNames(BenchmarkCounters const& l, BenchmarkCounters const& r, bool skipZeroCounters);
+} // end namespace internal
 
 
 // TimeUnit is passed to a benchmark in order to specify the order of magnitude
@@ -591,7 +489,11 @@ private:
 
 public:
 
+  // Container for user-defined counters.
   BenchmarkCounters counters;
+  // Whether zero valued counters should be printed in the results.
+  // Defaults to false.
+  bool skipZeroCounters;
 
 public:
   // FIXME: Make this private somehow.

@@ -218,9 +218,6 @@ void BM_non_template_args(benchmark::State& state, int, double) {
 }
 BENCHMARK_CAPTURE(BM_non_template_args, basic_test, 0, 0);
 
-#endif // BENCHMARK_HAS_CXX11
-
-
 static void BM_UserCounter(benchmark::State& state) {
   static const int depth = 1024;
   while (state.KeepRunning()) {
@@ -231,12 +228,15 @@ static void BM_UserCounter(benchmark::State& state) {
   state.counters["Baz"] = 3;
   state.counters["Bat"] = 5;
 #ifdef BENCHMARK_HAS_CXX11
-  state.counters.Insert({{"Foo", 2}, {"Bar", 3}, {"Baz", 5}, {"Bat", 6}});
+  state.counters.insert({{"Foo", 2}, {"Bar", 3}, {"Baz", 5}, {"Bat", 6}});
 #endif
 }
 BENCHMARK(BM_UserCounter)->Threads(8);
 BENCHMARK(BM_UserCounter)->ThreadRange(1, 32);
 BENCHMARK(BM_UserCounter)->ThreadPerCpu();
+
+#endif // BENCHMARK_HAS_CXX11
+
 
 BENCHMARK_MAIN()
 

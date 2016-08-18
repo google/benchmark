@@ -176,10 +176,10 @@ std::vector<BenchmarkReporter::Run> ComputeStats(
   // create stats for user counters
   std::map< std::string, Stat1_d > counter_stats;
   for(Run const& r : reports) {
-    for(Counter const& cnt : r.counters) {
-      auto it = counter_stats.find(cnt.Name());
+    for(auto const& cnt : r.counters) {
+      auto it = counter_stats.find(cnt.first);
       if(it == counter_stats.end()) {
-        counter_stats.insert({cnt.Name(), Stat1_d{}});
+        counter_stats.insert({cnt.first, Stat1_d{}});
       }
     }
   }
@@ -196,10 +196,10 @@ std::vector<BenchmarkReporter::Run> ComputeStats(
     items_per_second_stat += Stat1_d(run.items_per_second, run.iterations);
     bytes_per_second_stat += Stat1_d(run.bytes_per_second, run.iterations);
     // user counters
-    for(Counter const& cnt : run.counters) {
-      auto it = counter_stats.find(cnt.Name());
+    for(auto const& cnt : run.counters) {
+      auto it = counter_stats.find(cnt.first);
       CHECK_NE(it, counter_stats.end());
-      it->second += Stat1_d(cnt.Value(), run.iterations);
+      it->second += Stat1_d(cnt.second, run.iterations);
     }
   }
 
