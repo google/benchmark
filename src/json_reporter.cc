@@ -168,7 +168,6 @@ void JSONReporter::PrintRunData(Run const& run) {
         << FormatKV("items_per_second", RoundDouble(run.items_per_second));
   }
   for(auto &c : run.counters) {
-    if(run.ShouldSkip(c.second)) continue;
     out << ",\n" << indent
         << FormatKV(c.first, RoundDouble(c.second));
   }

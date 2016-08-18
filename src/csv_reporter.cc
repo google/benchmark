@@ -57,7 +57,6 @@ void CSVReporter::ReportRuns(const std::vector<Run> & reports) {
   std::set< std::string > user_counter_names;
   for (const auto& run : reports) {
     for (const auto& cnt : run.counters) {
-      if(run.ShouldSkip(cnt.second)) continue;
       user_counter_names.insert(cnt.first);
     }
   }
@@ -89,7 +88,6 @@ void CSVReporter::ReportRuns(const std::vector<Run> & reports) {
       auto it = run.counters.find(name);
       if(it == run.counters.end()) continue;
       auto const& c = it->second;
-      if(run.ShouldSkip(c)) continue;
       Out << "," << double(c);
     }
     Out << '\n';

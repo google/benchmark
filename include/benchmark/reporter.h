@@ -54,8 +54,7 @@ class BenchmarkReporter {
       complexity_n(0),
       report_big_o(false),
       report_rms(false),
-      counters(),
-      skipZeroCounters(false) {}
+      counters() {}
 
     std::string benchmark_name;
     std::string report_label;  // Empty if not set by benchmark.
@@ -96,10 +95,7 @@ class BenchmarkReporter {
     bool report_rms;
 
     BenchmarkCounters counters;
-    bool skipZeroCounters;
 
-    // Utility predicate for the reporters to find out whether they should skip the counter.
-    bool ShouldSkip(Counter const& c) const { return skipZeroCounters && size_t(c) == 0; }
   };
 
   // Construct a BenchmarkReporter with the output stream set to 'std::cout'

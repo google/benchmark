@@ -51,40 +51,14 @@ void Increment(BenchmarkCounters *l, BenchmarkCounters const& r) {
   }
 }
 
-bool SameNames(BenchmarkCounters const& l, BenchmarkCounters const& r, bool skipZeroCounters) {
+bool SameNames(BenchmarkCounters const& l, BenchmarkCounters const& r) {
   if (&l == &r) return true;
-  if ( ! skipZeroCounters) {
-    if (l.size() != r.size()) {
+  if (l.size() != r.size()) {
+    return false;
+  }
+  for (auto const& c : l) {
+    if ( r.find(c.first) == r.end()) {
       return false;
-    }
-    for (auto const& c : l) {
-      if ( r.find(c.first) == r.end()) {
-        return false;
-      }
-    }
-  } else {
-    for (auto const& c : l) {
-      auto j = r.find(c.first);
-      if(size_t(c.second) == 0) {
-        if(j != r.end() && size_t(j->second) != 0) {
-          return false;
-        }
-      } else {
-        if(j == r.end()) {
-          return false;
-        } else if(size_t(j->second) == 0) {
-          return false;
-        }
-      }
-    }
-    for (auto const& c : r) {
-      auto j = l.find(c.first);
-      if(j != l.end()) {
-        continue; // was checked in the prev loop
-      }
-      if(size_t(c.second) != 0) {
-        return false;
-      }
     }
   }
   return true;

@@ -277,7 +277,7 @@ typedef std::map< std::string, Counter > BenchmarkCounters;
 namespace internal {
 void Finish(BenchmarkCounters *l, double time, double num_threads);
 void Increment(BenchmarkCounters *l, BenchmarkCounters const& r);
-bool SameNames(BenchmarkCounters const& l, BenchmarkCounters const& r, bool skipZeroCounters);
+bool SameNames(BenchmarkCounters const& l, BenchmarkCounters const& r);
 } // end namespace internal
 
 
@@ -491,9 +491,6 @@ public:
 
   // Container for user-defined counters.
   BenchmarkCounters counters;
-  // Whether zero valued counters should be printed in the results.
-  // Defaults to false.
-  bool skipZeroCounters;
 
 public:
   // FIXME: Make this private somehow.
