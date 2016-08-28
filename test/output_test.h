@@ -64,7 +64,7 @@ void RunOutputTests(int argc, char* argv[]);
 
 namespace {
 
-std::string dec_re = "[0-9]*[.]?[0-9]+([eE][-+][0-9]+)?";
+const char* const dec_re = "[0-9]*[.]?[0-9]+([eE][-+][0-9]+)?";
 
 } //  end namespace
 

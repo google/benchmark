@@ -17,7 +17,7 @@ int AddComplexityTest(std::string big_o_test_name,
   SetSubstitutions({
         {"%bigo_name", big_o_test_name},
         {"%rms_name", rms_test_name},
-        {"%bigo_str", "[ ]*" + dec_re + " " + big_o},
+        {"%bigo_str", "[ ]*" + std::string(dec_re) + " " + big_o},
         {"%bigo", big_o},
         {"%rms", "[ ]*[0-9]+ %"}
   });
