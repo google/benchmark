@@ -53,9 +53,4 @@ void BM_CheckDefaultArgument(benchmark::State& state) {
 }
 BENCHMARK(BM_CheckDefaultArgument)->Ranges({{1, 5}, {6, 10}});
 
-void BM_CheckOverflow(benchmark::State& state) {
-  while (state.KeepRunning()) {}
-}
-int x = std::numeric_limits<int>::max();
-BENCHMARK(BM_CheckOverflow)->Ranges({{0, x}, {1, x}});
 BENCHMARK_MAIN()
