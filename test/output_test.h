@@ -26,6 +26,15 @@ enum MatchRules {
               // the regex
 };
 
+struct TestCase {
+  TestCase(std::string re, int rule = MR_Default);
+
+  std::string regex_str;
+  int match_rule;
+  std::string substituted_regex;
+  std::shared_ptr<benchmark::Regex> regex;
+};
+
 enum TestCaseID {
   TC_ConsoleOut,
   TC_ConsoleErr,
@@ -33,22 +42,9 @@ enum TestCaseID {
   TC_JSONErr,
   TC_CSVOut,
   TC_CSVErr,
-  TC_NumID
+
+  TC_NumID // PRIVATE
 };
-
-struct TestCase {
-  std::string regex_str;
-  int match_rule;
-
-  TestCase(std::string re, int rule = MR_Default);
-
-  void Check(std::stringstream& remaining_output,
-             std::vector<TestCase> const& not_cases) const;
-private:
-  std::string substituted_regex;
-  std::shared_ptr<benchmark::Regex> regex;
-};
-
 
 // Add a list of test cases to be run against the output specified by
 // 'ID'

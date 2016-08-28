@@ -1,4 +1,3 @@
-
 #include "output_test.h"
 #include "../src/check.h" // NOTE: check.h is for internal use only!
 #include "../src/re.h" // NOTE: re.h is for internal use only
@@ -7,9 +6,19 @@
 #include <iostream>
 #include <sstream>
 
+
+// ========================================================================= //
+// ------------------------------ Internals -------------------------------- //
+// ========================================================================= //
 namespace internal { namespace {
 
 using TestCaseList = std::vector<TestCase>;
+
+// Use a vector because the order elements are added matters during iteration.
+// std::map/unordered_map don't guarantee that.
+// For example:
+//  SetSubstitutions({{"%HelloWorld", "Hello"}, {"%Hello", "Hi"}});
+//     Substitute("%HelloWorld") // Always expands to Hello.
 using SubMap = std::vector<std::pair<std::string, std::string>>;
 
 TestCaseList& GetTestCaseList(TestCaseID ID) {
@@ -38,14 +47,46 @@ std::string PerformSubstitutions(std::string source) {
     using SizeT = std::string::size_type;
     for (auto const& KV : subs) {
         SizeT pos;
-        while ((pos = source.find(KV.first)) != std::string::npos)
+        SizeT next_start = 0;
+        while ((pos = source.find(KV.first, next_start)) != std::string::npos) {
+            next_start = pos + KV.second.size();
             source.replace(pos, KV.first.size(), KV.second);
+        }
     }
     return source;
 }
 
-void ProcessAndCheckCases(std::vector<TestCase> const& checks,
-                          std::stringstream& output) {
+void CheckCase(std::stringstream& remaining_output, TestCase const& TC,
+               TestCaseList const& not_checks)
+{
+    std::string first_line;
+    bool on_first = true;
+    std::string line;
+    while (remaining_output.eof() == false) {
+        CHECK(remaining_output.good());
+        std::getline(remaining_output, line);
+        if (on_first) {
+            first_line = line;
+            on_first = false;
+        }
+        for (auto& NC : not_checks) {
+            CHECK(!NC.regex->Match(line)) << "Unexpected match for line \""
+                                          << line << "\" for MR_Not regex \""
+                                          << NC.regex_str << "\"";
+        }
+        if (TC.regex->Match(line)) return;
+        CHECK(TC.match_rule != MR_Next) << "Expected line \"" << line
+                                     << "\" to match regex \"" << TC.regex_str << "\"";
+    }
+    CHECK(remaining_output.eof() == false)
+        << "End of output reached before match for regex \"" << TC.regex_str
+        << "\" was found"
+        << "\n    actual regex string \"" << TC.substituted_regex << "\""
+        << "\n    started matching near: " << first_line;
+}
+
+
+void CheckCases(TestCaseList const& checks, std::stringstream& output) {
     std::vector<TestCase> not_checks;
     for (size_t i=0; i < checks.size(); ++i) {
         const auto& TC = checks[i];
@@ -53,7 +94,7 @@ void ProcessAndCheckCases(std::vector<TestCase> const& checks,
             not_checks.push_back(TC);
             continue;
         }
-        TC.Check(output, not_checks);
+        CheckCase(output, TC, not_checks);
         not_checks.clear();
     }
 }
@@ -86,6 +127,9 @@ private:
 
 }} // end namespace internal
 
+// ========================================================================= //
+// -------------------------- Public API Definitions------------------------ //
+// ========================================================================= //
 
 TestCase::TestCase(std::string re, int rule)
     : regex_str(std::move(re)), match_rule(rule),
@@ -96,52 +140,18 @@ TestCase::TestCase(std::string re, int rule)
     regex->Init(substituted_regex, &err_str);
     CHECK(err_str.empty())
         << "Could not construct regex \"" << substituted_regex << "\""
-        << "\n    Originally \"" << regex_str << "\""
-        << "\n    got Error: " << err_str;
+        << "\n    originally \"" << regex_str << "\""
+        << "\n    got error: " << err_str;
 }
 
-void TestCase::Check(
-    std::stringstream& remaining_output,
-    std::vector<TestCase> const& not_checks) const
-{
-    std::string first_line;
-    bool on_first = true;
-    std::string line;
-    while (remaining_output.eof() == false) {
-        CHECK(remaining_output.good());
-        std::getline(remaining_output, line);
-        if (on_first) {
-            first_line = line;
-            on_first = false;
-        }
-        for (auto& NC : not_checks) {
-            CHECK(!NC.regex->Match(line)) << "Unexpected match for line \""
-                                          << line << "\" for MR_Not regex \""
-                                          << NC.regex_str << "\"";
-        }
-        if (regex->Match(line)) return;
-        CHECK(match_rule != MR_Next) << "Expected line \"" << line
-                                     << "\" to match regex \"" << regex_str << "\"";
-    }
-
-    CHECK(remaining_output.eof() == false)
-        << "End of output reached before match for regex \"" << regex_str
-        << "\" was found"
-        << "\n    actual regex string \"" << substituted_regex << "\""
-        << "\n    started matching near: " << first_line;
-}
-
-
-int AddCases(TestCaseID ID, std::initializer_list<TestCase> v) {
+int AddCases(TestCaseID ID, std::initializer_list<TestCase> il) {
     auto& L = internal::GetTestCaseList(ID);
-    for (auto const& TC : v)
-        L.push_back(TC);
+    L.insert(L.end(), il);
     return 0;
 }
 
 int SetSubstitutions(std::initializer_list<std::pair<std::string, std::string>> il) {
     auto& subs = internal::GetSubstitutions();
-    // Check and warn about duplicate keys
     for (auto const& KV : il) {
         bool exists = false;
         for (auto& EKV : subs) {
@@ -200,8 +210,8 @@ void RunOutputTests(int argc, char* argv[]) {
       std::cerr << rep_test.err_stream.str();
       std::cout << rep_test.out_stream.str();
 
-      internal::ProcessAndCheckCases(rep_test.error_cases,rep_test.err_stream);
-      internal::ProcessAndCheckCases(rep_test.output_cases, rep_test.out_stream);
+      internal::CheckCases(rep_test.error_cases,rep_test.err_stream);
+      internal::CheckCases(rep_test.output_cases, rep_test.out_stream);
 
       std::cout << "\n";
   }

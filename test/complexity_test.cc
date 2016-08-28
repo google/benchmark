@@ -23,7 +23,8 @@ int AddComplexityTest(std::string big_o_test_name,
   });
   AddCases(TC_ConsoleOut, {
     {"^%bigo_name %bigo_str %bigo_str[ ]*$"},
-    {"^%rms_name %rms %rms[ ]*$"}
+    {"^%bigo_name", MR_Not}, // Assert we we didn't only matched a name.
+    {"^%rms_name %rms %rms[ ]*$", MR_Next}
   });
   AddCases(TC_JSONOut, {
     {"\"name\": \"%bigo_name\",$"},
@@ -38,6 +39,7 @@ int AddComplexityTest(std::string big_o_test_name,
   });
   AddCases(TC_CSVOut, {
     {"^\"%bigo_name\",,%float,%float,%bigo,,,,,$"},
+    {"^\"%bigo_name\"", MR_Not},
     {"^\"%rms_name\",,%float,%float,,,,,,$", MR_Next}
   });
   return 0;
@@ -144,7 +146,6 @@ ADD_COMPLEXITY_CASES(big_o_n_lg_n_test_name, rms_o_n_lg_n_test_name, lambda_big_
 // ========================================================================= //
 // --------------------------- TEST CASES END ------------------------------ //
 // ========================================================================= //
-
 
 int main(int argc, char* argv[]) {
   RunOutputTests(argc, argv);

@@ -128,7 +128,6 @@ ADD_CASES(TC_CSVOut, {
     {"^\"BM_RepeatOnce/repeats:1\",%csv_report$"}
 });
 
-// 19690
 
 // Test that non-aggregate data is not reported
 void BM_SummaryRepeat(benchmark::State& state) { while (state.KeepRunning()) {} }
