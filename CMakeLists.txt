@@ -12,6 +12,7 @@ endforeach()
 
 option(BENCHMARK_ENABLE_TESTING "Enable testing of the benchmark library." ON)
 option(BENCHMARK_ENABLE_LTO "Enable link time optimisation of the benchmark library." OFF)
+option(BENCHMARK_USE_LIBCXX "Build and test using libc++ as the standard library." OFF)
 # Make sure we can import out CMake functions
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 
@@ -78,7 +79,6 @@ else()
   add_cxx_compiler_flag(-pedantic-errors)
   add_cxx_compiler_flag(-Wshorten-64-to-32)
   add_cxx_compiler_flag(-Wfloat-equal)
-  add_cxx_compiler_flag(-Wzero-as-null-pointer-constant)
   add_cxx_compiler_flag(-fstrict-aliasing)
   if (HAVE_CXX_FLAG_FSTRICT_ALIASING)
     add_cxx_compiler_flag(-Wstrict-aliasing)
@@ -125,6 +125,20 @@ else()
     FORCE)
   add_cxx_compiler_flag(--coverage COVERAGE)
 endif()
+
+if (BENCHMARK_USE_LIBCXX)
+  if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
+    add_cxx_compiler_flag(-stdlib=libc++)
+  elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU" OR
+          "${CMAKE_CXX_COMPILER_ID}" STREQUAL "Intel")
+    add_cxx_compiler_flag(-nostdinc++)
+    message("libc++ header path must be manually specified using CMAKE_CXX_FLAGS")
+    list(APPEND BENCHMARK_CXX_LINKER_FLAGS -nodefaultlibs)
+    list(APPEND BENCHMARK_CXX_LIBRARIES c++)
+  else()
+    message(FATAL "-DBENCHMARK_USE_LIBCXX:BOOL=ON is not supported for compiler")
+  endif()
+endif(BENCHMARK_USE_LIBCXX)
 
 # C++ feature checks
 cxx_feature_check(STD_REGEX)
