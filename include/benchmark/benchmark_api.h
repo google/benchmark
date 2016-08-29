@@ -214,6 +214,10 @@ void UseCharPointer(char const volatile*);
 // registered benchmark.
 Benchmark* RegisterBenchmarkInternal(Benchmark*);
 
+// Ensure that the standard streams are properly initialized in every TU.
+int InitializeStreams();
+BENCHMARK_UNUSED static int stream_init_anchor = InitializeStreams();
+
 } // end namespace internal
 
 

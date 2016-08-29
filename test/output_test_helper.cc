@@ -70,13 +70,17 @@ void CheckCase(std::stringstream& remaining_output, TestCase const& TC,
             on_first = false;
         }
         for (auto& NC : not_checks) {
-            CHECK(!NC.regex->Match(line)) << "Unexpected match for line \""
-                                          << line << "\" for MR_Not regex \""
-                                          << NC.regex_str << "\"";
+            CHECK(!NC.regex->Match(line))
+                << "Unexpected match for line \"" << line
+                << "\" for MR_Not regex \"" << NC.regex_str << "\""
+                << "\n    actual regex string \"" << TC.substituted_regex << "\""
+                << "\n    started matching near: " << first_line;
         }
         if (TC.regex->Match(line)) return;
-        CHECK(TC.match_rule != MR_Next) << "Expected line \"" << line
-                                     << "\" to match regex \"" << TC.regex_str << "\"";
+        CHECK(TC.match_rule != MR_Next)
+            << "Expected line \"" << line << "\" to match regex \"" << TC.regex_str << "\""
+            << "\n    actual regex string \"" << TC.substituted_regex << "\""
+            << "\n    started matching near: " << first_line;
     }
     CHECK(remaining_output.eof() == false)
         << "End of output reached before match for regex \"" << TC.regex_str

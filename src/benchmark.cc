@@ -570,7 +570,7 @@ void BenchmarkImp::Ranges(const std::vector<std::pair<int, int>>& ranges) {
     total *= arglists[i].size();
   }
 
-  std::vector<std::size_t> ctr(total, 0);
+  std::vector<std::size_t> ctr(arglists.size(), 0);
 
   for (std::size_t i = 0; i < total; i++) {
     std::vector<int> tmp;
@@ -1219,6 +1219,11 @@ Benchmark* RegisterBenchmarkInternal(Benchmark* bench) {
     BenchmarkFamilies* families = BenchmarkFamilies::GetInstance();
     families->AddBenchmark(std::move(bench_ptr));
     return bench;
+}
+
+int InitializeStreams() {
+    static std::ios_base::Init init;
+    return 0;
 }
 
 } // end namespace internal

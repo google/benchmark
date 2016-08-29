@@ -43,4 +43,10 @@ BENCHMARK_DEFINE_F(MultipleRangesFixture, Empty)(benchmark::State& state) {
 
 BENCHMARK_REGISTER_F(MultipleRangesFixture, Empty)->RangeMultiplier(2)->Ranges({{1, 2}, {3, 7}, {5, 15}})->Args({7, 6, 3});
 
+static void BM_MultipleRanges(benchmark::State& st) {
+    while (st.KeepRunning()) {}
+}
+BENCHMARK(BM_MultipleRanges)->Ranges({{5, 5}, {6, 6}});
+
+
 BENCHMARK_MAIN()
