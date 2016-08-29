@@ -564,7 +564,7 @@ void BenchmarkImp::Args(const std::vector<int>& args)
 
 void BenchmarkImp::Ranges(const std::vector<std::pair<int, int>>& ranges) {
   std::vector<std::vector<int>> arglists(ranges.size());
-  size_t total = 1;
+  std::size_t total = 1;
   for (std::size_t i = 0; i < ranges.size(); i++) {
     AddRange(&arglists[i], ranges[i].first, ranges[i].second, range_multiplier_);
     total *= arglists[i].size();
@@ -574,6 +574,7 @@ void BenchmarkImp::Ranges(const std::vector<std::pair<int, int>>& ranges) {
 
   for (std::size_t i = 0; i < total; i++) {
     std::vector<int> tmp;
+    tmp.reserve(arglists.size());
 
     for (std::size_t j = 0; j < arglists.size(); j++) {
       tmp.push_back(arglists[j].at(ctr[j]));
