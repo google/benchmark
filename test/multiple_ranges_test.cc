@@ -2,7 +2,6 @@
 
 #include <set>
 #include <cassert>
-#include <limits>
 
 class MultipleRangesFixture : public ::benchmark::Fixture {
  public:
