@@ -115,6 +115,9 @@ bool IsZero(double n) {
 
 // For non-dense Range, intermediate values are powers of kRangeMultiplier.
 static const int kRangeMultiplier = 8;
+// The size of a benchmark family determines is the number of inputs to repeat
+// the benchmark on. If this is "large" then warn the user during configuration.
+static const size_t kMaxFamilySize = 100;
 static const size_t kMaxIterations = 1000000000;
 
 bool running_benchmark = false;
@@ -353,7 +356,8 @@ class BenchmarkFamilies {
   // Extract the list of benchmark instances that match the specified
   // regular expression.
   bool FindBenchmarks(const std::string& re,
-                      std::vector<Benchmark::Instance>* benchmarks);
+                      std::vector<Benchmark::Instance>* benchmarks,
+                      std::ostream* Err);
  private:
   BenchmarkFamilies() {}
 
@@ -424,18 +428,20 @@ size_t BenchmarkFamilies::AddBenchmark(std::unique_ptr<Benchmark> family) {
 
 bool BenchmarkFamilies::FindBenchmarks(
     const std::string& spec,
-    std::vector<Benchmark::Instance>* benchmarks) {
+    std::vector<Benchmark::Instance>* benchmarks,
+    std::ostream* ErrStream) {
+  CHECK(ErrStream);
+  auto& Err = *ErrStream;
   // Make regular expression out of command-line flag
   std::string error_msg;
   Regex re;
   if (!re.Init(spec, &error_msg)) {
-    std::cerr << "Could not compile benchmark re: " << error_msg << std::endl;
+    Err << "Could not compile benchmark re: " << error_msg << std::endl;
     return false;
   }
 
   // Special list of thread counts to use when none are specified
-  std::vector<int> one_thread;
-  one_thread.push_back(1);
+  const std::vector<int> one_thread = {1};
 
   MutexLock l(mutex_);
   for (std::unique_ptr<Benchmark>& bench_family : families_) {
@@ -446,12 +452,23 @@ bool BenchmarkFamilies::FindBenchmarks(
     if (family->ArgsCnt() == -1) {
       family->Args({});
     }
-
-    for (auto const& args : family->args_) {
-      const std::vector<int>* thread_counts =
+    const std::vector<int>* thread_counts =
         (family->thread_counts_.empty()
          ? &one_thread
-         : &family->thread_counts_);
+         : &static_cast<const std::vector<int>&>(family->thread_counts_));
+    const size_t family_size = family->args_.size() * thread_counts->size();
+    // The benchmark will be run at least 'family_size' different inputs.
+    // If 'family_size' is very large warn the user.
+    if (family_size > kMaxFamilySize) {
+      Err <<  "The number of inputs is very large. " << family->name_
+          << " will be repeated at least " << family_size << " times.\n";
+    }
+    // reserve in the special case the regex ".", since we know the final
+    // family size.
+    if (spec == ".")
+      benchmarks->reserve(family_size);
+
+    for (auto const& args : family->args_) {
       for (int num_threads : *thread_counts) {
 
         Benchmark::Instance instance;
@@ -493,8 +510,8 @@ bool BenchmarkFamilies::FindBenchmarks(
         }
 
         if (re.Match(instance.name)) {
-          instance.last_benchmark_instance = (args == family->args_.back());
-          benchmarks->push_back(instance);
+          instance.last_benchmark_instance = (&args == &family->args_.back());
+          benchmarks->push_back(std::move(instance));
         }
       }
     }
@@ -560,7 +577,7 @@ void BenchmarkImp::Ranges(const std::vector<std::pair<int, int>>& ranges) {
     tmp.reserve(arglists.size());
 
     for (std::size_t j = 0; j < arglists.size(); j++) {
-      tmp.push_back(arglists[j][ctr[j]]);
+      tmp.push_back(arglists[j].at(ctr[j]));
     }
 
     args_.push_back(std::move(tmp));
@@ -1093,47 +1110,52 @@ size_t RunSpecifiedBenchmarks(BenchmarkReporter* console_reporter,
   if (spec.empty() || spec == "all")
     spec = ".";  // Regexp that matches all benchmarks
 
+  // Setup the reporters
+  std::ofstream output_file;
+  std::unique_ptr<BenchmarkReporter> default_console_reporter;
+  std::unique_ptr<BenchmarkReporter> default_file_reporter;
+  if (!console_reporter) {
+    auto output_opts = FLAGS_color_print ? ConsoleReporter::OO_Color
+                                          : ConsoleReporter::OO_None;
+    default_console_reporter = internal::CreateReporter(
+          FLAGS_benchmark_format, output_opts);
+    console_reporter = default_console_reporter.get();
+  }
+  auto& Out = console_reporter->GetOutputStream();
+  auto& Err = console_reporter->GetErrorStream();
+
+  std::string const& fname = FLAGS_benchmark_out;
+  if (fname == "" && file_reporter) {
+    Err << "A custom file reporter was provided but "
+                   "--benchmark_out=<file> was not specified." << std::endl;
+    std::exit(1);
+  }
+  if (fname != "") {
+    output_file.open(fname);
+    if (!output_file.is_open()) {
+      Err << "invalid file name: '" << fname << std::endl;
+      std::exit(1);
+    }
+    if (!file_reporter) {
+      default_file_reporter = internal::CreateReporter(
+            FLAGS_benchmark_out_format, ConsoleReporter::OO_None);
+      file_reporter = default_file_reporter.get();
+    }
+    file_reporter->SetOutputStream(&output_file);
+    file_reporter->SetErrorStream(&output_file);
+  }
+
   std::vector<internal::Benchmark::Instance> benchmarks;
   auto families = internal::BenchmarkFamilies::GetInstance();
-  if (!families->FindBenchmarks(spec, &benchmarks)) return 0;
+  if (!families->FindBenchmarks(spec, &benchmarks, &Err)) return 0;
 
   if (FLAGS_benchmark_list_tests) {
     for (auto const& benchmark : benchmarks)
-      std::cout <<  benchmark.name << "\n";
+      Out <<  benchmark.name << "\n";
   } else {
-    // Setup the reporters
-    std::ofstream output_file;
-    std::unique_ptr<BenchmarkReporter> default_console_reporter;
-    std::unique_ptr<BenchmarkReporter> default_file_reporter;
-    if (!console_reporter) {
-      auto output_opts = FLAGS_color_print ? ConsoleReporter::OO_Color
-                                           : ConsoleReporter::OO_None;
-      default_console_reporter = internal::CreateReporter(
-          FLAGS_benchmark_format, output_opts);
-      console_reporter = default_console_reporter.get();
-    }
-    std::string const& fname = FLAGS_benchmark_out;
-    if (fname == "" && file_reporter) {
-      std::cerr << "A custom file reporter was provided but "
-                   "--benchmark_out=<file> was not specified." << std::endl;
-      std::exit(1);
-    }
-    if (fname != "") {
-      output_file.open(fname);
-      if (!output_file.is_open()) {
-        std::cerr << "invalid file name: '" << fname << std::endl;
-        std::exit(1);
-      }
-      if (!file_reporter) {
-        default_file_reporter = internal::CreateReporter(
-            FLAGS_benchmark_out_format, ConsoleReporter::OO_None);
-        file_reporter = default_file_reporter.get();
-      }
-      file_reporter->SetOutputStream(&output_file);
-      file_reporter->SetErrorStream(&output_file);
-    }
     internal::RunMatchingBenchmarks(benchmarks, console_reporter, file_reporter);
   }
+
   return benchmarks.size();
 }
 
