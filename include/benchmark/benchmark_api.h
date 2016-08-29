@@ -216,7 +216,7 @@ Benchmark* RegisterBenchmarkInternal(Benchmark*);
 
 // Ensure that the standard streams are properly initialized in every TU.
 int InitializeStreams();
-static int stream_init_anchor = InitializeStreams();
+BENCHMARK_UNUSED static int stream_init_anchor = InitializeStreams();
 
 } // end namespace internal
 

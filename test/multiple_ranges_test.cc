@@ -53,4 +53,10 @@ void BM_CheckDefaultArgument(benchmark::State& state) {
 }
 BENCHMARK(BM_CheckDefaultArgument)->Ranges({{1, 5}, {6, 10}});
 
+static void BM_MultipleRanges(benchmark::State& st) {
+    while (st.KeepRunning()) {}
+}
+BENCHMARK(BM_MultipleRanges)->Ranges({{5, 5}, {6, 6}});
+
+
 BENCHMARK_MAIN()
