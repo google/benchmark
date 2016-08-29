@@ -133,7 +133,11 @@ if (BENCHMARK_USE_LIBCXX)
           "${CMAKE_CXX_COMPILER_ID}" STREQUAL "Intel")
     add_cxx_compiler_flag(-nostdinc++)
     message("libc++ header path must be manually specified using CMAKE_CXX_FLAGS")
+    # Adding -nodefaultlibs directly to CMAKE_<TYPE>_LINKER_FLAGS will break
+    # configuration checks such as 'find_package(Threads)'
     list(APPEND BENCHMARK_CXX_LINKER_FLAGS -nodefaultlibs)
+    # -lc++ cannot be added directly to CMAKE_<TYPE>_LINKER_FLAGS because
+    # linker flags appear before all linker inputs and -lc++ must appear after.
     list(APPEND BENCHMARK_CXX_LIBRARIES c++)
   else()
     message(FATAL "-DBENCHMARK_USE_LIBCXX:BOOL=ON is not supported for compiler")

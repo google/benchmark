@@ -2,6 +2,8 @@
 
 find_package(Threads REQUIRED)
 
+# NOTE: These flags must be added after find_package(Threads REQUIRED) otherwise
+# they will break the configuration check.
 if (DEFINED BENCHMARK_CXX_LINKER_FLAGS)
   list(APPEND CMAKE_EXE_LINKER_FLAGS ${BENCHMARK_CXX_LINKER_FLAGS})
 endif()
