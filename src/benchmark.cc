@@ -457,8 +457,8 @@ bool BenchmarkFamilies::FindBenchmarks(
          ? &one_thread
          : &static_cast<const std::vector<int>&>(family->thread_counts_));
     const size_t family_size = family->args_.size() * thread_counts->size();
-    // The benchmark will be run at least 'total' different inputs. If 'total'
-    // is very large warn the user.
+    // The benchmark will be run at least 'family_size' different inputs.
+    // If 'family_size' is very large warn the user.
     if (family_size > kMaxFamilySize) {
       Err <<  "The number of inputs is very large. " << family->name_
           << " will be repeated at least " << family_size << " times.\n";
