@@ -553,7 +553,7 @@ void BenchmarkImp::Ranges(const std::vector<std::pair<int, int>>& ranges) {
     total *= arglists[i].size();
   }
 
-  std::vector<std::size_t> ctr(total, 0);
+  std::vector<std::size_t> ctr(arglists.size(), 0);
 
   for (int i = 0; i < total; i++) {
     std::vector<int> tmp;
