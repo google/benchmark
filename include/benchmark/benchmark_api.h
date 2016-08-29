@@ -595,7 +595,13 @@ public:
   //    Foo in 4 threads
   //    Foo in 8 threads
   //    Foo in 16 threads
-  Benchmark* ThreadRange(int min_threads, int max_threads);
+  Benchmark *ThreadRange(int min_threads, int max_threads);
+
+  // For each value n in the range, run this benchmark once using n threads.
+  // min_threads and max_threads are always included in the range.
+  // stride specifies the increment. E.g. DenseThreadRange(1, 8, 3) starts
+  // a benchmark with 1, 4, 7 and 8 threads.
+  Benchmark *DenseThreadRange(int min_threads, int max_threads, int stride = 1);
 
   // Equivalent to ThreadRange(NumCPUs(), NumCPUs())
   Benchmark* ThreadPerCpu();

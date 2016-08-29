@@ -293,6 +293,7 @@ public:
   void ComplexityLambda(BigOFunc* complexity);
   void Threads(int t);
   void ThreadRange(int min_threads, int max_threads);
+  void DenseThreadRange(int min_threads, int max_threads, int stride);
   void ThreadPerCpu();
   void SetName(const char* name);
 
@@ -548,6 +549,18 @@ void BenchmarkImp::ThreadRange(int min_threads, int max_threads) {
   AddRange(&thread_counts_, min_threads, max_threads, 2);
 }
 
+void BenchmarkImp::DenseThreadRange(int min_threads, int max_threads,
+                                    int stride) {
+  CHECK_GT(min_threads, 0);
+  CHECK_GE(max_threads, min_threads);
+  CHECK_GE(stride, 1);
+
+  for (auto i = min_threads; i < max_threads; i += stride) {
+    thread_counts_.push_back(i);
+  }
+  thread_counts_.push_back(max_threads);
+}
+
 void BenchmarkImp::ThreadPerCpu() {
   static int num_cpus = NumCPUs();
   thread_counts_.push_back(num_cpus);
@@ -579,6 +592,7 @@ void BenchmarkImp::AddRange(std::vector<int>* dst, int lo, int hi, int mult) {
     dst->push_back(hi);
   }
 }
+
 
 Benchmark::Benchmark(const char* name)
     : imp_(new BenchmarkImp(name))
@@ -684,6 +698,12 @@ Benchmark* Benchmark::Threads(int t) {
 
 Benchmark* Benchmark::ThreadRange(int min_threads, int max_threads) {
   imp_->ThreadRange(min_threads, max_threads);
+  return this;
+}
+
+Benchmark *Benchmark::DenseThreadRange(int min_threads, int max_threads,
+                                       int stride) {
+  imp_->DenseThreadRange(min_threads, max_threads, stride);
   return this;
 }
 
