@@ -2,6 +2,12 @@
 
 find_package(Threads REQUIRED)
 
+# NOTE: These flags must be added after find_package(Threads REQUIRED) otherwise
+# they will break the configuration check.
+if (DEFINED BENCHMARK_CXX_LINKER_FLAGS)
+  list(APPEND CMAKE_EXE_LINKER_FLAGS ${BENCHMARK_CXX_LINKER_FLAGS})
+endif()
+
 add_library(output_test_helper STATIC output_test_helper.cc)
 
 macro(compile_benchmark_test name)
@@ -12,7 +18,8 @@ endmacro(compile_benchmark_test)
 
 macro(compile_output_test name)
   add_executable(${name} "${name}.cc")
-  target_link_libraries(${name} output_test_helper benchmark ${CMAKE_THREAD_LIBS_INIT})
+  target_link_libraries(${name} output_test_helper benchmark
+          ${BENCHMARK_CXX_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
 endmacro(compile_output_test)
 
 
