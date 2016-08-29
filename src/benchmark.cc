@@ -1199,6 +1199,11 @@ Benchmark* RegisterBenchmarkInternal(Benchmark* bench) {
     return bench;
 }
 
+int InitializeStreams() {
+    static std::ios_base::Init init;
+    return 0;
+}
+
 } // end namespace internal
 
 void Initialize(int* argc, char** argv) {
