@@ -9,6 +9,8 @@ Discussion group: https://groups.google.com/d/forum/benchmark-discuss
 
 IRC channel: https://freenode.net #googlebenchmark
 
+[Known issues for common problems](#known-issues)
+
 ## Example usage
 ### Basic usage
 Define a function that executes the code to be measured.
@@ -567,3 +569,10 @@ Anything older *may* work.
 
 Note: Using the library and its headers in C++03 is supported. C++11 is only
 required to build the library.
+
+# Known Issues
+
+### Windows
+
+* Users must manually link `shlwapi.lib`. Failure to do so may result
+in resolved symbols.
