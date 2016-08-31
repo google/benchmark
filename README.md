@@ -9,6 +9,8 @@ Discussion group: https://groups.google.com/d/forum/benchmark-discuss
 
 IRC channel: https://freenode.net #googlebenchmark
 
+[Known issues for common problems](#known-issues)
+
 ## Example usage
 ### Basic usage
 Define a function that executes the code to be measured.
@@ -391,6 +393,13 @@ The number of runs of each benchmark is specified globally by the
 `Repetitions` on the registered benchmark object. When a benchmark is run
 more than once the mean and standard deviation of the runs will be reported.
 
+Additionally the `--benchmark_report_aggregates_only={true|false}` flag or
+`ReportAggregatesOnly(bool)` function can be used to change how repeated tests
+are reported. By default the result of each repeated run is reported. When this
+option is 'true' only the mean and standard deviation of the runs is reported.
+Calling `ReportAggregatesOnly(bool)` on a registered benchmark object overrides
+the value of the flag for that benchmark.
+
 ## Fixtures
 Fixture tests are created by
 first defining a type that derives from ::benchmark::Fixture and then
@@ -598,6 +607,29 @@ cmake -DCMAKE_BUILD_TYPE=Release -DBENCHMARK_ENABLE_LTO=true
 ```
 
 ## Linking against the library
-When using gcc, it is necessary to link against pthread to avoid runtime
-exceptions. This is due to how gcc implements std::thread.
+When using gcc, it is necessary to link against pthread to avoid runtime exceptions.
+This is due to how gcc implements std::thread.
 See [issue #67](https://github.com/google/benchmark/issues/67) for more details.
+
+## Compiler Support
+
+Google Benchmark uses C++11 when building the library. As such we require
+a modern C++ toolchain, both compiler and standard library.
+
+The following minimum versions are strongly recommended build the library:
+
+* GCC 4.8
+* Clang 3.4
+* Visual Studio 2013
+
+Anything older *may* work.
+
+Note: Using the library and its headers in C++03 is supported. C++11 is only
+required to build the library.
+
+# Known Issues
+
+### Windows
+
+* Users must manually link `shlwapi.lib`. Failure to do so may result
+in resolved symbols.

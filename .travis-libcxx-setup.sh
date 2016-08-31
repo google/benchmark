@@ -18,5 +18,5 @@ cmake -DCMAKE_C_COMPILER=${C_COMPILER} -DCMAKE_CXX_COMPILER=${COMPILER} \
       -DLLVM_USE_SANITIZER=${LIBCXX_SANITIZER} \
       ../llvm-source
 make cxx -j2
-sudo make install-libcxxabi install-libcxx
+sudo make install-cxxabi install-cxx
 cd ../
