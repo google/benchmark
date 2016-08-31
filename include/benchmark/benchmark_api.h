@@ -713,8 +713,8 @@ public:
     virtual void SetUp(const State&) {}
     virtual void TearDown(const State&) {}
     // ... In favor of these.
-    virtual void SetUp(State& st) { SetUp(static_cast<const State&>(st)); }
-    virtual void TearDown(State& st) { TearDown(static_cast<const State&>(st)); }
+    virtual void SetUp(State& st) { SetUp(const_cast<const State&>(st)); }
+    virtual void TearDown(State& st) { TearDown(const_cast<const State&>(st)); }
 
 protected:
     virtual void BenchmarkCase(State&) = 0;
