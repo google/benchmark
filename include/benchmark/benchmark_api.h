@@ -244,41 +244,37 @@ inline BENCHMARK_ALWAYS_INLINE void DoNotOptimize(Tp const& value) {
 
 
 
+// This class is used for user-defined counters.
 class Counter {
 public:
 
   typedef enum {
-    kDefaults   = 0x00,
-    // Mark the counter as a rate. It will be presented divided by the duration of the benchmark.
-    kIsRate     = 0x01 << 0,
-    // Mark the counter as a thread-average quantity. It will be presented divided by the number of threads.
-    kAvgThreads = 0x01 << 1
+    kDefaults   = 0,
+    // Mark the counter as a rate. It will be presented divided
+    // by the duration of the benchmark.
+    kIsRate     = 1,
+    // Mark the counter as a thread-average quantity. It will be
+    // presented divided by the number of threads.
+    kAvgThreads = 2,
+    kAvgThreadsRate = kIsRate|kAvgThreads
   } Flags;
 
 public:
 
-  double   value;
-  uint32_t flags;
+  double value;
+  Flags  flags;
 
 public:
 
-  BENCHMARK_ALWAYS_INLINE Counter(double v, uint32_t flags_) : value(v), flags(flags_) {}
-  BENCHMARK_ALWAYS_INLINE Counter(double v) : value(v), flags(kDefaults) {}
-  BENCHMARK_ALWAYS_INLINE Counter() : value(0.), flags(kDefaults) {}
+  BENCHMARK_ALWAYS_INLINE Counter(double v = 0., Flags f = kDefaults) : value(v), flags(f) {}
 
   BENCHMARK_ALWAYS_INLINE operator double const& () const { return value; }
   BENCHMARK_ALWAYS_INLINE operator double      & ()       { return value; }
 
 };
 
+// This is the container for the user-defined counters.
 typedef std::map< std::string, Counter > BenchmarkCounters;
-
-// these counter-related functions are hidden to reduce API surface.
-namespace internal {
-void Finish(BenchmarkCounters *l, double time, double num_threads);
-void Increment(BenchmarkCounters *l, BenchmarkCounters const& r);
-bool SameNames(BenchmarkCounters const& l, BenchmarkCounters const& r);
-} // end namespace internal
 
 
 // TimeUnit is passed to a benchmark in order to specify the order of magnitude
@@ -721,12 +717,8 @@ public:
       this->TearDown(st);
     }
 
-    // These will be deprecated ...
     virtual void SetUp(const State&) {}
     virtual void TearDown(const State&) {}
-    // ... In favor of these.
-    virtual void SetUp(State& st) { SetUp(static_cast<State const&>(st)); }
-    virtual void TearDown(State& st) { TearDown(static_cast<State const&>(st)); }
 
 protected:
     virtual void BenchmarkCase(State&) = 0;

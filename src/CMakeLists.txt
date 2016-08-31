@@ -12,7 +12,7 @@ set(SOURCE_FILES "benchmark.cc" "colorprint.cc" "commandlineflags.cc"
 set(_d "${PROJECT_SOURCE_DIR}/include/benchmark")
 list(APPEND SOURCE_FILES "${_d}/benchmark.h" "${_d}/benchmark_api.h"
             "${_d}/macros.h" "${_d}/reporter.h" "arraysize.h" "check.h"
-            "colorprint.h" "commandlineflags.h" "cycleclock.h" "internal_macros.h"
+            "colorprint.h" "commandlineflags.h" "complexity.h" "counter.h" "cycleclock.h" "internal_macros.h"
             "log.h" "mutex.h" "re.h" "sleep.h" "stat.h" "string_util.h" "sysinfo.h"
             "walltime.h")
 unset(_d)

@@ -14,6 +14,7 @@
 
 #include "benchmark/reporter.h"
 #include "complexity.h"
+#include "counter.h"
 
 #include <algorithm>
 #include <cstdint>

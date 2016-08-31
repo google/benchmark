@@ -439,62 +439,32 @@ static void UserCountersExample1(benchmark::State& state) {
 }
 ```
 
-The `state.counters` object is a map-like container of `Counter` objects.
-Its `operator[](const char* name)` returns the counter with the given name or,
-if none is present, inserts and then returns a new `Counter` with that name.
-The `Counter` class has assignment (`=`) and compound assignment overloads
-(`+=`, `-=`, `*=`, `/=`) receiving a `double` as argument.
+The `state.counters` object is a `std::map` with `std::string` keys
+and `Counter` values. The latter is a `double`-like class, via an implicit
+conversion to `double&`. Thus you can use all of the standard arithmetic
+assignment operators (`=,+=,-=,*=,/=`) to change the value of each counter.
 
-`state.counters` also offers an `Insert()` method. This method can be used both
-to insert a new counter or update an existing counter:
-
-```c++
-  state.counters.Insert("name"); // inserts a new counter, with value of 0
-  double someValue;
-  state.counters.Insert("name", someValue); // inserts a new counter or updates an existing counter
-```
-
-An additional overload to `state.counters.Insert()` allows you to mark
-counters as rates and/or as per-thread averages:
+The `Counter` constructor accepts two parameters: the value as a `double`
+and a bit flag which allows you to mark counters as rates and/or as per-thread averages:
 
 ```c++
+  // sets a simple counter
+  state.counters["simple"] = 35;
+
   // Set the counter as a rate. It will be presented divided
   // by the duration of the benchmark.
-  state.counters.Insert("FooRate", numFoos, benchmark::Counter::kIsRate);
+  state.counters["FooRate"] = Counter(numFoos, benchmark::Counter::kIsRate);
 
   // Set the counter as a thread-average quantity. It will
   // be presented divided by the number of threads. */
-  state.counters.Insert("FooAvg", numFoos, benchmark::Counter::kAvgThreads);
+  state.counters["FooAvg"] = Counter(numFoos, benchmark::Counter::kAvgThreads);
 
-  // the third argument is a bitwise mask, so you can combine.
-  // This will mark as a thread-average rate:
-  state.counters.Insert("FooAvgRate", numFoos, benchmark::Counter::kIsRate|benchmark::Counter::kAvgThreads);
-```
-
-A further use of `state.counters.Insert()` is to minimize lookup time.
-This may be needed as calling `state.counters[someName]` is of complexity
-`O(someNameLength*numCounters)` and in some cases may be too heavy to call
-inside the `while(state.KeepRunning())` loop. In such cases, using the
-counter id is the solution. This id is the value returned by
-`state.counters.Insert()`, and is of type `size_t`. You can then use this
-handle to get the counter with the method `state.counters[id]`, which has
-complexity `O(1)` and just indexes into a simple array to return the wanted
-counter. This is possible because internally the counters are stored in an
-array and new counters are pushed back to the end of the array. For example:
-
-```c++
-static void BM_UserCountersFastLookupExample(benchmark::State& state) {
-  // insert Foo counter and store its handle
-  size_t idFoo = state.counters.Insert("Foo");
-  while (state.KeepRunning()) {
-    state.counters["Foo"] += numFoos; // SLOW. Does a string lookup, O(number of counters * name length)
-    state.counters[idFoo] += numFoos; // fast. No lookup, O(1)
-  }
-}
+  // There's also a combined flag:
+  state.counters["FooAvgRate"] = Counter(numFoos,benchmark::Counter::kAvgThreadsRate);
 ```
 
 If you are compiling in C++11 mode or later, then an overload with
-`std::initializer_list` will be enabled::
+`std::initializer_list` will be enabled:
 
 ```c++
   // With C++11, this can be done:

@@ -6,14 +6,14 @@
 
 class MyFixture : public ::benchmark::Fixture {
  public:
-  void SetUp(::benchmark::State& state) {
+  void SetUp(const ::benchmark::State& state) {
     if (state.thread_index == 0) {
       assert(data.get() == nullptr);
       data.reset(new int(42));
     }
   }
 
-  void TearDown(::benchmark::State& state) {
+  void TearDown(const ::benchmark::State& state) {
     if (state.thread_index == 0) {
       assert(data.get() != nullptr);
       data.reset();

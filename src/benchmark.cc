@@ -35,6 +35,7 @@
 #include "check.h"
 #include "commandlineflags.h"
 #include "complexity.h"
+#include "counter.h"
 #include "log.h"
 #include "mutex.h"
 #include "re.h"
@@ -135,12 +136,11 @@ static std::atomic<error_message_type> error_message = ATOMIC_VAR_INIT(nullptr);
 
 struct ThreadStats {
     ThreadStats() : bytes_processed(0), items_processed(0), complexity_n(0),
-        counters(), skipZeroCounters(false) {}
+        counters() {}
     int64_t bytes_processed;
     int64_t items_processed;
     int  complexity_n;
     BenchmarkCounters counters;
-    bool skipZeroCounters;
 };
 
 // Timer management class
