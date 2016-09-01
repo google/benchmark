@@ -17,7 +17,7 @@ endmacro(compile_benchmark_test)
 
 
 macro(compile_output_test name)
-  add_executable(${name} "${name}.cc")
+  add_executable(${name} "${name}.cc" output_test.h)
   target_link_libraries(${name} output_test_helper benchmark
           ${BENCHMARK_CXX_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
 endmacro(compile_output_test)
