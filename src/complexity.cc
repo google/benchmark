@@ -174,12 +174,18 @@ std::vector<BenchmarkReporter::Run> ComputeStats(
   // can take this information from the first benchmark.
   int64_t const run_iterations = reports.front().iterations;
   // create stats for user counters
-  std::map< std::string, Stat1_d > counter_stats;
+  struct CounterStat {
+    Counter c;
+    Stat1_d s;
+  };
+  std::map< std::string, CounterStat > counter_stats;
   for(Run const& r : reports) {
     for(auto const& cnt : r.counters) {
       auto it = counter_stats.find(cnt.first);
       if(it == counter_stats.end()) {
-        counter_stats.insert({cnt.first, Stat1_d{}});
+        counter_stats.insert({cnt.first, {cnt.second, Stat1_d{}}});
+      } else {
+        CHECK_EQ(counter_stats[cnt.first].c.flags, cnt.second.flags);
       }
     }
   }
@@ -199,7 +205,7 @@ std::vector<BenchmarkReporter::Run> ComputeStats(
     for(auto const& cnt : run.counters) {
       auto it = counter_stats.find(cnt.first);
       CHECK_NE(it, counter_stats.end());
-      it->second += Stat1_d(cnt.second, run.iterations);
+      it->second.s += Stat1_d(cnt.second, run.iterations);
     }
   }
 
@@ -215,7 +221,8 @@ std::vector<BenchmarkReporter::Run> ComputeStats(
   mean_data.items_per_second = items_per_second_stat.Mean();
   // user counters
   for(auto const& kv : counter_stats) {
-    mean_data.counters[kv.first.c_str()] = kv.second.Mean(); /**@todo add the rest of the settings (fmt,flags)*/
+    auto c = Counter(kv.second.s.Mean(), counter_stats[kv.first].c.flags);
+    mean_data.counters[kv.first] = c;
   }
 
   // Only add label to mean/stddev if it is same for all runs
@@ -237,7 +244,8 @@ std::vector<BenchmarkReporter::Run> ComputeStats(
   stddev_data.items_per_second = items_per_second_stat.StdDev();
   // user counters
   for(auto const& kv : counter_stats) {
-    stddev_data.counters[kv.first.c_str()] = kv.second.StdDev(); /**@todo add the rest of the settings (fmt,flags)*/
+    auto c = Counter(kv.second.s.StdDev(), counter_stats[kv.first].c.flags);
+    stddev_data.counters[kv.first] = c;
   }
 
   results.push_back(mean_data);
