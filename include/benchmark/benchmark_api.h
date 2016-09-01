@@ -252,7 +252,7 @@ inline BENCHMARK_ALWAYS_INLINE void DoNotOptimize(Tp const& value) {
 class Counter {
 public:
 
-  typedef enum {
+  enum Flags {
     kDefaults   = 0,
     // Mark the counter as a rate. It will be presented divided
     // by the duration of the benchmark.
@@ -261,16 +261,13 @@ public:
     // presented divided by the number of threads.
     kAvgThreads = 2,
     kAvgThreadsRate = kIsRate|kAvgThreads
-  } Flags;
-
-public:
+  };
 
   double value;
   Flags  flags;
 
-public:
-
-  BENCHMARK_ALWAYS_INLINE Counter(double v = 0., Flags f = kDefaults) : value(v), flags(f) {}
+  BENCHMARK_ALWAYS_INLINE
+  Counter(double v = 0., Flags f = kDefaults) : value(v), flags(f) {}
 
   BENCHMARK_ALWAYS_INLINE operator double const& () const { return value; }
   BENCHMARK_ALWAYS_INLINE operator double      & ()       { return value; }

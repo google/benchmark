@@ -112,8 +112,7 @@ void ConsoleReporter::PrintRunData(const Run& result) {
   // Format items per second
   std::string items;
   if (result.items_per_second > 0) {
-    items =
-        StrCat(" ", HumanReadableNumber(result.items_per_second), " items/s");
+    items = StrCat(" ", HumanReadableNumber(result.items_per_second), " items/s");
   }
 
   const double real_time = result.GetAdjustedRealTime();

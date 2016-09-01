@@ -52,7 +52,6 @@ bool CSVReporter::ReportContext(const Context& context) {
 }
 
 void CSVReporter::ReportRuns(const std::vector<Run> & reports) {
-
   // find the names of all the user counters
   std::set< std::string > user_counter_names;
   for (const auto& run : reports) {
