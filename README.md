@@ -458,7 +458,7 @@ and a bit flag which allows you to mark counters as rates and/or as per-thread a
 
 ```c++
   // sets a simple counter
-  state.counters["simple"] = 35;
+  state.counters["Foo"] = numFoos;
 
   // Set the counter as a rate. It will be presented divided
   // by the duration of the benchmark.
@@ -472,18 +472,17 @@ and a bit flag which allows you to mark counters as rates and/or as per-thread a
   state.counters["FooAvgRate"] = Counter(numFoos,benchmark::Counter::kAvgThreadsRate);
 ```
 
-If you are compiling in C++11 mode or later, then an overload with
-`std::initializer_list` will be enabled:
+When you're compiling in C++11 mode or later you can use the `insert()` and `emplace()`
+overloads for `std::initializer_list`:
 
 ```c++
   // With C++11, this can be done:
-  state.counters.Insert({{"Foo", numFoos}, {"Bar", numBars}, {"Baz", numBazs}});
+  state.counters.insert({{"Foo", numFoos}, {"Bar", numBars}, {"Baz", numBazs}});
   // ... instead of:
   state.counters["Foo"] = numFoos;
   state.counters["Bar"] = numBars;
   state.counters["Baz"] = numBazs;
 ```
-
 
 ## Exiting Benchmarks in Error
 
