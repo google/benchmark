@@ -42,10 +42,9 @@ bool ConsoleReporter::ReportContext(const Context& context) {
 
 #ifdef BENCHMARK_OS_WINDOWS
   if (color_output_ && &std::cout != &GetOutputStream()) {
-    GetErrorStream()
-        << "Color printing is only supported for stdout on windows."
-           " Disabling color printing\n";
-    color_output_ = false;
+      GetErrorStream() << "Color printing is only supported for stdout on windows."
+                          " Disabling color printing\n";
+      color_output_ = false;
   }
 #endif
 
@@ -53,9 +52,9 @@ bool ConsoleReporter::ReportContext(const Context& context) {
 }
 
 void ConsoleReporter::PrintHeader(const Run& run) {
-  std::string str =
-      FormatString("%-*s %13s %13s %10s", static_cast<int>(name_field_width_),
-                   "Benchmark", "Time", "CPU", "Iterations");
+  std::string str = FormatString("%-*s %13s %13s %10s",
+                                 static_cast<int>(name_field_width_),
+                                 "Benchmark", "Time", "CPU", "Iterations");
   for (auto const& c : run.counters) {
     str += FormatString(" %13s", c.first.c_str());
   }
@@ -79,23 +78,23 @@ void ConsoleReporter::ReportRuns(const std::vector<Run>& reports) {
   }
 }
 
-static void IgnoreColorPrint(std::ostream& out, LogColor, const char* fmt,
-                             ...) {
-  va_list args;
-  va_start(args, fmt);
-  out << FormatString(fmt, args);
-  va_end(args);
+static void IgnoreColorPrint(std::ostream& out, LogColor,
+                             const char* fmt, ...) {
+    va_list args;
+    va_start(args, fmt);
+    out << FormatString(fmt, args);
+    va_end(args);
 }
 
 void ConsoleReporter::PrintRunData(const Run& result) {
   typedef void(PrinterFn)(std::ostream&, LogColor, const char*, ...);
   auto& Out = GetOutputStream();
-  PrinterFn* printer =
-      color_output_ ? (PrinterFn*)ColorPrintf : IgnoreColorPrint;
+  PrinterFn* printer = color_output_ ? (PrinterFn*)ColorPrintf
+                                     : IgnoreColorPrint;
   auto name_color =
       (result.report_big_o || result.report_rms) ? COLOR_BLUE : COLOR_GREEN;
   printer(Out, name_color, "%-*s ", name_field_width_,
-          result.benchmark_name.c_str());
+               result.benchmark_name.c_str());
 
   if (result.error_occurred) {
     printer(Out, COLOR_RED, "ERROR OCCURRED: \'%s\'",
