@@ -260,6 +260,7 @@ public:
     // Mark the counter as a thread-average quantity. It will be
     // presented divided by the number of threads.
     kAvgThreads = 2,
+    // Mark the counter as a thread-average rate. See above.
     kAvgThreadsRate = kIsRate|kAvgThreads
   };
 
