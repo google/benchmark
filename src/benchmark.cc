@@ -35,6 +35,7 @@
 #include "check.h"
 #include "commandlineflags.h"
 #include "complexity.h"
+#include "cpu_thread_time.h"
 #include "log.h"
 #include "mutex.h"
 #include "re.h"
@@ -141,127 +142,100 @@ static std::atomic<error_message_type> error_message = ATOMIC_VAR_INIT(nullptr);
 // TODO(ericwf): support MallocCounter.
 //static benchmark::MallocCounter *benchmark_mc;
 
-struct ThreadStats {
-    ThreadStats() : bytes_processed(0), items_processed(0), complexity_n(0) {}
-    int64_t bytes_processed;
-    int64_t items_processed;
-    int  complexity_n;
+} // end namespace
+
+namespace internal {
+
+
+class ThreadManager {
+public:
+    ThreadManager(int num_threads)
+        : alive_threads_(num_threads),
+          start_stop_barrier_(num_threads) {
+    }
+
+    bool startStopBarrier() EXCLUDES(mutex_) {
+      return start_stop_barrier_.wait();
+    }
+
+    void notifyThreadComplete() EXCLUDES(mutex_) {
+      start_stop_barrier_.removeThread();
+      if (--alive_threads_ == 0) {
+        end_condition_.notify_all();
+      }
+    }
+
+    void waitForAllThreads() EXCLUDES(mutex_) {
+      MutexLock lock(mutex_);
+      end_condition_.wait(lock.native_handle(),
+                          [this]() { return alive_threads_ == 0; });
+    }
+
+public:
+    double real_time_used = 0;
+    double cpu_time_used = 0;
+    double manual_time_used = 0;
+    int64_t bytes_processed = 0;
+    int64_t items_processed = 0;
+    int  complexity_n = 0;
+
+private:
+    Mutex mutex_;
+    std::atomic<int> alive_threads_;
+    Barrier start_stop_barrier_;
+    Condition end_condition_;
 };
 
 // Timer management class
-class TimerManager {
+class ThreadTimer {
  public:
-  TimerManager(int num_threads, Notification* done)
-      : num_threads_(num_threads),
-        running_threads_(num_threads),
-        done_(done),
-        running_(false),
+  ThreadTimer()
+      : running_(false),
         real_time_used_(0),
         cpu_time_used_(0),
-        manual_time_used_(0),
-        num_finalized_(0),
-        phase_number_(0),
-        entered_(0)
+        manual_time_used_(0)
   {
   }
 
   // Called by each thread
-  void StartTimer() EXCLUDES(lock_) {
-    bool last_thread = false;
-    {
-      MutexLock ml(lock_);
-      last_thread = Barrier(ml);
-      if (last_thread) {
-        CHECK(!running_) << "Called StartTimer when timer is already running";
-        running_ = true;
-        start_real_time_ = walltime::Now();
-        start_cpu_time_ = MyCPUUsage() + ChildrenCPUUsage();
-       }
-     }
-     if (last_thread) {
-       phase_condition_.notify_all();
-     }
+  void StartTimer() {
+    running_ = true;
+    start_real_time_ = walltime::Now();
+    start_cpu_time_ = ThreadCPUUsage();
   }
 
   // Called by each thread
-  void StopTimer() EXCLUDES(lock_) {
-    bool last_thread = false;
-    {
-      MutexLock ml(lock_);
-      last_thread = Barrier(ml);
-      if (last_thread) {
-        CHECK(running_) << "Called StopTimer when timer is already stopped";
-        InternalStop();
-      }
-    }
-    if (last_thread) {
-      phase_condition_.notify_all();
-    }
+  void StopTimer() {
+    CHECK(running_);
+    running_ = false;
+    real_time_used_ += walltime::Now() - start_real_time_;
+    cpu_time_used_ += ThreadCPUUsage() - start_cpu_time_;
   }
 
   // Called by each thread
-  void SetIterationTime(double seconds) EXCLUDES(lock_) {
-    bool last_thread = false;
-    {
-      MutexLock ml(lock_);
-      last_thread = Barrier(ml);
-      if (last_thread) {
-        manual_time_used_ += seconds;
-      }
-    }
-    if (last_thread) {
-      phase_condition_.notify_all();
-    }
-  }
-
-  // Called by each thread
-  void Finalize() EXCLUDES(lock_) {
-    MutexLock l(lock_);
-    num_finalized_++;
-    if (num_finalized_ == num_threads_) {
-      CHECK(!running_) <<
-        "The timer should be stopped before the timer is finalized";
-      done_->Notify();
-    }
-  }
-
-  void RemoveErroredThread() EXCLUDES(lock_) {
-    MutexLock ml(lock_);
-    int last_thread = --running_threads_ == 0;
-    if (last_thread && running_)
-      InternalStop();
-    else if (!last_thread)
-      phase_condition_.notify_all();
+  void SetIterationTime(double seconds) {
+    manual_time_used_ += seconds;
   }
 
   // REQUIRES: timer is not running
-  double real_time_used() EXCLUDES(lock_) {
-    MutexLock l(lock_);
+  double real_time_used() {
     CHECK(!running_);
     return real_time_used_;
   }
 
   // REQUIRES: timer is not running
-  double cpu_time_used() EXCLUDES(lock_) {
-    MutexLock l(lock_);
+  double cpu_time_used() {
     CHECK(!running_);
     return cpu_time_used_;
   }
 
   // REQUIRES: timer is not running
-  double manual_time_used() EXCLUDES(lock_) {
-    MutexLock l(lock_);
+  double manual_time_used() {
     CHECK(!running_);
     return manual_time_used_;
   }
 
  private:
-  Mutex lock_;
-  Condition phase_condition_;
-  int num_threads_;
-  int running_threads_;
-  Notification* done_;
-
   bool running_;                // Is the timer running
   double start_real_time_;      // If running_
   double start_cpu_time_;       // If running_
@@ -272,52 +246,8 @@ class TimerManager {
   // Manually set iteration time. User sets this with SetIterationTime(seconds).
   double manual_time_used_;
 
-  // How many threads have called Finalize()
-  int num_finalized_;
-
-  // State for barrier management
-  int phase_number_;
-  int entered_;         // Number of threads that have entered this barrier
-
-  void InternalStop() REQUIRES(lock_) {
-    CHECK(running_);
-    running_ = false;
-    real_time_used_ += walltime::Now() - start_real_time_;
-    cpu_time_used_ += ((MyCPUUsage() + ChildrenCPUUsage())
-                       - start_cpu_time_);
-  }
-
-  // Enter the barrier and wait until all other threads have also
-  // entered the barrier.  Returns iff this is the last thread to
-  // enter the barrier.
-  bool Barrier(MutexLock& ml) REQUIRES(lock_) {
-    CHECK_LT(entered_, running_threads_);
-    entered_++;
-    if (entered_ < running_threads_) {
-      // Wait for all threads to enter
-      int phase_number_cp = phase_number_;
-      auto cb = [this, phase_number_cp]() {
-        return this->phase_number_ > phase_number_cp ||
-               entered_ == running_threads_; // A thread has aborted in error
-      };
-      phase_condition_.wait(ml.native_handle(), cb);
-      if (phase_number_ > phase_number_cp)
-        return false;
-      // else (running_threads_ == entered_) and we are the last thread.
-    }
-    // Last thread has reached the barrier
-    phase_number_++;
-    entered_ = 0;
-    return true;
-  }
 };
 
-// TimerManager for current run.
-static std::unique_ptr<TimerManager> timer_manager = nullptr;
-
-} // end namespace
-
-namespace internal {
 
 enum ReportMode : unsigned {
     RM_Unspecified, // The mode has not been manually specified
@@ -802,19 +732,25 @@ namespace {
 // Adds the stats collected for the thread into *total.
 void RunInThread(const benchmark::internal::Benchmark::Instance* b,
                  size_t iters, int thread_id,
-                 ThreadStats* total) EXCLUDES(GetBenchmarkLock()) {
-  State st(iters, b->arg, thread_id, b->threads);
+                 internal::ThreadManager* manager) EXCLUDES(GetBenchmarkLock()) {
+  internal::ThreadTimer timer;
+  State st(iters, b->arg, thread_id, b->threads, &timer, manager);
   b->benchmark->Run(st);
+  manager->notifyThreadComplete();
+
   CHECK(st.iterations() == st.max_iterations) <<
     "Benchmark returned before State::KeepRunning() returned false!";
   {
     MutexLock l(GetBenchmarkLock());
-    total->bytes_processed += st.bytes_processed();
-    total->items_processed += st.items_processed();
-    total->complexity_n += st.complexity_length_n();
+    manager->cpu_time_used += timer.cpu_time_used();
+    // Take the largest value
+    manager->real_time_used = std::max(manager->real_time_used, timer.real_time_used());
+    manager->manual_time_used = std::max(manager->manual_time_used, timer.manual_time_used());
+    manager->bytes_processed += st.bytes_processed();
+    manager->items_processed += st.items_processed();
+    manager->complexity_n += st.complexity_length_n();
   }
 
-  timer_manager->Finalize();
 }
 
 std::vector<BenchmarkReporter::Run>
@@ -826,9 +762,10 @@ RunBenchmark(const benchmark::internal::Benchmark::Instance& b,
   size_t iters = 1;
 
   std::vector<std::thread> pool;
-  if (b.multithreaded)
-    pool.resize(b.threads);
-
+  if (b.multithreaded) {
+    CHECK(b.threads > 1);
+    pool.resize(b.threads - 1);
+  }
   const int repeats = b.repetitions != 0 ? b.repetitions
                                          : FLAGS_benchmark_repetitions;
   const bool report_aggregates_only = repeats != 1 &&
@@ -847,10 +784,7 @@ RunBenchmark(const benchmark::internal::Benchmark::Instance& b,
       }
       error_message = nullptr;
 
-      Notification done;
-      timer_manager = std::unique_ptr<TimerManager>(new TimerManager(b.threads, &done));
-
-      ThreadStats total;
+      internal::ThreadManager manager(b.multithreaded ? b.threads : 1);
       running_benchmark = true;
       if (b.multithreaded) {
         // If this is out first iteration of the while(true) loop then the
@@ -861,19 +795,17 @@ RunBenchmark(const benchmark::internal::Benchmark::Instance& b,
             thread.join();
         }
         for (std::size_t ti = 0; ti < pool.size(); ++ti) {
-            pool[ti] = std::thread(&RunInThread, &b, iters, static_cast<int>(ti), &total);
+            pool[ti] = std::thread(&RunInThread, &b, iters,
+                                   static_cast<int>(ti + 1), &manager);
         }
-      } else {
-        // Run directly in this thread
-        RunInThread(&b, iters, 0, &total);
       }
-      done.WaitForNotification();
+      RunInThread(&b, iters, 0, &manager);
+      manager.waitForAllThreads();
       running_benchmark = false;
 
-      const double cpu_accumulated_time = timer_manager->cpu_time_used();
-      const double real_accumulated_time = timer_manager->real_time_used();
-      const double manual_accumulated_time = timer_manager->manual_time_used();
-      timer_manager.reset();
+      const double cpu_accumulated_time = manager.cpu_time_used;
+      const double real_accumulated_time = manager.real_time_used;
+      const double manual_accumulated_time = manager.manual_time_used;
 
       VLOG(2) << "Ran in " << cpu_accumulated_time << "/"
               << real_accumulated_time << "\n";
@@ -915,12 +847,12 @@ RunBenchmark(const benchmark::internal::Benchmark::Instance& b,
 
         if (!report.error_occurred) {
           double bytes_per_second = 0;
-          if (total.bytes_processed > 0 && seconds > 0.0) {
-            bytes_per_second = (total.bytes_processed / seconds);
+          if (manager.bytes_processed > 0 && seconds > 0.0) {
+            bytes_per_second = (manager.bytes_processed / seconds);
           }
           double items_per_second = 0;
-          if (total.items_processed > 0 && seconds > 0.0) {
-            items_per_second = (total.items_processed / seconds);
+          if (manager.items_processed > 0 && seconds > 0.0) {
+            items_per_second = (manager.items_processed / seconds);
           }
 
           if (b.use_manual_time) {
@@ -931,7 +863,7 @@ RunBenchmark(const benchmark::internal::Benchmark::Instance& b,
           report.cpu_accumulated_time = cpu_accumulated_time;
           report.bytes_per_second = bytes_per_second;
           report.items_per_second = items_per_second;
-          report.complexity_n = total.complexity_n;
+          report.complexity_n = manager.complexity_n;
           report.complexity = b.complexity;
           report.complexity_lambda = b.complexity_lambda;
           if(report.complexity != oNone)
@@ -982,7 +914,9 @@ RunBenchmark(const benchmark::internal::Benchmark::Instance& b,
 }  // namespace
 
 State::State(size_t max_iters, const std::vector<int>& ranges,
-             int thread_i, int n_threads)
+             int thread_i, int n_threads,
+             internal::ThreadTimer* timer,
+             internal::ThreadManager* manager)
     : started_(false), finished_(false), total_iterations_(0),
       range_(ranges),
       bytes_processed_(0), items_processed_(0),
@@ -990,7 +924,9 @@ State::State(size_t max_iters, const std::vector<int>& ranges,
       error_occurred_(false),
       thread_index(thread_i),
       threads(n_threads),
-      max_iterations(max_iters)
+      max_iterations(max_iters),
+      timer_(timer),
+      manager_(manager)
 {
     CHECK(max_iterations != 0) << "At least one iteration must be run";
     CHECK_LT(thread_index, threads) << "thread_index must be less than threads";
@@ -1000,13 +936,13 @@ void State::PauseTiming() {
   // Add in time accumulated so far
   CHECK(running_benchmark);
   CHECK(started_ && !finished_ && !error_occurred_);
-  timer_manager->StopTimer();
+  timer_->StopTimer();
 }
 
 void State::ResumeTiming() {
   CHECK(running_benchmark);
   CHECK(started_ && !finished_ && !error_occurred_);
-  timer_manager->StartTimer();
+  timer_->StartTimer();
 }
 
 void State::SkipWithError(const char* msg) {
@@ -1015,21 +951,38 @@ void State::SkipWithError(const char* msg) {
   error_message_type expected_no_error_msg = nullptr;
   error_message.compare_exchange_weak(expected_no_error_msg,
     const_cast<error_message_type>(msg));
-  started_ = finished_ = true;
   total_iterations_ = max_iterations;
-  timer_manager->RemoveErroredThread();
 }
 
 void State::SetIterationTime(double seconds)
 {
   CHECK(running_benchmark);
-  timer_manager->SetIterationTime(seconds);
+  timer_->SetIterationTime(seconds);
 }
 
 void State::SetLabel(const char* label) {
   CHECK(running_benchmark);
   MutexLock l(GetBenchmarkLock());
   *GetReportLabel() = label;
+}
+
+void State::StartKeepRunning() {
+  CHECK(!started_ && !finished_);
+  started_ = true;
+  manager_->startStopBarrier();
+  if (!error_occurred_)
+    ResumeTiming();
+}
+
+void State::FinishKeepRunning() {
+  CHECK(started_ && (!finished_ || error_occurred_));
+  if (!error_occurred_) {
+    PauseTiming();
+  }
+  // Total iterations now is one greater than max iterations. Fix this.
+  total_iterations_ = max_iterations;
+  finished_ = true;
+  manager_->startStopBarrier();
 }
 
 namespace internal {
@@ -1234,7 +1187,7 @@ void Initialize(int* argc, char** argv) {
   internal::SetLogLevel(FLAGS_v);
   // TODO remove this. It prints some output the first time it is called.
   // We don't want to have this ouput printed during benchmarking.
-  MyCPUUsage();
+  ProcessCPUUsage();
   // The first call to walltime::Now initialized it. Call it once to
   // prevent the initialization from happening in a benchmark.
   walltime::Now();

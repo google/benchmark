@@ -1,0 +1,201 @@
+// Copyright 2015 Google Inc. All rights reserved.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+#include "cpu_thread_time.h"
+#include "internal_macros.h"
+
+#ifdef BENCHMARK_OS_WINDOWS
+#include <Shlwapi.h>
+#include <Windows.h>
+#include <VersionHelpers.h>
+#else
+#include <fcntl.h>
+#include <sys/resource.h>
+#include <sys/types.h> // this header must be included before 'sys/sysctl.h' to avoid compilation error on FreeBSD
+#include <sys/time.h>
+#include <unistd.h>
+#if defined BENCHMARK_OS_FREEBSD || defined BENCHMARK_OS_MACOSX
+#include <sys/sysctl.h>
+#endif
+#if defined(BENCHMARK_OS_MACOSX)
+#include <mach/mach_init.h>
+#include <mach/thread_act.h>
+#include <mach/mach_port.h>
+#endif
+#endif
+
+#include <cerrno>
+#include <cstdio>
+#include <cstdint>
+#include <cstdlib>
+#include <cstring>
+#include <iostream>
+#include <limits>
+#include <mutex>
+
+#include "check.h"
+#include "log.h"
+#include "sleep.h"
+#include "string_util.h"
+
+namespace benchmark {
+namespace {
+std::mutex cputimens_mutex;
+
+#if defined(BENCHMARK_OS_WINDOWS)
+double MakeTime(FILETIME const& kernel_time, FILETIME const& user_time) {
+  ULARGE_INTEGER kernel;
+  ULARGE_INTEGER user;
+  kernel.HighPart = kernel_time.dwHighDateTime;
+  kernel.LowPart = kernel_time.dwLowDateTime;
+  user.HighPart = user_time.dwHighDateTime;
+  user.LowPart = user_time.dwLowDateTime;
+  return (static_cast<double>(kernel.QuadPart) +
+          static_cast<double>(user.QuadPart)) * 1e-7;
+}
+#else
+double MakeTime(struct timespec const& ts) {
+  return ts.tv_sec + (static_cast<double>(ts.tv_nsec) * 1e-9);
+}
+double MakeTime(struct rusage ru) {
+  return (static_cast<double>(ru.ru_utime.tv_sec) +
+            static_cast<double>(ru.ru_utime.tv_usec) * 1e-6 +
+            static_cast<double>(ru.ru_stime.tv_sec) +
+            static_cast<double>(ru.ru_stime.tv_usec) * 1e-6);
+}
+#endif
+#if defined(BENCHMARK_OS_MACOSX)
+double MakeTime(thread_basic_info_data_t const& info) {
+  return (static_cast<double>(info.user_time.seconds) +
+            static_cast<double>(info.user_time.microseconds) * 1e-6 +
+            static_cast<double>(info.system_time.seconds) +
+            static_cast<double>(info.user_time.microseconds) * 1e-6);
+}
+#endif
+
+}  // end namespace
+
+// getrusage() based implementation of MyCPUUsage
+static double ProcessCPURUsage() {
+#if defined(_POSIX_CPUTIME)
+  struct timespec spec;
+  if (clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &spec) == 0) {
+    return MakeTime(spec);
+  }
+  return 0.0;
+#elif !defined(BENCHMARK_OS_WINDOWS)
+  struct rusage ru;
+  if (getrusage(RUSAGE_SELF, &ru) == 0) {
+    return MakeTime(ru);
+  }
+  return 0.0;
+#else
+  HANDLE proc = GetCurrentProcess();
+  FILETIME creation_time;
+  FILETIME exit_time;
+  FILETIME kernel_time;
+  FILETIME user_time;
+  GetProcessTimes(proc, &creation_time, &exit_time, &kernel_time, &user_time);
+  return MakeTime(kernel_time, user_time);
+#endif  // OS_WINDOWS
+}
+
+#ifndef BENCHMARK_OS_WINDOWS
+static bool MyCPUUsageCPUTimeNsLocked(double* cputime) {
+  static int cputime_fd = -1;
+  if (cputime_fd == -1) {
+    cputime_fd = open("/proc/self/cputime_ns", O_RDONLY);
+    if (cputime_fd < 0) {
+      cputime_fd = -1;
+      return false;
+    }
+  }
+  char buff[64];
+  memset(buff, 0, sizeof(buff));
+  if (pread(cputime_fd, buff, sizeof(buff) - 1, 0) <= 0) {
+    close(cputime_fd);
+    cputime_fd = -1;
+    return false;
+  }
+  unsigned long long result = strtoull(buff, nullptr, 0);
+  if (result == (std::numeric_limits<unsigned long long>::max)()) {
+    close(cputime_fd);
+    cputime_fd = -1;
+    return false;
+  }
+  *cputime = static_cast<double>(result) / 1e9;
+  return true;
+}
+
+#endif  // OS_WINDOWS
+
+
+double ThreadCPUUsage() {
+#if defined(_POSIX_THREAD_CPUTIME)
+  struct timespec ts;
+  if (clock_gettime(CLOCK_THREAD_CPUTIME_ID, &ts) != 0) {
+    std::cerr << "Failed to get thread CPU time using clock_gettime" << std::endl;
+    std::exit(EXIT_FAILURE);
+  }
+  return ts.tv_sec + (static_cast<double>(ts.tv_nsec) * 1e-9);
+#elif defined(BENCHMARK_OS_WINDOWS)
+  HANDLE this_thread = GetCurrentThread();
+  FILETIME creation_time;
+  FILETIME exit_time;
+  FILETIME kernel_time;
+  FILETIME user_time;
+  GetProcessTimes(this_thread, &creation_time, &exit_time, &kernel_time, &user_time);
+  return MakeTime(kernel_time, user_time);
+#elif defined(BENCHMARK_OS_MACOSX)
+  mach_msg_type_number_t count = THREAD_BASIC_INFO_COUNT;
+  thread_basic_info_data_t info;
+#else
+#error Per-thread timing is not available on your system.
+#endif
+}
+
+double ProcessCPUUsage() {
+#ifndef BENCHMARK_OS_WINDOWS
+  {
+    std::lock_guard<std::mutex> l(cputimens_mutex);
+    static bool use_cputime_ns = true;
+    if (use_cputime_ns) {
+      double value;
+      if (MyCPUUsageCPUTimeNsLocked(&value)) {
+        return value;
+      }
+      // Once MyCPUUsageCPUTimeNsLocked fails once fall back to getrusage().
+      VLOG(1) << "Reading /proc/self/cputime_ns failed. Using getrusage().\n";
+      use_cputime_ns = false;
+    }
+  }
+#endif  // OS_WINDOWS
+  return ProcessCPURUsage();
+}
+
+double ChildrenCPUUsage() {
+#ifndef BENCHMARK_OS_WINDOWS
+  struct rusage ru;
+  if (getrusage(RUSAGE_CHILDREN, &ru) == 0) {
+    return MakeTime(ru);
+  } else {
+    return 0.0;
+  }
+#else
+  // TODO: Not sure what this even means on Windows
+  return 0.0;
+#endif  // OS_WINDOWS
+}
+
+}  // end namespace benchmark
