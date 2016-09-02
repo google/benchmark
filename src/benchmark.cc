@@ -93,20 +93,9 @@ namespace internal {
 
 void UseCharPointer(char const volatile*) {}
 
-// NOTE: This is a dummy "mutex" type used to denote the actual mutex
-// returned by GetBenchmarkLock(). This is only used to placate the thread
-// safety warnings by giving the return of GetBenchmarkLock() a name.
-struct CAPABILITY("mutex") BenchmarkLockType {};
-BenchmarkLockType BenchmarkLockVar;
+
 
 } // end namespace internal
-
-inline Mutex& RETURN_CAPABILITY(::benchmark::internal::BenchmarkLockVar)
-GetBenchmarkLock()
-{
-  static Mutex lock;
-  return lock;
-}
 
 namespace {
 
@@ -121,68 +110,63 @@ static const int kRangeMultiplier = 8;
 static const size_t kMaxFamilySize = 100;
 static const size_t kMaxIterations = 1000000000;
 
-bool running_benchmark = false;
-
-// Global variable so that a benchmark can cause a little extra printing
-std::string* GetReportLabel() {
-    static std::string label GUARDED_BY(GetBenchmarkLock());
-    return &label;
-}
-
-// Global variable so that a benchmark can report an error as a human readable
-// string. If error_message is null no error occurred.
-#if defined(_MSC_VER) && _MSC_VER <= 1800
-typedef char* error_message_type;
-#else
-typedef const char* error_message_type;
-#endif
-
-static std::atomic<error_message_type> error_message = ATOMIC_VAR_INIT(nullptr);
-
-// TODO(ericwf): support MallocCounter.
-//static benchmark::MallocCounter *benchmark_mc;
-
 } // end namespace
 
 namespace internal {
 
+// NOTE: This is a dummy "mutex" type used to denote the actual mutex
+// returned by getBenchmarkMutex(). This is only used to placate the thread
+// safety warnings by giving the return of GetBenchmarkLock() a name.
+struct CAPABILITY("mutex") BenchmarkLockType {};
+BenchmarkLockType BenchmarkLockVar;
 
 class ThreadManager {
 public:
     ThreadManager(int num_threads)
         : alive_threads_(num_threads),
-          start_stop_barrier_(num_threads) {
+          start_stop_barrier_(num_threads)
+    {
     }
 
-    bool startStopBarrier() EXCLUDES(mutex_) {
+    Mutex& getBenchmarkMutex() const
+        RETURN_CAPABILITY(::benchmark::internal::BenchmarkLockVar)
+    {
+        return benchmark_mutex_;
+    }
+
+    bool startStopBarrier() EXCLUDES(end_cond_mutex_) {
       return start_stop_barrier_.wait();
     }
 
-    void notifyThreadComplete() EXCLUDES(mutex_) {
+    void notifyThreadComplete() EXCLUDES(end_cond_mutex_) {
       start_stop_barrier_.removeThread();
       if (--alive_threads_ == 0) {
+        MutexLock lock(end_cond_mutex_);
         end_condition_.notify_all();
       }
     }
 
-    void waitForAllThreads() EXCLUDES(mutex_) {
-      MutexLock lock(mutex_);
+    void waitForAllThreads() EXCLUDES(end_cond_mutex_) {
+      MutexLock lock(end_cond_mutex_);
       end_condition_.wait(lock.native_handle(),
                           [this]() { return alive_threads_ == 0; });
     }
 
 public:
-    double real_time_used = 0;
-    double cpu_time_used = 0;
-    double manual_time_used = 0;
-    int64_t bytes_processed = 0;
-    int64_t items_processed = 0;
-    int  complexity_n = 0;
-
+    GUARDED_BY(getBenchmarkMutex()) double real_time_used = 0;
+    GUARDED_BY(getBenchmarkMutex()) double cpu_time_used = 0;
+    GUARDED_BY(getBenchmarkMutex()) double manual_time_used = 0;
+    GUARDED_BY(getBenchmarkMutex()) int64_t bytes_processed = 0;
+    GUARDED_BY(getBenchmarkMutex()) int64_t items_processed = 0;
+    GUARDED_BY(getBenchmarkMutex()) int  complexity_n = 0;
+    GUARDED_BY(getBenchmarkMutex()) std::string report_label_;
+    GUARDED_BY(getBenchmarkMutex()) std::string error_message_;
+    GUARDED_BY(getBenchmarkMutex()) bool has_error_ = false;
 private:
-    Mutex mutex_;
+    mutable Mutex benchmark_mutex_;
     std::atomic<int> alive_threads_;
     Barrier start_stop_barrier_;
+    Mutex end_cond_mutex_;
     Condition end_condition_;
 };
 
@@ -200,15 +184,16 @@ class ThreadTimer {
   // Called by each thread
   void StartTimer() {
     running_ = true;
-    start_real_time_ = walltime::Now();
+    start_real_time_ = walltime::ChronoClockNow();
     start_cpu_time_ = ThreadCPUUsage();
   }
 
   // Called by each thread
   void StopTimer() {
     CHECK(running_);
+
     running_ = false;
-    real_time_used_ += walltime::Now() - start_real_time_;
+    real_time_used_ += walltime::ChronoClockNow() - start_real_time_;
     cpu_time_used_ += ThreadCPUUsage() - start_cpu_time_;
   }
 
@@ -734,16 +719,14 @@ namespace {
 // Adds the stats collected for the thread into *total.
 void RunInThread(const benchmark::internal::Benchmark::Instance* b,
                  size_t iters, int thread_id,
-                 internal::ThreadManager* manager) EXCLUDES(GetBenchmarkLock()) {
+                 internal::ThreadManager* manager) {
   internal::ThreadTimer timer;
   State st(iters, b->arg, thread_id, b->threads, &timer, manager);
   b->benchmark->Run(st);
-  manager->notifyThreadComplete();
-
   CHECK(st.iterations() == st.max_iterations) <<
     "Benchmark returned before State::KeepRunning() returned false!";
   {
-    MutexLock l(GetBenchmarkLock());
+    MutexLock l(manager->getBenchmarkMutex());
     manager->cpu_time_used += timer.cpu_time_used();
     // Take the largest value
     manager->real_time_used = std::max(manager->real_time_used, timer.real_time_used());
@@ -752,13 +735,12 @@ void RunInThread(const benchmark::internal::Benchmark::Instance* b,
     manager->items_processed += st.items_processed();
     manager->complexity_n += st.complexity_length_n();
   }
-
+  manager->notifyThreadComplete();
 }
 
 std::vector<BenchmarkReporter::Run>
 RunBenchmark(const benchmark::internal::Benchmark::Instance& b,
-             std::vector<BenchmarkReporter::Run>* complexity_reports)
-  EXCLUDES(GetBenchmarkLock()) {
+             std::vector<BenchmarkReporter::Run>* complexity_reports) {
   std::vector<BenchmarkReporter::Run> reports; // return value
 
   size_t iters = 1;
@@ -780,14 +762,7 @@ RunBenchmark(const benchmark::internal::Benchmark::Instance& b,
       // Try benchmark
       VLOG(2) << "Running " << b.name << " for " << iters << "\n";
 
-      {
-        MutexLock l(GetBenchmarkLock());
-        GetReportLabel()->clear();
-      }
-      error_message = nullptr;
-
       internal::ThreadManager manager(b.multithreaded ? b.threads : 1);
-      running_benchmark = true;
       if (b.multithreaded) {
         // If this is out first iteration of the while(true) loop then the
         // threads haven't been started and can't be joined. Otherwise we need
@@ -803,7 +778,7 @@ RunBenchmark(const benchmark::internal::Benchmark::Instance& b,
       }
       RunInThread(&b, iters, 0, &manager);
       manager.waitForAllThreads();
-      running_benchmark = false;
+      MutexLock l(manager.getBenchmarkMutex());
 
       const double cpu_accumulated_time = manager.cpu_time_used;
       const double real_accumulated_time = manager.real_time_used;
@@ -820,19 +795,11 @@ RunBenchmark(const benchmark::internal::Benchmark::Instance& b,
           seconds = real_accumulated_time;
       }
 
-      std::string label;
-      {
-        MutexLock l(GetBenchmarkLock());
-        label = *GetReportLabel();
-      }
-      error_message_type error_msg = error_message;
-
       const double min_time = !IsZero(b.min_time) ? b.min_time
                                                   : FLAGS_benchmark_min_time;
-
       // If this was the first run, was elapsed time or cpu time large enough?
       // If this is not the first run, go with the current value of iter.
-      if ((i > 0) || (error_msg != nullptr) ||
+      if ((i > 0) || manager.has_error_ ||
           (iters >= kMaxIterations) ||
           (seconds >= min_time) ||
           (real_accumulated_time >= 5*min_time)) {
@@ -840,9 +807,9 @@ RunBenchmark(const benchmark::internal::Benchmark::Instance& b,
         // Create report about this benchmark run.
         BenchmarkReporter::Run report;
         report.benchmark_name = b.name;
-        report.error_occurred = error_msg != nullptr;
-        report.error_message = error_msg != nullptr ? error_msg : "";
-        report.report_label = label;
+        report.error_occurred = manager.has_error_;
+        report.error_message = manager.error_message_;
+        report.report_label = manager.report_label_;
         // Report the total iterations across all threads.
         report.iterations = static_cast<int64_t>(iters) * b.threads;
         report.time_unit = b.time_unit;
@@ -936,13 +903,11 @@ State::State(size_t max_iters, const std::vector<int>& ranges,
 
 void State::PauseTiming() {
   // Add in time accumulated so far
-  CHECK(running_benchmark);
   CHECK(started_ && !finished_ && !error_occurred_);
   timer_->StopTimer();
 }
 
 void State::ResumeTiming() {
-  CHECK(running_benchmark);
   CHECK(started_ && !finished_ && !error_occurred_);
   timer_->StartTimer();
 }
@@ -950,23 +915,25 @@ void State::ResumeTiming() {
 void State::SkipWithError(const char* msg) {
   CHECK(msg);
   error_occurred_ = true;
-  error_message_type expected_no_error_msg = nullptr;
-  error_message.compare_exchange_weak(expected_no_error_msg,
-    const_cast<error_message_type>(msg));
+  {
+      MutexLock l(manager_->getBenchmarkMutex());
+      if (manager_->has_error_ == false) {
+        manager_->error_message_ = msg;
+        manager_->has_error_ = true;
+      }
+  }
   total_iterations_ = max_iterations;
   if (timer_->running()) timer_->StopTimer();
 }
 
 void State::SetIterationTime(double seconds)
 {
-  CHECK(running_benchmark);
   timer_->SetIterationTime(seconds);
 }
 
 void State::SetLabel(const char* label) {
-  CHECK(running_benchmark);
-  MutexLock l(GetBenchmarkLock());
-  *GetReportLabel() = label;
+  MutexLock l(manager_->getBenchmarkMutex());
+  manager_->report_label_ = label;
 }
 
 void State::StartKeepRunning() {
@@ -1187,7 +1154,7 @@ int InitializeStreams() {
 
 void Initialize(int* argc, char** argv) {
   internal::ParseCommandLineFlags(argc, argv);
-  internal::SetLogLevel(FLAGS_v);
+  internal::LogLevel() = FLAGS_v;
   // TODO remove this. It prints some output the first time it is called.
   // We don't want to have this ouput printed during benchmarking.
   ProcessCPUUsage();
