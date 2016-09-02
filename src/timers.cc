@@ -19,15 +19,12 @@
 #include <Shlwapi.h>
 #include <VersionHelpers.h>
 #include <Windows.h>
-#endif
-
-#if !defined(BENCHMARK_OS_WINDOWS) || defined(__GNUC__) // handles mingw
+#else
 #include <fcntl.h>
 #include <sys/resource.h>
 #include <sys/time.h>
 #include <sys/types.h>  // this header must be included before 'sys/sysctl.h' to avoid compilation error on FreeBSD
 #include <unistd.h>
-#endif
 #if defined BENCHMARK_OS_FREEBSD || defined BENCHMARK_OS_MACOSX
 #include <sys/sysctl.h>
 #endif
@@ -35,6 +32,7 @@
 #include <mach/mach_init.h>
 #include <mach/mach_port.h>
 #include <mach/thread_act.h>
+#endif
 #endif
 
 #include <cerrno>
@@ -73,9 +71,7 @@ double MakeTime(FILETIME const& kernel_time, FILETIME const& user_time) {
           static_cast<double>(user.QuadPart)) *
          1e-7;
 }
-#endif
-
-#if !defined(BENCHMARK_OS_WINDOWS) || defined(__GNUC__)
+#else
 double MakeTime(struct timespec const& ts) {
   return ts.tv_sec + (static_cast<double>(ts.tv_nsec) * 1e-9);
 }
@@ -86,7 +82,6 @@ double MakeTime(struct rusage ru) {
           static_cast<double>(ru.ru_stime.tv_usec) * 1e-6);
 }
 #endif
-
 #if defined(BENCHMARK_OS_MACOSX)
 double MakeTime(thread_basic_info_data_t const& info) {
   return (static_cast<double>(info.user_time.seconds) +
