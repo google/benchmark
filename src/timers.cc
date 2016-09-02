@@ -19,12 +19,15 @@
 #include <Shlwapi.h>
 #include <VersionHelpers.h>
 #include <Windows.h>
-#else
+#endif
+
+#if !defined(BENCHMARK_OS_WINDOWS) || defined(__GNUC__) // handles mingw
 #include <fcntl.h>
 #include <sys/resource.h>
 #include <sys/time.h>
 #include <sys/types.h>  // this header must be included before 'sys/sysctl.h' to avoid compilation error on FreeBSD
 #include <unistd.h>
+#endif
 #if defined BENCHMARK_OS_FREEBSD || defined BENCHMARK_OS_MACOSX
 #include <sys/sysctl.h>
 #endif
@@ -32,7 +35,6 @@
 #include <mach/mach_init.h>
 #include <mach/mach_port.h>
 #include <mach/thread_act.h>
-#endif
 #endif
 
 #include <cerrno>
