@@ -4,6 +4,8 @@
 #include <mutex>
 #include <condition_variable>
 
+#include "check.h"
+
 // Enable thread safety attributes only with clang.
 // The attributes can be safely erased when compiling with other compilers.
 #if defined(HAVE_THREAD_SAFETY_ATTRIBUTES)

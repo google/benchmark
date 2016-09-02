@@ -152,7 +152,7 @@ cxx_feature_check(STD_REGEX)
 cxx_feature_check(GNU_POSIX_REGEX)
 cxx_feature_check(POSIX_REGEX)
 cxx_feature_check(STEADY_CLOCK)
-
+cxx_feature_check(THREAD_SAFETY_ATTRIBUTES)
 # Ensure we have pthreads
 find_package(Threads REQUIRED)
 
