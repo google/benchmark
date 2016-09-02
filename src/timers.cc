@@ -51,8 +51,14 @@
 #include "string_util.h"
 
 namespace benchmark {
-namespace {
 
+// Suppress unused warnings on helper functions.
+#if defined(__GNUC__)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-function"
+#endif
+
+namespace {
 #if defined(BENCHMARK_OS_WINDOWS)
 double MakeTime(FILETIME const& kernel_time, FILETIME const& user_time) {
   ULARGE_INTEGER kernel;
@@ -86,6 +92,10 @@ double MakeTime(thread_basic_info_data_t const& info) {
 #endif
 
 }  // end namespace
+
+#if defined(__GNUC__)
+#pragma GCC diagnostic pop
+#endif
 
 double ProcessCPUUsage() {
 #if defined(CLOCK_PROCESS_CPUTIME_ID)
@@ -146,6 +156,16 @@ double ThreadCPUUsage() {
 #elif defined(BENCHMARK_OS_MACOSX)
   mach_msg_type_number_t count = THREAD_BASIC_INFO_COUNT;
   thread_basic_info_data_t info;
+  mach_port_t thread = mach_thread_self();
+  kern_return_t kr = thread_info(thread, THREAD_BASIC_INFO, (thread_info_t) &info, &count);
+  if (kr == KERN_SUCCESS && (info.flags & TH_FLAGS_IDLE) == 0) {
+    double t = MakeTime(info);
+    mach_port_deallocate(mach_task_self(), thread);
+    return t;
+  } else {
+      std::cerr << "Could not retrieve thread info" << std::endl;
+      std::exit(EXIT_FAILURE);
+  }
 #else
 #error Per-thread timing is not available on your system.
 #endif
