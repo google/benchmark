@@ -114,7 +114,7 @@ static const size_t kMaxIterations = 1000000000;
 namespace internal {
 
 // NOTE: This is a dummy "mutex" type used to denote the actual mutex
-// returned by getBenchmarkMutex(). This is only used to placate the thread
+// returned by GetBenchmarkMutex(). This is only used to placate the thread
 // safety warnings by giving the return of GetBenchmarkLock() a name.
 struct CAPABILITY("mutex") BenchmarkLockType {};
 BenchmarkLockType BenchmarkLockVar;
@@ -127,17 +127,17 @@ public:
     {
     }
 
-    Mutex& getBenchmarkMutex() const
+    Mutex& GetBenchmarkMutex() const
         RETURN_CAPABILITY(::benchmark::internal::BenchmarkLockVar)
     {
         return benchmark_mutex_;
     }
 
-    bool startStopBarrier() EXCLUDES(end_cond_mutex_) {
+    bool StartStopBarrier() EXCLUDES(end_cond_mutex_) {
       return start_stop_barrier_.wait();
     }
 
-    void notifyThreadComplete() EXCLUDES(end_cond_mutex_) {
+    void NotifyThreadComplete() EXCLUDES(end_cond_mutex_) {
       start_stop_barrier_.removeThread();
       if (--alive_threads_ == 0) {
         MutexLock lock(end_cond_mutex_);
@@ -145,22 +145,22 @@ public:
       }
     }
 
-    void waitForAllThreads() EXCLUDES(end_cond_mutex_) {
+    void WaitForAllThreads() EXCLUDES(end_cond_mutex_) {
       MutexLock lock(end_cond_mutex_);
       end_condition_.wait(lock.native_handle(),
                           [this]() { return alive_threads_ == 0; });
     }
 
 public:
-    GUARDED_BY(getBenchmarkMutex()) double real_time_used = 0;
-    GUARDED_BY(getBenchmarkMutex()) double cpu_time_used = 0;
-    GUARDED_BY(getBenchmarkMutex()) double manual_time_used = 0;
-    GUARDED_BY(getBenchmarkMutex()) int64_t bytes_processed = 0;
-    GUARDED_BY(getBenchmarkMutex()) int64_t items_processed = 0;
-    GUARDED_BY(getBenchmarkMutex()) int  complexity_n = 0;
-    GUARDED_BY(getBenchmarkMutex()) std::string report_label_;
-    GUARDED_BY(getBenchmarkMutex()) std::string error_message_;
-    GUARDED_BY(getBenchmarkMutex()) bool has_error_ = false;
+    GUARDED_BY(GetBenchmarkMutex()) double real_time_used = 0;
+    GUARDED_BY(GetBenchmarkMutex()) double cpu_time_used = 0;
+    GUARDED_BY(GetBenchmarkMutex()) double manual_time_used = 0;
+    GUARDED_BY(GetBenchmarkMutex()) int64_t bytes_processed = 0;
+    GUARDED_BY(GetBenchmarkMutex()) int64_t items_processed = 0;
+    GUARDED_BY(GetBenchmarkMutex()) int  complexity_n = 0;
+    GUARDED_BY(GetBenchmarkMutex()) std::string report_label_;
+    GUARDED_BY(GetBenchmarkMutex()) std::string error_message_;
+    GUARDED_BY(GetBenchmarkMutex()) bool has_error_ = false;
 private:
     mutable Mutex benchmark_mutex_;
     std::atomic<int> alive_threads_;
@@ -724,7 +724,7 @@ void RunInThread(const benchmark::internal::Benchmark::Instance* b,
   CHECK(st.iterations() == st.max_iterations) <<
     "Benchmark returned before State::KeepRunning() returned false!";
   {
-    MutexLock l(manager->getBenchmarkMutex());
+    MutexLock l(manager->GetBenchmarkMutex());
     manager->cpu_time_used += timer.cpu_time_used();
     // Take the largest value
     manager->real_time_used = std::max(manager->real_time_used, timer.real_time_used());
@@ -733,7 +733,7 @@ void RunInThread(const benchmark::internal::Benchmark::Instance* b,
     manager->items_processed += st.items_processed();
     manager->complexity_n += st.complexity_length_n();
   }
-  manager->notifyThreadComplete();
+  manager->NotifyThreadComplete();
 }
 
 std::vector<BenchmarkReporter::Run>
@@ -775,8 +775,8 @@ RunBenchmark(const benchmark::internal::Benchmark::Instance& b,
         }
       }
       RunInThread(&b, iters, 0, &manager);
-      manager.waitForAllThreads();
-      MutexLock l(manager.getBenchmarkMutex());
+      manager.WaitForAllThreads();
+      MutexLock l(manager.GetBenchmarkMutex());
 
       const double cpu_accumulated_time = manager.cpu_time_used;
       const double real_accumulated_time = manager.real_time_used;
@@ -914,7 +914,7 @@ void State::SkipWithError(const char* msg) {
   CHECK(msg);
   error_occurred_ = true;
   {
-      MutexLock l(manager_->getBenchmarkMutex());
+      MutexLock l(manager_->GetBenchmarkMutex());
       if (manager_->has_error_ == false) {
         manager_->error_message_ = msg;
         manager_->has_error_ = true;
@@ -930,14 +930,14 @@ void State::SetIterationTime(double seconds)
 }
 
 void State::SetLabel(const char* label) {
-  MutexLock l(manager_->getBenchmarkMutex());
+  MutexLock l(manager_->GetBenchmarkMutex());
   manager_->report_label_ = label;
 }
 
 void State::StartKeepRunning() {
   CHECK(!started_ && !finished_);
   started_ = true;
-  manager_->startStopBarrier();
+  manager_->StartStopBarrier();
   if (!error_occurred_)
     ResumeTiming();
 }
@@ -950,7 +950,7 @@ void State::FinishKeepRunning() {
   // Total iterations now is one greater than max iterations. Fix this.
   total_iterations_ = max_iterations;
   finished_ = true;
-  manager_->startStopBarrier();
+  manager_->StartStopBarrier();
 }
 
 namespace internal {
