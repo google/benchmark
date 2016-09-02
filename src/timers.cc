@@ -40,6 +40,7 @@
 #include <cstdint>
 #include <cstdlib>
 #include <cstring>
+#include <ctime>
 #include <iostream>
 #include <limits>
 #include <mutex>
