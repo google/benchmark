@@ -43,25 +43,6 @@ namespace walltime {
 
 namespace {
 
-#if defined(HAVE_STEADY_CLOCK)
-template <bool HighResIsSteady = std::chrono::high_resolution_clock::is_steady>
-struct ChooseSteadyClock {
-    typedef std::chrono::high_resolution_clock type;
-};
-
-template <>
-struct ChooseSteadyClock<false> {
-    typedef std::chrono::steady_clock type;
-};
-#endif
-
-struct ChooseClockType {
-#if defined(HAVE_STEADY_CLOCK)
-  typedef ChooseSteadyClock<>::type type;
-#else
-  typedef std::chrono::high_resolution_clock type;
-#endif
-};
 
 class WallTimeImp
 {
