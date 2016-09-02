@@ -217,6 +217,8 @@ class ThreadTimer {
     manual_time_used_ += seconds;
   }
 
+  bool running() const { return running_; }
+
   // REQUIRES: timer is not running
   double real_time_used() {
     CHECK(!running_);
@@ -763,7 +765,7 @@ RunBenchmark(const benchmark::internal::Benchmark::Instance& b,
 
   std::vector<std::thread> pool;
   if (b.multithreaded) {
-    CHECK(b.threads > 1);
+    CHECK(b.threads >= 1);
     pool.resize(b.threads - 1);
   }
   const int repeats = b.repetitions != 0 ? b.repetitions
@@ -952,6 +954,7 @@ void State::SkipWithError(const char* msg) {
   error_message.compare_exchange_weak(expected_no_error_msg,
     const_cast<error_message_type>(msg));
   total_iterations_ = max_iterations;
+  if (timer_->running()) timer_->StopTimer();
 }
 
 void State::SetIterationTime(double seconds)
