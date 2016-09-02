@@ -91,6 +91,11 @@ double MakeTime(thread_basic_info_data_t const& info) {
 }
 #endif
 
+static BENCHMARK_NORETURN void DiagnoseAndExit(const char* msg) {
+    std::cerr << "ERROR: " << msg << std::endl;
+    std::exit(EXIT_FAILURE);
+}
+
 }  // end namespace
 
 #if defined(__GNUC__)
@@ -98,53 +103,30 @@ double MakeTime(thread_basic_info_data_t const& info) {
 #endif
 
 double ProcessCPUUsage() {
-#if defined(CLOCK_PROCESS_CPUTIME_ID)
-  struct timespec spec;
-  if (clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &spec) == 0) {
-    return MakeTime(spec);
-  }
-  return 0.0;
-#elif defined(BENCHMARK_OS_WINDOWS)
+#if defined(BENCHMARK_OS_WINDOWS)
   HANDLE proc = GetCurrentProcess();
   FILETIME creation_time;
   FILETIME exit_time;
   FILETIME kernel_time;
   FILETIME user_time;
-  GetProcessTimes(proc, &creation_time, &exit_time, &kernel_time, &user_time);
-  return MakeTime(kernel_time, user_time);
+  if (GetProcessTimes(proc, &creation_time, &exit_time, &kernel_time, &user_time))
+    return MakeTime(kernel_time, user_time);
+  DiagnoseAndExit("GetProccessTimes() failed");
+#elif defined(CLOCK_PROCESS_CPUTIME_ID)
+  struct timespec spec;
+  if (clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &spec) == 0)
+    return MakeTime(spec);
+  DiagnoseAndExit("clock_gettime(CLOCK_PROCESS_CPUTIME_ID, ...) failed");
 #else
   struct rusage ru;
-  if (getrusage(RUSAGE_SELF, &ru) == 0) {
+  if (getrusage(RUSAGE_SELF, &ru) == 0)
     return MakeTime(ru);
-  }
-  return 0.0;
+  DiagnoseAndExit("clock_gettime(CLOCK_PROCESS_CPUTIME_ID, ...) failed");
 #endif
 }
 
-double ChildrenCPUUsage() {
-#ifndef BENCHMARK_OS_WINDOWS
-  struct rusage ru;
-  if (getrusage(RUSAGE_CHILDREN, &ru) == 0) {
-    return MakeTime(ru);
-  } else {
-    return 0.0;
-  }
-#else
-  // TODO: Not sure what this even means on Windows
-  return 0.0;
-#endif  // BENCHMARK_OS_WINDOWS
-}
-
 double ThreadCPUUsage() {
-#if defined(CLOCK_THREAD_CPUTIME_ID)
-  struct timespec ts;
-  if (clock_gettime(CLOCK_THREAD_CPUTIME_ID, &ts) != 0) {
-    std::cerr << "Failed to get thread CPU time using clock_gettime"
-              << std::endl;
-    std::exit(EXIT_FAILURE);
-  }
-  return ts.tv_sec + (static_cast<double>(ts.tv_nsec) * 1e-9);
-#elif defined(BENCHMARK_OS_WINDOWS)
+#if defined(BENCHMARK_OS_WINDOWS)
   HANDLE this_thread = GetCurrentThread();
   FILETIME creation_time;
   FILETIME exit_time;
@@ -153,6 +135,11 @@ double ThreadCPUUsage() {
   GetThreadTimes(this_thread, &creation_time, &exit_time, &kernel_time,
                  &user_time);
   return MakeTime(kernel_time, user_time);
+#elif defined(CLOCK_THREAD_CPUTIME_ID)
+  struct timespec ts;
+  if (clock_gettime(CLOCK_THREAD_CPUTIME_ID, &ts) == 0)
+    return MakeTime(ts);
+  DiagnoseAndExit("clock_gettime(CLOCK_THREAD_CPUTIME_ID, ...) failed");
 #elif defined(BENCHMARK_OS_MACOSX)
   mach_msg_type_number_t count = THREAD_BASIC_INFO_COUNT;
   thread_basic_info_data_t info;
@@ -162,10 +149,8 @@ double ThreadCPUUsage() {
     double t = MakeTime(info);
     mach_port_deallocate(mach_task_self(), thread);
     return t;
-  } else {
-      std::cerr << "Could not retrieve thread info" << std::endl;
-      std::exit(EXIT_FAILURE);
   }
+  DiagnoseAndExit("ThreadCPUUsage() failed when evaluating thread_info");
 #else
 #error Per-thread timing is not available on your system.
 #endif
