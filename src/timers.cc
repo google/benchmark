@@ -91,7 +91,7 @@ double MakeTime(thread_basic_info_data_t const& info) {
 }
 #endif
 
-static BENCHMARK_NORETURN void DiagnoseAndExit(const char* msg) {
+BENCHMARK_NORETURN static void  DiagnoseAndExit(const char* msg) {
     std::cerr << "ERROR: " << msg << std::endl;
     std::exit(EXIT_FAILURE);
 }
@@ -143,12 +143,10 @@ double ThreadCPUUsage() {
 #elif defined(BENCHMARK_OS_MACOSX)
   mach_msg_type_number_t count = THREAD_BASIC_INFO_COUNT;
   thread_basic_info_data_t info;
-  mach_port_t thread = mach_thread_self();
-  kern_return_t kr = thread_info(thread, THREAD_BASIC_INFO, (thread_info_t) &info, &count);
-  if (kr == KERN_SUCCESS && (info.flags & TH_FLAGS_IDLE) == 0) {
-    double t = MakeTime(info);
-    mach_port_deallocate(mach_task_self(), thread);
-    return t;
+  mach_port_t thread = pthread_mach_thread_np(pthread_self());
+  if (thread_info(thread, THREAD_BASIC_INFO, (thread_info_t) &info, &count)
+      == KERN_SUCCESS) {
+    return MakeTime(info);
   }
   DiagnoseAndExit("ThreadCPUUsage() failed when evaluating thread_info");
 #else
