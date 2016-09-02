@@ -155,7 +155,7 @@ double ThreadCPUUsage() {
   FILETIME exit_time;
   FILETIME kernel_time;
   FILETIME user_time;
-  GetProcessTimes(this_thread, &creation_time, &exit_time, &kernel_time, &user_time);
+  GetThreadTimes(this_thread, &creation_time, &exit_time, &kernel_time, &user_time);
   return MakeTime(kernel_time, user_time);
 #elif defined(BENCHMARK_OS_MACOSX)
   mach_msg_type_number_t count = THREAD_BASIC_INFO_COUNT;
