@@ -33,7 +33,7 @@ public:
           << check << "' failed. ";
   }
 
-  std::ostream& GetLog() {
+  LogType& GetLog() {
     return log_;
   }
 
@@ -46,7 +46,7 @@ public:
   CheckHandler(const CheckHandler&) = delete;
   CheckHandler() = delete;
 private:
-  std::ostream& log_;
+  LogType& log_;
 };
 
 } // end namespace internal

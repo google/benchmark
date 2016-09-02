@@ -9,7 +9,7 @@ endif()
 # Define the source files
 set(SOURCE_FILES "benchmark.cc" "colorprint.cc" "commandlineflags.cc"
                  "console_reporter.cc" "cpu_thread_time.cc" "csv_reporter.cc"
-                 "json_reporter.cc" "log.cc" "reporter.cc" "sleep.cc"
+                 "json_reporter.cc" "reporter.cc" "sleep.cc"
                  "string_util.cc" "sysinfo.cc" "walltime.cc" "complexity.cc")
 # Add headers to the list of source files. cmake does not require this,
 # but IDEs such as Visual Studio need this to add the headers
