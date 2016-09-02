@@ -28,7 +28,7 @@
 #include "commandlineflags.h"
 #include "internal_macros.h"
 #include "string_util.h"
-#include "walltime.h"
+#include "timers.h"
 
 namespace benchmark {
 

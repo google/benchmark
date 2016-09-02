@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "cpu_thread_time.h"
+#include "timers.h"
 #include "internal_macros.h"
 
 #ifdef BENCHMARK_OS_WINDOWS
@@ -51,7 +51,6 @@
 
 namespace benchmark {
 namespace {
-std::mutex cputimens_mutex;
 
 #if defined(BENCHMARK_OS_WINDOWS)
 double MakeTime(FILETIME const& kernel_time, FILETIME const& user_time) {
@@ -86,21 +85,14 @@ double MakeTime(thread_basic_info_data_t const& info) {
 
 }  // end namespace
 
-// getrusage() based implementation of MyCPUUsage
-static double ProcessCPURUsage() {
+double ProcessCPUUsage() {
 #if defined(_POSIX_CPUTIME)
   struct timespec spec;
   if (clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &spec) == 0) {
     return MakeTime(spec);
   }
   return 0.0;
-#elif !defined(BENCHMARK_OS_WINDOWS)
-  struct rusage ru;
-  if (getrusage(RUSAGE_SELF, &ru) == 0) {
-    return MakeTime(ru);
-  }
-  return 0.0;
-#else
+#elif defined(BENCHMARK_OS_WINDOWS)
   HANDLE proc = GetCurrentProcess();
   FILETIME creation_time;
   FILETIME exit_time;
@@ -108,38 +100,28 @@ static double ProcessCPURUsage() {
   FILETIME user_time;
   GetProcessTimes(proc, &creation_time, &exit_time, &kernel_time, &user_time);
   return MakeTime(kernel_time, user_time);
-#endif  // OS_WINDOWS
+#else
+  struct rusage ru;
+  if (getrusage(RUSAGE_SELF, &ru) == 0) {
+    return MakeTime(ru);
+  }
+  return 0.0;
+#endif
 }
 
+double ChildrenCPUUsage() {
 #ifndef BENCHMARK_OS_WINDOWS
-static bool MyCPUUsageCPUTimeNsLocked(double* cputime) {
-  static int cputime_fd = -1;
-  if (cputime_fd == -1) {
-    cputime_fd = open("/proc/self/cputime_ns", O_RDONLY);
-    if (cputime_fd < 0) {
-      cputime_fd = -1;
-      return false;
-    }
+  struct rusage ru;
+  if (getrusage(RUSAGE_CHILDREN, &ru) == 0) {
+    return MakeTime(ru);
+  } else {
+    return 0.0;
   }
-  char buff[64];
-  memset(buff, 0, sizeof(buff));
-  if (pread(cputime_fd, buff, sizeof(buff) - 1, 0) <= 0) {
-    close(cputime_fd);
-    cputime_fd = -1;
-    return false;
-  }
-  unsigned long long result = strtoull(buff, nullptr, 0);
-  if (result == (std::numeric_limits<unsigned long long>::max)()) {
-    close(cputime_fd);
-    cputime_fd = -1;
-    return false;
-  }
-  *cputime = static_cast<double>(result) / 1e9;
-  return true;
+#else
+  // TODO: Not sure what this even means on Windows
+  return 0.0;
+#endif  // BENCHMARK_OS_WINDOWS
 }
-
-#endif  // OS_WINDOWS
-
 
 double ThreadCPUUsage() {
 #if defined(_POSIX_THREAD_CPUTIME)
@@ -165,37 +147,43 @@ double ThreadCPUUsage() {
 #endif
 }
 
-double ProcessCPUUsage() {
-#ifndef BENCHMARK_OS_WINDOWS
-  {
-    std::lock_guard<std::mutex> l(cputimens_mutex);
-    static bool use_cputime_ns = true;
-    if (use_cputime_ns) {
-      double value;
-      if (MyCPUUsageCPUTimeNsLocked(&value)) {
-        return value;
-      }
-      // Once MyCPUUsageCPUTimeNsLocked fails once fall back to getrusage().
-      VLOG(1) << "Reading /proc/self/cputime_ns failed. Using getrusage().\n";
-      use_cputime_ns = false;
-    }
+namespace {
+
+std::string DateTimeString(bool local) {
+  typedef std::chrono::system_clock Clock;
+  std::time_t now = Clock::to_time_t(Clock::now());
+  const std::size_t kStorageSize = 128;
+  char storage[kStorageSize];
+  std::size_t written;
+
+  if (local) {
+#if defined(BENCHMARK_OS_WINDOWS)
+    written = std::strftime(storage, sizeof(storage), "%x %X", ::localtime(&now));
+#else
+    std::tm timeinfo;
+    std::memset(&timeinfo, 0, sizeof(std::tm));
+    ::localtime_r(&now, &timeinfo);
+    written = std::strftime(storage, sizeof(storage), "%F %T", &timeinfo);
+#endif
+  } else {
+#if defined(BENCHMARK_OS_WINDOWS)
+    written = std::strftime(storage, sizeof(storage), "%x %X", ::gmtime(&now));
+#else
+    std::tm timeinfo;
+    std::memset(&timeinfo, 0, sizeof(std::tm));
+    ::gmtime_r(&now, &timeinfo);
+    written = std::strftime(storage, sizeof(storage), "%F %T", &timeinfo);
+#endif
   }
-#endif  // OS_WINDOWS
-  return ProcessCPURUsage();
+  CHECK(written < kStorageSize);
+  ((void)written); // prevent unused variable in optimized mode.
+  return std::string(storage);
 }
 
-double ChildrenCPUUsage() {
-#ifndef BENCHMARK_OS_WINDOWS
-  struct rusage ru;
-  if (getrusage(RUSAGE_CHILDREN, &ru) == 0) {
-    return MakeTime(ru);
-  } else {
-    return 0.0;
-  }
-#else
-  // TODO: Not sure what this even means on Windows
-  return 0.0;
-#endif  // OS_WINDOWS
+} // end namespace
+
+std::string LocalDateTimeString() {
+  return DateTimeString(true);
 }
 
 }  // end namespace benchmark

@@ -1,15 +1,20 @@
-#ifndef BENCHMARK_WALLTIME_H_
-#define BENCHMARK_WALLTIME_H_
-
-#include "internal_macros.h"
+#ifndef BENCHMARK_TIMERS_H
+#define BENCHMARK_TIMERS_H
 
 #include <chrono>
 #include <string>
 
 namespace benchmark {
-typedef double WallTime;
 
-namespace walltime {
+// Return the CPU usage of the current process
+double ProcessCPUUsage();
+
+// Return the CPU usage of the children of the current process
+double ChildrenCPUUsage();
+
+// Return the CPU usage of the current thread
+double ThreadCPUUsage();
+
 
 #if defined(HAVE_STEADY_CLOCK)
 template <bool HighResIsSteady = std::chrono::high_resolution_clock::is_steady>
@@ -38,11 +43,8 @@ inline double ChronoClockNow() {
     return FpSeconds(ClockType::now().time_since_epoch()).count();
 }
 
-WallTime Now();
-}  // end namespace walltime
-
 std::string LocalDateTimeString();
 
 }  // end namespace benchmark
 
-#endif  // BENCHMARK_WALLTIME_H_
+#endif  // BENCHMARK_TIMERS_H

@@ -35,14 +35,13 @@
 #include "check.h"
 #include "commandlineflags.h"
 #include "complexity.h"
-#include "cpu_thread_time.h"
 #include "log.h"
 #include "mutex.h"
 #include "re.h"
 #include "stat.h"
 #include "string_util.h"
 #include "sysinfo.h"
-#include "walltime.h"
+#include "timers.h"
 
 DEFINE_bool(benchmark_list_tests, false,
             "Print a list of benchmarks. This option overrides all other "
@@ -184,16 +183,15 @@ class ThreadTimer {
   // Called by each thread
   void StartTimer() {
     running_ = true;
-    start_real_time_ = walltime::ChronoClockNow();
+    start_real_time_ = ChronoClockNow();
     start_cpu_time_ = ThreadCPUUsage();
   }
 
   // Called by each thread
   void StopTimer() {
     CHECK(running_);
-
     running_ = false;
-    real_time_used_ += walltime::ChronoClockNow() - start_real_time_;
+    real_time_used_ += ChronoClockNow() - start_real_time_;
     cpu_time_used_ += ThreadCPUUsage() - start_cpu_time_;
   }
 
@@ -1155,12 +1153,6 @@ int InitializeStreams() {
 void Initialize(int* argc, char** argv) {
   internal::ParseCommandLineFlags(argc, argv);
   internal::LogLevel() = FLAGS_v;
-  // TODO remove this. It prints some output the first time it is called.
-  // We don't want to have this ouput printed during benchmarking.
-  ProcessCPUUsage();
-  // The first call to walltime::Now initialized it. Call it once to
-  // prevent the initialization from happening in a benchmark.
-  walltime::Now();
 }
 
 } // end namespace benchmark
