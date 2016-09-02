@@ -88,7 +88,7 @@ double MakeTime(thread_basic_info_data_t const& info) {
 }  // end namespace
 
 double ProcessCPUUsage() {
-#if defined(_POSIX_CPUTIME)
+#if defined(CLOCK_PROCESS_CPUTIME_ID)
   struct timespec spec;
   if (clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &spec) == 0) {
     return MakeTime(spec);
@@ -126,7 +126,7 @@ double ChildrenCPUUsage() {
 }
 
 double ThreadCPUUsage() {
-#if defined(_POSIX_THREAD_CPUTIME)
+#if defined(CLOCK_THREAD_CPUTIME_ID)
   struct timespec ts;
   if (clock_gettime(CLOCK_THREAD_CPUTIME_ID, &ts) != 0) {
     std::cerr << "Failed to get thread CPU time using clock_gettime"
