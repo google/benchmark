@@ -271,8 +271,8 @@ enum BigO {
 typedef double(BigOFunc)(int);
 
 namespace internal {
-    class ThreadTimer;
-    class ThreadManager;
+class ThreadTimer;
+class ThreadManager;
 }
 
 // State is passed to a running Benchmark and contains state for the
@@ -454,12 +454,11 @@ public:
   const size_t max_iterations;
 
   // TODO make me private
-  State(size_t max_iters, const std::vector<int>& ranges,
-        int thread_i, int n_threads,
-        internal::ThreadTimer* timer,
+  State(size_t max_iters, const std::vector<int>& ranges, int thread_i,
+        int n_threads, internal::ThreadTimer* timer,
         internal::ThreadManager* manager);
 
-private:
+ private:
   void StartKeepRunning();
   void FinishKeepRunning();
   internal::ThreadTimer* timer_;

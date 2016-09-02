@@ -109,10 +109,7 @@ private:
 
 class Barrier {
  public:
-  Barrier(int num_threads)
-    : running_threads_(num_threads)
-  {
-  }
+  Barrier(int num_threads) : running_threads_(num_threads) {}
 
   // Called by each thread
   bool wait() EXCLUDES(lock_) {
@@ -128,8 +125,7 @@ class Barrier {
   void removeThread() EXCLUDES(lock_) {
     MutexLock ml(lock_);
     --running_threads_;
-    if (entered_ != 0)
-      phase_condition_.notify_all();
+    if (entered_ != 0) phase_condition_.notify_all();
   }
 
  private:
@@ -139,7 +135,7 @@ class Barrier {
 
   // State for barrier management
   int phase_number_ = 0;
-  int entered_ = 0; // Number of threads that have entered this barrier
+  int entered_ = 0;  // Number of threads that have entered this barrier
 
   // Enter the barrier and wait until all other threads have also
   // entered the barrier.  Returns iff this is the last thread to
@@ -152,11 +148,10 @@ class Barrier {
       int phase_number_cp = phase_number_;
       auto cb = [this, phase_number_cp]() {
         return this->phase_number_ > phase_number_cp ||
-               entered_ == running_threads_; // A thread has aborted in error
+               entered_ == running_threads_;  // A thread has aborted in error
       };
       phase_condition_.wait(ml.native_handle(), cb);
-      if (phase_number_ > phase_number_cp)
-        return false;
+      if (phase_number_ > phase_number_cp) return false;
       // else (running_threads_ == entered_) and we are the last thread.
     }
     // Last thread has reached the barrier

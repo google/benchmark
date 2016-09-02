@@ -290,7 +290,6 @@ void InitializeSystemInfo() {
 
 }  // end namespace
 
-
 double CyclesPerSecond(void) {
   std::call_once(cpuinfo_init, InitializeSystemInfo);
   return cpuinfo_cycles_per_second;

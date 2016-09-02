@@ -17,27 +17,27 @@
 
 #ifdef BENCHMARK_OS_WINDOWS
 #include <Shlwapi.h>
-#include <Windows.h>
 #include <VersionHelpers.h>
+#include <Windows.h>
 #else
 #include <fcntl.h>
 #include <sys/resource.h>
-#include <sys/types.h> // this header must be included before 'sys/sysctl.h' to avoid compilation error on FreeBSD
 #include <sys/time.h>
+#include <sys/types.h>  // this header must be included before 'sys/sysctl.h' to avoid compilation error on FreeBSD
 #include <unistd.h>
 #if defined BENCHMARK_OS_FREEBSD || defined BENCHMARK_OS_MACOSX
 #include <sys/sysctl.h>
 #endif
 #if defined(BENCHMARK_OS_MACOSX)
 #include <mach/mach_init.h>
-#include <mach/thread_act.h>
 #include <mach/mach_port.h>
+#include <mach/thread_act.h>
 #endif
 #endif
 
 #include <cerrno>
-#include <cstdio>
 #include <cstdint>
+#include <cstdio>
 #include <cstdlib>
 #include <cstring>
 #include <ctime>
@@ -62,7 +62,8 @@ double MakeTime(FILETIME const& kernel_time, FILETIME const& user_time) {
   user.HighPart = user_time.dwHighDateTime;
   user.LowPart = user_time.dwLowDateTime;
   return (static_cast<double>(kernel.QuadPart) +
-          static_cast<double>(user.QuadPart)) * 1e-7;
+          static_cast<double>(user.QuadPart)) *
+         1e-7;
 }
 #else
 double MakeTime(struct timespec const& ts) {
@@ -70,17 +71,17 @@ double MakeTime(struct timespec const& ts) {
 }
 double MakeTime(struct rusage ru) {
   return (static_cast<double>(ru.ru_utime.tv_sec) +
-            static_cast<double>(ru.ru_utime.tv_usec) * 1e-6 +
-            static_cast<double>(ru.ru_stime.tv_sec) +
-            static_cast<double>(ru.ru_stime.tv_usec) * 1e-6);
+          static_cast<double>(ru.ru_utime.tv_usec) * 1e-6 +
+          static_cast<double>(ru.ru_stime.tv_sec) +
+          static_cast<double>(ru.ru_stime.tv_usec) * 1e-6);
 }
 #endif
 #if defined(BENCHMARK_OS_MACOSX)
 double MakeTime(thread_basic_info_data_t const& info) {
   return (static_cast<double>(info.user_time.seconds) +
-            static_cast<double>(info.user_time.microseconds) * 1e-6 +
-            static_cast<double>(info.system_time.seconds) +
-            static_cast<double>(info.user_time.microseconds) * 1e-6);
+          static_cast<double>(info.user_time.microseconds) * 1e-6 +
+          static_cast<double>(info.system_time.seconds) +
+          static_cast<double>(info.user_time.microseconds) * 1e-6);
 }
 #endif
 
@@ -128,7 +129,8 @@ double ThreadCPUUsage() {
 #if defined(_POSIX_THREAD_CPUTIME)
   struct timespec ts;
   if (clock_gettime(CLOCK_THREAD_CPUTIME_ID, &ts) != 0) {
-    std::cerr << "Failed to get thread CPU time using clock_gettime" << std::endl;
+    std::cerr << "Failed to get thread CPU time using clock_gettime"
+              << std::endl;
     std::exit(EXIT_FAILURE);
   }
   return ts.tv_sec + (static_cast<double>(ts.tv_nsec) * 1e-9);
@@ -138,7 +140,8 @@ double ThreadCPUUsage() {
   FILETIME exit_time;
   FILETIME kernel_time;
   FILETIME user_time;
-  GetThreadTimes(this_thread, &creation_time, &exit_time, &kernel_time, &user_time);
+  GetThreadTimes(this_thread, &creation_time, &exit_time, &kernel_time,
+                 &user_time);
   return MakeTime(kernel_time, user_time);
 #elif defined(BENCHMARK_OS_MACOSX)
   mach_msg_type_number_t count = THREAD_BASIC_INFO_COUNT;
@@ -159,7 +162,8 @@ std::string DateTimeString(bool local) {
 
   if (local) {
 #if defined(BENCHMARK_OS_WINDOWS)
-    written = std::strftime(storage, sizeof(storage), "%x %X", ::localtime(&now));
+    written =
+        std::strftime(storage, sizeof(storage), "%x %X", ::localtime(&now));
 #else
     std::tm timeinfo;
     std::memset(&timeinfo, 0, sizeof(std::tm));
@@ -177,14 +181,12 @@ std::string DateTimeString(bool local) {
 #endif
   }
   CHECK(written < kStorageSize);
-  ((void)written); // prevent unused variable in optimized mode.
+  ((void)written);  // prevent unused variable in optimized mode.
   return std::string(storage);
 }
 
-} // end namespace
+}  // end namespace
 
-std::string LocalDateTimeString() {
-  return DateTimeString(true);
-}
+std::string LocalDateTimeString() { return DateTimeString(true); }
 
 }  // end namespace benchmark
