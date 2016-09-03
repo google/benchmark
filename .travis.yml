@@ -72,9 +72,9 @@ matrix:
               packages:
                 clang-3.8
           env:
-            - COMPILER=clang++-3.8 C_COMPILER=clang-3.8 BUILD_TYPE=Debug
+            - COMPILER=clang++-3.8 C_COMPILER=clang-3.8 BUILD_TYPE=RelWithDebInfo
             - LIBCXX_BUILD=1 LIBCXX_SANITIZER=Thread
-            - EXTRA_FLAGS="-stdlib=libc++ -g -O2 -fno-omit-frame-pointer -fsanitize=thread"
+            - EXTRA_FLAGS="-stdlib=libc++ -g -O2 -fno-omit-frame-pointer -fsanitize=thread -fno-sanitize-recover=all"
 
 before_script:
     - if [ -n "${LIBCXX_BUILD}" ]; then
