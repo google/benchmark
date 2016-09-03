@@ -87,7 +87,7 @@ endif()
 
 # Attempt to work around flaky test failures when running on Appveyor servers.
 if (DEFINED ENV{APPVEYOR})
-  set(COMPLEXITY_MIN_TIME "1.0")
+  set(COMPLEXITY_MIN_TIME "0.5")
 else()
   set(COMPLEXITY_MIN_TIME "0.01")
 endif()
