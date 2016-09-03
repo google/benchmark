@@ -220,5 +220,26 @@ BENCHMARK_CAPTURE(BM_non_template_args, basic_test, 0, 0);
 
 #endif // __cplusplus >= 201103L
 
-BENCHMARK_MAIN()
+static void BM_DenseThreadRanges(benchmark::State &st) {
+  switch (st.range(0)) {
+  case 1:
+    assert(st.threads == 1 || st.threads == 2 || st.threads == 3);
+    break;
+  case 2:
+    assert(st.threads == 1 || st.threads == 3 || st.threads == 4);
+    break;
+  case 3:
+    assert(st.threads == 5 || st.threads == 8 || st.threads == 11 ||
+           st.threads == 14);
+    break;
+  default:
+    assert(false && "Invalid test case number");
+  }
+  while (st.KeepRunning()) {
+  }
+}
+BENCHMARK(BM_DenseThreadRanges)->Arg(1)->DenseThreadRange(1, 3);
+BENCHMARK(BM_DenseThreadRanges)->Arg(2)->DenseThreadRange(1, 4, 2);
+BENCHMARK(BM_DenseThreadRanges)->Arg(3)->DenseThreadRange(5, 14, 3);
 
+BENCHMARK_MAIN()
