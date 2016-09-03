@@ -9,7 +9,7 @@ Discussion group: https://groups.google.com/d/forum/benchmark-discuss
 
 IRC channel: https://freenode.net #googlebenchmark
 
-[Known issues for common problems](#known-issues)
+[Known issues and common problems](#known-issues)
 
 ## Example usage
 ### Basic usage
