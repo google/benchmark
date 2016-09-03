@@ -85,8 +85,14 @@ if (BENCHMARK_HAS_CXX03_FLAG)
   add_test(cxx03 cxx03_test --benchmark_min_time=0.01)
 endif()
 
+# Attempt to work around flaky test failures when running on Appveyor servers.
+if (DEFINED ENV{APPVEYOR})
+  set(COMPLEXITY_MIN_TIME "1.0")
+else()
+  set(COMPLEXITY_MIN_TIME "0.01")
+endif()
 compile_output_test(complexity_test)
-add_test(complexity_benchmark complexity_test --benchmark_min_time=0.01)
+add_test(complexity_benchmark complexity_test --benchmark_min_time=${COMPLEXITY_MIN_TIME})
 
 # Add the coverage command(s)
 if(CMAKE_BUILD_TYPE)
