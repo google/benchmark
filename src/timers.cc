@@ -86,10 +86,11 @@ double MakeTime(thread_basic_info_data_t const& info) {
           static_cast<double>(info.user_time.microseconds) * 1e-6);
 }
 #endif
-
+#if defined(CLOCK_PROCESS_CPUTIME_ID) || defined(CLOCK_THREAD_CPUTIME_ID)
 double MakeTime(struct timespec const& ts) {
   return ts.tv_sec + (static_cast<double>(ts.tv_nsec) * 1e-9);
 }
+#endif
 
 BENCHMARK_NORETURN static void  DiagnoseAndExit(const char* msg) {
     std::cerr << "ERROR: " << msg << std::endl;
