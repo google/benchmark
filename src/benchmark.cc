@@ -717,11 +717,8 @@ void RunInThread(const benchmark::internal::Benchmark::Instance* b,
   {
     MutexLock l(manager->GetBenchmarkMutex());
     manager->cpu_time_used += timer.cpu_time_used();
-    // Take the largest value
-    manager->real_time_used =
-        std::max(manager->real_time_used, timer.real_time_used());
-    manager->manual_time_used =
-        std::max(manager->manual_time_used, timer.manual_time_used());
+    manager->real_time_used += timer.real_time_used();
+    manager->manual_time_used += timer.manual_time_used();
     manager->bytes_processed += st.bytes_processed();
     manager->items_processed += st.items_processed();
     manager->complexity_n += st.complexity_length_n();
@@ -735,12 +732,10 @@ std::vector<BenchmarkReporter::Run> RunBenchmark(
   std::vector<BenchmarkReporter::Run> reports; // return value
 
   size_t iters = 1;
-
+  const int num_threads = b.multithreaded ? b.threads : 1;
   std::vector<std::thread> pool;
-  if (b.multithreaded) {
-    CHECK(b.threads >= 1);
-    pool.resize(b.threads - 1);
-  }
+  if (num_threads > 1) pool.resize(num_threads -1);
+
   const int repeats = b.repetitions != 0 ? b.repetitions
                                          : FLAGS_benchmark_repetitions;
   const bool report_aggregates_only = repeats != 1 &&
@@ -753,7 +748,7 @@ std::vector<BenchmarkReporter::Run> RunBenchmark(
       // Try benchmark
       VLOG(2) << "Running " << b.name << " for " << iters << "\n";
 
-      internal::ThreadManager manager(b.multithreaded ? b.threads : 1);
+      internal::ThreadManager manager(num_threads);
       if (b.multithreaded) {
         // If this is out first iteration of the while(true) loop then the
         // threads haven't been started and can't be joined. Otherwise we need
@@ -772,8 +767,8 @@ std::vector<BenchmarkReporter::Run> RunBenchmark(
       MutexLock l(manager.GetBenchmarkMutex());
 
       const double cpu_accumulated_time = manager.cpu_time_used;
-      const double real_accumulated_time = manager.real_time_used;
-      const double manual_accumulated_time = manager.manual_time_used;
+      const double real_accumulated_time = manager.real_time_used / num_threads;
+      const double manual_accumulated_time = manager.manual_time_used / num_threads;
 
       VLOG(2) << "Ran in " << cpu_accumulated_time << "/"
               << real_accumulated_time << "\n";
