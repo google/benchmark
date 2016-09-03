@@ -34,6 +34,7 @@ install:
 # See http://goo.gl/euguBI for more information.
 before_build:
   - del "C:\Program Files (x86)\MSBuild\14.0\Microsoft.Common.targets\ImportAfter\Xamarin.Common.targets"
+  - del "C:\Program Files (x86)\MSBuild\12.0\Microsoft.Common.targets\ImportAfter\Xamarin.Common.targets"
 
 build_script:
   - md _build -Force
