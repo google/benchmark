@@ -87,8 +87,7 @@ else()
     add_cxx_compiler_flag(-Wstrict-aliasing)
   endif()
   add_cxx_compiler_flag(-Wthread-safety)
-  if (HAVE_WTHREAD_SAFETY)
-    add_definitions(-DHAVE_WTHREAD_SAFETY)
+  if (HAVE_CXX_FLAG_WTHREAD_SAFETY)
     cxx_feature_check(THREAD_SAFETY_ATTRIBUTES)
   endif()
 
@@ -152,7 +151,6 @@ cxx_feature_check(STD_REGEX)
 cxx_feature_check(GNU_POSIX_REGEX)
 cxx_feature_check(POSIX_REGEX)
 cxx_feature_check(STEADY_CLOCK)
-
 # Ensure we have pthreads
 find_package(Threads REQUIRED)
 

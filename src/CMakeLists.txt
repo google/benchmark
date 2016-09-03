@@ -8,9 +8,9 @@ endif()
 
 # Define the source files
 set(SOURCE_FILES "benchmark.cc" "colorprint.cc" "commandlineflags.cc"
-                 "console_reporter.cc" "csv_reporter.cc" "json_reporter.cc"
-                 "log.cc" "reporter.cc" "sleep.cc" "string_util.cc"
-                 "sysinfo.cc" "walltime.cc" "complexity.cc")
+                 "console_reporter.cc" "csv_reporter.cc"
+                 "json_reporter.cc" "reporter.cc" "sleep.cc"
+                 "string_util.cc" "sysinfo.cc" "complexity.cc" "timers.cc")
 # Add headers to the list of source files. cmake does not require this,
 # but IDEs such as Visual Studio need this to add the headers
 # to the generated project.
@@ -19,8 +19,7 @@ list(APPEND SOURCE_FILES "${_d}/benchmark.h" "${_d}/benchmark_api.h"
             "${_d}/macros.h" "${_d}/reporter.h" "arraysize.h" "check.h"
             "colorprint.h" "commandlineflags.h" "complexity.h"
             "cycleclock.h" "internal_macros.h" "log.h" "mutex.h"
-            "re.h" "sleep.h" "stat.h" "string_util.h" "sysinfo.h"
-            "walltime.h")
+            "re.h" "sleep.h" "stat.h" "string_util.h" "sysinfo.h" "timers.h")
 unset(_d)
 
 # Determine the correct regular expression engine to use
