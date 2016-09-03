@@ -15,10 +15,12 @@
 # define COMPILER_GCC
 #endif
 
-#if __has_feature(cxx_attributes) || defined(COMPILER_MSVC)
+#if __has_feature(cxx_attributes)
 # define BENCHMARK_NORETURN [[noreturn]]
 #elif defined(__GNUC__)
 # define BENCHMARK_NORETURN __attribute__((noreturn))
+#elif defined(COMPILER_MSVC)
+# define BENCHMARK_NORETURN __declspec(noreturn)
 #else
 # define BENCHMARK_NORETURN
 #endif
