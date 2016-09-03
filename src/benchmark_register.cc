@@ -375,6 +375,19 @@ Benchmark* Benchmark::ThreadRange(int min_threads, int max_threads) {
   return this;
 }
 
+Benchmark *Benchmark::DenseThreadRange(int min_threads, int max_threads,
+                                       int stride) {
+  CHECK_GT(min_threads, 0);
+  CHECK_GE(max_threads, min_threads);
+  CHECK_GE(stride, 1);
+
+  for (auto i = min_threads; i < max_threads; i += stride) {
+    thread_counts_.push_back(i);
+  }
+  thread_counts_.push_back(max_threads);
+  return this;
+}
+
 Benchmark* Benchmark::ThreadPerCpu() {
   static int num_cpus = NumCPUs();
   thread_counts_.push_back(num_cpus);

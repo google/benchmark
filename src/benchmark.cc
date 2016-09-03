@@ -214,6 +214,7 @@ class ThreadTimer {
   double manual_time_used_;
 
 };
+
 namespace {
 
 // Execute one thread of benchmark b for the specified number of iterations.
