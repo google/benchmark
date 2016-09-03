@@ -26,6 +26,8 @@
 #endif
 #include <string>
 
+#include "check.h"
+
 namespace benchmark {
 
 // A wrapper around the POSIX regular expression API that provides automatic
