@@ -102,19 +102,13 @@ static const size_t kMaxIterations = 1000000000;
 
 namespace internal {
 
-// NOTE: This is a dummy "mutex" type used to denote the actual mutex
-// returned by GetBenchmarkMutex(). This is only used to placate the thread
-// safety warnings by giving the return of GetBenchmarkLock() a name.
-struct CAPABILITY("mutex") BenchmarkLockType {};
-BenchmarkLockType BenchmarkLockVar;
 
 class ThreadManager {
  public:
   ThreadManager(int num_threads)
       : alive_threads_(num_threads), start_stop_barrier_(num_threads) {}
 
-  Mutex& GetBenchmarkMutex() const
-      RETURN_CAPABILITY(::benchmark::internal::BenchmarkLockVar) {
+  Mutex& GetBenchmarkMutex() const RETURN_CAPABILITY(benchmark_mutex_) {
     return benchmark_mutex_;
   }
 

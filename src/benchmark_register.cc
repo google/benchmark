@@ -193,6 +193,8 @@ Benchmark* RegisterBenchmarkInternal(Benchmark* bench) {
 }
 
 
+// FIXME: This function is a hack so that benchmark.cc can access
+// `BenchmarkFamilies`
 bool FindBenchmarksInternal(const std::string& re,
                             std::vector<Benchmark::Instance>* benchmarks,
                             std::ostream* Err)
