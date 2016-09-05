@@ -154,6 +154,7 @@ BENCHMARK(BM_test)->Unit(benchmark::kMillisecond);
 #include <stdint.h>
 
 #include <vector>
+#include <string>
 
 #include "macros.h"
 
@@ -273,6 +274,17 @@ typedef double(BigOFunc)(int);
 namespace internal {
 class ThreadTimer;
 class ThreadManager;
+
+#if defined(BENCHMARK_HAS_CXX11)
+enum ReportMode : unsigned {
+#else
+enum ReportMode {
+#endif
+    RM_Unspecified, // The mode has not been manually specified
+    RM_Default,     // The mode is user-specified as default.
+    RM_ReportAggregatesOnly
+};
+
 }
 
 // State is passed to a running Benchmark and contains state for the
@@ -616,9 +628,25 @@ protected:
   Benchmark(Benchmark const&);
   void SetName(const char* name);
 
+  int ArgsCnt() const;
+
+  static void AddRange(std::vector<int>* dst, int lo, int hi, int mult);
+
 private:
   friend class BenchmarkFamilies;
-  BenchmarkImp* imp_;
+
+  std::string name_;
+  ReportMode report_mode_;
+  std::vector< std::vector<int> > args_;  // Args for all benchmark runs
+  TimeUnit time_unit_;
+  int range_multiplier_;
+  double min_time_;
+  int repetitions_;
+  bool use_real_time_;
+  bool use_manual_time_;
+  BigO complexity_;
+  BigOFunc* complexity_lambda_;
+  std::vector<int> thread_counts_;
 
   Benchmark& operator=(Benchmark const&);
 };

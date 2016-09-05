@@ -54,7 +54,6 @@ namespace benchmark {
 
 // Suppress unused warnings on helper functions.
 #if defined(__GNUC__)
-#pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wunused-function"
 #endif
 
@@ -72,9 +71,6 @@ double MakeTime(FILETIME const& kernel_time, FILETIME const& user_time) {
          1e-7;
 }
 #else
-double MakeTime(struct timespec const& ts) {
-  return ts.tv_sec + (static_cast<double>(ts.tv_nsec) * 1e-9);
-}
 double MakeTime(struct rusage ru) {
   return (static_cast<double>(ru.ru_utime.tv_sec) +
           static_cast<double>(ru.ru_utime.tv_usec) * 1e-6 +
@@ -90,6 +86,11 @@ double MakeTime(thread_basic_info_data_t const& info) {
           static_cast<double>(info.user_time.microseconds) * 1e-6);
 }
 #endif
+#if defined(CLOCK_PROCESS_CPUTIME_ID) || defined(CLOCK_THREAD_CPUTIME_ID)
+double MakeTime(struct timespec const& ts) {
+  return ts.tv_sec + (static_cast<double>(ts.tv_nsec) * 1e-9);
+}
+#endif
 
 BENCHMARK_NORETURN static void  DiagnoseAndExit(const char* msg) {
     std::cerr << "ERROR: " << msg << std::endl;
@@ -98,12 +99,14 @@ BENCHMARK_NORETURN static void  DiagnoseAndExit(const char* msg) {
 
 }  // end namespace
 
-#if defined(__GNUC__)
-#pragma GCC diagnostic pop
-#endif
 
 double ProcessCPUUsage() {
-#if defined(BENCHMARK_OS_WINDOWS)
+#if defined(CLOCK_PROCESS_CPUTIME_ID)
+  struct timespec spec;
+  if (clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &spec) == 0)
+    return MakeTime(spec);
+  DiagnoseAndExit("clock_gettime(CLOCK_PROCESS_CPUTIME_ID, ...) failed");
+#elif defined(BENCHMARK_OS_WINDOWS)
   HANDLE proc = GetCurrentProcess();
   FILETIME creation_time;
   FILETIME exit_time;
@@ -112,11 +115,6 @@ double ProcessCPUUsage() {
   if (GetProcessTimes(proc, &creation_time, &exit_time, &kernel_time, &user_time))
     return MakeTime(kernel_time, user_time);
   DiagnoseAndExit("GetProccessTimes() failed");
-#elif defined(CLOCK_PROCESS_CPUTIME_ID)
-  struct timespec spec;
-  if (clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &spec) == 0)
-    return MakeTime(spec);
-  DiagnoseAndExit("clock_gettime(CLOCK_PROCESS_CPUTIME_ID, ...) failed");
 #else
   struct rusage ru;
   if (getrusage(RUSAGE_SELF, &ru) == 0)
@@ -126,7 +124,12 @@ double ProcessCPUUsage() {
 }
 
 double ThreadCPUUsage() {
-#if defined(BENCHMARK_OS_WINDOWS)
+#if defined(CLOCK_THREAD_CPUTIME_ID)
+  struct timespec ts;
+  if (clock_gettime(CLOCK_THREAD_CPUTIME_ID, &ts) == 0)
+    return MakeTime(ts);
+  DiagnoseAndExit("clock_gettime(CLOCK_THREAD_CPUTIME_ID, ...) failed");
+#elif defined(BENCHMARK_OS_WINDOWS)
   HANDLE this_thread = GetCurrentThread();
   FILETIME creation_time;
   FILETIME exit_time;
@@ -135,11 +138,6 @@ double ThreadCPUUsage() {
   GetThreadTimes(this_thread, &creation_time, &exit_time, &kernel_time,
                  &user_time);
   return MakeTime(kernel_time, user_time);
-#elif defined(CLOCK_THREAD_CPUTIME_ID)
-  struct timespec ts;
-  if (clock_gettime(CLOCK_THREAD_CPUTIME_ID, &ts) == 0)
-    return MakeTime(ts);
-  DiagnoseAndExit("clock_gettime(CLOCK_THREAD_CPUTIME_ID, ...) failed");
 #elif defined(BENCHMARK_OS_MACOSX)
   mach_msg_type_number_t count = THREAD_BASIC_INFO_COUNT;
   thread_basic_info_data_t info;

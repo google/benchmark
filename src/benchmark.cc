@@ -14,6 +14,7 @@
 
 #include "benchmark/benchmark.h"
 #include "internal_macros.h"
+#include "benchmark_api_internal.h"
 
 #ifndef BENCHMARK_OS_WINDOWS
 #include <sys/time.h>
@@ -87,7 +88,6 @@ DEFINE_int32(v, 0, "The level of verbose logging to output");
 
 
 namespace benchmark {
-
 namespace internal {
 
 void UseCharPointer(char const volatile*) {}
@@ -96,34 +96,19 @@ void UseCharPointer(char const volatile*) {}
 
 namespace {
 
-bool IsZero(double n) {
-    return std::abs(n) < std::numeric_limits<double>::epsilon();
-}
-
-// For non-dense Range, intermediate values are powers of kRangeMultiplier.
-static const int kRangeMultiplier = 8;
-// The size of a benchmark family determines is the number of inputs to repeat
-// the benchmark on. If this is "large" then warn the user during configuration.
-static const size_t kMaxFamilySize = 100;
 static const size_t kMaxIterations = 1000000000;
 
 }  // end namespace
 
 namespace internal {
 
-// NOTE: This is a dummy "mutex" type used to denote the actual mutex
-// returned by GetBenchmarkMutex(). This is only used to placate the thread
-// safety warnings by giving the return of GetBenchmarkLock() a name.
-struct CAPABILITY("mutex") BenchmarkLockType {};
-BenchmarkLockType BenchmarkLockVar;
 
 class ThreadManager {
  public:
   ThreadManager(int num_threads)
       : alive_threads_(num_threads), start_stop_barrier_(num_threads) {}
 
-  Mutex& GetBenchmarkMutex() const
-      RETURN_CAPABILITY(::benchmark::internal::BenchmarkLockVar) {
+  Mutex& GetBenchmarkMutex() const RETURN_CAPABILITY(benchmark_mutex_) {
     return benchmark_mutex_;
   }
 
@@ -223,504 +208,6 @@ class ThreadTimer {
   double manual_time_used_;
 
 };
-
-
-enum ReportMode : unsigned {
-    RM_Unspecified, // The mode has not been manually specified
-    RM_Default,     // The mode is user-specified as default.
-    RM_ReportAggregatesOnly
-};
-
-// Information kept per benchmark we may want to run
-struct Benchmark::Instance {
-  std::string      name;
-  Benchmark*       benchmark;
-  ReportMode       report_mode;
-  std::vector<int> arg;
-  TimeUnit         time_unit;
-  int              range_multiplier;
-  bool             use_real_time;
-  bool             use_manual_time;
-  BigO             complexity;
-  BigOFunc*        complexity_lambda;
-  bool             last_benchmark_instance;
-  int              repetitions;
-  double           min_time;
-  int              threads;    // Number of concurrent threads to use
-  bool             multithreaded;  // Is benchmark multi-threaded?
-};
-
-// Class for managing registered benchmarks.  Note that each registered
-// benchmark identifies a family of related benchmarks to run.
-class BenchmarkFamilies {
- public:
-  static BenchmarkFamilies* GetInstance();
-
-  // Registers a benchmark family and returns the index assigned to it.
-  size_t AddBenchmark(std::unique_ptr<Benchmark> family);
-
-  // Extract the list of benchmark instances that match the specified
-  // regular expression.
-  bool FindBenchmarks(const std::string& re,
-                      std::vector<Benchmark::Instance>* benchmarks,
-                      std::ostream* Err);
- private:
-  BenchmarkFamilies() {}
-
-  std::vector<std::unique_ptr<Benchmark>> families_;
-  Mutex mutex_;
-};
-
-
-class BenchmarkImp {
-public:
-  explicit BenchmarkImp(const char* name);
-  ~BenchmarkImp();
-
-  void Arg(int x);
-  void Unit(TimeUnit unit);
-  void Range(int start, int limit);
-  void DenseRange(int start, int limit, int step = 1);
-  void Args(const std::vector<int>& args);
-  void Ranges(const std::vector<std::pair<int, int>>& ranges);
-  void RangeMultiplier(int multiplier);
-  void MinTime(double n);
-  void Repetitions(int n);
-  void ReportAggregatesOnly(bool v);
-  void UseRealTime();
-  void UseManualTime();
-  void Complexity(BigO complexity);
-  void ComplexityLambda(BigOFunc* complexity);
-  void Threads(int t);
-  void ThreadRange(int min_threads, int max_threads);
-  void DenseThreadRange(int min_threads, int max_threads, int stride);
-  void ThreadPerCpu();
-  void SetName(const char* name);
-
-  static void AddRange(std::vector<int>* dst, int lo, int hi, int mult);
-
-  int ArgsCnt() const { return args_.empty() ? -1 : static_cast<int>(args_.front().size()); }
-
-private:
-  friend class BenchmarkFamilies;
-
-  std::string name_;
-  ReportMode report_mode_;
-  std::vector< std::vector<int> > args_;  // Args for all benchmark runs
-  TimeUnit time_unit_;
-  int range_multiplier_;
-  double min_time_;
-  int repetitions_;
-  bool use_real_time_;
-  bool use_manual_time_;
-  BigO complexity_;
-  BigOFunc* complexity_lambda_;
-  std::vector<int> thread_counts_;
-
-  BenchmarkImp& operator=(BenchmarkImp const&);
-};
-
-BenchmarkFamilies* BenchmarkFamilies::GetInstance() {
-  static BenchmarkFamilies instance;
-  return &instance;
-}
-
-
-size_t BenchmarkFamilies::AddBenchmark(std::unique_ptr<Benchmark> family) {
-  MutexLock l(mutex_);
-  size_t index = families_.size();
-  families_.push_back(std::move(family));
-  return index;
-}
-
-bool BenchmarkFamilies::FindBenchmarks(
-    const std::string& spec,
-    std::vector<Benchmark::Instance>* benchmarks,
-    std::ostream* ErrStream) {
-  CHECK(ErrStream);
-  auto& Err = *ErrStream;
-  // Make regular expression out of command-line flag
-  std::string error_msg;
-  Regex re;
-  if (!re.Init(spec, &error_msg)) {
-    Err << "Could not compile benchmark re: " << error_msg << std::endl;
-    return false;
-  }
-
-  // Special list of thread counts to use when none are specified
-  const std::vector<int> one_thread = {1};
-
-  MutexLock l(mutex_);
-  for (std::unique_ptr<Benchmark>& bench_family : families_) {
-    // Family was deleted or benchmark doesn't match
-    if (!bench_family) continue;
-    BenchmarkImp* family = bench_family->imp_;
-
-    if (family->ArgsCnt() == -1) {
-      family->Args({});
-    }
-    const std::vector<int>* thread_counts =
-        (family->thread_counts_.empty()
-         ? &one_thread
-         : &static_cast<const std::vector<int>&>(family->thread_counts_));
-    const size_t family_size = family->args_.size() * thread_counts->size();
-    // The benchmark will be run at least 'family_size' different inputs.
-    // If 'family_size' is very large warn the user.
-    if (family_size > kMaxFamilySize) {
-      Err <<  "The number of inputs is very large. " << family->name_
-          << " will be repeated at least " << family_size << " times.\n";
-    }
-    // reserve in the special case the regex ".", since we know the final
-    // family size.
-    if (spec == ".")
-      benchmarks->reserve(family_size);
-
-    for (auto const& args : family->args_) {
-      for (int num_threads : *thread_counts) {
-
-        Benchmark::Instance instance;
-        instance.name = family->name_;
-        instance.benchmark = bench_family.get();
-        instance.report_mode = family->report_mode_;
-        instance.arg = args;
-        instance.time_unit = family->time_unit_;
-        instance.range_multiplier = family->range_multiplier_;
-        instance.min_time = family->min_time_;
-        instance.repetitions = family->repetitions_;
-        instance.use_real_time = family->use_real_time_;
-        instance.use_manual_time = family->use_manual_time_;
-        instance.complexity = family->complexity_;
-        instance.complexity_lambda = family->complexity_lambda_;
-        instance.threads = num_threads;
-        instance.multithreaded = !(family->thread_counts_.empty());
-
-        // Add arguments to instance name
-        for (auto const& arg : args) {
-          AppendHumanReadable(arg, &instance.name);
-        }
-
-        if (!IsZero(family->min_time_)) {
-          instance.name +=  StringPrintF("/min_time:%0.3f",  family->min_time_);
-        }
-        if (family->repetitions_ != 0) {
-          instance.name +=  StringPrintF("/repeats:%d",  family->repetitions_);
-        }
-        if (family->use_manual_time_) {
-          instance.name +=  "/manual_time";
-        } else if (family->use_real_time_) {
-          instance.name +=  "/real_time";
-        }
-
-        // Add the number of threads used to the name
-        if (!family->thread_counts_.empty()) {
-          instance.name += StringPrintF("/threads:%d", instance.threads);
-        }
-
-        if (re.Match(instance.name)) {
-          instance.last_benchmark_instance = (&args == &family->args_.back());
-          benchmarks->push_back(std::move(instance));
-        }
-      }
-    }
-  }
-  return true;
-}
-
-BenchmarkImp::BenchmarkImp(const char* name)
-    : name_(name), report_mode_(RM_Unspecified), time_unit_(kNanosecond),
-      range_multiplier_(kRangeMultiplier), min_time_(0.0), repetitions_(0),
-      use_real_time_(false), use_manual_time_(false),
-      complexity_(oNone) {
-}
-
-BenchmarkImp::~BenchmarkImp() {
-}
-
-void BenchmarkImp::Arg(int x) {
-  CHECK(ArgsCnt() == -1 || ArgsCnt() == 1);
-  args_.push_back({x});
-}
-
-void BenchmarkImp::Unit(TimeUnit unit) {
-  time_unit_ = unit;
-}
-
-void BenchmarkImp::Range(int start, int limit) {
-  CHECK(ArgsCnt() == -1 || ArgsCnt() == 1);
-  std::vector<int> arglist;
-  AddRange(&arglist, start, limit, range_multiplier_);
-
-  for (int i : arglist) {
-    args_.push_back({i});
-  }
-}
-
-void BenchmarkImp::DenseRange(int start, int limit, int step) {
-  CHECK(ArgsCnt() == -1 || ArgsCnt() == 1);
-  CHECK_GE(start, 0);
-  CHECK_LE(start, limit);
-  for (int arg = start; arg <= limit; arg+= step) {
-    args_.push_back({arg});
-  }
-}
-
-void BenchmarkImp::Args(const std::vector<int>& args)
-{
-  args_.push_back(args);
-}
-
-void BenchmarkImp::Ranges(const std::vector<std::pair<int, int>>& ranges) {
-  std::vector<std::vector<int>> arglists(ranges.size());
-  std::size_t total = 1;
-  for (std::size_t i = 0; i < ranges.size(); i++) {
-    AddRange(&arglists[i], ranges[i].first, ranges[i].second, range_multiplier_);
-    total *= arglists[i].size();
-  }
-
-  std::vector<std::size_t> ctr(arglists.size(), 0);
-
-  for (std::size_t i = 0; i < total; i++) {
-    std::vector<int> tmp;
-    tmp.reserve(arglists.size());
-
-    for (std::size_t j = 0; j < arglists.size(); j++) {
-      tmp.push_back(arglists[j].at(ctr[j]));
-    }
-
-    args_.push_back(std::move(tmp));
-
-    for (std::size_t j = 0; j < arglists.size(); j++) {
-      if (ctr[j] + 1 < arglists[j].size()) {
-        ++ctr[j];
-        break;
-      }
-      ctr[j] = 0;
-    }
-  }
-}
-
-void BenchmarkImp::RangeMultiplier(int multiplier) {
-  CHECK(multiplier > 1);
-  range_multiplier_ = multiplier;
-}
-
-void BenchmarkImp::MinTime(double t) {
-  CHECK(t > 0.0);
-  min_time_ = t;
-}
-
-
-void BenchmarkImp::Repetitions(int n) {
-  CHECK(n > 0);
-  repetitions_ = n;
-}
-
-void BenchmarkImp::ReportAggregatesOnly(bool value) {
-  report_mode_ = value ? RM_ReportAggregatesOnly : RM_Default;
-}
-
-void BenchmarkImp::UseRealTime() {
-  CHECK(!use_manual_time_) << "Cannot set UseRealTime and UseManualTime simultaneously.";
-  use_real_time_ = true;
-}
-
-void BenchmarkImp::UseManualTime() {
-  CHECK(!use_real_time_) << "Cannot set UseRealTime and UseManualTime simultaneously.";
-  use_manual_time_ = true;
-}
-
-void BenchmarkImp::Complexity(BigO complexity){
-  complexity_ = complexity;
-}
-
-void BenchmarkImp::ComplexityLambda(BigOFunc* complexity) {
-  complexity_lambda_ = complexity;
-}
-
-void BenchmarkImp::Threads(int t) {
-  CHECK_GT(t, 0);
-  thread_counts_.push_back(t);
-}
-
-void BenchmarkImp::ThreadRange(int min_threads, int max_threads) {
-  CHECK_GT(min_threads, 0);
-  CHECK_GE(max_threads, min_threads);
-
-  AddRange(&thread_counts_, min_threads, max_threads, 2);
-}
-
-void BenchmarkImp::DenseThreadRange(int min_threads, int max_threads,
-                                    int stride) {
-  CHECK_GT(min_threads, 0);
-  CHECK_GE(max_threads, min_threads);
-  CHECK_GE(stride, 1);
-
-  for (auto i = min_threads; i < max_threads; i += stride) {
-    thread_counts_.push_back(i);
-  }
-  thread_counts_.push_back(max_threads);
-}
-
-void BenchmarkImp::ThreadPerCpu() {
-  static int num_cpus = NumCPUs();
-  thread_counts_.push_back(num_cpus);
-}
-
-void BenchmarkImp::SetName(const char* name) {
-  name_ = name;
-}
-
-void BenchmarkImp::AddRange(std::vector<int>* dst, int lo, int hi, int mult) {
-  CHECK_GE(lo, 0);
-  CHECK_GE(hi, lo);
-  CHECK_GE(mult, 2);
-
-  // Add "lo"
-  dst->push_back(lo);
-
-  static const int kint32max = std::numeric_limits<int32_t>::max();
-
-  // Now space out the benchmarks in multiples of "mult"
-  for (int32_t i = 1; i < kint32max/mult; i *= mult) {
-    if (i >= hi) break;
-    if (i > lo) {
-      dst->push_back(i);
-    }
-  }
-  // Add "hi" (if different from "lo")
-  if (hi != lo) {
-    dst->push_back(hi);
-  }
-}
-
-
-Benchmark::Benchmark(const char* name)
-    : imp_(new BenchmarkImp(name))
-{
-}
-
-Benchmark::~Benchmark()  {
-  delete imp_;
-}
-
-Benchmark::Benchmark(Benchmark const& other)
-  : imp_(new BenchmarkImp(*other.imp_))
-{
-}
-
-Benchmark* Benchmark::Arg(int x) {
-  CHECK(imp_->ArgsCnt() == -1 || imp_->ArgsCnt() == 1);
-  imp_->Arg(x);
-  return this;
-}
-
-Benchmark* Benchmark::Unit(TimeUnit unit) {
-  imp_->Unit(unit);
-  return this;
-}
-
-Benchmark* Benchmark::Range(int start, int limit) {
-  CHECK(imp_->ArgsCnt() == -1 || imp_->ArgsCnt() == 1);
-  imp_->Range(start, limit);
-  return this;
-}
-
-Benchmark* Benchmark::Ranges(const std::vector<std::pair<int, int>>& ranges)
-{
-  CHECK(imp_->ArgsCnt() == -1 || imp_->ArgsCnt() == static_cast<int>(ranges.size()));
-  imp_->Ranges(ranges);
-  return this;
-}
-
-Benchmark* Benchmark::DenseRange(int start, int limit, int step) {
-  CHECK(imp_->ArgsCnt() == -1 || imp_->ArgsCnt() == 1);
-  imp_->DenseRange(start, limit, step);
-  return this;
-}
-
-Benchmark* Benchmark::Args(const std::vector<int>& args) {
-  CHECK(imp_->ArgsCnt() == -1 || imp_->ArgsCnt() == static_cast<int>(args.size()));
-  imp_->Args(args);
-  return this;
-}
-
-Benchmark* Benchmark::Apply(void (*custom_arguments)(Benchmark* benchmark)) {
-  custom_arguments(this);
-  return this;
-}
-
-Benchmark* Benchmark::RangeMultiplier(int multiplier) {
-  imp_->RangeMultiplier(multiplier);
-  return this;
-}
-
-
-Benchmark* Benchmark::Repetitions(int t) {
-  imp_->Repetitions(t);
-  return this;
-}
-
-Benchmark* Benchmark::ReportAggregatesOnly(bool value) {
-  imp_->ReportAggregatesOnly(value);
-  return this;
-}
-
-Benchmark* Benchmark::MinTime(double t) {
-  imp_->MinTime(t);
-  return this;
-}
-
-Benchmark* Benchmark::UseRealTime() {
-  imp_->UseRealTime();
-  return this;
-}
-
-Benchmark* Benchmark::UseManualTime() {
-  imp_->UseManualTime();
-  return this;
-}
-
-Benchmark* Benchmark::Complexity(BigO complexity) {
-  imp_->Complexity(complexity);
-  return this;
-}
-
-Benchmark* Benchmark::Complexity(BigOFunc* complexity) {
-  imp_->Complexity(oLambda);
-  imp_->ComplexityLambda(complexity);
-  return this;
-}
-
-Benchmark* Benchmark::Threads(int t) {
-  imp_->Threads(t);
-  return this;
-}
-
-Benchmark* Benchmark::ThreadRange(int min_threads, int max_threads) {
-  imp_->ThreadRange(min_threads, max_threads);
-  return this;
-}
-
-Benchmark *Benchmark::DenseThreadRange(int min_threads, int max_threads,
-                                       int stride) {
-  imp_->DenseThreadRange(min_threads, max_threads, stride);
-  return this;
-}
-
-Benchmark* Benchmark::ThreadPerCpu() {
-  imp_->ThreadPerCpu();
-  return this;
-}
-
-void Benchmark::SetName(const char* name) {
-  imp_->SetName(name);
-}
-
-void FunctionBenchmark::Run(State& st) {
-  func_(st);
-}
-
-} // end namespace internal
 
 namespace {
 
@@ -883,7 +370,8 @@ std::vector<BenchmarkReporter::Run> RunBenchmark(
   return reports;
 }
 
-}  // namespace
+} // namespace
+} // namespace internal
 
 State::State(size_t max_iters, const std::vector<int>& ranges, int thread_i,
              int n_threads, internal::ThreadTimer* timer,
@@ -1072,8 +560,7 @@ size_t RunSpecifiedBenchmarks(BenchmarkReporter* console_reporter,
   }
 
   std::vector<internal::Benchmark::Instance> benchmarks;
-  auto families = internal::BenchmarkFamilies::GetInstance();
-  if (!families->FindBenchmarks(spec, &benchmarks, &Err)) return 0;
+  if (!FindBenchmarksInternal(spec, &benchmarks, &Err)) return 0;
 
   if (FLAGS_benchmark_list_tests) {
     for (auto const& benchmark : benchmarks)
@@ -1139,13 +626,6 @@ void ParseCommandLineFlags(int* argc, char** argv) {
   if (*flag != "console" && *flag != "json" && *flag != "csv") {
     PrintUsageAndExit();
   }
-}
-
-Benchmark* RegisterBenchmarkInternal(Benchmark* bench) {
-    std::unique_ptr<Benchmark> bench_ptr(bench);
-    BenchmarkFamilies* families = BenchmarkFamilies::GetInstance();
-    families->AddBenchmark(std::move(bench_ptr));
-    return bench;
 }
 
 int InitializeStreams() {

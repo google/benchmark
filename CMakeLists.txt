@@ -147,9 +147,14 @@ if (BENCHMARK_USE_LIBCXX)
 endif(BENCHMARK_USE_LIBCXX)
 
 # C++ feature checks
+# Determine the correct regular expression engine to use
 cxx_feature_check(STD_REGEX)
 cxx_feature_check(GNU_POSIX_REGEX)
 cxx_feature_check(POSIX_REGEX)
+if(NOT HAVE_STD_REGEX AND NOT HAVE_GNU_POSIX_REGEX AND NOT HAVE_POSIX_REGEX)
+  message(FATAL_ERROR "Failed to determine the source files for the regular expression backend")
+endif()
+
 cxx_feature_check(STEADY_CLOCK)
 # Ensure we have pthreads
 find_package(Threads REQUIRED)
