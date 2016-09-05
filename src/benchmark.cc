@@ -216,22 +216,11 @@ namespace {
 
 BenchmarkReporter::Run
 CreateRunReport(const benchmark::internal::Benchmark::Instance& b,
-                const internal::ThreadManager::Result& results, size_t iters)
+                const internal::ThreadManager::Result& results,
+                size_t iters, double seconds)
 {
   // Create report about this benchmark run.
   BenchmarkReporter::Run report;
-
-  const double cpu_accumulated_time = results.cpu_time_used;
-  const double real_accumulated_time = results.real_time_used / b.threads;
-  const double manual_accumulated_time = results.manual_time_used / b.threads;
-
-  // Base decisions off of real time if requested by this benchmark.
-  double seconds = cpu_accumulated_time;
-  if (b.use_manual_time) {
-    seconds = manual_accumulated_time;
-  } else if (b.use_real_time) {
-    seconds = real_accumulated_time;
-  }
 
   report.benchmark_name = b.name;
   report.error_occurred = results.has_error_;
@@ -252,11 +241,11 @@ CreateRunReport(const benchmark::internal::Benchmark::Instance& b,
     }
 
     if (b.use_manual_time) {
-      report.real_accumulated_time = manual_accumulated_time;
+      report.real_accumulated_time = results.manual_time_used;
     } else {
-      report.real_accumulated_time = real_accumulated_time;
+      report.real_accumulated_time = results.real_time_used;
     }
-    report.cpu_accumulated_time = cpu_accumulated_time;
+    report.cpu_accumulated_time = results.cpu_time_used;
     report.bytes_per_second = bytes_per_second;
     report.items_per_second = items_per_second;
     report.complexity_n = results.complexity_n;
@@ -265,7 +254,6 @@ CreateRunReport(const benchmark::internal::Benchmark::Instance& b,
   }
   return report;
 }
-
 
 // Execute one thread of benchmark b for the specified number of iterations.
 // Adds the stats collected for the thread into *total.
@@ -324,20 +312,19 @@ std::vector<BenchmarkReporter::Run> RunBenchmark(
         results = manager->results;
       }
       manager.reset();
+      // Adjust real/manual time stats since they were reported per thread.
+      results.real_time_used /= b.threads;
+      results.manual_time_used /= b.threads;
 
-      const double cpu_accumulated_time = results.cpu_time_used;
-      const double real_accumulated_time = results.real_time_used / b.threads;
-      const double manual_accumulated_time = results.manual_time_used / b.threads;
-
-      VLOG(2) << "Ran in " << cpu_accumulated_time << "/"
-              << real_accumulated_time << "\n";
+      VLOG(2) << "Ran in " << results.cpu_time_used << "/"
+                           << results.real_time_used << "\n";
 
       // Base decisions off of real time if requested by this benchmark.
-      double seconds = cpu_accumulated_time;
+      double seconds = results.cpu_time_used;
       if (b.use_manual_time) {
-          seconds = manual_accumulated_time;
+          seconds = results.manual_time_used;
       } else if (b.use_real_time) {
-          seconds = real_accumulated_time;
+          seconds = results.real_time_used;
       }
 
       const double min_time = !IsZero(b.min_time) ? b.min_time
@@ -345,8 +332,8 @@ std::vector<BenchmarkReporter::Run> RunBenchmark(
       // If this was the first run, was elapsed time or cpu time large enough?
       // If this is not the first run, go with the current value of iter.
       if ((i > 0) || results.has_error_ || (iters >= kMaxIterations) ||
-          (seconds >= min_time) || (real_accumulated_time >= 5 * min_time)) {
-        BenchmarkReporter::Run report = CreateRunReport(b, results, iters);
+          (seconds >= min_time) || (results.real_time_used >= 5 * min_time)) {
+        BenchmarkReporter::Run report = CreateRunReport(b, results, iters, seconds);
         if (!report.error_occurred && b.complexity != oNone)
           complexity_reports->push_back(report);
         reports.push_back(report);
