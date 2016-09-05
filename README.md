@@ -462,6 +462,24 @@ static void BM_test(benchmark::State& state) {
 }
 ```
 
+## Running a subset of the benchmarks
+
+The `--benchmark_filter=<regex>` option can be used to only run the benchmarks
+which match the specified `<regex>`. For example:
+
+```bash
+$ ./run_benchmarks.x --benchmark_filter=BM_memcpy/32
+Run on (1 X 2300 MHz CPU )
+2016-06-25 19:34:24
+Benchmark              Time           CPU Iterations
+----------------------------------------------------
+BM_memcpy/32          11 ns         11 ns   79545455
+BM_memcpy/32k       2181 ns       2185 ns     324074
+BM_memcpy/32          12 ns         12 ns   54687500
+BM_memcpy/32k       1834 ns       1837 ns     357143
+```
+
+
 ## Output Formats
 The library supports multiple output formats. Use the
 `--benchmark_format=<console|json|csv>` flag to set the format type. `console`
