@@ -27,8 +27,7 @@ struct Benchmark::Instance {
   bool             last_benchmark_instance;
   int              repetitions;
   double           min_time;
-  int              threads;    // Number of concurrent threads to use
-  bool             multithreaded;  // Is benchmark multi-threaded?
+  int              threads;    // Number of concurrent threads to us
 };
 
 bool FindBenchmarksInternal(const std::string& re,
