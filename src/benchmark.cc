@@ -131,15 +131,18 @@ class ThreadManager {
   }
 
  public:
-  GUARDED_BY(GetBenchmarkMutex()) double real_time_used = 0;
-  GUARDED_BY(GetBenchmarkMutex()) double cpu_time_used = 0;
-  GUARDED_BY(GetBenchmarkMutex()) double manual_time_used = 0;
-  GUARDED_BY(GetBenchmarkMutex()) int64_t bytes_processed = 0;
-  GUARDED_BY(GetBenchmarkMutex()) int64_t items_processed = 0;
-  GUARDED_BY(GetBenchmarkMutex()) int complexity_n = 0;
-  GUARDED_BY(GetBenchmarkMutex()) std::string report_label_;
-  GUARDED_BY(GetBenchmarkMutex()) std::string error_message_;
-  GUARDED_BY(GetBenchmarkMutex()) bool has_error_ = false;
+  struct Result {
+    double real_time_used = 0;
+    double cpu_time_used = 0;
+    double manual_time_used = 0;
+    int64_t bytes_processed = 0;
+    int64_t items_processed = 0;
+    int complexity_n = 0;
+    std::string report_label_;
+    std::string error_message_;
+    bool has_error_ = false;
+  };
+  GUARDED_BY(GetBenchmarkMutex()) Result results;
 
  private:
   mutable Mutex benchmark_mutex_;
@@ -211,6 +214,47 @@ class ThreadTimer {
 
 namespace {
 
+BenchmarkReporter::Run
+CreateRunReport(const benchmark::internal::Benchmark::Instance& b,
+                const internal::ThreadManager::Result& results,
+                size_t iters, double seconds)
+{
+  // Create report about this benchmark run.
+  BenchmarkReporter::Run report;
+
+  report.benchmark_name = b.name;
+  report.error_occurred = results.has_error_;
+  report.error_message = results.error_message_;
+  report.report_label = results.report_label_;
+  // Report the total iterations across all threads.
+  report.iterations = static_cast<int64_t>(iters) * b.threads;
+  report.time_unit = b.time_unit;
+
+  if (!report.error_occurred) {
+    double bytes_per_second = 0;
+    if (results.bytes_processed > 0 && seconds > 0.0) {
+      bytes_per_second = (results.bytes_processed / seconds);
+    }
+    double items_per_second = 0;
+    if (results.items_processed > 0 && seconds > 0.0) {
+      items_per_second = (results.items_processed / seconds);
+    }
+
+    if (b.use_manual_time) {
+      report.real_accumulated_time = results.manual_time_used;
+    } else {
+      report.real_accumulated_time = results.real_time_used;
+    }
+    report.cpu_accumulated_time = results.cpu_time_used;
+    report.bytes_per_second = bytes_per_second;
+    report.items_per_second = items_per_second;
+    report.complexity_n = results.complexity_n;
+    report.complexity = b.complexity;
+    report.complexity_lambda = b.complexity_lambda;
+  }
+  return report;
+}
+
 // Execute one thread of benchmark b for the specified number of iterations.
 // Adds the stats collected for the thread into *total.
 void RunInThread(const benchmark::internal::Benchmark::Instance* b,
@@ -223,12 +267,13 @@ void RunInThread(const benchmark::internal::Benchmark::Instance* b,
     "Benchmark returned before State::KeepRunning() returned false!";
   {
     MutexLock l(manager->GetBenchmarkMutex());
-    manager->cpu_time_used += timer.cpu_time_used();
-    manager->real_time_used += timer.real_time_used();
-    manager->manual_time_used += timer.manual_time_used();
-    manager->bytes_processed += st.bytes_processed();
-    manager->items_processed += st.items_processed();
-    manager->complexity_n += st.complexity_length_n();
+    internal::ThreadManager::Result& results = manager->results;
+    results.cpu_time_used += timer.cpu_time_used();
+    results.real_time_used += timer.real_time_used();
+    results.manual_time_used += timer.manual_time_used();
+    results.bytes_processed += st.bytes_processed();
+    results.items_processed += st.items_processed();
+    results.complexity_n += st.complexity_length_n();
   }
   manager->NotifyThreadComplete();
 }
@@ -239,10 +284,8 @@ std::vector<BenchmarkReporter::Run> RunBenchmark(
   std::vector<BenchmarkReporter::Run> reports; // return value
 
   size_t iters = 1;
-  const int num_threads = b.multithreaded ? b.threads : 1;
-  std::vector<std::thread> pool;
-  if (num_threads > 1) pool.resize(num_threads -1);
-
+  std::unique_ptr<internal::ThreadManager> manager;
+  std::vector<std::thread> pool(b.threads - 1);
   const int repeats = b.repetitions != 0 ? b.repetitions
                                          : FLAGS_benchmark_repetitions;
   const bool report_aggregates_only = repeats != 1 &&
@@ -250,85 +293,49 @@ std::vector<BenchmarkReporter::Run> RunBenchmark(
         ? FLAGS_benchmark_report_aggregates_only
         : b.report_mode == internal::RM_ReportAggregatesOnly);
   for (int i = 0; i < repeats; i++) {
-    std::string mem;
     for (;;) {
       // Try benchmark
       VLOG(2) << "Running " << b.name << " for " << iters << "\n";
 
-      internal::ThreadManager manager(num_threads);
-      if (b.multithreaded) {
-        // If this is out first iteration of the while(true) loop then the
-        // threads haven't been started and can't be joined. Otherwise we need
-        // to join the thread before replacing them.
-        for (std::thread& thread : pool) {
-          if (thread.joinable())
-            thread.join();
-        }
-        for (std::size_t ti = 0; ti < pool.size(); ++ti) {
-          pool[ti] = std::thread(&RunInThread, &b, iters,
-                                 static_cast<int>(ti + 1), &manager);
-        }
+      manager.reset(new internal::ThreadManager(b.threads));
+      for (std::size_t ti = 0; ti < pool.size(); ++ti) {
+        pool[ti] = std::thread(&RunInThread, &b, iters,
+                               static_cast<int>(ti + 1), manager.get());
       }
-      RunInThread(&b, iters, 0, &manager);
-      manager.WaitForAllThreads();
-      MutexLock l(manager.GetBenchmarkMutex());
+      RunInThread(&b, iters, 0, manager.get());
+      manager->WaitForAllThreads();
+      for (std::thread& thread : pool)
+        thread.join();
+      internal::ThreadManager::Result results;
+      {
+        MutexLock l(manager->GetBenchmarkMutex());
+        results = manager->results;
+      }
+      manager.reset();
+      // Adjust real/manual time stats since they were reported per thread.
+      results.real_time_used /= b.threads;
+      results.manual_time_used /= b.threads;
 
-      const double cpu_accumulated_time = manager.cpu_time_used;
-      const double real_accumulated_time = manager.real_time_used / num_threads;
-      const double manual_accumulated_time = manager.manual_time_used / num_threads;
-
-      VLOG(2) << "Ran in " << cpu_accumulated_time << "/"
-              << real_accumulated_time << "\n";
+      VLOG(2) << "Ran in " << results.cpu_time_used << "/"
+                           << results.real_time_used << "\n";
 
       // Base decisions off of real time if requested by this benchmark.
-      double seconds = cpu_accumulated_time;
+      double seconds = results.cpu_time_used;
       if (b.use_manual_time) {
-          seconds = manual_accumulated_time;
+          seconds = results.manual_time_used;
       } else if (b.use_real_time) {
-          seconds = real_accumulated_time;
+          seconds = results.real_time_used;
       }
 
       const double min_time = !IsZero(b.min_time) ? b.min_time
                                                   : FLAGS_benchmark_min_time;
       // If this was the first run, was elapsed time or cpu time large enough?
       // If this is not the first run, go with the current value of iter.
-      if ((i > 0) || manager.has_error_ || (iters >= kMaxIterations) ||
-          (seconds >= min_time) || (real_accumulated_time >= 5 * min_time)) {
-        // Create report about this benchmark run.
-        BenchmarkReporter::Run report;
-        report.benchmark_name = b.name;
-        report.error_occurred = manager.has_error_;
-        report.error_message = manager.error_message_;
-        report.report_label = manager.report_label_;
-        // Report the total iterations across all threads.
-        report.iterations = static_cast<int64_t>(iters) * b.threads;
-        report.time_unit = b.time_unit;
-
-        if (!report.error_occurred) {
-          double bytes_per_second = 0;
-          if (manager.bytes_processed > 0 && seconds > 0.0) {
-            bytes_per_second = (manager.bytes_processed / seconds);
-          }
-          double items_per_second = 0;
-          if (manager.items_processed > 0 && seconds > 0.0) {
-            items_per_second = (manager.items_processed / seconds);
-          }
-
-          if (b.use_manual_time) {
-            report.real_accumulated_time = manual_accumulated_time;
-          } else {
-            report.real_accumulated_time = real_accumulated_time;
-          }
-          report.cpu_accumulated_time = cpu_accumulated_time;
-          report.bytes_per_second = bytes_per_second;
-          report.items_per_second = items_per_second;
-          report.complexity_n = manager.complexity_n;
-          report.complexity = b.complexity;
-          report.complexity_lambda = b.complexity_lambda;
-          if(report.complexity != oNone)
-            complexity_reports->push_back(report);
-        }
-
+      if ((i > 0) || results.has_error_ || (iters >= kMaxIterations) ||
+          (seconds >= min_time) || (results.real_time_used >= 5 * min_time)) {
+        BenchmarkReporter::Run report = CreateRunReport(b, results, iters, seconds);
+        if (!report.error_occurred && b.complexity != oNone)
+          complexity_reports->push_back(report);
         reports.push_back(report);
         break;
       }
@@ -351,10 +358,6 @@ std::vector<BenchmarkReporter::Run> RunBenchmark(
       VLOG(3) << "Next iters: " << next_iters << ", " << multiplier << "\n";
       iters = static_cast<int>(next_iters + 0.5);
     }
-  }
-  if (b.multithreaded) {
-    for (std::thread& thread : pool)
-      thread.join();
   }
   // Calculate additional statistics
   auto stat_reports = ComputeStats(reports);
@@ -409,9 +412,9 @@ void State::SkipWithError(const char* msg) {
   error_occurred_ = true;
   {
     MutexLock l(manager_->GetBenchmarkMutex());
-    if (manager_->has_error_ == false) {
-      manager_->error_message_ = msg;
-      manager_->has_error_ = true;
+    if (manager_->results.has_error_ == false) {
+      manager_->results.error_message_ = msg;
+      manager_->results.has_error_ = true;
     }
   }
   total_iterations_ = max_iterations;
@@ -425,7 +428,7 @@ void State::SetIterationTime(double seconds)
 
 void State::SetLabel(const char* label) {
   MutexLock l(manager_->GetBenchmarkMutex());
-  manager_->report_label_ = label;
+  manager_->results.report_label_ = label;
 }
 
 void State::StartKeepRunning() {

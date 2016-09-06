@@ -151,7 +151,6 @@ bool BenchmarkFamilies::FindBenchmarks(
         instance.complexity = family->complexity_;
         instance.complexity_lambda = family->complexity_lambda_;
         instance.threads = num_threads;
-        instance.multithreaded = !(family->thread_counts_.empty());
 
         // Add arguments to instance name
         for (auto const& arg : args) {
