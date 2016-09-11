@@ -480,17 +480,31 @@ void RunMatchingBenchmarks(const std::vector<Benchmark::Instance>& benchmarks,
   // Keep track of runing times of all instances of current benchmark
   std::vector<BenchmarkReporter::Run> complexity_reports;
 
+  // We flush streams after invoking reporter methods that write to them. This
+  // ensures users get timely updates even when streams are not line-buffered.
+  auto flushStreams = [](BenchmarkReporter* reporter) {
+    if (!reporter) return;
+    std::flush(reporter->GetOutputStream());
+    std::flush(reporter->GetErrorStream());
+  };
+
   if (console_reporter->ReportContext(context)
       && (!file_reporter || file_reporter->ReportContext(context))) {
+    flushStreams(console_reporter);
+    flushStreams(file_reporter);
     for (const auto& benchmark : benchmarks) {
       std::vector<BenchmarkReporter::Run> reports =
           RunBenchmark(benchmark, &complexity_reports);
       console_reporter->ReportRuns(reports);
       if (file_reporter) file_reporter->ReportRuns(reports);
+      flushStreams(console_reporter);
+      flushStreams(file_reporter);
     }
   }
   console_reporter->Finalize();
   if (file_reporter) file_reporter->Finalize();
+  flushStreams(console_reporter);
+  flushStreams(file_reporter);
 }
 
 std::unique_ptr<BenchmarkReporter>
