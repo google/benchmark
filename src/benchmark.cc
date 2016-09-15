@@ -34,6 +34,7 @@
 #include <thread>
 
 #include "check.h"
+#include "colorprint.h"
 #include "commandlineflags.h"
 #include "complexity.h"
 #include "log.h"
@@ -82,7 +83,12 @@ DEFINE_string(benchmark_out_format, "json",
 
 DEFINE_string(benchmark_out, "", "The file to write additonal output to");
 
-DEFINE_bool(color_print, true, "Enables colorized logging.");
+DEFINE_string(benchmark_color, "auto",
+              "Whether to use colors in the output.  Valid values: "
+              "'true'/'yes'/1, 'false'/'no'/0, and 'auto'. 'auto' means to use "
+              "colors if the output is being sent to a terminal and the TERM "
+              "environment variable is set to a terminal type that supports "
+              "colors.");
 
 DEFINE_int32(v, 0, "The level of verbose logging to output");
 
@@ -546,8 +552,14 @@ size_t RunSpecifiedBenchmarks(BenchmarkReporter* console_reporter,
   std::unique_ptr<BenchmarkReporter> default_console_reporter;
   std::unique_ptr<BenchmarkReporter> default_file_reporter;
   if (!console_reporter) {
-    auto output_opts = FLAGS_color_print ? ConsoleReporter::OO_Color
-                                          : ConsoleReporter::OO_None;
+    auto output_opts = ConsoleReporter::OO_None;
+    if (FLAGS_benchmark_color == "auto")
+      output_opts = IsColorTerminal() ? ConsoleReporter::OO_Color
+                                      : ConsoleReporter::OO_None;
+    else
+      output_opts = IsTruthyFlagValue(FLAGS_benchmark_color)
+                        ? ConsoleReporter::OO_Color
+                        : ConsoleReporter::OO_None;
     default_console_reporter = internal::CreateReporter(
           FLAGS_benchmark_format, output_opts);
     console_reporter = default_console_reporter.get();
@@ -602,7 +614,7 @@ void PrintUsageAndExit() {
           "          [--benchmark_format=<console|json|csv>]\n"
           "          [--benchmark_out=<filename>]\n"
           "          [--benchmark_out_format=<json|console|csv>]\n"
-          "          [--color_print={true|false}]\n"
+          "          [--benchmark_color={auto|true|false}]\n"
           "          [--v=<verbosity>]\n");
   exit(0);
 }
@@ -627,8 +639,12 @@ void ParseCommandLineFlags(int* argc, char** argv) {
                         &FLAGS_benchmark_out) ||
         ParseStringFlag(argv[i], "benchmark_out_format",
                         &FLAGS_benchmark_out_format) ||
-        ParseBoolFlag(argv[i], "color_print",
-                       &FLAGS_color_print) ||
+        ParseStringFlag(argv[i], "benchmark_color",
+                        &FLAGS_benchmark_color) ||
+        // "color_print" is the deprecated name for "benchmark_color".
+        // TODO: Remove this.
+        ParseStringFlag(argv[i], "color_print",
+                        &FLAGS_benchmark_color) ||
         ParseInt32Flag(argv[i], "v", &FLAGS_v)) {
       for (int j = i; j != *argc; ++j) argv[j] = argv[j + 1];
 
@@ -641,6 +657,9 @@ void ParseCommandLineFlags(int* argc, char** argv) {
   for (auto const* flag : {&FLAGS_benchmark_format,
                            &FLAGS_benchmark_out_format})
   if (*flag != "console" && *flag != "json" && *flag != "csv") {
+    PrintUsageAndExit();
+  }
+  if (FLAGS_benchmark_color.empty()) {
     PrintUsageAndExit();
   }
 }
