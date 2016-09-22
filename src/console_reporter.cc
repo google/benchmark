@@ -36,7 +36,6 @@ namespace benchmark {
 bool ConsoleReporter::ReportContext(const Context& context) {
   name_field_width_ = context.name_field_width;
   printed_header_ = false;
-  prev_counters_.clear();
 
   PrintBasicContext(&GetErrorStream(), context);
 
@@ -64,12 +63,9 @@ void ConsoleReporter::PrintHeader(const Run& run) {
 
 void ConsoleReporter::ReportRuns(const std::vector<Run>& reports) {
   for (const auto& run : reports) {
-    // print the header:
-    // --- if none was printed yet
-    // --- if this run has different fields from the prev header
-    if ((!printed_header_) || (!internal::SameNames(run.counters, prev_counters_))) {
+    // print the header if none was printed yet
+    if (!printed_header_) {
       printed_header_ = true;
-      prev_counters_ = run.counters;
       PrintHeader(run);
     }
     // As an alternative to printing the headers like this, we could sort

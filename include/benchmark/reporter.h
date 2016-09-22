@@ -176,7 +176,6 @@ protected:
   virtual void PrintHeader(const Run& report);
 
   size_t name_field_width_;
-  BenchmarkCounters prev_counters_;
   bool printed_header_;
 private:
   bool color_output_;
