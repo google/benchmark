@@ -259,7 +259,7 @@ CreateRunReport(const benchmark::internal::Benchmark::Instance& b,
     report.complexity_n = results.complexity_n;
     report.complexity = b.complexity;
     report.complexity_lambda = b.complexity_lambda;
-    report.counters = b.counters;
+    report.counters = results.counters;
   }
   return report;
 }
