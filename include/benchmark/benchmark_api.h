@@ -276,7 +276,7 @@ public:
 };
 
 // This is the container for the user-defined counters.
-typedef std::map< std::string, Counter > BenchmarkCounters;
+typedef std::map<std::string, Counter> BenchmarkCounters;
 
 
 // TimeUnit is passed to a benchmark in order to specify the order of magnitude
