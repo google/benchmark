@@ -33,9 +33,7 @@ public:
           << check << "' failed. ";
   }
 
-  std::ostream& GetLog() {
-    return log_;
-  }
+  LogType& GetLog() { return log_; }
 
   BENCHMARK_NORETURN ~CheckHandler() BENCHMARK_NOEXCEPT_OP(false) {
       log_ << std::endl;
@@ -46,7 +44,7 @@ public:
   CheckHandler(const CheckHandler&) = delete;
   CheckHandler() = delete;
 private:
-  std::ostream& log_;
+ LogType& log_;
 };
 
 } // end namespace internal

@@ -13,7 +13,7 @@
 // limitations under the License.
 
 #include "benchmark/reporter.h"
-#include "walltime.h"
+#include "timers.h"
 
 #include <cstdlib>
 

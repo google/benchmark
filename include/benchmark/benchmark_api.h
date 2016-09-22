@@ -306,31 +306,36 @@ enum BigO {
 // computational complexity for the benchmark.
 typedef double(BigOFunc)(int);
 
+namespace internal {
+class ThreadTimer;
+class ThreadManager;
+
+#if defined(BENCHMARK_HAS_CXX11)
+enum ReportMode : unsigned {
+#else
+enum ReportMode {
+#endif
+    RM_Unspecified, // The mode has not been manually specified
+    RM_Default,     // The mode is user-specified as default.
+    RM_ReportAggregatesOnly
+};
+
+}
+
 // State is passed to a running Benchmark and contains state for the
 // benchmark to use.
 class State {
 public:
-  State(size_t max_iters, const std::vector<int>& ranges,
-        int thread_i, int n_threads);
-
   // Returns true if the benchmark should continue through another iteration.
   // NOTE: A benchmark may not return from the test until KeepRunning() has
   // returned false.
   bool KeepRunning() {
     if (BENCHMARK_BUILTIN_EXPECT(!started_, false)) {
-      assert(!finished_);
-      started_ = true;
-      ResumeTiming();
+      StartKeepRunning();
     }
     bool const res = total_iterations_++ < max_iterations;
     if (BENCHMARK_BUILTIN_EXPECT(!res, false)) {
-      assert(started_ && (!finished_ || error_occurred_));
-      if (!error_occurred_) {
-        PauseTiming();
-      }
-      // Total iterations now is one greater than max iterations. Fix this.
-      total_iterations_ = max_iterations;
-      finished_ = true;
+      FinishKeepRunning();
     }
     return res;
   }
@@ -340,10 +345,11 @@ public:
   // Stop the benchmark timer.  If not called, the timer will be
   // automatically stopped after KeepRunning() returns false for the first time.
   //
-  // For threaded benchmarks the PauseTiming() function acts
-  // like a barrier.  I.e., the ith call by a particular thread to this
-  // function will block until all active threads have made their ith call.
-  // The timer will stop when the last thread has called this function.
+  // For threaded benchmarks the PauseTiming() function only pauses the timing
+  // for the current thread.
+  //
+  // NOTE: The "real time" measurement is per-thread. If different threads
+  // report different measurements the largest one is reported.
   //
   // NOTE: PauseTiming()/ResumeTiming() are relatively
   // heavyweight, and so their use should generally be avoided
@@ -354,11 +360,6 @@ public:
   //           by the current thread.
   // Start the benchmark timer.  The timer is NOT running on entrance to the
   // benchmark function. It begins running after the first call to KeepRunning()
-  //
-  // For threaded benchmarks the ResumeTiming() function acts
-  // like a barrier.  I.e., the ith call by a particular thread to this
-  // function will block until all active threads have made their ith call.
-  // The timer will start when the last thread has called this function.
   //
   // NOTE: PauseTiming()/ResumeTiming() are relatively
   // heavyweight, and so their use should generally be avoided
@@ -371,10 +372,10 @@ public:
   // thread and report an error with the specified 'msg'. After this call
   // the user may explicitly 'return' from the benchmark.
   //
-  // For threaded benchmarks only the current thread stops executing. If
-  // multiple threads report an error only the first error message is used.
-  // The current thread is no longer considered 'active' by
-  // 'PauseTiming()' and 'ResumingTiming()'.
+  // For threaded benchmarks only the current thread stops executing and future
+  // calls to `KeepRunning()` will block until all threads have completed
+  // the `KeepRunning()` loop. If multiple threads report an error only the
+  // first error message is used.
   //
   // NOTE: Calling 'SkipWithError(...)' does not cause the benchmark to exit
   // the current scope immediately. If the function is called from within
@@ -387,10 +388,8 @@ public:
   // is used instead of automatically measured time if UseManualTime() was
   // specified.
   //
-  // For threaded benchmarks the SetIterationTime() function acts
-  // like a barrier.  I.e., the ith call by a particular thread to this
-  // function will block until all threads have made their ith call.
-  // The time will be set by the last thread to call this function.
+  // For threaded benchmarks the final value will be set to the largest
+  // reported values.
   void SetIterationTime(double seconds);
 
   // Set the number of bytes processed by the current benchmark
@@ -506,7 +505,16 @@ public:
   const int threads;
   const size_t max_iterations;
 
-private:
+  // TODO make me private
+  State(size_t max_iters, const std::vector<int>& ranges, int thread_i,
+        int n_threads, internal::ThreadTimer* timer,
+        internal::ThreadManager* manager);
+
+ private:
+  void StartKeepRunning();
+  void FinishKeepRunning();
+  internal::ThreadTimer* timer_;
+  internal::ThreadManager* manager_;
   BENCHMARK_DISALLOW_COPY_AND_ASSIGN(State);
 };
 
@@ -639,7 +647,13 @@ public:
   //    Foo in 4 threads
   //    Foo in 8 threads
   //    Foo in 16 threads
-  Benchmark* ThreadRange(int min_threads, int max_threads);
+  Benchmark *ThreadRange(int min_threads, int max_threads);
+
+  // For each value n in the range, run this benchmark once using n threads.
+  // min_threads and max_threads are always included in the range.
+  // stride specifies the increment. E.g. DenseThreadRange(1, 8, 3) starts
+  // a benchmark with 1, 4, 7 and 8 threads.
+  Benchmark *DenseThreadRange(int min_threads, int max_threads, int stride = 1);
 
   // Equivalent to ThreadRange(NumCPUs(), NumCPUs())
   Benchmark* ThreadPerCpu();
@@ -654,9 +668,25 @@ protected:
   Benchmark(Benchmark const&);
   void SetName(const char* name);
 
+  int ArgsCnt() const;
+
+  static void AddRange(std::vector<int>* dst, int lo, int hi, int mult);
+
 private:
   friend class BenchmarkFamilies;
-  BenchmarkImp* imp_;
+
+  std::string name_;
+  ReportMode report_mode_;
+  std::vector< std::vector<int> > args_;  // Args for all benchmark runs
+  TimeUnit time_unit_;
+  int range_multiplier_;
+  double min_time_;
+  int repetitions_;
+  bool use_real_time_;
+  bool use_manual_time_;
+  BigO complexity_;
+  BigOFunc* complexity_lambda_;
+  std::vector<int> thread_counts_;
 
   Benchmark& operator=(Benchmark const&);
 };
@@ -750,8 +780,12 @@ public:
       this->TearDown(st);
     }
 
+    // These will be deprecated ...
     virtual void SetUp(const State&) {}
     virtual void TearDown(const State&) {}
+    // ... In favor of these.
+    virtual void SetUp(State& st) { SetUp(const_cast<const State&>(st)); }
+    virtual void TearDown(State& st) { TearDown(const_cast<const State&>(st)); }
 
 protected:
     virtual void BenchmarkCase(State&) = 0;
