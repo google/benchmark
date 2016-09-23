@@ -593,4 +593,5 @@ required to build the library.
 ### Windows
 
 * Users must manually link `shlwapi.lib`. Failure to do so may result
-in resolved symbols.
+in unresolved symbols.
+
