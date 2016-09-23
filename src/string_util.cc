@@ -45,12 +45,10 @@ void ToExponentAndMantissa(double val, double thresh, int precision,
       std::max(thresh, 1.0 / std::pow(10.0, precision));
   const double big_threshold = adjusted_threshold * one_k;
   const double small_threshold = adjusted_threshold;
+  // Values in ]simple_threshold,small_threshold[ will be printed as-is
+  const double simple_threshold = 0.01;
 
-  if (val > 0.01 && val < small_threshold) {
-    // maybe the magic number above should be configurable
-    mantissa_stream << val;
-    *exponent = 0;
-  } else if (val > big_threshold) {
+  if (val > big_threshold) {
     // Positive powers
     double scaled = val;
     for (size_t i = 0; i < arraysize(kBigSIUnits); ++i) {
@@ -66,14 +64,16 @@ void ToExponentAndMantissa(double val, double thresh, int precision,
     *exponent = 0;
   } else if (val < small_threshold) {
     // Negative powers
-    double scaled = val;
-    for (size_t i = 0; i < arraysize(kSmallSIUnits); ++i) {
-      scaled *= one_k;
-      if (scaled >= small_threshold) {
-        mantissa_stream << scaled;
-        *exponent = -static_cast<int64_t>(i + 1);
-        *mantissa = mantissa_stream.str();
-        return;
+    if (val < simple_threshold) {
+      double scaled = val;
+      for (size_t i = 0; i < arraysize(kSmallSIUnits); ++i) {
+        scaled *= one_k;
+        if (scaled >= small_threshold) {
+          mantissa_stream << scaled;
+          *exponent = -static_cast<int64_t>(i + 1);
+          *mantissa = mantissa_stream.str();
+          return;
+        }
       }
     }
     mantissa_stream << val;
