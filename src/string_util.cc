@@ -46,7 +46,7 @@ void ToExponentAndMantissa(double val, double thresh, int precision,
   const double big_threshold = adjusted_threshold * one_k;
   const double small_threshold = adjusted_threshold;
 
-  if (val > 0.001 && val < small_threshold) {
+  if (val > 0.01 && val < small_threshold) {
     // maybe the magic number above should be configurable
     mantissa_stream << val;
     *exponent = 0;
