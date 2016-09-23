@@ -91,6 +91,11 @@ DEFINE_string(benchmark_color, "auto",
               "environment variable is set to a terminal type that supports "
               "colors.");
 
+DEFINE_bool(benchmark_tabular_counters, false,
+              "Whether to use tabular format when printing user counters to "
+              "the console.  Valid values: 'true'/'yes'/1, 'false'/'no'/0."
+              "Defaults to false.");
+
 DEFINE_int32(v, 0, "The level of verbose logging to output");
 
 
@@ -519,10 +524,10 @@ void RunMatchingBenchmarks(const std::vector<Benchmark::Instance>& benchmarks,
 }
 
 std::unique_ptr<BenchmarkReporter>
-CreateReporter(std::string const& name, ConsoleReporter::OutputOptions allow_color) {
+CreateReporter(std::string const& name, ConsoleReporter::OutputOptions output_opts) {
   typedef std::unique_ptr<BenchmarkReporter> PtrType;
   if (name == "console") {
-    return PtrType(new ConsoleReporter(allow_color));
+    return PtrType(new ConsoleReporter(output_opts));
   } else if (name == "json") {
     return PtrType(new JSONReporter);
   } else if (name == "csv") {
@@ -557,16 +562,21 @@ size_t RunSpecifiedBenchmarks(BenchmarkReporter* console_reporter,
   std::unique_ptr<BenchmarkReporter> default_console_reporter;
   std::unique_ptr<BenchmarkReporter> default_file_reporter;
   if (!console_reporter) {
-    auto output_opts = ConsoleReporter::OO_None;
-    if (FLAGS_benchmark_color == "auto")
-      output_opts = IsColorTerminal() ? ConsoleReporter::OO_Color
-                                      : ConsoleReporter::OO_None;
-    else
-      output_opts = IsTruthyFlagValue(FLAGS_benchmark_color)
-                        ? ConsoleReporter::OO_Color
-                        : ConsoleReporter::OO_None;
+    int output_opts = ConsoleReporter::OO_Defaults;
+    if ((FLAGS_benchmark_color == "auto" && IsColorTerminal())
+        ||
+        IsTruthyFlagValue(FLAGS_benchmark_color)) {
+      output_opts |= ConsoleReporter::OO_Color;
+    } else {
+      output_opts &= ~ConsoleReporter::OO_Color;
+    }
+    if(FLAGS_benchmark_tabular_counters) {
+      output_opts |= ConsoleReporter::OO_Tabular;
+    } else {
+      output_opts &= ~ConsoleReporter::OO_Tabular;
+    }
     default_console_reporter = internal::CreateReporter(
-          FLAGS_benchmark_format, output_opts);
+          FLAGS_benchmark_format, (ConsoleReporter::OutputOptions)output_opts);
     console_reporter = default_console_reporter.get();
   }
   auto& Out = console_reporter->GetOutputStream();
@@ -620,6 +630,7 @@ void PrintUsageAndExit() {
           "          [--benchmark_out=<filename>]\n"
           "          [--benchmark_out_format=<json|console|csv>]\n"
           "          [--benchmark_color={auto|true|false}]\n"
+          "          [--benchmark_tabular_counters={true|false}]\n"
           "          [--v=<verbosity>]\n");
   exit(0);
 }
@@ -650,6 +661,8 @@ void ParseCommandLineFlags(int* argc, char** argv) {
         // TODO: Remove this.
         ParseStringFlag(argv[i], "color_print",
                         &FLAGS_benchmark_color) ||
+        ParseBoolFlag(argv[i], "benchmark_tabular_counters",
+                        &FLAGS_benchmark_tabular_counters) ||
         ParseInt32Flag(argv[i], "v", &FLAGS_v)) {
       for (int j = i; j != *argc; ++j) argv[j] = argv[j + 1];
 
