@@ -91,10 +91,10 @@ DEFINE_string(benchmark_color, "auto",
               "environment variable is set to a terminal type that supports "
               "colors.");
 
-DEFINE_bool(benchmark_tabular_counters, false,
-              "Whether to use tabular format when printing user counters to "
-              "the console.  Valid values: 'true'/'yes'/1, 'false'/'no'/0."
-              "Defaults to false.");
+DEFINE_bool(benchmark_counters_tabular, false,
+            "Whether to use tabular format when printing user counters to "
+            "the console.  Valid values: 'true'/'yes'/1, 'false'/'no'/0."
+            "Defaults to false.");
 
 DEFINE_int32(v, 0, "The level of verbose logging to output");
 
@@ -570,7 +570,7 @@ size_t RunSpecifiedBenchmarks(BenchmarkReporter* console_reporter,
     } else {
       output_opts &= ~ConsoleReporter::OO_Color;
     }
-    if(FLAGS_benchmark_tabular_counters) {
+    if(FLAGS_benchmark_counters_tabular) {
       output_opts |= ConsoleReporter::OO_Tabular;
     } else {
       output_opts &= ~ConsoleReporter::OO_Tabular;
@@ -630,7 +630,7 @@ void PrintUsageAndExit() {
           "          [--benchmark_out=<filename>]\n"
           "          [--benchmark_out_format=<json|console|csv>]\n"
           "          [--benchmark_color={auto|true|false}]\n"
-          "          [--benchmark_tabular_counters={true|false}]\n"
+          "          [--benchmark_counters_tabular={true|false}]\n"
           "          [--v=<verbosity>]\n");
   exit(0);
 }
@@ -662,7 +662,7 @@ void ParseCommandLineFlags(int* argc, char** argv) {
         ParseStringFlag(argv[i], "color_print",
                         &FLAGS_benchmark_color) ||
         ParseBoolFlag(argv[i], "benchmark_tabular_counters",
-                        &FLAGS_benchmark_tabular_counters) ||
+                        &FLAGS_benchmark_counters_tabular) ||
         ParseInt32Flag(argv[i], "v", &FLAGS_v)) {
       for (int j = i; j != *argc; ++j) argv[j] = argv[j + 1];
 

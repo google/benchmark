@@ -57,7 +57,7 @@ bool SameNames(BenchmarkCounters const& l, BenchmarkCounters const& r) {
     return false;
   }
   for (auto const& c : l) {
-    if ( r.find(c.first) == r.end()) {
+    if (r.find(c.first) == r.end()) {
       return false;
     }
   }
