@@ -101,7 +101,7 @@ BENCHMARK_NORETURN static void  DiagnoseAndExit(const char* msg) {
 
 
 double ProcessCPUUsage() {
-#if defined(CLOCK_PROCESS_CPUTIME_ID)
+#if defined(CLOCK_PROCESS_CPUTIME_ID) && !defined(BENCHMARK_OS_MACOSX)
   struct timespec spec;
   if (clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &spec) == 0)
     return MakeTime(spec);
@@ -124,7 +124,7 @@ double ProcessCPUUsage() {
 }
 
 double ThreadCPUUsage() {
-#if defined(CLOCK_THREAD_CPUTIME_ID)
+#if defined(CLOCK_THREAD_CPUTIME_ID) && !defined(BENCHMARK_OS_MACOSX)
   struct timespec ts;
   if (clock_gettime(CLOCK_THREAD_CPUTIME_ID, &ts) == 0)
     return MakeTime(ts);
