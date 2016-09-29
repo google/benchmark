@@ -209,8 +209,8 @@ bool FindBenchmarksInternal(const std::string& re,
 Benchmark::Benchmark(const char* name)
     : name_(name), report_mode_(RM_Unspecified),
       time_unit_(kNanosecond), range_multiplier_(kRangeMultiplier),
-      min_time_(0), repetitions_(0), use_real_time_(false), use_manual_time_(false),
-      complexity_(oNone)
+      min_time_(0), repetitions_(0), use_real_time_(false),
+      use_manual_time_(false), complexity_(oNone), complexity_lambda_(nullptr)
 {
 }
 

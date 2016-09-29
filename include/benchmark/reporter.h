@@ -51,6 +51,7 @@ class BenchmarkReporter {
       items_per_second(0),
       max_heapbytes_used(0),
       complexity(oNone),
+      complexity_lambda(),
       complexity_n(0),
       report_big_o(false),
       report_rms(false) {}
@@ -162,7 +163,7 @@ public:
     OO_Color
   };
   explicit ConsoleReporter(OutputOptions color_output = OO_Color)
-      : color_output_(color_output == OO_Color) {}
+      : name_field_width_(0), color_output_(color_output == OO_Color) {}
 
   virtual bool ReportContext(const Context& context);
   virtual void ReportRuns(const std::vector<Run>& reports);

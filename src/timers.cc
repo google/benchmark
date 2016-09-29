@@ -71,7 +71,7 @@ double MakeTime(FILETIME const& kernel_time, FILETIME const& user_time) {
          1e-7;
 }
 #else
-double MakeTime(struct rusage ru) {
+double MakeTime(struct rusage const& ru) {
   return (static_cast<double>(ru.ru_utime.tv_sec) +
           static_cast<double>(ru.ru_utime.tv_usec) * 1e-6 +
           static_cast<double>(ru.ru_stime.tv_sec) +
