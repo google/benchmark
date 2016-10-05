@@ -41,9 +41,9 @@ std::string FormatKV(std::string const& key, bool value) {
   return StringPrintF("\"%s\": %s", key.c_str(), value ? "true" : "false");
 }
 
-std::string FormatKV(std::string const& key, int64_t value) {
+std::string FormatKV(std::string const& key, int64_t value, std::string const& units = "") {
   std::stringstream ss;
-  ss << '"' << key << "\": " << value;
+  ss << "\"" << key << "\": \"" << value << units << "\"";
   return ss.str();
 }
 
@@ -154,8 +154,7 @@ void JSONReporter::PrintRunData(Run const& run) {
             << FormatKV("time_unit", GetTimeUnitString(run.time_unit));
     } else if(run.report_rms) {
         out << indent
-            << FormatKV("rms", RoundDouble(run.GetAdjustedCPUTime()*100))
-            << '%';
+            << FormatKV("rms", RoundDouble(run.GetAdjustedCPUTime()*100), "%");
   }
   if (run.bytes_per_second > 0.0) {
     out << ",\n"
