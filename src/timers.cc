@@ -92,16 +92,16 @@ double MakeTime(struct timespec const& ts) {
 }
 #endif
 
-BENCHMARK_NORETURN static void  DiagnoseAndExit(const char* msg) {
-    std::cerr << "ERROR: " << msg << std::endl;
-    std::exit(EXIT_FAILURE);
+BENCHMARK_NORETURN static void DiagnoseAndExit(const char* msg) {
+  std::cerr << "ERROR: " << msg << std::endl;
+  std::exit(EXIT_FAILURE);
 }
 
 }  // end namespace
 
-
 double ProcessCPUUsage() {
-// FIXME We want to use clock_gettime, but its not available in MacOS 10.11. See https://github.com/google/benchmark/pull/292
+// FIXME We want to use clock_gettime, but its not available in MacOS 10.11. See
+// https://github.com/google/benchmark/pull/292
 #if defined(CLOCK_PROCESS_CPUTIME_ID) && !defined(BENCHMARK_OS_MACOSX)
   struct timespec spec;
   if (clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &spec) == 0)
@@ -113,23 +113,23 @@ double ProcessCPUUsage() {
   FILETIME exit_time;
   FILETIME kernel_time;
   FILETIME user_time;
-  if (GetProcessTimes(proc, &creation_time, &exit_time, &kernel_time, &user_time))
+  if (GetProcessTimes(proc, &creation_time, &exit_time, &kernel_time,
+                      &user_time))
     return MakeTime(kernel_time, user_time);
   DiagnoseAndExit("GetProccessTimes() failed");
 #else
   struct rusage ru;
-  if (getrusage(RUSAGE_SELF, &ru) == 0)
-    return MakeTime(ru);
+  if (getrusage(RUSAGE_SELF, &ru) == 0) return MakeTime(ru);
   DiagnoseAndExit("clock_gettime(CLOCK_PROCESS_CPUTIME_ID, ...) failed");
 #endif
 }
 
 double ThreadCPUUsage() {
-// FIXME We want to use clock_gettime, but its not available in MacOS 10.11. See https://github.com/google/benchmark/pull/292
+// FIXME We want to use clock_gettime, but its not available in MacOS 10.11. See
+// https://github.com/google/benchmark/pull/292
 #if defined(CLOCK_THREAD_CPUTIME_ID) && !defined(BENCHMARK_OS_MACOSX)
   struct timespec ts;
-  if (clock_gettime(CLOCK_THREAD_CPUTIME_ID, &ts) == 0)
-    return MakeTime(ts);
+  if (clock_gettime(CLOCK_THREAD_CPUTIME_ID, &ts) == 0) return MakeTime(ts);
   DiagnoseAndExit("clock_gettime(CLOCK_THREAD_CPUTIME_ID, ...) failed");
 #elif defined(BENCHMARK_OS_WINDOWS)
   HANDLE this_thread = GetCurrentThread();
@@ -144,8 +144,8 @@ double ThreadCPUUsage() {
   mach_msg_type_number_t count = THREAD_BASIC_INFO_COUNT;
   thread_basic_info_data_t info;
   mach_port_t thread = pthread_mach_thread_np(pthread_self());
-  if (thread_info(thread, THREAD_BASIC_INFO, (thread_info_t) &info, &count)
-      == KERN_SUCCESS) {
+  if (thread_info(thread, THREAD_BASIC_INFO, (thread_info_t)&info, &count) ==
+      KERN_SUCCESS) {
     return MakeTime(info);
   }
   DiagnoseAndExit("ThreadCPUUsage() failed when evaluating thread_info");

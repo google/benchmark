@@ -46,18 +46,18 @@ class Regex {
 
   // Returns whether str matches the compiled regular expression.
   bool Match(const std::string& str);
-private:
+
+ private:
   bool init_;
-  // Underlying regular expression object
+// Underlying regular expression object
 #if defined(HAVE_STD_REGEX)
   std::regex re_;
 #elif defined(HAVE_POSIX_REGEX) || defined(HAVE_GNU_POSIX_REGEX)
   regex_t re_;
 #else
-# error No regular expression backend implementation available
+#error No regular expression backend implementation available
 #endif
 };
-
 
 #if defined(HAVE_STD_REGEX)
 
@@ -74,7 +74,7 @@ inline bool Regex::Init(const std::string& spec, std::string* error) {
   return init_;
 }
 
-inline Regex::~Regex() { }
+inline Regex::~Regex() {}
 
 inline bool Regex::Match(const std::string& str) {
   if (!init_) {

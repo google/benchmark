@@ -63,10 +63,11 @@ inline LogType& GetLogInstanceForLevel(int level) {
   return GetNullLogInstance();
 }
 
-} // end namespace internal
-} // end namespace benchmark
+}  // end namespace internal
+}  // end namespace benchmark
 
-#define VLOG(x) (::benchmark::internal::GetLogInstanceForLevel(x) \
-                 << "-- LOG(" << x << "): ")
+#define VLOG(x)                                                               \
+  (::benchmark::internal::GetLogInstanceForLevel(x) << "-- LOG(" << x << "):" \
+                                                                         " ")
 
 #endif
