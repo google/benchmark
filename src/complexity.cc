@@ -119,8 +119,7 @@ LeastSq MinimalLeastSq(const std::vector<int>& n,
 //                  this one. If it is oAuto, it will be calculated the best
 //                  fitting curve.
 LeastSq MinimalLeastSq(const std::vector<int>& n,
-                       const std::vector<double>& time,
-                       const BigO complexity) {
+                       const std::vector<double>& time, const BigO complexity) {
   CHECK_EQ(n.size(), time.size());
   CHECK_GE(n.size(), 2);  // Do not compute fitting curve is less than two
                           // benchmark runs are given

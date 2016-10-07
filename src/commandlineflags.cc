@@ -44,7 +44,7 @@ bool ParseInt32(const std::string& src_text, const char* str, int32_t* value) {
       // The parsed value overflows as a long.  (strtol() returns
       // LONG_MAX or LONG_MIN when the input overflows.)
       result != long_value
-          // The parsed value overflows as an Int32.
+      // The parsed value overflows as an Int32.
       ) {
     std::cerr << src_text << " is expected to be a 32-bit integer, "
               << "but actually has value \"" << str << "\", "
@@ -95,7 +95,8 @@ static std::string FlagToEnvVar(const char* flag) {
 bool BoolFromEnv(const char* flag, bool default_value) {
   const std::string env_var = FlagToEnvVar(flag);
   const char* const string_value = getenv(env_var.c_str());
-  return string_value == nullptr ? default_value : strcmp(string_value, "0") != 0;
+  return string_value == nullptr ? default_value
+                                 : strcmp(string_value, "0") != 0;
 }
 
 // Reads and returns a 32-bit integer stored in the environment
@@ -209,8 +210,7 @@ bool IsFlag(const char* str, const char* flag) {
 }
 
 bool IsTruthyFlagValue(const std::string& str) {
-  if (str.empty())
-    return true;
+  if (str.empty()) return true;
   char ch = str[0];
   return isalnum(ch) &&
          !(ch == '0' || ch == 'f' || ch == 'F' || ch == 'n' || ch == 'N');
