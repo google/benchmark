@@ -47,6 +47,10 @@ std::string FormatKV(std::string const& key, int64_t value) {
   return ss.str();
 }
 
+std::string FormatKV(std::string const& key, double value) {
+  return StringPrintF("\"%s\": %.2f", key.c_str(), value);
+}
+
 int64_t RoundDouble(double v) { return static_cast<int64_t>(v + 0.5); }
 
 }  // end namespace
@@ -138,7 +142,7 @@ void JSONReporter::PrintRunData(Run const& run) {
     out << indent << FormatKV("time_unit", GetTimeUnitString(run.time_unit));
   } else if (run.report_rms) {
     out << indent
-        << FormatKV("rms", RoundDouble(run.GetAdjustedCPUTime() * 100)) << '%';
+        << FormatKV("rms", run.GetAdjustedCPUTime());
   }
   if (run.bytes_per_second > 0.0) {
     out << ",\n"

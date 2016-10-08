@@ -31,7 +31,7 @@ int AddComplexityTest(std::string big_o_test_name, std::string rms_test_name,
                         {"\"time_unit\": \"ns\"$", MR_Next},
                         {"}", MR_Next},
                         {"\"name\": \"%rms_name\",$"},
-                        {"\"rms\": [0-9]+%$", MR_Next},
+                        {"\"rms\": %float$", MR_Next},
                         {"}", MR_Next}});
   AddCases(TC_CSVOut, {{"^\"%bigo_name\",,%float,%float,%bigo,,,,,$"},
                        {"^\"%bigo_name\"", MR_Not},
