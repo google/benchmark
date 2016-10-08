@@ -160,16 +160,17 @@ int AddCases(TestCaseID ID, std::initializer_list<TestCase> il) {
 int SetSubstitutions(
     std::initializer_list<std::pair<std::string, std::string>> il) {
   auto& subs = internal::GetSubstitutions();
-  for (auto const& KV : il) {
+  for (auto KV : il) {
     bool exists = false;
+    KV.second = internal::PerformSubstitutions(KV.second);
     for (auto& EKV : subs) {
       if (EKV.first == KV.first) {
-        EKV.second = KV.second;
+        EKV.second = std::move(KV.second);
         exists = true;
         break;
       }
     }
-    if (!exists) subs.push_back(KV);
+    if (!exists) subs.push_back(std::move(KV));
   }
   return 0;
 }

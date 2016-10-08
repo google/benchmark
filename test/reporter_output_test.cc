@@ -61,7 +61,7 @@ void BM_Complexity_O1(benchmark::State& state) {
   state.SetComplexityN(state.range(0));
 }
 BENCHMARK(BM_Complexity_O1)->Range(1, 1 << 18)->Complexity(benchmark::o1);
-SET_SUBSTITUTIONS({{"%bigOStr", "[ ]*[0-9]+\\.[0-9]+ \\([0-9]+\\)"},
+SET_SUBSTITUTIONS({{"%bigOStr", "[ ]* %float \\([0-9]+\\)"},
                    {"%RMS", "[ ]*[0-9]+ %"}});
 ADD_CASES(TC_ConsoleOut, {{"^BM_Complexity_O1_BigO %bigOStr %bigOStr[ ]*$"},
                           {"^BM_Complexity_O1_RMS %RMS %RMS[ ]*$"}});

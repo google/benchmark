@@ -16,7 +16,7 @@ int AddComplexityTest(std::string big_o_test_name, std::string rms_test_name,
                       std::string big_o) {
   SetSubstitutions({{"%bigo_name", big_o_test_name},
                     {"%rms_name", rms_test_name},
-                    {"%bigo_str", "[ ]*" + std::string(dec_re) + " " + big_o},
+                    {"%bigo_str", "[ ]* %float " + big_o},
                     {"%bigo", big_o},
                     {"%rms", "[ ]*[0-9]+ %"}});
   AddCases(
