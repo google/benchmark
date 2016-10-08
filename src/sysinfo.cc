@@ -87,6 +87,22 @@ bool ReadIntFromFile(const char* file, long* value) {
 }
 #endif
 
+#if defined BENCHMARK_OS_LINUX || defined BENCHMARK_OS_CYGWIN
+static std::string convertToLowerCase(std::string s) {
+  for (auto& ch : s)
+    ch = std::tolower(ch);
+  return s;
+}
+static bool startsWithKey(std::string Value, std::string Key,
+                          bool IgnoreCase = true) {
+  if (IgnoreCase) {
+    Key = convertToLowerCase(std::move(Key));
+    Value = convertToLowerCase(std::move(Value));
+  }
+  return Value.compare(0, Key.size(), Key) == 0;
+}
+#endif
+
 void InitializeSystemInfo() {
 #if defined BENCHMARK_OS_LINUX || defined BENCHMARK_OS_CYGWIN
   char line[1024];
@@ -160,21 +176,21 @@ void InitializeSystemInfo() {
     // When parsing the "cpu MHz" and "bogomips" (fallback) entries, we only
     // accept postive values. Some environments (virtual machines) report zero,
     // which would cause infinite looping in WallTime_Init.
-    if (!saw_mhz && strncasecmp(line, "cpu MHz", sizeof("cpu MHz") - 1) == 0) {
+    if (!saw_mhz && startsWithKey(line, "cpu MHz")) {
       const char* freqstr = strchr(line, ':');
       if (freqstr) {
         cpuinfo_cycles_per_second = strtod(freqstr + 1, &err) * 1000000.0;
         if (freqstr[1] != '\0' && *err == '\0' && cpuinfo_cycles_per_second > 0)
           saw_mhz = true;
       }
-    } else if (strncasecmp(line, "bogomips", sizeof("bogomips") - 1) == 0) {
+    } else if (startsWithKey(line, "bogomips")) {
       const char* freqstr = strchr(line, ':');
       if (freqstr) {
         bogo_clock = strtod(freqstr + 1, &err) * 1000000.0;
         if (freqstr[1] != '\0' && *err == '\0' && bogo_clock > 0)
           saw_bogo = true;
       }
-    } else if (strncmp(line, "processor", sizeof("processor") - 1) == 0) {
+    } else if (startsWithKey(line, "processor", /*IgnoreCase*/false)) {
       // The above comparison is case-sensitive because ARM kernels often
       // include a "Processor" line that tells you about the CPU, distinct
       // from the usual "processor" lines that give you CPU ids. No current
