@@ -83,7 +83,7 @@ double MakeTime(thread_basic_info_data_t const& info) {
   return (static_cast<double>(info.user_time.seconds) +
           static_cast<double>(info.user_time.microseconds) * 1e-6 +
           static_cast<double>(info.system_time.seconds) +
-          static_cast<double>(info.user_time.microseconds) * 1e-6);
+          static_cast<double>(info.system_time.microseconds) * 1e-6);
 }
 #endif
 #if defined(CLOCK_PROCESS_CPUTIME_ID) || defined(CLOCK_THREAD_CPUTIME_ID)
