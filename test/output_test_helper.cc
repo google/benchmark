@@ -38,7 +38,9 @@ SubMap& GetSubstitutions() {
       {" %s ", "[ ]+"},
       {"%time", "[ ]*[0-9]{1,5} ns"},
       {"%console_report", "[ ]*[0-9]{1,5} ns [ ]*[0-9]{1,5} ns [ ]*[0-9]+"},
-      {"%csv_report", "[0-9]+," + dec_re + "," + dec_re + ",ns,,,,,"}};
+      {"%console_us_report", "[ ]*[0-9] us [ ]*[0-9] us [ ]*[0-9]+"},
+      {"%csv_report", "[0-9]+," + dec_re + "," + dec_re + ",ns,,,,,"},
+      {"%csv_us_report", "[0-9]+," + dec_re + "," + dec_re + ",us,,,,,"}};
   return map;
 }
 
