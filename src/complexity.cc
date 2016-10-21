@@ -195,6 +195,7 @@ std::vector<BenchmarkReporter::Run> ComputeStats(
       cpu_accumulated_time_stat.Mean() * run_iterations;
   mean_data.bytes_per_second = bytes_per_second_stat.Mean();
   mean_data.items_per_second = items_per_second_stat.Mean();
+  mean_data.time_unit = reports[0].time_unit;
 
   // Only add label to mean/stddev if it is same for all runs
   mean_data.report_label = reports[0].report_label;
@@ -213,6 +214,7 @@ std::vector<BenchmarkReporter::Run> ComputeStats(
   stddev_data.cpu_accumulated_time = cpu_accumulated_time_stat.StdDev();
   stddev_data.bytes_per_second = bytes_per_second_stat.StdDev();
   stddev_data.items_per_second = items_per_second_stat.StdDev();
+  stddev_data.time_unit = reports[0].time_unit;
 
   results.push_back(mean_data);
   results.push_back(stddev_data);
