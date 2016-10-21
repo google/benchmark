@@ -120,8 +120,30 @@ ADD_CASES(TC_CSVOut, {{".*BM_SummaryRepeat/repeats:3 ", MR_Not},
                       {"^\"BM_SummaryRepeat/repeats:3_mean\",%csv_report$"},
                       {"^\"BM_SummaryRepeat/repeats:3_stddev\",%csv_report$"}});
 
+void BM_RepeatTimeUnit(benchmark::State& state) {
+  while (state.KeepRunning()) {
+  }
+}
+BENCHMARK(BM_RepeatTimeUnit)
+    ->Repetitions(3)
+    ->ReportAggregatesOnly()
+    ->Unit(benchmark::kMicrosecond);
+ADD_CASES(TC_ConsoleOut,
+          {{".*BM_RepeatTimeUnit/repeats:3 ", MR_Not},
+           {"^BM_RepeatTimeUnit/repeats:3_mean %console_us_report$"},
+           {"^BM_RepeatTimeUnit/repeats:3_stddev %console_us_report$"}});
+ADD_CASES(TC_JSONOut, {{".*BM_RepeatTimeUnit/repeats:3 ", MR_Not},
+                       {"\"name\": \"BM_RepeatTimeUnit/repeats:3_mean\",$"},
+                       {"\"time_unit\": \"us\",?$"},
+                       {"\"name\": \"BM_RepeatTimeUnit/repeats:3_stddev\",$"},
+                       {"\"time_unit\": \"us\",?$"}});
+ADD_CASES(TC_CSVOut,
+          {{".*BM_RepeatTimeUnit/repeats:3 ", MR_Not},
+           {"^\"BM_RepeatTimeUnit/repeats:3_mean\",%csv_us_report$"},
+           {"^\"BM_RepeatTimeUnit/repeats:3_stddev\",%csv_us_report$"}});
+
 // ========================================================================= //
 // --------------------------- TEST CASES END ------------------------------ //
 // ========================================================================= //
 
-int main(int argc, char *argv[]) { RunOutputTests(argc, argv); }
+int main(int argc, char* argv[]) { RunOutputTests(argc, argv); }
