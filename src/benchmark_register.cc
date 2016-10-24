@@ -151,8 +151,16 @@ bool BenchmarkFamilies::FindBenchmarks(
         instance.threads = num_threads;
 
         // Add arguments to instance name
+        size_t arg_i = 0;
         for (auto const& arg : args) {
+          if (arg_i < family->arg_names_.size()) {
+            instance.name +=
+                StringPrintF("/%s:", family->arg_names_[arg_i].c_str());
+          } else {
+            instance.name += "/";
+          }
           AppendHumanReadable(arg, &instance.name);
+          ++arg_i;
         }
 
         if (!IsZero(family->min_time_)) {
@@ -290,6 +298,16 @@ Benchmark* Benchmark::Ranges(const std::vector<std::pair<int, int>>& ranges) {
       ctr[j] = 0;
     }
   }
+  return this;
+}
+
+Benchmark* Benchmark::ArgName(const std::string& name) {
+  arg_names_ = {name};
+  return this;
+}
+
+Benchmark* Benchmark::ArgNames(const std::vector<std::string>& names) {
+  arg_names_ = names;
   return this;
 }
 

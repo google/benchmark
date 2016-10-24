@@ -52,6 +52,46 @@ ADD_CASES(TC_JSONOut, {{"\"name\": \"BM_error\",$"},
 ADD_CASES(TC_CSVOut, {{"^\"BM_error\",,,,,,,,true,\"message\"$"}});
 
 // ========================================================================= //
+// ------------------------ Testing No Arg Name Output -----------------------
+// //
+// ========================================================================= //
+
+void BM_no_arg_name(benchmark::State& state) {
+  while (state.KeepRunning()) {
+  }
+}
+BENCHMARK(BM_no_arg_name)->Arg(3);
+ADD_CASES(TC_ConsoleOut, {{"^BM_no_arg_name/3 %console_report$"}});
+ADD_CASES(TC_JSONOut, {{"\"name\": \"BM_no_arg_name/3\",$"}});
+ADD_CASES(TC_CSVOut, {{"^\"BM_no_arg_name/3\",%csv_report$"}});
+
+// ========================================================================= //
+// ------------------------ Testing Arg Name Output ----------------------- //
+// ========================================================================= //
+
+void BM_arg_name(benchmark::State& state) {
+  while (state.KeepRunning()) {
+  }
+}
+BENCHMARK(BM_arg_name)->Arg(3)->ArgName("first");
+ADD_CASES(TC_ConsoleOut, {{"^BM_arg_name/first:3 %console_report$"}});
+ADD_CASES(TC_JSONOut, {{"\"name\": \"BM_arg_name/first:3\",$"}});
+ADD_CASES(TC_CSVOut, {{"^\"BM_arg_name/first:3\",%csv_report$"}});
+
+// ========================================================================= //
+// ------------------------ Testing Arg Names Output ----------------------- //
+// ========================================================================= //
+
+void BM_arg_names(benchmark::State& state) {
+  while (state.KeepRunning()) {
+  }
+}
+BENCHMARK(BM_arg_names)->Args({2, 4})->ArgNames({"first", "second"});
+ADD_CASES(TC_ConsoleOut, {{"^BM_arg_names/first:2/second:4 %console_report$"}});
+ADD_CASES(TC_JSONOut, {{"\"name\": \"BM_arg_names/first:2/second:4\",$"}});
+ADD_CASES(TC_CSVOut, {{"^\"BM_arg_names/first:2/second:4\",%csv_report$"}});
+
+// ========================================================================= //
 // ----------------------- Testing Complexity Output ----------------------- //
 // ========================================================================= //
 
