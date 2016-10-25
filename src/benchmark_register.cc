@@ -153,12 +153,16 @@ bool BenchmarkFamilies::FindBenchmarks(
         // Add arguments to instance name
         size_t arg_i = 0;
         for (auto const& arg : args) {
+          instance.name += "/";
+
           if (arg_i < family->arg_names_.size()) {
-            instance.name +=
-                StringPrintF("/%s:", family->arg_names_[arg_i].c_str());
-          } else {
-            instance.name += "/";
+            const auto& arg_name = family->arg_names_[arg_i];
+            if (!arg_name.empty()) {
+              instance.name +=
+                  StringPrintF("%s:", family->arg_names_[arg_i].c_str());
+            }
           }
+
           AppendHumanReadable(arg, &instance.name);
           ++arg_i;
         }
