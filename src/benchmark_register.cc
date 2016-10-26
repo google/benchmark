@@ -422,7 +422,11 @@ Benchmark* Benchmark::ThreadPerCpu() {
 void Benchmark::SetName(const char* name) { name_ = name; }
 
 int Benchmark::ArgsCnt() const {
-  return args_.empty() ? -1 : static_cast<int>(args_.front().size());
+  if (args_.empty()) {
+    if (arg_names_.empty()) return -1;
+    return static_cast<int>(arg_names_.size());
+  }
+  return static_cast<int>(args_.front().size());
 }
 
 //=============================================================================//

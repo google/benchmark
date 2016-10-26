@@ -73,7 +73,7 @@ void BM_arg_name(benchmark::State& state) {
   while (state.KeepRunning()) {
   }
 }
-BENCHMARK(BM_arg_name)->Arg(3)->ArgName("first");
+BENCHMARK(BM_arg_name)->ArgName("first")->Arg(3);
 ADD_CASES(TC_ConsoleOut, {{"^BM_arg_name/first:3 %console_report$"}});
 ADD_CASES(TC_JSONOut, {{"\"name\": \"BM_arg_name/first:3\",$"}});
 ADD_CASES(TC_CSVOut, {{"^\"BM_arg_name/first:3\",%csv_report$"}});
