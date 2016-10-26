@@ -306,11 +306,13 @@ Benchmark* Benchmark::Ranges(const std::vector<std::pair<int, int>>& ranges) {
 }
 
 Benchmark* Benchmark::ArgName(const std::string& name) {
+  CHECK(ArgsCnt() == -1 || ArgsCnt() == 1);
   arg_names_ = {name};
   return this;
 }
 
 Benchmark* Benchmark::ArgNames(const std::vector<std::string>& names) {
+  CHECK(ArgsCnt() == -1 || ArgsCnt() == static_cast<int>(names.size()));
   arg_names_ = names;
   return this;
 }
