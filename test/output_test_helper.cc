@@ -44,7 +44,9 @@ SubMap& GetSubstitutions() {
       {"%csv_bytes_report",
        "[0-9]+," + dec_re + "," + dec_re + ",ns," + dec_re + ",,,,"},
       {"%csv_items_report",
-       "[0-9]+," + dec_re + "," + dec_re + ",ns,," + dec_re + ",,,"}};
+       "[0-9]+," + dec_re + "," + dec_re + ",ns,," + dec_re + ",,,"},
+      {"%csv_label_report_begin", "[0-9]+," + dec_re + "," + dec_re + ",ns,,,"},
+      {"%csv_label_report_end", ",,"}};
   return map;
 }
 

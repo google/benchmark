@@ -79,6 +79,28 @@ ADD_CASES(TC_JSONOut, {{"\"name\": \"BM_items_per_second\",$"},
 ADD_CASES(TC_CSVOut, {{"^\"BM_items_per_second\",%csv_items_report$"}});
 
 // ========================================================================= //
+// ------------------------ Testing Label Output --------------------------- //
+// ========================================================================= //
+
+void BM_label(benchmark::State& state) {
+  while (state.KeepRunning()) {
+  }
+  state.SetLabel("some label");
+}
+BENCHMARK(BM_label);
+
+ADD_CASES(TC_ConsoleOut, {{"^BM_label %console_report some label$"}});
+ADD_CASES(TC_JSONOut, {{"\"name\": \"BM_label\",$"},
+                       {"\"iterations\": %int,$", MR_Next},
+                       {"\"real_time\": %int,$", MR_Next},
+                       {"\"cpu_time\": %int,$", MR_Next},
+                       {"\"time_unit\": \"ns\",$", MR_Next},
+                       {"\"label\": \"some label\"$", MR_Next},
+                       {"}", MR_Next}});
+ADD_CASES(TC_CSVOut, {{"^\"BM_label\",%csv_label_report_begin\"some "
+                       "label\"%csv_label_report_end$"}});
+
+// ========================================================================= //
 // ------------------------ Testing Error Output --------------------------- //
 // ========================================================================= //
 
