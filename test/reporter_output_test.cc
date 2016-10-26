@@ -35,6 +35,50 @@ ADD_CASES(TC_JSONOut, {{"\"name\": \"BM_basic\",$"},
 ADD_CASES(TC_CSVOut, {{"^\"BM_basic\",%csv_report$"}});
 
 // ========================================================================= //
+// ------------------------ Testing Bytes per Second Output ---------------- //
+// ========================================================================= //
+
+void BM_bytes_per_second(benchmark::State& state) {
+  while (state.KeepRunning()) {
+  }
+  state.SetBytesProcessed(1);
+}
+BENCHMARK(BM_bytes_per_second);
+
+ADD_CASES(TC_ConsoleOut,
+          {{"^BM_bytes_per_second %console_report +[0-9]+.[0-9]+B/s$"}});
+ADD_CASES(TC_JSONOut, {{"\"name\": \"BM_bytes_per_second\",$"},
+                       {"\"iterations\": %int,$", MR_Next},
+                       {"\"real_time\": %int,$", MR_Next},
+                       {"\"cpu_time\": %int,$", MR_Next},
+                       {"\"time_unit\": \"ns\",$", MR_Next},
+                       {"\"bytes_per_second\": %int$", MR_Next},
+                       {"}", MR_Next}});
+ADD_CASES(TC_CSVOut, {{"^\"BM_bytes_per_second\",%csv_bytes_report$"}});
+
+// ========================================================================= //
+// ------------------------ Testing Items per Second Output ---------------- //
+// ========================================================================= //
+
+void BM_items_per_second(benchmark::State& state) {
+  while (state.KeepRunning()) {
+  }
+  state.SetItemsProcessed(1);
+}
+BENCHMARK(BM_items_per_second);
+
+ADD_CASES(TC_ConsoleOut,
+          {{"^BM_items_per_second %console_report +[0-9]+.[0-9]+ items/s$"}});
+ADD_CASES(TC_JSONOut, {{"\"name\": \"BM_items_per_second\",$"},
+                       {"\"iterations\": %int,$", MR_Next},
+                       {"\"real_time\": %int,$", MR_Next},
+                       {"\"cpu_time\": %int,$", MR_Next},
+                       {"\"time_unit\": \"ns\",$", MR_Next},
+                       {"\"items_per_second\": %int$", MR_Next},
+                       {"}", MR_Next}});
+ADD_CASES(TC_CSVOut, {{"^\"BM_items_per_second\",%csv_items_report$"}});
+
+// ========================================================================= //
 // ------------------------ Testing Error Output --------------------------- //
 // ========================================================================= //
 
