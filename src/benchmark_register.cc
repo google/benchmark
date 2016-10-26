@@ -151,8 +151,20 @@ bool BenchmarkFamilies::FindBenchmarks(
         instance.threads = num_threads;
 
         // Add arguments to instance name
+        size_t arg_i = 0;
         for (auto const& arg : args) {
+          instance.name += "/";
+
+          if (arg_i < family->arg_names_.size()) {
+            const auto& arg_name = family->arg_names_[arg_i];
+            if (!arg_name.empty()) {
+              instance.name +=
+                  StringPrintF("%s:", family->arg_names_[arg_i].c_str());
+            }
+          }
+
           AppendHumanReadable(arg, &instance.name);
+          ++arg_i;
         }
 
         if (!IsZero(family->min_time_)) {
@@ -293,6 +305,18 @@ Benchmark* Benchmark::Ranges(const std::vector<std::pair<int, int>>& ranges) {
   return this;
 }
 
+Benchmark* Benchmark::ArgName(const std::string& name) {
+  CHECK(ArgsCnt() == -1 || ArgsCnt() == 1);
+  arg_names_ = {name};
+  return this;
+}
+
+Benchmark* Benchmark::ArgNames(const std::vector<std::string>& names) {
+  CHECK(ArgsCnt() == -1 || ArgsCnt() == static_cast<int>(names.size()));
+  arg_names_ = names;
+  return this;
+}
+
 Benchmark* Benchmark::DenseRange(int start, int limit, int step) {
   CHECK(ArgsCnt() == -1 || ArgsCnt() == 1);
   CHECK_GE(start, 0);
@@ -398,7 +422,11 @@ Benchmark* Benchmark::ThreadPerCpu() {
 void Benchmark::SetName(const char* name) { name_ = name; }
 
 int Benchmark::ArgsCnt() const {
-  return args_.empty() ? -1 : static_cast<int>(args_.front().size());
+  if (args_.empty()) {
+    if (arg_names_.empty()) return -1;
+    return static_cast<int>(arg_names_.size());
+  }
+  return static_cast<int>(args_.front().size());
 }
 
 //=============================================================================//
