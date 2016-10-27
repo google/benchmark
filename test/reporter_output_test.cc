@@ -46,7 +46,7 @@ void BM_bytes_per_second(benchmark::State& state) {
 BENCHMARK(BM_bytes_per_second);
 
 ADD_CASES(TC_ConsoleOut,
-          {{"^BM_bytes_per_second %console_report +[0-9]+.[0-9]+B/s$"}});
+          {{"^BM_bytes_per_second %console_report +%floatB/s$"}});
 ADD_CASES(TC_JSONOut, {{"\"name\": \"BM_bytes_per_second\",$"},
                        {"\"iterations\": %int,$", MR_Next},
                        {"\"real_time\": %int,$", MR_Next},
@@ -68,7 +68,7 @@ void BM_items_per_second(benchmark::State& state) {
 BENCHMARK(BM_items_per_second);
 
 ADD_CASES(TC_ConsoleOut,
-          {{"^BM_items_per_second %console_report +[0-9]+.[0-9]+ items/s$"}});
+          {{"^BM_items_per_second %console_report +%float items/s$"}});
 ADD_CASES(TC_JSONOut, {{"\"name\": \"BM_items_per_second\",$"},
                        {"\"iterations\": %int,$", MR_Next},
                        {"\"real_time\": %int,$", MR_Next},
