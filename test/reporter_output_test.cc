@@ -11,9 +11,9 @@
 
 ADD_CASES(TC_ConsoleOut, {{"^Benchmark %s Time %s CPU %s Iterations$", MR_Next},
                           {"^[-]+$", MR_Next}});
-ADD_CASES(TC_CSVOut, {{"name,iterations,real_time,cpu_time,time_unit,bytes_per_"
-                       "second,items_per_second,"
-                       "label,error_occurred,error_message"}});
+ADD_CASES(TC_CSVOut,
+          {{"name,iterations,real_time,cpu_time,time_unit,bytes_per_second,"
+            "items_per_second,label,error_occurred,error_message"}});
 
 // ========================================================================= //
 // ------------------------ Testing Basic Output --------------------------- //
@@ -33,6 +33,72 @@ ADD_CASES(TC_JSONOut, {{"\"name\": \"BM_basic\",$"},
                        {"\"time_unit\": \"ns\"$", MR_Next},
                        {"}", MR_Next}});
 ADD_CASES(TC_CSVOut, {{"^\"BM_basic\",%csv_report$"}});
+
+// ========================================================================= //
+// ------------------------ Testing Bytes per Second Output ---------------- //
+// ========================================================================= //
+
+void BM_bytes_per_second(benchmark::State& state) {
+  while (state.KeepRunning()) {
+  }
+  state.SetBytesProcessed(1);
+}
+BENCHMARK(BM_bytes_per_second);
+
+ADD_CASES(TC_ConsoleOut,
+          {{"^BM_bytes_per_second %console_report +%floatB/s$"}});
+ADD_CASES(TC_JSONOut, {{"\"name\": \"BM_bytes_per_second\",$"},
+                       {"\"iterations\": %int,$", MR_Next},
+                       {"\"real_time\": %int,$", MR_Next},
+                       {"\"cpu_time\": %int,$", MR_Next},
+                       {"\"time_unit\": \"ns\",$", MR_Next},
+                       {"\"bytes_per_second\": %int$", MR_Next},
+                       {"}", MR_Next}});
+ADD_CASES(TC_CSVOut, {{"^\"BM_bytes_per_second\",%csv_bytes_report$"}});
+
+// ========================================================================= //
+// ------------------------ Testing Items per Second Output ---------------- //
+// ========================================================================= //
+
+void BM_items_per_second(benchmark::State& state) {
+  while (state.KeepRunning()) {
+  }
+  state.SetItemsProcessed(1);
+}
+BENCHMARK(BM_items_per_second);
+
+ADD_CASES(TC_ConsoleOut,
+          {{"^BM_items_per_second %console_report +%float items/s$"}});
+ADD_CASES(TC_JSONOut, {{"\"name\": \"BM_items_per_second\",$"},
+                       {"\"iterations\": %int,$", MR_Next},
+                       {"\"real_time\": %int,$", MR_Next},
+                       {"\"cpu_time\": %int,$", MR_Next},
+                       {"\"time_unit\": \"ns\",$", MR_Next},
+                       {"\"items_per_second\": %int$", MR_Next},
+                       {"}", MR_Next}});
+ADD_CASES(TC_CSVOut, {{"^\"BM_items_per_second\",%csv_items_report$"}});
+
+// ========================================================================= //
+// ------------------------ Testing Label Output --------------------------- //
+// ========================================================================= //
+
+void BM_label(benchmark::State& state) {
+  while (state.KeepRunning()) {
+  }
+  state.SetLabel("some label");
+}
+BENCHMARK(BM_label);
+
+ADD_CASES(TC_ConsoleOut, {{"^BM_label %console_report some label$"}});
+ADD_CASES(TC_JSONOut, {{"\"name\": \"BM_label\",$"},
+                       {"\"iterations\": %int,$", MR_Next},
+                       {"\"real_time\": %int,$", MR_Next},
+                       {"\"cpu_time\": %int,$", MR_Next},
+                       {"\"time_unit\": \"ns\",$", MR_Next},
+                       {"\"label\": \"some label\"$", MR_Next},
+                       {"}", MR_Next}});
+ADD_CASES(TC_CSVOut, {{"^\"BM_label\",%csv_label_report_begin\"some "
+                       "label\"%csv_label_report_end$"}});
 
 // ========================================================================= //
 // ------------------------ Testing Error Output --------------------------- //

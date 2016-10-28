@@ -431,8 +431,6 @@ class State {
 
   int complexity_n_;
 
- public:
-  // FIXME: Make this private somehow.
   bool error_occurred_;
 
  public:

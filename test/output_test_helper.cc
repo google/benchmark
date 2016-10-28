@@ -40,7 +40,13 @@ SubMap& GetSubstitutions() {
       {"%console_report", "[ ]*[0-9]{1,5} ns [ ]*[0-9]{1,5} ns [ ]*[0-9]+"},
       {"%console_us_report", "[ ]*[0-9] us [ ]*[0-9] us [ ]*[0-9]+"},
       {"%csv_report", "[0-9]+," + dec_re + "," + dec_re + ",ns,,,,,"},
-      {"%csv_us_report", "[0-9]+," + dec_re + "," + dec_re + ",us,,,,,"}};
+      {"%csv_us_report", "[0-9]+," + dec_re + "," + dec_re + ",us,,,,,"},
+      {"%csv_bytes_report",
+       "[0-9]+," + dec_re + "," + dec_re + ",ns," + dec_re + ",,,,"},
+      {"%csv_items_report",
+       "[0-9]+," + dec_re + "," + dec_re + ",ns,," + dec_re + ",,,"},
+      {"%csv_label_report_begin", "[0-9]+," + dec_re + "," + dec_re + ",ns,,,"},
+      {"%csv_label_report_end", ",,"}};
   return map;
 }
 
