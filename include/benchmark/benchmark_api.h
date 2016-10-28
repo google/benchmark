@@ -431,7 +431,6 @@ class State {
 
   int complexity_n_;
 
- private:
   bool error_occurred_;
 
  public:
