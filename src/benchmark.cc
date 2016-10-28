@@ -450,7 +450,7 @@ void State::FinishKeepRunning() {
 namespace internal {
 namespace {
 
-void RunMatchingBenchmarks(const std::vector<Benchmark::Instance>& benchmarks,
+void RunBenchmarks(const std::vector<Benchmark::Instance>& benchmarks,
                            BenchmarkReporter* console_reporter,
                            BenchmarkReporter* file_reporter) {
   // Note the file_reporter can be null.
@@ -581,11 +581,15 @@ size_t RunSpecifiedBenchmarks(BenchmarkReporter* console_reporter,
   std::vector<internal::Benchmark::Instance> benchmarks;
   if (!FindBenchmarksInternal(spec, &benchmarks, &Err)) return 0;
 
+  if (benchmarks.empty()) {
+    Err << "Failed to match any benchmarks against regex: " << spec << "\n";
+    return 0;
+  }
+
   if (FLAGS_benchmark_list_tests) {
     for (auto const& benchmark : benchmarks) Out << benchmark.name << "\n";
   } else {
-    internal::RunMatchingBenchmarks(benchmarks, console_reporter,
-                                    file_reporter);
+    internal::RunBenchmarks(benchmarks, console_reporter, file_reporter);
   }
 
   return benchmarks.size();
