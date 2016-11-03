@@ -19,6 +19,7 @@
 #include <string>
 #include <utility>
 #include <vector>
+#include <set>
 
 #include "benchmark_api.h"  // For forward declaration of BenchmarkReporter
 
@@ -41,20 +42,21 @@ class BenchmarkReporter {
   };
 
   struct Run {
-    Run() :
-      error_occurred(false),
-      iterations(1),
-      time_unit(kNanosecond),
-      real_accumulated_time(0),
-      cpu_accumulated_time(0),
-      bytes_per_second(0),
-      items_per_second(0),
-      max_heapbytes_used(0),
-      complexity(oNone),
-      complexity_n(0),
-      report_big_o(false),
-      report_rms(false),
-      counters() {}
+    Run()
+        : error_occurred(false),
+          iterations(1),
+          time_unit(kNanosecond),
+          real_accumulated_time(0),
+          cpu_accumulated_time(0),
+          bytes_per_second(0),
+          items_per_second(0),
+          max_heapbytes_used(0),
+          complexity(oNone),
+          complexity_lambda(),
+          complexity_n(0),
+          report_big_o(false),
+          report_rms(false),
+          counters() {}
 
     std::string benchmark_name;
     std::string report_label;  // Empty if not set by benchmark.
@@ -136,13 +138,9 @@ class BenchmarkReporter {
     error_stream_ = err;
   }
 
-  std::ostream& GetOutputStream() const {
-    return *output_stream_;
-  }
+  std::ostream& GetOutputStream() const { return *output_stream_; }
 
-  std::ostream& GetErrorStream() const {
-    return *error_stream_;
-  }
+  std::ostream& GetErrorStream() const { return *error_stream_; }
 
   virtual ~BenchmarkReporter();
 
@@ -159,24 +157,22 @@ class BenchmarkReporter {
 // Simple reporter that outputs benchmark data to the console. This is the
 // default reporter used by RunSpecifiedBenchmarks().
 class ConsoleReporter : public BenchmarkReporter {
-public:
-  enum OutputOptions {
-    OO_None,
-    OO_Color
-  };
+ public:
+  enum OutputOptions { OO_None, OO_Color };
   explicit ConsoleReporter(OutputOptions color_output = OO_Color)
-      : color_output_(color_output == OO_Color) {}
+      : name_field_width_(0), color_output_(color_output == OO_Color) {}
 
   virtual bool ReportContext(const Context& context);
   virtual void ReportRuns(const std::vector<Run>& reports);
 
-protected:
+ protected:
   virtual void PrintRunData(const Run& report);
   virtual void PrintHeader(const Run& report);
 
   size_t name_field_width_;
   bool printed_header_;
-private:
+
+ private:
   bool color_output_;
 };
 
@@ -195,11 +191,15 @@ class JSONReporter : public BenchmarkReporter {
 
 class CSVReporter : public BenchmarkReporter {
  public:
+  CSVReporter() : printed_header_(false) {}
   virtual bool ReportContext(const Context& context);
   virtual void ReportRuns(const std::vector<Run>& reports);
 
  private:
   void PrintRunData(const Run& report);
+
+  bool printed_header_;
+  std::set< std::string > user_counter_names_;
 };
 
 inline const char* GetTimeUnitString(TimeUnit unit) {

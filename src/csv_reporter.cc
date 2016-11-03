@@ -24,8 +24,7 @@
 
 #include "string_util.h"
 #include "timers.h"
-
-#include <set>
+#include "check.h"
 
 // File format reference: http://edoceo.com/utilitas/csv-file-format.
 
@@ -33,17 +32,9 @@ namespace benchmark {
 
 namespace {
 std::vector<std::string> elements = {
-  "name",
-  "iterations",
-  "real_time",
-  "cpu_time",
-  "time_unit",
-  "bytes_per_second",
-  "items_per_second",
-  "label",
-  "error_occurred",
-  "error_message"
-};
+    "name",           "iterations",       "real_time",        "cpu_time",
+    "time_unit",      "bytes_per_second", "items_per_second", "label",
+    "error_occurred", "error_message"};
 }
 
 bool CSVReporter::ReportContext(const Context& context) {
@@ -52,44 +43,42 @@ bool CSVReporter::ReportContext(const Context& context) {
 }
 
 void CSVReporter::ReportRuns(const std::vector<Run> & reports) {
-  // find the names of all the user counters
-  std::set< std::string > user_counter_names;
-  for (const auto& run : reports) {
-    for (const auto& cnt : run.counters) {
-      user_counter_names.insert(cnt.first);
+  std::ostream& Out = GetOutputStream();
+
+  if (!printed_header_) {
+    // save the names of all the user counters
+    for (const auto& run : reports) {
+      for (const auto& cnt : run.counters) {
+        user_counter_names_.insert(cnt.first);
+      }
+    }
+
+    // print the header
+    for (auto B = elements.begin(); B != elements.end();) {
+      Out << *B++;
+      if (B != elements.end()) Out << ",";
+    }
+    for (auto B = user_counter_names_.begin(); B != user_counter_names_.end();) {
+      Out << ",\"" << *B++ << "\"";
+    }
+    Out << "\n";
+
+    printed_header_ = true;
+  } else {
+    // check that all the current counters are saved in the name set
+    for (const auto& run : reports) {
+      for (const auto& cnt : run.counters) {
+        CHECK(user_counter_names_.find(cnt.first) != user_counter_names_.end())
+              << "All counters must be present in each run. "
+              << "Counter named \"" << cnt.first
+              << "\" was not in a run after being added to the header";
+      }
     }
   }
-
-  // print the header
-  std::ostream& Out = GetOutputStream();
-  for (auto B = elements.begin(); B != elements.end(); ) {
-    Out << *B++;
-    if (B != elements.end())
-      Out << ",";
-  }
-  for (const auto& name : user_counter_names) {
-    Out << "," << name;
-  }
-  Out << "\n";
 
   // print results for each run
   for (const auto& run : reports) {
     PrintRunData(run);
-
-    // Print user counters
-    // <jppm> .... this should be done in PrintRunData(), but that would require
-    // storing user_counter_names either in the anon namespace above
-    // or as a member in the CSVReporterClass, which in turn would
-    // #include <set> in the public reporter.h header. Passing it as an argument
-    // would also require the include.
-    // So I'll defer judgment here.
-    for (const auto &name : user_counter_names) {
-      auto it = run.counters.find(name);
-      if(it == run.counters.end()) continue;
-      auto const& c = it->second;
-      Out << "," << double(c);
-    }
-    Out << '\n';
   }
 
 }
@@ -145,6 +134,13 @@ void CSVReporter::PrintRunData(const Run & run) {
   }
   Out << ",,";  // for error_occurred and error_message
 
+  // Print user counters
+  for (const auto &ucn : user_counter_names_) {
+    auto it = run.counters.find(ucn);
+    CHECK(it != run.counters.end());
+    Out << "," << it->second;
+  }
+  Out << '\n';
 }
 
 }  // end namespace benchmark

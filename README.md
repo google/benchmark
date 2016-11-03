@@ -472,8 +472,8 @@ and a bit flag which allows you to mark counters as rates and/or as per-thread a
   state.counters["FooAvgRate"] = Counter(numFoos,benchmark::Counter::kAvgThreadsRate);
 ```
 
-When you're compiling in C++11 mode or later you can use the `insert()` and `emplace()`
-overloads for `std::initializer_list`:
+When you're compiling in C++11 mode or later you can use `insert()` with
+`std::initializer_list`:
 
 ```c++
   // With C++11, this can be done:
@@ -555,7 +555,6 @@ The `context` attribute contains information about the run in general, including
 information about the CPU and the date.
 The `benchmarks` attribute contains a list of ever benchmark run. Example json
 output looks like:
-
 ```json
 {
   "context": {
@@ -596,7 +595,6 @@ output looks like:
 
 The CSV format outputs comma-separated values. The `context` is output on stderr
 and the CSV itself on stdout. Example CSV output looks like:
-
 ```
 name,iterations,real_time,cpu_time,bytes_per_second,items_per_second,label
 "BM_SetInsert/1024/1",65465,17890.7,8407.45,475768,118942,
@@ -649,4 +647,5 @@ required to build the library.
 ### Windows
 
 * Users must manually link `shlwapi.lib`. Failure to do so may result
-in resolved symbols.
+in unresolved symbols.
+

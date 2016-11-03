@@ -91,6 +91,14 @@ else()
     cxx_feature_check(THREAD_SAFETY_ATTRIBUTES)
   endif()
 
+  # On most UNIX like platforms g++ and clang++ define _GNU_SOURCE as a
+  # predefined macro, which turns on all of the wonderful libc extensions.
+  # However g++ doesn't do this in Cygwin so we have to define it ourselfs
+  # since we depend on GNU/POSIX/BSD extensions.
+  if (CYGWIN)
+    add_definitions(-D_GNU_SOURCE=1)
+  endif()
+
   # Link time optimisation
   if (BENCHMARK_ENABLE_LTO)
     add_cxx_compiler_flag(-flto)
