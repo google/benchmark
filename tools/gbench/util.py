@@ -84,6 +84,26 @@ def check_input_file(filename):
         sys.exit(1)
     return ftype
 
+def find_benchmark_flag(prefix, benchmark_flags):
+    """
+    Search the specified list of flags for a flag matching `<prefix><arg>` and
+    if it is found return the arg it specifies. If specified more than once the
+    last value is returned. If the flag is not found None is returned.
+    """
+    assert prefix.startswith('--') and prefix.endswith('=')
+    result = None
+    for f in benchmark_flags:
+        if f.startswith(prefix):
+            result = f[len(prefix):]
+    return result
+
+def remove_benchmark_flags(prefix, benchmark_flags):
+    """
+    Return a new list containing the specified benchmark_flags except those
+    with the specified prefix.
+    """
+    assert prefix.startswith('--') and prefix.endswith('=')
+    return [f for f in benchmark_flags if not f.startswith(prefix)]
 
 def load_benchmark_results(fname):
     """
@@ -101,16 +121,25 @@ def run_benchmark(exe_name, benchmark_flags):
     real time console output.
     RETURNS: A JSON object representing the benchmark output
     """
-    thandle, tname = tempfile.mkstemp()
-    os.close(thandle)
+    output_name = find_benchmark_flag('--benchmark_out=',
+                                      benchmark_flags)
+    is_temp_output = False
+    if output_name is None:
+        is_temp_output = True
+        thandle, output_name = tempfile.mkstemp()
+        os.close(thandle)
+        benchmark_flags = list(benchmark_flags) + \
+                          ['--benchmark_out=' % output_name]
+
     cmd = [exe_name] + benchmark_flags
     print("RUNNING: %s" % ' '.join(cmd))
-    exitCode = subprocess.call(cmd + ['--benchmark_out=%s' % tname])
+    exitCode = subprocess.call(cmd)
     if exitCode != 0:
         print('TEST FAILED...')
         sys.exit(exitCode)
-    json_res = load_benchmark_results(tname)
-    os.unlink(tname)
+    json_res = load_benchmark_results(output_name)
+    if is_temp_output:
+        os.unlink(output_name)
     return json_res
 
 
