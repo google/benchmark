@@ -129,7 +129,7 @@ def run_benchmark(exe_name, benchmark_flags):
         thandle, output_name = tempfile.mkstemp()
         os.close(thandle)
         benchmark_flags = list(benchmark_flags) + \
-                          ['--benchmark_out=' % output_name]
+                          ['--benchmark_out=%s' % output_name]
 
     cmd = [exe_name] + benchmark_flags
     print("RUNNING: %s" % ' '.join(cmd))
