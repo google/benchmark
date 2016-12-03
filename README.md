@@ -11,6 +11,8 @@ IRC channel: https://freenode.net #googlebenchmark
 
 [Known issues and common problems](#known-issues)
 
+[Additional Tooling Documentation](docs/tools.md)
+
 ## Example usage
 ### Basic usage
 Define a function that executes the code to be measured.
