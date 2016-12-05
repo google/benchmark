@@ -39,4 +39,9 @@
 #define BENCHMARK_OS_LINUX 1
 #endif
 
+#if !__has_feature(cxx_exceptions) && !defined(__cpp_exceptions) \
+     && !defined(__EXCEPTIONS)
+#define BENCHMARK_HAS_NO_EXCEPTIONS
+#endif
+
 #endif  // BENCHMARK_INTERNAL_MACROS_H_

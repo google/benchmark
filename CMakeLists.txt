@@ -11,6 +11,7 @@ foreach(p
 endforeach()
 
 option(BENCHMARK_ENABLE_TESTING "Enable testing of the benchmark library." ON)
+option(BENCHMARK_ENABLE_EXCEPTIONS "Enable the use of exceptions in the benchmark library." ON)
 option(BENCHMARK_ENABLE_LTO "Enable link time optimisation of the benchmark library." OFF)
 option(BENCHMARK_USE_LIBCXX "Build and test using libc++ as the standard library." OFF)
 # Make sure we can import out CMake functions
@@ -39,6 +40,10 @@ if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /W4")
   add_definitions(-D_CRT_SECURE_NO_WARNINGS)
 
+  if (NOT BENCHMARK_ENABLE_EXCEPTIONS)
+    add_cxx_compiler_flag(-EHs-)
+    add_cxx_compiler_flag(-EHa-)
+  endif()
   # Link time optimisation
   if (BENCHMARK_ENABLE_LTO)
     set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /GL")
@@ -80,6 +85,9 @@ else()
   add_cxx_compiler_flag(-Wshorten-64-to-32)
   add_cxx_compiler_flag(-Wfloat-equal)
   add_cxx_compiler_flag(-fstrict-aliasing)
+  if (NOT BENCHMARK_ENABLE_EXCEPTIONS)
+    add_cxx_compiler_flag(-fno-exceptions)
+  endif()
   if (NOT BENCHMARK_USE_LIBCXX)
     add_cxx_compiler_flag(-Wzero-as-null-pointer-constant)
   endif()
@@ -162,7 +170,10 @@ cxx_feature_check(POSIX_REGEX)
 if(NOT HAVE_STD_REGEX AND NOT HAVE_GNU_POSIX_REGEX AND NOT HAVE_POSIX_REGEX)
   message(FATAL_ERROR "Failed to determine the source files for the regular expression backend")
 endif()
-
+if (NOT BENCHMARK_ENABLE_EXCEPTIONS AND HAVE_STD_REGEX
+        AND NOT HAVE_GNU_POSIX_REGEX AND NOT HAVE_POSIX_REGEX)
+  message(WARNING "Using std::regex with exceptions disabled is not fully supported")
+endif()
 cxx_feature_check(STEADY_CLOCK)
 # Ensure we have pthreads
 find_package(Threads REQUIRED)
