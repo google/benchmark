@@ -858,6 +858,13 @@ class Fixture : public internal::Benchmark {
 #define BENCHMARK_MAIN()                   \
   int main(int argc, char** argv) {        \
     ::benchmark::Initialize(&argc, argv);  \
+    for (int i = 1; i < argc; ++i) {       \
+      fprintf(stdout, "%s: error: unrecognised command-line flag: %s\n", \
+              argv[0], argv[i]);           \
+    }                                      \
+    if (argc > 1) {                        \
+      return 1;                            \
+    }                                      \
     ::benchmark::RunSpecifiedBenchmarks(); \
   }
 
