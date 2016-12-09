@@ -92,7 +92,7 @@ def generate_difference_report(json1, json2, use_color=True):
                 return BC_WHITE
             else:
                 return BC_CYAN
-        fmt_str = "{}{:<{}s}{endc}    {}{:+.2f}{endc}         {}{:+.2f}{endc}         {:4d}         {:4d}"
+        fmt_str = "{}{:<{}s}{endc}    {}{:+.2f}{endc}         {}{:+.2f}{endc}     {:9d}     {:9d}"
         tres = calculate_change(bn['real_time'], other_bench['real_time'])
         cpures = calculate_change(bn['cpu_time'], other_bench['cpu_time'])
         output_strs += [color_format(use_color, fmt_str,
