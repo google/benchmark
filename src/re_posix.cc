@@ -15,6 +15,7 @@
 #include "check.h"
 #include "re.h"
 
+#if defined(HAVE_POSIX_REGEX)
 namespace benchmark {
 
 Regex::Regex() : init_(false) { }
@@ -55,5 +56,5 @@ bool Regex::Match(const std::string& str) {
 
   return regexec(&re_, str.c_str(), 0, nullptr, 0) == 0;
 }
-
 }  // end namespace benchmark
+#endif  // HAVE_POSIX_REGEX

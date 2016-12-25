@@ -14,6 +14,7 @@
 
 #include "re.h"
 
+#if defined(HAVE_STD_REGEX)
 namespace benchmark {
 
 Regex::Regex() : init_(false) { }
@@ -42,3 +43,4 @@ bool Regex::Match(const std::string& str) {
 }
 
 }  // end namespace benchmark
+#endif  // HAVE_STD_REGEX
