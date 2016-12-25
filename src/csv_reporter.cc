@@ -13,16 +13,17 @@
 // limitations under the License.
 
 #include "benchmark/reporter.h"
+#include "complexity.h"
 
-#include <cstdint>
 #include <algorithm>
+#include <cstdint>
 #include <iostream>
 #include <string>
 #include <tuple>
 #include <vector>
 
 #include "string_util.h"
-#include "walltime.h"
+#include "timers.h"
 
 // File format reference: http://edoceo.com/utilitas/csv-file-format.
 
@@ -30,38 +31,28 @@ namespace benchmark {
 
 namespace {
 std::vector<std::string> elements = {
-  "name",
-  "iterations",
-  "real_time",
-  "cpu_time",
-  "time_unit",
-  "bytes_per_second",
-  "items_per_second",
-  "label",
-  "error_occurred",
-  "error_message"
-};
+    "name",           "iterations",       "real_time",        "cpu_time",
+    "time_unit",      "bytes_per_second", "items_per_second", "label",
+    "error_occurred", "error_message"};
 }
 
 bool CSVReporter::ReportContext(const Context& context) {
   PrintBasicContext(&GetErrorStream(), context);
 
   std::ostream& Out = GetOutputStream();
-  for (auto B = elements.begin(); B != elements.end(); ) {
+  for (auto B = elements.begin(); B != elements.end();) {
     Out << *B++;
-    if (B != elements.end())
-      Out << ",";
+    if (B != elements.end()) Out << ",";
   }
   Out << "\n";
   return true;
 }
 
-void CSVReporter::ReportRuns(const std::vector<Run> & reports) {
-  for (const auto& run : reports)
-    PrintRunData(run);
+void CSVReporter::ReportRuns(const std::vector<Run>& reports) {
+  for (const auto& run : reports) PrintRunData(run);
 }
 
-void CSVReporter::PrintRunData(const Run & run) {
+void CSVReporter::PrintRunData(const Run& run) {
   std::ostream& Out = GetOutputStream();
 
   // Field with embedded double-quote characters must be doubled and the field
@@ -79,7 +70,7 @@ void CSVReporter::PrintRunData(const Run & run) {
   }
 
   // Do not print iteration on bigO and RMS report
-  if(!run.report_big_o && !run.report_rms) {
+  if (!run.report_big_o && !run.report_rms) {
     Out << run.iterations;
   }
   Out << ",";
@@ -87,8 +78,10 @@ void CSVReporter::PrintRunData(const Run & run) {
   Out << run.GetAdjustedRealTime() << ",";
   Out << run.GetAdjustedCPUTime() << ",";
 
-  // Do not print timeLabel on RMS report
-  if(!run.report_rms) {
+  // Do not print timeLabel on bigO and RMS report
+  if (run.report_big_o) {
+    Out << GetBigOString(run.complexity);
+  } else if (!run.report_rms) {
     Out << GetTimeUnitString(run.time_unit);
   }
   Out << ",";
@@ -108,7 +101,7 @@ void CSVReporter::PrintRunData(const Run & run) {
     ReplaceAll(&label, "\"", "\"\"");
     Out << "\"" << label << "\"";
   }
-  Out << ",,"; // for error_occurred and error_message
+  Out << ",,";  // for error_occurred and error_message
   Out << '\n';
 }
 

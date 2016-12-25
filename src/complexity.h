@@ -47,10 +47,7 @@ std::vector<BenchmarkReporter::Run> ComputeBigO(
 //                   parameter will return the best fitting curve detected.
 
 struct LeastSq {
-  LeastSq() :
-    coef(0.0),
-    rms(0.0),
-    complexity(oNone) {}
+  LeastSq() : coef(0.0), rms(0.0), complexity(oNone) {}
 
   double coef;
   double rms;
@@ -60,11 +57,5 @@ struct LeastSq {
 // Function to return an string for the calculated complexity
 std::string GetBigOString(BigO complexity);
 
-// Find the coefficient for the high-order term in the running time, by
-// minimizing the sum of squares of relative error.
-LeastSq MinimalLeastSq(const std::vector<int>& n,
-                       const std::vector<double>& time,
-                       const BigO complexity = oAuto);
-
-} // end namespace benchmark
-#endif // COMPLEXITY_H_
+}  // end namespace benchmark
+#endif  // COMPLEXITY_H_

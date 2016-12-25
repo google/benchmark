@@ -2,10 +2,26 @@
 
 find_package(Threads REQUIRED)
 
+# NOTE: These flags must be added after find_package(Threads REQUIRED) otherwise
+# they will break the configuration check.
+if (DEFINED BENCHMARK_CXX_LINKER_FLAGS)
+  list(APPEND CMAKE_EXE_LINKER_FLAGS ${BENCHMARK_CXX_LINKER_FLAGS})
+endif()
+
+add_library(output_test_helper STATIC output_test_helper.cc)
+
 macro(compile_benchmark_test name)
   add_executable(${name} "${name}.cc")
   target_link_libraries(${name} benchmark ${CMAKE_THREAD_LIBS_INIT})
 endmacro(compile_benchmark_test)
+
+
+macro(compile_output_test name)
+  add_executable(${name} "${name}.cc" output_test.h)
+  target_link_libraries(${name} output_test_helper benchmark
+          ${BENCHMARK_CXX_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
+endmacro(compile_output_test)
+
 
 # Demonstration executable
 compile_benchmark_test(benchmark_test)
@@ -45,10 +61,16 @@ add_test(donotoptimize_test donotoptimize_test --benchmark_min_time=0.01)
 compile_benchmark_test(fixture_test)
 add_test(fixture_test fixture_test --benchmark_min_time=0.01)
 
+compile_benchmark_test(register_benchmark_test)
+add_test(register_benchmark_test register_benchmark_test --benchmark_min_time=0.01)
+
 compile_benchmark_test(map_test)
 add_test(map_test map_test --benchmark_min_time=0.01)
 
-compile_benchmark_test(reporter_output_test)
+compile_benchmark_test(multiple_ranges_test)
+add_test(multiple_ranges_test multiple_ranges_test --benchmark_min_time=0.01)
+
+compile_output_test(reporter_output_test)
 add_test(reporter_output_test reporter_output_test --benchmark_min_time=0.01)
 
 check_cxx_compiler_flag(-std=c++03 BENCHMARK_HAS_CXX03_FLAG)
@@ -63,8 +85,14 @@ if (BENCHMARK_HAS_CXX03_FLAG)
   add_test(cxx03 cxx03_test --benchmark_min_time=0.01)
 endif()
 
-compile_benchmark_test(complexity_test)
-add_test(complexity_benchmark complexity_test --benchmark_min_time=0.01)
+# Attempt to work around flaky test failures when running on Appveyor servers.
+if (DEFINED ENV{APPVEYOR})
+  set(COMPLEXITY_MIN_TIME "0.5")
+else()
+  set(COMPLEXITY_MIN_TIME "0.01")
+endif()
+compile_output_test(complexity_test)
+add_test(complexity_benchmark complexity_test --benchmark_min_time=${COMPLEXITY_MIN_TIME})
 
 # Add the coverage command(s)
 if(CMAKE_BUILD_TYPE)

@@ -17,7 +17,7 @@ std::map<int, int> ConstructRandomMap(int size) {
 
 // Basic version.
 static void BM_MapLookup(benchmark::State& state) {
-  const int size = state.range_x();
+  const int size = state.range(0);
   while (state.KeepRunning()) {
     state.PauseTiming();
     std::map<int, int> m = ConstructRandomMap(size);
@@ -34,18 +34,16 @@ BENCHMARK(BM_MapLookup)->Range(1 << 3, 1 << 12);
 class MapFixture : public ::benchmark::Fixture {
  public:
   void SetUp(const ::benchmark::State& st) {
-    m = ConstructRandomMap(st.range_x());
+    m = ConstructRandomMap(st.range(0));
   }
 
-  void TearDown(const ::benchmark::State&) {
-    m.clear();
-  }
+  void TearDown(const ::benchmark::State&) { m.clear(); }
 
   std::map<int, int> m;
 };
 
 BENCHMARK_DEFINE_F(MapFixture, Lookup)(benchmark::State& state) {
-  const int size = state.range_x();
+  const int size = state.range(0);
   while (state.KeepRunning()) {
     for (int i = 0; i < size; ++i) {
       benchmark::DoNotOptimize(m.find(rand() % size));
@@ -53,6 +51,6 @@ BENCHMARK_DEFINE_F(MapFixture, Lookup)(benchmark::State& state) {
   }
   state.SetItemsProcessed(state.iterations() * size);
 }
-BENCHMARK_REGISTER_F(MapFixture, Lookup)->Range(1<<3, 1<<12);
+BENCHMARK_REGISTER_F(MapFixture, Lookup)->Range(1 << 3, 1 << 12);
 
 BENCHMARK_MAIN()

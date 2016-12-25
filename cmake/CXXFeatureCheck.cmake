@@ -10,7 +10,7 @@
 #
 # include(CXXFeatureCheck)
 # cxx_feature_check(STD_REGEX)
-# Requires CMake 2.6+
+# Requires CMake 2.8.12+
 
 if(__cxx_feature_check)
   return()
@@ -26,7 +26,9 @@ function(cxx_feature_check FILE)
   endif()
   message("-- Performing Test ${FEATURE}")
   try_run(RUN_${FEATURE} COMPILE_${FEATURE}
-          ${CMAKE_BINARY_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/cmake/${FILE}.cpp)
+          ${CMAKE_BINARY_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/cmake/${FILE}.cpp
+          CMAKE_FLAGS ${BENCHMARK_CXX_LINKER_FLAGS}
+          LINK_LIBRARIES ${BENCHMARK_CXX_LIBRARIES})
   if(RUN_${FEATURE} EQUAL 0)
     message("-- Performing Test ${FEATURE} -- success")
     set(HAVE_${VAR} 1 CACHE INTERNAL "Feature test for ${FILE}" PARENT_SCOPE)

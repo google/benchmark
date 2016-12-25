@@ -20,7 +20,7 @@
 #include <utility>
 #include <vector>
 
-#include "benchmark_api.h" // For forward declaration of BenchmarkReporter
+#include "benchmark_api.h"  // For forward declaration of BenchmarkReporter
 
 namespace benchmark {
 
@@ -41,19 +41,20 @@ class BenchmarkReporter {
   };
 
   struct Run {
-    Run() :
-      error_occurred(false),
-      iterations(1),
-      time_unit(kNanosecond),
-      real_accumulated_time(0),
-      cpu_accumulated_time(0),
-      bytes_per_second(0),
-      items_per_second(0),
-      max_heapbytes_used(0),
-      complexity(oNone),
-      complexity_n(0),
-      report_big_o(false),
-      report_rms(false) {}
+    Run()
+        : error_occurred(false),
+          iterations(1),
+          time_unit(kNanosecond),
+          real_accumulated_time(0),
+          cpu_accumulated_time(0),
+          bytes_per_second(0),
+          items_per_second(0),
+          max_heapbytes_used(0),
+          complexity(oNone),
+          complexity_lambda(),
+          complexity_n(0),
+          report_big_o(false),
+          report_rms(false) {}
 
     std::string benchmark_name;
     std::string report_label;  // Empty if not set by benchmark.
@@ -85,7 +86,8 @@ class BenchmarkReporter {
     double max_heapbytes_used;
 
     // Keep track of arguments to compute asymptotic complexity
-    BigO   complexity;
+    BigO complexity;
+    BigOFunc* complexity_lambda;
     int complexity_n;
 
     // Inform print function whether the current run is a complexity report
@@ -132,13 +134,9 @@ class BenchmarkReporter {
     error_stream_ = err;
   }
 
-  std::ostream& GetOutputStream() const {
-    return *output_stream_;
-  }
+  std::ostream& GetOutputStream() const { return *output_stream_; }
 
-  std::ostream& GetErrorStream() const {
-    return *error_stream_;
-  }
+  std::ostream& GetErrorStream() const { return *error_stream_; }
 
   virtual ~BenchmarkReporter();
 
@@ -147,7 +145,7 @@ class BenchmarkReporter {
   // REQUIRES: 'out' is non-null.
   static void PrintBasicContext(std::ostream* out, Context const& context);
 
-private:
+ private:
   std::ostream* output_stream_;
   std::ostream* error_stream_;
 };
@@ -156,34 +154,40 @@ private:
 // default reporter used by RunSpecifiedBenchmarks().
 class ConsoleReporter : public BenchmarkReporter {
  public:
+  enum OutputOptions { OO_None, OO_Color };
+  explicit ConsoleReporter(OutputOptions color_output = OO_Color)
+      : name_field_width_(0), color_output_(color_output == OO_Color) {}
+
   virtual bool ReportContext(const Context& context);
   virtual void ReportRuns(const std::vector<Run>& reports);
 
-protected:
+ protected:
   virtual void PrintRunData(const Run& report);
-
   size_t name_field_width_;
+
+ private:
+  bool color_output_;
 };
 
 class JSONReporter : public BenchmarkReporter {
-public:
+ public:
   JSONReporter() : first_report_(true) {}
   virtual bool ReportContext(const Context& context);
   virtual void ReportRuns(const std::vector<Run>& reports);
   virtual void Finalize();
 
-private:
+ private:
   void PrintRunData(const Run& report);
 
   bool first_report_;
 };
 
 class CSVReporter : public BenchmarkReporter {
-public:
+ public:
   virtual bool ReportContext(const Context& context);
   virtual void ReportRuns(const std::vector<Run>& reports);
 
-private:
+ private:
   void PrintRunData(const Run& report);
 };
 
@@ -200,7 +204,7 @@ inline const char* GetTimeUnitString(TimeUnit unit) {
 }
 
 inline double GetTimeUnitMultiplier(TimeUnit unit) {
-    switch (unit) {
+  switch (unit) {
     case kMillisecond:
       return 1e3;
     case kMicrosecond:
@@ -211,5 +215,5 @@ inline double GetTimeUnitMultiplier(TimeUnit unit) {
   }
 }
 
-} // end namespace benchmark
-#endif // BENCHMARK_REPORTER_H_
+}  // end namespace benchmark
+#endif  // BENCHMARK_REPORTER_H_

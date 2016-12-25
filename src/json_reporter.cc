@@ -13,16 +13,17 @@
 // limitations under the License.
 
 #include "benchmark/reporter.h"
+#include "complexity.h"
 
-#include <cstdint>
 #include <algorithm>
+#include <cstdint>
 #include <iostream>
 #include <string>
 #include <tuple>
 #include <vector>
 
 #include "string_util.h"
-#include "walltime.h"
+#include "timers.h"
 
 namespace benchmark {
 
@@ -46,11 +47,13 @@ std::string FormatKV(std::string const& key, int64_t value) {
   return ss.str();
 }
 
-int64_t RoundDouble(double v) {
-    return static_cast<int64_t>(v + 0.5);
+std::string FormatKV(std::string const& key, double value) {
+  return StringPrintF("\"%s\": %.2f", key.c_str(), value);
 }
 
-} // end namespace
+int64_t RoundDouble(double v) { return static_cast<int64_t>(v + 0.5); }
+
+}  // end namespace
 
 bool JSONReporter::ReportContext(const Context& context) {
   std::ostream& out = GetOutputStream();
@@ -65,14 +68,11 @@ bool JSONReporter::ReportContext(const Context& context) {
   std::string walltime_value = LocalDateTimeString();
   out << indent << FormatKV("date", walltime_value) << ",\n";
 
-  out << indent
-      << FormatKV("num_cpus", static_cast<int64_t>(context.num_cpus))
+  out << indent << FormatKV("num_cpus", static_cast<int64_t>(context.num_cpus))
       << ",\n";
-  out << indent
-      << FormatKV("mhz_per_cpu", RoundDouble(context.mhz_per_cpu))
+  out << indent << FormatKV("mhz_per_cpu", RoundDouble(context.mhz_per_cpu))
       << ",\n";
-  out << indent
-      << FormatKV("cpu_scaling_enabled", context.cpu_scaling_enabled)
+  out << indent << FormatKV("cpu_scaling_enabled", context.cpu_scaling_enabled)
       << ",\n";
 
 #if defined(NDEBUG)
@@ -99,62 +99,65 @@ void JSONReporter::ReportRuns(std::vector<Run> const& reports) {
   first_report_ = false;
 
   for (auto it = reports.begin(); it != reports.end(); ++it) {
-     out << indent << "{\n";
-     PrintRunData(*it);
-     out << indent << '}';
-     auto it_cp = it;
-     if (++it_cp != reports.end()) {
-         out << ",\n";
-     }
+    out << indent << "{\n";
+    PrintRunData(*it);
+    out << indent << '}';
+    auto it_cp = it;
+    if (++it_cp != reports.end()) {
+      out << ",\n";
+    }
   }
 }
 
 void JSONReporter::Finalize() {
-    // Close the list of benchmarks and the top level object.
-    GetOutputStream() << "\n  ]\n}\n";
+  // Close the list of benchmarks and the top level object.
+  GetOutputStream() << "\n  ]\n}\n";
 }
 
 void JSONReporter::PrintRunData(Run const& run) {
-    std::string indent(6, ' ');
-    std::ostream& out = GetOutputStream();
-    out << indent
-        << FormatKV("name", run.benchmark_name)
-        << ",\n";
-    if (run.error_occurred) {
-        out << indent
-            << FormatKV("error_occurred", run.error_occurred)
-            << ",\n";
-        out << indent
-            << FormatKV("error_message", run.error_message)
-            << ",\n";
-    }
-    if(!run.report_big_o && !run.report_rms) {
-        out << indent
-            << FormatKV("iterations", run.iterations)
-            << ",\n";
-    }
+  std::string indent(6, ' ');
+  std::ostream& out = GetOutputStream();
+  out << indent << FormatKV("name", run.benchmark_name) << ",\n";
+  if (run.error_occurred) {
+    out << indent << FormatKV("error_occurred", run.error_occurred) << ",\n";
+    out << indent << FormatKV("error_message", run.error_message) << ",\n";
+  }
+  if (!run.report_big_o && !run.report_rms) {
+    out << indent << FormatKV("iterations", run.iterations) << ",\n";
     out << indent
         << FormatKV("real_time", RoundDouble(run.GetAdjustedRealTime()))
         << ",\n";
     out << indent
         << FormatKV("cpu_time", RoundDouble(run.GetAdjustedCPUTime()));
-    if(!run.report_rms) {
-        out << ",\n" << indent
-            << FormatKV("time_unit", GetTimeUnitString(run.time_unit));
-    }
-    if (run.bytes_per_second > 0.0) {
-        out << ",\n" << indent
-            << FormatKV("bytes_per_second", RoundDouble(run.bytes_per_second));
-    }
-    if (run.items_per_second > 0.0) {
-        out << ",\n" << indent
-            << FormatKV("items_per_second", RoundDouble(run.items_per_second));
-    }
-    if (!run.report_label.empty()) {
-        out << ",\n" << indent
-            << FormatKV("label", run.report_label);
-    }
-    out << '\n';
+    out << ",\n"
+        << indent << FormatKV("time_unit", GetTimeUnitString(run.time_unit));
+  } else if (run.report_big_o) {
+    out << indent
+        << FormatKV("cpu_coefficient", RoundDouble(run.GetAdjustedCPUTime()))
+        << ",\n";
+    out << indent
+        << FormatKV("real_coefficient", RoundDouble(run.GetAdjustedRealTime()))
+        << ",\n";
+    out << indent << FormatKV("big_o", GetBigOString(run.complexity)) << ",\n";
+    out << indent << FormatKV("time_unit", GetTimeUnitString(run.time_unit));
+  } else if (run.report_rms) {
+    out << indent
+        << FormatKV("rms", run.GetAdjustedCPUTime());
+  }
+  if (run.bytes_per_second > 0.0) {
+    out << ",\n"
+        << indent
+        << FormatKV("bytes_per_second", RoundDouble(run.bytes_per_second));
+  }
+  if (run.items_per_second > 0.0) {
+    out << ",\n"
+        << indent
+        << FormatKV("items_per_second", RoundDouble(run.items_per_second));
+  }
+  if (!run.report_label.empty()) {
+    out << ",\n" << indent << FormatKV("label", run.report_label);
+  }
+  out << '\n';
 }
 
-} // end namespace benchmark
+}  // end namespace benchmark
