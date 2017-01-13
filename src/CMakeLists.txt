@@ -21,6 +21,10 @@ set_target_properties(benchmark PROPERTIES
 
 # Link threads.
 target_link_libraries(benchmark  ${BENCHMARK_CXX_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
+find_library(LIBRT rt)
+if(LIBRT)
+  target_link_libraries(benchmark ${LIBRT})
+endif()
 
 # We need extra libraries on Windows
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
