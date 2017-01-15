@@ -168,6 +168,9 @@ class BenchmarkReporter;
 
 void Initialize(int* argc, char** argv);
 
+// Report to stdout all arguments in 'argv' as unrecognized except the first.
+void ReportUnrecognizedArguments(int argc, char** argv);
+
 // Generate a list of benchmarks matching the specified --benchmark_filter flag
 // and if --benchmark_list_tests is specified return after printing the name
 // of each matching benchmark. Otherwise run each matching benchmark and
@@ -858,11 +861,8 @@ class Fixture : public internal::Benchmark {
 #define BENCHMARK_MAIN()                   \
   int main(int argc, char** argv) {        \
     ::benchmark::Initialize(&argc, argv);  \
-    for (int i = 1; i < argc; ++i) {       \
-      fprintf(stdout, "%s: error: unrecognised command-line flag: %s\n", \
-              argv[0], argv[i]);           \
-    }                                      \
     if (argc > 1) {                        \
+      ::benchmark::ReportUnrecognizedArguments(argc, argv); \
       return 1;                            \
     }                                      \
     ::benchmark::RunSpecifiedBenchmarks(); \

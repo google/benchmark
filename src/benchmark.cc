@@ -664,4 +664,10 @@ void Initialize(int* argc, char** argv) {
   internal::LogLevel() = FLAGS_v;
 }
 
+void ReportUnrecognizedArguments(int argc, char** argv) {
+  for (int i = 1; i < argc; ++i) {
+    printf("%s: error: unrecognised command-line flag: %s\n", argv[0], argv[i]);
+  }
+}
+
 }  // end namespace benchmark
