@@ -168,6 +168,10 @@ class BenchmarkReporter;
 
 void Initialize(int* argc, char** argv);
 
+// Report to stdout all arguments in 'argv' as unrecognized except the first.
+// Returns true there is at least on unrecognized argument (i.e. 'argc' > 1).
+bool ReportUnrecognizedArguments(int argc, char** argv);
+
 // Generate a list of benchmarks matching the specified --benchmark_filter flag
 // and if --benchmark_list_tests is specified return after printing the name
 // of each matching benchmark. Otherwise run each matching benchmark and
@@ -858,6 +862,7 @@ class Fixture : public internal::Benchmark {
 #define BENCHMARK_MAIN()                   \
   int main(int argc, char** argv) {        \
     ::benchmark::Initialize(&argc, argv);  \
+    if (::benchmark::ReportUnrecognizedArguments(argc, argv)) return 1; \
     ::benchmark::RunSpecifiedBenchmarks(); \
   }
 
