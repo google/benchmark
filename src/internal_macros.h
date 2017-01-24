@@ -30,9 +30,13 @@
 #elif defined(_WIN32)
 #define BENCHMARK_OS_WINDOWS 1
 #elif defined(__APPLE__)
-// TODO(ericwf) This doesn't actually check that it is a Mac OSX system. Just
-// that it is an apple system.
-#define BENCHMARK_OS_MACOSX 1
+#include "TargetConditionals.h"
+  #if defined(TARGET_OS_MAC)
+    #define BENCHMARK_OS_MACOSX 1
+    #if defined(TARGET_OS_IPHONE)
+      #define BENCHMARK_OS_IOS 1
+    #endif
+  #endif
 #elif defined(__FreeBSD__)
 #define BENCHMARK_OS_FREEBSD 1
 #elif defined(__linux__)
