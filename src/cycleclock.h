@@ -79,7 +79,7 @@ inline BENCHMARK_ALWAYS_INLINE int64_t Now() {
   asm("mftbu %0" : "=r"(tbu0));
   asm("mftb  %0" : "=r"(tbl));
   asm("mftbu %0" : "=r"(tbu1));
-  tbl &= -static_cast<int64>(tbu0 == tbu1);
+  tbl &= -static_cast<int64_t>(tbu0 == tbu1);
   // high 32 bits in tbu1; low 32 bits in tbl  (tbu0 is garbage)
   return (tbu1 << 32) | tbl;
 #elif defined(__sparc__)
