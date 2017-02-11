@@ -43,14 +43,11 @@ extern "C" uint64_t __rdtsc();
 
 #ifndef BENCHMARK_OS_WINDOWS
 #include <sys/time.h>
+#include <time.h>
 #endif
 
 #ifdef BENCHMARK_OS_EMSCRIPTEN
 #include <emscripten.h>
-#endif
-
-#if defined(__pnacl__)
-#include <time.h>
 #endif
 
 namespace benchmark {
@@ -111,6 +108,22 @@ inline BENCHMARK_ALWAYS_INLINE int64_t Now() {
   _asm rdtsc
 #elif defined(COMPILER_MSVC)
   return __rdtsc();
+#elif defined(BENCHMARK_OS_NACL)
+  // Native Client validator on x86/x86-64 allows RDTSC instructions,
+  // and this case is handled above. Native Client validator on ARM
+  // rejects MRC instructions (used in the ARM-specific sequence below),
+  // so we handle it here. Portable Native Client compiles to
+  // architecture-agnostic bytecode, which doesn't provide any
+  // cycle counter access mnemonics.
+
+  // Native Client does not provide any API to access cycle counter.
+  // Use clock_gettime(CLOCK_MONOTONIC, ...) instead of gettimeofday
+  // because is provides nanosecond resolution (which is noticable at
+  // least for PNaCl modules running on x86 Mac & Linux).
+  // Initialize to always return 0 if clock_gettime fails.
+  struct timespec ts = { 0, 0 };
+  clock_gettime(CLOCK_MONOTONIC, &ts);
+  return static_cast<int64_t>(ts.tv_sec) * 1000000000 + ts.tv_nsec;
 #elif defined(__aarch64__)
   // System timer of ARMv8 runs at a different frequency than the CPU's.
   // The frequency is fixed, typically in the range 1-50MHz.  It can be
@@ -122,7 +135,7 @@ inline BENCHMARK_ALWAYS_INLINE int64_t Now() {
 #elif defined(__ARM_ARCH)
   // V6 is the earliest arch that has a standard cyclecount
   // Native Client validator doesn't allow MRC instructions.
-#if (__ARM_ARCH >= 6) && !defined(BENCHMARK_OS_NACL)
+#if (__ARM_ARCH >= 6)
   uint32_t pmccntr;
   uint32_t pmuseren;
   uint32_t pmcntenset;
@@ -146,14 +159,6 @@ inline BENCHMARK_ALWAYS_INLINE int64_t Now() {
   struct timeval tv;
   gettimeofday(&tv, nullptr);
   return static_cast<int64_t>(tv.tv_sec) * 1000000 + tv.tv_usec;
-#elif defined(__pnacl__)
-  // Portable Native Client compiles to architecture-agnostic bytecode,
-  // and does not provide any API to access cycle counter.
-
-  // Initialize to always return if clock_gettime fails
-  struct timespec ts = { 0, 0 };
-  clock_gettime(CLOCK_MONOTONIC, &ts);
-  return static_cast<int64_t>(ts.tv_sec) * 1000000000 + ts.tv_nsec;
 #else
 // The soft failover to a generic implementation is automatic only for ARM.
 // For other platforms the developer is expected to make an attempt to create
