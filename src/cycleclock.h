@@ -45,6 +45,10 @@ extern "C" uint64_t __rdtsc();
 #include <sys/time.h>
 #endif
 
+#ifdef BENCHMARK_OS_EMSCRIPTEN
+#include <emscripten.h>
+#endif
+
 #if defined(__pnacl__)
 #include <time.h>
 #endif
@@ -69,6 +73,10 @@ inline BENCHMARK_ALWAYS_INLINE int64_t Now() {
   // counter pauses; it does not continue counting, nor does it
   // reset to zero.
   return mach_absolute_time();
+#elif defined(BENCHMARK_OS_EMSCRIPTEN)
+  // this goes above x86-specific code because old versions of Emscripten
+  // define __x86_64__, although they have nothing to do with it.
+  return static_cast<int64_t>(emscripten_get_now() * 1e+6);
 #elif defined(__i386__)
   int64_t ret;
   __asm__ volatile("rdtsc" : "=A"(ret));

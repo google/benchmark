@@ -35,6 +35,10 @@
 #endif
 #endif
 
+#ifdef BENCHMARK_OS_EMSCRIPTEN
+#include <emscripten.h>
+#endif
+
 #include <cerrno>
 #include <cstdint>
 #include <cstdio>
@@ -102,7 +106,8 @@ BENCHMARK_NORETURN static void DiagnoseAndExit(const char* msg) {
 double ProcessCPUUsage() {
 // FIXME We want to use clock_gettime, but its not available in MacOS 10.11. See
 // https://github.com/google/benchmark/pull/292
-#if defined(CLOCK_PROCESS_CPUTIME_ID) && !defined(BENCHMARK_OS_MACOSX)
+#if defined(CLOCK_PROCESS_CPUTIME_ID) && !defined(BENCHMARK_OS_MACOSX) && \
+    !defined(BENCHMARK_OS_EMSCRIPTEN)
   struct timespec spec;
   if (clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &spec) == 0)
     return MakeTime(spec);
@@ -117,6 +122,12 @@ double ProcessCPUUsage() {
                       &user_time))
     return MakeTime(kernel_time, user_time);
   DiagnoseAndExit("GetProccessTimes() failed");
+#elif defined(BENCHMARK_OS_EMSCRIPTEN)
+  // clock_gettime(CLOCK_PROCESS_CPUTIME_ID, ...) returns 0 on Emscripten.
+  // Use Emscripten-specific API. Reported CPU time would be exactly the
+  // same as total time, but this is ok because there aren't long-latency
+  // syncronous system calls in Emscripten.
+  return emscripten_get_now() * 1e-3;
 #else
   struct rusage ru;
   if (getrusage(RUSAGE_SELF, &ru) == 0) return MakeTime(ru);
@@ -127,7 +138,8 @@ double ProcessCPUUsage() {
 double ThreadCPUUsage() {
 // FIXME We want to use clock_gettime, but its not available in MacOS 10.11. See
 // https://github.com/google/benchmark/pull/292
-#if defined(CLOCK_THREAD_CPUTIME_ID) && !defined(BENCHMARK_OS_MACOSX)
+#if defined(CLOCK_THREAD_CPUTIME_ID) && !defined(BENCHMARK_OS_MACOSX) && \
+    !defined(BENCHMARK_OS_EMSCRIPTEN)
   struct timespec ts;
   if (clock_gettime(CLOCK_THREAD_CPUTIME_ID, &ts) == 0) return MakeTime(ts);
   DiagnoseAndExit("clock_gettime(CLOCK_THREAD_CPUTIME_ID, ...) failed");
@@ -149,6 +161,9 @@ double ThreadCPUUsage() {
     return MakeTime(info);
   }
   DiagnoseAndExit("ThreadCPUUsage() failed when evaluating thread_info");
+#elif defined(BENCHMARK_OS_EMSCRIPTEN)
+  // Emscripten doesn't support traditional threads
+  return ProcessCPUUsage();
 #else
 #error Per-thread timing is not available on your system.
 #endif
