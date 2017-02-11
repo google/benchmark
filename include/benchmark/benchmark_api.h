@@ -230,7 +230,7 @@ BENCHMARK_UNUSED static int stream_init_anchor = InitializeStreams();
 // expression from being optimized away by the compiler. This function is
 // intended to add little to no overhead.
 // See: https://youtu.be/nXaxk27zwlk?t=2441
-#if defined(__GNUC__)
+#if defined(__GNUC__) && !defined(__pnacl__) && !defined(EMSCRIPTEN)
 template <class Tp>
 inline BENCHMARK_ALWAYS_INLINE void DoNotOptimize(Tp const& value) {
   asm volatile("" : : "g"(value) : "memory");
