@@ -45,6 +45,10 @@ extern "C" uint64_t __rdtsc();
 #include <sys/time.h>
 #endif
 
+#if defined(__pnacl__)
+#include <time.h>
+#endif
+
 namespace benchmark {
 // NOTE: only i386 and x86_64 have been well tested.
 // PPC, sparc, alpha, and ia64 are based on
@@ -132,6 +136,14 @@ inline BENCHMARK_ALWAYS_INLINE int64_t Now() {
   struct timeval tv;
   gettimeofday(&tv, nullptr);
   return static_cast<int64_t>(tv.tv_sec) * 1000000 + tv.tv_usec;
+#elif defined(__pnacl__)
+  // Portable Native Client compiles to architecture-agnostic bytecode,
+  // and does not provide any API to access cycle counter.
+
+  // Initialize to always return if clock_gettime fails
+  struct timespec ts = { 0, 0 };
+  clock_gettime(CLOCK_MONOTONIC, &ts);
+  return static_cast<int64_t>(ts.tv_sec) * 1000000000 + ts.tv_nsec;
 #else
 // The soft failover to a generic implementation is automatic only for ARM.
 // For other platforms the developer is expected to make an attempt to create
