@@ -41,6 +41,10 @@
 #define BENCHMARK_OS_FREEBSD 1
 #elif defined(__linux__)
 #define BENCHMARK_OS_LINUX 1
+#elif defined(__native_client__)
+#define BENCHMARK_OS_NACL 1
+#elif defined(EMSCRIPTEN)
+#define BENCHMARK_OS_EMSCRIPTEN 1
 #endif
 
 #if !__has_feature(cxx_exceptions) && !defined(__cpp_exceptions) \
