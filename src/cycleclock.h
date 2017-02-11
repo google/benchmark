@@ -112,7 +112,9 @@ inline BENCHMARK_ALWAYS_INLINE int64_t Now() {
   asm volatile("mrs %0, cntvct_el0" : "=r"(virtual_timer_value));
   return virtual_timer_value;
 #elif defined(__ARM_ARCH)
-#if (__ARM_ARCH >= 6)  // V6 is the earliest arch that has a standard cyclecount
+  // V6 is the earliest arch that has a standard cyclecount
+  // Native Client validator doesn't allow MRC instructions.
+#if (__ARM_ARCH >= 6) && !defined(BENCHMARK_OS_NACL)
   uint32_t pmccntr;
   uint32_t pmuseren;
   uint32_t pmcntenset;
