@@ -37,7 +37,7 @@ cc_library(
         "include/benchmark/macros.h",
         "include/benchmark/reporter.h",
     ],
-    visibility = ["//test:__pkg__"],
+    visibility = ["//visibility:public"],
     defines = ["HAVE_POSIX_REGEX"],
     includes = ["include"],
     linkopts = ["-pthread"],
