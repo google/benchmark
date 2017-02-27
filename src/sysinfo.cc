@@ -295,8 +295,13 @@ void InitializeSystemInfo() {
       (size == sizeof(cpu_freq))) {
     cpuinfo_cycles_per_second = cpu_freq;
   } else {
+    #if defined BENCHMARK_OS_IOS
+    fprintf(stderr, "CPU frequency cannot be detected. \n");
+    cpuinfo_cycles_per_second = 0;
+    #else
     fprintf(stderr, "%s\n", strerror(errno));
     std::exit(EXIT_FAILURE);
+    #endif
   }
 #else
   // Generic cycles per second counter

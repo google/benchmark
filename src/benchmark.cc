@@ -639,7 +639,7 @@ void ParseCommandLineFlags(int* argc, char** argv) {
         // TODO: Remove this.
         ParseStringFlag(argv[i], "color_print", &FLAGS_benchmark_color) ||
         ParseInt32Flag(argv[i], "v", &FLAGS_v)) {
-      for (int j = i; j != *argc; ++j) argv[j] = argv[j + 1];
+      for (int j = i; j != *argc - 1; ++j) argv[j] = argv[j + 1];
 
       --(*argc);
       --i;
@@ -667,6 +667,13 @@ int InitializeStreams() {
 void Initialize(int* argc, char** argv) {
   internal::ParseCommandLineFlags(argc, argv);
   internal::LogLevel() = FLAGS_v;
+}
+
+bool ReportUnrecognizedArguments(int argc, char** argv) {
+  for (int i = 1; i < argc; ++i) {
+    fprintf(stderr, "%s: error: unrecognized command-line flag: %s\n", argv[0], argv[i]);
+  }
+  return argc > 1;
 }
 
 }  // end namespace benchmark

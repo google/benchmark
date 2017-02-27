@@ -170,6 +170,10 @@ class BenchmarkReporter;
 
 void Initialize(int* argc, char** argv);
 
+// Report to stdout all arguments in 'argv' as unrecognized except the first.
+// Returns true there is at least on unrecognized argument (i.e. 'argc' > 1).
+bool ReportUnrecognizedArguments(int argc, char** argv);
+
 // Generate a list of benchmarks matching the specified --benchmark_filter flag
 // and if --benchmark_list_tests is specified return after printing the name
 // of each matching benchmark. Otherwise run each matching benchmark and
@@ -228,7 +232,7 @@ BENCHMARK_UNUSED static int stream_init_anchor = InitializeStreams();
 // expression from being optimized away by the compiler. This function is
 // intended to add little to no overhead.
 // See: https://youtu.be/nXaxk27zwlk?t=2441
-#if defined(__GNUC__)
+#if defined(__GNUC__) && !defined(__pnacl__) && !defined(EMSCRIPTEN)
 template <class Tp>
 inline BENCHMARK_ALWAYS_INLINE void DoNotOptimize(Tp const& value) {
   asm volatile("" : : "g"(value) : "memory");
@@ -895,6 +899,7 @@ class Fixture : public internal::Benchmark {
 #define BENCHMARK_MAIN()                   \
   int main(int argc, char** argv) {        \
     ::benchmark::Initialize(&argc, argv);  \
+    if (::benchmark::ReportUnrecognizedArguments(argc, argv)) return 1; \
     ::benchmark::RunSpecifiedBenchmarks(); \
   }
 

@@ -163,7 +163,7 @@ bool BenchmarkFamilies::FindBenchmarks(
             }
           }
 
-          AppendHumanReadable(arg, &instance.name);
+          instance.name += std::to_string(arg);
           ++arg_i;
         }
 
