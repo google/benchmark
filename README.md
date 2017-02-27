@@ -455,8 +455,13 @@ and `Counter` values. The latter is a `double`-like class, via an implicit
 conversion to `double&`. Thus you can use all of the standard arithmetic
 assignment operators (`=,+=,-=,*=,/=`) to change the value of each counter.
 
+In multithreaded benchmarks, each counter is set on the calling thread only.
+When the benchmark finishes, the counters from each thread will be summed;
+the resulting sum is the value which will be shown for the benchmark.
+
 The `Counter` constructor accepts two parameters: the value as a `double`
-and a bit flag which allows you to mark counters as rates and/or as per-thread averages:
+and a bit flag which allows you to show counters as rates and/or as
+per-thread averages:
 
 ```c++
   // sets a simple counter
@@ -467,7 +472,7 @@ and a bit flag which allows you to mark counters as rates and/or as per-thread a
   state.counters["FooRate"] = Counter(numFoos, benchmark::Counter::kIsRate);
 
   // Set the counter as a thread-average quantity. It will
-  // be presented divided by the number of threads. */
+  // be presented divided by the number of threads.
   state.counters["FooAvg"] = Counter(numFoos, benchmark::Counter::kAvgThreads);
 
   // There's also a combined flag:
