@@ -171,6 +171,22 @@ std::vector<BenchmarkReporter::Run> ComputeStats(
   // All repetitions should be run with the same number of iterations so we
   // can take this information from the first benchmark.
   int64_t const run_iterations = reports.front().iterations;
+  // create stats for user counters
+  struct CounterStat {
+    Counter c;
+    Stat1_d s;
+  };
+  std::map< std::string, CounterStat > counter_stats;
+  for(Run const& r : reports) {
+    for(auto const& cnt : r.counters) {
+      auto it = counter_stats.find(cnt.first);
+      if(it == counter_stats.end()) {
+        counter_stats.insert({cnt.first, {cnt.second, Stat1_d{}}});
+      } else {
+        CHECK_EQ(counter_stats[cnt.first].c.flags, cnt.second.flags);
+      }
+    }
+  }
 
   // Populate the accumulators.
   for (Run const& run : reports) {
@@ -183,6 +199,12 @@ std::vector<BenchmarkReporter::Run> ComputeStats(
         Stat1_d(run.cpu_accumulated_time / run.iterations, run.iterations);
     items_per_second_stat += Stat1_d(run.items_per_second, run.iterations);
     bytes_per_second_stat += Stat1_d(run.bytes_per_second, run.iterations);
+    // user counters
+    for(auto const& cnt : run.counters) {
+      auto it = counter_stats.find(cnt.first);
+      CHECK_NE(it, counter_stats.end());
+      it->second.s += Stat1_d(cnt.second, run.iterations);
+    }
   }
 
   // Get the data from the accumulator to BenchmarkReporter::Run's.
@@ -196,6 +218,11 @@ std::vector<BenchmarkReporter::Run> ComputeStats(
   mean_data.bytes_per_second = bytes_per_second_stat.Mean();
   mean_data.items_per_second = items_per_second_stat.Mean();
   mean_data.time_unit = reports[0].time_unit;
+  // user counters
+  for(auto const& kv : counter_stats) {
+    auto c = Counter(kv.second.s.Mean(), counter_stats[kv.first].c.flags);
+    mean_data.counters[kv.first] = c;
+  }
 
   // Only add label to mean/stddev if it is same for all runs
   mean_data.report_label = reports[0].report_label;
@@ -215,6 +242,11 @@ std::vector<BenchmarkReporter::Run> ComputeStats(
   stddev_data.bytes_per_second = bytes_per_second_stat.StdDev();
   stddev_data.items_per_second = items_per_second_stat.StdDev();
   stddev_data.time_unit = reports[0].time_unit;
+  // user counters
+  for(auto const& kv : counter_stats) {
+    auto c = Counter(kv.second.s.StdDev(), counter_stats[kv.first].c.flags);
+    stddev_data.counters[kv.first] = c;
+  }
 
   results.push_back(mean_data);
   results.push_back(stddev_data);

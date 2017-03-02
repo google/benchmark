@@ -155,11 +155,13 @@ BENCHMARK(BM_test)->Unit(benchmark::kMillisecond);
 
 #include <string>
 #include <vector>
+#include <map>
 
 #include "macros.h"
 
 #if defined(BENCHMARK_HAS_CXX11)
 #include <type_traits>
+#include <initializer_list>
 #include <utility>
 #endif
 
@@ -247,6 +249,39 @@ inline BENCHMARK_ALWAYS_INLINE void DoNotOptimize(Tp const& value) {
 }
 // FIXME Add ClobberMemory() for non-gnu compilers
 #endif
+
+
+
+// This class is used for user-defined counters.
+class Counter {
+public:
+
+  enum Flags {
+    kDefaults   = 0,
+    // Mark the counter as a rate. It will be presented divided
+    // by the duration of the benchmark.
+    kIsRate     = 1,
+    // Mark the counter as a thread-average quantity. It will be
+    // presented divided by the number of threads.
+    kAvgThreads = 2,
+    // Mark the counter as a thread-average rate. See above.
+    kAvgThreadsRate = kIsRate|kAvgThreads
+  };
+
+  double value;
+  Flags  flags;
+
+  BENCHMARK_ALWAYS_INLINE
+  Counter(double v = 0., Flags f = kDefaults) : value(v), flags(f) {}
+
+  BENCHMARK_ALWAYS_INLINE operator double const& () const { return value; }
+  BENCHMARK_ALWAYS_INLINE operator double      & ()       { return value; }
+
+};
+
+// This is the container for the user-defined counters.
+typedef std::map<std::string, Counter> BenchmarkCounters;
+
 
 // TimeUnit is passed to a benchmark in order to specify the order of magnitude
 // for the measured time.
@@ -438,6 +473,8 @@ class State {
   bool error_occurred_;
 
  public:
+  // Container for user-defined counters.
+  BenchmarkCounters counters;
   // Index of the executing thread. Values from [0, threads).
   const int thread_index;
   // Number of threads concurrently executing the benchmark.

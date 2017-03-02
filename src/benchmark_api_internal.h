@@ -24,6 +24,7 @@ struct Benchmark::Instance {
   bool use_manual_time;
   BigO complexity;
   BigOFunc* complexity_lambda;
+  BenchmarkCounters counters;
   bool last_benchmark_instance;
   int repetitions;
   double min_time;
