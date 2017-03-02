@@ -28,13 +28,13 @@ double Finish(Counter const& c, double cpu_time, double num_threads) {
   return v;
 }
 
-void Finish(BenchmarkCounters *l, double cpu_time, double num_threads) {
+void Finish(UserCounters *l, double cpu_time, double num_threads) {
   for (auto &c : *l) {
     c.second = Finish(c.second, cpu_time, num_threads);
   }
 }
 
-void Increment(BenchmarkCounters *l, BenchmarkCounters const& r) {
+void Increment(UserCounters *l, UserCounters const& r) {
   // add counters present in both or just in *l
   for (auto &c : *l) {
     auto it = r.find(c.first);
@@ -51,7 +51,7 @@ void Increment(BenchmarkCounters *l, BenchmarkCounters const& r) {
   }
 }
 
-bool SameNames(BenchmarkCounters const& l, BenchmarkCounters const& r) {
+bool SameNames(UserCounters const& l, UserCounters const& r) {
   if (&l == &r) return true;
   if (l.size() != r.size()) {
     return false;

@@ -280,7 +280,7 @@ public:
 };
 
 // This is the container for the user-defined counters.
-typedef std::map<std::string, Counter> BenchmarkCounters;
+typedef std::map<std::string, Counter> UserCounters;
 
 
 // TimeUnit is passed to a benchmark in order to specify the order of magnitude
@@ -474,7 +474,7 @@ class State {
 
  public:
   // Container for user-defined counters.
-  BenchmarkCounters counters;
+  UserCounters counters;
   // Index of the executing thread. Values from [0, threads).
   const int thread_index;
   // Number of threads concurrently executing the benchmark.
