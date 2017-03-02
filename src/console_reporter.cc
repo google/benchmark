@@ -41,11 +41,11 @@ bool ConsoleReporter::ReportContext(const Context& context) {
   PrintBasicContext(&GetErrorStream(), context);
 
 #ifdef BENCHMARK_OS_WINDOWS
-  if (color_output_ && &std::cout != &GetOutputStream()) {
+  if ((output_options_ & OO_Color) && &std::cout != &GetOutputStream()) {
     GetErrorStream()
         << "Color printing is only supported for stdout on windows."
            " Disabling color printing\n";
-    color_output_ = false;
+    output_options_ &= ~OO_Color;
   }
 #endif
 
