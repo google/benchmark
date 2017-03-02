@@ -96,7 +96,7 @@ class BenchmarkReporter {
     bool report_big_o;
     bool report_rms;
 
-    BenchmarkCounters counters;
+    UserCounters counters;
   };
 
   // Construct a BenchmarkReporter with the output stream set to 'std::cout'
