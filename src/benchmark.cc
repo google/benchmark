@@ -564,7 +564,8 @@ size_t RunSpecifiedBenchmarks(BenchmarkReporter* console_reporter,
       output_opts &= ~ConsoleReporter::OO_Tabular;
     }
     default_console_reporter = internal::CreateReporter(
-          FLAGS_benchmark_format, (ConsoleReporter::OutputOptions)output_opts);
+          FLAGS_benchmark_format,
+          static_cast< ConsoleReporter::OutputOptions >(output_opts));
     console_reporter = default_console_reporter.get();
   }
   auto& Out = console_reporter->GetOutputStream();
