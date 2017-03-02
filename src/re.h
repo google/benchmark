@@ -15,6 +15,15 @@
 #ifndef BENCHMARK_RE_H_
 #define BENCHMARK_RE_H_
 
+#include "internal_macros.h"
+
+// Prefer C regex libraries when compiling w/o exceptions so that we can
+// correctly report errors.
+#if defined(BENCHMARK_HAS_NO_EXCEPTIONS) && defined(HAVE_STD_REGEX) && \
+    (defined(HAVE_GNU_POSIX_REGEX) || defined(HAVE_POSIX_REGEX))
+#undef HAVE_STD_REGEX
+#endif
+
 #if defined(HAVE_STD_REGEX)
 #include <regex>
 #elif defined(HAVE_GNU_POSIX_REGEX)
@@ -46,35 +55,40 @@ class Regex {
 
   // Returns whether str matches the compiled regular expression.
   bool Match(const std::string& str);
-private:
+
+ private:
   bool init_;
-  // Underlying regular expression object
+// Underlying regular expression object
 #if defined(HAVE_STD_REGEX)
   std::regex re_;
 #elif defined(HAVE_POSIX_REGEX) || defined(HAVE_GNU_POSIX_REGEX)
   regex_t re_;
 #else
-# error No regular expression backend implementation available
+#error No regular expression backend implementation available
 #endif
 };
-
 
 #if defined(HAVE_STD_REGEX)
 
 inline bool Regex::Init(const std::string& spec, std::string* error) {
+#ifdef BENCHMARK_HAS_NO_EXCEPTIONS
+  ((void)error); // suppress unused warning
+#else
   try {
+#endif
     re_ = std::regex(spec, std::regex_constants::extended);
-
     init_ = true;
+#ifndef BENCHMARK_HAS_NO_EXCEPTIONS
   } catch (const std::regex_error& e) {
     if (error) {
       *error = e.what();
     }
   }
+#endif
   return init_;
 }
 
-inline Regex::~Regex() { }
+inline Regex::~Regex() {}
 
 inline bool Regex::Match(const std::string& str) {
   if (!init_) {
