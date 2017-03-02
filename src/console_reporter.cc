@@ -45,7 +45,7 @@ bool ConsoleReporter::ReportContext(const Context& context) {
     GetErrorStream()
         << "Color printing is only supported for stdout on windows."
            " Disabling color printing\n";
-    output_options_ &= ~OO_Color;
+    output_options_ = static_cast< OutputOptions >(output_options_ & ~OO_Color);
   }
 #endif
 
