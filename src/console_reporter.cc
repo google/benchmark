@@ -36,6 +36,7 @@ namespace benchmark {
 bool ConsoleReporter::ReportContext(const Context& context) {
   name_field_width_ = context.name_field_width;
   printed_header_ = false;
+  prev_counters_.clear();
 
   PrintBasicContext(&GetErrorStream(), context);
 
@@ -64,13 +65,21 @@ void ConsoleReporter::PrintHeader(const Run& run) {
 
 void ConsoleReporter::ReportRuns(const std::vector<Run>& reports) {
   for (const auto& run : reports) {
-    // print the header if none was printed yet
-    if (!printed_header_) {
+    // print the header:
+    // --- if none was printed yet
+    bool print_header = !printed_header_;
+    // --- or if the format is tabular and this run
+    //     has different fields from the prev header
+    print_header |= (output_options_ & OO_Tabular) &&
+                    (!internal::SameNames(run.counters, prev_counters_));
+    if (print_header) {
       printed_header_ = true;
+      prev_counters_ = run.counters;
       PrintHeader(run);
     }
     // As an alternative to printing the headers like this, we could sort
-    // the benchmarks by header and then print like that.
+    // the benchmarks by header and then print. But this would require
+    // waiting for the full results before printing, or printing twice.
     PrintRunData(run);
   }
 }
@@ -86,8 +95,8 @@ static void IgnoreColorPrint(std::ostream& out, LogColor, const char* fmt,
 void ConsoleReporter::PrintRunData(const Run& result) {
   typedef void(PrinterFn)(std::ostream&, LogColor, const char*, ...);
   auto& Out = GetOutputStream();
-  PrinterFn* printer =
-      color_output_ ? (PrinterFn*)ColorPrintf : IgnoreColorPrint;
+  PrinterFn* printer = (output_options_ & OO_Color) ?
+                         (PrinterFn*)ColorPrintf : IgnoreColorPrint;
   auto name_color =
       (result.report_big_o || result.report_rms) ? COLOR_BLUE : COLOR_GREEN;
   printer(Out, name_color, "%-*s ", name_field_width_,
@@ -134,7 +143,11 @@ void ConsoleReporter::PrintRunData(const Run& result) {
 
   for (auto& c : result.counters) {
     auto const& s = HumanReadableNumber(c.second.value);
-    printer(Out, COLOR_DEFAULT, " %s=%s", c.first.c_str(), s.c_str());
+    if(output_options_ & OO_Tabular) {
+      printer(Out, COLOR_DEFAULT, " %10s", s.c_str());
+    } else {
+      printer(Out, COLOR_DEFAULT, " %s=%s", c.first.c_str(), s.c_str());
+    }
   }
 
   if (!rate.empty()) {
