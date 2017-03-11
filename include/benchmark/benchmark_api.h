@@ -203,19 +203,6 @@ class Benchmark;
 class BenchmarkImp;
 class BenchmarkFamilies;
 
-template <class T>
-struct Voider {
-  typedef void type;
-};
-
-template <class T, class = void>
-struct EnableIfString {};
-
-template <class T>
-struct EnableIfString<T, typename Voider<typename T::basic_string>::type> {
-  typedef int type;
-};
-
 void UseCharPointer(char const volatile*);
 
 // Take ownership of the pointer and register the benchmark. Return the
@@ -432,13 +419,7 @@ class State {
   // REQUIRES: a benchmark has exited its KeepRunning loop.
   void SetLabel(const char* label);
 
-  // Allow the use of std::string without actually including <string>.
-  // This function does not participate in overload resolution unless StringType
-  // has the nested typename `basic_string`. This typename should be provided
-  // as an injected class name in the case of std::string.
-  template <class StringType>
-  void SetLabel(StringType const& str,
-                typename internal::EnableIfString<StringType>::type = 1) {
+  void BENCHMARK_ALWAYS_INLINE SetLabel(const std::string& str) {
     this->SetLabel(str.c_str());
   }
 
