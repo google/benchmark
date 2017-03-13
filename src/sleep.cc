@@ -15,6 +15,7 @@
 #include "sleep.h"
 
 #include <cerrno>
+#include <cstdlib>
 #include <ctime>
 
 #include "internal_macros.h"
