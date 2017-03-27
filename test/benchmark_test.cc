@@ -150,7 +150,7 @@ static void BM_LongTest(benchmark::State& state) {
 BENCHMARK(BM_LongTest)->Range(1 << 16, 1 << 28);
 
 static void BM_ParallelMemset(benchmark::State& state) {
-  int size = state.range(0) / sizeof(int);
+  int size = state.range(0) / static_cast<int>(sizeof(int));
   int thread_size = size / state.threads;
   int from = thread_size * state.thread_index;
   int to = from + thread_size;
