@@ -41,7 +41,7 @@ void SleepForMicroseconds(int microseconds) {
 }
 
 void SleepForMilliseconds(int milliseconds) {
-  SleepForMicroseconds(static_cast<int>(milliseconds) * kNumMicrosPerMilli);
+  SleepForMicroseconds(milliseconds * kNumMicrosPerMilli);
 }
 
 void SleepForSeconds(double seconds) {
