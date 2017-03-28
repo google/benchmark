@@ -122,11 +122,11 @@ matrix:
             - EXTRA_FLAGS="-stdlib=libc++ -g -O2 -fno-omit-frame-pointer -fsanitize=thread -fno-sanitize-recover=all"
 
 before_script:
+    - if [ -z "$BUILD_32_BITS" ]; then
+        export BUILD_32_BITS=OFF && echo disabling 32 bit build;
+      fi
     - if [ -n "${LIBCXX_BUILD}" ]; then
         source .travis-libcxx-setup.sh;
-      fi
-    - if [ -z "$BUILD_32_BITS" ]; then
-        export BUILD_32_BITS=OFF;
       fi
     - mkdir build && cd build
 
