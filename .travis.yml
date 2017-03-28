@@ -76,7 +76,7 @@ matrix:
             - COMPILER=clang++-3.8 C_COMPILER=clang-3.8 BUILD_TYPE=Debug
             - LIBCXX_BUILD=1
             - BUILD_32_BITS=ON
-            - EXTRA_FLAGS="-stdlib=libc++"
+            - EXTRA_FLAGS="-stdlib=libc++ -m32"
         # Clang w/ 32bit libc++
         - compiler: clang
           addons:
@@ -88,7 +88,7 @@ matrix:
             - COMPILER=clang++-3.8 C_COMPILER=clang-3.8 BUILD_TYPE=Release
             - LIBCXX_BUILD=1
             - BUILD_32_BITS=ON
-            - EXTRA_FLAGS="-stdlib=libc++"
+            - EXTRA_FLAGS="-stdlib=libc++ -m32"
         # Clang w/ libc++, ASAN, UBSAN
         - compiler: clang
           addons:
