@@ -56,6 +56,15 @@ matrix:
             - COMPILER=clang++-3.8 C_COMPILER=clang-3.8 BUILD_TYPE=Debug
             - LIBCXX_BUILD=1
             - EXTRA_FLAGS="-stdlib=libc++"
+        - compiler: clang
+          addons:
+            apt:
+              packages:
+                clang-3.8
+          env:
+            - COMPILER=clang++-3.8 C_COMPILER=clang-3.8 BUILD_TYPE=Release
+            - LIBCXX_BUILD=1
+            - EXTRA_FLAGS="-stdlib=libc++"
         # Clang w/ 32bit libc++
         - compiler: clang
           addons:
@@ -65,6 +74,18 @@ matrix:
                 - g++-multilib
           env:
             - COMPILER=clang++-3.8 C_COMPILER=clang-3.8 BUILD_TYPE=Debug
+            - LIBCXX_BUILD=1
+            - BUILD_32_BITS=ON
+            - EXTRA_FLAGS="-stdlib=libc++"
+        # Clang w/ 32bit libc++
+        - compiler: clang
+          addons:
+            apt:
+              packages:
+                - clang-3.8
+                - g++-multilib
+          env:
+            - COMPILER=clang++-3.8 C_COMPILER=clang-3.8 BUILD_TYPE=Release
             - LIBCXX_BUILD=1
             - BUILD_32_BITS=ON
             - EXTRA_FLAGS="-stdlib=libc++"
