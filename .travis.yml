@@ -23,6 +23,18 @@ matrix:
         - compiler: gcc
           addons:
             apt:
+              packages:
+                - g++-multilib
+          env: COMPILER=g++ C_COMPILER=gcc       BUILD_TYPE=Debug   BUILD_32_BITS=ON
+        - compiler: gcc
+          addons:
+            apt:
+              packages:
+                - g++-multilib
+          env: COMPILER=g++ C_COMPILER=gcc       BUILD_TYPE=Release BUILD_32_BITS=ON
+        - compiler: gcc
+          addons:
+            apt:
               sources:
                 - ubuntu-toolchain-r-test
               packages:
@@ -44,6 +56,39 @@ matrix:
             - COMPILER=clang++-3.8 C_COMPILER=clang-3.8 BUILD_TYPE=Debug
             - LIBCXX_BUILD=1
             - EXTRA_FLAGS="-stdlib=libc++"
+        - compiler: clang
+          addons:
+            apt:
+              packages:
+                clang-3.8
+          env:
+            - COMPILER=clang++-3.8 C_COMPILER=clang-3.8 BUILD_TYPE=Release
+            - LIBCXX_BUILD=1
+            - EXTRA_FLAGS="-stdlib=libc++"
+        # Clang w/ 32bit libc++
+        - compiler: clang
+          addons:
+            apt:
+              packages:
+                - clang-3.8
+                - g++-multilib
+          env:
+            - COMPILER=clang++-3.8 C_COMPILER=clang-3.8 BUILD_TYPE=Debug
+            - LIBCXX_BUILD=1
+            - BUILD_32_BITS=ON
+            - EXTRA_FLAGS="-stdlib=libc++ -m32"
+        # Clang w/ 32bit libc++
+        - compiler: clang
+          addons:
+            apt:
+              packages:
+                - clang-3.8
+                - g++-multilib
+          env:
+            - COMPILER=clang++-3.8 C_COMPILER=clang-3.8 BUILD_TYPE=Release
+            - LIBCXX_BUILD=1
+            - BUILD_32_BITS=ON
+            - EXTRA_FLAGS="-stdlib=libc++ -m32"
         # Clang w/ libc++, ASAN, UBSAN
         - compiler: clang
           addons:
@@ -77,6 +122,9 @@ matrix:
             - EXTRA_FLAGS="-stdlib=libc++ -g -O2 -fno-omit-frame-pointer -fsanitize=thread -fno-sanitize-recover=all"
 
 before_script:
+    - if [ -z "$BUILD_32_BITS" ]; then
+        export BUILD_32_BITS=OFF && echo disabling 32 bit build;
+      fi
     - if [ -n "${LIBCXX_BUILD}" ]; then
         source .travis-libcxx-setup.sh;
       fi
@@ -90,7 +138,7 @@ install:
     fi
 
 script:
-    - cmake -DCMAKE_C_COMPILER=${C_COMPILER} -DCMAKE_CXX_COMPILER=${COMPILER} -DCMAKE_BUILD_TYPE=${BUILD_TYPE} -DCMAKE_CXX_FLAGS="${EXTRA_FLAGS}" ..
+    - cmake -DCMAKE_C_COMPILER=${C_COMPILER} -DCMAKE_CXX_COMPILER=${COMPILER} -DCMAKE_BUILD_TYPE=${BUILD_TYPE} -DCMAKE_CXX_FLAGS="${EXTRA_FLAGS}" -DBENCHMARK_BUILD_32_BITS=${BUILD_32_BITS} ..
     - make
     - make CTEST_OUTPUT_ON_FAILURE=1 test
 
