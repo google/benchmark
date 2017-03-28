@@ -96,7 +96,7 @@ before_script:
         source .travis-libcxx-setup.sh;
       fi
     - if [ -z "$BUILD_32_BITS" ]; then
-        export BUILD_32_BITS=OFF
+        export BUILD_32_BITS=OFF;
       fi
     - mkdir build && cd build
 
