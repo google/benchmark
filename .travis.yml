@@ -21,7 +21,7 @@ matrix:
         - compiler: gcc
           env: COMPILER=g++ C_COMPILER=gcc       BUILD_TYPE=Release
         - compiler: gcc
-           addons:
+          addons:
             apt:
               packages:
                 - gcc-multilib
