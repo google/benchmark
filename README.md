@@ -643,6 +643,7 @@ The following minimum versions are strongly recommended build the library:
 * GCC 4.8
 * Clang 3.4
 * Visual Studio 2013
+* Intel 2015 Update 1
 
 Anything older *may* work.
 
