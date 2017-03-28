@@ -14,6 +14,8 @@ option(BENCHMARK_ENABLE_TESTING "Enable testing of the benchmark library." ON)
 option(BENCHMARK_ENABLE_EXCEPTIONS "Enable the use of exceptions in the benchmark library." ON)
 option(BENCHMARK_ENABLE_LTO "Enable link time optimisation of the benchmark library." OFF)
 option(BENCHMARK_USE_LIBCXX "Build and test using libc++ as the standard library." OFF)
+option(BENCHMARK_BUILD_32_BITS "Build a 32 bit version of the library" OFF)
+
 # Make sure we can import out CMake functions
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 
@@ -33,6 +35,10 @@ string(SUBSTRING ${VERSION} 0 1 GENERIC_LIB_SOVERSION)
 include(CheckCXXCompilerFlag)
 include(AddCXXCompilerFlag)
 include(CXXFeatureCheck)
+
+if (BENCHMARK_BUILD_32_BITS)
+  add_required_cxx_compiler_flag(-m32)
+endif()
 
 if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
   # Turn compiler warnings up to 11
