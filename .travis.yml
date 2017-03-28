@@ -24,13 +24,13 @@ matrix:
           addons:
             apt:
               packages:
-                - gcc-multilib
+                - g++-multilib
           env: COMPILER=g++ C_COMPILER=gcc       BUILD_TYPE=Debug   BUILD_32_BITS=ON
         - compiler: gcc
           addons:
             apt:
               packages:
-                - gcc-multilib
+                - g++-multilib
           env: COMPILER=g++ C_COMPILER=gcc       BUILD_TYPE=Release BUILD_32_BITS=ON
         - compiler: gcc
           addons:
@@ -62,7 +62,7 @@ matrix:
             apt:
               packages:
                 - clang-3.8
-                - gcc-multilib
+                - g++-multilib
           env:
             - COMPILER=clang++-3.8 C_COMPILER=clang-3.8 BUILD_TYPE=Debug
             - LIBCXX_BUILD=1
