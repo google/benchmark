@@ -20,21 +20,21 @@ def is_executable_file(filename):
     """
     if not os.path.isfile(filename):
         return False
-    with open(filename, 'r') as f:
+    with open(filename, mode='rb') as f:
         magic_bytes = f.read(_num_magic_bytes)
     if sys.platform == 'darwin':
         return magic_bytes in [
-            '\xfe\xed\xfa\xce',  # MH_MAGIC
-            '\xce\xfa\xed\xfe',  # MH_CIGAM
-            '\xfe\xed\xfa\xcf',  # MH_MAGIC_64
-            '\xcf\xfa\xed\xfe',  # MH_CIGAM_64
-            '\xca\xfe\xba\xbe',  # FAT_MAGIC
-            '\xbe\xba\xfe\xca'   # FAT_CIGAM
+            b'\xfe\xed\xfa\xce',  # MH_MAGIC
+            b'\xce\xfa\xed\xfe',  # MH_CIGAM
+            b'\xfe\xed\xfa\xcf',  # MH_MAGIC_64
+            b'\xcf\xfa\xed\xfe',  # MH_CIGAM_64
+            b'\xca\xfe\xba\xbe',  # FAT_MAGIC
+            b'\xbe\xba\xfe\xca'   # FAT_CIGAM
         ]
     elif sys.platform.startswith('win'):
-        return magic_bytes == 'MZ'
+        return magic_bytes == b'MZ'
     else:
-        return magic_bytes == '\x7FELF'
+        return magic_bytes == b'\x7FELF'
 
 
 def is_json_file(filename):
@@ -68,7 +68,7 @@ def classify_input_file(filename):
     elif is_json_file(filename):
         ftype = IT_JSON
     else:
-        err_msg = "'%s' does not name a valid benchmark executable or JSON file"
+        err_msg = "'%s' does not name a valid benchmark executable or JSON file" % filename
     return ftype, err_msg
 
 
@@ -80,7 +80,7 @@ def check_input_file(filename):
     """
     ftype, msg = classify_input_file(filename)
     if ftype == IT_Invalid:
-        print "Invalid input file: %s" % msg
+        print("Invalid input file: %s" % msg)
         sys.exit(1)
     return ftype
 
