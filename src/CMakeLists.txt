@@ -34,11 +34,20 @@ endif()
 # Expose public API
 target_include_directories(benchmark PUBLIC ${PROJECT_SOURCE_DIR}/include)
 
+# Pick installation dir depending on bitness if not specified
+if(NOT DEFINED CMAKE_INSTALL_LIBDIR)
+  if ("${CMAKE_SIZEOF_VOID_P}" EQUAL "8")
+    set(CMAKE_INSTALL_LIBDIR "lib64")
+  else()
+    set(CMAKE_INSTALL_LIBDIR "lib")
+  endif()
+endif()
+
 # Install target (will install the library to specified CMAKE_INSTALL_PREFIX variable)
 install(
   TARGETS benchmark
-  ARCHIVE DESTINATION lib
-  LIBRARY DESTINATION lib
+  ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+  LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
   RUNTIME DESTINATION bin
   COMPONENT library)
 
