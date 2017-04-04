@@ -27,7 +27,7 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
   target_link_libraries(benchmark Shlwapi)
 endif()
 
-set(include_install_dir "include/doctest/")
+set(include_install_dir "include/benchmark")
 set(lib_install_dir "lib/")
 set(bin_install_dir "bin/")
 set(config_install_dir "lib/cmake/${PROJECT_NAME}")
