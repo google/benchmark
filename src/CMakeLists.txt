@@ -49,7 +49,7 @@ write_basic_package_version_file(
     "${version_config}" VERSION ${GIT_VERSION} COMPATIBILITY SameMajorVersion
 )
 
-configure_file("${CMAKE_SOURCE_DIR}/cmake/Config.cmake.in" "${project_config}" @ONLY)
+configure_file("${PROJECT_SOURCE_DIR}/cmake/Config.cmake.in" "${project_config}" @ONLY)
 
 # Install target (will install the library to specified CMAKE_INSTALL_PREFIX variable)
 install(
