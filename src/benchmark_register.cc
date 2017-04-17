@@ -164,7 +164,7 @@ bool BenchmarkFamilies::FindBenchmarks(
             }
           }
           
-#if defined(__ANDROID__) && (defined(__GLIBCXX__) || defined(__GLIBCPP__))
+#if defined(__ANDROID__) && defined(__GLIBCXX__)
           // workaround for Android, http://stackoverflow.com/questions/22774009/android-ndk-stdto-string-support
           std::ostringstream ss;
           ss << arg;
