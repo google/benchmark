@@ -89,7 +89,7 @@ std::string FormatString(const char* msg, va_list args) {
 
   std::size_t size = 256;
   char local_buff[256];
-#ifdef __ANDROID__
+#if defined(__ANDROID__) && (defined(__GLIBCXX__) || defined(__GLIBCPP__))
   auto ret = ::vsnprintf(local_buff, size, msg, args_cp);
 #else 
   auto ret = std::vsnprintf(local_buff, size, msg, args_cp);
@@ -108,7 +108,7 @@ std::string FormatString(const char* msg, va_list args) {
     // we did not provide a long enough buffer on our first attempt.
     size = (size_t)ret + 1;  // + 1 for the null byte
     std::unique_ptr<char[]> buff(new char[size]);
-#ifdef __ANDROID__
+#if defined(__ANDROID__) && (defined(__GLIBCXX__) || defined(__GLIBCPP__))
     ret = ::vsnprintf(buff.get(), size, msg, args);
 #else 
     ret = std::vsnprintf(buff.get(), size, msg, args);
