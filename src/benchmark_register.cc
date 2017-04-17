@@ -31,6 +31,7 @@
 #include <fstream>
 #include <iostream>
 #include <memory>
+#include <sstream>
 #include <thread>
 
 #include "check.h"
@@ -162,8 +163,15 @@ bool BenchmarkFamilies::FindBenchmarks(
                   StringPrintF("%s:", family->arg_names_[arg_i].c_str());
             }
           }
-
+          
+#ifdef __ANDROID__
+          // workaround for Android, http://stackoverflow.com/questions/22774009/android-ndk-stdto-string-support
+          std::ostringstream ss;
+          ss << arg;
+          instance.name += ss.str();
+#else
           instance.name += std::to_string(arg);
+#endif
           ++arg_i;
         }
 

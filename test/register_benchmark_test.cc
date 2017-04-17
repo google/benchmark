@@ -114,14 +114,14 @@ void TestRegistrationAtRuntime() {
 #endif
 #ifndef BENCHMARK_HAS_NO_VARIADIC_REGISTER_BENCHMARK
   {
-    int x = 42;
+    const char* x = "42";
     auto capturing_lam = [=](benchmark::State& st) {
       while (st.KeepRunning()) {
       }
-      st.SetLabel(std::to_string(x));
+      st.SetLabel(x);
     };
     benchmark::RegisterBenchmark("lambda_benchmark", capturing_lam);
-    AddCases({{"lambda_benchmark", "42"}});
+    AddCases({{"lambda_benchmark", x}});
   }
 #endif
 }
