@@ -582,6 +582,10 @@ class Benchmark {
 
   // Specify the amount of iterations that should be run by this benchmark.
   // REQUIRES: 'n > 0' and `MinTime` has not been called on this benchmark.
+  //
+  // NOTE: This function should only be used when *exact* iteration control is
+  //   needed and never to control or limit how long a benchmark runs, where
+  // `--benchmark_min_time=N` or `MinTime(...)` should be used instead.
   Benchmark* Iterations(size_t n);
 
   // Specify the amount of times to repeat this benchmark. This option overrides
