@@ -164,14 +164,7 @@ bool BenchmarkFamilies::FindBenchmarks(
             }
           }
           
-#if defined(__ANDROID__) && defined(__GLIBCXX__)
-          // workaround for Android, http://stackoverflow.com/questions/22774009/android-ndk-stdto-string-support
-          std::ostringstream ss;
-          ss << arg;
-          instance.name += ss.str();
-#else
-          instance.name += std::to_string(arg);
-#endif
+          instance.name += StringPrintF("%d", arg);
           ++arg_i;
         }
 
