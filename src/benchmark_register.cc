@@ -31,6 +31,7 @@
 #include <fstream>
 #include <iostream>
 #include <memory>
+#include <sstream>
 #include <thread>
 
 #include "check.h"
@@ -163,8 +164,8 @@ bool BenchmarkFamilies::FindBenchmarks(
                   StringPrintF("%s:", family->arg_names_[arg_i].c_str());
             }
           }
-
-          instance.name += std::to_string(arg);
+          
+          instance.name += StringPrintF("%d", arg);
           ++arg_i;
         }
 
