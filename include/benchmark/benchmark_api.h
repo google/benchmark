@@ -577,8 +577,12 @@ class Benchmark {
 
   // Set the minimum amount of time to use when running this benchmark. This
   // option overrides the `benchmark_min_time` flag.
-  // REQUIRES: `t > 0`
+  // REQUIRES: `t > 0` and `Iterations` has not been called on this benchmark.
   Benchmark* MinTime(double t);
+
+  // Specify the amount of iterations that should be run by this benchmark.
+  // REQUIRES: 'n > 0' and `MinTime` has not been called on this benchmark.
+  Benchmark* Iterations(size_t n);
 
   // Specify the amount of times to repeat this benchmark. This option overrides
   // the `benchmark_repetitions` flag.
@@ -668,6 +672,7 @@ class Benchmark {
   TimeUnit time_unit_;
   int range_multiplier_;
   double min_time_;
+  size_t iterations_;
   int repetitions_;
   bool use_real_time_;
   bool use_manual_time_;

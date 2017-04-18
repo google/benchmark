@@ -285,7 +285,8 @@ std::vector<BenchmarkReporter::Run> RunBenchmark(
     std::vector<BenchmarkReporter::Run>* complexity_reports) {
   std::vector<BenchmarkReporter::Run> reports;  // return value
 
-  size_t iters = 1;
+  const bool has_explicit_iteration_count = b.iterations != 0;
+  size_t iters = has_explicit_iteration_count ? b.iterations : 1;
   std::unique_ptr<internal::ThreadManager> manager;
   std::vector<std::thread> pool(b.threads - 1);
   const int repeats =
@@ -333,7 +334,8 @@ std::vector<BenchmarkReporter::Run> RunBenchmark(
           !IsZero(b.min_time) ? b.min_time : FLAGS_benchmark_min_time;
       // If this was the first run, was elapsed time or cpu time large enough?
       // If this is not the first run, go with the current value of iter.
-      if ((i > 0) || results.has_error_ || (iters >= kMaxIterations) ||
+      if ((i > 0) || has_explicit_iteration_count || results.has_error_ ||
+          (iters >= kMaxIterations) ||
           (seconds >= min_time) || (results.real_time_used >= 5 * min_time)) {
         BenchmarkReporter::Run report =
             CreateRunReport(b, results, iters, seconds);
