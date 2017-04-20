@@ -141,7 +141,7 @@ BENCHMARK(BM_Complexity_O_N_log_N)
 BENCHMARK(BM_Complexity_O_N_log_N)
     ->RangeMultiplier(2)
     ->Range(1 << 10, 1 << 16)
-    ->Complexity([](int n) { return n * std::log2(n); });
+    ->Complexity([](int n) { return n * log2(n); });
 BENCHMARK(BM_Complexity_O_N_log_N)
     ->RangeMultiplier(2)
     ->Range(1 << 10, 1 << 16)
