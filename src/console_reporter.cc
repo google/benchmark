@@ -53,11 +53,10 @@ bool ConsoleReporter::ReportContext(const Context& context) {
 
 void ConsoleReporter::PrintHeader(const Run& run) {
   std::string str =
-      FormatString("%-*s %13s %13s %10s\n", static_cast<int>(name_field_width_),
-                   "Benchmark", "Time", "CPU", "Iterations");
-  if(!run.counters.empty()) {
-    str += " UserCounters...";
-  }
+      FormatString("%-*s %13s %13s %10s%s\n", static_cast<int>(name_field_width_),
+                   "Benchmark", "Time", "CPU", "Iterations",
+                   (run.counters.empty() ? "" : " UserCounters...")
+          );
   std::string line = std::string(str.length(), '-');
   GetOutputStream() << line << "\n" << str << line << "\n";
 }
