@@ -59,6 +59,79 @@ int SetSubstitutions(
 void RunOutputTests(int argc, char* argv[]);
 
 // ========================================================================= //
+// ------------------------- Results checking ------------------------------ //
+// ========================================================================= //
+
+struct ResultsCheckerEntry;
+typedef std::function< void(ResultsCheckerEntry const&) > ResultsCheckFn;
+
+// Class to test the results of a benchmark.
+// It inspects the results by looking at the CSV output of a subscribed
+// benchmark.
+struct ResultsCheckerEntry {
+  std::string name;
+  std::map< std::string, std::string > values;
+  ResultsCheckFn check_fn;
+
+  // int NumThreads() const; // TODO
+  // double duration_real_time() const {} // TODO
+  // double duration_cpu_time() const {} // TODO
+
+  // get the string for a result by name, or nullptr if the name
+  // is not found
+  const std::string* Get(std::string const& entry_name) const {
+    auto it = values.find(entry_name);
+    if(it == values.end()) return nullptr;
+    return &it->second;
+  }
+
+  // get a result by name, parsed as a specific type.
+  // For counters, use GetCounterAs instead.
+  template< class T > T GetAs(std::string const& entry_name) const {
+    auto *sv = Get(entry_name);
+    CHECK(sv != nullptr && !sv->empty());
+    std::stringstream ss;
+    ss << *sv;
+    T out;
+    ss >> out;
+    CHECK(!ss.fail());
+    return out;
+  }
+
+  // counters are written as doubles, so they have to be read first
+  // as a double, and only then converted to the asked type.
+  template< class T > T GetCounterAs(std::string const& entry_name) const {
+    double dval = GetAs< double >(entry_name);
+    T tval = static_cast< T >(dval);
+    return tval;
+  }
+
+
+};
+
+
+#define _CHECK_RESULT_VALUE(entry, getfn, var_type, var_name, relationship, value) \
+    CONCAT(CHECK_, relationship)(entry.getfn< var_type >(var_name), (value)) \
+                                << "\n" << __FILE__ << ":" << __LINE__ << ": "  \
+                                << entry.name << ": expected (" << #var_type << ")" \
+                                << var_name << "=" << entry.GetAs< var_type >(var_name) \
+                                << " to be " #relationship " to " << (value);
+
+#define CHECK_RESULT_VALUE(entry, var_type, var_name, relationship, value) \
+    _CHECK_RESULT_VALUE(entry, GetAs, var_type, var_name, relationship, value)
+
+#define CHECK_COUNTER_VALUE(entry, var_type, var_name, relationship, value) \
+    _CHECK_RESULT_VALUE(entry, GetCounterAs, var_type, var_name, relationship, value)
+
+#define CHECK_BENCHMARK_RESULTS(bm_name, checker_function)              \
+    size_t CONCAT(dummy, __LINE__) = AddChecker(bm_name, checker_function)
+
+// Add a function to check the (CSV) results of a benchmark. These
+// functions will be called only after the output was successfully
+// checked.
+size_t AddChecker(const char* bm_name, ResultsCheckFn fn);
+
+// ========================================================================= //
 // --------------------------- Misc Utilities ------------------------------ //
 // ========================================================================= //
 
