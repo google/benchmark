@@ -79,7 +79,7 @@ struct ResultsCheckerEntry {
 
   // get the string for a result by name, or nullptr if the name
   // is not found
-  const std::string* Get(std::string const& entry_name) const {
+  const std::string* Get(const char* entry_name) const {
     auto it = values.find(entry_name);
     if(it == values.end()) return nullptr;
     return &it->second;
@@ -87,7 +87,7 @@ struct ResultsCheckerEntry {
 
   // get a result by name, parsed as a specific type.
   // For counters, use GetCounterAs instead.
-  template< class T > T GetAs(std::string const& entry_name) const {
+  template< class T > T GetAs(const char* entry_name) const {
     auto *sv = Get(entry_name);
     CHECK(sv != nullptr && !sv->empty());
     std::stringstream ss;
@@ -100,7 +100,7 @@ struct ResultsCheckerEntry {
 
   // counters are written as doubles, so they have to be read first
   // as a double, and only then converted to the asked type.
-  template< class T > T GetCounterAs(std::string const& entry_name) const {
+  template< class T > T GetCounterAs(const char* entry_name) const {
     double dval = GetAs< double >(entry_name);
     T tval = static_cast< T >(dval);
     return tval;
