@@ -143,26 +143,48 @@ struct ResultsCheckerEntry {
   }
 };
 
-#define _CHECK_RESULT_VALUE(entry, getfn, var_type, var_name, relationship, value) \
-    CONCAT(CHECK_, relationship)(entry.getfn< var_type >(var_name), (value)) \
-                                << "\n" << __FILE__ << ":" << __LINE__ << ": "  \
-                                << entry.name << ": expected (" << #var_type << ")" \
-                                << var_name << "=" << entry.GetAs< var_type >(var_name) \
-                                << " to be " #relationship " to " << (value);
-
-#define CHECK_RESULT_VALUE(entry, var_type, var_name, relationship, value) \
-    _CHECK_RESULT_VALUE(entry, GetAs, var_type, var_name, relationship, value)
-
-#define CHECK_COUNTER_VALUE(entry, var_type, var_name, relationship, value) \
-    _CHECK_RESULT_VALUE(entry, GetCounterAs, var_type, var_name, relationship, value)
-
-#define CHECK_BENCHMARK_RESULTS(bm_name, checker_function)              \
-    size_t CONCAT(dummy, __LINE__) = AddChecker(bm_name, checker_function)
-
 // Add a function to check the (CSV) results of a benchmark. These
 // functions will be called only after the output was successfully
 // checked.
 size_t AddChecker(const char* bm_name, ResultsCheckFn fn);
+
+#ifdef __clang__
+    /* NOTE: using , ## __VA_ARGS__ to deal with zero-args calls to
+     * variadic macros is not portable, but works in clang, gcc, msvc, icc.
+     * clang requires switching off compiler warnings for pedantic mode.
+     * @see http://stackoverflow.com/questions/32047685/variadic-macro-without-arguments */
+#   pragma clang diagnostic push
+    // warning: token pasting of ',' and __VA_ARGS__ is a GNU extension
+#   pragma clang diagnostic ignored "-Wgnu-zero-variadic-macro-arguments"
+#elif defined(__GNUC__)
+    /* GCC also issues a warning for zero-args calls to variadic macros.
+     * This warning is switched on with -pedantic and apparently there is no
+     * easy way to turn it off as with clang. But marking this as a system
+     * header works.
+     * @see https://gcc.gnu.org/onlinedocs/cpp/System-Headers.html
+     * @see http://stackoverflow.com/questions/35587137/ */
+#   pragma GCC system_header
+#endif
+
+#define _CHECK_RESULT_VALUE(entry, getfn, var_type, var_name, relationship, value, ...) \
+    CONCAT(CHECK_, relationship)(entry.getfn< var_type >(var_name), (value), ## __VA_ARGS__) \
+                                << "\n" << __FILE__ << ":" << __LINE__ << ": "  \
+                                << entry.name << ": expected (" << #var_type << ")" \
+                                << var_name << "=" << entry.getfn< var_type >(var_name) \
+                                << " to be " #relationship " to " << (value);
+
+#define CHECK_RESULT_VALUE(entry, var_type, var_name, relationship, value, ...) \
+    _CHECK_RESULT_VALUE(entry, GetAs, var_type, var_name, relationship, value, ## __VA_ARGS__)
+
+#define CHECK_COUNTER_VALUE(entry, var_type, var_name, relationship, value, ...) \
+    _CHECK_RESULT_VALUE(entry, GetCounterAs, var_type, var_name, relationship, value, ## __VA_ARGS__)
+
+#ifdef __clang__
+#   pragma clang diagnostic pop
+#endif
+
+#define CHECK_BENCHMARK_RESULTS(bm_name, checker_function)              \
+    size_t CONCAT(dummy, __LINE__) = AddChecker(bm_name, checker_function)
 
 // ========================================================================= //
 // --------------------------- Misc Utilities ------------------------------ //
