@@ -105,10 +105,7 @@ struct ResultsCheckerEntry {
     T tval = static_cast< T >(dval);
     return tval;
   }
-
-
 };
-
 
 #define _CHECK_RESULT_VALUE(entry, getfn, var_type, var_name, relationship, value) \
     CONCAT(CHECK_, relationship)(entry.getfn< var_type >(var_name), (value)) \
