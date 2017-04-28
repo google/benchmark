@@ -22,7 +22,7 @@ void BM_Counters_Simple(benchmark::State& state) {
   while (state.KeepRunning()) {
   }
   state.counters["foo"] = 1;
-  state.counters["bar"] = 2;
+  state.counters["bar"] = 2 * state.iterations();
 }
 BENCHMARK(BM_Counters_Simple);//->ThreadRange(1, 32);
 ADD_CASES(TC_ConsoleOut, {{"^BM_Counters_Simple %console_report bar=%hrfloat foo=%hrfloat$"}});
@@ -36,8 +36,10 @@ ADD_CASES(TC_JSONOut, {{"\"name\": \"BM_Counters_Simple\",$"},
                        {"}", MR_Next}});
 ADD_CASES(TC_CSVOut, {{"^\"BM_Counters_Simple\",%csv_report,%float,%float$"}});
 CHECK_BENCHMARK_RESULTS("BM_Counters_Simple", [](ResultsCheckerEntry const& e) {
+  double its = e.GetAs< double >("iterations");
   CHECK_COUNTER_VALUE(e, int, "foo", EQ, 1);
-  CHECK_COUNTER_VALUE(e, int, "bar", EQ, 2);
+  // check that the value of bar is within 0.1% of the expected value
+  CHECK_COUNTER_VALUE(e, double, "bar", EQ_EPS, 2. * its, 0.001 * its);
 });
 
 // ========================================================================= //
@@ -73,8 +75,10 @@ CHECK_BENCHMARK_RESULTS("BM_Counters_WithBytesAndItemsPSec",
                         [](ResultsCheckerEntry const& e) {
   CHECK_COUNTER_VALUE(e, int, "foo", EQ, 1);
   CHECK_COUNTER_VALUE(e, int, "bar", EQ, num_calls1);
-  //TODO CHECK_RESULT_VALUE(e, int, "bytes_per_second", EQ, 364 / e.duration_cpu_time());
-  //TODO CHECK_RESULT_VALUE(e, int, "items_per_second", EQ, 150 / e.duration_cpu_time());
+  // check that the values are within 0.1% of the expected values
+  double t = e.DurationCPUTime(); // this (and not real time) is the time used
+  CHECK_RESULT_VALUE(e, double, "bytes_per_second", EQ_EPS, 364. / t, 0.001 * t);
+  CHECK_RESULT_VALUE(e, double, "items_per_second", EQ_EPS, 150. / t, 0.001 * t);
 });
 
 // ========================================================================= //
@@ -99,6 +103,13 @@ ADD_CASES(TC_JSONOut, {{"\"name\": \"BM_Counters_Rate\",$"},
                        {"\"foo\": %float$", MR_Next},
                        {"}", MR_Next}});
 ADD_CASES(TC_CSVOut, {{"^\"BM_Counters_Rate\",%csv_report,%float,%float$"}});
+CHECK_BENCHMARK_RESULTS("BM_Counters_Rate",
+                        [](ResultsCheckerEntry const& e) {
+  // check that the values are within 0.1% of the expected values
+  double t = e.DurationCPUTime(); // this (and not real time) is the time used
+  CHECK_COUNTER_VALUE(e, double, "foo", EQ_EPS, 5. / t, 0.001 * t);
+  CHECK_COUNTER_VALUE(e, double, "bar", EQ_EPS, 2. / t, 0.001 * t);
+});
 
 // ========================================================================= //
 // ------------------------- Thread Counters Output ------------------------ //
