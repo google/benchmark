@@ -220,8 +220,10 @@ void ResultsChecker::CheckResults(std::stringstream& output)
   }
   // finally we can call the subscribed check functions
   for(const auto& p : results) {
+    VLOG(1) << "Checking results of " << p.second.name << ": ... \n";
     CHECK(p.second.check_fn);
     p.second.check_fn(p.second);
+    VLOG(1) << "Checking results of " << p.second.name << ": OK.\n";
   }
 }
 
