@@ -134,8 +134,8 @@ void ConsoleReporter::PrintRunData(const Run& result) {
   for (auto& c : result.counters) {
     auto const& s = HumanReadableNumber(c.second.value);
 	if (c.second.flags & Counter::Flags::kIsRate) {
-		std::string counter_rate = StrCat(" ", HumanReadableNumber(c.second.value), " ", c.first.c_str(), "/s");
-		printer(Out, COLOR_DEFAULT, " %*s", 13, counter_rate.c_str());
+		std::string counter_rate = StrCat(HumanReadableNumber(c.second.value), "/s");
+		printer(Out, COLOR_DEFAULT, " %s=%s", c.first.c_str(), counter_rate.c_str());
 	}
 	else {
 		printer(Out, COLOR_DEFAULT, " %s=%s", c.first.c_str(), s.c_str());
