@@ -176,7 +176,6 @@ T Results::GetAs(const char* entry_name) const {
 #define CHECK_COUNTER_VALUE_EPS(entry, var_name, relationship, value, eps_factor) \
     _CHECK_RESULT_VALUE_EPS(entry, GetCounterAs, double, var_name, relationship, value, eps_factor)
 
-
 #define CHECK_BENCHMARK_RESULTS(bm_name, checker_function)              \
     size_t CONCAT(dummy, __LINE__) = AddChecker(bm_name, checker_function)
 
