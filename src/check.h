@@ -69,11 +69,11 @@ class CheckHandler {
 #define CHECK_GT(a, b) CHECK((a) > (b))
 #define CHECK_LT(a, b) CHECK((a) < (b))
 
-#define CHECK_EQ_EPS(a, b, eps) CHECK(std::fabs((a) - (b)) <  eps)
-#define CHECK_NE_EPS(a, b, eps) CHECK(std::fabs((a) - (b)) >= eps)
-#define CHECK_GE_EPS(a, b, eps) CHECK((a) - (b) > -eps)
-#define CHECK_LE_EPS(a, b, eps) CHECK((b) - (a) > -eps)
-#define CHECK_GT_EPS(a, b, eps) CHECK((a) - (b) >  eps)
-#define CHECK_LT_EPS(a, b, eps) CHECK((b) - (a) >  eps)
+#define CHECK_EQ_EPS(a, b, eps) CHECK(std::fabs((a) - (b)) <  (eps))
+#define CHECK_NE_EPS(a, b, eps) CHECK(std::fabs((a) - (b)) >= (eps))
+#define CHECK_GE_EPS(a, b, eps) CHECK((a) - (b) > -(eps))
+#define CHECK_LE_EPS(a, b, eps) CHECK((b) - (a) > -(eps))
+#define CHECK_GT_EPS(a, b, eps) CHECK((a) - (b) >  (eps))
+#define CHECK_LT_EPS(a, b, eps) CHECK((b) - (a) >  (eps))
 
 #endif  // CHECK_H_
