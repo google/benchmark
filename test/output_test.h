@@ -77,7 +77,7 @@ struct ResultsCheckerEntry {
   std::string name;
   std::map< std::string, std::string > values;
 
-  ResultsCheckerEntry(std::string const& n) : name(n) {}
+  ResultsCheckerEntry(const std::string& n) : name(n) {}
 
   int NumThreads() const;
 

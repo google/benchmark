@@ -183,7 +183,7 @@ class ResultsChecker {
   void SetHeader_(const std::string& csv_header);
   void SetValues_(const std::string& entry_csv_line);
 
-  std::vector< std::string > SplitCsv_(std::string const& line);
+  std::vector< std::string > SplitCsv_(const std::string& line);
 
 };
 
@@ -263,7 +263,7 @@ void ResultsChecker::SetValues_(const std::string& entry_csv_line) {
 }
 
 // a quick'n'dirty csv splitter (eliminating quotes)
-std::vector< std::string > ResultsChecker::SplitCsv_(std::string const& line) {
+std::vector< std::string > ResultsChecker::SplitCsv_(const std::string& line) {
   std::vector< std::string > out;
   if(line.empty()) return out;
   if(!field_names.empty()) out.reserve(field_names.size());
