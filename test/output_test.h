@@ -62,22 +62,24 @@ void RunOutputTests(int argc, char* argv[]);
 // ------------------------- Results checking ------------------------------ //
 // ========================================================================= //
 
-struct ResultsCheckerEntry;
-typedef std::function< void(ResultsCheckerEntry const&) > ResultsCheckFn;
+struct Results;
+typedef std::function< void(Results const&) > ResultsCheckFn;
 
 // Add a function to check the (CSV) results of a benchmark. These
 // functions will be called only after the output was successfully
 // checked.
-size_t AddChecker(const char* bm_name, ResultsCheckFn fn);
+// bm_name_pattern: a name or a regex which will be matched agains
+//                  all the benchmark names. Matching benchmarks
+//                  will be the subject of a call to fn
+size_t AddChecker(const char* bm_name_pattern, ResultsCheckFn fn);
 
-// Class to test the results of a benchmark.
-// It inspects the results by looking at the CSV output of a subscribed
-// benchmark.
-struct ResultsCheckerEntry {
-  std::string name;
+// Class to hold the (CSV!) results of a benchmark.
+// It is passed in calls to checker functions.
+struct Results {
+  std::string name; // the benchmark name
   std::map< std::string, std::string > values;
 
-  ResultsCheckerEntry(const std::string& n) : name(n) {}
+  Results(const std::string& n) : name(n) {}
 
   int NumThreads() const;
 
@@ -99,21 +101,14 @@ struct ResultsCheckerEntry {
   }
 
   // get a result by name, parsed as a specific type.
-  // For counters, use GetCounterAs instead.
-  template< class T > T GetAs(const char* entry_name) const {
-    auto *sv = Get(entry_name);
-    CHECK(sv != nullptr && !sv->empty());
-    std::stringstream ss;
-    ss << *sv;
-    T out;
-    ss >> out;
-    CHECK(!ss.fail());
-    return out;
-  }
+  // NOTE: for counters, use GetCounterAs instead.
+  template <class T>
+  T GetAs(const char* entry_name) const;
 
   // counters are written as doubles, so they have to be read first
   // as a double, and only then converted to the asked type.
-  template< class T > T GetCounterAs(const char* entry_name) const {
+  template <class T>
+  T GetCounterAs(const char* entry_name) const {
     double dval = GetAs< double >(entry_name);
     T tval = static_cast< T >(dval);
     return tval;
@@ -122,6 +117,18 @@ struct ResultsCheckerEntry {
   // get cpu_time or real_time in seconds
   double GetTime(const char* which) const;
 };
+
+template <class T>
+T Results::GetAs(const char* entry_name) const {
+  auto *sv = Get(entry_name);
+  CHECK(sv != nullptr && !sv->empty());
+  std::stringstream ss;
+  ss << *sv;
+  T out;
+  ss >> out;
+  CHECK(!ss.fail());
+  return out;
+}
 
 //----------------------------------
 // Macros to help in result checking. Do not use them with arguments causing

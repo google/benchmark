@@ -35,7 +35,7 @@ ADD_CASES(TC_JSONOut, {{"\"name\": \"BM_Counters_Simple\",$"},
                        {"\"foo\": %float$", MR_Next},
                        {"}", MR_Next}});
 ADD_CASES(TC_CSVOut, {{"^\"BM_Counters_Simple\",%csv_report,%float,%float$"}});
-CHECK_BENCHMARK_RESULTS("BM_Counters_Simple", [](ResultsCheckerEntry const& e) {
+CHECK_BENCHMARK_RESULTS("BM_Counters_Simple", [](Results const& e) {
   double its = e.GetAs< double >("iterations");
   CHECK_COUNTER_VALUE(e, int, "foo", EQ, 1);
   // check that the value of bar is within 0.1% of the expected value
@@ -72,7 +72,7 @@ ADD_CASES(TC_JSONOut, {{"\"name\": \"BM_Counters_WithBytesAndItemsPSec\",$"},
 ADD_CASES(TC_CSVOut, {{"^\"BM_Counters_WithBytesAndItemsPSec\","
                        "%csv_bytes_items_report,%float,%float$"}});
 CHECK_BENCHMARK_RESULTS("BM_Counters_WithBytesAndItemsPSec",
-                        [](ResultsCheckerEntry const& e) {
+                        [](Results const& e) {
   double t = e.DurationCPUTime(); // this (and not real time) is the time used
   CHECK_COUNTER_VALUE(e, int, "foo", EQ, 1);
   CHECK_COUNTER_VALUE(e, int, "bar", EQ, num_calls1);
@@ -104,7 +104,7 @@ ADD_CASES(TC_JSONOut, {{"\"name\": \"BM_Counters_Rate\",$"},
                        {"}", MR_Next}});
 ADD_CASES(TC_CSVOut, {{"^\"BM_Counters_Rate\",%csv_report,%float,%float$"}});
 CHECK_BENCHMARK_RESULTS("BM_Counters_Rate",
-                        [](ResultsCheckerEntry const& e) {
+                        [](Results const& e) {
   double t = e.DurationCPUTime(); // this (and not real time) is the time used
   // check that the values are within 0.1% of the expected values
   CHECK_COUNTER_VALUE_EPS(e, "foo", EQ_EPS, 1./t, 0.001);
@@ -133,7 +133,7 @@ ADD_CASES(TC_JSONOut, {{"\"name\": \"BM_Counters_Threads/threads:%int\",$"},
                        {"}", MR_Next}});
 ADD_CASES(TC_CSVOut, {{"^\"BM_Counters_Threads/threads:%int\",%csv_report,%float,%float$"}});
 CHECK_BENCHMARK_RESULTS("BM_Counters_Threads/threads:%int",
-                        [](ResultsCheckerEntry const& e) {
+                        [](Results const& e) {
   CHECK_COUNTER_VALUE(e, int, "foo", EQ, e.NumThreads());
   CHECK_COUNTER_VALUE(e, int, "bar", EQ, 2 * e.NumThreads());
 });
@@ -161,7 +161,7 @@ ADD_CASES(TC_JSONOut, {{"\"name\": \"BM_Counters_AvgThreads/threads:%int\",$"},
                        {"}", MR_Next}});
 ADD_CASES(TC_CSVOut, {{"^\"BM_Counters_AvgThreads/threads:%int\",%csv_report,%float,%float$"}});
 CHECK_BENCHMARK_RESULTS("BM_Counters_AvgThreads/threads:%int",
-                        [](ResultsCheckerEntry const& e) {
+                        [](Results const& e) {
   CHECK_COUNTER_VALUE(e, int, "foo", EQ, 1);
   CHECK_COUNTER_VALUE(e, int, "bar", EQ, 2);
 });
@@ -189,7 +189,7 @@ ADD_CASES(TC_JSONOut, {{"\"name\": \"BM_Counters_AvgThreadsRate/threads:%int\",$
                        {"}", MR_Next}});
 ADD_CASES(TC_CSVOut, {{"^\"BM_Counters_AvgThreadsRate/threads:%int\",%csv_report,%float,%float$"}});
 CHECK_BENCHMARK_RESULTS("BM_Counters_AvgThreadsRate/threads:%int",
-                        [](ResultsCheckerEntry const& e) {
+                        [](Results const& e) {
   CHECK_COUNTER_VALUE_EPS(e, "foo", EQ_EPS, 1./e.DurationCPUTime(), 0.001);
   CHECK_COUNTER_VALUE_EPS(e, "bar", EQ_EPS, 2./e.DurationCPUTime(), 0.001);
 });

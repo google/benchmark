@@ -169,7 +169,7 @@ class ResultsChecker {
   };
 
   std::vector< PatternAndFn > check_patterns;
-  std::vector< ResultsCheckerEntry > results;
+  std::vector< Results > results;
   std::vector< std::string > field_names;
 
   void Add(const std::string& entry_pattern, ResultsCheckFn fn);
@@ -178,7 +178,7 @@ class ResultsChecker {
 
  private:
 
-  ResultsCheckerEntry* Find_(const std::string& entry_name);
+  Results* Find_(const std::string& entry_name);
 
   void SetHeader_(const std::string& csv_header);
   void SetValues_(const std::string& entry_csv_line);
@@ -293,7 +293,7 @@ size_t AddChecker(const char* bm_name, ResultsCheckFn fn)
   return rc.results.size();
 }
 
-int ResultsCheckerEntry::NumThreads() const {
+int Results::NumThreads() const {
   auto pos = name.find("/threads:");
   if(pos == name.npos) return 1;
   auto end = name.find('/', pos + 9);
@@ -305,7 +305,7 @@ int ResultsCheckerEntry::NumThreads() const {
   return num;
 }
 
-double ResultsCheckerEntry::GetTime(const char* which) const {
+double Results::GetTime(const char* which) const {
   double val = GetAs< double >(which);
   auto unit = Get("time_unit");
   CHECK(unit);
