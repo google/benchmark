@@ -75,9 +75,9 @@ struct ResultsCheckerEntry {
   ResultsCheckerEntry(std::string const& n) : name(n) {}
 
   int NumThreads() const {
-    auto pos = name.find_last_of("/threads:");
+    auto pos = name.find("/threads:");
     if(pos == name.npos) return 1;
-    auto end = name.find_last_of('/', pos + 9);
+    auto end = name.find('/', pos + 9);
     std::stringstream ss;
     ss << name.substr(pos + 9, end);
     int num = 1;
