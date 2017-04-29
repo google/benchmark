@@ -65,6 +65,11 @@ void RunOutputTests(int argc, char* argv[]);
 struct ResultsCheckerEntry;
 typedef std::function< void(ResultsCheckerEntry const&) > ResultsCheckFn;
 
+// Add a function to check the (CSV) results of a benchmark. These
+// functions will be called only after the output was successfully
+// checked.
+size_t AddChecker(const char* bm_name, ResultsCheckFn fn);
+
 // Class to test the results of a benchmark.
 // It inspects the results by looking at the CSV output of a subscribed
 // benchmark.
@@ -74,17 +79,7 @@ struct ResultsCheckerEntry {
 
   ResultsCheckerEntry(std::string const& n) : name(n) {}
 
-  int NumThreads() const {
-    auto pos = name.find("/threads:");
-    if(pos == name.npos) return 1;
-    auto end = name.find('/', pos + 9);
-    std::stringstream ss;
-    ss << name.substr(pos + 9, end);
-    int num = 1;
-    ss >> num;
-    CHECK(!ss.fail());
-    return num;
-  }
+  int NumThreads() const;
 
   // get the real_time duration of the benchmark in seconds
   double DurationRealTime() const {
@@ -125,29 +120,8 @@ struct ResultsCheckerEntry {
   }
 
   // get cpu_time or real_time in seconds
-  double GetTime(const char* which) const {
-    double val = GetAs< double >(which);
-    auto unit = Get("time_unit");
-    CHECK(unit);
-    if(*unit == "ns") {
-      return val * 1.e-9;
-    } else if(*unit == "us") {
-      return val * 1.e-6;
-    } else if(*unit == "ms") {
-      return val * 1.e-3;
-    } else if(*unit == "s") {
-      return val;
-    } else {
-      CHECK(1 == 0) << "unknown time unit: " << *unit;
-      return 0;
-    }
-  }
+  double GetTime(const char* which) const;
 };
-
-// Add a function to check the (CSV) results of a benchmark. These
-// functions will be called only after the output was successfully
-// checked.
-size_t AddChecker(const char* bm_name, ResultsCheckFn fn);
 
 //----------------------------------
 // Macros to help in result checking. Do not use them with arguments causing

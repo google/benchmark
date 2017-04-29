@@ -293,6 +293,36 @@ size_t AddChecker(const char* bm_name, ResultsCheckFn fn)
   return rc.results.size();
 }
 
+int ResultsCheckerEntry::NumThreads() const {
+  auto pos = name.find("/threads:");
+  if(pos == name.npos) return 1;
+  auto end = name.find('/', pos + 9);
+  std::stringstream ss;
+  ss << name.substr(pos + 9, end);
+  int num = 1;
+  ss >> num;
+  CHECK(!ss.fail());
+  return num;
+}
+
+double ResultsCheckerEntry::GetTime(const char* which) const {
+  double val = GetAs< double >(which);
+  auto unit = Get("time_unit");
+  CHECK(unit);
+  if(*unit == "ns") {
+    return val * 1.e-9;
+  } else if(*unit == "us") {
+    return val * 1.e-6;
+  } else if(*unit == "ms") {
+    return val * 1.e-3;
+  } else if(*unit == "s") {
+    return val;
+  } else {
+    CHECK(1 == 0) << "unknown time unit: " << *unit;
+    return 0;
+  }
+}
+
 // ========================================================================= //
 // -------------------------- Public API Definitions------------------------ //
 // ========================================================================= //
