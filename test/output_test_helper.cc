@@ -2,6 +2,7 @@
 #include <map>
 #include <memory>
 #include <sstream>
+#include <cstring>
 
 #include "../src/check.h"  // NOTE: check.h is for internal use only!
 #include "../src/re.h"     // NOTE: re.h is for internal use only
@@ -163,8 +164,8 @@ class ResultsChecker {
  public:
 
   struct PatternAndFn : public TestCase { // reusing TestCase for its regexes
-    PatternAndFn(const std::string& regex, ResultsCheckFn fn_)
-    : TestCase(regex), fn(fn_) {}
+    PatternAndFn(const std::string& rx, ResultsCheckFn fn_)
+    : TestCase(rx), fn(fn_) {}
     ResultsCheckFn fn;
   };
 
@@ -414,6 +415,7 @@ void RunOutputTests(int argc, char* argv[]) {
   // now that we know the output is as expected, we can dispatch
   // the checks to subscribees.
   auto &csv = TestCases[2];
-  CHECK(strcmp(csv.name, "CSVReporter") == 0); // would use == but gcc spits a warning
+  // would use == but gcc spits a warning
+  CHECK(std::strcmp(csv.name, "CSVReporter") == 0);
   internal::GetResultsChecker().CheckResults(csv.out_stream);
 }
