@@ -132,6 +132,10 @@ ADD_CASES(TC_JSONOut, {{"\"name\": \"BM_Counters_Threads/threads:%int\",$"},
                        {"\"foo\": %float$", MR_Next},
                        {"}", MR_Next}});
 ADD_CASES(TC_CSVOut, {{"^\"BM_Counters_Threads/threads:%int\",%csv_report,%float,%float$"}});
+CHECK_BENCHMARK_RESULTS("BM_Counters_Threads/threads:%int",
+                        [](ResultsCheckerEntry const& e) {
+  std::cout << "BOO: " << e.name << "\n";
+});
 
 // ========================================================================= //
 // ---------------------- ThreadAvg Counters Output ------------------------ //

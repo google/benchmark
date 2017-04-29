@@ -71,7 +71,8 @@ typedef std::function< void(ResultsCheckerEntry const&) > ResultsCheckFn;
 struct ResultsCheckerEntry {
   std::string name;
   std::map< std::string, std::string > values;
-  ResultsCheckFn check_fn;
+
+  ResultsCheckerEntry(std::string const& n) : name(n) {}
 
   int NumThreads() const {
     auto pos = name.find_last_of("/threads:");

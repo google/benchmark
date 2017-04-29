@@ -162,10 +162,17 @@ namespace internal {
 class ResultsChecker {
  public:
 
-  std::map< std::string, ResultsCheckerEntry > results;
-  std::vector< std::string > result_names;
+  struct PatternAndFn : public TestCase { // reusing TestCase for its regexes
+    PatternAndFn(const std::string& regex, ResultsCheckFn fn_)
+    : TestCase(regex), fn(fn_) {}
+    ResultsCheckFn fn;
+  };
 
-  void Add(const std::string& entry_name, ResultsCheckFn fn);
+  std::vector< PatternAndFn > check_patterns;
+  std::vector< ResultsCheckerEntry > results;
+  std::vector< std::string > field_names;
+
+  void Add(const std::string& entry_pattern, ResultsCheckFn fn);
 
   void CheckResults(std::stringstream& output);
 
@@ -188,8 +195,8 @@ ResultsChecker& GetResultsChecker() {
 }
 
 // add a results checker for a benchmark
-void ResultsChecker::Add(const std::string& entry_name, ResultsCheckFn fn) {
-  results[entry_name] = {entry_name, {}, fn};
+void ResultsChecker::Add(const std::string& entry_pattern, ResultsCheckFn fn) {
+  check_patterns.emplace_back(entry_pattern, fn);
 }
 
 // check the results of all subscribed benchmarks
@@ -219,44 +226,47 @@ void ResultsChecker::CheckResults(std::stringstream& output)
     SetValues_(line);
   }
   // finally we can call the subscribed check functions
-  for(const auto& p : results) {
-    VLOG(1) << "Checking results of " << p.second.name << ": ... \n";
-    CHECK(p.second.check_fn);
-    p.second.check_fn(p.second);
-    VLOG(1) << "Checking results of " << p.second.name << ": OK.\n";
+  for(const auto& p : check_patterns) {
+    VLOG(2) << "--------------------------------\n";
+    VLOG(2) << "checking for benchmarks matching " << p.regex_str << "...\n";
+    for(const auto& r : results) {
+      if(!p.regex->Match(r.name)) {
+        VLOG(2) << p.regex_str << " is not matched by " << r.name << "\n";
+        continue;
+      }
+      else {
+        VLOG(2) << p.regex_str << " is matched by " << r.name << "\n";
+      }
+      VLOG(1) << "Checking results of " << r.name << ": ... \n";
+      p.fn(r);
+      VLOG(1) << "Checking results of " << r.name << ": OK.\n";
+    }
   }
 }
 
 // prepare for the names in this header
 void ResultsChecker::SetHeader_(const std::string& csv_header) {
-  result_names = SplitCsv_(csv_header);
+  field_names = SplitCsv_(csv_header);
 }
 
 // set the values for subscribed benchmarks, and silently ignore all others
 void ResultsChecker::SetValues_(const std::string& entry_csv_line) {
-  CHECK(!result_names.empty());
+  CHECK(!field_names.empty());
   auto vals = SplitCsv_(entry_csv_line);
   if(vals.empty()) return;
-  CHECK_EQ(vals.size(), result_names.size());
-  ResultsCheckerEntry* entry = Find_(vals[0]);
-  if(!entry) return;
+  CHECK_EQ(vals.size(), field_names.size());
+  results.emplace_back(vals[0]); // vals[0] is the benchmark name
+  auto &entry = results.back();
   for (size_t i = 1, e = vals.size(); i < e; ++i) {
-    entry->values[result_names[i]] = vals[i];
+    entry.values[field_names[i]] = vals[i];
   }
-}
-
-// find a subscribed benchmark, or return null
-ResultsCheckerEntry* ResultsChecker::Find_(const std::string& entry_name) {
-  auto it = results.find(entry_name);
-  if(it == results.end()) return nullptr;
-  return &it->second;
 }
 
 // a quick'n'dirty csv splitter (eliminating quotes)
 std::vector< std::string > ResultsChecker::SplitCsv_(std::string const& line) {
   std::vector< std::string > out;
   if(line.empty()) return out;
-  if(!result_names.empty()) out.reserve(result_names.size());
+  if(!field_names.empty()) out.reserve(field_names.size());
   size_t prev = 0, pos = line.find_first_of(','), curr = pos;
   while(pos != line.npos) {
     CHECK(curr > 0);
