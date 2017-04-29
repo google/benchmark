@@ -134,7 +134,8 @@ ADD_CASES(TC_JSONOut, {{"\"name\": \"BM_Counters_Threads/threads:%int\",$"},
 ADD_CASES(TC_CSVOut, {{"^\"BM_Counters_Threads/threads:%int\",%csv_report,%float,%float$"}});
 CHECK_BENCHMARK_RESULTS("BM_Counters_Threads/threads:%int",
                         [](ResultsCheckerEntry const& e) {
-  std::cout << "BOO: " << e.name << "\n";
+  CHECK_COUNTER_VALUE(e, int, "foo", EQ, e.NumThreads());
+  CHECK_COUNTER_VALUE(e, int, "bar", EQ, 2 * e.NumThreads());
 });
 
 // ========================================================================= //
@@ -159,6 +160,11 @@ ADD_CASES(TC_JSONOut, {{"\"name\": \"BM_Counters_AvgThreads/threads:%int\",$"},
                        {"\"foo\": %float$", MR_Next},
                        {"}", MR_Next}});
 ADD_CASES(TC_CSVOut, {{"^\"BM_Counters_AvgThreads/threads:%int\",%csv_report,%float,%float$"}});
+CHECK_BENCHMARK_RESULTS("BM_Counters_AvgThreads/threads:%int",
+                        [](ResultsCheckerEntry const& e) {
+  CHECK_COUNTER_VALUE(e, int, "foo", EQ, 1);
+  CHECK_COUNTER_VALUE(e, int, "bar", EQ, 2);
+});
 
 // ========================================================================= //
 // ---------------------- ThreadAvg Counters Output ------------------------ //
@@ -182,6 +188,11 @@ ADD_CASES(TC_JSONOut, {{"\"name\": \"BM_Counters_AvgThreadsRate/threads:%int\",$
                        {"\"foo\": %float$", MR_Next},
                        {"}", MR_Next}});
 ADD_CASES(TC_CSVOut, {{"^\"BM_Counters_AvgThreadsRate/threads:%int\",%csv_report,%float,%float$"}});
+CHECK_BENCHMARK_RESULTS("BM_Counters_AvgThreadsRate/threads:%int",
+                        [](ResultsCheckerEntry const& e) {
+  CHECK_COUNTER_VALUE_EPS(e, "foo", EQ_EPS, 1./e.DurationCPUTime(), 0.001);
+  CHECK_COUNTER_VALUE_EPS(e, "bar", EQ_EPS, 2./e.DurationCPUTime(), 0.001);
+});
 
 // ========================================================================= //
 // --------------------------- TEST CASES END ------------------------------ //
