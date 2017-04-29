@@ -8,6 +8,7 @@
 #include <utility>
 #include <vector>
 #include <functional>
+#include <sstream>
 
 #include "../src/re.h"
 #include "benchmark/benchmark.h"
