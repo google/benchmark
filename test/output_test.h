@@ -7,6 +7,7 @@
 #include <string>
 #include <utility>
 #include <vector>
+#include <functional>
 
 #include "../src/re.h"
 #include "benchmark/benchmark.h"
