@@ -178,8 +178,6 @@ class ResultsChecker {
 
  private:
 
-  Results* Find_(const std::string& entry_name);
-
   void SetHeader_(const std::string& csv_header);
   void SetValues_(const std::string& entry_csv_line);
 
