@@ -247,11 +247,11 @@ void ResultsChecker::SetHeader_(const std::string& csv_header) {
   field_names = SplitCsv_(csv_header);
 }
 
-// set the values for subscribed benchmarks, and silently ignore all others
+// set the values for a benchmark
 void ResultsChecker::SetValues_(const std::string& entry_csv_line) {
+  if(entry_csv_line.empty()) return; // some lines are empty
   CHECK(!field_names.empty());
   auto vals = SplitCsv_(entry_csv_line);
-  if(vals.empty()) return;
   CHECK_EQ(vals.size(), field_names.size());
   results.emplace_back(vals[0]); // vals[0] is the benchmark name
   auto &entry = results.back();

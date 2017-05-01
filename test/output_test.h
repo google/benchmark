@@ -78,18 +78,15 @@ void RunOutputTests(int argc, char* argv[]);
 struct Results;
 typedef std::function< void(Results const&) > ResultsCheckFn;
 
-// Add a function to check the (CSV) results of a benchmark. These
-// functions will be called only after the output was successfully
-// checked.
-// bm_name_pattern: a name or a regex which will be matched agains
-//                  all the benchmark names. Matching benchmarks
-//                  will be the subject of a call to fn
 size_t AddChecker(const char* bm_name_pattern, ResultsCheckFn fn);
 
-// Class to hold the (CSV!) results of a benchmark.
+// Class holding the results of a benchmark.
 // It is passed in calls to checker functions.
 struct Results {
-  std::string name; // the benchmark name
+
+  // the benchmark name
+  std::string name;
+  // the benchmark fields
   std::map< std::string, std::string > values;
 
   Results(const std::string& n) : name(n) {}
