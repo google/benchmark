@@ -145,10 +145,10 @@ T Results::GetAs(const char* entry_name) const {
     << "=" << (entry).getfn< var_type >(var_name)                       \
     << " to be " #relationship " to " << (value) << "\n"
 
-// check with tolerance. eps_factor is the tolerance window, which will be
-// interpreted relative to value.
-#define _CHECK_RESULT_VALUE_EPS(entry, getfn, var_type, var_name, relationship, value, eps_factor) \
-    CONCAT(CHECK_, relationship)                                        \
+// check with tolerance. eps_factor is the tolerance window, which is
+// interpreted relative to value (eg, 0.1 means 10% of value).
+#define _CHECK_FLOAT_RESULT_VALUE(entry, getfn, var_type, var_name, relationship, value, eps_factor) \
+    CONCAT(CHECK_FLOAT_, relationship)                                  \
     (entry.getfn< var_type >(var_name), (value), (eps_factor) * (value)) << "\n" \
     << __FILE__ << ":" << __LINE__ << ": " << (entry).name << ":\n"     \
     << __FILE__ << ":" << __LINE__ << ": "                              \
@@ -170,11 +170,11 @@ T Results::GetAs(const char* entry_name) const {
 #define CHECK_COUNTER_VALUE(entry, var_type, var_name, relationship, value) \
     _CHECK_RESULT_VALUE(entry, GetCounterAs, var_type, var_name, relationship, value)
 
-#define CHECK_RESULT_VALUE_EPS(entry, var_name, relationship, value, eps_factor) \
-    _CHECK_RESULT_VALUE_EPS(entry, GetAs, double, var_name, relationship, value, eps_factor)
+#define CHECK_FLOAT_RESULT_VALUE(entry, var_name, relationship, value, eps_factor) \
+    _CHECK_FLOAT_RESULT_VALUE(entry, GetAs, double, var_name, relationship, value, eps_factor)
 
-#define CHECK_COUNTER_VALUE_EPS(entry, var_name, relationship, value, eps_factor) \
-    _CHECK_RESULT_VALUE_EPS(entry, GetCounterAs, double, var_name, relationship, value, eps_factor)
+#define CHECK_FLOAT_COUNTER_VALUE(entry, var_name, relationship, value, eps_factor) \
+    _CHECK_FLOAT_RESULT_VALUE(entry, GetCounterAs, double, var_name, relationship, value, eps_factor)
 
 #define CHECK_BENCHMARK_RESULTS(bm_name, checker_function)              \
     size_t CONCAT(dummy, __LINE__) = AddChecker(bm_name, checker_function)

@@ -41,7 +41,7 @@ void CheckSimple(Results const& e) {
   double its = e.GetAs< double >("iterations");
   CHECK_COUNTER_VALUE(e, int, "foo", EQ, 1);
   // check that the value of bar is within 0.1% of the expected value
-  CHECK_COUNTER_VALUE_EPS(e, "bar", EQ_EPS, 2.*its, 0.001);
+  CHECK_FLOAT_COUNTER_VALUE(e, "bar", EQ, 2.*its, 0.001);
 }
 CHECK_BENCHMARK_RESULTS("BM_Counters_Simple", &CheckSimple);
 
@@ -81,8 +81,8 @@ void CheckBytesAndItemsPSec(Results const& e) {
   CHECK_COUNTER_VALUE(e, int, "foo", EQ, 1);
   CHECK_COUNTER_VALUE(e, int, "bar", EQ, num_calls1);
   // check that the values are within 0.1% of the expected values
-  CHECK_RESULT_VALUE_EPS(e, "bytes_per_second", EQ_EPS, 364./t, 0.001);
-  CHECK_RESULT_VALUE_EPS(e, "items_per_second", EQ_EPS, 150./t, 0.001);
+  CHECK_FLOAT_RESULT_VALUE(e, "bytes_per_second", EQ, 364./t, 0.001);
+  CHECK_FLOAT_RESULT_VALUE(e, "items_per_second", EQ, 150./t, 0.001);
 }
 CHECK_BENCHMARK_RESULTS("BM_Counters_WithBytesAndItemsPSec",
                         &CheckBytesAndItemsPSec);
@@ -114,8 +114,8 @@ ADD_CASES(TC_CSVOut, {{"^\"BM_Counters_Rate\",%csv_report,%float,%float$"}});
 void CheckRate(Results const& e) {
   double t = e.DurationCPUTime(); // this (and not real time) is the time used
   // check that the values are within 0.1% of the expected values
-  CHECK_COUNTER_VALUE_EPS(e, "foo", EQ_EPS, 1./t, 0.001);
-  CHECK_COUNTER_VALUE_EPS(e, "bar", EQ_EPS, 2./t, 0.001);
+  CHECK_FLOAT_COUNTER_VALUE(e, "foo", EQ, 1./t, 0.001);
+  CHECK_FLOAT_COUNTER_VALUE(e, "bar", EQ, 2./t, 0.001);
 }
 CHECK_BENCHMARK_RESULTS("BM_Counters_Rate", &CheckRate);
 
@@ -204,8 +204,8 @@ ADD_CASES(TC_CSVOut, {{"^\"BM_Counters_AvgThreadsRate/threads:%int\",%csv_report
 // VS2013 does not allow this function to be passed as a lambda argument
 // to CHECK_BENCHMARK_RESULTS()
 void CheckAvgThreadsRate(Results const& e) {
-  CHECK_COUNTER_VALUE_EPS(e, "foo", EQ_EPS, 1./e.DurationCPUTime(), 0.001);
-  CHECK_COUNTER_VALUE_EPS(e, "bar", EQ_EPS, 2./e.DurationCPUTime(), 0.001);
+  CHECK_FLOAT_COUNTER_VALUE(e, "foo", EQ, 1./e.DurationCPUTime(), 0.001);
+  CHECK_FLOAT_COUNTER_VALUE(e, "bar", EQ, 2./e.DurationCPUTime(), 0.001);
 }
 CHECK_BENCHMARK_RESULTS("BM_Counters_AvgThreadsRate/threads:%int",
                         &CheckAvgThreadsRate);
