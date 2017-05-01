@@ -22,7 +22,7 @@ void BM_Counters_Simple(benchmark::State& state) {
   while (state.KeepRunning()) {
   }
   state.counters["foo"] = 1;
-  state.counters["bar"] = 2 * state.iterations();
+  state.counters["bar"] = 2 * (double)state.iterations();
 }
 BENCHMARK(BM_Counters_Simple);
 ADD_CASES(TC_ConsoleOut, {{"^BM_Counters_Simple %console_report bar=%hrfloat foo=%hrfloat$"}});
