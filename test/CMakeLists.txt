@@ -27,7 +27,7 @@ if (DEFINED BENCHMARK_CXX_LINKER_FLAGS)
   list(APPEND CMAKE_EXE_LINKER_FLAGS ${BENCHMARK_CXX_LINKER_FLAGS})
 endif()
 
-add_library(output_test_helper STATIC output_test_helper.cc)
+add_library(output_test_helper STATIC output_test_helper.cc output_test.h)
 
 macro(compile_benchmark_test name)
   add_executable(${name} "${name}.cc")
