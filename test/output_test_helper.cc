@@ -199,8 +199,7 @@ void ResultsChecker::Add(const std::string& entry_pattern, ResultsCheckFn fn) {
 }
 
 // check the results of all subscribed benchmarks
-void ResultsChecker::CheckResults(std::stringstream& output)
-{
+void ResultsChecker::CheckResults(std::stringstream& output) {
   // first reset the stream to the start
   {
     auto start = std::ios::streampos(0);
