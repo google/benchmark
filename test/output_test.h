@@ -96,13 +96,20 @@ struct Results {
 
   int NumThreads() const;
 
-  // get the real_time duration of the benchmark in seconds
+  typedef enum { kCpuTime, kRealTime } BenchmarkTime;
+
+  // get cpu_time or real_time in seconds
+  double GetTime(BenchmarkTime which) const;
+
+  // get the real_time duration of the benchmark in seconds.
+  // it is better to use fuzzy float checks for this, as the float
+  // ASCII formatting is lossy.
   double DurationRealTime() const {
-    return GetAs< double >("iterations") * GetTime("real_time");
+    return GetAs< double >("iterations") * GetTime(kRealTime);
   }
   // get the cpu_time duration of the benchmark in seconds
   double DurationCPUTime() const {
-    return GetAs< double >("iterations") * GetTime("cpu_time");
+    return GetAs< double >("iterations") * GetTime(kCpuTime);
   }
 
   // get the string for a result by name, or nullptr if the name
@@ -126,9 +133,6 @@ struct Results {
     T tval = static_cast< T >(dval);
     return tval;
   }
-
-  // get cpu_time or real_time in seconds
-  double GetTime(const char* which) const;
 };
 
 template <class T>

@@ -303,8 +303,10 @@ int Results::NumThreads() const {
   return num;
 }
 
-double Results::GetTime(const char* which) const {
-  double val = GetAs< double >(which);
+double Results::GetTime(BenchmarkTime which) const {
+  CHECK(which == kCpuTime || which == kRealTime);
+  const char *which_str = which == kCpuTime ? "cpu_time" : "real_time";
+  double val = GetAs< double >(which_str);
   auto unit = Get("time_unit");
   CHECK(unit);
   if(*unit == "ns") {
