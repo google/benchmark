@@ -64,6 +64,17 @@ void RunOutputTests(int argc, char* argv[]);
 // ------------------------- Results checking ------------------------------ //
 // ========================================================================= //
 
+// Call this macro to register a benchmark for checking its results. This
+// should be all that's needed. It subscribes a function to check the (CSV)
+// results of a benchmark. This is done only after verifying that the output
+// strings are really as expected.
+// bm_name_pattern: a name or a regex pattern which will be matched against
+//                  all the benchmark names. Matching benchmarks
+//                  will be the subject of a call to checker_function
+// checker_function: should be of type ResultsCheckFn (see below)
+#define CHECK_BENCHMARK_RESULTS(bm_name_pattern, checker_function) \
+    size_t CONCAT(dummy, __LINE__) = AddChecker(bm_name_pattern, checker_function)
+
 struct Results;
 typedef std::function< void(Results const&) > ResultsCheckFn;
 
@@ -175,9 +186,6 @@ T Results::GetAs(const char* entry_name) const {
 
 #define CHECK_FLOAT_COUNTER_VALUE(entry, var_name, relationship, value, eps_factor) \
     _CHECK_FLOAT_RESULT_VALUE(entry, GetCounterAs, double, var_name, relationship, value, eps_factor)
-
-#define CHECK_BENCHMARK_RESULTS(bm_name, checker_function)              \
-    size_t CONCAT(dummy, __LINE__) = AddChecker(bm_name, checker_function)
 
 // ========================================================================= //
 // --------------------------- Misc Utilities ------------------------------ //
