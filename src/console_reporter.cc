@@ -132,10 +132,9 @@ void ConsoleReporter::PrintRunData(const Run& result) {
   }
 
   for (auto& c : result.counters) {
-      std::string s = HumanReadableNumber(c.second.value);
-      const char* unit = ((c.second.flags & Counter::Flags::kIsRate) ?
-                          "/s" : "");
-      printer(Out, COLOR_DEFAULT, " %s=%s%s", c.first.c_str(), s.c_str(), unit);
+    std::string s = HumanReadableNumber(c.second.value);
+    const char* unit = ((c.second.flags & Counter::kIsRate) ? "/s" : "");
+    printer(Out, COLOR_DEFAULT, " %s=%s%s", c.first.c_str(), s.c_str(), unit);
   }
 
   if (!rate.empty()) {
