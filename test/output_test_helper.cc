@@ -237,8 +237,7 @@ void ResultsChecker::CheckResults(std::stringstream& output) {
       if(!p.regex->Match(r.name)) {
         VLOG(2) << p.regex_str << " is not matched by " << r.name << "\n";
         continue;
-      }
-      else {
+      } else {
         VLOG(2) << p.regex_str << " is matched by " << r.name << "\n";
       }
       VLOG(1) << "Checking results of " << r.name << ": ... \n";

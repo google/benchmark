@@ -60,8 +60,7 @@ void ConsoleReporter::PrintHeader(const Run& run) {
       for(auto const& c : run.counters) {
         str += FormatString(" %10s", c.first.c_str());
       }
-    }
-    else {
+    } else {
       str += " UserCounters...";
     }
   }
@@ -153,8 +152,7 @@ void ConsoleReporter::PrintRunData(const Run& result) {
     if (output_options_ & OO_Tabular) {
       if (c.second.flags & Counter::kIsRate) {
         printer(Out, COLOR_DEFAULT, " %8s/s", s.c_str());
-      }
-      else {
+      } else {
         printer(Out, COLOR_DEFAULT, " %10s", s.c_str());
       }
     } else {

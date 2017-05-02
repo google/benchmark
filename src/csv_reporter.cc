@@ -139,8 +139,7 @@ void CSVReporter::PrintRunData(const Run & run) {
     auto it = run.counters.find(ucn);
     if(it == run.counters.end()) {
       Out << ",";
-    }
-    else {
+    } else {
       Out << "," << it->second;
     }
   }
