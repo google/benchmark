@@ -80,7 +80,9 @@ def generate_difference_report(json1, json2, use_color=True):
     first_line = "{:<{}s}     Time           CPU           Old           New".format(
         'Benchmark', first_col_width)
     output_strs = [first_line, '-' * len(first_line)]
-    for bn in json1['benchmarks']:
+
+    gen = (bn for bn in json1['benchmarks'] if 'real_time' in bn and 'cpu_time' in bn)
+    for bn in gen:
         other_bench = find_test(bn['name'])
         if not other_bench:
             continue
@@ -132,7 +134,7 @@ class TestReportDifference(unittest.TestCase):
         json1, json2 = self.load_results()
         output_lines_with_header = generate_difference_report(json1, json2, use_color=False)
         output_lines = output_lines_with_header[2:]
-        print "\n".join(output_lines_with_header)
+        print("\n".join(output_lines_with_header))
         self.assertEqual(len(output_lines), len(expect_lines))
         for i in xrange(0, len(output_lines)):
             parts = [x for x in output_lines[i].split(' ') if x]

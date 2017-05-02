@@ -2,13 +2,32 @@
 
 find_package(Threads REQUIRED)
 
+# NOTE: Some tests use `<cassert>` to perform the test. Therefore we must
+# strip -DNDEBUG from the default CMake flags in DEBUG mode.
+string(TOUPPER "${CMAKE_BUILD_TYPE}" uppercase_CMAKE_BUILD_TYPE)
+if( NOT uppercase_CMAKE_BUILD_TYPE STREQUAL "DEBUG" )
+  add_definitions( -UNDEBUG )
+  add_definitions(-DTEST_BENCHMARK_LIBRARY_HAS_NO_ASSERTIONS)
+  # Also remove /D NDEBUG to avoid MSVC warnings about conflicting defines.
+  foreach (flags_var_to_scrub
+      CMAKE_CXX_FLAGS_RELEASE
+      CMAKE_CXX_FLAGS_RELWITHDEBINFO
+      CMAKE_CXX_FLAGS_MINSIZEREL
+      CMAKE_C_FLAGS_RELEASE
+      CMAKE_C_FLAGS_RELWITHDEBINFO
+      CMAKE_C_FLAGS_MINSIZEREL)
+    string (REGEX REPLACE "(^| )[/-]D *NDEBUG($| )" " "
+      "${flags_var_to_scrub}" "${${flags_var_to_scrub}}")
+  endforeach()
+endif()
+
 # NOTE: These flags must be added after find_package(Threads REQUIRED) otherwise
 # they will break the configuration check.
 if (DEFINED BENCHMARK_CXX_LINKER_FLAGS)
   list(APPEND CMAKE_EXE_LINKER_FLAGS ${BENCHMARK_CXX_LINKER_FLAGS})
 endif()
 
-add_library(output_test_helper STATIC output_test_helper.cc)
+add_library(output_test_helper STATIC output_test_helper.cc output_test.h)
 
 macro(compile_benchmark_test name)
   add_executable(${name} "${name}.cc")
@@ -72,6 +91,9 @@ add_test(multiple_ranges_test multiple_ranges_test --benchmark_min_time=0.01)
 
 compile_output_test(reporter_output_test)
 add_test(reporter_output_test reporter_output_test --benchmark_min_time=0.01)
+
+compile_output_test(user_counters_test)
+add_test(user_counters_test user_counters_test --benchmark_min_time=0.01)
 
 check_cxx_compiler_flag(-std=c++03 BENCHMARK_HAS_CXX03_FLAG)
 if (BENCHMARK_HAS_CXX03_FLAG)

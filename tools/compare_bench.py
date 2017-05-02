@@ -59,7 +59,7 @@ def main():
     json1 = gbench.util.run_or_load_benchmark(test1, benchmark_options)
     json2 = gbench.util.run_or_load_benchmark(test2, benchmark_options)
     output_lines = gbench.report.generate_difference_report(json1, json2)
-    print 'Comparing %s to %s' % (test1, test2)
+    print('Comparing %s to %s' % (test1, test2))
     for ln in output_lines:
         print(ln)
 

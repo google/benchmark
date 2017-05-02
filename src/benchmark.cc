@@ -257,6 +257,7 @@ BenchmarkReporter::Run CreateRunReport(
     report.complexity = b.complexity;
     report.complexity_lambda = b.complexity_lambda;
     report.counters = results.counters;
+    internal::Finish(&report.counters, seconds, b.threads);
   }
   return report;
 }
@@ -290,7 +291,8 @@ std::vector<BenchmarkReporter::Run> RunBenchmark(
     std::vector<BenchmarkReporter::Run>* complexity_reports) {
   std::vector<BenchmarkReporter::Run> reports;  // return value
 
-  size_t iters = 1;
+  const bool has_explicit_iteration_count = b.iterations != 0;
+  size_t iters = has_explicit_iteration_count ? b.iterations : 1;
   std::unique_ptr<internal::ThreadManager> manager;
   std::vector<std::thread> pool(b.threads - 1);
   const int repeats =
@@ -300,7 +302,7 @@ std::vector<BenchmarkReporter::Run> RunBenchmark(
       (b.report_mode == internal::RM_Unspecified
            ? FLAGS_benchmark_report_aggregates_only
            : b.report_mode == internal::RM_ReportAggregatesOnly);
-  for (int i = 0; i < repeats; i++) {
+  for (int repetition_num = 0; repetition_num < repeats; repetition_num++) {
     for (;;) {
       // Try benchmark
       VLOG(2) << "Running " << b.name << " for " << iters << "\n";
@@ -336,10 +338,20 @@ std::vector<BenchmarkReporter::Run> RunBenchmark(
 
       const double min_time =
           !IsZero(b.min_time) ? b.min_time : FLAGS_benchmark_min_time;
-      // If this was the first run, was elapsed time or cpu time large enough?
-      // If this is not the first run, go with the current value of iter.
-      if ((i > 0) || results.has_error_ || (iters >= kMaxIterations) ||
-          (seconds >= min_time) || (results.real_time_used >= 5 * min_time)) {
+
+      // Determine if this run should be reported; Either it has
+      // run for a sufficient amount of time or because an error was reported.
+      const bool should_report =  repetition_num > 0
+        || has_explicit_iteration_count // An exact iteration count was requested
+        || results.has_error_
+        || iters >= kMaxIterations
+        || seconds >= min_time // the elapsed time is large enough
+        // CPU time is specified but the elapsed real time greatly exceeds the
+        // minimum time. Note that user provided timers are except from this
+        // sanity check.
+        || ((results.real_time_used >= 5 * min_time) && !b.use_manual_time);
+
+      if (should_report) {
         BenchmarkReporter::Run report =
             CreateRunReport(b, results, iters, seconds);
         if (!report.error_occurred && b.complexity != oNone)

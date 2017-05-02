@@ -365,7 +365,7 @@ static void BM_vector_push_back(benchmark::State& state) {
 }
 ```
 
-Note that `ClobberMemory()` is only available for GNU based compilers.
+Note that `ClobberMemory()` is only available for GNU or MSVC based compilers.
 
 ### Set time unit manually
 If a benchmark runs a few milliseconds it may be hard to visually compare the
@@ -710,6 +710,7 @@ The following minimum versions are strongly recommended build the library:
 * GCC 4.8
 * Clang 3.4
 * Visual Studio 2013
+* Intel 2015 Update 1
 
 Anything older *may* work.
 

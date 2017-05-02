@@ -53,11 +53,17 @@ bool ConsoleReporter::ReportContext(const Context& context) {
 }
 
 void ConsoleReporter::PrintHeader(const Run& run) {
-  std::string str =
-      FormatString("%-*s %13s %13s %10s\n", static_cast<int>(name_field_width_),
-                   "Benchmark", "Time", "CPU", "Iterations");
+  std::string str = FormatString("%-*s %13s %13s %10s\n", static_cast<int>(name_field_width_),
+                                 "Benchmark", "Time", "CPU", "Iterations");
   if(!run.counters.empty()) {
-    str += " UserCounters...";
+    if(output_options_ & OO_Tabular) {
+      for(auto const& c : run.counters) {
+        str += FormatString(" %10s", c.first);
+      }
+    }
+    else {
+      str += " UserCounters...";
+    }
   }
   std::string line = std::string(str.length(), '-');
   GetOutputStream() << line << "\n" << str << line << "\n";
@@ -143,10 +149,12 @@ void ConsoleReporter::PrintRunData(const Run& result) {
 
   for (auto& c : result.counters) {
     auto const& s = HumanReadableNumber(c.second.value);
+    const char* unit = (c.second.flags & Counter::kIsRate) ? "/s" : "";
     if(output_options_ & OO_Tabular) {
-      printer(Out, COLOR_DEFAULT, " %10s", s.c_str());
+      printer(Out, COLOR_DEFAULT, " %10s%s", s.c_str(), unit);
     } else {
-      printer(Out, COLOR_DEFAULT, " %s=%s", c.first.c_str(), s.c_str());
+      printer(Out, COLOR_DEFAULT, " %s=%s%s", c.first.c_str(), s.c_str(),
+              unit);
     }
   }
 
