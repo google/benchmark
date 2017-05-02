@@ -150,10 +150,15 @@ void ConsoleReporter::PrintRunData(const Run& result) {
 
   for (auto& c : result.counters) {
     auto const& s = HumanReadableNumber(c.second.value);
-    const char* unit = (c.second.flags & Counter::kIsRate) ? "/s" : "";
-    if(output_options_ & OO_Tabular) {
-      printer(Out, COLOR_DEFAULT, " %10s%s", s.c_str(), unit);
+    if (output_options_ & OO_Tabular) {
+      if (c.second.flags & Counter::kIsRate) {
+        printer(Out, COLOR_DEFAULT, " %8s/s", s.c_str());
+      }
+      else {
+        printer(Out, COLOR_DEFAULT, " %10s", s.c_str());
+      }
     } else {
+      const char* unit = (c.second.flags & Counter::kIsRate) ? "/s" : "";
       printer(Out, COLOR_DEFAULT, " %s=%s%s", c.first.c_str(), s.c_str(),
               unit);
     }
