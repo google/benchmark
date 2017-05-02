@@ -137,8 +137,12 @@ void CSVReporter::PrintRunData(const Run & run) {
   // Print user counters
   for (const auto &ucn : user_counter_names_) {
     auto it = run.counters.find(ucn);
-    CHECK(it != run.counters.end());
-    Out << "," << it->second;
+    if(it == run.counters.end()) {
+      Out << ",";
+    }
+    else {
+      Out << "," << it->second;
+    }
   }
   Out << '\n';
 }
