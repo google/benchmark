@@ -110,8 +110,47 @@ void CheckTabularRate(Results const& e) {
 CHECK_BENCHMARK_RESULTS("BM_CounterRates_Tabular", &CheckTabularRate);
 
 // ========================================================================= //
+// ------------------------- Tabular Counters Output ----------------------- //
+// ========================================================================= //
+
+// set only some of the counters
+void BM_CounterSet_Tabular(benchmark::State& state) {
+  while (state.KeepRunning()) {
+  }
+  state.counters.insert({
+    {"Foo", 10},
+    {"Bar", 20},
+    {"Baz", 40},
+  });
+}
+BENCHMARK(BM_CounterSet_Tabular);
+ADD_CASES(TC_ConsoleOut, {
+    {"^[-]+$", MR_Next},
+    {"^Benchmark %s Time %s CPU %s Iterations %s Bar %s Baz %s Foo$", MR_Next},
+    {"^[-]+$", MR_Next},
+    {"^BM_CounterSet_Tabular %console_report [ ]*%hrfloat [ ]*%hrfloat [ ]*%hrfloat$"}});
+ADD_CASES(TC_JSONOut, {{"\"name\": \"BM_CounterSet_Tabular\",$"},
+                       {"\"iterations\": %int,$", MR_Next},
+                       {"\"real_time\": %int,$", MR_Next},
+                       {"\"cpu_time\": %int,$", MR_Next},
+                       {"\"time_unit\": \"ns\",$", MR_Next},
+                       {"\"Bar\": %float,$", MR_Next},
+                       {"\"Baz\": %float,$", MR_Next},
+                       {"\"Foo\": %float$", MR_Next},
+                       {"}", MR_Next}});
+ADD_CASES(TC_CSVOut, {{"^\"BM_CounterSet_Tabular\",%csv_report,"
+                       "%float,,%float,%float,,"}});
+// VS2013 does not allow this function to be passed as a lambda argument
+// to CHECK_BENCHMARK_RESULTS()
+void CheckSet(Results const& e) {
+  CHECK_COUNTER_VALUE(e, int, "Foo", EQ, 10);
+  CHECK_COUNTER_VALUE(e, int, "Bar", EQ, 20);
+  CHECK_COUNTER_VALUE(e, int, "Baz", EQ, 40);
+}
+CHECK_BENCHMARK_RESULTS("BM_CounterSet_Tabular", &CheckSet);
+
+// ========================================================================= //
 // --------------------------- TEST CASES END ------------------------------ //
 // ========================================================================= //
 
-int main(int argc, char* argv[]) { RunOutputTests(argc, argv); 
-}
+int main(int argc, char* argv[]) { RunOutputTests(argc, argv); }
