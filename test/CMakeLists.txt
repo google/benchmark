@@ -27,7 +27,7 @@ if (DEFINED BENCHMARK_CXX_LINKER_FLAGS)
   list(APPEND CMAKE_EXE_LINKER_FLAGS ${BENCHMARK_CXX_LINKER_FLAGS})
 endif()
 
-add_library(output_test_helper STATIC output_test_helper.cc)
+add_library(output_test_helper STATIC output_test_helper.cc output_test.h)
 
 macro(compile_benchmark_test name)
   add_executable(${name} "${name}.cc")
@@ -91,6 +91,9 @@ add_test(multiple_ranges_test multiple_ranges_test --benchmark_min_time=0.01)
 
 compile_output_test(reporter_output_test)
 add_test(reporter_output_test reporter_output_test --benchmark_min_time=0.01)
+
+compile_output_test(user_counters_test)
+add_test(user_counters_test user_counters_test --benchmark_min_time=0.01)
 
 check_cxx_compiler_flag(-std=c++03 BENCHMARK_HAS_CXX03_FLAG)
 if (BENCHMARK_HAS_CXX03_FLAG)

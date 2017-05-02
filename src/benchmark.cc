@@ -252,6 +252,7 @@ BenchmarkReporter::Run CreateRunReport(
     report.complexity = b.complexity;
     report.complexity_lambda = b.complexity_lambda;
     report.counters = results.counters;
+    internal::Finish(&report.counters, seconds, b.threads);
   }
   return report;
 }
