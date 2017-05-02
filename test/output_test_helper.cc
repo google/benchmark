@@ -7,7 +7,12 @@
 #include "../src/check.h"  // NOTE: check.h is for internal use only!
 #include "../src/re.h"     // NOTE: re.h is for internal use only
 #include "output_test.h"
-#include "../src/benchmark_api_internal.h"
+
+// clang fails with -Werror because IsZero() is not used in this library
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wunused-function"
+#include "../src/benchmark_api_internal.h" // IsZero() is provided here
+#pragma clang diagnostic pop
 
 // ========================================================================= //
 // ------------------------------ Internals -------------------------------- //
