@@ -4,16 +4,50 @@
 #include "benchmark/benchmark.h"
 #include "output_test.h"
 
-// ========================================================================= //
-// ---------------------- Testing Prologue Output -------------------------- //
-// ========================================================================= //
-
-ADD_CASES(TC_ConsoleOut,
-          {{"^[-]+$", MR_Next},
-           {"^Benchmark %s Time %s CPU %s Iterations %s Bar %s Bat %s Baz %s Foo %s Frob %s Lob$",
-            MR_Next},
-           {"^[-]+$", MR_Next}});
-ADD_CASES(TC_CSVOut, {{"%csv_header,\"Bar\",\"Bat\",\"Baz\",\"Foo\",\"Frob\",\"Lob\""}});
+// @todo: <jpmag> this checks the full output at once; the rule for
+// CounterSet1 was failing because it was not matching "^[-]+$".
+// @todo: <jpmag> check that the counters are vertically aligned.
+ADD_CASES(TC_ConsoleOut, {
+// keeping these lines long improves readability, so:
+// clang-format off
+    {"^[-]+$", MR_Next},
+    {"^Benchmark %s Time %s CPU %s Iterations %s Bar %s Bat %s Baz %s Foo %s Frob %s Lob$", MR_Next},
+    {"^[-]+$", MR_Next},
+    {"^BM_Counters_Tabular/threads:%int %console_report [ ]*%hrfloat [ ]*%hrfloat [ ]*%hrfloat [ ]*%hrfloat [ ]*%hrfloat [ ]*%hrfloat$", MR_Next},
+    {"^BM_Counters_Tabular/threads:%int %console_report [ ]*%hrfloat [ ]*%hrfloat [ ]*%hrfloat [ ]*%hrfloat [ ]*%hrfloat [ ]*%hrfloat$", MR_Next},
+    {"^BM_Counters_Tabular/threads:%int %console_report [ ]*%hrfloat [ ]*%hrfloat [ ]*%hrfloat [ ]*%hrfloat [ ]*%hrfloat [ ]*%hrfloat$", MR_Next},
+    {"^BM_Counters_Tabular/threads:%int %console_report [ ]*%hrfloat [ ]*%hrfloat [ ]*%hrfloat [ ]*%hrfloat [ ]*%hrfloat [ ]*%hrfloat$", MR_Next},
+    {"^BM_Counters_Tabular/threads:%int %console_report [ ]*%hrfloat [ ]*%hrfloat [ ]*%hrfloat [ ]*%hrfloat [ ]*%hrfloat [ ]*%hrfloat$", MR_Next},
+    {"^BM_CounterRates_Tabular/threads:%int %console_report [ ]*%hrfloat/s [ ]*%hrfloat/s [ ]*%hrfloat/s [ ]*%hrfloat/s [ ]*%hrfloat/s [ ]*%hrfloat/s$", MR_Next},
+    {"^BM_CounterRates_Tabular/threads:%int %console_report [ ]*%hrfloat/s [ ]*%hrfloat/s [ ]*%hrfloat/s [ ]*%hrfloat/s [ ]*%hrfloat/s [ ]*%hrfloat/s$", MR_Next},
+    {"^BM_CounterRates_Tabular/threads:%int %console_report [ ]*%hrfloat/s [ ]*%hrfloat/s [ ]*%hrfloat/s [ ]*%hrfloat/s [ ]*%hrfloat/s [ ]*%hrfloat/s$", MR_Next},
+    {"^BM_CounterRates_Tabular/threads:%int %console_report [ ]*%hrfloat/s [ ]*%hrfloat/s [ ]*%hrfloat/s [ ]*%hrfloat/s [ ]*%hrfloat/s [ ]*%hrfloat/s$", MR_Next},
+    {"^BM_CounterRates_Tabular/threads:%int %console_report [ ]*%hrfloat/s [ ]*%hrfloat/s [ ]*%hrfloat/s [ ]*%hrfloat/s [ ]*%hrfloat/s [ ]*%hrfloat/s$", MR_Next},
+    {"^[-]+$", MR_Next},
+    {"^Benchmark %s Time %s CPU %s Iterations %s Bar %s Baz %s Foo$", MR_Next},
+    {"^[-]+$", MR_Next},
+    {"^BM_CounterSet0_Tabular/threads:%int %console_report [ ]*%hrfloat [ ]*%hrfloat [ ]*%hrfloat$", MR_Next},
+    {"^BM_CounterSet0_Tabular/threads:%int %console_report [ ]*%hrfloat [ ]*%hrfloat [ ]*%hrfloat$", MR_Next},
+    {"^BM_CounterSet0_Tabular/threads:%int %console_report [ ]*%hrfloat [ ]*%hrfloat [ ]*%hrfloat$", MR_Next},
+    {"^BM_CounterSet0_Tabular/threads:%int %console_report [ ]*%hrfloat [ ]*%hrfloat [ ]*%hrfloat$", MR_Next},
+    {"^BM_CounterSet0_Tabular/threads:%int %console_report [ ]*%hrfloat [ ]*%hrfloat [ ]*%hrfloat$", MR_Next},
+    {"^BM_CounterSet1_Tabular/threads:%int %console_report [ ]*%hrfloat [ ]*%hrfloat [ ]*%hrfloat$", MR_Next},
+    {"^BM_CounterSet1_Tabular/threads:%int %console_report [ ]*%hrfloat [ ]*%hrfloat [ ]*%hrfloat$", MR_Next},
+    {"^BM_CounterSet1_Tabular/threads:%int %console_report [ ]*%hrfloat [ ]*%hrfloat [ ]*%hrfloat$", MR_Next},
+    {"^BM_CounterSet1_Tabular/threads:%int %console_report [ ]*%hrfloat [ ]*%hrfloat [ ]*%hrfloat$", MR_Next},
+    {"^BM_CounterSet1_Tabular/threads:%int %console_report [ ]*%hrfloat [ ]*%hrfloat [ ]*%hrfloat$", MR_Next},
+    {"^[-]+$", MR_Next},
+    {"^Benchmark %s Time %s CPU %s Iterations %s Bat %s Baz %s Foo$", MR_Next},
+    {"^[-]+$", MR_Next},
+    {"^BM_CounterSet2_Tabular/threads:%int %console_report [ ]*%hrfloat [ ]*%hrfloat [ ]*%hrfloat$", MR_Next},
+    {"^BM_CounterSet2_Tabular/threads:%int %console_report [ ]*%hrfloat [ ]*%hrfloat [ ]*%hrfloat$", MR_Next},
+    {"^BM_CounterSet2_Tabular/threads:%int %console_report [ ]*%hrfloat [ ]*%hrfloat [ ]*%hrfloat$", MR_Next},
+    {"^BM_CounterSet2_Tabular/threads:%int %console_report [ ]*%hrfloat [ ]*%hrfloat [ ]*%hrfloat$", MR_Next},
+    {"^BM_CounterSet2_Tabular/threads:%int %console_report [ ]*%hrfloat [ ]*%hrfloat [ ]*%hrfloat$"},
+// clang-format on
+});
+ADD_CASES(TC_CSVOut, {{"%csv_header,"
+                       "\"Bar\",\"Bat\",\"Baz\",\"Foo\",\"Frob\",\"Lob\""}});
 
 // ========================================================================= //
 // ------------------------- Tabular Counters Output ----------------------- //
@@ -22,20 +56,18 @@ ADD_CASES(TC_CSVOut, {{"%csv_header,\"Bar\",\"Bat\",\"Baz\",\"Foo\",\"Frob\",\"L
 void BM_Counters_Tabular(benchmark::State& state) {
   while (state.KeepRunning()) {
   }
+  namespace bm = benchmark;
   state.counters.insert({
-    {"Foo", 1},
-    {"Bar", 2},
-    {"Baz", 4},
-    {"Bat", 8},
-    {"Frob", 16},
-    {"Lob", 32},
+    {"Foo",  { 1, bm::Counter::kAvgThreads}},
+    {"Bar",  { 2, bm::Counter::kAvgThreads}},
+    {"Baz",  { 4, bm::Counter::kAvgThreads}},
+    {"Bat",  { 8, bm::Counter::kAvgThreads}},
+    {"Frob", {16, bm::Counter::kAvgThreads}},
+    {"Lob",  {32, bm::Counter::kAvgThreads}},
   });
 }
-BENCHMARK(BM_Counters_Tabular);
-ADD_CASES(TC_ConsoleOut, {{"^BM_Counters_Tabular %console_report "
-                           "[ ]*%hrfloat [ ]*%hrfloat [ ]*%hrfloat "
-                           "[ ]*%hrfloat [ ]*%hrfloat [ ]*%hrfloat$"}});
-ADD_CASES(TC_JSONOut, {{"\"name\": \"BM_Counters_Tabular\",$"},
+BENCHMARK(BM_Counters_Tabular)->ThreadRange(1, 16);
+ADD_CASES(TC_JSONOut, {{"\"name\": \"BM_Counters_Tabular/threads:%int\",$"},
                        {"\"iterations\": %int,$", MR_Next},
                        {"\"real_time\": %int,$", MR_Next},
                        {"\"cpu_time\": %int,$", MR_Next},
@@ -47,7 +79,7 @@ ADD_CASES(TC_JSONOut, {{"\"name\": \"BM_Counters_Tabular\",$"},
                        {"\"Frob\": %float,$", MR_Next},
                        {"\"Lob\": %float$", MR_Next},
                        {"}", MR_Next}});
-ADD_CASES(TC_CSVOut, {{"^\"BM_Counters_Tabular\",%csv_report,"
+ADD_CASES(TC_CSVOut, {{"^\"BM_Counters_Tabular/threads:%int\",%csv_report,"
                        "%float,%float,%float,%float,%float,%float$"}});
 // VS2013 does not allow this function to be passed as a lambda argument
 // to CHECK_BENCHMARK_RESULTS()
@@ -59,7 +91,7 @@ void CheckTabular(Results const& e) {
   CHECK_COUNTER_VALUE(e, int, "Frob", EQ, 16);
   CHECK_COUNTER_VALUE(e, int, "Lob", EQ, 32);
 }
-CHECK_BENCHMARK_RESULTS("BM_Counters_Tabular", &CheckTabular);
+CHECK_BENCHMARK_RESULTS("BM_Counters_Tabular/threads:%int", &CheckTabular);
 
 // ========================================================================= //
 // -------------------- Tabular+Rate Counters Output ----------------------- //
@@ -70,19 +102,16 @@ void BM_CounterRates_Tabular(benchmark::State& state) {
   }
   namespace bm = benchmark;
   state.counters.insert({
-    {"Foo",  { 1, bm::Counter::kIsRate}},
-    {"Bar",  { 2, bm::Counter::kIsRate}},
-    {"Baz",  { 4, bm::Counter::kIsRate}},
-    {"Bat",  { 8, bm::Counter::kIsRate}},
-    {"Frob", {16, bm::Counter::kIsRate}},
-    {"Lob",  {32, bm::Counter::kIsRate}},
+    {"Foo",  { 1, bm::Counter::kAvgThreadsRate}},
+    {"Bar",  { 2, bm::Counter::kAvgThreadsRate}},
+    {"Baz",  { 4, bm::Counter::kAvgThreadsRate}},
+    {"Bat",  { 8, bm::Counter::kAvgThreadsRate}},
+    {"Frob", {16, bm::Counter::kAvgThreadsRate}},
+    {"Lob",  {32, bm::Counter::kAvgThreadsRate}},
   });
 }
-BENCHMARK(BM_CounterRates_Tabular);
-ADD_CASES(TC_ConsoleOut, {{"^BM_CounterRates_Tabular %console_report "
-                           "[ ]*%hrfloat/s [ ]*%hrfloat/s [ ]*%hrfloat/s "
-                           "[ ]*%hrfloat/s [ ]*%hrfloat/s [ ]*%hrfloat/s$"}});
-ADD_CASES(TC_JSONOut, {{"\"name\": \"BM_CounterRates_Tabular\",$"},
+BENCHMARK(BM_CounterRates_Tabular)->ThreadRange(1, 16);
+ADD_CASES(TC_JSONOut, {{"\"name\": \"BM_CounterRates_Tabular/threads:%int\",$"},
                        {"\"iterations\": %int,$", MR_Next},
                        {"\"real_time\": %int,$", MR_Next},
                        {"\"cpu_time\": %int,$", MR_Next},
@@ -94,7 +123,7 @@ ADD_CASES(TC_JSONOut, {{"\"name\": \"BM_CounterRates_Tabular\",$"},
                        {"\"Frob\": %float,$", MR_Next},
                        {"\"Lob\": %float$", MR_Next},
                        {"}", MR_Next}});
-ADD_CASES(TC_CSVOut, {{"^\"BM_CounterRates_Tabular\",%csv_report,"
+ADD_CASES(TC_CSVOut, {{"^\"BM_CounterRates_Tabular/threads:%int\",%csv_report,"
                        "%float,%float,%float,%float,%float,%float$"}});
 // VS2013 does not allow this function to be passed as a lambda argument
 // to CHECK_BENCHMARK_RESULTS()
@@ -107,29 +136,26 @@ void CheckTabularRate(Results const& e) {
   CHECK_FLOAT_COUNTER_VALUE(e, "Frob", EQ, 16./t, 0.001);
   CHECK_FLOAT_COUNTER_VALUE(e, "Lob", EQ, 32./t, 0.001);
 }
-CHECK_BENCHMARK_RESULTS("BM_CounterRates_Tabular", &CheckTabularRate);
+CHECK_BENCHMARK_RESULTS("BM_CounterRates_Tabular/threads:%int",
+                        &CheckTabularRate);
 
 // ========================================================================= //
 // ------------------------- Tabular Counters Output ----------------------- //
 // ========================================================================= //
 
 // set only some of the counters
-void BM_CounterSet_Tabular(benchmark::State& state) {
+void BM_CounterSet0_Tabular(benchmark::State& state) {
   while (state.KeepRunning()) {
   }
+  namespace bm = benchmark;
   state.counters.insert({
-    {"Foo", 10},
-    {"Bar", 20},
-    {"Baz", 40},
+    {"Foo", {10, bm::Counter::kAvgThreads}},
+    {"Bar", {20, bm::Counter::kAvgThreads}},
+    {"Baz", {40, bm::Counter::kAvgThreads}},
   });
 }
-BENCHMARK(BM_CounterSet_Tabular);
-ADD_CASES(TC_ConsoleOut, {
-    {"^[-]+$", MR_Next},
-    {"^Benchmark %s Time %s CPU %s Iterations %s Bar %s Baz %s Foo$", MR_Next},
-    {"^[-]+$", MR_Next},
-    {"^BM_CounterSet_Tabular %console_report [ ]*%hrfloat [ ]*%hrfloat [ ]*%hrfloat$"}});
-ADD_CASES(TC_JSONOut, {{"\"name\": \"BM_CounterSet_Tabular\",$"},
+BENCHMARK(BM_CounterSet0_Tabular)->ThreadRange(1, 16);
+ADD_CASES(TC_JSONOut, {{"\"name\": \"BM_CounterSet0_Tabular/threads:%int\",$"},
                        {"\"iterations\": %int,$", MR_Next},
                        {"\"real_time\": %int,$", MR_Next},
                        {"\"cpu_time\": %int,$", MR_Next},
@@ -138,16 +164,84 @@ ADD_CASES(TC_JSONOut, {{"\"name\": \"BM_CounterSet_Tabular\",$"},
                        {"\"Baz\": %float,$", MR_Next},
                        {"\"Foo\": %float$", MR_Next},
                        {"}", MR_Next}});
-ADD_CASES(TC_CSVOut, {{"^\"BM_CounterSet_Tabular\",%csv_report,"
+ADD_CASES(TC_CSVOut, {{"^\"BM_CounterSet0_Tabular/threads:%int\",%csv_report,"
                        "%float,,%float,%float,,"}});
 // VS2013 does not allow this function to be passed as a lambda argument
 // to CHECK_BENCHMARK_RESULTS()
-void CheckSet(Results const& e) {
+void CheckSet0(Results const& e) {
   CHECK_COUNTER_VALUE(e, int, "Foo", EQ, 10);
   CHECK_COUNTER_VALUE(e, int, "Bar", EQ, 20);
   CHECK_COUNTER_VALUE(e, int, "Baz", EQ, 40);
 }
-CHECK_BENCHMARK_RESULTS("BM_CounterSet_Tabular", &CheckSet);
+CHECK_BENCHMARK_RESULTS("BM_CounterSet0_Tabular", &CheckSet0);
+
+// again.
+void BM_CounterSet1_Tabular(benchmark::State& state) {
+  while (state.KeepRunning()) {
+  }
+  namespace bm = benchmark;
+  state.counters.insert({
+    {"Foo", {15, bm::Counter::kAvgThreads}},
+    {"Bar", {25, bm::Counter::kAvgThreads}},
+    {"Baz", {45, bm::Counter::kAvgThreads}},
+  });
+}
+BENCHMARK(BM_CounterSet1_Tabular)->ThreadRange(1, 16);
+ADD_CASES(TC_JSONOut, {{"\"name\": \"BM_CounterSet1_Tabular/threads:%int\",$"},
+                       {"\"iterations\": %int,$", MR_Next},
+                       {"\"real_time\": %int,$", MR_Next},
+                       {"\"cpu_time\": %int,$", MR_Next},
+                       {"\"time_unit\": \"ns\",$", MR_Next},
+                       {"\"Bar\": %float,$", MR_Next},
+                       {"\"Baz\": %float,$", MR_Next},
+                       {"\"Foo\": %float$", MR_Next},
+                       {"}", MR_Next}});
+ADD_CASES(TC_CSVOut, {{"^\"BM_CounterSet1_Tabular/threads:%int\",%csv_report,"
+                       "%float,,%float,%float,,"}});
+// VS2013 does not allow this function to be passed as a lambda argument
+// to CHECK_BENCHMARK_RESULTS()
+void CheckSet1(Results const& e) {
+  CHECK_COUNTER_VALUE(e, int, "Foo", EQ, 15);
+  CHECK_COUNTER_VALUE(e, int, "Bar", EQ, 25);
+  CHECK_COUNTER_VALUE(e, int, "Baz", EQ, 45);
+}
+CHECK_BENCHMARK_RESULTS("BM_CounterSet1_Tabular/threads:%int", &CheckSet1);
+
+// ========================================================================= //
+// ------------------------- Tabular Counters Output ----------------------- //
+// ========================================================================= //
+
+// set only some of the counters, different set now.
+void BM_CounterSet2_Tabular(benchmark::State& state) {
+  while (state.KeepRunning()) {
+  }
+  namespace bm = benchmark;
+  state.counters.insert({
+    {"Foo", {10, bm::Counter::kAvgThreads}},
+    {"Bat", {30, bm::Counter::kAvgThreads}},
+    {"Baz", {40, bm::Counter::kAvgThreads}},
+  });
+}
+BENCHMARK(BM_CounterSet2_Tabular)->ThreadRange(1, 16);
+ADD_CASES(TC_JSONOut, {{"\"name\": \"BM_CounterSet2_Tabular/threads:%int\",$"},
+                       {"\"iterations\": %int,$", MR_Next},
+                       {"\"real_time\": %int,$", MR_Next},
+                       {"\"cpu_time\": %int,$", MR_Next},
+                       {"\"time_unit\": \"ns\",$", MR_Next},
+                       {"\"Bat\": %float,$", MR_Next},
+                       {"\"Baz\": %float,$", MR_Next},
+                       {"\"Foo\": %float$", MR_Next},
+                       {"}", MR_Next}});
+ADD_CASES(TC_CSVOut, {{"^\"BM_CounterSet2_Tabular/threads:%int\",%csv_report,"
+                       ",%float,%float,%float,,"}});
+// VS2013 does not allow this function to be passed as a lambda argument
+// to CHECK_BENCHMARK_RESULTS()
+void CheckSet2(Results const& e) {
+  CHECK_COUNTER_VALUE(e, int, "Foo", EQ, 10);
+  CHECK_COUNTER_VALUE(e, int, "Bat", EQ, 30);
+  CHECK_COUNTER_VALUE(e, int, "Baz", EQ, 40);
+}
+CHECK_BENCHMARK_RESULTS("BM_CounterSet2_Tabular", &CheckSet2);
 
 // ========================================================================= //
 // --------------------------- TEST CASES END ------------------------------ //
