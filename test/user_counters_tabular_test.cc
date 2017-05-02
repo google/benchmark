@@ -62,7 +62,56 @@ void CheckTabular(Results const& e) {
 CHECK_BENCHMARK_RESULTS("BM_Counters_Tabular", &CheckTabular);
 
 // ========================================================================= //
+// -------------------- Tabular+Rate Counters Output ----------------------- //
+// ========================================================================= //
+
+void BM_CounterRates_Tabular(benchmark::State& state) {
+  while (state.KeepRunning()) {
+  }
+  namespace bm = benchmark;
+  state.counters.insert({
+    {"Foo",  { 1, bm::Counter::kIsRate}},
+    {"Bar",  { 2, bm::Counter::kIsRate}},
+    {"Baz",  { 4, bm::Counter::kIsRate}},
+    {"Bat",  { 8, bm::Counter::kIsRate}},
+    {"Frob", {16, bm::Counter::kIsRate}},
+    {"Lob",  {32, bm::Counter::kIsRate}},
+  });
+}
+BENCHMARK(BM_CounterRates_Tabular);
+ADD_CASES(TC_ConsoleOut, {{"^BM_CounterRates_Tabular %console_report "
+                           "[ ]*%hrfloat/s [ ]*%hrfloat/s [ ]*%hrfloat/s "
+                           "[ ]*%hrfloat/s [ ]*%hrfloat/s [ ]*%hrfloat/s$"}});
+ADD_CASES(TC_JSONOut, {{"\"name\": \"BM_CounterRates_Tabular\",$"},
+                       {"\"iterations\": %int,$", MR_Next},
+                       {"\"real_time\": %int,$", MR_Next},
+                       {"\"cpu_time\": %int,$", MR_Next},
+                       {"\"time_unit\": \"ns\",$", MR_Next},
+                       {"\"Bar\": %float,$", MR_Next},
+                       {"\"Bat\": %float,$", MR_Next},
+                       {"\"Baz\": %float,$", MR_Next},
+                       {"\"Foo\": %float,$", MR_Next},
+                       {"\"Frob\": %float,$", MR_Next},
+                       {"\"Lob\": %float$", MR_Next},
+                       {"}", MR_Next}});
+ADD_CASES(TC_CSVOut, {{"^\"BM_CounterRates_Tabular\",%csv_report,"
+                       "%float,%float,%float,%float,%float,%float$"}});
+// VS2013 does not allow this function to be passed as a lambda argument
+// to CHECK_BENCHMARK_RESULTS()
+void CheckTabularRate(Results const& e) {
+  double t = e.DurationCPUTime();
+  CHECK_FLOAT_COUNTER_VALUE(e, "Foo", EQ, 1./t, 0.001);
+  CHECK_FLOAT_COUNTER_VALUE(e, "Bar", EQ, 2./t, 0.001);
+  CHECK_FLOAT_COUNTER_VALUE(e, "Baz", EQ, 4./t, 0.001);
+  CHECK_FLOAT_COUNTER_VALUE(e, "Bat", EQ, 8./t, 0.001);
+  CHECK_FLOAT_COUNTER_VALUE(e, "Frob", EQ, 16./t, 0.001);
+  CHECK_FLOAT_COUNTER_VALUE(e, "Lob", EQ, 32./t, 0.001);
+}
+CHECK_BENCHMARK_RESULTS("BM_CounterRates_Tabular", &CheckTabularRate);
+
+// ========================================================================= //
 // --------------------------- TEST CASES END ------------------------------ //
 // ========================================================================= //
 
-int main(int argc, char* argv[]) { RunOutputTests(argc, argv); }
+int main(int argc, char* argv[]) { RunOutputTests(argc, argv); 
+}
