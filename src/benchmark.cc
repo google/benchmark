@@ -542,6 +542,26 @@ std::unique_ptr<BenchmarkReporter> CreateReporter(
 }
 
 }  // end namespace
+
+ConsoleReporter::OutputOptions GetOutputOptions(bool force_no_color) {
+  int output_opts = ConsoleReporter::OO_Defaults;
+  if ((FLAGS_benchmark_color == "auto" && IsColorTerminal()) ||
+      IsTruthyFlagValue(FLAGS_benchmark_color)) {
+    output_opts |= ConsoleReporter::OO_Color;
+  } else {
+    output_opts &= ~ConsoleReporter::OO_Color;
+  }
+  if(force_no_color) {
+    output_opts &= ~ConsoleReporter::OO_Color;
+  }
+  if(FLAGS_benchmark_counters_tabular) {
+    output_opts |= ConsoleReporter::OO_Tabular;
+  } else {
+    output_opts &= ~ConsoleReporter::OO_Tabular;
+  }
+  return static_cast< ConsoleReporter::OutputOptions >(output_opts);
+}
+
 }  // end namespace internal
 
 size_t RunSpecifiedBenchmarks() {
@@ -563,21 +583,8 @@ size_t RunSpecifiedBenchmarks(BenchmarkReporter* console_reporter,
   std::unique_ptr<BenchmarkReporter> default_console_reporter;
   std::unique_ptr<BenchmarkReporter> default_file_reporter;
   if (!console_reporter) {
-    int output_opts = ConsoleReporter::OO_Defaults;
-    if ((FLAGS_benchmark_color == "auto" && IsColorTerminal()) ||
-        IsTruthyFlagValue(FLAGS_benchmark_color)) {
-      output_opts |= ConsoleReporter::OO_Color;
-    } else {
-      output_opts &= ~ConsoleReporter::OO_Color;
-    }
-    if(FLAGS_benchmark_counters_tabular) {
-      output_opts |= ConsoleReporter::OO_Tabular;
-    } else {
-      output_opts &= ~ConsoleReporter::OO_Tabular;
-    }
     default_console_reporter = internal::CreateReporter(
-          FLAGS_benchmark_format,
-          static_cast< ConsoleReporter::OutputOptions >(output_opts));
+          FLAGS_benchmark_format, internal::GetOutputOptions());
     console_reporter = default_console_reporter.get();
   }
   auto& Out = console_reporter->GetOutputStream();

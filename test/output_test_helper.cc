@@ -7,6 +7,7 @@
 #include "../src/check.h"  // NOTE: check.h is for internal use only!
 #include "../src/re.h"     // NOTE: re.h is for internal use only
 #include "output_test.h"
+#include "../src/benchmark_api_internal.h"
 
 // ========================================================================= //
 // ------------------------------ Internals -------------------------------- //
@@ -367,7 +368,8 @@ int SetSubstitutions(
 void RunOutputTests(int argc, char* argv[]) {
   using internal::GetTestCaseList;
   benchmark::Initialize(&argc, argv);
-  benchmark::ConsoleReporter CR(benchmark::ConsoleReporter::OO_None);
+  auto options = benchmark::internal::GetOutputOptions(/*force_no_color*/true);
+  benchmark::ConsoleReporter CR(options);
   benchmark::JSONReporter JR;
   benchmark::CSVReporter CSVR;
   struct ReporterTest {

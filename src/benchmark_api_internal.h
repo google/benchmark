@@ -36,6 +36,8 @@ bool FindBenchmarksInternal(const std::string& re,
                             std::vector<Benchmark::Instance>* benchmarks,
                             std::ostream* Err);
 
+ConsoleReporter::OutputOptions GetOutputOptions(bool force_no_color = false);
+
 namespace {
 
 bool IsZero(double n) {

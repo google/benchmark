@@ -53,18 +53,19 @@ bool ConsoleReporter::ReportContext(const Context& context) {
 }
 
 void ConsoleReporter::PrintHeader(const Run& run) {
-  std::string str = FormatString("%-*s %13s %13s %10s\n", static_cast<int>(name_field_width_),
+  std::string str = FormatString("%-*s %13s %13s %10s", static_cast<int>(name_field_width_),
                                  "Benchmark", "Time", "CPU", "Iterations");
   if(!run.counters.empty()) {
     if(output_options_ & OO_Tabular) {
       for(auto const& c : run.counters) {
-        str += FormatString(" %10s", c.first);
+        str += FormatString(" %10s", c.first.c_str());
       }
     }
     else {
       str += " UserCounters...";
     }
   }
+  str += "\n";
   std::string line = std::string(str.length(), '-');
   GetOutputStream() << line << "\n" << str << line << "\n";
 }
