@@ -543,6 +543,10 @@ std::unique_ptr<BenchmarkReporter> CreateReporter(
 
 }  // end namespace
 
+bool IsZero(double n) {
+  return std::abs(n) < std::numeric_limits<double>::epsilon();
+}
+
 ConsoleReporter::OutputOptions GetOutputOptions(bool force_no_color) {
   int output_opts = ConsoleReporter::OO_Defaults;
   if ((FLAGS_benchmark_color == "auto" && IsColorTerminal()) ||

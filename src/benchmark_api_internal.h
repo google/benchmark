@@ -36,15 +36,10 @@ bool FindBenchmarksInternal(const std::string& re,
                             std::vector<Benchmark::Instance>* benchmarks,
                             std::ostream* Err);
 
+bool IsZero(double n);
+
 ConsoleReporter::OutputOptions GetOutputOptions(bool force_no_color = false);
 
-namespace {
-
-bool IsZero(double n) {
-  return std::abs(n) < std::numeric_limits<double>::epsilon();
-}
-
-}  // end namespace
 }  // end namespace internal
 }  // end namespace benchmark
 
