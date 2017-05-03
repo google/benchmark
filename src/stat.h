@@ -132,7 +132,7 @@ class Stat1 {
 
   // Return the standard deviation of the sample set
   VType StdDev() const {
-    VType stddev;
+    VType stddev = VType();
     Mean(&stddev);
     return stddev;
   }
