@@ -491,6 +491,73 @@ When you're compiling in C++11 mode or later you can use `insert()` with
   state.counters["Baz"] = numBazs;
 ```
 
+### Counter reporting
+
+When using the console reporter, by default, user counters are are printed at
+the end after the table, the same way as ``bytes_processed`` and
+``items_processed``. This is best for cases in which there are few counters,
+or where there are only a couple of lines per benchmark. Here's an example of
+the default output:
+
+```
+------------------------------------------------------------------------------
+Benchmark                        Time           CPU Iterations UserCounters...
+------------------------------------------------------------------------------
+BM_UserCounter/threads:8      2248 ns      10277 ns      68808 Bar=16 Bat=40 Baz=24 Foo=8
+BM_UserCounter/threads:1      9797 ns       9788 ns      71523 Bar=2 Bat=5 Baz=3 Foo=1024m
+BM_UserCounter/threads:2      4924 ns       9842 ns      71036 Bar=4 Bat=10 Baz=6 Foo=2
+BM_UserCounter/threads:4      2589 ns      10284 ns      68012 Bar=8 Bat=20 Baz=12 Foo=4
+BM_UserCounter/threads:8      2212 ns      10287 ns      68040 Bar=16 Bat=40 Baz=24 Foo=8
+BM_UserCounter/threads:16     1782 ns      10278 ns      68144 Bar=32 Bat=80 Baz=48 Foo=16
+BM_UserCounter/threads:32     1291 ns      10296 ns      68256 Bar=64 Bat=160 Baz=96 Foo=32
+BM_UserCounter/threads:4      2615 ns      10307 ns      68040 Bar=8 Bat=20 Baz=12 Foo=4
+BM_Factorial                    26 ns         26 ns   26608979 40320
+BM_Factorial/real_time          26 ns         26 ns   26587936 40320
+BM_CalculatePiRange/1           16 ns         16 ns   45704255 0
+BM_CalculatePiRange/8           73 ns         73 ns    9520927 3.28374
+BM_CalculatePiRange/64         609 ns        609 ns    1140647 3.15746
+BM_CalculatePiRange/512       4900 ns       4901 ns     142696 3.14355
+```
+
+If this doesn't suit you, you can print each counter as a table column by
+passing the flag `--benchmark_counters_tabular=true` to the benchmark
+application. This is best for cases in which there are a lot of counters, or
+a lot of lines per individual benchmark. Note that this will trigger a
+reprinting of the table header any time the counter set changes between
+individual benchmarks. Here's an example of corresponding output when
+`--benchmark_counters_tabular=true` is passed:
+
+```
+---------------------------------------------------------------------------------------
+Benchmark                        Time           CPU Iterations    Bar   Bat   Baz   Foo
+---------------------------------------------------------------------------------------
+BM_UserCounter/threads:8      2198 ns       9953 ns      70688     16    40    24     8
+BM_UserCounter/threads:1      9504 ns       9504 ns      73787      2     5     3     1
+BM_UserCounter/threads:2      4775 ns       9550 ns      72606      4    10     6     2
+BM_UserCounter/threads:4      2508 ns       9951 ns      70332      8    20    12     4
+BM_UserCounter/threads:8      2055 ns       9933 ns      70344     16    40    24     8
+BM_UserCounter/threads:16     1610 ns       9946 ns      70720     32    80    48    16
+BM_UserCounter/threads:32     1192 ns       9948 ns      70496     64   160    96    32
+BM_UserCounter/threads:4      2506 ns       9949 ns      70332      8    20    12     4
+--------------------------------------------------------------
+Benchmark                        Time           CPU Iterations
+--------------------------------------------------------------
+BM_Factorial                    26 ns         26 ns   26392245 40320
+BM_Factorial/real_time          26 ns         26 ns   26494107 40320
+BM_CalculatePiRange/1           15 ns         15 ns   45571597 0
+BM_CalculatePiRange/8           74 ns         74 ns    9450212 3.28374
+BM_CalculatePiRange/64         595 ns        595 ns    1173901 3.15746
+BM_CalculatePiRange/512       4752 ns       4752 ns     147380 3.14355
+BM_CalculatePiRange/4k       37970 ns      37972 ns      18453 3.14184
+BM_CalculatePiRange/32k     303733 ns     303744 ns       2305 3.14162
+BM_CalculatePiRange/256k   2434095 ns    2434186 ns        288 3.1416
+BM_CalculatePiRange/1024k  9721140 ns    9721413 ns         71 3.14159
+BM_CalculatePi/threads:8      2255 ns       9943 ns      70936
+```
+Note above the additional header printed when the benchmark changes from
+``BM_UserCounter`` to ``BM_Factorial``. This is because ``BM_Factorial`` does
+not have the same counter set as ``BM_UserCounter``.
+
 ## Exiting Benchmarks in Error
 
 When errors caused by external influences, such as file I/O and network

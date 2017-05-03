@@ -95,6 +95,9 @@ add_test(reporter_output_test reporter_output_test --benchmark_min_time=0.01)
 compile_output_test(user_counters_test)
 add_test(user_counters_test user_counters_test --benchmark_min_time=0.01)
 
+compile_output_test(user_counters_tabular_test)
+add_test(user_counters_tabular_test user_counters_tabular_test --benchmark_counters_tabular=true --benchmark_min_time=0.01)
+
 check_cxx_compiler_flag(-std=c++03 BENCHMARK_HAS_CXX03_FLAG)
 if (BENCHMARK_HAS_CXX03_FLAG)
   set(CXX03_FLAGS "${CMAKE_CXX_FLAGS}")
