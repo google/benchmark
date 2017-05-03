@@ -132,10 +132,9 @@ class Stat1 {
 
   // Return the standard deviation of the sample set
   VType StdDev() const {
-    if (numsamples_ <= 1) return VType();
-    VType mean = Mean();
-    VType avg_squares = sum_squares_ * (1.0 / numsamples_);
-    return Sqrt(numsamples_ / (numsamples_ - 1.0) * (avg_squares - Sqr(mean)));
+    VType stddev;
+    Mean(&stddev);
+    return stddev;
   }
 
  private:
