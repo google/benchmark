@@ -13,23 +13,23 @@ matrix:
         apt:
           packages:
             - lcov
-      env: COMPILER=g++ C_COMPILER=gcc       BUILD_TYPE=Coverage
+      env: COMPILER=g++ C_COMPILER=gcc BUILD_TYPE=Coverage
     - compiler: gcc
-      env: COMPILER=g++ C_COMPILER=gcc       BUILD_TYPE=Debug
+      env: COMPILER=g++ C_COMPILER=gcc BUILD_TYPE=Debug
     - compiler: gcc
-      env: COMPILER=g++ C_COMPILER=gcc       BUILD_TYPE=Release
-    - compiler: gcc
-      addons:
-        apt:
-          packages:
-            - g++-multilib
-      env: COMPILER=g++ C_COMPILER=gcc       BUILD_TYPE=Debug   BUILD_32_BITS=ON
+      env: COMPILER=g++ C_COMPILER=gcc BUILD_TYPE=Release
     - compiler: gcc
       addons:
         apt:
           packages:
             - g++-multilib
-      env: COMPILER=g++ C_COMPILER=gcc       BUILD_TYPE=Release BUILD_32_BITS=ON
+      env: COMPILER=g++ C_COMPILER=gcc BUILD_TYPE=Debug BUILD_32_BITS=ON
+    - compiler: gcc
+      addons:
+        apt:
+          packages:
+            - g++-multilib
+      env: COMPILER=g++ C_COMPILER=gcc BUILD_TYPE=Release BUILD_32_BITS=ON
     - compiler: gcc
       addons:
         apt:
@@ -123,12 +123,12 @@ matrix:
       osx_image: xcode8.3
       compiler: clang
       env:
-        - COMPILER=clang++                          BUILD_TYPE=Debug
+        - COMPILER=clang++ BUILD_TYPE=Debug
     - os: osx
       osx_image: xcode8.3
       compiler: clang
       env:
-        - COMPILER=clang++                          BUILD_TYPE=Release
+        - COMPILER=clang++ BUILD_TYPE=Release
 
 before_script:
   - if [ -z "$BUILD_32_BITS" ]; then
