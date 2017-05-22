@@ -6,129 +6,138 @@ env:
   global:
     - /usr/local/bin:$PATH
 
-# NOTE: The COMPILER variable is unused. It simply makes the display on
-# travis-ci.org more readable.
 matrix:
-    include:
-        - compiler: gcc
-          addons:
-            apt:
-              packages:
-                - lcov
-          env: COMPILER=g++ C_COMPILER=gcc       BUILD_TYPE=Coverage
-        - compiler: gcc
-          env: COMPILER=g++ C_COMPILER=gcc       BUILD_TYPE=Debug
-        - compiler: gcc
-          env: COMPILER=g++ C_COMPILER=gcc       BUILD_TYPE=Release
-        - compiler: gcc
-          addons:
-            apt:
-              packages:
-                - g++-multilib
-          env: COMPILER=g++ C_COMPILER=gcc       BUILD_TYPE=Debug   BUILD_32_BITS=ON
-        - compiler: gcc
-          addons:
-            apt:
-              packages:
-                - g++-multilib
-          env: COMPILER=g++ C_COMPILER=gcc       BUILD_TYPE=Release BUILD_32_BITS=ON
-        - compiler: gcc
-          addons:
-            apt:
-              sources:
-                - ubuntu-toolchain-r-test
-              packages:
-                - g++-6
-          env:
-            - COMPILER=g++-6 C_COMPILER=gcc-6  BUILD_TYPE=Debug
-            - EXTRA_FLAGS="-fno-omit-frame-pointer -g -O2 -fsanitize=undefined,address -fuse-ld=gold"
-        - compiler: clang
-          env: COMPILER=clang++ C_COMPILER=clang BUILD_TYPE=Debug
-        - compiler: clang
-          env: COMPILER=clang++ C_COMPILER=clang BUILD_TYPE=Release
-        # Clang w/ libc++
-        - compiler: clang
-          addons:
-            apt:
-              packages:
-                clang-3.8
-          env:
-            - COMPILER=clang++-3.8 C_COMPILER=clang-3.8 BUILD_TYPE=Debug
-            - LIBCXX_BUILD=1
-            - EXTRA_FLAGS="-stdlib=libc++"
-        - compiler: clang
-          addons:
-            apt:
-              packages:
-                clang-3.8
-          env:
-            - COMPILER=clang++-3.8 C_COMPILER=clang-3.8 BUILD_TYPE=Release
-            - LIBCXX_BUILD=1
-            - EXTRA_FLAGS="-stdlib=libc++"
-        # Clang w/ 32bit libc++
-        - compiler: clang
-          addons:
-            apt:
-              packages:
-                - clang-3.8
-                - g++-multilib
-          env:
-            - COMPILER=clang++-3.8 C_COMPILER=clang-3.8 BUILD_TYPE=Debug
-            - LIBCXX_BUILD=1
-            - BUILD_32_BITS=ON
-            - EXTRA_FLAGS="-stdlib=libc++ -m32"
-        # Clang w/ 32bit libc++
-        - compiler: clang
-          addons:
-            apt:
-              packages:
-                - clang-3.8
-                - g++-multilib
-          env:
-            - COMPILER=clang++-3.8 C_COMPILER=clang-3.8 BUILD_TYPE=Release
-            - LIBCXX_BUILD=1
-            - BUILD_32_BITS=ON
-            - EXTRA_FLAGS="-stdlib=libc++ -m32"
-        # Clang w/ libc++, ASAN, UBSAN
-        - compiler: clang
-          addons:
-            apt:
-              packages:
-                clang-3.8
-          env:
-            - COMPILER=clang++-3.8 C_COMPILER=clang-3.8 BUILD_TYPE=Debug
-            - LIBCXX_BUILD=1 LIBCXX_SANITIZER="Undefined;Address"
-            - EXTRA_FLAGS="-stdlib=libc++ -fno-omit-frame-pointer -g -O2 -fsanitize=undefined,address -fno-sanitize-recover=all"
-            - UBSAN_OPTIONS=print_stacktrace=1
-        # Clang w/ libc++ and MSAN
-        - compiler: clang
-          addons:
-            apt:
-              packages:
-                clang-3.8
-          env:
-            - COMPILER=clang++-3.8 C_COMPILER=clang-3.8 BUILD_TYPE=Debug
-            - LIBCXX_BUILD=1 LIBCXX_SANITIZER=MemoryWithOrigins
-            - EXTRA_FLAGS="-stdlib=libc++ -g -O2 -fno-omit-frame-pointer -fsanitize=memory -fsanitize-memory-track-origins"
-        # Clang w/ libc++ and MSAN
-        - compiler: clang
-          addons:
-            apt:
-              packages:
-                clang-3.8
-          env:
-            - COMPILER=clang++-3.8 C_COMPILER=clang-3.8 BUILD_TYPE=RelWithDebInfo
-            - LIBCXX_BUILD=1 LIBCXX_SANITIZER=Thread
-            - EXTRA_FLAGS="-stdlib=libc++ -g -O2 -fno-omit-frame-pointer -fsanitize=thread -fno-sanitize-recover=all"
+  include:
+    - compiler: gcc
+      addons:
+        apt:
+          packages:
+            - lcov
+      env: COMPILER=g++ C_COMPILER=gcc       BUILD_TYPE=Coverage
+    - compiler: gcc
+      env: COMPILER=g++ C_COMPILER=gcc       BUILD_TYPE=Debug
+    - compiler: gcc
+      env: COMPILER=g++ C_COMPILER=gcc       BUILD_TYPE=Release
+    - compiler: gcc
+      addons:
+        apt:
+          packages:
+            - g++-multilib
+      env: COMPILER=g++ C_COMPILER=gcc       BUILD_TYPE=Debug   BUILD_32_BITS=ON
+    - compiler: gcc
+      addons:
+        apt:
+          packages:
+            - g++-multilib
+      env: COMPILER=g++ C_COMPILER=gcc       BUILD_TYPE=Release BUILD_32_BITS=ON
+    - compiler: gcc
+      addons:
+        apt:
+          sources:
+            - ubuntu-toolchain-r-test
+          packages:
+            - g++-6
+      env:
+        - COMPILER=g++-6 C_COMPILER=gcc-6  BUILD_TYPE=Debug
+        - EXTRA_FLAGS="-fno-omit-frame-pointer -g -O2 -fsanitize=undefined,address -fuse-ld=gold"
+    - compiler: clang
+      env: COMPILER=clang++ C_COMPILER=clang BUILD_TYPE=Debug
+    - compiler: clang
+      env: COMPILER=clang++ C_COMPILER=clang BUILD_TYPE=Release
+    # Clang w/ libc++
+    - compiler: clang
+      addons:
+        apt:
+          packages:
+            clang-3.8
+      env:
+        - COMPILER=clang++-3.8 C_COMPILER=clang-3.8 BUILD_TYPE=Debug
+        - LIBCXX_BUILD=1
+        - EXTRA_FLAGS="-stdlib=libc++"
+    - compiler: clang
+      addons:
+        apt:
+          packages:
+            clang-3.8
+      env:
+        - COMPILER=clang++-3.8 C_COMPILER=clang-3.8 BUILD_TYPE=Release
+        - LIBCXX_BUILD=1
+        - EXTRA_FLAGS="-stdlib=libc++"
+    # Clang w/ 32bit libc++
+    - compiler: clang
+      addons:
+        apt:
+          packages:
+            - clang-3.8
+            - g++-multilib
+      env:
+        - COMPILER=clang++-3.8 C_COMPILER=clang-3.8 BUILD_TYPE=Debug
+        - LIBCXX_BUILD=1
+        - BUILD_32_BITS=ON
+        - EXTRA_FLAGS="-stdlib=libc++ -m32"
+    # Clang w/ 32bit libc++
+    - compiler: clang
+      addons:
+        apt:
+          packages:
+            - clang-3.8
+            - g++-multilib
+      env:
+        - COMPILER=clang++-3.8 C_COMPILER=clang-3.8 BUILD_TYPE=Release
+        - LIBCXX_BUILD=1
+        - BUILD_32_BITS=ON
+        - EXTRA_FLAGS="-stdlib=libc++ -m32"
+    # Clang w/ libc++, ASAN, UBSAN
+    - compiler: clang
+      addons:
+        apt:
+          packages:
+            clang-3.8
+      env:
+        - COMPILER=clang++-3.8 C_COMPILER=clang-3.8 BUILD_TYPE=Debug
+        - LIBCXX_BUILD=1 LIBCXX_SANITIZER="Undefined;Address"
+        - EXTRA_FLAGS="-stdlib=libc++ -g -O2 -fno-omit-frame-pointer -fsanitize=undefined,address -fno-sanitize-recover=all"
+        - UBSAN_OPTIONS=print_stacktrace=1
+    # Clang w/ libc++ and MSAN
+    - compiler: clang
+      addons:
+        apt:
+          packages:
+            clang-3.8
+      env:
+        - COMPILER=clang++-3.8 C_COMPILER=clang-3.8 BUILD_TYPE=Debug
+        - LIBCXX_BUILD=1 LIBCXX_SANITIZER=MemoryWithOrigins
+        - EXTRA_FLAGS="-stdlib=libc++ -g -O2 -fno-omit-frame-pointer -fsanitize=memory -fsanitize-memory-track-origins"
+    # Clang w/ libc++ and MSAN
+    - compiler: clang
+      addons:
+        apt:
+          packages:
+            clang-3.8
+      env:
+        - COMPILER=clang++-3.8 C_COMPILER=clang-3.8 BUILD_TYPE=RelWithDebInfo
+        - LIBCXX_BUILD=1 LIBCXX_SANITIZER=Thread
+        - EXTRA_FLAGS="-stdlib=libc++ -g -O2 -fno-omit-frame-pointer -fsanitize=thread -fno-sanitize-recover=all"
+
+    - os: osx
+      osx_image: xcode8.3
+      compiler: clang
+      env:
+        - COMPILER=clang++                          BUILD_TYPE=Debug
+    - os: osx
+      osx_image: xcode8.3
+      compiler: clang
+      env:
+        - COMPILER=clang++                          BUILD_TYPE=Release
 
 before_script:
-    - if [ -z "$BUILD_32_BITS" ]; then
-        export BUILD_32_BITS=OFF && echo disabling 32 bit build;
-      fi
-    - if [ -n "${LIBCXX_BUILD}" ]; then
-        source .travis-libcxx-setup.sh;
-      fi
-    - mkdir build && cd build
+  - if [ -z "$BUILD_32_BITS" ]; then
+      export BUILD_32_BITS=OFF && echo disabling 32 bit build;
+    fi
+  - if [ -n "${LIBCXX_BUILD}" ]; then
+      source .travis-libcxx-setup.sh;
+    fi
+  - mkdir build && cd build
 
 install:
   - if [ "${BUILD_TYPE}" == "Coverage" -a "${TRAVIS_OS_NAME}" == "linux" ]; then
@@ -138,13 +147,11 @@ install:
     fi
 
 script:
-    - cmake -DCMAKE_C_COMPILER=${C_COMPILER} -DCMAKE_CXX_COMPILER=${COMPILER} -DCMAKE_BUILD_TYPE=${BUILD_TYPE} -DCMAKE_CXX_FLAGS="${EXTRA_FLAGS}" -DBENCHMARK_BUILD_32_BITS=${BUILD_32_BITS} ..
-    - make
-    - make CTEST_OUTPUT_ON_FAILURE=1 test
+  - cmake -DCMAKE_C_COMPILER=${C_COMPILER} -DCMAKE_CXX_COMPILER=${COMPILER} -DCMAKE_BUILD_TYPE=${BUILD_TYPE} -DCMAKE_CXX_FLAGS="${EXTRA_FLAGS}" -DBENCHMARK_BUILD_32_BITS=${BUILD_32_BITS} ..
+  - make
+  - ctest -C ${BUILD_TYPE} --output-on-failure
 
 after_success:
   - if [ "${BUILD_TYPE}" == "Coverage" -a "${TRAVIS_OS_NAME}" == "linux" ]; then
       coveralls --include src --include include --gcov-options '\-lp' --root .. --build-root .;
     fi
-
-sudo: required
