@@ -16,8 +16,6 @@ option(BENCHMARK_ENABLE_EXCEPTIONS "Enable the use of exceptions in the benchmar
 option(BENCHMARK_ENABLE_LTO "Enable link time optimisation of the benchmark library." OFF)
 option(BENCHMARK_USE_LIBCXX "Build and test using libc++ as the standard library." OFF)
 option(BENCHMARK_BUILD_32_BITS "Build a 32 bit version of the library" OFF)
-set (NUGET_EXECUTABLE "nuget.exe" 
-     CACHE FILEPATH "Path to nuget executable" )
 
 # Make sure we can import out CMake functions
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
@@ -204,15 +202,15 @@ if (BENCHMARK_ENABLE_TESTING)
 endif()
 
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+    set(NUGET_EXECUTABLE "nuget.exe" CACHE FILEPATH "Path to nuget executable")
     set(nuspec_file "${PROJECT_SOURCE_DIR}/Google.Benchmark.nuspec")
     set(Release64Lib "${CMAKE_BINARY_DIR}/x64/Release/benchmark.lib")
     set(Debug64Lib "${CMAKE_BINARY_DIR}/x64/Debug/benchmark.lib")
-    string(REGEX MATCH "[0-9]+\\.[0-9]+\\.[0-9]+" NUGET_VERSION ${GIT_VERSION})
     build_command(build_release_cmd CONFIGURATION Release)
     build_command(build_debug_cmd CONFIGURATION Debug)
 
     set(make_nuget_bat ${CMAKE_BINARY_DIR}/buildNuget.bat)
     file(WRITE ${make_nuget_bat} ${build_debug_cmd}\n)
     file(APPEND ${make_nuget_bat} ${build_release_cmd}\n)
-    file(APPEND ${make_nuget_bat} "\"${NUGET_EXECUTABLE}\" pack ${nuspec_file} -Properties ROOT=%~dp0;VERSION=${NUGET_VERSION}\n")
+    file(APPEND ${make_nuget_bat} "\"${NUGET_EXECUTABLE}\" pack ${nuspec_file} -Properties ROOT=%~dp0;VERSION=${VERSION}\n")
 endif()

@@ -28,7 +28,6 @@ function(get_git_version var)
       if(${status})
           message(WARNING "Git error ${status}:${GIT_ERR}")
       else()
-          message("FULL_GIT_VERSION=${FULL_GIT_VERSION}")
           string(REGEX MATCH "v[0-9]+\\.[0-9]+\\.[0-9]+" GIT_VERSION ${FULL_GIT_VERSION})
       endif()
 
