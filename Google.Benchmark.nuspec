@@ -1,0 +1,20 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
+    <metadata>
+        <id>Google.Benchmark</id>
+        <version>1.0.0</version>
+        <authors>https://github.com/google/benchmark/blob/master/AUTHORS</authors>
+        <owners>google</owners>
+        <requireLicenseAcceptance>false</requireLicenseAcceptance>
+        <description>A microbenchmark support library</description>
+        <tags>native</tags>
+        <frameworkAssemblies>
+            <frameworkAssembly assemblyName="native" targetFramework="" />
+        </frameworkAssemblies>
+    </metadata>
+    <files>
+        <file src="include\benchmark\*.*" target="lib\native\include\benchmark" />
+        <file src="$root$src\release\benchmark.lib" target="lib\native\lib\release\benchmark.lib" />
+        <file src="$root$src\debug\benchmark.lib" target="lib\native\lib\debug\benchmark.lib" />
+    </files>
+</package>
