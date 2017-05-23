@@ -20,22 +20,25 @@ set(__get_git_version INCLUDED)
 
 function(get_git_version var)
   if(GIT_EXECUTABLE)
-      execute_process(COMMAND ${GIT_EXECUTABLE} describe --match "v[0-9]*.[0-9]*.[0-9]*" --abbrev=8
+      execute_process(COMMAND ${GIT_EXECUTABLE} describe --abbrev=8
           RESULT_VARIABLE status
-          OUTPUT_VARIABLE GIT_VERSION
-          ERROR_QUIET)
+          WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
+          OUTPUT_VARIABLE FULL_GIT_VERSION
+          ERROR_VARIABLE GIT_ERR)
       if(${status})
-          set(GIT_VERSION "v0.0.0")
+          message(WARNING "Git error ${status}:${GIT_ERR}")
       else()
-          string(STRIP ${GIT_VERSION} GIT_VERSION)
-          string(REGEX REPLACE "-[0-9]+-g" "-" GIT_VERSION ${GIT_VERSION})
+          message("FULL_GIT_VERSION=${FULL_GIT_VERSION}")
+          string(REGEX MATCH "v[0-9]+\\.[0-9]+\\.[0-9]+" GIT_VERSION ${FULL_GIT_VERSION})
       endif()
 
       # Work out if the repository is dirty
       execute_process(COMMAND ${GIT_EXECUTABLE} update-index -q --refresh
+          WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
           OUTPUT_QUIET
           ERROR_QUIET)
       execute_process(COMMAND ${GIT_EXECUTABLE} diff-index --name-only HEAD --
+          WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
           OUTPUT_VARIABLE GIT_DIFF_INDEX
           ERROR_QUIET)
       string(COMPARE NOTEQUAL "${GIT_DIFF_INDEX}" "" GIT_DIRTY)
@@ -43,6 +46,7 @@ function(get_git_version var)
           set(GIT_VERSION "${GIT_VERSION}-dirty")
       endif()
   else()
+      message(WARNING "Git not found")
       set(GIT_VERSION "v0.0.0")
   endif()
 
