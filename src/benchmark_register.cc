@@ -152,9 +152,14 @@ bool BenchmarkFamilies::FindBenchmarks(
         instance.complexity_lambda = family->complexity_lambda_;
         instance.threads = num_threads;
 
+	// Add benchmark instance name
+	if(!args.second.empty()) {
+	  instance.name += StringPrintF("/%s", args.second.c_str());
+	}
+
         // Add arguments to instance name
         size_t arg_i = 0;
-        for (auto const& arg : args) {
+        for (auto const& arg : args.first) {
           instance.name += "/";
 
           if (arg_i < family->arg_names_.size()) {
@@ -254,9 +259,9 @@ void Benchmark::AddRange(std::vector<int>* dst, int lo, int hi, int mult) {
   }
 }
 
-Benchmark* Benchmark::Arg(int x) {
+Benchmark* Benchmark::Arg(int x, const std::string& name) {
   CHECK(ArgsCnt() == -1 || ArgsCnt() == 1);
-  args_.push_back({x});
+  args_.push_back(std::make_pair(std::vector<int>{x}, name));
   return this;
 }
 
@@ -271,7 +276,7 @@ Benchmark* Benchmark::Range(int start, int limit) {
   AddRange(&arglist, start, limit, range_multiplier_);
 
   for (int i : arglist) {
-    args_.push_back({i});
+    args_.push_back({std::make_pair(std::vector<int>{i}, std::string())});
   }
   return this;
 }
@@ -296,7 +301,7 @@ Benchmark* Benchmark::Ranges(const std::vector<std::pair<int, int>>& ranges) {
       tmp.push_back(arglists[j].at(ctr[j]));
     }
 
-    args_.push_back(std::move(tmp));
+    args_.push_back(std::make_pair(std::move(tmp), std::string()));
 
     for (std::size_t j = 0; j < arglists.size(); j++) {
       if (ctr[j] + 1 < arglists[j].size()) {
@@ -326,14 +331,14 @@ Benchmark* Benchmark::DenseRange(int start, int limit, int step) {
   CHECK_GE(start, 0);
   CHECK_LE(start, limit);
   for (int arg = start; arg <= limit; arg += step) {
-    args_.push_back({arg});
+    args_.push_back(std::make_pair(std::vector<int>{arg}, std::string()));
   }
   return this;
 }
 
-Benchmark* Benchmark::Args(const std::vector<int>& args) {
+Benchmark* Benchmark::Args(const std::vector<int>& args, const std::string &name) {
   CHECK(ArgsCnt() == -1 || ArgsCnt() == static_cast<int>(args.size()));
-  args_.push_back(args);
+  args_.push_back(std::make_pair(std::vector<int>{args}, name));
   return this;
 }
 
@@ -440,7 +445,7 @@ int Benchmark::ArgsCnt() const {
     if (arg_names_.empty()) return -1;
     return static_cast<int>(arg_names_.size());
   }
-  return static_cast<int>(args_.front().size());
+  return static_cast<int>(args_.front().first.size());
 }
 
 //=============================================================================//

@@ -170,6 +170,10 @@ BENCHMARK(BM_test)->Unit(benchmark::kMillisecond);
 #endif
 
 namespace benchmark {
+// Argument values and name pair
+// Gives the ability to associate a name with each individual benchmark run.
+typedef std::pair<std::vector<int>, std::string> ArgNamePair;
+
 class BenchmarkReporter;
 
 void Initialize(int* argc, char** argv);
@@ -512,9 +516,9 @@ class Benchmark {
   // method calls can be chained together in one expression.
 
   // Run this benchmark once with "x" as the extra argument passed
-  // to the function.
+  // to the function. Add a name to the benchmark run if provided.
   // REQUIRES: The function passed to the constructor must accept an arg1.
-  Benchmark* Arg(int x);
+  Benchmark* Arg(int x, const std::string& name = std::string());
 
   // Run this benchmark with the given time unit for the generated output report
   Benchmark* Unit(TimeUnit unit);
@@ -530,9 +534,9 @@ class Benchmark {
   Benchmark* DenseRange(int start, int limit, int step = 1);
 
   // Run this benchmark once with "args" as the extra arguments passed
-  // to the function.
+  // to the function. Add a name to the benchmark run if provided.
   // REQUIRES: The function passed to the constructor must accept arg1, arg2 ...
-  Benchmark* Args(const std::vector<int>& args);
+  Benchmark* Args(const std::vector<int>& args, const std::string& name = std::string());
 
   // Equivalent to Args({x, y})
   // NOTE: This is a legacy C++03 interface provided for compatibility only.
@@ -672,7 +676,7 @@ class Benchmark {
   std::string name_;
   ReportMode report_mode_;
   std::vector<std::string> arg_names_;   // Args for all benchmark runs
-  std::vector<std::vector<int> > args_;  // Args for all benchmark runs
+  std::vector<ArgNamePair> args_;  // Args for all benchmark runs
   TimeUnit time_unit_;
   int range_multiplier_;
   double min_time_;
