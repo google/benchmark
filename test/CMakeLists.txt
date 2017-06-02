@@ -1,6 +1,7 @@
 # Enable the tests
 
 find_package(Threads REQUIRED)
+include(CheckCXXCompilerFlag)
 
 # NOTE: Some tests use `<cassert>` to perform the test. Therefore we must
 # strip -DNDEBUG from the default CMake flags in DEBUG mode.
@@ -75,6 +76,11 @@ compile_benchmark_test(skip_with_error_test)
 add_test(skip_with_error_test skip_with_error_test --benchmark_min_time=0.01)
 
 compile_benchmark_test(donotoptimize_test)
+# Some of the issues with DoNotOptimize only occur when optimization is enabled
+check_cxx_compiler_flag(-O3 BENCHMARK_HAS_O3_FLAG)
+if (BENCHMARK_HAS_O3_FLAG)
+  set_target_properties(donotoptimize_test PROPERTIES COMPILE_FLAGS "-O3")
+endif()
 add_test(donotoptimize_test donotoptimize_test --benchmark_min_time=0.01)
 
 compile_benchmark_test(fixture_test)
