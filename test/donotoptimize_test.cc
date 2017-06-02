@@ -49,5 +49,4 @@ int main(int, char*[]) {
   benchmark::DoNotOptimize(BitRef::Make());
   BitRef lval = BitRef::Make();
   benchmark::DoNotOptimize(lval);
-
 }

@@ -236,7 +236,7 @@ inline BENCHMARK_ALWAYS_INLINE void DoNotOptimize(Tp const& value) {
 #if defined(__clang__)
   asm volatile("" : : "g"(value) : "memory");
 #else
-  asm volatile("" : : "X"(value) : "memory");
+  asm volatile("" : : "i,r,m"(value) : "memory");
 #endif
 }
 // Force the compiler to flush pending writes to global memory. Acts as an
