@@ -194,16 +194,16 @@ std::vector<BenchmarkReporter::Run> ComputeStats(
     CHECK_EQ(run_iterations, run.iterations);
     if (run.error_occurred) continue;
     real_accumulated_time_stat +=
-        Stat1_d(run.real_accumulated_time / run.iterations, run.iterations);
+        Stat1_d(run.real_accumulated_time / run.iterations);
     cpu_accumulated_time_stat +=
-        Stat1_d(run.cpu_accumulated_time / run.iterations, run.iterations);
-    items_per_second_stat += Stat1_d(run.items_per_second, run.iterations);
-    bytes_per_second_stat += Stat1_d(run.bytes_per_second, run.iterations);
+        Stat1_d(run.cpu_accumulated_time / run.iterations);
+    items_per_second_stat += Stat1_d(run.items_per_second);
+    bytes_per_second_stat += Stat1_d(run.bytes_per_second);
     // user counters
     for(auto const& cnt : run.counters) {
       auto it = counter_stats.find(cnt.first);
       CHECK_NE(it, counter_stats.end());
-      it->second.s += Stat1_d(cnt.second, run.iterations);
+      it->second.s += Stat1_d(cnt.second);
     }
   }
 
