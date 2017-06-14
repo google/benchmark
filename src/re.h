@@ -97,7 +97,7 @@ inline bool Regex::Match(const std::string& str) {
   return std::regex_search(str, re_);
 }
 
-#else
+#elif defined(HAVE_POSIX_REGEX) || defined(HAVE_GNU_POSIX_REGEX)
 inline bool Regex::Init(const std::string& spec, std::string* error) {
   int ec = regcomp(&re_, spec.c_str(), REG_EXTENDED | REG_NOSUB);
   if (ec != 0) {

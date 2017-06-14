@@ -44,3 +44,11 @@ rules.ninja
 # out-of-source build top-level folders.
 build/
 _build/
+
+# bazel
+.settings/
+bazel-benchmark
+bazel-bin
+bazel-genfiles
+bazel-out
+bazel-testlogs
