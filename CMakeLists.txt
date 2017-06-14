@@ -5,7 +5,6 @@ project (benchmark)
 foreach(p
     CMP0054 # CMake 3.1
     CMP0056 # export EXE_LINKER_FLAGS to try_run
-    CMP0063 # CMake 3.3 - honour symbol visability for static libraries
     )
   if(POLICY ${p})
     cmake_policy(SET ${p} NEW)
