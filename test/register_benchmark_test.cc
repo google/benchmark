@@ -15,8 +15,6 @@ class TestReporter : public benchmark::ConsoleReporter {
     ConsoleReporter::ReportRuns(report);
   }
 
-  void clear() { all_runs_.clear(); }
-
   std::vector<Run> all_runs_;
 };
 
