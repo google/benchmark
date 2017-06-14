@@ -70,6 +70,9 @@ class BenchmarkFamilies {
   // Registers a benchmark family and returns the index assigned to it.
   size_t AddBenchmark(std::unique_ptr<Benchmark> family);
 
+  // Clear all registered benchmark families.
+  void ClearBenchmarks();
+
   // Extract the list of benchmark instances that match the specified
   // regular expression.
   bool FindBenchmarks(const std::string& re,
@@ -93,6 +96,12 @@ size_t BenchmarkFamilies::AddBenchmark(std::unique_ptr<Benchmark> family) {
   size_t index = families_.size();
   families_.push_back(std::move(family));
   return index;
+}
+
+void BenchmarkFamilies::ClearBenchmarks() {
+  MutexLock l(mutex_);
+  families_.clear();
+  families_.shrink_to_fit();
 }
 
 bool BenchmarkFamilies::FindBenchmarks(
@@ -450,4 +459,9 @@ int Benchmark::ArgsCnt() const {
 void FunctionBenchmark::Run(State& st) { func_(st); }
 
 }  // end namespace internal
+
+void ClearRegisteredBenchmarks() {
+  internal::BenchmarkFamilies::GetInstance()->ClearBenchmarks();
+}
+
 }  // end namespace benchmark
