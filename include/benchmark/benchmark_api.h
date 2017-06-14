@@ -707,6 +707,10 @@ template <class Lambda>
 internal::Benchmark* RegisterBenchmark(const char* name, Lambda&& fn);
 #endif
 
+// Remove all registered benchmarks. All pointers to previously registered
+// benchmarks are invalidated.
+void ClearRegisteredBenchmarks();
+
 namespace internal {
 // The class used to hold all Benchmarks created from static function.
 // (ie those created using the BENCHMARK(...) macros.

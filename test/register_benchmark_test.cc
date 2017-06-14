@@ -126,10 +126,10 @@ void TestRegistrationAtRuntime() {
 #endif
 }
 
-int main(int argc, char* argv[]) {
+// Test that all benchmarks, registered at either during static init or runtime,
+// are run and the results are passed to the reported.
+void RunTestOne() {
   TestRegistrationAtRuntime();
-
-  benchmark::Initialize(&argc, argv);
 
   TestReporter test_reporter;
   benchmark::RunSpecifiedBenchmarks(&test_reporter);
@@ -143,6 +143,40 @@ int main(int argc, char* argv[]) {
     ++EB;
   }
   assert(EB == ExpectedResults.end());
+}
 
-  return 0;
+// Test that ClearRegisteredBenchmarks() clears all previously registered
+// benchmarks.
+// Also test that new benchmarks can be registered and ran afterwards.
+void RunTestTwo() {
+  assert(ExpectedResults.size() != 0 &&
+         "must have at least one registered benchmark");
+  ExpectedResults.clear();
+  benchmark::ClearRegisteredBenchmarks();
+
+  TestReporter test_reporter;
+  size_t num_ran = benchmark::RunSpecifiedBenchmarks(&test_reporter);
+  assert(num_ran == 0);
+  assert(test_reporter.all_runs_.begin() == test_reporter.all_runs_.end());
+
+  TestRegistrationAtRuntime();
+  num_ran = benchmark::RunSpecifiedBenchmarks(&test_reporter);
+  assert(num_ran == ExpectedResults.size());
+
+  typedef benchmark::BenchmarkReporter::Run Run;
+  auto EB = ExpectedResults.begin();
+
+  for (Run const& run : test_reporter.all_runs_) {
+    assert(EB != ExpectedResults.end());
+    EB->CheckRun(run);
+    ++EB;
+  }
+  assert(EB == ExpectedResults.end());
+}
+
+int main(int argc, char* argv[]) {
+  benchmark::Initialize(&argc, argv);
+
+  RunTestOne();
+  RunTestTwo();
 }
