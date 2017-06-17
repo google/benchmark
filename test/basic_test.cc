@@ -1,7 +1,7 @@
 
 #include "benchmark/benchmark_api.h"
 
-#define BASIC_BENCHMARK_TEST(x) BENCHMARK(x)->Arg(8)->Arg(512)->Arg(8192)
+#define BASIC_BENCHMARK_TEST(x) BENCHMARK(x)->Arg(2, "test")->Arg(8)->Arg(512)->Arg(8192)
 
 void BM_empty(benchmark::State& state) {
   while (state.KeepRunning()) {

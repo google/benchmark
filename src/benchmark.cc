@@ -268,7 +268,7 @@ void RunInThread(const benchmark::internal::Benchmark::Instance* b,
                  size_t iters, int thread_id,
                  internal::ThreadManager* manager) {
   internal::ThreadTimer timer;
-  State st(iters, b->arg, thread_id, b->threads, &timer, manager);
+  State st(iters, b->arg.first, thread_id, b->threads, &timer, manager);
   b->benchmark->Run(st);
   CHECK(st.iterations() == st.max_iterations)
       << "Benchmark returned before State::KeepRunning() returned false!";
