@@ -355,7 +355,7 @@ class State {
   // Returns true if the benchmark should continue through another iteration.
   // NOTE: A benchmark may not return from the test until KeepRunning() has
   // returned false.
-  bool KeepRunning() { return GetBatch(1, true) != 0; }
+  bool KeepRunning();
 
   // Returns true if the benchmark should process another 'n' iterations. The
   // batch size will always be 'n', and iteration will stop at the first
@@ -367,10 +367,7 @@ class State {
   //   while (state.KeepRunningBatch(kBatchSize)) {
   //     // process kBatchSize elements
   //   }
-  bool KeepRunningBatch(size_t n) {
-    assert(n != 0);
-    return GetBatch(n, true) != 0;
-  }
+  bool KeepRunningBatch(size_t n);
 
   // REQUIRES: timer is running and 'SkipWithError(...)' has not been called
   //           by the current thread.
@@ -527,13 +524,16 @@ class State {
  private:
   friend class internal::StateIterator;
 
-  size_t GetBatch(size_t batch_size, bool atomic_batch) {
-    // atomic_batch == true means the batch size will always be batch_size, and
+  struct AtomicBatch {
+    enum Value { kNo, kYes };
+  };
+
+  size_t GetBatch(size_t batch_size, AtomicBatch::Value atomic) {
+    // atomic == kYes means the batch size will always be batch_size, and
     // iteration will stop at the first multiple of batch_size greater than or
     // equal to max_iterations.
-    // atomic_batch == false means always iterate to max_iterations. The last
-    // batch will be smaller than batch_size if it does not go evenly into
-    // max_iterations.
+    // atomic == kNo means always iterate to max_iterations. The last batch will
+    // be smaller than batch_size if it does not go evenly into max_iterations.
     assert(batch_size != 0);
     if (BENCHMARK_BUILTIN_EXPECT(!started_, false)) StartLoopTiming();
 
@@ -550,7 +550,7 @@ class State {
     }
 
     // Remaining code determines the size of the last batch.
-    if (atomic_batch) return batch_size;
+    if (atomic == AtomicBatch::kYes) return batch_size;
 
     size_t partial_last_batch = max_iterations - completed;
     total_iterations_ = max_iterations;
@@ -563,6 +563,15 @@ class State {
   internal::ThreadManager* manager_;
   BENCHMARK_DISALLOW_COPY_AND_ASSIGN(State);
 };
+
+inline bool State::KeepRunning() {
+  return GetBatch(1, AtomicBatch::kYes) != 0;
+}
+
+inline bool State::KeepRunningBatch(size_t n) {
+  assert(n != 0);
+  return GetBatch(n, AtomicBatch::kYes) != 0;
+}
 
 namespace internal {
 
@@ -783,7 +792,7 @@ class StateIterator {
       return true;
     }
     const size_t kRangeBasedBatchSize = 1000;
-    cached_ = parent_->GetBatch(kRangeBasedBatchSize, false);
+    cached_ = parent_->GetBatch(kRangeBasedBatchSize, State::AtomicBatch::kNo);
     return cached_ != 0;
   }
 
