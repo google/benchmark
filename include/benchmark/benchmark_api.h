@@ -112,6 +112,29 @@ template <class Q> int BM_Sequential(benchmark::State& state) {
 }
 BENCHMARK_TEMPLATE(BM_Sequential, WaitQueue<int>)->Range(1<<0, 1<<10);
 
+// Batch operations can be benchmarked by replacing 'KeepRunning' with
+// 'KeepRunningBatch'. The following code tests 'ParameterizedRoutine' with
+// varying input. Each batch is counted as 'param' iterations so that results
+// for different batch sizes are directly comparable as a function of
+// the parameter.
+static void BM_ParameterizedRoutine(benchmark::State& state) {
+  const int param = state.range(0);
+  while (state.KeepRunningBatch(param)) {
+    ParameterizedRoutine(param);
+  }
+}
+BENCHMARK(BM_ParameterizedRoutine)->Range(1<<10, 1<<18);
+
+// When benchmarking very fast operations (less than 3 ns / iteration), use the
+// range-based for loop as an alternative to `KeepRunning` to get more accurate
+// results.
+static void BM_Fast(benchmark::State& state) {
+  for (auto _ : state) {
+    FastOperation();
+  }
+}
+BENCHMARK(BM_test);
+
 Use `Benchmark::MinTime(double t)` to set the minimum time used to run the
 benchmark. This option overrides the `benchmark_min_time` flag.
 
@@ -312,6 +335,7 @@ typedef double(BigOFunc)(int);
 namespace internal {
 class ThreadTimer;
 class ThreadManager;
+class StateIterator;
 
 #if defined(BENCHMARK_HAS_CXX11)
 enum ReportMode : unsigned {
@@ -331,15 +355,21 @@ class State {
   // Returns true if the benchmark should continue through another iteration.
   // NOTE: A benchmark may not return from the test until KeepRunning() has
   // returned false.
-  bool KeepRunning() {
-    if (BENCHMARK_BUILTIN_EXPECT(!started_, false)) {
-      StartKeepRunning();
-    }
-    bool const res = total_iterations_++ < max_iterations;
-    if (BENCHMARK_BUILTIN_EXPECT(!res, false)) {
-      FinishKeepRunning();
-    }
-    return res;
+  bool KeepRunning() { return GetBatch(1, true) != 0; }
+
+  // Returns true if the benchmark should process another 'n' iterations. The
+  // batch size will always be 'n', and iteration will stop at the first
+  // multiple of 'n' greater that or equal to 'max_iterations'.
+  // NOTE: A benchmark may not return from the test until KeepRunningBatch()
+  // has returned false.
+  //
+  // Intended usage:
+  //   while (state.KeepRunningBatch(kBatchSize)) {
+  //     // process kBatchSize elements
+  //   }
+  bool KeepRunningBatch(size_t n) {
+    assert(n != 0);
+    return GetBatch(n, true) != 0;
   }
 
   // REQUIRES: timer is running and 'SkipWithError(...)' has not been called
@@ -464,6 +494,8 @@ class State {
   BENCHMARK_ALWAYS_INLINE
   size_t iterations() const { return total_iterations_; }
 
+  bool finished() const { return finished_; }
+
  private:
   bool started_;
   bool finished_;
@@ -493,8 +525,40 @@ class State {
         internal::ThreadManager* manager);
 
  private:
-  void StartKeepRunning();
-  void FinishKeepRunning();
+  friend class internal::StateIterator;
+
+  size_t GetBatch(size_t batch_size, bool atomic_batch) {
+    // atomic_batch == true means the batch size will always be batch_size, and
+    // iteration will stop at the first multiple of batch_size greater than or
+    // equal to max_iterations.
+    // atomic_batch == false means always iterate to max_iterations. The last
+    // batch will be smaller than batch_size if it does not go evenly into
+    // max_iterations.
+    assert(batch_size != 0);
+    if (BENCHMARK_BUILTIN_EXPECT(!started_, false)) StartLoopTiming();
+
+    total_iterations_ += batch_size;
+    if (BENCHMARK_BUILTIN_EXPECT(total_iterations_ <= max_iterations, true)) {
+      return batch_size;
+    }
+
+    size_t completed = total_iterations_ - batch_size;
+    if (completed >= max_iterations) {
+      total_iterations_ = completed;
+      FinishLoopTiming();
+      return 0;
+    }
+
+    // Remaining code determines the size of the last batch.
+    if (atomic_batch) return batch_size;
+
+    size_t partial_last_batch = max_iterations - completed;
+    total_iterations_ = max_iterations;
+    return partial_last_batch;
+  }
+
+  void StartLoopTiming();
+  void FinishLoopTiming();
   internal::ThreadTimer* timer_;
   internal::ThreadManager* manager_;
   BENCHMARK_DISALLOW_COPY_AND_ASSIGN(State);
@@ -693,7 +757,58 @@ class Benchmark {
   Benchmark& operator=(Benchmark const&);
 };
 
+// Incomplete iterator-like type with dummy value type so that benchmark::State
+// can support iteration with a range-based for loop. See comments on
+// benchmark::begin() / benchmark::end() concerning usage.
+class StateIterator {
+ public:
+  struct Value {
+    ~Value() {}  // Non-trivial destructor to avoid unused variable warnings
+  };
+
+  StateIterator() : parent_(), cached_(0) {}
+  explicit StateIterator(State* parent) : parent_(parent), cached_(0) {}
+
+  StateIterator& operator++() {
+    assert(cached_ > 0);
+    --cached_;
+    return *this;
+  }
+
+  bool operator!=(const StateIterator& other) {
+    (void)other;
+    assert(!other.parent_);
+    assert(parent_);
+    if (BENCHMARK_BUILTIN_EXPECT(cached_ != 0, true)) {
+      return true;
+    }
+    const size_t kRangeBasedBatchSize = 1000;
+    cached_ = parent_->GetBatch(kRangeBasedBatchSize, false);
+    return cached_ != 0;
+  }
+
+  Value operator*() { return Value(); }
+
+ private:
+  State* const parent_;
+  size_t cached_;
+};
+
 }  // namespace internal
+
+// Functions to enable support for iteration using a range-based for loop.
+//
+// The only supported usage:
+//
+//   static void BM_test(benchmark::State& state) {
+//     for (auto _ : state) {
+//       // perform single iteration
+//     }
+//   }
+inline internal::StateIterator begin(State& state) {
+  return internal::StateIterator(&state);
+}
+inline internal::StateIterator end(State&) { return internal::StateIterator(); }
 
 // Create and register a benchmark with the specified 'name' that invokes
 // the specified functor 'fn'.

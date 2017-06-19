@@ -190,6 +190,49 @@ Three macros are provided for adding benchmark templates.
 #define BENCHMARK_TEMPLATE2(func, arg1, arg2)
 ```
 
+### Batched processing benchmarks
+
+Sometimes you want to benchmark a batch operation and compare performance for
+different values of batch size. For example, say we have some
+`ParameterizedRoutine` and we want to compare performance as a function of
+the parameter value and not the number of function calls. This could be done
+with:
+
+```c++
+static void BM_ParameterizedRoutine(benchmark::State& state) {
+  const int param = state.range(0);
+  while (state.KeepRunningBatch(param)) {
+    ParameterizedRoutine(param);
+  }
+}
+BENCHMARK(BM_ParameterizedRoutine)->Range(1<<10, 1<<18);
+```
+
+The advantage of using `KeepRunningBatch` is that each batch is counted as
+`param` number of iterations. This means the results for different batch
+sizes are directly comparable as a function of the parameter value.
+
+### Very fast benchmarks
+
+When benchmarking very fast operations (less than 3 ns per iteration), use the
+range-based for loop as an alternative to `KeepRunning` to get more accurate
+results.
+
+```c++
+static void BM_Fast(benchmark::State& state) {
+  for (auto _ : state) {
+    FastOperation();
+  }
+}
+BENCHMARK(BM_test);
+```
+
+The reason is that calling `KeepRunning` on every iteration can create a limit
+on benchmark speed due to memory load and store operations. For example, using
+`KeepRunning` with an empty benchmark loop can cost 2 - 3 ns per iteration
+depending on processor. Benchmarks that are slower than this limit will not see
+an overhead from continuing to use `KeepRunning`.
+
 ## Passing arbitrary arguments to a benchmark
 In C++11 it is possible to define a benchmark that takes an arbitrary number
 of extra arguments. The `BENCHMARK_CAPTURE(func, test_case_name, ...args)`
@@ -274,7 +317,7 @@ Without `UseRealTime`, CPU time is used by default.
 ## Manual timing
 For benchmarking something for which neither CPU time nor real-time are
 correct or accurate enough, completely manual timing is supported using
-the `UseManualTime` function. 
+the `UseManualTime` function.
 
 When `UseManualTime` is used, the benchmarked code must call
 `SetIterationTime` once per iteration of the `KeepRunning` loop to
@@ -614,7 +657,7 @@ The library supports multiple output formats. Use the
 is the default format.
 
 The Console format is intended to be a human readable format. By default
-the format generates color output. Context is output on stderr and the 
+the format generates color output. Context is output on stderr and the
 tabular data on stdout. Example tabular output looks like:
 ```
 Benchmark                               Time(ns)    CPU(ns) Iterations
@@ -723,4 +766,3 @@ required to build the library.
 
 * Users must manually link `shlwapi.lib`. Failure to do so may result
 in unresolved symbols.
-
