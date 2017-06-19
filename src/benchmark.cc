@@ -327,7 +327,7 @@ std::vector<BenchmarkReporter::Run> RunBenchmark(
 
       // Set iters to actual number of iterations run per thread, which may have
       // been higher if the benchmark used KeepRunningBatch.
-      iters = results.iterations / b.threads;
+      iters = static_cast<size_t>(results.iterations / b.threads);
 
       VLOG(2) << "Ran in " << results.cpu_time_used << "/"
               << results.real_time_used << "\n";
