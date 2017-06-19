@@ -16,9 +16,9 @@ BENCHMARK(BM_batch_iteration_count)->Range(8, 8 << 10);
 BENCHMARK(BM_batch_iteration_count)->Range(8, 8 << 10)->ThreadPerCpu();
 
 bool ParameterizedRoutine(size_t param) {
-  std::vector<int> values;
+  std::vector<size_t> values;
   for (size_t i = 0; i < param; ++i) values.push_back(i);
-  auto spin_compare = [](int a, int b) -> bool {
+  auto spin_compare = [](size_t a, size_t b) -> bool {
     for (int i = 1; i < 2048; ++i) {
       benchmark::DoNotOptimize(i);
     }
