@@ -528,6 +528,7 @@ class State {
     enum Value { kNo, kYes };
   };
 
+  BENCHMARK_ALWAYS_INLINE
   size_t GetBatch(size_t batch_size, AtomicBatch::Value atomic) {
     // atomic == kYes means the batch size will always be batch_size, and
     // iteration will stop at the first multiple of batch_size greater than or
@@ -564,10 +565,12 @@ class State {
   BENCHMARK_DISALLOW_COPY_AND_ASSIGN(State);
 };
 
+BENCHMARK_ALWAYS_INLINE
 inline bool State::KeepRunning() {
   return GetBatch(1, AtomicBatch::kYes) != 0;
 }
 
+BENCHMARK_ALWAYS_INLINE
 inline bool State::KeepRunningBatch(size_t n) {
   assert(n != 0);
   return GetBatch(n, AtomicBatch::kYes) != 0;
@@ -771,19 +774,19 @@ class Benchmark {
 // benchmark::begin() / benchmark::end() concerning usage.
 class StateIterator {
  public:
-  struct Value {
-    ~Value() {}  // Non-trivial destructor to avoid unused variable warnings
-  };
+  struct BENCHMARK_UNUSED Value {};
 
   StateIterator() : parent_(), cached_(0) {}
   explicit StateIterator(State* parent) : parent_(parent), cached_(0) {}
 
+  BENCHMARK_ALWAYS_INLINE
   StateIterator& operator++() {
     assert(cached_ > 0);
     --cached_;
     return *this;
   }
 
+  BENCHMARK_ALWAYS_INLINE
   bool operator!=(const StateIterator& other) {
     (void)other;
     assert(!other.parent_);
@@ -796,6 +799,7 @@ class StateIterator {
     return cached_ != 0;
   }
 
+  BENCHMARK_ALWAYS_INLINE
   Value operator*() { return Value(); }
 
  private:
@@ -814,9 +818,11 @@ class StateIterator {
 //       // perform single iteration
 //     }
 //   }
+BENCHMARK_ALWAYS_INLINE
 inline internal::StateIterator begin(State& state) {
   return internal::StateIterator(&state);
 }
+BENCHMARK_ALWAYS_INLINE
 inline internal::StateIterator end(State&) { return internal::StateIterator(); }
 
 // Create and register a benchmark with the specified 'name' that invokes
