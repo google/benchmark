@@ -145,6 +145,7 @@ class ThreadManager {
     double real_time_used = 0;
     double cpu_time_used = 0;
     double manual_time_used = 0;
+    int64_t iterations = 0;
     int64_t bytes_processed = 0;
     int64_t items_processed = 0;
     int complexity_n = 0;
@@ -222,8 +223,7 @@ namespace {
 
 BenchmarkReporter::Run CreateRunReport(
     const benchmark::internal::Benchmark::Instance& b,
-    const internal::ThreadManager::Result& results, size_t iters,
-    double seconds) {
+    const internal::ThreadManager::Result& results, double seconds) {
   // Create report about this benchmark run.
   BenchmarkReporter::Run report;
 
@@ -231,8 +231,7 @@ BenchmarkReporter::Run CreateRunReport(
   report.error_occurred = results.has_error_;
   report.error_message = results.error_message_;
   report.report_label = results.report_label_;
-  // Report the total iterations across all threads.
-  report.iterations = static_cast<int64_t>(iters) * b.threads;
+  report.iterations = results.iterations;
   report.time_unit = b.time_unit;
 
   if (!report.error_occurred) {
@@ -270,14 +269,15 @@ void RunInThread(const benchmark::internal::Benchmark::Instance* b,
   internal::ThreadTimer timer;
   State st(iters, b->arg, thread_id, b->threads, &timer, manager);
   b->benchmark->Run(st);
-  CHECK(st.iterations() == st.max_iterations)
-      << "Benchmark returned before State::KeepRunning() returned false!";
+  CHECK(st.finished()) << "Benchmark returned before State::KeepRunning() / "
+                          "State::KeepRunningBatch() returned false!";
   {
     MutexLock l(manager->GetBenchmarkMutex());
     internal::ThreadManager::Result& results = manager->results;
     results.cpu_time_used += timer.cpu_time_used();
     results.real_time_used += timer.real_time_used();
     results.manual_time_used += timer.manual_time_used();
+    results.iterations += static_cast<int64_t>(st.iterations());
     results.bytes_processed += st.bytes_processed();
     results.items_processed += st.items_processed();
     results.complexity_n += st.complexity_length_n();
@@ -325,6 +325,10 @@ std::vector<BenchmarkReporter::Run> RunBenchmark(
       results.real_time_used /= b.threads;
       results.manual_time_used /= b.threads;
 
+      // Set iters to actual number of iterations run per thread, which may have
+      // been higher if the benchmark used KeepRunningBatch.
+      iters = static_cast<size_t>(results.iterations / b.threads);
+
       VLOG(2) << "Ran in " << results.cpu_time_used << "/"
               << results.real_time_used << "\n";
 
@@ -352,8 +356,7 @@ std::vector<BenchmarkReporter::Run> RunBenchmark(
         || ((results.real_time_used >= 5 * min_time) && !b.use_manual_time);
 
       if (should_report) {
-        BenchmarkReporter::Run report =
-            CreateRunReport(b, results, iters, seconds);
+        BenchmarkReporter::Run report = CreateRunReport(b, results, seconds);
         if (!report.error_occurred && b.complexity != oNone)
           complexity_reports->push_back(report);
         reports.push_back(report);
@@ -451,20 +454,18 @@ void State::SetLabel(const char* label) {
   manager_->results.report_label_ = label;
 }
 
-void State::StartKeepRunning() {
+void State::StartLoopTiming() {
   CHECK(!started_ && !finished_);
   started_ = true;
   manager_->StartStopBarrier();
   if (!error_occurred_) ResumeTiming();
 }
 
-void State::FinishKeepRunning() {
+void State::FinishLoopTiming() {
   CHECK(started_ && (!finished_ || error_occurred_));
   if (!error_occurred_) {
     PauseTiming();
   }
-  // Total iterations now is one greater than max iterations. Fix this.
-  total_iterations_ = max_iterations;
   finished_ = true;
   manager_->StartStopBarrier();
 }

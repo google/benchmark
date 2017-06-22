@@ -112,6 +112,19 @@ template <class Q> int BM_Sequential(benchmark::State& state) {
 }
 BENCHMARK_TEMPLATE(BM_Sequential, WaitQueue<int>)->Range(1<<0, 1<<10);
 
+// Batch operations can be benchmarked by replacing 'KeepRunning' with
+// 'KeepRunningBatch'. The following code tests 'ParameterizedRoutine' with
+// varying input. Each batch is counted as 'param' iterations so that results
+// for different batch sizes are directly comparable as a function of
+// the parameter.
+static void BM_ParameterizedRoutine(benchmark::State& state) {
+  const int param = state.range(0);
+  while (state.KeepRunningBatch(param)) {
+    ParameterizedRoutine(param);
+  }
+}
+BENCHMARK(BM_ParameterizedRoutine)->Range(1<<10, 1<<18);
+
 Use `Benchmark::MinTime(double t)` to set the minimum time used to run the
 benchmark. This option overrides the `benchmark_min_time` flag.
 
@@ -331,16 +344,19 @@ class State {
   // Returns true if the benchmark should continue through another iteration.
   // NOTE: A benchmark may not return from the test until KeepRunning() has
   // returned false.
-  bool KeepRunning() {
-    if (BENCHMARK_BUILTIN_EXPECT(!started_, false)) {
-      StartKeepRunning();
-    }
-    bool const res = total_iterations_++ < max_iterations;
-    if (BENCHMARK_BUILTIN_EXPECT(!res, false)) {
-      FinishKeepRunning();
-    }
-    return res;
-  }
+  bool KeepRunning();
+
+  // Returns true if the benchmark should process another 'n' iterations. The
+  // batch size will always be 'n', and iteration will stop at the first
+  // multiple of 'n' greater that or equal to 'max_iterations'.
+  // NOTE: A benchmark may not return from the test until KeepRunningBatch()
+  // has returned false.
+  //
+  // Intended usage:
+  //   while (state.KeepRunningBatch(kBatchSize)) {
+  //     // process kBatchSize elements
+  //   }
+  bool KeepRunningBatch(size_t n);
 
   // REQUIRES: timer is running and 'SkipWithError(...)' has not been called
   //           by the current thread.
@@ -464,6 +480,8 @@ class State {
   BENCHMARK_ALWAYS_INLINE
   size_t iterations() const { return total_iterations_; }
 
+  bool finished() const { return finished_; }
+
  private:
   bool started_;
   bool finished_;
@@ -493,12 +511,43 @@ class State {
         internal::ThreadManager* manager);
 
  private:
-  void StartKeepRunning();
-  void FinishKeepRunning();
+  BENCHMARK_ALWAYS_INLINE
+  bool GetBatch(size_t batch_size) {
+    assert(batch_size != 0);
+    if (BENCHMARK_BUILTIN_EXPECT(!started_, false)) StartLoopTiming();
+
+    total_iterations_ += batch_size;
+    if (BENCHMARK_BUILTIN_EXPECT(total_iterations_ <= max_iterations, true)) {
+      return true;
+    }
+
+    size_t completed = total_iterations_ - batch_size;
+    if (completed >= max_iterations) {
+      total_iterations_ = completed;
+      FinishLoopTiming();
+      return false;
+    }
+
+    return true;  // the last batch
+  }
+
+  void StartLoopTiming();
+  void FinishLoopTiming();
   internal::ThreadTimer* timer_;
   internal::ThreadManager* manager_;
   BENCHMARK_DISALLOW_COPY_AND_ASSIGN(State);
 };
+
+BENCHMARK_ALWAYS_INLINE
+inline bool State::KeepRunning() {
+  return GetBatch(1);
+}
+
+BENCHMARK_ALWAYS_INLINE
+inline bool State::KeepRunningBatch(size_t n) {
+  assert(n != 0);
+  return GetBatch(n);
+}
 
 namespace internal {
 
