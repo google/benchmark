@@ -1,7 +1,8 @@
 #include "benchmark/benchmark.h"
 
 #include <algorithm>
-#include <cassert>
+
+#include "../src/check.h"  // NOTE: check.h is for internal use only!
 
 static void BM_batch_iteration_count(benchmark::State& state) {
   const size_t batch_size = state.range(0);
@@ -9,8 +10,8 @@ static void BM_batch_iteration_count(benchmark::State& state) {
   while (state.KeepRunningBatch(batch_size)) {
     actual_iterations += batch_size;
   }
-  assert(state.iterations() >= state.max_iterations);
-  assert(state.iterations() == actual_iterations);
+  CHECK_GE(state.iterations(), state.max_iterations);
+  CHECK_EQ(state.iterations(), actual_iterations);
 }
 BENCHMARK(BM_batch_iteration_count)->Range(8, 8 << 10);
 BENCHMARK(BM_batch_iteration_count)->Range(8, 8 << 10)->ThreadPerCpu();
