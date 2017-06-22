@@ -72,9 +72,6 @@ add_test(basic_benchmark basic_test --benchmark_min_time=0.01)
 compile_benchmark_test(batch_test)
 add_test(batch_test batch_test --benchmark_min_time=0.01)
 
-compile_benchmark_test(range_test)
-add_test(range_test range_test --benchmark_min_time=0.01)
-
 compile_benchmark_test(diagnostics_test)
 add_test(diagnostics_test diagnostics_test --benchmark_min_time=0.01)
 

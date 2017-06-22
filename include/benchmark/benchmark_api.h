@@ -125,16 +125,6 @@ static void BM_ParameterizedRoutine(benchmark::State& state) {
 }
 BENCHMARK(BM_ParameterizedRoutine)->Range(1<<10, 1<<18);
 
-// When benchmarking very fast operations (less than 3 ns / iteration), use the
-// range-based for loop as an alternative to `KeepRunning` to get more accurate
-// results.
-static void BM_Fast(benchmark::State& state) {
-  for (auto _ : state) {
-    FastOperation();
-  }
-}
-BENCHMARK(BM_test);
-
 Use `Benchmark::MinTime(double t)` to set the minimum time used to run the
 benchmark. This option overrides the `benchmark_min_time` flag.
 
@@ -335,7 +325,6 @@ typedef double(BigOFunc)(int);
 namespace internal {
 class ThreadTimer;
 class ThreadManager;
-class StateIterator;
 
 #if defined(BENCHMARK_HAS_CXX11)
 enum ReportMode : unsigned {
@@ -522,40 +511,24 @@ class State {
         internal::ThreadManager* manager);
 
  private:
-  friend class internal::StateIterator;
-
-  struct AtomicBatch {
-    enum Value { kNo, kYes };
-  };
-
   BENCHMARK_ALWAYS_INLINE
-  size_t GetBatch(size_t batch_size, AtomicBatch::Value atomic) {
-    // atomic == kYes means the batch size will always be batch_size, and
-    // iteration will stop at the first multiple of batch_size greater than or
-    // equal to max_iterations.
-    // atomic == kNo means always iterate to max_iterations. The last batch will
-    // be smaller than batch_size if it does not go evenly into max_iterations.
+  bool GetBatch(size_t batch_size) {
     assert(batch_size != 0);
     if (BENCHMARK_BUILTIN_EXPECT(!started_, false)) StartLoopTiming();
 
     total_iterations_ += batch_size;
     if (BENCHMARK_BUILTIN_EXPECT(total_iterations_ <= max_iterations, true)) {
-      return batch_size;
+      return true;
     }
 
     size_t completed = total_iterations_ - batch_size;
     if (completed >= max_iterations) {
       total_iterations_ = completed;
       FinishLoopTiming();
-      return 0;
+      return false;
     }
 
-    // Remaining code determines the size of the last batch.
-    if (atomic == AtomicBatch::kYes) return batch_size;
-
-    size_t partial_last_batch = max_iterations - completed;
-    total_iterations_ = max_iterations;
-    return partial_last_batch;
+    return true;  // the last batch
   }
 
   void StartLoopTiming();
@@ -567,13 +540,13 @@ class State {
 
 BENCHMARK_ALWAYS_INLINE
 inline bool State::KeepRunning() {
-  return GetBatch(1, AtomicBatch::kYes) != 0;
+  return GetBatch(1);
 }
 
 BENCHMARK_ALWAYS_INLINE
 inline bool State::KeepRunningBatch(size_t n) {
   assert(n != 0);
-  return GetBatch(n, AtomicBatch::kYes) != 0;
+  return GetBatch(n);
 }
 
 namespace internal {
@@ -769,61 +742,7 @@ class Benchmark {
   Benchmark& operator=(Benchmark const&);
 };
 
-// Incomplete iterator-like type with dummy value type so that benchmark::State
-// can support iteration with a range-based for loop. See comments on
-// benchmark::begin() / benchmark::end() concerning usage.
-class StateIterator {
- public:
-  struct BENCHMARK_UNUSED Value {};
-
-  StateIterator() : parent_(), cached_(0) {}
-  explicit StateIterator(State* parent) : parent_(parent), cached_(0) {}
-
-  BENCHMARK_ALWAYS_INLINE
-  StateIterator& operator++() {
-    assert(cached_ > 0);
-    --cached_;
-    return *this;
-  }
-
-  BENCHMARK_ALWAYS_INLINE
-  bool operator!=(const StateIterator& other) {
-    (void)other;
-    assert(!other.parent_);
-    assert(parent_);
-    if (BENCHMARK_BUILTIN_EXPECT(cached_ != 0, true)) {
-      return true;
-    }
-    const size_t kRangeBasedBatchSize = 1000;
-    cached_ = parent_->GetBatch(kRangeBasedBatchSize, State::AtomicBatch::kNo);
-    return cached_ != 0;
-  }
-
-  BENCHMARK_ALWAYS_INLINE
-  Value operator*() { return Value(); }
-
- private:
-  State* const parent_;
-  size_t cached_;
-};
-
 }  // namespace internal
-
-// Functions to enable support for iteration using a range-based for loop.
-//
-// The only supported usage:
-//
-//   static void BM_test(benchmark::State& state) {
-//     for (auto _ : state) {
-//       // perform single iteration
-//     }
-//   }
-BENCHMARK_ALWAYS_INLINE
-inline internal::StateIterator begin(State& state) {
-  return internal::StateIterator(&state);
-}
-BENCHMARK_ALWAYS_INLINE
-inline internal::StateIterator end(State&) { return internal::StateIterator(); }
 
 // Create and register a benchmark with the specified 'name' that invokes
 // the specified functor 'fn'.
