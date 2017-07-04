@@ -1,7 +1,7 @@
 #ifndef BENCHMARK_INTERNAL_MACROS_H_
 #define BENCHMARK_INTERNAL_MACROS_H_
 
-#include "benchmark/macros.h"
+#include "benchmark/benchmark.h"
 
 #ifndef __has_feature
 #define __has_feature(x) 0

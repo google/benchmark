@@ -1,7 +1,7 @@
 #ifndef BENCHMARK_API_INTERNAL_H
 #define BENCHMARK_API_INTERNAL_H
 
-#include "benchmark/benchmark_api.h"
+#include "benchmark/benchmark.h"
 
 #include <cmath>
 #include <iosfwd>

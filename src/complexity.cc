@@ -15,7 +15,7 @@
 // Source project : https://github.com/ismaelJimenez/cpp.leastsq
 // Adapted to be used with google benchmark
 
-#include "benchmark/benchmark_api.h"
+#include "benchmark/benchmark.h"
 
 #include <algorithm>
 #include <cmath>

@@ -11,7 +11,7 @@
 #include <stdexcept>
 
 #include "../src/check.h"
-#include "benchmark/benchmark_api.h"
+#include "benchmark/benchmark.h"
 
 #if defined(__GNUC__) && !defined(__EXCEPTIONS)
 #define TEST_HAS_NO_EXCEPTIONS

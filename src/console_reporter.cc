@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "benchmark/reporter.h"
+#include "benchmark/benchmark.h"
 #include "complexity.h"
 #include "counter.h"
 
