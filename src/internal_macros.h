@@ -45,6 +45,8 @@
 #define BENCHMARK_OS_NACL 1
 #elif defined(EMSCRIPTEN)
 #define BENCHMARK_OS_EMSCRIPTEN 1
+#elif defined(__rtems__)
+#define BENCHMARK_OS_RTEMS 1
 #endif
 
 #if !__has_feature(cxx_exceptions) && !defined(__cpp_exceptions) \
