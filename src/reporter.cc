@@ -31,10 +31,10 @@ BenchmarkReporter::BenchmarkReporter()
 
 BenchmarkReporter::~BenchmarkReporter() {}
 
-void BenchmarkReporter::PrintBasicContext(std::ostream *out_ptr,
+void BenchmarkReporter::PrintBasicContext(std::ostream *out,
                                           Context const &context) {
-  CHECK(out_ptr) << "cannot be null";
-  auto &Out = *out_ptr;
+  CHECK(out) << "cannot be null";
+  auto &Out = *out;
 
   Out << "Run on (" << context.num_cpus << " X " << context.mhz_per_cpu
       << " MHz CPU " << ((context.num_cpus > 1) ? "s" : "") << ")\n";
