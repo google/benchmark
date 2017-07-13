@@ -286,7 +286,7 @@ Benchmark* RegisterBenchmarkInternal(Benchmark*);
 int InitializeStreams();
 BENCHMARK_UNUSED static int stream_init_anchor = InitializeStreams();
 
-}  // end namespace internal
+}  // namespace internal
 
 
 #if !defined(__GNUC__) || defined(__pnacl__) || defined(EMSCRIPTN)
@@ -556,7 +556,7 @@ class State {
   const int threads;
   const size_t max_iterations;
 
-  // TODO make me private
+  // TODO(EricWF) make me private
   State(size_t max_iters, const std::vector<int>& ranges, int thread_i,
         int n_threads, internal::ThreadTimer* timer,
         internal::ThreadManager* manager);
@@ -671,7 +671,7 @@ class Benchmark {
   // Specify if each repetition of the benchmark should be reported separately
   // or if only the final statistics should be reported. If the benchmark
   // is not repeated then the single result is always reported.
-  Benchmark* ReportAggregatesOnly(bool v = true);
+  Benchmark* ReportAggregatesOnly(bool value = true);
 
   // If a particular benchmark is I/O bound, runs multiple threads internally or
   // if for some reason CPU timings are not representative, call this method. If
@@ -867,7 +867,7 @@ class Fixture : public internal::Benchmark {
   virtual void BenchmarkCase(State&) = 0;
 };
 
-}  // end namespace benchmark
+}  // namespace internal
 
 // ------------------------------------------------------
 // Macro to register benchmarks
@@ -1204,6 +1204,6 @@ inline double GetTimeUnitMultiplier(TimeUnit unit) {
   }
 }
 
-} // end namespace benchmark
+} // namespace benchmark
 
 #endif  // BENCHMARK_BENCHMARK_H_

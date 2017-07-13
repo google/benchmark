@@ -595,13 +595,13 @@ size_t RunSpecifiedBenchmarks(BenchmarkReporter* console_reporter,
   auto& Err = console_reporter->GetErrorStream();
 
   std::string const& fname = FLAGS_benchmark_out;
-  if (fname == "" && file_reporter) {
+  if (fname.empty() && file_reporter) {
     Err << "A custom file reporter was provided but "
            "--benchmark_out=<file> was not specified."
         << std::endl;
     std::exit(1);
   }
-  if (fname != "") {
+  if (!fname.empty()) {
     output_file.open(fname);
     if (!output_file.is_open()) {
       Err << "invalid file name: '" << fname << std::endl;
