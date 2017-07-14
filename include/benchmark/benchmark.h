@@ -382,16 +382,17 @@ namespace internal {
 class ThreadTimer;
 class ThreadManager;
 
+enum ReportMode
 #if defined(BENCHMARK_HAS_CXX11)
-enum ReportMode : unsigned {
+  : unsigned
 #else
-enum ReportMode {
 #endif
+  {
   RM_Unspecified,  // The mode has not been manually specified
   RM_Default,      // The mode is user-specified as default.
   RM_ReportAggregatesOnly
 };
-}
+}  // namespace internal
 
 // State is passed to a running Benchmark and contains state for the
 // benchmark to use.
@@ -815,7 +816,7 @@ class LambdaBenchmark : public Benchmark {
 };
 #endif
 
-}  // end namespace internal
+}  // namespace internal
 
 inline internal::Benchmark* RegisterBenchmark(const char* name,
                                               internal::Function* fn) {
@@ -867,7 +868,7 @@ class Fixture : public internal::Benchmark {
   virtual void BenchmarkCase(State&) = 0;
 };
 
-}  // namespace internal
+}  // namespace benchmark
 
 // ------------------------------------------------------
 // Macro to register benchmarks

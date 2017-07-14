@@ -35,7 +35,7 @@ std::vector<std::string> elements = {
     "name",           "iterations",       "real_time",        "cpu_time",
     "time_unit",      "bytes_per_second", "items_per_second", "label",
     "error_occurred", "error_message"};
-}
+}  // namespace
 
 bool CSVReporter::ReportContext(const Context& context) {
   PrintBasicContext(&GetErrorStream(), context);
