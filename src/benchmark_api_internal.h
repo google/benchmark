@@ -39,6 +39,11 @@ bool FindBenchmarksInternal(const std::string& re,
 
 bool IsZero(double n);
 
+std::string GenerateInstanceName(const std::string& name, int arg_count,
+                                 int arg1, int arg2, double min_time,
+                                 bool use_real_time, bool multithreaded,
+                                 int threads);
+
 ConsoleReporter::OutputOptions GetOutputOptions(bool force_no_color = false);
 
 }  // end namespace internal
