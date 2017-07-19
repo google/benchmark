@@ -1,4 +1,5 @@
 #include "benchmark/benchmark.h"
+#include "benchmark_api_internal.h"
 
 #include "complexity.h"
 #include "timers.h"
@@ -437,20 +438,19 @@ std::string HTMLReporter::ReplaceHTMLSpecialChars(
 }
 
 void HTMLReporter::AppendRunDataTo(std::vector<BenchmarkData> *container,
-                                   const Run &data, bool /*isStddev*/) const {
+                                   const Run &data, bool isStddev) const {
   std::string data_name("");
 
-  // if (data.has_arg1 && !data.has_arg2) {
-  //   data_name = benchmark::GenerateInstanceName(
-  //       ReplaceHTMLSpecialChars(data.benchmark_family), 0, 0, 0, data.min_time,
-  //       data.use_real_time, data.multithreaded, data.threads);
+  if (data.has_arg1 && !data.has_arg2) {
+     data_name = benchmark::internal::GenerateInstanceName(
+         ReplaceHTMLSpecialChars(data.benchmark_family), 0, 0, 0, data.min_time,
+         data.use_real_time, data.multithreaded, data.threads);
 
-  //   if (isStddev) {
-  //     data_name.append("_stddev");
-  //   }
-  // } else {
+     if (isStddev) {
+       data_name.append("_stddev"); }
+  } else {
     data_name = ReplaceHTMLSpecialChars(data.benchmark_name);
-  //}
+  }
 
   RunData run_data;
   double const nano_sec_multiplier = 1e9;
