@@ -1029,9 +1029,18 @@ class BenchmarkReporter {
           complexity_n(0),
           report_big_o(false),
           report_rms(false),
-          counters() {}
+          counters(),
+          min_time(0.0),
+          arg1(0),
+          arg2(0),
+          threads(0),
+          has_arg1(false),
+          has_arg2(false),
+          use_real_time(false),
+          multithreaded(false) {}
 
     std::string benchmark_name;
+    std::string benchmark_family;
     std::string report_label;  // Empty if not set by benchmark.
     bool error_occurred;
     std::string error_message;
@@ -1070,6 +1079,17 @@ class BenchmarkReporter {
     bool report_rms;
 
     UserCounters counters;
+
+    double min_time;
+
+    int arg1;
+    int arg2;
+    int threads;
+
+    bool has_arg1;
+    bool has_arg2;
+    bool use_real_time;
+    bool multithreaded;
   };
 
   // Construct a BenchmarkReporter with the output stream set to 'std::cout'
@@ -1179,6 +1199,39 @@ class CSVReporter : public BenchmarkReporter {
 
   bool printed_header_;
   std::set< std::string > user_counter_names_;
+};
+
+class HTMLReporter : public BenchmarkReporter {
+ public:
+  virtual bool ReportContext(const Context& context);
+  virtual void ReportRuns(const std::vector<Run>& reports);
+  virtual void Finalize();
+
+  struct RunData {
+    int64_t iterations;
+    double real_time;
+    double cpu_time;
+
+    double bytes_second;
+    double items_second;
+    int range_x;
+  };
+
+  struct BenchmarkData {
+    std::string name;
+    std::vector<RunData> run_data;
+  };
+
+ private:
+  std::string ReplaceHTMLSpecialChars(const std::string& label) const;
+
+  void AppendRunDataTo(std::vector<BenchmarkData> *container, const Run &data, bool is_stddev) const;
+
+  std::string context_output;
+  std::vector<BenchmarkData> benchmark_tests_line;
+  std::vector<BenchmarkData> benchmark_tests_line_stddev;
+  std::vector<BenchmarkData> benchmark_tests_bar;
+  std::vector<BenchmarkData> benchmark_tests_bar_stddev;
 };
 
 inline const char* GetTimeUnitString(TimeUnit unit) {

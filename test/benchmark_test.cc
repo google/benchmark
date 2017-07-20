@@ -77,8 +77,9 @@ static void BM_CalculatePi(benchmark::State& state) {
     benchmark::DoNotOptimize(CalculatePi(depth));
   }
 }
-BENCHMARK(BM_CalculatePi)->Threads(8);
-BENCHMARK(BM_CalculatePi)->ThreadRange(1, 32);
+// FIXME Highcharts visualization (enabled by HTMLReporter) currently is working only with ranges
+BENCHMARK(BM_CalculatePi)->Threads(8)->Ranges({{1 << 10, 8 << 10}, {1, 10}});
+BENCHMARK(BM_CalculatePi)->ThreadRange(1, 32)->Ranges({{1 << 10, 8 << 10}, {1, 10}});
 BENCHMARK(BM_CalculatePi)->ThreadPerCpu();
 
 static void BM_SetInsert(benchmark::State& state) {

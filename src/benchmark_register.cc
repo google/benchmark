@@ -145,8 +145,15 @@ bool BenchmarkFamilies::FindBenchmarks(
 
     for (auto const& args : family->args_) {
       for (int num_threads : *thread_counts) {
-        Benchmark::Instance instance;
-        instance.name = family->name_;
+	Benchmark::Instance instance;
+	// FIXME remove arg1 and arg2 references, and fix GeneratedInstanceName
+	// function, here they are zero valued.
+	instance.name = GenerateInstanceName(
+            family->name_, family->args_.size(), 0, 0,
+            family->min_time_, family->use_real_time_,
+            !(family->thread_counts_.empty()), num_threads);
+	instance.name = family->name_;
+        instance.family = family->name_;
         instance.benchmark = family.get();
         instance.report_mode = family->report_mode_;
         instance.arg = args;

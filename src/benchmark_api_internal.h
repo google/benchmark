@@ -15,6 +15,7 @@ namespace internal {
 // Information kept per benchmark we may want to run
 struct Benchmark::Instance {
   std::string name;
+  std::string family;
   Benchmark* benchmark;
   ReportMode report_mode;
   std::vector<int> arg;
@@ -37,6 +38,11 @@ bool FindBenchmarksInternal(const std::string& re,
                             std::ostream* Err);
 
 bool IsZero(double n);
+
+std::string GenerateInstanceName(const std::string& name, int arg_count,
+                                 int arg1, int arg2, double min_time,
+                                 bool use_real_time, bool multithreaded,
+                                 int threads);
 
 ConsoleReporter::OutputOptions GetOutputOptions(bool force_no_color = false);
 
