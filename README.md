@@ -444,9 +444,9 @@ static void UserCountersExample1(benchmark::State& state) {
   while (state.KeepRunning()) {
     // ... count Foo,Bar,Baz events
   }
-  state.counters["Foo"] = numFoos;
-  state.counters["Bar"] = numBars;
-  state.counters["Baz"] = numBazs;
+  state.counters.Set("Foo", numFoos);
+  state.counters.Set("Bar", numBars);
+  state.counters.Set("Baz", numBazs);
 }
 ```
 
@@ -465,18 +465,20 @@ per-thread averages:
 
 ```c++
   // sets a simple counter
-  state.counters["Foo"] = numFoos;
+  state.counters.Set("Foo", numFoos);
 
   // Set the counter as a rate. It will be presented divided
   // by the duration of the benchmark.
-  state.counters["FooRate"] = Counter(numFoos, benchmark::Counter::kIsRate);
+  state.counters.Set("FooRate", Counter(numFoos, benchmark::Counter::kIsRate));
 
   // Set the counter as a thread-average quantity. It will
   // be presented divided by the number of threads.
-  state.counters["FooAvg"] = Counter(numFoos, benchmark::Counter::kAvgThreads);
+  state.counters.Set("FooAvg",
+                     Counter(numFoos, benchmark::Counter::kAvgThreads));
 
   // There's also a combined flag:
-  state.counters["FooAvgRate"] = Counter(numFoos,benchmark::Counter::kAvgThreadsRate);
+  state.counters.Set("FooAvgRate",
+                     Counter(numFoos,benchmark::Counter::kAvgThreadsRate));
 ```
 
 When you're compiling in C++11 mode or later you can use `insert()` with
@@ -484,11 +486,11 @@ When you're compiling in C++11 mode or later you can use `insert()` with
 
 ```c++
   // With C++11, this can be done:
-  state.counters.insert({{"Foo", numFoos}, {"Bar", numBars}, {"Baz", numBazs}});
+  state.counters.Insert({{"Foo", numFoos}, {"Bar", numBars}, {"Baz", numBazs}});
   // ... instead of:
-  state.counters["Foo"] = numFoos;
-  state.counters["Bar"] = numBars;
-  state.counters["Baz"] = numBazs;
+  state.counters.Set("Foo", numFoos);
+  state.counters.Set("Bar", numBars);
+  state.counters.Set("Baz", numBazs);
 ```
 
 ### Counter reporting
