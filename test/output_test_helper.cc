@@ -371,6 +371,7 @@ void RunOutputTests(int argc, char* argv[]) {
   benchmark::ConsoleReporter CR(options);
   benchmark::JSONReporter JR;
   benchmark::CSVReporter CSVR;
+  benchmark::CSVReporter HTMLR;
   struct ReporterTest {
     const char* name;
     std::vector<TestCase>& output_cases;
@@ -393,11 +394,13 @@ void RunOutputTests(int argc, char* argv[]) {
        JR},
       {"CSVReporter", GetTestCaseList(TC_CSVOut), GetTestCaseList(TC_CSVErr),
        CSVR},
+      {"HTMLReporter", GetTestCaseList(TC_HTMLOut), GetTestCaseList(TC_HTMLErr),
+       HTMLR}
   };
 
   // Create the test reporter and run the benchmarks.
   std::cout << "Running benchmarks...\n";
-  internal::TestReporter test_rep({&CR, &JR, &CSVR});
+  internal::TestReporter test_rep({&CR, &JR, &CSVR, &HTMLR});
   benchmark::RunSpecifiedBenchmarks(&test_rep);
 
   for (auto& rep_test : TestCases) {

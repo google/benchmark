@@ -47,6 +47,9 @@ endmacro(compile_output_test)
 compile_benchmark_test(benchmark_test)
 add_test(benchmark benchmark_test --benchmark_min_time=0.01)
 
+compile_benchmark_test(benchmark_test_visualization)
+add_test(benchmark benchmark_test --benchmark_min_time=0.01 --benchmark_format=html)
+
 compile_benchmark_test(filter_test)
 macro(add_filter_test name filter expect)
   add_test(${name} filter_test --benchmark_min_time=0.01 --benchmark_filter=${filter} ${expect})

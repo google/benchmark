@@ -44,6 +44,8 @@ enum TestCaseID {
   TC_JSONErr,
   TC_CSVOut,
   TC_CSVErr,
+  TC_HTMLOut,
+  TC_HTMLErr,
 
   TC_NumID  // PRIVATE
 };
