@@ -41,7 +41,7 @@ BENCHMARK_TEMPLATE1(BM_template1, int);
 
 void BM_counters(benchmark::State& state) {
     BM_empty(state);
-    state.counters["Foo"] = 2;
+    state.counters.Set("Foo", 2);
 }
 BENCHMARK(BM_counters);
 

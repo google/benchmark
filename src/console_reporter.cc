@@ -14,7 +14,6 @@
 
 #include "benchmark/benchmark.h"
 #include "complexity.h"
-#include "counter.h"
 
 #include <algorithm>
 #include <cstdint>
@@ -36,7 +35,7 @@ namespace benchmark {
 bool ConsoleReporter::ReportContext(const Context& context) {
   name_field_width_ = context.name_field_width;
   printed_header_ = false;
-  prev_counters_.clear();
+  prev_counters_.Clear();
 
   PrintBasicContext(&GetErrorStream(), context);
 
@@ -55,9 +54,9 @@ bool ConsoleReporter::ReportContext(const Context& context) {
 void ConsoleReporter::PrintHeader(const Run& run) {
   std::string str = FormatString("%-*s %13s %13s %10s", static_cast<int>(name_field_width_),
                                  "Benchmark", "Time", "CPU", "Iterations");
-  if(!run.counters.empty()) {
+  if(!run.counters.Empty()) {
     if(output_options_ & OO_Tabular) {
-      for(auto const& c : run.counters) {
+      for(auto const& c : run.counters.get()) {
         str += FormatString(" %10s", c.first.c_str());
       }
     } else {
@@ -76,8 +75,9 @@ void ConsoleReporter::ReportRuns(const std::vector<Run>& reports) {
     bool print_header = !printed_header_;
     // --- or if the format is tabular and this run
     //     has different fields from the prev header
-    print_header |= (output_options_ & OO_Tabular) &&
-                    (!internal::SameNames(run.counters, prev_counters_));
+    print_header |=
+        (output_options_ & OO_Tabular) &&
+        (!internal::UserCounters::SameNames(run.counters, prev_counters_));
     if (print_header) {
       printed_header_ = true;
       prev_counters_ = run.counters;
@@ -147,7 +147,7 @@ void ConsoleReporter::PrintRunData(const Run& result) {
     printer(Out, COLOR_CYAN, "%10lld", result.iterations);
   }
 
-  for (auto& c : result.counters) {
+  for (auto& c : result.counters.get()) {
     auto const& s = HumanReadableNumber(c.second.value);
     if (output_options_ & OO_Tabular) {
       if (c.second.flags & Counter::kIsRate) {

@@ -154,7 +154,7 @@ void JSONReporter::PrintRunData(Run const& run) {
         << indent
         << FormatKV("items_per_second", RoundDouble(run.items_per_second));
   }
-  for(auto &c : run.counters) {
+  for(auto &c : run.counters.get()) {
     out << ",\n"
         << indent
         << FormatKV(c.first, RoundDouble(c.second));
