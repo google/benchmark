@@ -715,7 +715,8 @@ The following minimum versions are strongly recommended build the library:
 Anything older *may* work.
 
 Note: Using the library and its headers in C++03 is supported. C++11 is only
-required to build the library.
+required to build the library. (Although this will not work for gcc 5.1 and
+above - for these complilers, stick with -std=c++11.)
 
 # Known Issues
 
