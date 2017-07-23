@@ -19,8 +19,6 @@ matrix:
     - compiler: gcc
       env: COMPILER=g++ C_COMPILER=gcc BUILD_TYPE=Release
     - compiler: gcc
-      env: COMPILER=g++-5.8 C_COMPILER=gcc-5.8 BUILD_TYPE=Release
-    - compiler: gcc
       addons:
         apt:
           packages:
