@@ -87,6 +87,9 @@ def generate_difference_report(json1, json2, use_color=True):
         if not other_bench:
             continue
 
+        if bn['time_unit'] != other_bench['time_unit']:
+            continue
+
         def get_color(res):
             if res > 0.05:
                 return BC_FAIL
@@ -94,7 +97,7 @@ def generate_difference_report(json1, json2, use_color=True):
                 return BC_WHITE
             else:
                 return BC_CYAN
-        fmt_str = "{}{:<{}s}{endc}{}{:+9.2f}{endc}{}{:+14.2f}{endc}{:14d}{:14d}"
+        fmt_str = "{}{:<{}s}{endc}{}{:+9.2f}{endc}{}{:+14.2f}{endc}{:14.0f}{:14.0f}"
         tres = calculate_change(bn['real_time'], other_bench['real_time'])
         cpures = calculate_change(bn['cpu_time'], other_bench['cpu_time'])
         output_strs += [color_format(use_color, fmt_str,
@@ -126,6 +129,8 @@ class TestReportDifference(unittest.TestCase):
             ['BM_SameTimes', '+0.00', '+0.00', '10', '10'],
             ['BM_2xFaster', '-0.50', '-0.50', '50', '25'],
             ['BM_2xSlower', '+1.00', '+1.00', '50', '100'],
+            ['BM_1PercentFaster', '-0.01', '-0.01', '100', '99'],
+            ['BM_1PercentSlower', '+0.01', '+0.01', '100', '101'],
             ['BM_10PercentFaster', '-0.10', '-0.10', '100', '90'],
             ['BM_10PercentSlower', '+0.10', '+0.10', '100', '110'],
             ['BM_100xSlower', '+99.00', '+99.00', '100', '10000'],
