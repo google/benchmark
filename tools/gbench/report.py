@@ -87,6 +87,9 @@ def generate_difference_report(json1, json2, use_color=True):
         if not other_bench:
             continue
 
+        if bn['time_unit'] != other_bench['time_unit']:
+            continue
+
         def get_color(res):
             if res > 0.05:
                 return BC_FAIL
