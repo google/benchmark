@@ -27,9 +27,9 @@ BENCHMARK(BM_basic);
 
 ADD_CASES(TC_ConsoleOut, {{"^BM_basic %console_report$"}});
 ADD_CASES(TC_JSONOut, {{"\"name\": \"BM_basic\",$"},
-                       {"\"iterations\": %int,$", MR_Next},
-                       {"\"real_time\": %int,$", MR_Next},
-                       {"\"cpu_time\": %int,$", MR_Next},
+                       {"\"iterations\": %float,$", MR_Next},
+                       {"\"real_time\": %float,$", MR_Next},
+                       {"\"cpu_time\": %float,$", MR_Next},
                        {"\"time_unit\": \"ns\"$", MR_Next},
                        {"}", MR_Next}});
 ADD_CASES(TC_CSVOut, {{"^\"BM_basic\",%csv_report$"}});
@@ -48,11 +48,11 @@ BENCHMARK(BM_bytes_per_second);
 ADD_CASES(TC_ConsoleOut,
           {{"^BM_bytes_per_second %console_report +%floatB/s$"}});
 ADD_CASES(TC_JSONOut, {{"\"name\": \"BM_bytes_per_second\",$"},
-                       {"\"iterations\": %int,$", MR_Next},
-                       {"\"real_time\": %int,$", MR_Next},
-                       {"\"cpu_time\": %int,$", MR_Next},
+                       {"\"iterations\": %float,$", MR_Next},
+                       {"\"real_time\": %float,$", MR_Next},
+                       {"\"cpu_time\": %float,$", MR_Next},
                        {"\"time_unit\": \"ns\",$", MR_Next},
-                       {"\"bytes_per_second\": %int$", MR_Next},
+                       {"\"bytes_per_second\": %float$", MR_Next},
                        {"}", MR_Next}});
 ADD_CASES(TC_CSVOut, {{"^\"BM_bytes_per_second\",%csv_bytes_report$"}});
 
@@ -70,11 +70,11 @@ BENCHMARK(BM_items_per_second);
 ADD_CASES(TC_ConsoleOut,
           {{"^BM_items_per_second %console_report +%float items/s$"}});
 ADD_CASES(TC_JSONOut, {{"\"name\": \"BM_items_per_second\",$"},
-                       {"\"iterations\": %int,$", MR_Next},
-                       {"\"real_time\": %int,$", MR_Next},
-                       {"\"cpu_time\": %int,$", MR_Next},
+                       {"\"iterations\": %float,$", MR_Next},
+                       {"\"real_time\": %float,$", MR_Next},
+                       {"\"cpu_time\": %float,$", MR_Next},
                        {"\"time_unit\": \"ns\",$", MR_Next},
-                       {"\"items_per_second\": %int$", MR_Next},
+                       {"\"items_per_second\": %float$", MR_Next},
                        {"}", MR_Next}});
 ADD_CASES(TC_CSVOut, {{"^\"BM_items_per_second\",%csv_items_report$"}});
 
@@ -91,9 +91,9 @@ BENCHMARK(BM_label);
 
 ADD_CASES(TC_ConsoleOut, {{"^BM_label %console_report some label$"}});
 ADD_CASES(TC_JSONOut, {{"\"name\": \"BM_label\",$"},
-                       {"\"iterations\": %int,$", MR_Next},
-                       {"\"real_time\": %int,$", MR_Next},
-                       {"\"cpu_time\": %int,$", MR_Next},
+                       {"\"iterations\": %float,$", MR_Next},
+                       {"\"real_time\": %float,$", MR_Next},
+                       {"\"cpu_time\": %float,$", MR_Next},
                        {"\"time_unit\": \"ns\",$", MR_Next},
                        {"\"label\": \"some label\"$", MR_Next},
                        {"}", MR_Next}});

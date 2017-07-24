@@ -29,6 +29,20 @@
       "time_unit": "ns"
     },
     {
+      "name": "BM_1PercentFaster",
+      "iterations": 1000,
+      "real_time": 100,
+      "cpu_time": 100,
+      "time_unit": "ns"
+    },
+    {
+      "name": "BM_1PercentSlower",
+      "iterations": 1000,
+      "real_time": 100,
+      "cpu_time": 100,
+      "time_unit": "ns"
+    },
+    {
       "name": "BM_10PercentFaster",
       "iterations": 1000,
       "real_time": 100,
