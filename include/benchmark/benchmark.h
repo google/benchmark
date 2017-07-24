@@ -378,6 +378,10 @@ enum BigO { oNone, o1, oN, oNSquared, oNCubed, oLogN, oNLogN, oAuto, oLambda };
 // computational complexity for the benchmark.
 typedef double(BigOFunc)(int);
 
+// StatisticsFunc is passed to a benchmark in order to compute some descriptive
+// statistics over all the measurements of some type
+typedef double(StatisticsFunc)(const std::vector<double>&);
+
 namespace internal {
 class ThreadTimer;
 class ThreadManager;
@@ -698,6 +702,9 @@ class Benchmark {
   // the asymptotic computational complexity will be shown on the output.
   Benchmark* Complexity(BigOFunc* complexity);
 
+  // Add this statistics to be computed over all the values of benchmark run
+  Benchmark* ComputeStatistics(std::string name, StatisticsFunc* statistics);
+
   // Support for running multiple copies of the same benchmark concurrently
   // in multiple threads.  This may be useful when measuring the scaling
   // of some piece of code.
@@ -758,6 +765,7 @@ class Benchmark {
   bool use_manual_time_;
   BigO complexity_;
   BigOFunc* complexity_lambda_;
+  std::map<std::string, StatisticsFunc*> statistics_;
   std::vector<int> thread_counts_;
 
   Benchmark& operator=(Benchmark const&);
@@ -1064,6 +1072,9 @@ class BenchmarkReporter {
     BigO complexity;
     BigOFunc* complexity_lambda;
     int complexity_n;
+
+    // what statistics to compute from the measurements
+    const std::map<std::string, StatisticsFunc*>* statistics;
 
     // Inform print function whether the current run is a complexity report
     bool report_big_o;

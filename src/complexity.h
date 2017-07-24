@@ -18,8 +18,11 @@
 #ifndef COMPLEXITY_H_
 #define COMPLEXITY_H_
 
+#include <algorithm>
+#include <cmath>
 #include <string>
 #include <vector>
+#include <numeric>
 
 #include "benchmark/benchmark.h"
 
@@ -55,6 +58,56 @@ struct LeastSq {
 
 // Function to return an string for the calculated complexity
 std::string GetBigOString(BigO complexity);
+
+auto StatisticsSum = [](const std::vector<double>& v) {
+  return std::accumulate(v.begin(), v.end(), double());
+};
+
+auto StatisticsMean = [](const std::vector<double>& v) {
+  if (v.size() == 0) return double();
+  return StatisticsSum(v) * (1.0 / v.size());
+};
+
+auto StatisticsMedian = [](const std::vector<double>& v) {
+  if (v.size() < 3) return StatisticsMean(v);
+  std::vector<double> partial;
+  // we need roundDown(count/2)+1 slots
+  partial.resize(1 + (v.size() / 2));
+  std::partial_sort_copy(v.begin(), v.end(), partial.begin(), partial.end());
+  double median;
+  // did we have odd number of samples?
+  // if yes, then the last element of partially-sorted vector is the median
+  // it no, then the average of the last two elements is the median
+  if(v.size() % 2 == 1)
+    median = partial.back();
+  else
+    median = (partial[partial.size() - 2] + partial[partial.size() - 1]) / 2.0;
+  return median;
+};
+
+// Return the sum of the squares of this sample set
+auto SumSquares = [](const std::vector<double>& v) {
+  return std::inner_product(v.begin(), v.end(), v.begin(), double());
+};
+
+auto Sqr = [](const double dat) { return dat * dat; };
+auto Sqrt = [](const double dat) {
+  // Avoid NaN due to imprecision in the calculations
+  if (dat < 0.0) return 0.0;
+  return std::sqrt(dat);
+};
+
+auto StatisticsStdDev = [](const std::vector<double>& v) {
+  const auto mean = StatisticsMean(v);
+  if (v.size() == 0) return mean;
+
+  // Sample standard deviation is undefined for n = 1
+  if (v.size() == 1)
+    return double();
+
+  const double avg_squares = SumSquares(v) * (1.0 / v.size());
+  return Sqrt(v.size() / (v.size() - 1.0) * (avg_squares - Sqr(mean)));
+};
 
 }  // end namespace benchmark
 #endif  // COMPLEXITY_H_

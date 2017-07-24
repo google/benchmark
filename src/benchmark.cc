@@ -41,7 +41,6 @@
 #include "log.h"
 #include "mutex.h"
 #include "re.h"
-#include "stat.h"
 #include "string_util.h"
 #include "sysinfo.h"
 #include "timers.h"
@@ -256,6 +255,7 @@ BenchmarkReporter::Run CreateRunReport(
     report.complexity_n = results.complexity_n;
     report.complexity = b.complexity;
     report.complexity_lambda = b.complexity_lambda;
+    report.statistics = b.statistics;
     report.counters = results.counters;
     internal::Finish(&report.counters, seconds, b.threads);
   }
@@ -481,12 +481,16 @@ void RunBenchmarks(const std::vector<Benchmark::Instance>& benchmarks,
   // Determine the width of the name field using a minimum width of 10.
   bool has_repetitions = FLAGS_benchmark_repetitions > 1;
   size_t name_field_width = 10;
+  size_t stat_field_width = 0;
   for (const Benchmark::Instance& benchmark : benchmarks) {
     name_field_width =
         std::max<size_t>(name_field_width, benchmark.name.size());
     has_repetitions |= benchmark.repetitions > 1;
+
+    for(const auto& Stat : *benchmark.statistics)
+      stat_field_width = std::max<size_t>(stat_field_width, Stat.first.size());
   }
-  if (has_repetitions) name_field_width += std::strlen("_stddev");
+  if (has_repetitions) name_field_width += 1 + stat_field_width;
 
   // Print header here
   BenchmarkReporter::Context context;

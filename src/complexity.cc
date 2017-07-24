@@ -21,7 +21,6 @@
 #include <cmath>
 #include "check.h"
 #include "complexity.h"
-#include "stat.h"
 
 namespace benchmark {
 
@@ -163,25 +162,34 @@ std::vector<BenchmarkReporter::Run> ComputeStats(
     // We don't report aggregated data if there was a single run.
     return results;
   }
+
   // Accumulators.
-  Stat1_d real_accumulated_time_stat;
-  Stat1_d cpu_accumulated_time_stat;
-  Stat1_d bytes_per_second_stat;
-  Stat1_d items_per_second_stat;
+  std::vector<double> real_accumulated_time_stat;
+  std::vector<double> cpu_accumulated_time_stat;
+  std::vector<double> bytes_per_second_stat;
+  std::vector<double> items_per_second_stat;
+
+  real_accumulated_time_stat.reserve(reports.size());
+  cpu_accumulated_time_stat.reserve(reports.size());
+  bytes_per_second_stat.reserve(reports.size());
+  items_per_second_stat.reserve(reports.size());
+
   // All repetitions should be run with the same number of iterations so we
   // can take this information from the first benchmark.
   int64_t const run_iterations = reports.front().iterations;
   // create stats for user counters
   struct CounterStat {
     Counter c;
-    Stat1_d s;
+    std::vector<double> s;
   };
   std::map< std::string, CounterStat > counter_stats;
   for(Run const& r : reports) {
     for(auto const& cnt : r.counters) {
       auto it = counter_stats.find(cnt.first);
       if(it == counter_stats.end()) {
-        counter_stats.insert({cnt.first, {cnt.second, Stat1_d{}}});
+        counter_stats.insert({cnt.first, {cnt.second, std::vector<double>{}}});
+        it = counter_stats.find(cnt.first);
+        it->second.s.reserve(reports.size());
       } else {
         CHECK_EQ(counter_stats[cnt.first].c.flags, cnt.second.flags);
       }
@@ -193,63 +201,50 @@ std::vector<BenchmarkReporter::Run> ComputeStats(
     CHECK_EQ(reports[0].benchmark_name, run.benchmark_name);
     CHECK_EQ(run_iterations, run.iterations);
     if (run.error_occurred) continue;
-    real_accumulated_time_stat +=
-        Stat1_d(run.real_accumulated_time / run.iterations);
-    cpu_accumulated_time_stat +=
-        Stat1_d(run.cpu_accumulated_time / run.iterations);
-    items_per_second_stat += Stat1_d(run.items_per_second);
-    bytes_per_second_stat += Stat1_d(run.bytes_per_second);
+    real_accumulated_time_stat.emplace_back(run.real_accumulated_time);
+    cpu_accumulated_time_stat.emplace_back(run.cpu_accumulated_time);
+    items_per_second_stat.emplace_back(run.items_per_second);
+    bytes_per_second_stat.emplace_back(run.bytes_per_second);
     // user counters
     for(auto const& cnt : run.counters) {
       auto it = counter_stats.find(cnt.first);
       CHECK_NE(it, counter_stats.end());
-      it->second.s += Stat1_d(cnt.second);
+      it->second.s.emplace_back(cnt.second);
     }
   }
 
-  // Get the data from the accumulator to BenchmarkReporter::Run's.
-  Run mean_data;
-  mean_data.benchmark_name = reports[0].benchmark_name + "_mean";
-  mean_data.iterations = run_iterations;
-  mean_data.real_accumulated_time =
-      real_accumulated_time_stat.Mean() * run_iterations;
-  mean_data.cpu_accumulated_time =
-      cpu_accumulated_time_stat.Mean() * run_iterations;
-  mean_data.bytes_per_second = bytes_per_second_stat.Mean();
-  mean_data.items_per_second = items_per_second_stat.Mean();
-  mean_data.time_unit = reports[0].time_unit;
-  // user counters
-  for(auto const& kv : counter_stats) {
-    auto c = Counter(kv.second.s.Mean(), counter_stats[kv.first].c.flags);
-    mean_data.counters[kv.first] = c;
-  }
-
-  // Only add label to mean/stddev if it is same for all runs
-  mean_data.report_label = reports[0].report_label;
+  // Only add label if it is same for all runs
+  std::string report_label = reports[0].report_label;
   for (std::size_t i = 1; i < reports.size(); i++) {
-    if (reports[i].report_label != reports[0].report_label) {
-      mean_data.report_label = "";
+    if (reports[i].report_label != report_label) {
+      report_label = "";
       break;
     }
   }
 
-  Run stddev_data;
-  stddev_data.benchmark_name = reports[0].benchmark_name + "_stddev";
-  stddev_data.report_label = mean_data.report_label;
-  stddev_data.iterations = 0;
-  stddev_data.real_accumulated_time = real_accumulated_time_stat.StdDev();
-  stddev_data.cpu_accumulated_time = cpu_accumulated_time_stat.StdDev();
-  stddev_data.bytes_per_second = bytes_per_second_stat.StdDev();
-  stddev_data.items_per_second = items_per_second_stat.StdDev();
-  stddev_data.time_unit = reports[0].time_unit;
-  // user counters
-  for(auto const& kv : counter_stats) {
-    auto c = Counter(kv.second.s.StdDev(), counter_stats[kv.first].c.flags);
-    stddev_data.counters[kv.first] = c;
+  for(const auto& Stat : *reports[0].statistics) {
+    // Get the data from the accumulator to BenchmarkReporter::Run's.
+    Run data;
+    data.benchmark_name = reports[0].benchmark_name + "_" + Stat.first;
+    data.report_label = report_label;
+    data.iterations = run_iterations;
+
+    data.real_accumulated_time = Stat.second(real_accumulated_time_stat);
+    data.cpu_accumulated_time = Stat.second(cpu_accumulated_time_stat);
+    data.bytes_per_second = Stat.second(bytes_per_second_stat);
+    data.items_per_second = Stat.second(items_per_second_stat);
+
+    data.time_unit = reports[0].time_unit;
+
+    // user counters
+    for(auto const& kv : counter_stats) {
+      auto c = Counter(Stat.second(kv.second.s), counter_stats[kv.first].c.flags);
+      data.counters[kv.first] = c;
+    }
+
+    results.push_back(data);
   }
 
-  results.push_back(mean_data);
-  results.push_back(stddev_data);
   return results;
 }
 
