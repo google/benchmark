@@ -154,9 +154,28 @@ void JSONReporter::PrintRunData(Run const& run) {
         << indent
         << FormatKV("items_per_second", RoundDouble(run.items_per_second));
   }
+  if(!run.meta_data.empty()){
+
+    out <<",\n"
+        <<indent
+        <<"\"meta_data\" : {\n";
+    std::size_t c=0;
+    for (auto & kv : run.meta_data) {
+      out << indent << "  "
+          << FormatKV(kv.first, kv.second.c_str());
+      if(c + 1 < run.meta_data.size()){
+        out<<",\n";
+      }
+      else{
+        out<<"\n";
+      }
+      ++c;
+    }
+    out<<indent<<"}";
+  }
   for(auto &c : run.counters) {
     out << ",\n"
-        << indent
+        << indent 
         << FormatKV(c.first, RoundDouble(c.second));
   }
   if (!run.report_label.empty()) {

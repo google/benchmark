@@ -398,6 +398,16 @@ Benchmark* Benchmark::UseManualTime() {
   return this;
 }
 
+
+Benchmark* Benchmark::AddMetaData(const std::string & key, const std::string & val){
+  meta_data_[key] = val;
+  return this;
+}
+
+const Benchmark::MetaDataType & Benchmark::MetaData()const{
+  return meta_data_;
+}
+
 Benchmark* Benchmark::Complexity(BigO complexity) {
   complexity_ = complexity;
   return this;
