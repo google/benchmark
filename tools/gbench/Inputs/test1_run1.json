@@ -71,6 +71,13 @@
       "time_unit": "ns"
     },
     {
+      "name": "BM_10PercentCPUToTime",
+      "iterations": 1000,
+      "real_time": 100,
+      "cpu_time": 100,
+      "time_unit": "ns"
+    },
+    {
       "name": "BM_DifferentTimeUnit",
       "iterations": 1,
       "real_time": 1,
