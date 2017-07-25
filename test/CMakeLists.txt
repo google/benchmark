@@ -105,7 +105,7 @@ compile_output_test(user_counters_tabular_test)
 add_test(user_counters_tabular_test user_counters_tabular_test --benchmark_counters_tabular=true --benchmark_min_time=0.01)
 
 check_cxx_compiler_flag(-std=c++03 BENCHMARK_HAS_CXX03_FLAG)
-if (BENCHMARK_HAS_CXX03_FLAG)
+if (BENCHMARK_HAS_CXX03_FLAG AND CMAKE_COMPILER_IS_GNUCC AND CMAKE_CXX_COMPILER_VERSION VERSION_LESS 5.0)
   set(CXX03_FLAGS "${CMAKE_CXX_FLAGS}")
   string(REPLACE "-std=c++11" "-std=c++03" CXX03_FLAGS "${CXX03_FLAGS}")
   string(REPLACE "-std=c++0x" "-std=c++03" CXX03_FLAGS "${CXX03_FLAGS}")
