@@ -77,7 +77,7 @@ def generate_difference_report(json1, json2, use_color=True):
             if b['name'] == name:
                 return b
         return None
-    first_line = "{:<{}s}     Time           CPU           Old           New".format(
+    first_line = "{:<{}s}     Time           CPU      Time Old      Time New       CPU Old       CPU New".format(
         'Benchmark', first_col_width)
     output_strs = [first_line, '-' * len(first_line)]
 
@@ -97,12 +97,13 @@ def generate_difference_report(json1, json2, use_color=True):
                 return BC_WHITE
             else:
                 return BC_CYAN
-        fmt_str = "{}{:<{}s}{endc}{}{:+9.2f}{endc}{}{:+14.2f}{endc}{:14.0f}{:14.0f}"
+        fmt_str = "{}{:<{}s}{endc}{}{:+9.2f}{endc}{}{:+14.2f}{endc}{:14.0f}{:14.0f}{endc}{:14.0f}{:14.0f}"
         tres = calculate_change(bn['real_time'], other_bench['real_time'])
         cpures = calculate_change(bn['cpu_time'], other_bench['cpu_time'])
         output_strs += [color_format(use_color, fmt_str,
             BC_HEADER, bn['name'], first_col_width,
             get_color(tres), tres, get_color(cpures), cpures,
+            bn['real_time'], other_bench['real_time'],
             bn['cpu_time'], other_bench['cpu_time'],
             endc=BC_ENDC)]
     return output_strs
@@ -126,24 +127,25 @@ class TestReportDifference(unittest.TestCase):
 
     def test_basic(self):
         expect_lines = [
-            ['BM_SameTimes', '+0.00', '+0.00', '10', '10'],
-            ['BM_2xFaster', '-0.50', '-0.50', '50', '25'],
-            ['BM_2xSlower', '+1.00', '+1.00', '50', '100'],
-            ['BM_1PercentFaster', '-0.01', '-0.01', '100', '99'],
-            ['BM_1PercentSlower', '+0.01', '+0.01', '100', '101'],
-            ['BM_10PercentFaster', '-0.10', '-0.10', '100', '90'],
-            ['BM_10PercentSlower', '+0.10', '+0.10', '100', '110'],
-            ['BM_100xSlower', '+99.00', '+99.00', '100', '10000'],
-            ['BM_100xFaster', '-0.99', '-0.99', '10000', '100'],
+            ['BM_SameTimes', '+0.00', '+0.00', '10', '10', '10', '10'],
+            ['BM_2xFaster', '-0.50', '-0.50', '50', '25', '50', '25'],
+            ['BM_2xSlower', '+1.00', '+1.00', '50', '100', '50', '100'],
+            ['BM_1PercentFaster', '-0.01', '-0.01', '100', '99', '100', '99'],
+            ['BM_1PercentSlower', '+0.01', '+0.01', '100', '101', '100', '101'],
+            ['BM_10PercentFaster', '-0.10', '-0.10', '100', '90', '100', '90'],
+            ['BM_10PercentSlower', '+0.10', '+0.10', '100', '110', '100', '110'],
+            ['BM_100xSlower', '+99.00', '+99.00', '100', '10000', '100', '10000'],
+            ['BM_100xFaster', '-0.99', '-0.99', '10000', '100', '10000', '100'],
+            ['BM_10PercentCPUToTime', '+0.10', '-0.10', '100', '110', '100', '90'],
         ]
         json1, json2 = self.load_results()
         output_lines_with_header = generate_difference_report(json1, json2, use_color=False)
         output_lines = output_lines_with_header[2:]
         print("\n".join(output_lines_with_header))
         self.assertEqual(len(output_lines), len(expect_lines))
-        for i in xrange(0, len(output_lines)):
+        for i in range(0, len(output_lines)):
             parts = [x for x in output_lines[i].split(' ') if x]
-            self.assertEqual(len(parts), 5)
+            self.assertEqual(len(parts), 7)
             self.assertEqual(parts, expect_lines[i])
 
 
