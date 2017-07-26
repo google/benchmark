@@ -59,16 +59,16 @@ struct LeastSq {
 // Function to return an string for the calculated complexity
 std::string GetBigOString(BigO complexity);
 
-auto StatisticsSum = [](const std::vector<double>& v) {
+const auto StatisticsSum = [](const std::vector<double>& v) {
   return std::accumulate(v.begin(), v.end(), double());
 };
 
-auto StatisticsMean = [](const std::vector<double>& v) {
+const auto StatisticsMean = [](const std::vector<double>& v) {
   if (v.size() == 0) return double();
   return StatisticsSum(v) * (1.0 / v.size());
 };
 
-auto StatisticsMedian = [](const std::vector<double>& v) {
+const auto StatisticsMedian = [](const std::vector<double>& v) {
   if (v.size() < 3) return StatisticsMean(v);
   std::vector<double> partial;
   // we need roundDown(count/2)+1 slots
@@ -86,18 +86,18 @@ auto StatisticsMedian = [](const std::vector<double>& v) {
 };
 
 // Return the sum of the squares of this sample set
-auto SumSquares = [](const std::vector<double>& v) {
+const auto SumSquares = [](const std::vector<double>& v) {
   return std::inner_product(v.begin(), v.end(), v.begin(), double());
 };
 
-auto Sqr = [](const double dat) { return dat * dat; };
-auto Sqrt = [](const double dat) {
+const auto Sqr = [](const double dat) { return dat * dat; };
+const auto Sqrt = [](const double dat) {
   // Avoid NaN due to imprecision in the calculations
   if (dat < 0.0) return 0.0;
   return std::sqrt(dat);
 };
 
-auto StatisticsStdDev = [](const std::vector<double>& v) {
+const auto StatisticsStdDev = [](const std::vector<double>& v) {
   const auto mean = StatisticsMean(v);
   if (v.size() == 0) return mean;
 
