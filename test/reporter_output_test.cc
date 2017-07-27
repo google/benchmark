@@ -182,6 +182,24 @@ void BM_Repeat(benchmark::State& state) {
   while (state.KeepRunning()) {
   }
 }
+// need two repetitions min to be able to output any aggregate output
+BENCHMARK(BM_Repeat)->Repetitions(2);
+ADD_CASES(TC_ConsoleOut, {{"^BM_Repeat/repeats:2 %console_report$"},
+                          {"^BM_Repeat/repeats:2 %console_report$"},
+                          {"^BM_Repeat/repeats:2_mean %console_report$"},
+                          {"^BM_Repeat/repeats:2_median %console_report$"},
+                          {"^BM_Repeat/repeats:2_stddev %console_report$"}});
+ADD_CASES(TC_JSONOut, {{"\"name\": \"BM_Repeat/repeats:2\",$"},
+                       {"\"name\": \"BM_Repeat/repeats:2\",$"},
+                       {"\"name\": \"BM_Repeat/repeats:2_mean\",$"},
+                       {"\"name\": \"BM_Repeat/repeats:2_median\",$"},
+                       {"\"name\": \"BM_Repeat/repeats:2_stddev\",$"}});
+ADD_CASES(TC_CSVOut, {{"^\"BM_Repeat/repeats:2\",%csv_report$"},
+                      {"^\"BM_Repeat/repeats:2\",%csv_report$"},
+                      {"^\"BM_Repeat/repeats:2_mean\",%csv_report$"},
+                      {"^\"BM_Repeat/repeats:2_median\",%csv_report$"},
+                      {"^\"BM_Repeat/repeats:2_stddev\",%csv_report$"}});
+// but for two repetitions, mean and median is the same, so let's repeat..
 BENCHMARK(BM_Repeat)->Repetitions(3);
 ADD_CASES(TC_ConsoleOut, {{"^BM_Repeat/repeats:3 %console_report$"},
                           {"^BM_Repeat/repeats:3 %console_report$"},
@@ -201,6 +219,29 @@ ADD_CASES(TC_CSVOut, {{"^\"BM_Repeat/repeats:3\",%csv_report$"},
                       {"^\"BM_Repeat/repeats:3_mean\",%csv_report$"},
                       {"^\"BM_Repeat/repeats:3_median\",%csv_report$"},
                       {"^\"BM_Repeat/repeats:3_stddev\",%csv_report$"}});
+// median differs between even/odd number of repetitions, so just to be sure
+BENCHMARK(BM_Repeat)->Repetitions(4);
+ADD_CASES(TC_ConsoleOut, {{"^BM_Repeat/repeats:4 %console_report$"},
+                          {"^BM_Repeat/repeats:4 %console_report$"},
+                          {"^BM_Repeat/repeats:4 %console_report$"},
+                          {"^BM_Repeat/repeats:4 %console_report$"},
+                          {"^BM_Repeat/repeats:4_mean %console_report$"},
+                          {"^BM_Repeat/repeats:4_median %console_report$"},
+                          {"^BM_Repeat/repeats:4_stddev %console_report$"}});
+ADD_CASES(TC_JSONOut, {{"\"name\": \"BM_Repeat/repeats:4\",$"},
+                       {"\"name\": \"BM_Repeat/repeats:4\",$"},
+                       {"\"name\": \"BM_Repeat/repeats:4\",$"},
+                       {"\"name\": \"BM_Repeat/repeats:4\",$"},
+                       {"\"name\": \"BM_Repeat/repeats:4_mean\",$"},
+                       {"\"name\": \"BM_Repeat/repeats:4_median\",$"},
+                       {"\"name\": \"BM_Repeat/repeats:4_stddev\",$"}});
+ADD_CASES(TC_CSVOut, {{"^\"BM_Repeat/repeats:4\",%csv_report$"},
+                      {"^\"BM_Repeat/repeats:4\",%csv_report$"},
+                      {"^\"BM_Repeat/repeats:4\",%csv_report$"},
+                      {"^\"BM_Repeat/repeats:4\",%csv_report$"},
+                      {"^\"BM_Repeat/repeats:4_mean\",%csv_report$"},
+                      {"^\"BM_Repeat/repeats:4_median\",%csv_report$"},
+                      {"^\"BM_Repeat/repeats:4_stddev\",%csv_report$"}});
 
 // Test that a non-repeated test still prints non-aggregate results even when
 // only-aggregate reports have been requested
