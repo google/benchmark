@@ -382,6 +382,14 @@ typedef double(BigOFunc)(int);
 // statistics over all the measurements of some type
 typedef double(StatisticsFunc)(const std::vector<double>&);
 
+struct Statistics {
+  std::string name;
+  StatisticsFunc* compute;
+
+  Statistics(std::string name_, StatisticsFunc* compute_)
+    : name(name_), compute(compute_) {}
+};
+
 namespace internal {
 class ThreadTimer;
 class ThreadManager;
@@ -765,7 +773,7 @@ class Benchmark {
   bool use_manual_time_;
   BigO complexity_;
   BigOFunc* complexity_lambda_;
-  std::map<std::string, StatisticsFunc*> statistics_;
+  std::vector<Statistics> statistics_;
   std::vector<int> thread_counts_;
 
   Benchmark& operator=(Benchmark const&);
@@ -1074,7 +1082,7 @@ class BenchmarkReporter {
     int complexity_n;
 
     // what statistics to compute from the measurements
-    const std::map<std::string, StatisticsFunc*>* statistics;
+    const std::vector<Statistics>* statistics;
 
     // Inform print function whether the current run is a complexity report
     bool report_big_o;

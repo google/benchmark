@@ -225,20 +225,21 @@ std::vector<BenchmarkReporter::Run> ComputeStats(
   for(const auto& Stat : *reports[0].statistics) {
     // Get the data from the accumulator to BenchmarkReporter::Run's.
     Run data;
-    data.benchmark_name = reports[0].benchmark_name + "_" + Stat.first;
+    data.benchmark_name = reports[0].benchmark_name + "_" + Stat.name;
     data.report_label = report_label;
     data.iterations = run_iterations;
 
-    data.real_accumulated_time = Stat.second(real_accumulated_time_stat);
-    data.cpu_accumulated_time = Stat.second(cpu_accumulated_time_stat);
-    data.bytes_per_second = Stat.second(bytes_per_second_stat);
-    data.items_per_second = Stat.second(items_per_second_stat);
+    data.real_accumulated_time = Stat.compute(real_accumulated_time_stat);
+    data.cpu_accumulated_time = Stat.compute(cpu_accumulated_time_stat);
+    data.bytes_per_second = Stat.compute(bytes_per_second_stat);
+    data.items_per_second = Stat.compute(items_per_second_stat);
 
     data.time_unit = reports[0].time_unit;
 
     // user counters
     for(auto const& kv : counter_stats) {
-      auto c = Counter(Stat.second(kv.second.s), counter_stats[kv.first].c.flags);
+      const auto uc_stat = Stat.compute(kv.second.s);
+      auto c = Counter(uc_stat, counter_stats[kv.first].c.flags);
       data.counters[kv.first] = c;
     }
 

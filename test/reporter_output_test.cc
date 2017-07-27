@@ -260,6 +260,44 @@ ADD_CASES(TC_CSVOut,
            {"^\"BM_RepeatTimeUnit/repeats:3_stddev\",%csv_us_report$"}});
 
 // ========================================================================= //
+// -------------------- Testing user-provided statistics ------------------- //
+// ========================================================================= //
+
+const auto UserStatistics = [](const std::vector<double>& v) {
+  return v.back();
+};
+void BM_UserStats(benchmark::State& state) {
+  while (state.KeepRunning()) {
+  }
+}
+BENCHMARK(BM_UserStats)
+    ->Repetitions(3)
+    ->ComputeStatistics("", UserStatistics);
+// check that user-provided stats is calculated, and is after the default-ones
+// empty string as name is intentional, it would sort before anything else
+ADD_CASES(TC_ConsoleOut, {{"^BM_UserStats/repeats:3 %console_report$"},
+                          {"^BM_UserStats/repeats:3 %console_report$"},
+                          {"^BM_UserStats/repeats:3 %console_report$"},
+                          {"^BM_UserStats/repeats:3_mean %console_report$"},
+                          {"^BM_UserStats/repeats:3_median %console_report$"},
+                          {"^BM_UserStats/repeats:3_stddev %console_report$"},
+                          {"^BM_UserStats/repeats:3_ %console_report$"}});
+ADD_CASES(TC_JSONOut, {{"\"name\": \"BM_UserStats/repeats:3\",$"},
+                       {"\"name\": \"BM_UserStats/repeats:3\",$"},
+                       {"\"name\": \"BM_UserStats/repeats:3\",$"},
+                       {"\"name\": \"BM_UserStats/repeats:3_mean\",$"},
+                       {"\"name\": \"BM_UserStats/repeats:3_median\",$"},
+                       {"\"name\": \"BM_UserStats/repeats:3_stddev\",$"},
+                       {"\"name\": \"BM_UserStats/repeats:3_\",$"}});
+ADD_CASES(TC_CSVOut, {{"^\"BM_UserStats/repeats:3\",%csv_report$"},
+                      {"^\"BM_UserStats/repeats:3\",%csv_report$"},
+                      {"^\"BM_UserStats/repeats:3\",%csv_report$"},
+                      {"^\"BM_UserStats/repeats:3_mean\",%csv_report$"},
+                      {"^\"BM_UserStats/repeats:3_median\",%csv_report$"},
+                      {"^\"BM_UserStats/repeats:3_stddev\",%csv_report$"},
+                      {"^\"BM_UserStats/repeats:3_\",%csv_report$"}});
+
+// ========================================================================= //
 // --------------------------- TEST CASES END ------------------------------ //
 // ========================================================================= //
 
