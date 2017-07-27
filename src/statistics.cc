@@ -31,7 +31,7 @@ auto StatisticsSum = [](const std::vector<double>& v) {
 double StatisticsMean(const std::vector<double>& v) {
   if (v.size() == 0) return double();
   return StatisticsSum(v) * (1.0 / v.size());
-};
+}
 
 double StatisticsMedian(const std::vector<double>& v) {
   if (v.size() < 3) return StatisticsMean(v);
@@ -48,7 +48,7 @@ double StatisticsMedian(const std::vector<double>& v) {
   else
     median = (partial[partial.size() - 2] + partial[partial.size() - 1]) / 2.0;
   return median;
-};
+}
 
 // Return the sum of the squares of this sample set
 auto SumSquares = [](const std::vector<double>& v) {
@@ -72,7 +72,7 @@ double StatisticsStdDev(const std::vector<double>& v) {
 
   const double avg_squares = SumSquares(v) * (1.0 / v.size());
   return Sqrt(v.size() / (v.size() - 1.0) * (avg_squares - Sqr(mean)));
-};
+}
 
 std::vector<BenchmarkReporter::Run> ComputeStats(
     const std::vector<BenchmarkReporter::Run>& reports) {
