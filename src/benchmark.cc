@@ -37,6 +37,7 @@
 #include "colorprint.h"
 #include "commandlineflags.h"
 #include "complexity.h"
+#include "statistics.h"
 #include "counter.h"
 #include "log.h"
 #include "mutex.h"
@@ -488,7 +489,7 @@ void RunBenchmarks(const std::vector<Benchmark::Instance>& benchmarks,
     has_repetitions |= benchmark.repetitions > 1;
 
     for(const auto& Stat : *benchmark.statistics)
-      stat_field_width = std::max<size_t>(stat_field_width, Stat.name.size());
+      stat_field_width = std::max<size_t>(stat_field_width, Stat.name_.size());
   }
   if (has_repetitions) name_field_width += 1 + stat_field_width;
 

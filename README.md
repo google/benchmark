@@ -405,12 +405,10 @@ the value of the flag for that benchmark.
 While having mean, median and standard deviation is nice, this may not be
 enough for everyone. For example you may want to know what is the largest
 observation, e.g. because you have some real-time constraints. This is easy.
+The following code will specify a custom statistic to be calculated, defined
+by a lambda function.
 
 ```c++
-const auto StatisticsMax = [](const std::vector<double>& v) {
-  return *(std::max_element(std::begin(v), std::end(v)));
-};
-
 void BM_spin_empty(benchmark::State& state) {
   while (state.KeepRunning()) {
     for (int x = 0; x < state.range(0); ++x) {
@@ -419,7 +417,11 @@ void BM_spin_empty(benchmark::State& state) {
   }
 }
 
-BENCHMARK(BM_spin_empty)->ComputeStatistics("max", StatisticsMax)->Arg(512);
+BENCHMARK(BM_spin_empty)
+  ->ComputeStatistics("max", [](const std::vector<double>& v) -> double {
+    return *(std::max_element(std::begin(v), std::end(v)));
+  })
+  ->Arg(512);
 ```
 
 ## Fixtures

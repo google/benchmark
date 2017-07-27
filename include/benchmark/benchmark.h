@@ -383,11 +383,11 @@ typedef double(BigOFunc)(int);
 typedef double(StatisticsFunc)(const std::vector<double>&);
 
 struct Statistics {
-  std::string name;
-  StatisticsFunc* compute;
+  std::string name_;
+  StatisticsFunc* compute_;
 
-  Statistics(std::string name_, StatisticsFunc* compute_)
-    : name(name_), compute(compute_) {}
+  Statistics(std::string name, StatisticsFunc* compute)
+    : name_(name), compute_(compute) {}
 };
 
 namespace internal {
