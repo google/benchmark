@@ -106,13 +106,20 @@ add_test(user_counters_tabular_test user_counters_tabular_test --benchmark_count
 
 check_cxx_compiler_flag(-std=c++03 BENCHMARK_HAS_CXX03_FLAG)
 if (BENCHMARK_HAS_CXX03_FLAG)
-  set(CXX03_FLAGS "${CMAKE_CXX_FLAGS}")
-  string(REPLACE "-std=c++11" "-std=c++03" CXX03_FLAGS "${CXX03_FLAGS}")
-  string(REPLACE "-std=c++0x" "-std=c++03" CXX03_FLAGS "${CXX03_FLAGS}")
-
   compile_benchmark_test(cxx03_test)
   set_target_properties(cxx03_test
-      PROPERTIES COMPILE_FLAGS "${CXX03_FLAGS}")
+      PROPERTIES
+      COMPILE_FLAGS "-std=c++03")
+  # libstdc++ provides different definitions within <map> between dialects. When
+  # LTO is enabled and -Werror is specified GCC diagnoses this ODR violation
+  # causing the test to fail to compile. To prevent this we explicitly disable
+  # the warning.
+  check_cxx_compiler_flag(-Wno-odr BENCHMARK_HAS_WNO_ODR)
+  if (BENCHMARK_ENABLE_LTO AND BENCHMARK_HAS_WNO_ODR)
+    set_target_properties(cxx03_test
+        PROPERTIES
+        LINK_FLAGS "-Wno-odr")
+  endif()
   add_test(cxx03 cxx03_test --benchmark_min_time=0.01)
 endif()
 
