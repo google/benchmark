@@ -27,7 +27,7 @@ void BM_Counters_Simple(benchmark::State& state) {
 BENCHMARK(BM_Counters_Simple);
 ADD_CASES(TC_ConsoleOut, {{"^BM_Counters_Simple %console_report bar=%hrfloat foo=%hrfloat$"}});
 ADD_CASES(TC_JSONOut, {{"\"name\": \"BM_Counters_Simple\",$"},
-                       {"\"iterations\": %float,$", MR_Next},
+                       {"\"iterations\": %int,$", MR_Next},
                        {"\"real_time\": %float,$", MR_Next},
                        {"\"cpu_time\": %float,$", MR_Next},
                        {"\"time_unit\": \"ns\",$", MR_Next},
@@ -63,7 +63,7 @@ ADD_CASES(TC_ConsoleOut,
           {{"^BM_Counters_WithBytesAndItemsPSec %console_report "
             "bar=%hrfloat foo=%hrfloat +%hrfloatB/s +%hrfloat items/s$"}});
 ADD_CASES(TC_JSONOut, {{"\"name\": \"BM_Counters_WithBytesAndItemsPSec\",$"},
-                       {"\"iterations\": %float,$", MR_Next},
+                       {"\"iterations\": %int,$", MR_Next},
                        {"\"real_time\": %float,$", MR_Next},
                        {"\"cpu_time\": %float,$", MR_Next},
                        {"\"time_unit\": \"ns\",$", MR_Next},
@@ -101,7 +101,7 @@ void BM_Counters_Rate(benchmark::State& state) {
 BENCHMARK(BM_Counters_Rate);
 ADD_CASES(TC_ConsoleOut, {{"^BM_Counters_Rate %console_report bar=%hrfloat/s foo=%hrfloat/s$"}});
 ADD_CASES(TC_JSONOut, {{"\"name\": \"BM_Counters_Rate\",$"},
-                       {"\"iterations\": %float,$", MR_Next},
+                       {"\"iterations\": %int,$", MR_Next},
                        {"\"real_time\": %float,$", MR_Next},
                        {"\"cpu_time\": %float,$", MR_Next},
                        {"\"time_unit\": \"ns\",$", MR_Next},
@@ -132,7 +132,7 @@ void BM_Counters_Threads(benchmark::State& state) {
 BENCHMARK(BM_Counters_Threads)->ThreadRange(1, 8);
 ADD_CASES(TC_ConsoleOut, {{"^BM_Counters_Threads/threads:%int %console_report bar=%hrfloat foo=%hrfloat$"}});
 ADD_CASES(TC_JSONOut, {{"\"name\": \"BM_Counters_Threads/threads:%int\",$"},
-                       {"\"iterations\": %float,$", MR_Next},
+                       {"\"iterations\": %int,$", MR_Next},
                        {"\"real_time\": %float,$", MR_Next},
                        {"\"cpu_time\": %float,$", MR_Next},
                        {"\"time_unit\": \"ns\",$", MR_Next},
@@ -162,7 +162,7 @@ void BM_Counters_AvgThreads(benchmark::State& state) {
 BENCHMARK(BM_Counters_AvgThreads)->ThreadRange(1, 8);
 ADD_CASES(TC_ConsoleOut, {{"^BM_Counters_AvgThreads/threads:%int %console_report bar=%hrfloat foo=%hrfloat$"}});
 ADD_CASES(TC_JSONOut, {{"\"name\": \"BM_Counters_AvgThreads/threads:%int\",$"},
-                       {"\"iterations\": %float,$", MR_Next},
+                       {"\"iterations\": %int,$", MR_Next},
                        {"\"real_time\": %float,$", MR_Next},
                        {"\"cpu_time\": %float,$", MR_Next},
                        {"\"time_unit\": \"ns\",$", MR_Next},
@@ -193,7 +193,7 @@ void BM_Counters_AvgThreadsRate(benchmark::State& state) {
 BENCHMARK(BM_Counters_AvgThreadsRate)->ThreadRange(1, 8);
 ADD_CASES(TC_ConsoleOut, {{"^BM_Counters_AvgThreadsRate/threads:%int %console_report bar=%hrfloat/s foo=%hrfloat/s$"}});
 ADD_CASES(TC_JSONOut, {{"\"name\": \"BM_Counters_AvgThreadsRate/threads:%int\",$"},
-                       {"\"iterations\": %float,$", MR_Next},
+                       {"\"iterations\": %int,$", MR_Next},
                        {"\"real_time\": %float,$", MR_Next},
                        {"\"cpu_time\": %float,$", MR_Next},
                        {"\"time_unit\": \"ns\",$", MR_Next},
