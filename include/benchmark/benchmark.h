@@ -357,12 +357,7 @@ public:
 
   BENCHMARK_ALWAYS_INLINE operator double const& () const { return value; }
   BENCHMARK_ALWAYS_INLINE operator double      & ()       { return value; }
-
 };
-
-// This is the container for the user-defined counters.
-typedef std::map<std::string, Counter> UserCounters;
-
 
 // TimeUnit is passed to a benchmark in order to specify the order of magnitude
 // for the measured time.
@@ -392,6 +387,27 @@ enum ReportMode
   RM_Default,      // The mode is user-specified as default.
   RM_ReportAggregatesOnly
 };
+
+class UserCounters {
+ public:
+
+  static bool SameNames(UserCounters const& l, UserCounters const& r);
+
+  void Finish(double time, double num_threads);
+  void Increment(UserCounters const& r);
+
+  const std::map<std::string, Counter>& get() const { return counters_; }
+
+  bool Empty() const { return counters_.empty(); }
+  void Clear() { counters_.clear(); }
+  void Set(const std::string& s, Counter c) { counters_[s] = c; }
+  void Insert(const std::map<std::string, Counter>& m) {
+    counters_.insert(m.begin(), m.end()); }
+
+ private:
+  std::map<std::string, Counter> counters_;
+};
+
 }  // namespace internal
 
 // State is passed to a running Benchmark and contains state for the
@@ -550,7 +566,7 @@ class State {
 
  public:
   // Container for user-defined counters.
-  UserCounters counters;
+  internal::UserCounters counters;
   // Index of the executing thread. Values from [0, threads).
   const int thread_index;
   // Number of threads concurrently executing the benchmark.
@@ -1069,7 +1085,7 @@ class BenchmarkReporter {
     bool report_big_o;
     bool report_rms;
 
-    UserCounters counters;
+    internal::UserCounters counters;
   };
 
   // Construct a BenchmarkReporter with the output stream set to 'std::cout'
@@ -1151,7 +1167,7 @@ public:
 
   OutputOptions output_options_;
   size_t name_field_width_;
-  UserCounters prev_counters_;
+  internal::UserCounters prev_counters_;
   bool printed_header_;
 };
 

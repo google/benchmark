@@ -37,7 +37,6 @@
 #include "colorprint.h"
 #include "commandlineflags.h"
 #include "complexity.h"
-#include "counter.h"
 #include "log.h"
 #include "mutex.h"
 #include "re.h"
@@ -257,7 +256,7 @@ BenchmarkReporter::Run CreateRunReport(
     report.complexity = b.complexity;
     report.complexity_lambda = b.complexity_lambda;
     report.counters = results.counters;
-    internal::Finish(&report.counters, seconds, b.threads);
+    report.counters.Finish(seconds, b.threads);
   }
   return report;
 }
@@ -281,7 +280,7 @@ void RunInThread(const benchmark::internal::Benchmark::Instance* b,
     results.bytes_processed += st.bytes_processed();
     results.items_processed += st.items_processed();
     results.complexity_n += st.complexity_length_n();
-    internal::Increment(&results.counters, st.counters);
+    results.counters.Increment(st.counters);
   }
   manager->NotifyThreadComplete();
 }

@@ -57,7 +57,7 @@ void BM_Counters_Tabular(benchmark::State& state) {
   while (state.KeepRunning()) {
   }
   namespace bm = benchmark;
-  state.counters.insert({
+  state.counters.Insert({
     {"Foo",  { 1, bm::Counter::kAvgThreads}},
     {"Bar",  { 2, bm::Counter::kAvgThreads}},
     {"Baz",  { 4, bm::Counter::kAvgThreads}},
@@ -101,7 +101,7 @@ void BM_CounterRates_Tabular(benchmark::State& state) {
   while (state.KeepRunning()) {
   }
   namespace bm = benchmark;
-  state.counters.insert({
+  state.counters.Insert({
     {"Foo",  { 1, bm::Counter::kAvgThreadsRate}},
     {"Bar",  { 2, bm::Counter::kAvgThreadsRate}},
     {"Baz",  { 4, bm::Counter::kAvgThreadsRate}},
@@ -148,7 +148,7 @@ void BM_CounterSet0_Tabular(benchmark::State& state) {
   while (state.KeepRunning()) {
   }
   namespace bm = benchmark;
-  state.counters.insert({
+  state.counters.Insert({
     {"Foo", {10, bm::Counter::kAvgThreads}},
     {"Bar", {20, bm::Counter::kAvgThreads}},
     {"Baz", {40, bm::Counter::kAvgThreads}},
@@ -180,7 +180,7 @@ void BM_CounterSet1_Tabular(benchmark::State& state) {
   while (state.KeepRunning()) {
   }
   namespace bm = benchmark;
-  state.counters.insert({
+  state.counters.Insert({
     {"Foo", {15, bm::Counter::kAvgThreads}},
     {"Bar", {25, bm::Counter::kAvgThreads}},
     {"Baz", {45, bm::Counter::kAvgThreads}},
@@ -216,7 +216,7 @@ void BM_CounterSet2_Tabular(benchmark::State& state) {
   while (state.KeepRunning()) {
   }
   namespace bm = benchmark;
-  state.counters.insert({
+  state.counters.Insert({
     {"Foo", {10, bm::Counter::kAvgThreads}},
     {"Bat", {30, bm::Counter::kAvgThreads}},
     {"Baz", {40, bm::Counter::kAvgThreads}},
