@@ -18,6 +18,8 @@ IRC channel: https://freenode.net #googlebenchmark
 Define a function that executes the code to be measured.
 
 ```c++
+#include <benchmark/benchmark.h>
+
 static void BM_StringCreation(benchmark::State& state) {
   while (state.KeepRunning())
     std::string empty_string;
@@ -35,6 +37,8 @@ BENCHMARK(BM_StringCopy);
 
 BENCHMARK_MAIN();
 ```
+
+Don't forget to inform your linker to add benchmark library e.g. through `-lbenchmark` compilation flag.
 
 ### Passing arguments
 Sometimes a family of benchmarks can be implemented with just one routine that
