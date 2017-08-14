@@ -26,11 +26,28 @@ function(cxx_feature_check FILE)
     add_definitions(-DHAVE_${VAR})
     return()
   endif()
+
   message("-- Performing Test ${FEATURE}")
-  try_run(RUN_${FEATURE} COMPILE_${FEATURE}
-          ${CMAKE_BINARY_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/cmake/${FILE}.cpp
-          CMAKE_FLAGS ${BENCHMARK_CXX_LINKER_FLAGS}
-          LINK_LIBRARIES ${BENCHMARK_CXX_LIBRARIES})
+  if(CMAKE_CROSSCOMPILING)
+    try_compile(COMPILE_${FEATURE}
+            ${CMAKE_BINARY_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/cmake/${FILE}.cpp
+            CMAKE_FLAGS ${BENCHMARK_CXX_LINKER_FLAGS}
+            LINK_LIBRARIES ${BENCHMARK_CXX_LIBRARIES})
+    if(COMPILE_${FEATURE})
+      message(WARNING
+            "If you see build failures due to cross compilation, try setting HAVE_${VAR} to 0")
+      set(RUN_${FEATURE} 0)
+    else()
+      set(RUN_${FEATURE} 1)
+    endif()
+  else()
+    message("-- Performing Test ${FEATURE}")
+    try_run(RUN_${FEATURE} COMPILE_${FEATURE}
+            ${CMAKE_BINARY_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/cmake/${FILE}.cpp
+            CMAKE_FLAGS ${BENCHMARK_CXX_LINKER_FLAGS}
+            LINK_LIBRARIES ${BENCHMARK_CXX_LIBRARIES})
+  endif()
+
   if(RUN_${FEATURE} EQUAL 0)
     message("-- Performing Test ${FEATURE} -- success")
     set(HAVE_${VAR} 1 CACHE INTERNAL "Feature test for ${FILE}" PARENT_SCOPE)
@@ -43,4 +60,3 @@ function(cxx_feature_check FILE)
     endif()
   endif()
 endfunction()
-
