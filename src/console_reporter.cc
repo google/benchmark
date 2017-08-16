@@ -148,7 +148,7 @@ void ConsoleReporter::PrintRunData(const Run& result) {
   }
 
   for (auto& c : result.counters) {
-    auto const& s = HumanReadableNumber(c.second.value);
+    auto const& s = HumanReadableNumber(c.second.value, 1000);
     if (output_options_ & OO_Tabular) {
       if (c.second.flags & Counter::kIsRate) {
         printer(Out, COLOR_DEFAULT, " %8s/s", s.c_str());
