@@ -22,7 +22,6 @@
 #include <vector>
 
 #include "check.h"
-#include "stat.h"
 
 namespace benchmark {
 
