@@ -78,6 +78,20 @@
       "time_unit": "ns"
     },
     {
+      "name": "BM_ThirdFaster",
+      "iterations": 1000,
+      "real_time": 66.665,
+      "cpu_time": 66.664,
+      "time_unit": "ns"
+    },
+    {
+      "name": "BM_BadTimeUnit",
+      "iterations": 1000,
+      "real_time": 0.04,
+      "cpu_time": 0.6,
+      "time_unit": "s"
+    },
+    {
       "name": "BM_DifferentTimeUnit",
       "iterations": 1,
       "real_time": 1,
