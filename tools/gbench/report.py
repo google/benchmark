@@ -137,7 +137,8 @@ class TestReportDifference(unittest.TestCase):
             ['BM_100xSlower', '+99.0000', '+99.0000', '100', '10000', '100', '10000'],
             ['BM_100xFaster', '-0.9900', '-0.9900', '10000', '100', '10000', '100'],
             ['BM_10PercentCPUToTime', '+0.1000', '-0.1000', '100', '110', '100', '90'],
-            ['BM_ThirdFaster', '-0.3333', '-0.3333', '100', '67', '100', '67'],
+            ['BM_ThirdFaster', '-0.3333', '-0.3334', '100', '67', '100', '67'],
+            ['BM_BadTimeUnit', '-0.9000', '+0.2000', '0', '0', '0', '1'],
         ]
         json1, json2 = self.load_results()
         output_lines_with_header = generate_difference_report(json1, json2, use_color=False)
