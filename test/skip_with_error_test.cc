@@ -8,15 +8,15 @@
 
 namespace {
 
-class TestReporter : public benchmark::ConsoleReporter {
+class TestReporter : public benchmark::BenchmarkReporter {
  public:
   virtual bool ReportContext(const Context& context) {
-    return ConsoleReporter::ReportContext(context);
+    return benchmark::BenchmarkReporter::ReportContext(context);
   };
 
   virtual void ReportRuns(const std::vector<Run>& report) {
     all_runs_.insert(all_runs_.end(), begin(report), end(report));
-    ConsoleReporter::ReportRuns(report);
+    benchmark::BenchmarkReporter::ReportRuns(report);
   }
 
   TestReporter() {}

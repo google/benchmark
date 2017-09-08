@@ -114,6 +114,7 @@ def load_benchmark_results(fname):
         return json.load(f)
 
 
+# TODO(dominic): Arg to suppress console output from run.
 def run_benchmark(exe_name, benchmark_flags):
     """
     Run a benchmark specified by 'exe_name' with the specified
