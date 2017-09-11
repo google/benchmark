@@ -36,8 +36,7 @@ def generate_tabular_report(json):
   """
   INDENT = '             '
   first_col_width = gbench.report.find_longest_name(json['benchmarks']) + 1
-  columns = [c for bn in json['benchmarks'] for c in bn.keys()]
-  columns = list(set(columns))
+  columns = gbench.report.get_fields(json['benchmarks'])
   columns.remove('name')
   first_line = ("{:<{}s}".format('Benchmark', first_col_width) +
       INDENT.join(map(lambda x: "{:<{}}".format(x, len(INDENT)), columns)))

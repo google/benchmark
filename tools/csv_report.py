@@ -34,9 +34,7 @@ def generate_csv_report(json):
   """
   Generate a CSV report from a benchmark result in 'json'.
   """
-  columns = [c for bn in json['benchmarks'] for c in bn.keys()]
-  columns = list(set(columns))
-
+  columns = gbench.report.get_fields(json['benchmarks'])
   output_strs = [','.join(columns)]
 
   for bn in json['benchmarks']:

@@ -55,6 +55,15 @@ def find_longest_name(benchmark_list):
     return longest_name
 
 
+def get_fields(benchmark_list):
+    """
+    Returns the set of fields across benchmarks in the given list of
+    JSON objects
+    """
+    columns = [c for bn in benchmark_list for c in bn.keys()]
+    return list(set(columns))
+
+
 def calculate_change(old_val, new_val):
     """
     Return a float representing the decimal change between old_val and new_val.
@@ -113,19 +122,18 @@ def generate_difference_report(json1, json2, use_color=True):
 
 import unittest
 
-class TestReportDifference(unittest.TestCase):
-    def load_results(self):
+class TestReport(unittest.TestCase):
+    def setUp(self):
         import json
         testInputs = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'Inputs')
         testOutput1 = os.path.join(testInputs, 'test1_run1.json')
         testOutput2 = os.path.join(testInputs, 'test1_run2.json')
         with open(testOutput1, 'r') as f:
-            json1 = json.load(f)
+            self.json1 = json.load(f)
         with open(testOutput2, 'r') as f:
-            json2 = json.load(f)
-        return json1, json2
+            self.json2 = json.load(f)
 
-    def test_basic(self):
+    def test_report_difference(self):
         expect_lines = [
             ['BM_SameTimes', '+0.0000', '+0.0000', '10', '10', '10', '10'],
             ['BM_2xFaster', '-0.5000', '-0.5000', '50', '25', '50', '25'],
@@ -140,15 +148,19 @@ class TestReportDifference(unittest.TestCase):
             ['BM_ThirdFaster', '-0.3333', '-0.3334', '100', '67', '100', '67'],
             ['BM_BadTimeUnit', '-0.9000', '+0.2000', '0', '0', '0', '1'],
         ]
-        json1, json2 = self.load_results()
-        output_lines_with_header = generate_difference_report(json1, json2, use_color=False)
+        output_lines_with_header = generate_difference_report(
+            self.json1, self.json2, use_color=False)
         output_lines = output_lines_with_header[2:]
-        print("\n".join(output_lines_with_header))
         self.assertEqual(len(output_lines), len(expect_lines))
         for i in range(0, len(output_lines)):
             parts = [x for x in output_lines[i].split(' ') if x]
             self.assertEqual(len(parts), 7)
             self.assertEqual(parts, expect_lines[i])
+
+    def test_get_fields(self):
+      self.assertEqual(
+          get_fields(self.json1['benchmarks']).sort(),
+          ['name', 'iterations','real_time','cpu_time','time_unit'].sort())
 
 
 if __name__ == '__main__':
