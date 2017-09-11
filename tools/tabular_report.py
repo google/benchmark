@@ -56,7 +56,8 @@ def main():
       'test', metavar='test', type=str, nargs=1,
       help='A benchmark executable or JSON output file')
   parser.add_argument(
-      'benchmark_options', metavar='benchmark_options', nargs=argparse.REMAINDER,
+      'benchmark_options', metavar='benchmark_options',
+      nargs=argparse.REMAINDER,
       help='Arguments to pass when running a benchmark executable')
   args, unknown_args = parser.parse_known_args()
   # Parse the command line flags
