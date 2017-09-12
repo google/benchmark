@@ -369,8 +369,8 @@ void RunOutputTests(int argc, char* argv[]) {
 
     ReporterTest(const char* n, std::vector<TestCase>& out_tc,
                  std::vector<TestCase>& err_tc,
-                 benchmark::BenchmarkReporter& br)
-        : name(n), output_cases(out_tc), error_cases(err_tc), reporter(br) {
+                 benchmark::BenchmarkReporter& r)
+        : name(n), output_cases(out_tc), error_cases(err_tc), reporter(r) {
       reporter.SetOutputStream(&out_stream);
       reporter.SetErrorStream(&err_stream);
     }
