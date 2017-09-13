@@ -8,6 +8,10 @@
 #error C++11 or greater detected. Should be C++03.
 #endif
 
+#ifdef BENCHMARK_HAS_CXX11
+#error C++11 or greater detected by the library. BENCHMARK_HAS_CXX11 is defined.
+#endif
+
 void BM_empty(benchmark::State& state) {
   while (state.KeepRunning()) {
     volatile std::size_t x = state.iterations();
