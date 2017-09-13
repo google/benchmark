@@ -199,11 +199,11 @@ The `test_case_name` is appended to the name of the benchmark and
 should describe the values passed.
 
 ```c++
-template <class ...ExtraArgs>`
+template <class ...ExtraArgs>
 void BM_takes_args(benchmark::State& state, ExtraArgs&&... extra_args) {
   [...]
 }
-// Registers a benchmark named "BM_takes_args/int_string_test` that passes
+// Registers a benchmark named "BM_takes_args/int_string_test" that passes
 // the specified values to `extra_args`.
 BENCHMARK_CAPTURE(BM_takes_args, int_string_test, 42, std::string("abc"));
 ```
