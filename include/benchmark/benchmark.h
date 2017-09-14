@@ -164,7 +164,8 @@ BENCHMARK(BM_test)->Unit(benchmark::kMillisecond);
 #define BENCHMARK_BENCHMARK_H_
 
 
-#if __cplusplus >= 201103L
+// The _MSVC_LANG check should detect Visual Studio 2015 Update 3 and newer.
+#if __cplusplus >= 201103L || (defined(_MSVC_LANG) && _MSVC_LANG >= 201103L)
 #define BENCHMARK_HAS_CXX11
 #endif
 
@@ -921,7 +922,7 @@ class Fixture : public internal::Benchmark {
 #define BENCHMARK_RANGE2(n, l1, h1, l2, h2) \
   BENCHMARK(n)->RangePair({{(l1), (h1)}, {(l2), (h2)}})
 
-#if __cplusplus >= 201103L
+#ifdef BENCHMARK_HAS_CXX11
 
 // Register a benchmark which invokes the function specified by `func`
 // with the additional arguments specified by `...`.
@@ -941,7 +942,7 @@ class Fixture : public internal::Benchmark {
               #func "/" #test_case_name,                 \
               [](::benchmark::State& st) { func(st, __VA_ARGS__); })))
 
-#endif  // __cplusplus >= 11
+#endif  // BENCHMARK_HAS_CXX11
 
 // This will register a benchmark for a templatized function.  For example:
 //
@@ -962,7 +963,7 @@ class Fixture : public internal::Benchmark {
           new ::benchmark::internal::FunctionBenchmark(#n "<" #a "," #b ">", \
                                                        n<a, b>)))
 
-#if __cplusplus >= 201103L
+#ifdef BENCHMARK_HAS_CXX11
 #define BENCHMARK_TEMPLATE(n, ...)                       \
   BENCHMARK_PRIVATE_DECLARE(n) =                         \
       (::benchmark::internal::RegisterBenchmarkInternal( \
