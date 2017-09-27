@@ -821,7 +821,7 @@ BM_SetInsert/1024/10                       33157      33648      21431  1.13369M
 The JSON format outputs human readable json split into two top level attributes.
 The `context` attribute contains information about the run in general, including
 information about the CPU and the date.
-The `benchmarks` attribute contains a list of ever benchmark run. Example json
+The `benchmarks` attribute contains a list of every benchmark run. Example json
 output looks like:
 ```json
 {
