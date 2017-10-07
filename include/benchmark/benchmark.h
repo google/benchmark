@@ -984,9 +984,62 @@ class Fixture : public internal::Benchmark {
     virtual void BenchmarkCase(::benchmark::State&);          \
   };
 
+#define BENCHMARK_TEMPLATE1_PRIVATE_DECLARE_F(BaseClass, Method, a) \
+  class BaseClass##_##Method##_Benchmark : public BaseClass<a> {    \
+   public:                                                          \
+    BaseClass##_##Method##_Benchmark() : BaseClass<a>() {           \
+      this->SetName(#BaseClass"<" #a ">/" #Method);                 \
+    }                                                               \
+                                                                    \
+   protected:                                                       \
+    virtual void BenchmarkCase(::benchmark::State&);                \
+  };
+
+#define BENCHMARK_TEMPLATE2_PRIVATE_DECLARE_F(BaseClass, Method, a, b) \
+  class BaseClass##_##Method##_Benchmark : public BaseClass<a, b> {    \
+   public:                                                             \
+    BaseClass##_##Method##_Benchmark() : BaseClass<a, b>() {           \
+      this->SetName(#BaseClass"<" #a "," #b ">/" #Method);             \
+    }                                                                  \
+                                                                       \
+   protected:                                                          \
+    virtual void BenchmarkCase(::benchmark::State&);                   \
+  };
+
+#ifdef BENCHMARK_HAS_CXX11
+#define BENCHMARK_TEMPLATE_PRIVATE_DECLARE_F(BaseClass, Method, ...)       \
+  class BaseClass##_##Method##_Benchmark : public BaseClass<__VA_ARGS__> { \
+   public:                                                                 \
+    BaseClass##_##Method##_Benchmark() : BaseClass<__VA_ARGS__>() {        \
+      this->SetName(#BaseClass"<" #__VA_ARGS__ ">/" #Method);              \
+    }                                                                      \
+                                                                           \
+   protected:                                                              \
+    virtual void BenchmarkCase(::benchmark::State&);                       \
+  };
+#else
+#define BENCHMARK_TEMPLATE_PRIVATE_DECLARE_F(n, a) BENCHMARK_TEMPLATE1_PRIVATE_DECLARE_F(n, a)
+#endif
+
 #define BENCHMARK_DEFINE_F(BaseClass, Method)    \
   BENCHMARK_PRIVATE_DECLARE_F(BaseClass, Method) \
   void BaseClass##_##Method##_Benchmark::BenchmarkCase
+
+#define BENCHMARK_TEMPLATE1_DEFINE_F(BaseClass, Method, a)    \
+  BENCHMARK_TEMPLATE1_PRIVATE_DECLARE_F(BaseClass, Method, a) \
+  void BaseClass##_##Method##_Benchmark::BenchmarkCase
+
+#define BENCHMARK_TEMPLATE2_DEFINE_F(BaseClass, Method, a, b)    \
+  BENCHMARK_TEMPLATE2_PRIVATE_DECLARE_F(BaseClass, Method, a, b) \
+  void BaseClass##_##Method##_Benchmark::BenchmarkCase
+
+#ifdef BENCHMARK_HAS_CXX11
+#define BENCHMARK_TEMPLATE_DEFINE_F(BaseClass, Method, ...)            \
+  BENCHMARK_TEMPLATE_PRIVATE_DECLARE_F(BaseClass, Method, __VA_ARGS__) \
+  void BaseClass##_##Method##_Benchmark::BenchmarkCase
+#else
+#define BENCHMARK_TEMPLATE_DEFINE_F(BaseClass, Method, a) BENCHMARK_TEMPLATE1_DEFINE_F(BaseClass, Method, a)
+#endif
 
 #define BENCHMARK_REGISTER_F(BaseClass, Method) \
   BENCHMARK_PRIVATE_REGISTER_F(BaseClass##_##Method##_Benchmark)
@@ -1000,6 +1053,25 @@ class Fixture : public internal::Benchmark {
   BENCHMARK_PRIVATE_DECLARE_F(BaseClass, Method) \
   BENCHMARK_REGISTER_F(BaseClass, Method);       \
   void BaseClass##_##Method##_Benchmark::BenchmarkCase
+
+#define BENCHMARK_TEMPLATE1_F(BaseClass, Method, a)           \
+  BENCHMARK_TEMPLATE1_PRIVATE_DECLARE_F(BaseClass, Method, a) \
+  BENCHMARK_REGISTER_F(BaseClass, Method);                    \
+  void BaseClass##_##Method##_Benchmark::BenchmarkCase
+
+#define BENCHMARK_TEMPLATE2_F(BaseClass, Method, a, b)           \
+  BENCHMARK_TEMPLATE2_PRIVATE_DECLARE_F(BaseClass, Method, a, b) \
+  BENCHMARK_REGISTER_F(BaseClass, Method);                       \
+  void BaseClass##_##Method##_Benchmark::BenchmarkCase
+
+#ifdef BENCHMARK_HAS_CXX11
+#define BENCHMARK_TEMPLATE_F(BaseClass, Method, ...)           \
+  BENCHMARK_TEMPLATE_PRIVATE_DECLARE_F(BaseClass, Method, __VA_ARGS__) \
+  BENCHMARK_REGISTER_F(BaseClass, Method);                     \
+  void BaseClass##_##Method##_Benchmark::BenchmarkCase
+#else
+#define BENCHMARK_TEMPLATE_F(BaseClass, Method, a) BENCHMARK_TEMPLATE1_F(BaseClass, Method, a)
+#endif
 
 // Helper macro to create a main routine in a test that runs the benchmarks
 #define BENCHMARK_MAIN()                   \
