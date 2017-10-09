@@ -458,6 +458,31 @@ BENCHMARK_REGISTER_F(MyFixture, BarTest)->Threads(2);
 /* BarTest is now registered */
 ```
 
+### Templated fixtures
+Also you can create templated fixture by using the following macros:
+
+* `BENCHMARK_TEMPLATE_F(ClassName, Method, ...)`
+* `BENCHMARK_TEMPLATE_DEFINE_F(ClassName, Method, ...)`
+
+For example:
+```c++
+template<typename T>
+class MyFixture : public benchmark::Fixture {};
+
+BENCHMARK_TEMPLATE_F(MyFixture, IntTest, int)(benchmark::State& st) {
+   while (st.KeepRunning()) {
+     ...
+  }
+}
+
+BENCHMARK_TEMPLATE_DEFINE_F(MyFixture, DoubleTest, double)(benchmark::State& st) {
+   while (st.KeepRunning()) {
+     ...
+  }
+}
+
+BENCHMARK_REGISTER_F(MyFixture, DoubleTest)->Threads(2);
+```
 
 ## User-defined counters
 
