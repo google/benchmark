@@ -295,6 +295,7 @@ BENCHMARK_UNUSED static int stream_init_anchor = InitializeStreams();
 # define BENCHMARK_HAS_NO_INLINE_ASSEMBLY
 #endif
 
+
 // The DoNotOptimize(...) function can be used to prevent a value or
 // expression from being optimized away by the compiler. This function is
 // intended to add little to no overhead.
