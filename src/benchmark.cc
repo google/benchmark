@@ -99,19 +99,14 @@ DEFINE_bool(benchmark_counters_tabular, false,
 DEFINE_int32(v, 0, "The level of verbose logging to output");
 
 namespace benchmark {
-namespace internal {
-
-void UseCharPointer(char const volatile*) {}
-
-}  // end namespace internal
 
 namespace {
-
 static const size_t kMaxIterations = 1000000000;
-
 }  // end namespace
 
 namespace internal {
+
+void UseCharPointer(char const volatile*) {}
 
 class ThreadManager {
  public:
