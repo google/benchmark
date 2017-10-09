@@ -290,9 +290,11 @@ BENCHMARK_UNUSED static int stream_init_anchor = InitializeStreams();
 }  // namespace internal
 
 
-#if !defined(__GNUC__) || defined(__pnacl__) || defined(EMSCRIPTN)
+#if (!defined(__GNUC__) && !defined(__clang__)) || defined(__pnacl__) || \
+    defined(EMSCRIPTN)
 # define BENCHMARK_HAS_NO_INLINE_ASSEMBLY
 #endif
+
 
 // The DoNotOptimize(...) function can be used to prevent a value or
 // expression from being optimized away by the compiler. This function is
