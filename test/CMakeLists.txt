@@ -98,6 +98,9 @@ add_test(multiple_ranges_test multiple_ranges_test --benchmark_min_time=0.01)
 compile_output_test(reporter_output_test)
 add_test(reporter_output_test reporter_output_test --benchmark_min_time=0.01)
 
+compile_output_test(templated_fixture_test)
+add_test(templated_fixture_test templated_fixture_test --benchmark_min_time=0.01)
+
 compile_output_test(user_counters_test)
 add_test(user_counters_test user_counters_test --benchmark_min_time=0.01)
 
