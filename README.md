@@ -194,6 +194,58 @@ Three macros are provided for adding benchmark templates.
 #define BENCHMARK_TEMPLATE2(func, arg1, arg2)
 ```
 
+### A Faster KeepRunning loop
+
+In C++11 mode, a ranged-based for loop should be used in preference to
+the `KeepRunning` loop for running the benchmarks. For example:
+
+```c++
+static void BM_Faste(benchmark::State &st) {
+  for (auto _ : state) {
+    FastOperation();
+  }
+}
+```
+
+The reason the ranged-based for loop is faster than using `KeepRunning`, is
+because `KeepRunning` requires a memory load and store of the iteration count
+ever iteration, whereas the ranged-for variant is able to keep the iteration count
+in a register.
+
+For example, an empty inner loop of using the ranged-based for method looks like:
+
+```asm
+# Loop Init
+  mov rbx, qword ptr [r14 + 104]
+  call benchmark::State::StartKeepRunning()
+  test rbx, rbx
+  je .LoopEnd
+.LoopHeader: # =>This Inner Loop Header: Depth=1
+  add rbx, -1
+  jne .LoopHeader
+.LoopEnd:
+```
+
+Compared to an empty `KeepRunning` loop, which looks like:
+
+```asm
+.LoopHeader: # in Loop: Header=BB0_3 Depth=1
+  cmp byte ptr [rbx], 1
+  jne .LoopInit
+.LoopBody: # =>This Inner Loop Header: Depth=1
+  mov rax, qword ptr [rbx + 8]
+  lea rcx, [rax + 1]
+  mov qword ptr [rbx + 8], rcx
+  cmp rax, qword ptr [rbx + 104]
+  jb .LoopHeader
+  jmp .LoopEnd
+.LoopInit:
+  mov rdi, rbx
+  call benchmark::State::StartKeepRunning()
+  jmp .LoopBody
+.LoopEnd:
+```
+
 ## Passing arbitrary arguments to a benchmark
 In C++11 it is possible to define a benchmark that takes an arbitrary number
 of extra arguments. The `BENCHMARK_CAPTURE(func, test_case_name, ...args)`

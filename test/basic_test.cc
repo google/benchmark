@@ -96,4 +96,23 @@ void BM_empty_stop_start(benchmark::State& state) {
 BENCHMARK(BM_empty_stop_start);
 BENCHMARK(BM_empty_stop_start)->ThreadPerCpu();
 
+
+void BM_KeepRunning(benchmark::State& state) {
+  size_t iter_count = 0;
+  while (state.KeepRunning()) {
+    ++iter_count;
+  }
+  assert(iter_count == state.max_iterations);
+}
+BENCHMARK(BM_KeepRunning);
+
+void BM_RangedFor(benchmark::State& state) {
+  size_t iter_count = 0;
+  for (auto _ : state) {
+    ++iter_count;
+  }
+  assert(iter_count == state.max_iterations);
+}
+BENCHMARK(BM_RangedFor);
+
 BENCHMARK_MAIN()
