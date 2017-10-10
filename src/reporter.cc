@@ -53,9 +53,11 @@ void BenchmarkReporter::PrintBasicContext(std::ostream *out,
 }
 
 static double HandleNegativeZero(double D) {
-  if (D < (0.0-std::numeric_limits<double>::epsilon()) ||
-      D > std::numeric_limits<double>::epsilon())
-    return D;
+  volatile double DV = D;
+  const volatile double MinD = 0.0-std::numeric_limits<double>::epsilon();
+  if (DV < MinD ||
+      DV > std::numeric_limits<double>::epsilon())
+    return DV;
   return 0.0;
 }
 
