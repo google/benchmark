@@ -127,19 +127,8 @@ void ConsoleReporter::PrintRunData(const Run& result) {
         StrCat(" ", HumanReadableNumber(result.items_per_second), " items/s");
   }
 
-  double real_time = result.GetAdjustedRealTime();
-  if (real_time < 0) {
-    if (std::fabs(real_time) < std::numeric_limits<double>::epsilon()) {
-      real_time = 0.0;
-    }
-  }
-
-  double cpu_time = result.GetAdjustedCPUTime();
-  if (cpu_time < 0) {
-    if (std::fabs(cpu_time) < std::numeric_limits<double>::epsilon()) {
-      cpu_time = 0.0;
-    }
-  }
+  const double real_time = result.GetAdjustedRealTime();
+  const double cpu_time = result.GetAdjustedCPUTime();
 
   if (result.report_big_o) {
     std::string big_o = GetBigOString(result.complexity);
