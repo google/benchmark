@@ -53,9 +53,10 @@ void BenchmarkReporter::PrintBasicContext(std::ostream *out,
 }
 
 static double HandleNegativeZero(double D) {
-  if (std::signbit(D) == 1)
+  volatile auto VD = D;
+  if (VD == 0.0)
     return 0.0;
-  return D;
+  return VD;
 }
 
 double BenchmarkReporter::Run::GetAdjustedRealTime() const {
