@@ -53,8 +53,7 @@ void BenchmarkReporter::PrintBasicContext(std::ostream *out,
 }
 
 static double HandleNegativeZero(double D) {
-  volatile double DV = std::fabs(D);
-  if (DV <= std::numeric_limits<double>::epsilon())
+  if (std::signbit(D) == 1)
     return 0.0;
   return D;
 }
