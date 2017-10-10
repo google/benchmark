@@ -53,10 +53,9 @@ void BenchmarkReporter::PrintBasicContext(std::ostream *out,
 }
 
 static double HandleNegativeZero(double D) {
-  if (D < (0.0-std::numeric_limits<double>::epsilon()) ||
-      D > std::numeric_limits<double>::epsilon())
-    return D;
-  return 0.0;
+  if (std::fabs(D) < std::numeric_limits<double>::epsilon())
+    return 0.0;
+  return D;
 }
 
 double BenchmarkReporter::Run::GetAdjustedRealTime() const {
