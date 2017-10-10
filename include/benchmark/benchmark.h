@@ -238,7 +238,6 @@ BENCHMARK(BM_test)->Unit(benchmark::kMillisecond);
 #define BENCHMARK_GCC_VERSION (__GNUC__ * 100 + __GNUC_MINOR__)
 #endif
 
-
 namespace benchmark {
 class BenchmarkReporter;
 
@@ -413,6 +412,19 @@ enum ReportMode
 // benchmark to use.
 class State {
  public:
+  struct StateIterator;
+  friend struct StateIterator;
+
+  // Returns iterators used to run each iteration of a benchmark using a
+  // C++11 ranged-based for loop. These functions should not be called directly.
+  //
+  // REQUIRES: The benchmark has not started running yet. Neither begin nor end
+  // have been called previously.
+  //
+  // NOTE: KeepRunning may not be used after calling either of these functions.
+  BENCHMARK_ALWAYS_INLINE StateIterator begin();
+  BENCHMARK_ALWAYS_INLINE StateIterator end();
+
   // Returns true if the benchmark should continue through another iteration.
   // NOTE: A benchmark may not return from the test until KeepRunning() has
   // returned false.
@@ -584,6 +596,53 @@ class State {
   internal::ThreadManager* manager_;
   BENCHMARK_DISALLOW_COPY_AND_ASSIGN(State);
 };
+
+struct State::StateIterator {
+  struct BENCHMARK_UNUSED Value {};
+  typedef std::forward_iterator_tag iterator_category;
+  typedef Value value_type;
+  typedef Value reference;
+  typedef Value pointer;
+
+ private:
+  friend class State;
+  BENCHMARK_ALWAYS_INLINE
+  StateIterator() : cached_(0), parent_() {}
+
+  BENCHMARK_ALWAYS_INLINE
+  explicit StateIterator(State* st)
+      : cached_(st->max_iterations), parent_(st) {}
+
+ public:
+  BENCHMARK_ALWAYS_INLINE
+  Value operator*() const { return Value(); }
+
+  BENCHMARK_ALWAYS_INLINE
+  StateIterator& operator++() {
+    assert(cached_ > 0);
+    --cached_;
+    return *this;
+  }
+
+  BENCHMARK_ALWAYS_INLINE
+  bool operator!=(StateIterator const&) const {
+    if (BENCHMARK_BUILTIN_EXPECT(cached_ != 0, true)) return true;
+    parent_->FinishKeepRunning();
+    return false;
+  }
+
+ private:
+  size_t cached_;
+  State* const parent_;
+};
+
+BENCHMARK_ALWAYS_INLINE inline State::StateIterator State::begin() {
+  return StateIterator(this);
+}
+BENCHMARK_ALWAYS_INLINE inline State::StateIterator State::end() {
+  StartKeepRunning();
+  return StateIterator();
+}
 
 namespace internal {
 
