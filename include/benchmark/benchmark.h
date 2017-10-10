@@ -238,12 +238,6 @@ BENCHMARK(BM_test)->Unit(benchmark::kMillisecond);
 #define BENCHMARK_GCC_VERSION (__GNUC__ * 100 + __GNUC_MINOR__)
 #endif
 
-#ifdef BENCHMARK_HAS_CXX11
-#define BENCHMARK_NULLPTR nullptr
-#else
-#define BENCHMARK_NULLPTR NULL
-#endif
-
 namespace benchmark {
 class BenchmarkReporter;
 
@@ -611,7 +605,7 @@ struct State::StateIterator {
  private:
   friend class State;
   BENCHMARK_ALWAYS_INLINE
-  StateIterator() : cached_(0), parent_(BENCHMARK_NULLPTR) {}
+  StateIterator() : cached_(0), parent_() {}
 
   BENCHMARK_ALWAYS_INLINE
   explicit StateIterator(State* st)
