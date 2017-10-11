@@ -39,6 +39,7 @@
 #include <emscripten.h>
 #endif
 
+#include <cassert>
 #include <cerrno>
 #include <cstdint>
 #include <cstdio>
@@ -113,7 +114,7 @@ double ProcessCPUUsage() {
   if (GetProcessTimes(proc, &creation_time, &exit_time, &kernel_time,
                       &user_time))
     return MakeTime(kernel_time, user_time);
-  DiagnoseAndExit("GetProccessTimes() failed");
+  DiagnoseAndExit("GetProcessTimes() failed");
 #elif defined(BENCHMARK_OS_EMSCRIPTEN)
   // clock_gettime(CLOCK_PROCESS_CPUTIME_ID, ...) returns 0 on Emscripten.
   // Use Emscripten-specific API. Reported CPU time would be exactly the
@@ -141,9 +142,10 @@ double ThreadCPUUsage() {
   FILETIME exit_time;
   FILETIME kernel_time;
   FILETIME user_time;
-  assert(GetThreadTimes(this_thread, &creation_time, &exit_time, &kernel_time,
-                        &user_time) != 0);
-  return MakeTime(kernel_time, user_time);
+  if (GetThreadTimes(this_thread, &creation_time, &exit_time,
+                                &kernel_time, &user_time))
+    return MakeTime(kernel_time, user_time);
+  DiagnoseAndExit("GetThreadTimes failed");
 #elif defined(BENCHMARK_OS_MACOSX)
   // FIXME We want to use clock_gettime, but its not available in MacOS 10.11. See
   // https://github.com/google/benchmark/pull/292
