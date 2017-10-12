@@ -40,7 +40,7 @@ SubMap& GetSubstitutions() {
       {"%hrfloat", "[0-9]*[.]?[0-9]+([eE][-+][0-9]+)?[kMGTPEZYmunpfazy]?"},
       {"%int", "[ ]*[0-9]+"},
       {" %s ", "[ ]+"},
-      {"%time", "[ ]*[0-9]{1,5} ns"},
+      {"%time", "[ ]*[0-9]{1,9} ns"},
       {"%console_report", "[ ]*[0-9]{1,5} ns [ ]*[0-9]{1,5} ns [ ]*[0-9]+"},
       {"%console_us_report", "[ ]*[0-9] us [ ]*[0-9] us [ ]*[0-9]+"},
       {"%csv_header",
