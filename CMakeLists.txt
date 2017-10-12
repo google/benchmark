@@ -51,6 +51,11 @@ if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
     add_cxx_compiler_flag(-EHs-)
     add_cxx_compiler_flag(-EHa-)
   endif()
+
+  if (BENCHMARK_MINGW)
+    add_definitions(-D__USE_MINGW_ANSI_STDIO=1)
+  endif (BENCHMARK_MINGW)
+
   # Link time optimisation
   if (BENCHMARK_ENABLE_LTO)
     set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /GL")
