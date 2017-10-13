@@ -491,7 +491,7 @@ void RunBenchmarks(const std::vector<Benchmark::Instance>& benchmarks,
   // Print header here
   BenchmarkReporter::Context context;
   context.num_cpus = NumCPUs();
-  context.mhz_per_cpu = CyclesPerSecond() / 1000000.0f;
+  context.mhz_per_cpu = CyclesPerSecond() / 1000000.0;
 
   context.cpu_scaling_enabled = CpuScalingEnabled();
   context.name_field_width = name_field_width;
