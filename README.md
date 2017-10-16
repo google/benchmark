@@ -200,11 +200,12 @@ In C++11 mode, a ranged-based for loop should be used in preference to
 the `KeepRunning` loop for running the benchmarks. For example:
 
 ```c++
-static void BM_Faste(benchmark::State &st) {
+static void BM_Fast(benchmark::State &state) {
   for (auto _ : state) {
     FastOperation();
   }
 }
+BENCHMARK(BM_Fast);
 ```
 
 The reason the ranged-based for loop is faster than using `KeepRunning`, is
