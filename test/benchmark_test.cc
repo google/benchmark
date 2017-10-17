@@ -53,7 +53,7 @@ std::vector<int>* test_vector = nullptr;
 
 static void BM_Factorial(benchmark::State& state) {
   int fac_42 = 0;
-  while (state.KeepRunning()) fac_42 = Factorial(8);
+  for (auto _ : state) fac_42 = Factorial(8);
   // Prevent compiler optimizations
   std::stringstream ss;
   ss << fac_42;
@@ -64,7 +64,7 @@ BENCHMARK(BM_Factorial)->UseRealTime();
 
 static void BM_CalculatePiRange(benchmark::State& state) {
   double pi = 0.0;
-  while (state.KeepRunning()) pi = CalculatePi(state.range(0));
+  for (auto _ : state) pi = CalculatePi(state.range(0));
   std::stringstream ss;
   ss << pi;
   state.SetLabel(ss.str());
@@ -73,7 +73,7 @@ BENCHMARK_RANGE(BM_CalculatePiRange, 1, 1024 * 1024);
 
 static void BM_CalculatePi(benchmark::State& state) {
   static const int depth = 1024;
-  while (state.KeepRunning()) {
+  for (auto _ : state) {
     benchmark::DoNotOptimize(CalculatePi(depth));
   }
 }
@@ -82,7 +82,7 @@ BENCHMARK(BM_CalculatePi)->ThreadRange(1, 32);
 BENCHMARK(BM_CalculatePi)->ThreadPerCpu();
 
 static void BM_SetInsert(benchmark::State& state) {
-  while (state.KeepRunning()) {
+  for (auto _ : state) {
     state.PauseTiming();
     std::set<int> data = ConstructRandomSet(state.range(0));
     state.ResumeTiming();
@@ -97,7 +97,7 @@ template <typename Container,
           typename ValueType = typename Container::value_type>
 static void BM_Sequential(benchmark::State& state) {
   ValueType v = 42;
-  while (state.KeepRunning()) {
+  for (auto _ : state) {
     Container c;
     for (int i = state.range(0); --i;) c.push_back(v);
   }
@@ -116,7 +116,7 @@ BENCHMARK_TEMPLATE(BM_Sequential, std::vector<int>, int)->Arg(512);
 static void BM_StringCompare(benchmark::State& state) {
   std::string s1(state.range(0), '-');
   std::string s2(state.range(0), '-');
-  while (state.KeepRunning()) benchmark::DoNotOptimize(s1.compare(s2));
+  for (auto _ : state) benchmark::DoNotOptimize(s1.compare(s2));
 }
 BENCHMARK(BM_StringCompare)->Range(1, 1 << 20);
 
@@ -126,7 +126,7 @@ static void BM_SetupTeardown(benchmark::State& state) {
     test_vector = new std::vector<int>();
   }
   int i = 0;
-  while (state.KeepRunning()) {
+  for (auto _ : state) {
     std::lock_guard<std::mutex> l(test_vector_mu);
     if (i % 2 == 0)
       test_vector->push_back(i);
@@ -142,7 +142,7 @@ BENCHMARK(BM_SetupTeardown)->ThreadPerCpu();
 
 static void BM_LongTest(benchmark::State& state) {
   double tracker = 0.0;
-  while (state.KeepRunning()) {
+  for (auto _ : state) {
     for (int i = 0; i < state.range(0); ++i)
       benchmark::DoNotOptimize(tracker += i);
   }
@@ -159,7 +159,7 @@ static void BM_ParallelMemset(benchmark::State& state) {
     test_vector = new std::vector<int>(size);
   }
 
-  while (state.KeepRunning()) {
+  for (auto _ : state) {
     for (int i = from; i < to; i++) {
       // No need to lock test_vector_mu as ranges
       // do not overlap between threads.
@@ -179,7 +179,7 @@ static void BM_ManualTiming(benchmark::State& state) {
   std::chrono::duration<double, std::micro> sleep_duration{
       static_cast<double>(microseconds)};
 
-  while (state.KeepRunning()) {
+  for (auto _ : state) {
     auto start = std::chrono::high_resolution_clock::now();
     // Simulate some useful workload with a sleep
     std::this_thread::sleep_for(
@@ -201,7 +201,7 @@ BENCHMARK(BM_ManualTiming)->Range(1, 1 << 14)->UseManualTime();
 
 template <class... Args>
 void BM_with_args(benchmark::State& state, Args&&...) {
-  while (state.KeepRunning()) {
+  for (auto _ : state) {
   }
 }
 BENCHMARK_CAPTURE(BM_with_args, int_test, 42, 43, 44);

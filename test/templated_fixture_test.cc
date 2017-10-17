@@ -13,13 +13,13 @@ public:
 };
 
 BENCHMARK_TEMPLATE_F(MyFixture, Foo, int)(benchmark::State &st) {
-  while (st.KeepRunning()) {
+  for (auto _ : st) {
     data += 1;
   }
 }
 
 BENCHMARK_TEMPLATE_DEFINE_F(MyFixture, Bar, double)(benchmark::State& st) {
-  while (st.KeepRunning()) {
+  for (auto _ : st) {
     data += 1.0;
   }
 }

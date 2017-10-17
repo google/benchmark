@@ -54,7 +54,7 @@ ADD_CASES(TC_CSVOut, {{"%csv_header,"
 // ========================================================================= //
 
 void BM_Counters_Tabular(benchmark::State& state) {
-  while (state.KeepRunning()) {
+  for (auto _ : state) {
   }
   namespace bm = benchmark;
   state.counters.insert({
@@ -98,7 +98,7 @@ CHECK_BENCHMARK_RESULTS("BM_Counters_Tabular/threads:%int", &CheckTabular);
 // ========================================================================= //
 
 void BM_CounterRates_Tabular(benchmark::State& state) {
-  while (state.KeepRunning()) {
+  for (auto _ : state) {
   }
   namespace bm = benchmark;
   state.counters.insert({
@@ -145,7 +145,7 @@ CHECK_BENCHMARK_RESULTS("BM_CounterRates_Tabular/threads:%int",
 
 // set only some of the counters
 void BM_CounterSet0_Tabular(benchmark::State& state) {
-  while (state.KeepRunning()) {
+  for (auto _ : state) {
   }
   namespace bm = benchmark;
   state.counters.insert({
@@ -177,7 +177,7 @@ CHECK_BENCHMARK_RESULTS("BM_CounterSet0_Tabular", &CheckSet0);
 
 // again.
 void BM_CounterSet1_Tabular(benchmark::State& state) {
-  while (state.KeepRunning()) {
+  for (auto _ : state) {
   }
   namespace bm = benchmark;
   state.counters.insert({
@@ -213,7 +213,7 @@ CHECK_BENCHMARK_RESULTS("BM_CounterSet1_Tabular/threads:%int", &CheckSet1);
 
 // set only some of the counters, different set now.
 void BM_CounterSet2_Tabular(benchmark::State& state) {
-  while (state.KeepRunning()) {
+  for (auto _ : state) {
   }
   namespace bm = benchmark;
   state.counters.insert({

@@ -61,7 +61,7 @@ typedef benchmark::internal::Benchmark* ReturnVal;
 // Test RegisterBenchmark with no additional arguments
 //----------------------------------------------------------------------------//
 void BM_function(benchmark::State& state) {
-  while (state.KeepRunning()) {
+  for (auto _ : state) {
   }
 }
 BENCHMARK(BM_function);
@@ -77,7 +77,7 @@ ADD_CASES({"BM_function"}, {"BM_function_manual_registration"});
 #ifndef BENCHMARK_HAS_NO_VARIADIC_REGISTER_BENCHMARK
 
 void BM_extra_args(benchmark::State& st, const char* label) {
-  while (st.KeepRunning()) {
+  for (auto _ : st) {
   }
   st.SetLabel(label);
 }
@@ -99,7 +99,7 @@ ADD_CASES({"test1", "One"}, {"test2", "Two"}, {"test3", "Three"});
 
 struct CustomFixture {
   void operator()(benchmark::State& st) {
-    while (st.KeepRunning()) {
+    for (auto _ : st) {
     }
   }
 };
@@ -116,7 +116,7 @@ void TestRegistrationAtRuntime() {
   {
     const char* x = "42";
     auto capturing_lam = [=](benchmark::State& st) {
-      while (st.KeepRunning()) {
+      for (auto _ : st) {
       }
       st.SetLabel(x);
     };
