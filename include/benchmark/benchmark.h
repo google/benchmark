@@ -432,7 +432,7 @@ class State {
     if (BENCHMARK_BUILTIN_EXPECT(!started_, false)) {
       StartKeepRunning();
     }
-    bool const res = total_iterations_++ < max_iterations;
+    bool const res = --total_iterations_;
     if (BENCHMARK_BUILTIN_EXPECT(!res, false)) {
       FinishKeepRunning();
     }
@@ -559,7 +559,7 @@ class State {
   int range_y() const { return range(1); }
 
   BENCHMARK_ALWAYS_INLINE
-  size_t iterations() const { return total_iterations_; }
+  size_t iterations() const { return (max_iterations - total_iterations_) + 1; }
 
  private:
   bool started_;

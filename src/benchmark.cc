@@ -397,7 +397,7 @@ State::State(size_t max_iters, const std::vector<int>& ranges, int thread_i,
              internal::ThreadManager* manager)
     : started_(false),
       finished_(false),
-      total_iterations_(0),
+      total_iterations_(max_iters + 1),
       range_(ranges),
       bytes_processed_(0),
       items_processed_(0),
@@ -410,6 +410,7 @@ State::State(size_t max_iters, const std::vector<int>& ranges, int thread_i,
       timer_(timer),
       manager_(manager) {
   CHECK(max_iterations != 0) << "At least one iteration must be run";
+  CHECK(total_iterations_ != 0) << "max iterations wrapped around";
   CHECK_LT(thread_index, threads) << "thread_index must be less than threads";
 }
 
@@ -434,7 +435,7 @@ void State::SkipWithError(const char* msg) {
       manager_->results.has_error_ = true;
     }
   }
-  total_iterations_ = max_iterations;
+  total_iterations_ = 1;
   if (timer_->running()) timer_->StopTimer();
 }
 
@@ -459,8 +460,8 @@ void State::FinishKeepRunning() {
   if (!error_occurred_) {
     PauseTiming();
   }
-  // Total iterations now is one greater than max iterations. Fix this.
-  total_iterations_ = max_iterations;
+  // Total iterations has now wrapped around zero. Fix this.
+  total_iterations_ = 1;
   finished_ = true;
   manager_->StartStopBarrier();
 }
