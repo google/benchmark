@@ -467,9 +467,13 @@ class State {
 
   // REQUIRES: 'SkipWithError(...)' has not been called previously by the
   //            current thread.
-  // Skip any future iterations of the 'KeepRunning()' loop in the current
-  // thread and report an error with the specified 'msg'. After this call
-  // the user may explicitly 'return' from the benchmark.
+  // Report the benchmark as resulting in an error with the specified 'msg'.
+  // After this call the user may explicitly 'return' from the benchmark.
+  //
+  // If the ranged-for style of benchmark loop is used, the user must explicitly
+  // break from the loop, otherwise all future iterations will be run.
+  // If the 'KeepRunning()' loop is used the current thread will automatically
+  // exit the loop at the end of the current iteration.
   //
   // For threaded benchmarks only the current thread stops executing and future
   // calls to `KeepRunning()` will block until all threads have completed
@@ -611,7 +615,7 @@ struct State::StateIterator {
 
   BENCHMARK_ALWAYS_INLINE
   explicit StateIterator(State* st)
-      : cached_(st->max_iterations), parent_(st) {}
+      : cached_(st->error_occurred_ ? 0 : st->max_iterations), parent_(st) {}
 
  public:
   BENCHMARK_ALWAYS_INLINE
