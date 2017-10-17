@@ -21,7 +21,7 @@ Define a function that executes the code to be measured.
 #include <benchmark/benchmark.h>
 
 static void BM_StringCreation(benchmark::State& state) {
-  while (state.KeepRunning())
+  for (auto _ : state)
     std::string empty_string;
 }
 // Register the function as a benchmark
@@ -30,7 +30,7 @@ BENCHMARK(BM_StringCreation);
 // Define another benchmark
 static void BM_StringCopy(benchmark::State& state) {
   std::string x = "hello";
-  while (state.KeepRunning())
+  for (auto _ : state)
     std::string copy(x);
 }
 BENCHMARK(BM_StringCopy);
@@ -51,7 +51,7 @@ static void BM_memcpy(benchmark::State& state) {
   char* src = new char[state.range(0)];
   char* dst = new char[state.range(0)];
   memset(src, 'x', state.range(0));
-  while (state.KeepRunning())
+  for (auto _ : state)
     memcpy(dst, src, state.range(0));
   state.SetBytesProcessed(int64_t(state.iterations()) *
                           int64_t(state.range(0)));
@@ -84,7 +84,7 @@ insertion.
 
 ```c++
 static void BM_SetInsert(benchmark::State& state) {
-  while (state.KeepRunning()) {
+  for (auto _ : state) {
     state.PauseTiming();
     std::set<int> data = ConstructRandomSet(state.range(0));
     state.ResumeTiming();
@@ -135,7 +135,7 @@ running time and the normalized root-mean square error of string comparison.
 static void BM_StringCompare(benchmark::State& state) {
   std::string s1(state.range(0), '-');
   std::string s2(state.range(0), '-');
-  while (state.KeepRunning()) {
+  for (auto _ : state) {
     benchmark::DoNotOptimize(s1.compare(s2));
   }
   state.SetComplexityN(state.range(0));
@@ -169,7 +169,7 @@ absence of multiprogramming.
 template <class Q> int BM_Sequential(benchmark::State& state) {
   Q q;
   typename Q::value_type v;
-  while (state.KeepRunning()) {
+  for (auto _ : state) {
     for (int i = state.range(0); i--; )
       q.push(v);
     for (int e = state.range(0); e--; )
@@ -208,7 +208,7 @@ static void BM_Fast(benchmark::State &state) {
 BENCHMARK(BM_Fast);
 ```
 
-The reason the ranged-based for loop is faster than using `KeepRunning`, is
+The reason the ranged-for loop is faster than using `KeepRunning`, is
 because `KeepRunning` requires a memory load and store of the iteration count
 ever iteration, whereas the ranged-for variant is able to keep the iteration count
 in a register.
@@ -246,6 +246,9 @@ Compared to an empty `KeepRunning` loop, which looks like:
   jmp .LoopBody
 .LoopEnd:
 ```
+
+Unless C++03 compatibility is required, the ranged-for variant of writing
+the benchmark loop should be preferred.  
 
 ## Passing arbitrary arguments to a benchmark
 In C++11 it is possible to define a benchmark that takes an arbitrary number
@@ -296,9 +299,10 @@ int main(int argc, char** argv) {
 
 ### Multithreaded benchmarks
 In a multithreaded test (benchmark invoked by multiple threads simultaneously),
-it is guaranteed that none of the threads will start until all have called
-`KeepRunning`, and all will have finished before `KeepRunning` returns `false`. As
-such, any global setup or teardown can be wrapped in a check against the thread
+it is guaranteed that none of the threads will start until all have reached
+the start of the benchmark loop, and all will have finished before any thread
+exits the benchmark loop. (This behavior is also provided by the `KeepRunning()`
+API) As such, any global setup or teardown can be wrapped in a check against the thread
 index:
 
 ```c++
@@ -306,7 +310,7 @@ static void BM_MultiThreaded(benchmark::State& state) {
   if (state.thread_index == 0) {
     // Setup code here.
   }
-  while (state.KeepRunning()) {
+  for (auto _ : state) {
     // Run the test as normal.
   }
   if (state.thread_index == 0) {
@@ -333,7 +337,7 @@ correct or accurate enough, completely manual timing is supported using
 the `UseManualTime` function.
 
 When `UseManualTime` is used, the benchmarked code must call
-`SetIterationTime` once per iteration of the `KeepRunning` loop to
+`SetIterationTime` once per iteration of the benchmark loop to
 report the manually measured time.
 
 An example use case for this is benchmarking GPU execution (e.g. OpenCL
@@ -349,7 +353,7 @@ static void BM_ManualTiming(benchmark::State& state) {
     static_cast<double>(microseconds)
   };
 
-  while (state.KeepRunning()) {
+  for (auto _ : state) {
     auto start = std::chrono::high_resolution_clock::now();
     // Simulate some useful workload with a sleep
     std::this_thread::sleep_for(sleep_duration);
@@ -372,7 +376,7 @@ functions can be used.
 
 ```c++
 static void BM_test(benchmark::State& state) {
-  while (state.KeepRunning()) {
+  for (auto _ : state) {
       int x = 0;
       for (int i=0; i < 64; ++i) {
         benchmark::DoNotOptimize(x += i);
@@ -411,7 +415,7 @@ away.
 
 ```c++
 static void BM_vector_push_back(benchmark::State& state) {
-  while (state.KeepRunning()) {
+  for (auto _ : state) {
     std::vector<int> v;
     v.reserve(1);
     benchmark::DoNotOptimize(v.data()); // Allow v.data() to be clobbered.
@@ -467,7 +471,7 @@ by a lambda function.
 
 ```c++
 void BM_spin_empty(benchmark::State& state) {
-  while (state.KeepRunning()) {
+  for (auto _ : state) {
     for (int x = 0; x < state.range(0); ++x) {
       benchmark::DoNotOptimize(x);
     }
@@ -496,13 +500,13 @@ For Example:
 class MyFixture : public benchmark::Fixture {};
 
 BENCHMARK_F(MyFixture, FooTest)(benchmark::State& st) {
-   while (st.KeepRunning()) {
+   for (auto _ : st) {
      ...
   }
 }
 
 BENCHMARK_DEFINE_F(MyFixture, BarTest)(benchmark::State& st) {
-   while (st.KeepRunning()) {
+   for (auto _ : st) {
      ...
   }
 }
@@ -523,13 +527,13 @@ template<typename T>
 class MyFixture : public benchmark::Fixture {};
 
 BENCHMARK_TEMPLATE_F(MyFixture, IntTest, int)(benchmark::State& st) {
-   while (st.KeepRunning()) {
+   for (auto _ : st) {
      ...
   }
 }
 
 BENCHMARK_TEMPLATE_DEFINE_F(MyFixture, DoubleTest, double)(benchmark::State& st) {
-   while (st.KeepRunning()) {
+   for (auto _ : st) {
      ...
   }
 }
@@ -545,7 +549,7 @@ will add columns "Foo", "Bar" and "Baz" in its output:
 ```c++
 static void UserCountersExample1(benchmark::State& state) {
   double numFoos = 0, numBars = 0, numBazs = 0;
-  while (state.KeepRunning()) {
+  for (auto _ : state) {
     // ... count Foo,Bar,Baz events
   }
   state.counters["Foo"] = numFoos;
@@ -668,11 +672,12 @@ When errors caused by external influences, such as file I/O and network
 communication, occur within a benchmark the
 `State::SkipWithError(const char* msg)` function can be used to skip that run
 of benchmark and report the error. Note that only future iterations of the
-`KeepRunning()` are skipped. Users may explicitly return to exit the
-benchmark immediately.
+`KeepRunning()` are skipped. For the ranged-for version of the benchmark loop
+Users must explicitly exit the loop, otherwise all iterations will be performed.
+Users may explicitly return to exit the benchmark immediately.
 
 The `SkipWithError(...)` function may be used at any point within the benchmark,
-including before and after the `KeepRunning()` loop.
+including before and after the benchmark loop.
 
 For example:
 
@@ -683,13 +688,21 @@ static void BM_test(benchmark::State& state) {
       state.SkipWithError("Resource is not good!");
       // KeepRunning() loop will not be entered.
   }
-  while (state.KeepRunning()) {
+  for (state.KeepRunning()) {
       auto data = resource.read_data();
       if (!resource.good()) {
         state.SkipWithError("Failed to read data!");
         break; // Needed to skip the rest of the iteration.
      }
      do_stuff(data);
+  }
+}
+
+static void BM_test_ranged_fo(benchmark::State & state) {
+  state.SkipWithError("test will not be entered");
+  for (auto _ : state) {
+    state.SkipWithError("Failed!");
+    break; // REQUIRED to prevent all further iterations.
   }
 }
 ```

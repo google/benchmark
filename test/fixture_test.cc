@@ -28,7 +28,7 @@ class MyFixture : public ::benchmark::Fixture {
 BENCHMARK_F(MyFixture, Foo)(benchmark::State &st) {
   assert(data.get() != nullptr);
   assert(*data == 42);
-  while (st.KeepRunning()) {
+  for (auto _ : st) {
   }
 }
 
@@ -37,7 +37,7 @@ BENCHMARK_DEFINE_F(MyFixture, Bar)(benchmark::State& st) {
     assert(data.get() != nullptr);
     assert(*data == 42);
   }
-  while (st.KeepRunning()) {
+  for (auto _ : st) {
     assert(data.get() != nullptr);
     assert(*data == 42);
   }

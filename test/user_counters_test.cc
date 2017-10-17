@@ -19,7 +19,7 @@ ADD_CASES(TC_CSVOut, {{"%csv_header,\"bar\",\"foo\""}});
 // ========================================================================= //
 
 void BM_Counters_Simple(benchmark::State& state) {
-  while (state.KeepRunning()) {
+  for (auto _ : state) {
   }
   state.counters["foo"] = 1;
   state.counters["bar"] = 2 * (double)state.iterations();
@@ -51,7 +51,7 @@ CHECK_BENCHMARK_RESULTS("BM_Counters_Simple", &CheckSimple);
 
 namespace { int num_calls1 = 0; }
 void BM_Counters_WithBytesAndItemsPSec(benchmark::State& state) {
-  while (state.KeepRunning()) {
+  for (auto _ : state) {
   }
   state.counters["foo"] = 1;
   state.counters["bar"] = ++num_calls1;
@@ -92,7 +92,7 @@ CHECK_BENCHMARK_RESULTS("BM_Counters_WithBytesAndItemsPSec",
 // ========================================================================= //
 
 void BM_Counters_Rate(benchmark::State& state) {
-  while (state.KeepRunning()) {
+  for (auto _ : state) {
   }
   namespace bm = benchmark;
   state.counters["foo"] = bm::Counter{1, bm::Counter::kIsRate};
@@ -124,7 +124,7 @@ CHECK_BENCHMARK_RESULTS("BM_Counters_Rate", &CheckRate);
 // ========================================================================= //
 
 void BM_Counters_Threads(benchmark::State& state) {
-  while (state.KeepRunning()) {
+  for (auto _ : state) {
   }
   state.counters["foo"] = 1;
   state.counters["bar"] = 2;
@@ -153,7 +153,7 @@ CHECK_BENCHMARK_RESULTS("BM_Counters_Threads/threads:%int", &CheckThreads);
 // ========================================================================= //
 
 void BM_Counters_AvgThreads(benchmark::State& state) {
-  while (state.KeepRunning()) {
+  for (auto _ : state) {
   }
   namespace bm = benchmark;
   state.counters["foo"] = bm::Counter{1, bm::Counter::kAvgThreads};
@@ -184,7 +184,7 @@ CHECK_BENCHMARK_RESULTS("BM_Counters_AvgThreads/threads:%int",
 // ========================================================================= //
 
 void BM_Counters_AvgThreadsRate(benchmark::State& state) {
-  while (state.KeepRunning()) {
+  for (auto _ : state) {
   }
   namespace bm = benchmark;
   state.counters["foo"] = bm::Counter{1, bm::Counter::kAvgThreadsRate};

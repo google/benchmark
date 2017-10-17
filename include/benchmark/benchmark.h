@@ -18,7 +18,7 @@
 // Define a function that executes the code to be measured a
 // specified number of times:
 static void BM_StringCreation(benchmark::State& state) {
-  while (state.KeepRunning())
+  for (auto _ : state)
     std::string empty_string;
 }
 
@@ -28,7 +28,7 @@ BENCHMARK(BM_StringCreation);
 // Define another benchmark
 static void BM_StringCopy(benchmark::State& state) {
   std::string x = "hello";
-  while (state.KeepRunning())
+  for (auto _ : state)
     std::string copy(x);
 }
 BENCHMARK(BM_StringCopy);
@@ -54,7 +54,7 @@ int main(int argc, char** argv) {
 static void BM_memcpy(benchmark::State& state) {
   char* src = new char[state.range(0)]; char* dst = new char[state.range(0)];
   memset(src, 'x', state.range(0));
-  while (state.KeepRunning())
+  for (auto _ : state)
     memcpy(dst, src, state.range(0));
   state.SetBytesProcessed(int64_t(state.iterations()) *
                           int64_t(state.range(0)));
@@ -72,7 +72,7 @@ BENCHMARK(BM_memcpy)->Range(8, 8<<10);
 // example, the following code defines a family of microbenchmarks for
 // measuring the speed of set insertion.
 static void BM_SetInsert(benchmark::State& state) {
-  while (state.KeepRunning()) {
+  for (auto _ : state) {
     state.PauseTiming();
     set<int> data = ConstructRandomSet(state.range(0));
     state.ResumeTiming();
@@ -114,7 +114,7 @@ BENCHMARK(BM_SetInsert)->Apply(CustomArguments);
 template <class Q> int BM_Sequential(benchmark::State& state) {
   Q q;
   typename Q::value_type v;
-  while (state.KeepRunning()) {
+  for (auto _ : state) {
     for (int i = state.range(0); i--; )
       q.push(v);
     for (int e = state.range(0); e--; )
@@ -135,15 +135,15 @@ void BM_test(benchmark::State& state) {
 BENCHMARK(BM_test)->MinTime(2.0); // Run for at least 2 seconds.
 
 In a multithreaded test, it is guaranteed that none of the threads will start
-until all have called KeepRunning, and all will have finished before KeepRunning
-returns false. As such, any global setup or teardown you want to do can be
-wrapped in a check against the thread index:
+until all have reached the loop start, and all will have finished before any
+thread exits the loop body. As such, any global setup or teardown you want to
+do can be wrapped in a check against the thread index:
 
 static void BM_MultiThreaded(benchmark::State& state) {
   if (state.thread_index == 0) {
     // Setup code here.
   }
-  while (state.KeepRunning()) {
+  for (auto _ : state) {
     // Run the test as normal.
   }
   if (state.thread_index == 0) {
@@ -442,7 +442,7 @@ class State {
   // REQUIRES: timer is running and 'SkipWithError(...)' has not been called
   //           by the current thread.
   // Stop the benchmark timer.  If not called, the timer will be
-  // automatically stopped after KeepRunning() returns false for the first time.
+  // automatically stopped after the last iteration of the benchmark loop.
   //
   // For threaded benchmarks the PauseTiming() function only pauses the timing
   // for the current thread.
@@ -458,7 +458,8 @@ class State {
   // REQUIRES: timer is not running and 'SkipWithError(...)' has not been called
   //           by the current thread.
   // Start the benchmark timer.  The timer is NOT running on entrance to the
-  // benchmark function. It begins running after the first call to KeepRunning()
+  // benchmark function. It begins running after control flow enters the
+  // benchmark loop.
   //
   // NOTE: PauseTiming()/ResumeTiming() are relatively
   // heavyweight, and so their use should generally be avoided
@@ -486,7 +487,7 @@ class State {
   // responsibility to exit the scope as needed.
   void SkipWithError(const char* msg);
 
-  // REQUIRES: called exactly once per iteration of the KeepRunning loop.
+  // REQUIRES: called exactly once per iteration of the benchmarking loop.
   // Set the manually measured time for this benchmark iteration, which
   // is used instead of automatically measured time if UseManualTime() was
   // specified.
@@ -501,7 +502,7 @@ class State {
   // value > 0, the report is printed in MB/sec instead of nanoseconds
   // per iteration.
   //
-  // REQUIRES: a benchmark has exited its KeepRunning loop.
+  // REQUIRES: a benchmark has exited its benchmarking loop.
   BENCHMARK_ALWAYS_INLINE
   void SetBytesProcessed(size_t bytes) { bytes_processed_ = bytes; }
 
@@ -524,7 +525,7 @@ class State {
   // executing benchmark. It is typically called at the end of a processing
   // benchmark where a processing items/second output is desired.
   //
-  // REQUIRES: a benchmark has exited its KeepRunning loop.
+  // REQUIRES: a benchmark has exited its benchmarking loop.
   BENCHMARK_ALWAYS_INLINE
   void SetItemsProcessed(size_t items) { items_processed_ = items; }
 
@@ -542,7 +543,7 @@ class State {
   // Produces output that looks like:
   //  BM_Compress   50         50   14115038  compress:27.3%
   //
-  // REQUIRES: a benchmark has exited its KeepRunning loop.
+  // REQUIRES: a benchmark has exited its benchmarking loop.
   void SetLabel(const char* label);
 
   void BENCHMARK_ALWAYS_INLINE SetLabel(const std::string& str) {
