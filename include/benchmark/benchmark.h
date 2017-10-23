@@ -570,7 +570,6 @@ class State {
   BENCHMARK_DISALLOW_COPY_AND_ASSIGN(State);
 };
 
-
 namespace internal {
 
 typedef void(Function)(State&);
