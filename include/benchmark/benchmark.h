@@ -584,7 +584,6 @@ typedef void(Function)(State&);
 class Benchmark {
  public:
   virtual ~Benchmark();
-  typedef std::map<std::string, std::string> MetaDataType;
   // Note: the following methods all return "this" so that multiple
   // method calls can be chained together in one expression.
 
@@ -706,7 +705,7 @@ class Benchmark {
   // Run one instance of this benchmark concurrently in t threads.
   Benchmark* Threads(int t);
 
-
+  typedef std::map<std::string, std::string> MetaDataType;
   Benchmark* AddMetaData(const std::string & key, const std::string & val);
   const MetaDataType & MetaData()const;
 
