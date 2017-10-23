@@ -572,7 +572,6 @@ class State {
 
 
 
-
 namespace internal {
 
 typedef void(Function)(State&);
