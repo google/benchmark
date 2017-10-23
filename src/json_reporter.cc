@@ -185,7 +185,7 @@ void JSONReporter::PrintRunData(Run const& run) {
   for(auto &c : run.counters) {
     out << ",\n"
         << indent 
-        << FormatKV(c.first, RoundDouble(c.second));
+        << FormatKV(c.first, c.second);
   }
   if (!run.report_label.empty()) {
     out << ",\n" << indent << FormatKV("label", run.report_label);
