@@ -72,9 +72,10 @@ BENCHMARK(BM_memcpy)->Range(8, 8<<10);
 // example, the following code defines a family of microbenchmarks for
 // measuring the speed of set insertion.
 static void BM_SetInsert(benchmark::State& state) {
+  set<int> data;
   for (auto _ : state) {
     state.PauseTiming();
-    set<int> data = ConstructRandomSet(state.range(0));
+    data = ConstructRandomSet(state.range(0));
     state.ResumeTiming();
     for (int j = 0; j < state.range(1); ++j)
       data.insert(RandomNumber());

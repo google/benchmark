@@ -84,9 +84,10 @@ insertion.
 
 ```c++
 static void BM_SetInsert(benchmark::State& state) {
+  std::set<int> data;
   for (auto _ : state) {
     state.PauseTiming();
-    std::set<int> data = ConstructRandomSet(state.range(0));
+    data = ConstructRandomSet(state.range(0));
     state.ResumeTiming();
     for (int j = 0; j < state.range(1); ++j)
       data.insert(RandomNumber());
