@@ -83,16 +83,17 @@ BENCHMARK(BM_CalculatePi)->ThreadPerCpu();
 
 static void BM_SetInsert(benchmark::State& state) {
   std::set<int> data;
+  std::set<int> orig = ConstructRandomSet(state.range(0));
   for (auto _ : state) {
     state.PauseTiming();
-    data = ConstructRandomSet(state.range(0));
+    data = orig;
     state.ResumeTiming();
     for (int j = 0; j < state.range(1); ++j) data.insert(rand());
   }
   state.SetItemsProcessed(state.iterations() * state.range(1));
   state.SetBytesProcessed(state.iterations() * state.range(1) * sizeof(int));
 }
-BENCHMARK(BM_SetInsert)->Ranges({{1 << 10, 8 << 10}, {1, 10}});
+BENCHMARK(BM_SetInsert)->Ranges({{1 << 12, 1 << 15}, {100, 500}});
 
 template <typename Container,
           typename ValueType = typename Container::value_type>
