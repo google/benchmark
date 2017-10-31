@@ -42,7 +42,7 @@ double CalculatePi(int depth) {
 
 std::set<int> ConstructRandomSet(int size) {
   std::set<int> s;
-  for (int i = 0; i < size; ++i) s.insert(i);
+  for (int i = 0; i < size; ++i) s.insert(s.end(), i);
   return s;
 }
 
@@ -82,16 +82,20 @@ BENCHMARK(BM_CalculatePi)->ThreadRange(1, 32);
 BENCHMARK(BM_CalculatePi)->ThreadPerCpu();
 
 static void BM_SetInsert(benchmark::State& state) {
+  std::set<int> data;
   for (auto _ : state) {
     state.PauseTiming();
-    std::set<int> data = ConstructRandomSet(state.range(0));
+    data = ConstructRandomSet(state.range(0));
     state.ResumeTiming();
     for (int j = 0; j < state.range(1); ++j) data.insert(rand());
   }
   state.SetItemsProcessed(state.iterations() * state.range(1));
   state.SetBytesProcessed(state.iterations() * state.range(1) * sizeof(int));
 }
-BENCHMARK(BM_SetInsert)->Ranges({{1 << 10, 8 << 10}, {1, 10}});
+
+// Test many inserts at once to reduce the total iterations needed. Otherwise, the slower,
+// non-timed part of each iteration will make the benchmark take forever.
+BENCHMARK(BM_SetInsert)->Ranges({{1 << 10, 8 << 10}, {128, 512}});
 
 template <typename Container,
           typename ValueType = typename Container::value_type>

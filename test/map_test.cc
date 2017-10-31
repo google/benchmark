@@ -18,9 +18,10 @@ std::map<int, int> ConstructRandomMap(int size) {
 // Basic version.
 static void BM_MapLookup(benchmark::State& state) {
   const int size = state.range(0);
+  std::map<int, int> m;
   for (auto _ : state) {
     state.PauseTiming();
-    std::map<int, int> m = ConstructRandomMap(size);
+    m = ConstructRandomMap(size);
     state.ResumeTiming();
     for (int i = 0; i < size; ++i) {
       benchmark::DoNotOptimize(m.find(rand() % size));
