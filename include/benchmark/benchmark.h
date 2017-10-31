@@ -82,20 +82,20 @@ static void BM_SetInsert(benchmark::State& state) {
   }
 }
 BENCHMARK(BM_SetInsert)
-   ->Args({1<<10, 1})
-   ->Args({1<<10, 8})
-   ->Args({1<<10, 64})
+   ->Args({1<<10, 128})
+   ->Args({2<<10, 128})
+   ->Args({4<<10, 128})
+   ->Args({8<<10, 128})
    ->Args({1<<10, 512})
-   ->Args({8<<10, 1})
-   ->Args({8<<10, 8})
-   ->Args({8<<10, 64})
+   ->Args({2<<10, 512})
+   ->Args({4<<10, 512})
    ->Args({8<<10, 512});
 
 // The preceding code is quite repetitive, and can be replaced with
 // the following short-hand.  The following macro will pick a few
 // appropriate arguments in the product of the two specified ranges
 // and will generate a microbenchmark for each such pair.
-BENCHMARK(BM_SetInsert)->Ranges({{1<<10, 8<<10}, {1, 512}});
+BENCHMARK(BM_SetInsert)->Ranges({{1<<10, 8<<10}, {128, 512}});
 
 // For more complex patterns of inputs, passing a custom function
 // to Apply allows programmatic specification of an
