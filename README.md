@@ -835,6 +835,18 @@ Anything older *may* work.
 Note: Using the library and its headers in C++03 is supported. C++11 is only
 required to build the library.
 
+## Disable CPU frequency scaling
+If you see this error:
+```
+***WARNING*** CPU scaling is enabled, the benchmark real time measurements may be noisy and will incur extra overhead.
+```
+you might want to disable the CPU frequency scaling while running the benchmark:
+```bash
+sudo cpupower frequency-set --governor performance
+./mybench
+sudo cpupower frequency-set --governor powersave
+```
+
 # Known Issues
 
 ### Windows
