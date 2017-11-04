@@ -122,32 +122,23 @@ void CheckCases(TestCaseList const& checks, std::stringstream& output) {
 
 class TestReporter : public benchmark::BenchmarkReporter {
  public:
-  TestReporter(std::vector<benchmark::BenchmarkReporter*> reps)
-      : reporters_(reps) {}
+  TestReporter(benchmark::BenchmarkReporter* rep)
+      : rep_(rep) {}
 
   virtual bool ReportContext(const Context& context) {
-    bool last_ret = false;
-    bool first = true;
-    for (auto rep : reporters_) {
-      bool new_ret = rep->ReportContext(context);
-      CHECK(first || new_ret == last_ret)
-          << "Reports return different values for ReportContext";
-      first = false;
-      last_ret = new_ret;
-    }
-    (void)first;
-    return last_ret;
+    return rep_->ReportContext(context);
   }
 
-  void ReportRuns(const std::vector<Run>& report) {
-    for (auto rep : reporters_) rep->ReportRuns(report);
+  virtual void ReportRuns(const std::vector<Run>& report) {
+    rep_->ReportRuns(report);
   }
-  void Finalize() {
-    for (auto rep : reporters_) rep->Finalize();
+
+  virtual void Finalize() {
+    rep_->Finalize();
   }
 
  private:
-  std::vector<benchmark::BenchmarkReporter *> reporters_;
+  benchmark::BenchmarkReporter* rep_;
 };
 }
 
@@ -367,10 +358,7 @@ int SetSubstitutions(
 void RunOutputTests(int argc, char* argv[]) {
   using internal::GetTestCaseList;
   benchmark::Initialize(&argc, argv);
-  auto options = benchmark::internal::GetOutputOptions(/*force_no_color*/true);
-  benchmark::ConsoleReporter CR(options);
-  benchmark::JSONReporter JR;
-  benchmark::CSVReporter CSVR;
+  benchmark::BenchmarkReporter br;
   struct ReporterTest {
     const char* name;
     std::vector<TestCase>& output_cases;
@@ -381,23 +369,19 @@ void RunOutputTests(int argc, char* argv[]) {
 
     ReporterTest(const char* n, std::vector<TestCase>& out_tc,
                  std::vector<TestCase>& err_tc,
-                 benchmark::BenchmarkReporter& br)
-        : name(n), output_cases(out_tc), error_cases(err_tc), reporter(br) {
+                 benchmark::BenchmarkReporter& r)
+        : name(n), output_cases(out_tc), error_cases(err_tc), reporter(r) {
       reporter.SetOutputStream(&out_stream);
       reporter.SetErrorStream(&err_stream);
     }
   } TestCases[] = {
-      {"ConsoleReporter", GetTestCaseList(TC_ConsoleOut),
-       GetTestCaseList(TC_ConsoleErr), CR},
-      {"JSONReporter", GetTestCaseList(TC_JSONOut), GetTestCaseList(TC_JSONErr),
-       JR},
-      {"CSVReporter", GetTestCaseList(TC_CSVOut), GetTestCaseList(TC_CSVErr),
-       CSVR},
+      {"Reporter", GetTestCaseList(TC_JSONOut), GetTestCaseList(TC_JSONErr),
+       br},
   };
 
   // Create the test reporter and run the benchmarks.
   std::cout << "Running benchmarks...\n";
-  internal::TestReporter test_rep({&CR, &JR, &CSVR});
+  internal::TestReporter test_rep(&br);
   benchmark::RunSpecifiedBenchmarks(&test_rep);
 
   for (auto& rep_test : TestCases) {
@@ -413,11 +397,4 @@ void RunOutputTests(int argc, char* argv[]) {
 
     std::cout << "\n";
   }
-
-  // now that we know the output is as expected, we can dispatch
-  // the checks to subscribees.
-  auto &csv = TestCases[2];
-  // would use == but gcc spits a warning
-  CHECK(std::strcmp(csv.name, "CSVReporter") == 0);
-  internal::GetResultsChecker().CheckResults(csv.out_stream);
 }

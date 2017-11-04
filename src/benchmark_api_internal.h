@@ -39,8 +39,6 @@ bool FindBenchmarksInternal(const std::string& re,
 
 bool IsZero(double n);
 
-ConsoleReporter::OutputOptions GetOutputOptions(bool force_no_color = false);
-
 }  // end namespace internal
 }  // end namespace benchmark
 

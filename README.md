@@ -602,6 +602,7 @@ When you're compiling in C++11 mode or later you can use `insert()` with
 
 ### Counter reporting
 
+*TODO(dominic): Replace this section*
 When using the console reporter, by default, user counters are are printed at
 the end after the table, the same way as ``bytes_processed`` and
 ``items_processed``. This is best for cases in which there are few counters,
@@ -727,21 +728,10 @@ BM_memcpy/32k       1834 ns       1837 ns     357143
 
 
 ## Output Formats
-The library supports multiple output formats. Use the
-`--benchmark_format=<console|json|csv>` flag to set the format type. `console`
-is the default format.
+The library outputs reports as JSON. Use the `tools/csv_report.py` or
+`tools/tabular_report.py` tools to generate alternative output styles.
 
-The Console format is intended to be a human readable format. By default
-the format generates color output. Context is output on stderr and the
-tabular data on stdout. Example tabular output looks like:
-```
-Benchmark                               Time(ns)    CPU(ns) Iterations
-----------------------------------------------------------------------
-BM_SetInsert/1024/1                        28928      29349      23853  133.097kB/s   33.2742k items/s
-BM_SetInsert/1024/8                        32065      32913      21375  949.487kB/s   237.372k items/s
-BM_SetInsert/1024/10                       33157      33648      21431  1.13369MB/s   290.225k items/s
-```
-
+### JSON format
 The JSON format outputs human readable json split into two top level attributes.
 The `context` attribute contains information about the run in general, including
 information about the CPU and the date.
@@ -784,9 +774,19 @@ output looks like:
   ]
 }
 ```
+### Tabular report
+The tabular report format is intended to be a human readable format. By default
+the format generates color output. Example tabular output looks like:
+```
+Benchmark                               Time(ns)    CPU(ns) Iterations
+----------------------------------------------------------------------
+BM_SetInsert/1024/1                        28928      29349      23853  133.097kB/s   33.2742k items/s
+BM_SetInsert/1024/8                        32065      32913      21375  949.487kB/s   237.372k items/s
+BM_SetInsert/1024/10                       33157      33648      21431  1.13369MB/s   290.225k items/s
+```
 
-The CSV format outputs comma-separated values. The `context` is output on stderr
-and the CSV itself on stdout. Example CSV output looks like:
+### CSV report
+The CSV report outputs comma-separated values. Example CSV output looks like:
 ```
 name,iterations,real_time,cpu_time,bytes_per_second,items_per_second,label
 "BM_SetInsert/1024/1",65465,17890.7,8407.45,475768,118942,
@@ -796,9 +796,8 @@ name,iterations,real_time,cpu_time,bytes_per_second,items_per_second,label
 
 ## Output Files
 The library supports writing the output of the benchmark to a file specified
-by `--benchmark_out=<filename>`. The format of the output can be specified
-using `--benchmark_out_format={json|console|csv}`. Specifying
-`--benchmark_out` does not suppress the console output.
+by `--benchmark_out=<filename>`. Specifying `--benchmark_out` does not suppress
+the console output.
 
 ## Debug vs Release
 By default, benchmark builds as a debug library. You will see a warning in the output when this is the case. To build it as a release library instead, use:
