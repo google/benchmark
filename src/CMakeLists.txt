@@ -63,16 +63,16 @@ if (BENCHMARK_ENABLE_INSTALL)
     LIBRARY DESTINATION ${lib_install_dir}
     RUNTIME DESTINATION ${bin_install_dir}
     INCLUDES DESTINATION ${include_install_dir})
-  
+
   install(
     DIRECTORY "${PROJECT_SOURCE_DIR}/include/benchmark"
     DESTINATION ${include_install_dir}
     FILES_MATCHING PATTERN "*.*h")
-  
+
   install(
       FILES "${project_config}" "${version_config}"
       DESTINATION "${config_install_dir}")
-  
+
   install(
       EXPORT "${targets_export_name}"
       NAMESPACE "${namespace}"
