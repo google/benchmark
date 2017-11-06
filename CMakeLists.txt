@@ -42,6 +42,11 @@ if (BENCHMARK_BUILD_32_BITS)
   add_required_cxx_compiler_flag(-m32)
 endif()
 
+
+if (BENCHMARK_MINGW)
+  add_definitions(-D__USE_MINGW_ANSI_STDIO=1)
+endif (BENCHMARK_MINGW)
+
 if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
   # Turn compiler warnings up to 11
   string(REGEX REPLACE "[-/]W[1-4]" "" CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
@@ -52,6 +57,7 @@ if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
     add_cxx_compiler_flag(-EHs-)
     add_cxx_compiler_flag(-EHa-)
   endif()
+
   # Link time optimisation
   if (BENCHMARK_ENABLE_LTO)
     set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /GL")
