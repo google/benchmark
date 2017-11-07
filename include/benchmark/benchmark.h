@@ -642,10 +642,10 @@ struct State::StateIterator {
   State* const parent_;
 };
 
-BENCHMARK_ALWAYS_INLINE inline State::StateIterator State::begin() {
+inline BENCHMARK_ALWAYS_INLINE State::StateIterator State::begin() {
   return StateIterator(this);
 }
-BENCHMARK_ALWAYS_INLINE inline State::StateIterator State::end() {
+inline BENCHMARK_ALWAYS_INLINE State::StateIterator State::end() {
   StartKeepRunning();
   return StateIterator();
 }
