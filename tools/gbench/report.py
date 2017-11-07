@@ -1,6 +1,8 @@
 """report.py - Utilities for reporting statistics about benchmark results
 """
 import os
+import re
+import copy
 
 class BenchmarkColor(object):
     def __init__(self, name, code):
@@ -66,6 +68,22 @@ def calculate_change(old_val, new_val):
     return float(new_val - old_val) / abs(old_val)
 
 
+def filter_benchmark(json_orig, family, replacement=""):
+    """
+    Apply a filter to the json, and only leave the 'family' of benchmarks.
+    """
+    regex = re.compile(family)
+    filtered = {}
+    filtered['benchmarks'] = []
+    for be in json_orig['benchmarks']:
+        if not regex.search(be['name']):
+            continue
+        filteredbench = copy.deepcopy(be) # Do NOT modify the old name!
+        filteredbench['name'] = regex.sub(replacement, filteredbench['name'])
+        filtered['benchmarks'].append(filteredbench)
+    return filtered
+
+
 def generate_difference_report(json1, json2, use_color=True):
     """
     Calculate and report the difference between each test of two benchmarks
@@ -77,8 +95,9 @@ def generate_difference_report(json1, json2, use_color=True):
             if b['name'] == name:
                 return b
         return None
-    first_line = "{:<{}s}            Time             CPU      Time Old      Time New       CPU Old       CPU New".format(
-        'Benchmark', first_col_width)
+    first_col_width = max(first_col_width, len('Benchmark'))
+    first_line = "{:<{}s}Time             CPU      Time Old      Time New       CPU Old       CPU New".format(
+        'Benchmark', 12 + first_col_width)
     output_strs = [first_line, '-' * len(first_line)]
 
     gen = (bn for bn in json1['benchmarks'] if 'real_time' in bn and 'cpu_time' in bn)
@@ -151,5 +170,39 @@ class TestReportDifference(unittest.TestCase):
             self.assertEqual(parts, expect_lines[i])
 
 
+class TestReportDifferenceBetweenFamilies(unittest.TestCase):
+    def load_result(self):
+        import json
+        testInputs = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'Inputs')
+        testOutput = os.path.join(testInputs, 'test2_run.json')
+        with open(testOutput, 'r') as f:
+            json = json.load(f)
+        return json
+
+    def test_basic(self):
+        expect_lines = [
+            ['.', '-0.5000', '-0.5000', '10', '5', '10', '5'],
+            ['./4', '-0.5000', '-0.5000', '40', '20', '40', '20'],
+            ['Prefix/.', '-0.5000', '-0.5000', '20', '10', '20', '10'],
+            ['Prefix/./3', '-0.5000', '-0.5000', '30', '15', '30', '15'],
+        ]
+        json = self.load_result()
+        json1 = filter_benchmark(json, "BM_Z.ro", ".")
+        json2 = filter_benchmark(json, "BM_O.e", ".")
+        output_lines_with_header = generate_difference_report(json1, json2, use_color=False)
+        output_lines = output_lines_with_header[2:]
+        print "\n"
+        print("\n".join(output_lines_with_header))
+        self.assertEqual(len(output_lines), len(expect_lines))
+        for i in range(0, len(output_lines)):
+            parts = [x for x in output_lines[i].split(' ') if x]
+            self.assertEqual(len(parts), 7)
+            self.assertEqual(parts, expect_lines[i])
+
+
 if __name__ == '__main__':
     unittest.main()
+
+# vim: tabstop=4 expandtab shiftwidth=4 softtabstop=4
+# kate: tab-width: 4; replace-tabs on; indent-width 4; tab-indents: off;
+# kate: indent-mode python; remove-trailing-spaces modified;
