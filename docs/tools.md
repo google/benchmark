@@ -34,6 +34,8 @@ BM_ThirdFaster                -0.3333         -0.3334           100            6
 BM_BadTimeUnit                -0.9000         +0.2000             0             0             0             1
 ```
 
+As you can note, the values in `Time` and `CPU` columns are calculated as `(new - old) / |old|`.
+
 When a benchmark executable is run, the raw output from the benchmark is printed in real time to stdout. The sample output using `benchmark/basic_test` for both arguments looks like:
 
 ```
@@ -68,6 +70,7 @@ BM_empty_stop_start/threads:8         -0.0029         +0.0001             0     
 
 ```
 
+As you can note, the values in `Time` and `CPU` columns are calculated as `(new - old) / |old|`.
 Obviously this example doesn't give any useful output, but it's intended to show the output format when 'compare_bench.py' needs to run benchmarks.
 
 ## compare.py
@@ -136,6 +139,7 @@ BM_copy/8192           +0.0191         +0.0194        201165        205013      
 ```
 
 What it does is for the every benchmark from the first run it looks for the benchmark with exactly the same name in the second run, and then compares the results. If the names differ, the benchmark is omitted from the diff.
+As you can note, the values in `Time` and `CPU` columns are calculated as `(new - old) / |old|`.
 
 2. Compare two different filters of one benchmark
 The program is invoked like:
@@ -185,6 +189,7 @@ Benchmark                               Time             CPU      Time Old      
 ```
 
 As you can see, it applies filter to the benchmarks, both when running the benchmark, and before doing the diff. And to make the diff work, the matches are replaced with some common string. Thus, you can compare two different benchmark families within one benchmark binary.
+As you can note, the values in `Time` and `CPU` columns are calculated as `(new - old) / |old|`.
 
 3. Compare filter one from benchmark one to filter two from benchmark two:
 The program is invoked like:
@@ -234,3 +239,4 @@ Benchmark                               Time             CPU      Time Old      
 [BM_memcpy vs. BM_copy]/8192       +322.9059       +323.0096           664        215068           664        215053
 ```
 This is a mix of the previous two modes, two (potentially different) benchmark binaries are run, and a different filter is applied to each one.
+As you can note, the values in `Time` and `CPU` columns are calculated as `(new - old) / |old|`.
