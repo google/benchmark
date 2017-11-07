@@ -433,7 +433,7 @@ class State {
     if (BENCHMARK_BUILTIN_EXPECT(!started_, false)) {
       StartKeepRunning();
     }
-    bool const res = --total_iterations_;
+    bool const res = (--total_iterations_ != 0);
     if (BENCHMARK_BUILTIN_EXPECT(!res, false)) {
       FinishKeepRunning();
     }
