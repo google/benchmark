@@ -175,7 +175,9 @@ class ThreadTimer {
     CHECK(running_);
     running_ = false;
     real_time_used_ += ChronoClockNow() - start_real_time_;
-    cpu_time_used_ += ThreadCPUUsage() - start_cpu_time_;
+    // Floating point error can result in the subtraction producing a negative
+    // time. Guard against that.
+    cpu_time_used_ += std::max<double>(ThreadCPUUsage() - start_cpu_time_, 0);
   }
 
   // Called by each thread
