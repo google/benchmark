@@ -40,6 +40,8 @@ BENCHMARK_MAIN();
 
 Don't forget to inform your linker to add benchmark library e.g. through `-lbenchmark` compilation flag.
 
+The benchmark library will reporting the timing for the code within the `for(...)` loop.
+
 ### Passing arguments
 Sometimes a family of benchmarks can be implemented with just one routine that
 takes an extra argument to specify which one of the family of benchmarks to
