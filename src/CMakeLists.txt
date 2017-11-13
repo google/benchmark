@@ -37,7 +37,7 @@ endif()
 set(include_install_dir "include")
 set(lib_install_dir "lib/")
 set(bin_install_dir "bin/")
-set(config_install_dir "lib/cmake/${PROJECT_NAME}")
+set(config_install_dir "share/${PROJECT_NAME}")
 
 set(generated_dir "${CMAKE_CURRENT_BINARY_DIR}/generated")
 
