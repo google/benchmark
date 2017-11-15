@@ -38,11 +38,13 @@ set(include_install_dir "include")
 set(lib_install_dir "lib/")
 set(bin_install_dir "bin/")
 set(config_install_dir "lib/cmake/${PROJECT_NAME}")
+set(pkgconfig_install_dir "lib/pkgconfig")
 
 set(generated_dir "${CMAKE_CURRENT_BINARY_DIR}/generated")
 
 set(version_config "${generated_dir}/${PROJECT_NAME}ConfigVersion.cmake")
 set(project_config "${generated_dir}/${PROJECT_NAME}Config.cmake")
+set(pkg_config "${generated_dir}/${PROJECT_NAME}.pc")
 set(targets_export_name "${PROJECT_NAME}Targets")
 
 set(namespace "${PROJECT_NAME}::")
@@ -53,6 +55,7 @@ write_basic_package_version_file(
 )
 
 configure_file("${PROJECT_SOURCE_DIR}/cmake/Config.cmake.in" "${project_config}" @ONLY)
+configure_file("${PROJECT_SOURCE_DIR}/cmake/benchmark.pc.in" "${pkg_config}" @ONLY)
 
 if (BENCHMARK_ENABLE_INSTALL)
   # Install target (will install the library to specified CMAKE_INSTALL_PREFIX variable)
@@ -72,6 +75,10 @@ if (BENCHMARK_ENABLE_INSTALL)
   install(
       FILES "${project_config}" "${version_config}"
       DESTINATION "${config_install_dir}")
+
+  install(
+      FILES "${pkg_config}"
+      DESTINATION "${pkgconfig_install_dir}")
 
   install(
       EXPORT "${targets_export_name}"
