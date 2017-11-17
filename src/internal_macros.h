@@ -39,6 +39,8 @@
   #endif
 #elif defined(__FreeBSD__)
 #define BENCHMARK_OS_FREEBSD 1
+#elif defined(__NetBSD__)
+#define BENCHMARK_OS_NETBSD 1
 #elif defined(__linux__)
 #define BENCHMARK_OS_LINUX 1
 #elif defined(__native_client__)
