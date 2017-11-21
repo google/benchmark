@@ -106,9 +106,9 @@ struct ValueUnion {
 
   char* data() const { return Buff->bytes; }
 
-  std::string getAsString() const { return std::string(data()); }
+  std::string GetAsString() const { return std::string(data()); }
 
-  int64_t getAsInteger() const {
+  int64_t GetAsInteger() const {
     if (Size == sizeof(Buff->uint32_value))
       return static_cast<int32_t>(Buff->uint32_value);
     else if (Size == sizeof(Buff->uint64_value))
@@ -116,7 +116,7 @@ struct ValueUnion {
     BENCHMARK_UNREACHABLE();
   }
 
-  uint64_t getAsUnsigned() const {
+  uint64_t GetAsUnsigned() const {
     if (Size == sizeof(Buff->uint32_value))
       return Buff->uint32_value;
     else if (Size == sizeof(Buff->uint64_value))
@@ -155,7 +155,7 @@ bool GetSysctl(std::string const& Name, Tp* Out) {
   *Out = 0;
   auto Buff = GetSysctlImp(Name);
   if (!Buff) return false;
-  *Out = static_cast<Tp>(Buff.getAsUnsigned());
+  *Out = static_cast<Tp>(Buff.GetAsUnsigned());
   return true;
 }
 #endif
