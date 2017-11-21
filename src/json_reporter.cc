@@ -77,11 +77,14 @@ bool JSONReporter::ReportContext(const Context& context) {
   std::string walltime_value = LocalDateTimeString();
   out << indent << FormatKV("date", walltime_value) << ",\n";
 
-  out << indent << FormatKV("num_cpus", static_cast<int64_t>(context.num_cpus))
+  CPUInfo const& info = context.cpu_info;
+  out << indent << FormatKV("num_cpus", static_cast<int64_t>(info.num_cpus))
       << ",\n";
-  out << indent << FormatKV("mhz_per_cpu", RoundDouble(context.mhz_per_cpu))
+  out << indent
+      << FormatKV("mhz_per_cpu",
+                  RoundDouble(info.cycles_per_second / 1000000.0))
       << ",\n";
-  out << indent << FormatKV("cpu_scaling_enabled", context.cpu_scaling_enabled)
+  out << indent << FormatKV("cpu_scaling_enabled", info.scaling_enabled)
       << ",\n";
 
 #if defined(NDEBUG)
