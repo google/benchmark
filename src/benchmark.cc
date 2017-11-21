@@ -37,11 +37,12 @@
 #include "colorprint.h"
 #include "commandlineflags.h"
 #include "complexity.h"
-#include "statistics.h"
 #include "counter.h"
+#include "internal_macros.h"
 #include "log.h"
 #include "mutex.h"
 #include "re.h"
+#include "statistics.h"
 #include "string_util.h"
 #include "timers.h"
 
@@ -106,6 +107,14 @@ static const size_t kMaxIterations = 1000000000;
 namespace internal {
 
 void UseCharPointer(char const volatile*) {}
+
+#ifdef BENCHMARK_HAS_NO_BUILTIN_UNREACHABLE
+BENCHMARK_NORETURN void UnreachableImp(const char* FName, int Line) {
+  std::cerr << FName << ":" << Line << " executing unreachable code!"
+            << std::endl;
+  std::abort();
+}
+#endif
 
 class ThreadManager {
  public:

@@ -108,22 +108,20 @@ struct ValueUnion {
 
   std::string getAsString() const { return std::string(data()); }
 
-  long long getAsInteger() const {
+  int64_t getAsInteger() const {
     if (Size == sizeof(Buff->uint32_value))
       return static_cast<int32_t>(Buff->uint32_value);
     else if (Size == sizeof(Buff->uint64_value))
       return static_cast<int64_t>(Buff->uint64_value);
-    CHECK(false) << "invalid size";
-    return 0;
+    BENCHMARK_UNREACHABLE();
   }
 
-  unsigned long long getAsUnsigned() const {
+  uint64_t getAsUnsigned() const {
     if (Size == sizeof(Buff->uint32_value))
       return Buff->uint32_value;
     else if (Size == sizeof(Buff->uint64_value))
       return Buff->uint64_value;
-    CHECK(false) << "invalid size";
-    return 0;
+    BENCHMARK_UNREACHABLE();
   }
 };
 
@@ -309,6 +307,7 @@ int GetNumCPUs() {
   }
   return NumCPUs;
 #endif
+  BENCHMARK_UNREACHABLE();
 }
 
 double GetCPUCyclesPerSecond() {
