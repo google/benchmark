@@ -6,6 +6,9 @@
 #ifndef __has_feature
 #define __has_feature(x) 0
 #endif
+#ifndef __has_builtin
+#define __has_builtin(x) 0
+#endif
 
 #if defined(__clang__)
 #define COMPILER_CLANG
@@ -54,6 +57,25 @@
 #if !__has_feature(cxx_exceptions) && !defined(__cpp_exceptions) \
      && !defined(__EXCEPTIONS)
 #define BENCHMARK_HAS_NO_EXCEPTIONS
+#endif
+
+#if defined(COMPILER_CLANG) || defined(COMPILER_GCC)
+#define BENCHMARK_MAYBE_UNUSED __attribute__((unused))
+#else
+#define BENCHMARK_MAYBE_UNUSED
+#endif
+
+#if defined(COMPILER_GCC) || __has_builtin(__builtin_unreachable)
+#define BENCHMARK_UNREACHABLE() __builtin_unreachable()
+#else
+#define BENCHMARK_HAS_NO_BUILTIN_UNREACHABLE
+namespace benchmark {
+namespace internal {
+BENCHMARK_NORETURN void UnreachableImp(const char* FName, int Line);
+}
+}  // namespace benchmark
+#define BENCHMARK_UNREACHABLE() \
+  ::benchmark::internal::UnreachableImp(__FILE__, __LINE__)
 #endif
 
 #endif  // BENCHMARK_INTERNAL_MACROS_H_
