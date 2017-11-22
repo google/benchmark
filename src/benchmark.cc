@@ -37,13 +37,13 @@
 #include "colorprint.h"
 #include "commandlineflags.h"
 #include "complexity.h"
-#include "statistics.h"
 #include "counter.h"
+#include "internal_macros.h"
 #include "log.h"
 #include "mutex.h"
 #include "re.h"
+#include "statistics.h"
 #include "string_util.h"
-#include "sysinfo.h"
 #include "timers.h"
 
 DEFINE_bool(benchmark_list_tests, false,
@@ -107,6 +107,14 @@ static const size_t kMaxIterations = 1000000000;
 namespace internal {
 
 void UseCharPointer(char const volatile*) {}
+
+#ifdef BENCHMARK_HAS_NO_BUILTIN_UNREACHABLE
+BENCHMARK_NORETURN void UnreachableImp(const char* FName, int Line) {
+  std::cerr << FName << ":" << Line << " executing unreachable code!"
+            << std::endl;
+  std::abort();
+}
+#endif
 
 class ThreadManager {
  public:
@@ -493,10 +501,6 @@ void RunBenchmarks(const std::vector<Benchmark::Instance>& benchmarks,
 
   // Print header here
   BenchmarkReporter::Context context;
-  context.num_cpus = NumCPUs();
-  context.mhz_per_cpu = CyclesPerSecond() / 1000000.0;
-
-  context.cpu_scaling_enabled = CpuScalingEnabled();
   context.name_field_width = name_field_width;
 
   // Keep track of runing times of all instances of current benchmark

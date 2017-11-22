@@ -42,7 +42,6 @@
 #include "mutex.h"
 #include "re.h"
 #include "string_util.h"
-#include "sysinfo.h"
 #include "timers.h"
 
 namespace benchmark {
@@ -448,8 +447,7 @@ Benchmark* Benchmark::DenseThreadRange(int min_threads, int max_threads,
 }
 
 Benchmark* Benchmark::ThreadPerCpu() {
-  static int num_cpus = NumCPUs();
-  thread_counts_.push_back(num_cpus);
+  thread_counts_.push_back(CPUInfo::Get().num_cpus);
   return this;
 }
 
