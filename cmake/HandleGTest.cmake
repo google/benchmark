@@ -39,6 +39,7 @@ else()
         -DCMAKE_CXX_COMPILER:STRING=${CMAKE_CXX_COMPILER}
         -DCMAKE_INSTALL_PREFIX:PATH=<INSTALL_DIR>
         -DCMAKE_CXX_FLAGS:STRING=${GTEST_FLAGS}
+        -Dgtest_force_shared_crt=ON
       )
 
   ExternalProject_Get_Property(googletest install_dir)
