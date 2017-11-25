@@ -5,6 +5,7 @@ project (benchmark)
 foreach(p
     CMP0054 # CMake 3.1
     CMP0056 # export EXE_LINKER_FLAGS to try_run
+    CMP0057 # Support no if() IN_LIST operator
     )
   if(POLICY ${p})
     cmake_policy(SET ${p} NEW)
@@ -17,6 +18,14 @@ option(BENCHMARK_ENABLE_LTO "Enable link time optimisation of the benchmark libr
 option(BENCHMARK_USE_LIBCXX "Build and test using libc++ as the standard library." OFF)
 option(BENCHMARK_BUILD_32_BITS "Build a 32 bit version of the library." OFF)
 option(BENCHMARK_ENABLE_INSTALL "Enable installation of benchmark. (Projects embedding benchmark may want to turn this OFF.)" ON)
+
+# This option is useful when building Benchmark in odd configurations, such as 32bit mode
+# or against libc++.
+option(BENCHMARK_BUILD_EXTERNAL_GTEST "Download and build a custom copy of GTest to use" OFF)
+
+# This option can be used to disable building and running unit tests which depend on gtest
+# in cases where it is not possible to build or find a valid version of gtest.
+option(BENCHMARK_ENABLE_GTEST_TESTS "Enable building the unit tests which depend on gtest" ON)
 
 # Make sure we can import out CMake functions
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
