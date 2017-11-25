@@ -18,8 +18,12 @@ else()
   if (BENCHMARK_BUILD_32_BITS)
     list(APPEND GTEST_FLAGS -m32)
   endif()
+  if (NOT "${CMAKE_CXX_FLAGS}" STREQUAL "")
+    list(APPEND GTEST_FLAGS ${CMAKE_CXX_FLAGS})
+  endif()
 
   split_list(GTEST_FLAGS)
+  string(REPLACE "-Wzero-as-null-pointer-constant" "" GTEST_FLAGS "${GTEST_FLAGS}")
   ExternalProject_Add(googletest
       EXCLUDE_FROM_ALL ON
       GIT_REPOSITORY https://github.com/google/googletest.git
