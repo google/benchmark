@@ -40,14 +40,15 @@ else()
   add_library(gtest_main UNKNOWN IMPORTED)
   set_target_properties(gtest PROPERTIES
     IMPORTED_LOCATION ${install_dir}/lib/libgtest.a
-      INTERFACE_SYSTEM_INCLUDE_DIRECTORIES ${CMAKE_BINARY_DIR}/googletest/include
+    INTERFACE_SYSTEM_INCLUDE_DIRECTORIES ${install_dir}/include
 
   )
   set_target_properties(gtest_main PROPERTIES
     IMPORTED_LOCATION ${install_dir}/lib/libgtest_main.a
-    INTERFACE_SYSTEM_INCLUDE_DIRECTORIES ${CMAKE_BINARY_DIR}/googletest/include
+    INTERFACE_SYSTEM_INCLUDE_DIRECTORIES ${install_dir}/include
   )
   add_dependencies(gtest googletest)
   add_dependencies(gtest_main googletest)
   set(GTEST_BOTH_LIBRARIES gtest gtest_main)
+  set(GTEST_INCLUDE_DIRS ${install_dir}/include)
 endif()
