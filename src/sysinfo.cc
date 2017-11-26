@@ -266,7 +266,7 @@ std::vector<CPUInfo::CacheInfo> GetCacheSizesFromKVFS() {
 #ifdef BENCHMARK_OS_MACOSX
 std::vector<CPUInfo::CacheInfo> GetCacheSizesMacOSX() {
   std::vector<CPUInfo::CacheInfo> res;
-  std::array<uint64_t, 4> CacheCounts{0, 0, 0, 0};
+  std::array<uint64_t, 4> CacheCounts{{0, 0, 0, 0}};
   GetSysctl("hw.cacheconfig", &CacheCounts);
 
   struct {
