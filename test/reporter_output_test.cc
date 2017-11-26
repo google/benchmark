@@ -41,7 +41,7 @@ static int AddContextCases() {
                           {"\"level\": %int,$", MR_Next},
                           {"\"size\": %int,$", MR_Next},
                           {"\"num_sharing\": %int$", MR_Next},
-                          {"\\}[,]{0,1}$", MR_Next}});
+                          {"}[,]{0,1}$", MR_Next}});
   }
 
   AddCases(TC_JSONOut, {{"],$"}});
