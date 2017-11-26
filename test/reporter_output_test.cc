@@ -13,6 +13,41 @@ ADD_CASES(TC_ConsoleOut,
           {{"^[-]+$", MR_Next},
            {"^Benchmark %s Time %s CPU %s Iterations$", MR_Next},
            {"^[-]+$", MR_Next}});
+static int AddContextCases() {
+  AddCases(TC_ConsoleErr,
+           {
+               {"%int[-/]%int[-/]%int %int:%int:%int$", MR_Default},
+               {"Run on \\(%int X %float MHz CPU s\\)", MR_Next},
+           });
+  AddCases(TC_JSONOut, {{"^\\{", MR_Default},
+                        {"\"context\":", MR_Next},
+                        {"\"date\": \"", MR_Next},
+                        {"\"num_cpus\": %int,$", MR_Next},
+                        {"\"mhz_per_cpu\": %float,$", MR_Next},
+                        {"\"cpu_scaling_enabled\": ", MR_Next},
+                        {"\"caches\": \\[$", MR_Next}});
+  auto const& Caches = benchmark::CPUInfo::Get().caches;
+  if (!Caches.empty()) {
+    AddCases(TC_ConsoleErr, {{"CPU Caches:$", MR_Next}});
+  }
+  for (size_t I = 0; I < Caches.size(); ++I) {
+    std::string num_caches_str =
+        Caches[I].num_sharing != 0 ? " \\(x%int\\)$" : "$";
+    AddCases(
+        TC_ConsoleErr,
+        {{"L%int (Data|Instruction|Unified) %intK" + num_caches_str, MR_Next}});
+    AddCases(TC_JSONOut, {{"\\{$", MR_Next},
+                          {"\"type\": \"", MR_Next},
+                          {"\"level\": %int,$", MR_Next},
+                          {"\"size\": %int,$", MR_Next},
+                          {"\"num_sharing\": %int$", MR_Next},
+                          {"}[,]{0,1}$", MR_Next}});
+  }
+
+  AddCases(TC_JSONOut, {{"],$"}});
+  return 0;
+}
+int dummy_register = AddContextCases();
 ADD_CASES(TC_CSVOut, {{"%csv_header"}});
 
 // ========================================================================= //
