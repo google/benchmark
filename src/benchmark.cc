@@ -108,14 +108,6 @@ namespace internal {
 
 void UseCharPointer(char const volatile*) {}
 
-#ifdef BENCHMARK_HAS_NO_BUILTIN_UNREACHABLE
-BENCHMARK_NORETURN void UnreachableImp(const char* FName, int Line) {
-  std::cerr << FName << ":" << Line << " executing unreachable code!"
-            << std::endl;
-  std::abort();
-}
-#endif
-
 class ThreadManager {
  public:
   ThreadManager(int num_threads)
