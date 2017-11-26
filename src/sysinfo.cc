@@ -32,7 +32,10 @@
 #endif
 
 #include <algorithm>
+#include <array>
+#include <bitset>
 #include <cerrno>
+#include <climits>
 #include <cstdint>
 #include <cstdio>
 #include <cstdlib>
@@ -123,6 +126,15 @@ struct ValueUnion {
       return Buff->uint64_value;
     BENCHMARK_UNREACHABLE();
   }
+
+  template <class T, int N>
+  std::array<T, N> GetAsArray() {
+    const int ArrSize = sizeof(T) * N;
+    CHECK_LE(ArrSize, Size);
+    std::array<T, N> Arr;
+    std::memcpy(Arr.data(), data(), ArrSize);
+    return Arr;
+  }
 };
 
 #ifdef __GNUC__
@@ -158,6 +170,14 @@ bool GetSysctl(std::string const& Name, Tp* Out) {
   *Out = static_cast<Tp>(Buff.GetAsUnsigned());
   return true;
 }
+
+template <class Tp, size_t N>
+bool GetSysctl(std::string const& Name, std::array<Tp, N>* Out) {
+  auto Buff = GetSysctlImp(Name);
+  if (!Buff) return false;
+  *Out = Buff.GetAsArray<Tp, N>();
+  return true;
+};
 #endif
 
 template <class ArgT>
@@ -184,6 +204,25 @@ bool CpuScalingEnabled(int num_cpus) {
   }
 #endif
   return false;
+}
+
+int CountSetBitsInCPUMap(std::string Val) {
+  auto CountBits = [](std::string Part) {
+    using CPUMask = std::bitset<sizeof(std::uintptr_t) * CHAR_BIT>;
+    Part = "0x" + Part;
+    CPUMask Mask(std::stoul(Part, nullptr, 16));
+    return static_cast<int>(Mask.count());
+  };
+  size_t Pos;
+  int total = 0;
+  while ((Pos = Val.find(',')) != std::string::npos) {
+    total += CountBits(Val.substr(0, Pos));
+    Val = Val.substr(Pos + 1);
+  }
+  if (!Val.empty()) {
+    total += CountBits(Val);
+  }
+  return total;
 }
 
 BENCHMARK_MAYBE_UNUSED
@@ -214,6 +253,10 @@ std::vector<CPUInfo::CacheInfo> GetCacheSizesFromKVFS() {
       PrintErrorAndDie("Failed to read from file ", FPath, "type");
     if (!ReadFromFile(StrCat(FPath, "level"), &info.level))
       PrintErrorAndDie("Failed to read from file ", FPath, "level");
+    std::string map_str;
+    if (!ReadFromFile(StrCat(FPath, "shared_cpu_map"), &map_str))
+      PrintErrorAndDie("Failed to read from file ", FPath, "shared_cpu_map");
+    info.num_sharing = CountSetBitsInCPUMap(map_str);
     res.push_back(info);
   }
 
@@ -223,14 +266,18 @@ std::vector<CPUInfo::CacheInfo> GetCacheSizesFromKVFS() {
 #ifdef BENCHMARK_OS_MACOSX
 std::vector<CPUInfo::CacheInfo> GetCacheSizesMacOSX() {
   std::vector<CPUInfo::CacheInfo> res;
+  std::array<uint64_t, 4> CacheCounts{{0, 0, 0, 0}};
+  GetSysctl("hw.cacheconfig", &CacheCounts);
+
   struct {
     std::string name;
     std::string type;
     int level;
-  } Cases[] = {{"hw.l1dcachesize", "Data", 1},
-               {"hw.l1icachesize", "Instruction", 1},
-               {"hw.l2cachesize", "Unified", 2},
-               {"hw.l3cachesize", "Unified", 3}};
+    size_t num_sharing;
+  } Cases[] = {{"hw.l1dcachesize", "Data", 1, CacheCounts[1]},
+               {"hw.l1icachesize", "Instruction", 1, CacheCounts[1]},
+               {"hw.l2cachesize", "Unified", 2, CacheCounts[2]},
+               {"hw.l3cachesize", "Unified", 3, CacheCounts[3]}};
   for (auto& C : Cases) {
     int val;
     if (!GetSysctl(C.name, &val)) continue;
@@ -238,7 +285,57 @@ std::vector<CPUInfo::CacheInfo> GetCacheSizesMacOSX() {
     info.type = C.type;
     info.level = C.level;
     info.size = val;
+    info.num_sharing = static_cast<int>(C.num_sharing);
     res.push_back(std::move(info));
+  }
+  return res;
+}
+#elif defined(BENCHMARK_OS_WINDOWS)
+std::vector<CPUInfo::CacheInfo> GetCacheSizesWindows() {
+  std::vector<CPUInfo::CacheInfo> res;
+  DWORD buffer_size = 0;
+  using PInfo = SYSTEM_LOGICAL_PROCESSOR_INFORMATION;
+  using CInfo = CACHE_DESCRIPTOR;
+
+  using UPtr = std::unique_ptr<PInfo, decltype(&std::free)>;
+  GetLogicalProcessorInformation(nullptr, &buffer_size);
+  UPtr buff((PInfo*)malloc(buffer_size), &std::free);
+  if (!GetLogicalProcessorInformation(buff.get(), &buffer_size))
+    PrintErrorAndDie("Failed during call to GetLogicalProcessorInformation: ",
+                     GetLastError());
+
+  PInfo* it = buff.get();
+  PInfo* end = buff.get() + (buffer_size / sizeof(PInfo));
+
+  for (; it != end; ++it) {
+    if (it->Relationship != RelationCache) continue;
+    using BitSet = std::bitset<sizeof(ULONG_PTR) * CHAR_BIT>;
+    BitSet B(it->ProcessorMask);
+    // To prevent duplicates, only consider caches where CPU 0 is specified
+    if (!B.test(0)) continue;
+    CInfo* Cache = &it->Cache;
+    CPUInfo::CacheInfo C;
+    C.num_sharing = B.count();
+    C.level = Cache->Level;
+    C.size = Cache->Size;
+    switch (Cache->Type) {
+      case CacheUnified:
+        C.type = "Unified";
+        break;
+      case CacheInstruction:
+        C.type = "Instruction";
+        break;
+      case CacheData:
+        C.type = "Data";
+        break;
+      case CacheTrace:
+        C.type = "Trace";
+        break;
+      default:
+        C.type = "Unknown";
+        break;
+    }
+    res.push_back(C);
   }
   return res;
 }
@@ -247,6 +344,8 @@ std::vector<CPUInfo::CacheInfo> GetCacheSizesMacOSX() {
 std::vector<CPUInfo::CacheInfo> GetCacheSizes() {
 #ifdef BENCHMARK_OS_MACOSX
   return GetCacheSizesMacOSX();
+#elif defined(BENCHMARK_OS_WINDOWS)
+  return GetCacheSizesWindows();
 #else
   return GetCacheSizesFromKVFS();
 #endif
