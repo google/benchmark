@@ -30,7 +30,6 @@ macro(build_external_gtest)
       GIT_TAG master
       PREFIX "${CMAKE_BINARY_DIR}/googletest"
       INSTALL_DIR "${CMAKE_BINARY_DIR}/googletest"
-      GIT_SHALLOW ON
       CMAKE_CACHE_ARGS
         -DCMAKE_BUILD_TYPE:STRING=${GTEST_BUILD_TYPE}
         -DCMAKE_C_COMPILER:STRING=${CMAKE_C_COMPILER}
