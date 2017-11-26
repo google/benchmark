@@ -130,7 +130,7 @@ struct ValueUnion {
   template <class T, int N>
   std::array<T, N> GetAsArray() {
     const int ArrSize = sizeof(T) * N;
-    CHECK_LE(Size, ArrSize);
+    CHECK_LE(ArrSize, Size);
     std::array<T, N> Arr;
     std::memcpy(Arr.data(), data(), ArrSize);
     return Arr;
