@@ -13,6 +13,28 @@ IRC channel: https://freenode.net #googlebenchmark
 
 [Additional Tooling Documentation](docs/tools.md)
 
+## Building
+
+The basic steps for configuring and building the library look like this:
+
+```bash
+$ git clone https://github.com/google/benchmark.git
+# Benchmark requires GTest as a dependency. Add the source tree as a subdirectory.
+$ git clone https://github.com/google/googletest.git benchmark/googletest
+$ mkdir build && cd build
+$ cmake -G <generator> [options] ../benchmark
+# Assuming a makefile generator was used
+$ make
+```
+
+Note that Google Benchmark requires GTest to build and run the tests. This
+dependency can be provided three ways:
+
+* Checkout the GTest sources into `benchmark/googletest`.
+* Do nothing. The build will automatically download and build `googletest`.
+* When`-DBENCHMARK_BUILD_GTEST_INTREE=OFF` is specified, CMake will use
+ `find_package(GTest REQUIRED)` to resolve the dependency.
+
 ## Example usage
 ### Basic usage
 Define a function that executes the code to be measured.

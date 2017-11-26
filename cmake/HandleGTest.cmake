@@ -1,12 +1,10 @@
-include(ExternalProject)
 
 macro(split_list listname)
   string(REPLACE ";" " " ${listname} "${${listname}}")
 endmacro()
 
-if (NOT BENCHMARK_BUILD_EXTERNAL_GTEST)
-  find_package(GTest REQUIRED)
-else()
+macro(build_external_gtest)
+  include(ExternalProject)
   set(GTEST_FLAGS "")
   if (BENCHMARK_USE_LIBCXX)
     if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
@@ -26,7 +24,6 @@ else()
     set(GTEST_BUILD_TYPE "DEBUG")
   endif()
   split_list(GTEST_FLAGS)
-  string(REPLACE "-Wzero-as-null-pointer-constant" "" GTEST_FLAGS "${GTEST_FLAGS}")
   ExternalProject_Add(googletest
       EXCLUDE_FROM_ALL ON
       GIT_REPOSITORY https://github.com/google/googletest.git
@@ -43,6 +40,7 @@ else()
       )
 
   ExternalProject_Get_Property(googletest install_dir)
+
   add_library(gtest UNKNOWN IMPORTED)
   add_library(gtest_main UNKNOWN IMPORTED)
 
@@ -52,17 +50,28 @@ else()
   if("${GTEST_BUILD_TYPE}" STREQUAL "DEBUG")
     set(LIB_SUFFIX "d${CMAKE_STATIC_LIBRARY_SUFFIX}")
   endif()
+  file(MAKE_DIRECTORY ${install_dir}/include)
   set_target_properties(gtest PROPERTIES
     IMPORTED_LOCATION ${install_dir}/lib/${LIB_PREFIX}gtest${LIB_SUFFIX}
-    INTERFACE_SYSTEM_INCLUDE_DIRECTORIES ${install_dir}/include
-
+    INTERFACE_INCLUDE_DIRECTORIES ${install_dir}/include
   )
   set_target_properties(gtest_main PROPERTIES
     IMPORTED_LOCATION ${install_dir}/lib/${LIB_PREFIX}gtest_main${LIB_SUFFIX}
-    INTERFACE_SYSTEM_INCLUDE_DIRECTORIES ${install_dir}/include
+    INTERFACE_INCLUDE_DIRECTORIES ${install_dir}/include
   )
   add_dependencies(gtest googletest)
   add_dependencies(gtest_main googletest)
   set(GTEST_BOTH_LIBRARIES gtest gtest_main)
-  set(GTEST_INCLUDE_DIRS ${install_dir}/include)
+  #set(GTEST_INCLUDE_DIRS ${install_dir}/include)
+endmacro(build_external_gtest)
+
+if (BENCHMARK_BUILD_GTEST_INTREE)
+  if (IS_DIRECTORY ${CMAKE_SOURCE_DIR}/googletest)
+    add_subdirectory(${CMAKE_SOURCE_DIR}/googletest)
+    set(GTEST_BOTH_LIBRARIES gtest gtest_main)
+  else()
+    build_external_gtest()
+  endif()
+else()
+    find_package(GTest REQUIRED)
 endif()

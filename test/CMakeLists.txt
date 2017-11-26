@@ -139,8 +139,6 @@ add_test(complexity_benchmark complexity_test --benchmark_min_time=${COMPLEXITY_
 ###############################################################################
 
 if (BENCHMARK_ENABLE_GTEST_TESTS)
-  include(HandleGTest)
-  include_directories(${GTEST_INCLUDE_DIRS})
   macro(compile_gtest name)
     add_executable(${name} "${name}.cc")
     if (TARGET googletest)

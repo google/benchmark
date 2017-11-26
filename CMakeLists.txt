@@ -21,7 +21,7 @@ option(BENCHMARK_ENABLE_INSTALL "Enable installation of benchmark. (Projects emb
 
 # This option is useful when building Benchmark in odd configurations, such as 32bit mode
 # or against libc++.
-option(BENCHMARK_BUILD_EXTERNAL_GTEST "Download and build a custom copy of GTest to use" OFF)
+option(BENCHMARK_BUILD_GTEST_INTREE "Download and build a custom copy of GTest to use" ON)
 
 # This option can be used to disable building and running unit tests which depend on gtest
 # in cases where it is not possible to build or find a valid version of gtest.
@@ -105,9 +105,7 @@ else()
   if (NOT BENCHMARK_ENABLE_EXCEPTIONS)
     add_cxx_compiler_flag(-fno-exceptions)
   endif()
-  if (NOT BENCHMARK_USE_LIBCXX)
-    add_cxx_compiler_flag(-Wzero-as-null-pointer-constant)
-  endif()
+
   if (HAVE_CXX_FLAG_FSTRICT_ALIASING)
     if (NOT CMAKE_CXX_COMPILER_ID STREQUAL "Intel") #ICC17u2: Many false positives for Wstrict-aliasing
       add_cxx_compiler_flag(-Wstrict-aliasing)
@@ -205,5 +203,8 @@ add_subdirectory(src)
 
 if (BENCHMARK_ENABLE_TESTING)
   enable_testing()
+  if (BENCHMARK_ENABLE_GTEST_TESTS)
+    include(HandleGTest)
+  endif()
   add_subdirectory(test)
 endif()
