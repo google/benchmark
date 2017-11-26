@@ -67,15 +67,10 @@
 
 #if defined(COMPILER_GCC) || __has_builtin(__builtin_unreachable)
 #define BENCHMARK_UNREACHABLE() __builtin_unreachable()
+#elif defined(COMPILER_MSVC)
+#define BENCHMARK_UNREACHABLE() __assume(false)
 #else
-#define BENCHMARK_HAS_NO_BUILTIN_UNREACHABLE
-namespace benchmark {
-namespace internal {
-BENCHMARK_NORETURN void UnreachableImp(const char* FName, int Line);
-}
-}  // namespace benchmark
-#define BENCHMARK_UNREACHABLE() \
-  ::benchmark::internal::UnreachableImp(__FILE__, __LINE__)
+#define BENCHMARK_UNREACHABLE() ((void)0)
 #endif
 
 #endif  // BENCHMARK_INTERNAL_MACROS_H_
