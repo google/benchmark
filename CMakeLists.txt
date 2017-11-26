@@ -19,9 +19,9 @@ option(BENCHMARK_USE_LIBCXX "Build and test using libc++ as the standard library
 option(BENCHMARK_BUILD_32_BITS "Build a 32 bit version of the library." OFF)
 option(BENCHMARK_ENABLE_INSTALL "Enable installation of benchmark. (Projects embedding benchmark may want to turn this OFF.)" ON)
 
-# This option is useful when building Benchmark in odd configurations, such as 32bit mode
-# or against libc++.
-option(BENCHMARK_BUILD_GTEST_INTREE "Download and build a custom copy of GTest to use" ON)
+# Allow unmet dependencies to be met using CMake's ExternalProject mechanics, which
+# may require downloading the source code.
+option(BENCHMARK_DOWNLOAD_DEPENDENCIES "Allow the downloading and in-tree building of unmet dependencies" OFF)
 
 # This option can be used to disable building and running unit tests which depend on gtest
 # in cases where it is not possible to build or find a valid version of gtest.

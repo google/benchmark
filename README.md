@@ -31,9 +31,10 @@ Note that Google Benchmark requires GTest to build and run the tests. This
 dependency can be provided three ways:
 
 * Checkout the GTest sources into `benchmark/googletest`.
-* Do nothing. The build will automatically download and build `googletest`.
-* When`-DBENCHMARK_BUILD_GTEST_INTREE=OFF` is specified, CMake will use
- `find_package(GTest REQUIRED)` to resolve the dependency.
+* Specify `-DBENCHMARK_DOWNLOAD_DEPENDENCIES=ON` when configuring to allow the
+  library to automatically download and build required dependencies.
+* Otherwise, do nothing and CMake will use `find_package(GTest REQUIRED)` to
+  resolve the required GTest dependency.
 
 ## Example usage
 ### Basic usage
