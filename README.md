@@ -79,7 +79,7 @@ And then you can run your benchmark with
 
 ```
 make
-/bin/a.out
+bin/a.out
 ```
 Instead of Makefile, you may  also use ninja as a build engine. 
 
