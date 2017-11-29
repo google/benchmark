@@ -15,6 +15,9 @@ IRC channel: https://freenode.net #googlebenchmark
 
 
 ## Installation Guide
+
+For Ubuntu and Debian Based System
+
 First make sure you have git and cmake installed (If not please install it)
 
 ```
@@ -31,58 +34,16 @@ mkdir build
 cd build
 cmake .. -DCMAKE_BUILD_TYPE=RELEASE
 make
-cmake ..  
 ```
 
-We need to now place the built library to the location where our compiler can find it
+We need to install the library globally now
 
 ```
-cd ..
-sudo mkdir /usr/include/benchmark
-sudo cp include/benchmark/benchmark.h /usr/include/benchmark/
-sudo cp build/src/libbenchmark.a /usr/local/lib/
+sudo make install
 ```
 
-Let's test it now. We create a directory anywhere in our system
-
-```
-mkdir benchmark_test
-cd benchmark_test
-mkdir bin
-touch MakeFile
-touch benchmark.cpp
-```
-
-In *benchmark.cpp*
-```c++
-#include <benchmark/benchmark.h>
-
-static void BM_StringCreation(benchmark::State& state) {
-  for (auto _ : state)
-    std::string empty_string;
-}
-// Register the function as a benchmark
-BENCHMARK(BM_StringCreation);
-BENCHMARK_MAIN();
-```
-
-In *Makefile*
-
-On the basis of your compiler choose any one of the compile options
-```
-all:
-    g++ benchmark.cpp -lpthread -lbenchmark -o /bin/a.out  //either this line or the one below
-    g++ -std=c++1y benchmark.cpp -pthread -lbenchmark -o /bin/a.out
-```
-
-And then you can run your benchmark with 
-
-```
-make
-bin/a.out
-```
-Instead of Makefile, you may  also use ninja as a build engine. 
-
+Now you have google/benchmark installed in your machine 
+Note: Don't forget to link to pthread library while building
 
 
 ## Example usage
