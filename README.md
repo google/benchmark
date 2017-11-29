@@ -13,6 +13,39 @@ IRC channel: https://freenode.net #googlebenchmark
 
 [Additional Tooling Documentation](docs/tools.md)
 
+
+## Installation Guide
+
+For Ubuntu and Debian Based System
+
+First make sure you have git and cmake installed (If not please install it)
+
+```
+sudo apt-get install git
+sudo apt-get install cmake
+```
+
+Now, let's clone the repository and build it
+
+```
+git clone https://github.com/google/benchmark.git
+cd benchmark
+mkdir build
+cd build
+cmake .. -DCMAKE_BUILD_TYPE=RELEASE
+make
+```
+
+We need to install the library globally now
+
+```
+sudo make install
+```
+
+Now you have google/benchmark installed in your machine 
+Note: Don't forget to link to pthread library while building
+
+
 ## Example usage
 ### Basic usage
 Define a function that executes the code to be measured.
