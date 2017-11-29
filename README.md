@@ -848,6 +848,9 @@ To enable link-time optimisation, use
 cmake -DCMAKE_BUILD_TYPE=Release -DBENCHMARK_ENABLE_LTO=true
 ```
 
+If you are using gcc, you might need to set `GCC_AR` and `GCC_RANLIB` cmake cache variables, if autodetection fails.
+If you are using clang, you may need to set `LLVMAR_EXECUTABLE`, `LLVMNM_EXECUTABLE` and `LLVMRANLIB_EXECUTABLE` cmake cache variables.
+
 ## Linking against the library
 When using gcc, it is necessary to link against pthread to avoid runtime exceptions.
 This is due to how gcc implements std::thread.

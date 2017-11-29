@@ -19,6 +19,7 @@ option(BENCHMARK_BUILD_32_BITS "Build a 32 bit version of the library." OFF)
 option(BENCHMARK_ENABLE_INSTALL "Enable installation of benchmark. (Projects embedding benchmark may want to turn this OFF.)" ON)
 
 # Make sure we can import out CMake functions
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake/Modules")
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 
 # Read the git tags to determine the project version
@@ -132,6 +133,8 @@ else()
       if (GCC_RANLIB)
         set(CMAKE_RANLIB ${GCC_RANLIB})
       endif()
+    elseif("${CMAKE_C_COMPILER_ID}" STREQUAL "Clang")
+      include(llvm-toolchain)
     endif()
   endif()
 
