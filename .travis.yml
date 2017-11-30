@@ -129,6 +129,11 @@ matrix:
       compiler: clang
       env:
         - COMPILER=clang++ BUILD_TYPE=Release
+    - os: osx
+      osx_image: xcode8.3
+      compiler: gcc
+      env:
+        - COMPILER=g++-7 C_COMPILER=gcc-7  BUILD_TYPE=Debug
 
 before_script:
   - if [ -z "$BUILD_32_BITS" ]; then
@@ -144,6 +149,11 @@ install:
       PATH=~/.local/bin:${PATH};
       pip install --user --upgrade pip;
       pip install --user cpp-coveralls;
+    fi
+  - if [ "${C_COMPILER}" == "gcc-7" -a "${TRAVIS_OS_NAME}" == "osx" ]; then
+      rm -f /usr/local/include/c++;
+      brew update;
+      brew install gcc@7;
     fi
 
 script:
