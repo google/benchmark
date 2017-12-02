@@ -202,7 +202,7 @@ BENCHMARK(BM_test)->Unit(benchmark::kMillisecond);
 
 #if defined(__GNUC__)
 #define BENCHMARK_UNUSED __attribute__((unused))
-#define BENCHMARK_ALWAYS_INLINE __attribute__((always_inline))
+#define BENCHMARK_ALWAYS_INLINE __attribute__((always_inline)) inline
 #define BENCHMARK_NOEXCEPT noexcept
 #define BENCHMARK_NOEXCEPT_OP(x) noexcept(x)
 #elif defined(_MSC_VER) && !defined(__clang__)
