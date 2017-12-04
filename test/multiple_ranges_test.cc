@@ -71,4 +71,4 @@ static void BM_MultipleRanges(benchmark::State& st) {
 }
 BENCHMARK(BM_MultipleRanges)->Ranges({{5, 5}, {6, 6}});
 
-BENCHMARK_MAIN()
+BENCHMARK_MAIN();
