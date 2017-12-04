@@ -25,4 +25,4 @@ BENCHMARK_TEMPLATE_DEFINE_F(MyFixture, Bar, double)(benchmark::State& st) {
 }
 BENCHMARK_REGISTER_F(MyFixture, Bar);
 
-BENCHMARK_MAIN()
+BENCHMARK_MAIN();

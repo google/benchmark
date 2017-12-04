@@ -115,4 +115,4 @@ void BM_RangedFor(benchmark::State& state) {
 }
 BENCHMARK(BM_RangedFor);
 
-BENCHMARK_MAIN()
+BENCHMARK_MAIN();
