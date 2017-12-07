@@ -3,7 +3,7 @@
 #include <cassert>
 #include <vector>
 
-#include "../src/check.h"  // NOTE: check.h is for internal use only!
+#include "check.h"  // NOTE: check.h is for internal use only!
 #include "benchmark/benchmark.h"
 
 namespace {

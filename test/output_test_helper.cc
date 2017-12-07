@@ -4,10 +4,10 @@
 #include <sstream>
 #include <cstring>
 
-#include "../src/check.h"  // NOTE: check.h is for internal use only!
-#include "../src/re.h"     // NOTE: re.h is for internal use only
+#include "check.h"  // NOTE: check.h is for internal use only!
+#include "re.h"     // NOTE: re.h is for internal use only
 #include "output_test.h"
-#include "../src/benchmark_api_internal.h"
+#include "benchmark_api_internal.h"
 
 // ========================================================================= //
 // ------------------------------ Internals -------------------------------- //

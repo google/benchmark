@@ -3,6 +3,8 @@
 find_package(Threads REQUIRED)
 include(CheckCXXCompilerFlag)
 
+include_directories("../src")
+
 # NOTE: Some tests use `<cassert>` to perform the test. Therefore we must
 # strip -DNDEBUG from the default CMake flags in DEBUG mode.
 string(TOUPPER "${CMAKE_BUILD_TYPE}" uppercase_CMAKE_BUILD_TYPE)

@@ -10,7 +10,7 @@
 #include <cstdlib>
 #include <stdexcept>
 
-#include "../src/check.h"
+#include "check.h"
 #include "benchmark/benchmark.h"
 
 #if defined(__GNUC__) && !defined(__EXCEPTIONS)

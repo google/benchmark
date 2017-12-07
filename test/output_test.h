@@ -10,7 +10,7 @@
 #include <functional>
 #include <sstream>
 
-#include "../src/re.h"
+#include "re.h"
 #include "benchmark/benchmark.h"
 
 #define CONCAT2(x, y) x##y
