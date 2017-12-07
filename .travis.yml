@@ -142,7 +142,7 @@ before_script:
   - if [ -n "${LIBCXX_BUILD}" ]; then
       source .travis-libcxx-setup.sh;
     fi
-  - mkdir build && cd build
+  - mkdir -p build && cd build
 
 install:
   - if [ "${BUILD_TYPE}" == "Coverage" -a "${TRAVIS_OS_NAME}" == "linux" ]; then
