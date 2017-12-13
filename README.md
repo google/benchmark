@@ -45,6 +45,18 @@ sudo make install
 Now you have google/benchmark installed in your machine 
 Note: Don't forget to link to pthread library while building
 
+## Stable and Experimental Library Versions
+
+The main branch contains the latest stable version of the benchmarking library;
+the API of which can be considered largely stable, with source breaking changes
+being made only upon the release of a new major version.
+
+Newer, experimental, features are implemented and tested on the
+[`v2` branch](https://github.com/google/benchmark/tree/v2). Users who wish
+to use, test, and provide feedback on the new features are encouraged to try
+this branch. However, this branch provides no stability guarantees and reserves
+the right to change and break the API at any time.
+
 
 ## Example usage
 ### Basic usage
