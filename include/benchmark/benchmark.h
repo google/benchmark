@@ -1146,7 +1146,8 @@ class Fixture : public internal::Benchmark {
     ::benchmark::Initialize(&argc, argv);  \
     if (::benchmark::ReportUnrecognizedArguments(argc, argv)) return 1; \
     ::benchmark::RunSpecifiedBenchmarks(); \
-  }
+  }                                        \
+  int main(int, char**)
 
 
 // ------------------------------------------------------
@@ -1159,6 +1160,7 @@ struct CPUInfo {
     std::string type;
     int level;
     int size;
+    int num_sharing;
   };
 
   int num_cpus;

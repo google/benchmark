@@ -129,6 +129,11 @@ matrix:
       compiler: clang
       env:
         - COMPILER=clang++ BUILD_TYPE=Release
+    - os: osx
+      osx_image: xcode8.3
+      compiler: gcc
+      env:
+        - COMPILER=g++-7 C_COMPILER=gcc-7  BUILD_TYPE=Debug
 
 before_script:
   - if [ -z "$BUILD_32_BITS" ]; then
@@ -137,13 +142,18 @@ before_script:
   - if [ -n "${LIBCXX_BUILD}" ]; then
       source .travis-libcxx-setup.sh;
     fi
-  - mkdir build && cd build
+  - mkdir -p build && cd build
 
 install:
   - if [ "${BUILD_TYPE}" == "Coverage" -a "${TRAVIS_OS_NAME}" == "linux" ]; then
       PATH=~/.local/bin:${PATH};
       pip install --user --upgrade pip;
       pip install --user cpp-coveralls;
+    fi
+  - if [ "${C_COMPILER}" == "gcc-7" -a "${TRAVIS_OS_NAME}" == "osx" ]; then
+      rm -f /usr/local/include/c++;
+      brew update;
+      brew install gcc@7;
     fi
 
 script:

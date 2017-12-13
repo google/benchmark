@@ -28,6 +28,7 @@ option(BENCHMARK_DOWNLOAD_DEPENDENCIES "Allow the downloading and in-tree buildi
 option(BENCHMARK_ENABLE_GTEST_TESTS "Enable building the unit tests which depend on gtest" ON)
 
 # Make sure we can import out CMake functions
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake/Modules")
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 
 # Read the git tags to determine the project version
@@ -139,6 +140,8 @@ else()
       if (GCC_RANLIB)
         set(CMAKE_RANLIB ${GCC_RANLIB})
       endif()
+    elseif("${CMAKE_C_COMPILER_ID}" STREQUAL "Clang")
+      include(llvm-toolchain)
     endif()
   endif()
 

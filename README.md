@@ -13,6 +13,7 @@ IRC channel: https://freenode.net #googlebenchmark
 
 [Additional Tooling Documentation](docs/tools.md)
 
+
 ## Building
 
 The basic steps for configuring and building the library look like this:
@@ -36,6 +37,51 @@ dependency can be provided three ways:
   dependencies.
 * Otherwise, if nothing is done, CMake will use `find_package(GTest REQUIRED)`
   to resolve the required GTest dependency.
+
+
+## Installation Guide
+
+For Ubuntu and Debian Based System
+
+First make sure you have git and cmake installed (If not please install it)
+
+```
+sudo apt-get install git
+sudo apt-get install cmake
+```
+
+Now, let's clone the repository and build it
+
+```
+git clone https://github.com/google/benchmark.git
+cd benchmark
+mkdir build
+cd build
+cmake .. -DCMAKE_BUILD_TYPE=RELEASE
+make
+```
+
+We need to install the library globally now
+
+```
+sudo make install
+```
+
+Now you have google/benchmark installed in your machine 
+Note: Don't forget to link to pthread library while building
+
+## Stable and Experimental Library Versions
+
+The main branch contains the latest stable version of the benchmarking library;
+the API of which can be considered largely stable, with source breaking changes
+being made only upon the release of a new major version.
+
+Newer, experimental, features are implemented and tested on the
+[`v2` branch](https://github.com/google/benchmark/tree/v2). Users who wish
+to use, test, and provide feedback on the new features are encouraged to try
+this branch. However, this branch provides no stability guarantees and reserves
+the right to change and break the API at any time.
+
 
 ## Example usage
 ### Basic usage
@@ -838,6 +884,9 @@ To enable link-time optimisation, use
 ```
 cmake -DCMAKE_BUILD_TYPE=Release -DBENCHMARK_ENABLE_LTO=true
 ```
+
+If you are using gcc, you might need to set `GCC_AR` and `GCC_RANLIB` cmake cache variables, if autodetection fails.
+If you are using clang, you may need to set `LLVMAR_EXECUTABLE`, `LLVMNM_EXECUTABLE` and `LLVMRANLIB_EXECUTABLE` cmake cache variables.
 
 ## Linking against the library
 When using gcc, it is necessary to link against pthread to avoid runtime exceptions.

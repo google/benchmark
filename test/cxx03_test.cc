@@ -60,4 +60,4 @@ void BM_counters(benchmark::State& state) {
 }
 BENCHMARK(BM_counters);
 
-BENCHMARK_MAIN()
+BENCHMARK_MAIN();
