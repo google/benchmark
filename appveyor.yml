@@ -43,7 +43,7 @@ build_script:
   - md _build -Force
   - cd _build
   - echo %configuration%
-  - cmake -G "%generator%" "-DCMAKE_BUILD_TYPE=%configuration%" ..
+  - cmake -G "%generator%" "-DCMAKE_BUILD_TYPE=%configuration%" -DBENCHMARK_DOWNLOAD_DEPENDENCIES=ON ..
   - cmake --build . --config %configuration%
 
 test_script:

@@ -42,7 +42,6 @@ macro(compile_output_test name)
           ${BENCHMARK_CXX_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
 endmacro(compile_output_test)
 
-
 # Demonstration executable
 compile_benchmark_test(benchmark_test)
 add_test(benchmark benchmark_test --benchmark_min_time=0.01)
@@ -134,6 +133,29 @@ else()
 endif()
 compile_output_test(complexity_test)
 add_test(complexity_benchmark complexity_test --benchmark_min_time=${COMPLEXITY_MIN_TIME})
+
+###############################################################################
+# GoogleTest Unit Tests
+###############################################################################
+
+if (BENCHMARK_ENABLE_GTEST_TESTS)
+  macro(compile_gtest name)
+    add_executable(${name} "${name}.cc")
+    if (TARGET googletest)
+      add_dependencies(${name} googletest)
+    endif()
+    target_link_libraries(${name} benchmark
+        "${GTEST_BOTH_LIBRARIES}" ${CMAKE_THREAD_LIBS_INIT})
+  endmacro(compile_gtest)
+
+  macro(add_gtest name)
+    compile_gtest(${name})
+    add_test(${name} ${name})
+  endmacro()
+
+  add_gtest(statistics_test)
+endif(BENCHMARK_ENABLE_GTEST_TESTS)
+
 
 # Add the coverage command(s)
 if(CMAKE_BUILD_TYPE)
