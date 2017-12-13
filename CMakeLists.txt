@@ -5,6 +5,7 @@ project (benchmark)
 foreach(p
     CMP0054 # CMake 3.1
     CMP0056 # export EXE_LINKER_FLAGS to try_run
+    CMP0057 # Support no if() IN_LIST operator
     )
   if(POLICY ${p})
     cmake_policy(SET ${p} NEW)
@@ -17,6 +18,14 @@ option(BENCHMARK_ENABLE_LTO "Enable link time optimisation of the benchmark libr
 option(BENCHMARK_USE_LIBCXX "Build and test using libc++ as the standard library." OFF)
 option(BENCHMARK_BUILD_32_BITS "Build a 32 bit version of the library." OFF)
 option(BENCHMARK_ENABLE_INSTALL "Enable installation of benchmark. (Projects embedding benchmark may want to turn this OFF.)" ON)
+
+# Allow unmet dependencies to be met using CMake's ExternalProject mechanics, which
+# may require downloading the source code.
+option(BENCHMARK_DOWNLOAD_DEPENDENCIES "Allow the downloading and in-tree building of unmet dependencies" OFF)
+
+# This option can be used to disable building and running unit tests which depend on gtest
+# in cases where it is not possible to build or find a valid version of gtest.
+option(BENCHMARK_ENABLE_GTEST_TESTS "Enable building the unit tests which depend on gtest" ON)
 
 # Make sure we can import out CMake functions
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake/Modules")
@@ -97,9 +106,7 @@ else()
   if (NOT BENCHMARK_ENABLE_EXCEPTIONS)
     add_cxx_compiler_flag(-fno-exceptions)
   endif()
-  if (NOT BENCHMARK_USE_LIBCXX)
-    add_cxx_compiler_flag(-Wzero-as-null-pointer-constant)
-  endif()
+
   if (HAVE_CXX_FLAG_FSTRICT_ALIASING)
     if (NOT CMAKE_CXX_COMPILER_ID STREQUAL "Intel") #ICC17u2: Many false positives for Wstrict-aliasing
       add_cxx_compiler_flag(-Wstrict-aliasing)
@@ -199,5 +206,8 @@ add_subdirectory(src)
 
 if (BENCHMARK_ENABLE_TESTING)
   enable_testing()
+  if (BENCHMARK_ENABLE_GTEST_TESTS)
+    include(HandleGTest)
+  endif()
   add_subdirectory(test)
 endif()
