@@ -64,6 +64,7 @@ int64_t RoundDouble(double v) { return static_cast<int64_t>(v + 0.5); }
 
 }  // end namespace
 
+
 bool JSONReporter::ReportContext(const Context& context) {
   std::ostream& out = GetOutputStream();
 
