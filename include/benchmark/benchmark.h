@@ -1347,18 +1347,6 @@ class JSONReporter : public BenchmarkReporter {
   bool first_report_;
 };
 
-class CSVReporter : public BenchmarkReporter {
- public:
-  CSVReporter() : printed_header_(false) {}
-  virtual bool ReportContext(const Context& context);
-  virtual void ReportRuns(const std::vector<Run>& reports);
-
- private:
-  void PrintRunData(const Run& report);
-
-  bool printed_header_;
-  std::set< std::string > user_counter_names_;
-};
 
 inline const char* GetTimeUnitString(TimeUnit unit) {
   switch (unit) {

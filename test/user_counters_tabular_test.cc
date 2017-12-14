@@ -46,8 +46,6 @@ ADD_CASES(TC_ConsoleOut, {
     {"^BM_CounterSet2_Tabular/threads:%int %console_report [ ]*%hrfloat [ ]*%hrfloat [ ]*%hrfloat$"},
 // clang-format on
 });
-ADD_CASES(TC_CSVOut, {{"%csv_header,"
-                       "\"Bar\",\"Bat\",\"Baz\",\"Foo\",\"Frob\",\"Lob\""}});
 
 // ========================================================================= //
 // ------------------------- Tabular Counters Output ----------------------- //
@@ -79,19 +77,6 @@ ADD_CASES(TC_JSONOut, {{"\"name\": \"BM_Counters_Tabular/threads:%int\",$"},
                        {"\"Frob\": %float,$", MR_Next},
                        {"\"Lob\": %float$", MR_Next},
                        {"}", MR_Next}});
-ADD_CASES(TC_CSVOut, {{"^\"BM_Counters_Tabular/threads:%int\",%csv_report,"
-                       "%float,%float,%float,%float,%float,%float$"}});
-// VS2013 does not allow this function to be passed as a lambda argument
-// to CHECK_BENCHMARK_RESULTS()
-void CheckTabular(Results const& e) {
-  CHECK_COUNTER_VALUE(e, int, "Foo", EQ, 1);
-  CHECK_COUNTER_VALUE(e, int, "Bar", EQ, 2);
-  CHECK_COUNTER_VALUE(e, int, "Baz", EQ, 4);
-  CHECK_COUNTER_VALUE(e, int, "Bat", EQ, 8);
-  CHECK_COUNTER_VALUE(e, int, "Frob", EQ, 16);
-  CHECK_COUNTER_VALUE(e, int, "Lob", EQ, 32);
-}
-CHECK_BENCHMARK_RESULTS("BM_Counters_Tabular/threads:%int", &CheckTabular);
 
 // ========================================================================= //
 // -------------------- Tabular+Rate Counters Output ----------------------- //
@@ -123,21 +108,6 @@ ADD_CASES(TC_JSONOut, {{"\"name\": \"BM_CounterRates_Tabular/threads:%int\",$"},
                        {"\"Frob\": %float,$", MR_Next},
                        {"\"Lob\": %float$", MR_Next},
                        {"}", MR_Next}});
-ADD_CASES(TC_CSVOut, {{"^\"BM_CounterRates_Tabular/threads:%int\",%csv_report,"
-                       "%float,%float,%float,%float,%float,%float$"}});
-// VS2013 does not allow this function to be passed as a lambda argument
-// to CHECK_BENCHMARK_RESULTS()
-void CheckTabularRate(Results const& e) {
-  double t = e.DurationCPUTime();
-  CHECK_FLOAT_COUNTER_VALUE(e, "Foo", EQ, 1./t, 0.001);
-  CHECK_FLOAT_COUNTER_VALUE(e, "Bar", EQ, 2./t, 0.001);
-  CHECK_FLOAT_COUNTER_VALUE(e, "Baz", EQ, 4./t, 0.001);
-  CHECK_FLOAT_COUNTER_VALUE(e, "Bat", EQ, 8./t, 0.001);
-  CHECK_FLOAT_COUNTER_VALUE(e, "Frob", EQ, 16./t, 0.001);
-  CHECK_FLOAT_COUNTER_VALUE(e, "Lob", EQ, 32./t, 0.001);
-}
-CHECK_BENCHMARK_RESULTS("BM_CounterRates_Tabular/threads:%int",
-                        &CheckTabularRate);
 
 // ========================================================================= //
 // ------------------------- Tabular Counters Output ----------------------- //
@@ -164,16 +134,6 @@ ADD_CASES(TC_JSONOut, {{"\"name\": \"BM_CounterSet0_Tabular/threads:%int\",$"},
                        {"\"Baz\": %float,$", MR_Next},
                        {"\"Foo\": %float$", MR_Next},
                        {"}", MR_Next}});
-ADD_CASES(TC_CSVOut, {{"^\"BM_CounterSet0_Tabular/threads:%int\",%csv_report,"
-                       "%float,,%float,%float,,"}});
-// VS2013 does not allow this function to be passed as a lambda argument
-// to CHECK_BENCHMARK_RESULTS()
-void CheckSet0(Results const& e) {
-  CHECK_COUNTER_VALUE(e, int, "Foo", EQ, 10);
-  CHECK_COUNTER_VALUE(e, int, "Bar", EQ, 20);
-  CHECK_COUNTER_VALUE(e, int, "Baz", EQ, 40);
-}
-CHECK_BENCHMARK_RESULTS("BM_CounterSet0_Tabular", &CheckSet0);
 
 // again.
 void BM_CounterSet1_Tabular(benchmark::State& state) {
@@ -196,16 +156,6 @@ ADD_CASES(TC_JSONOut, {{"\"name\": \"BM_CounterSet1_Tabular/threads:%int\",$"},
                        {"\"Baz\": %float,$", MR_Next},
                        {"\"Foo\": %float$", MR_Next},
                        {"}", MR_Next}});
-ADD_CASES(TC_CSVOut, {{"^\"BM_CounterSet1_Tabular/threads:%int\",%csv_report,"
-                       "%float,,%float,%float,,"}});
-// VS2013 does not allow this function to be passed as a lambda argument
-// to CHECK_BENCHMARK_RESULTS()
-void CheckSet1(Results const& e) {
-  CHECK_COUNTER_VALUE(e, int, "Foo", EQ, 15);
-  CHECK_COUNTER_VALUE(e, int, "Bar", EQ, 25);
-  CHECK_COUNTER_VALUE(e, int, "Baz", EQ, 45);
-}
-CHECK_BENCHMARK_RESULTS("BM_CounterSet1_Tabular/threads:%int", &CheckSet1);
 
 // ========================================================================= //
 // ------------------------- Tabular Counters Output ----------------------- //
@@ -232,16 +182,6 @@ ADD_CASES(TC_JSONOut, {{"\"name\": \"BM_CounterSet2_Tabular/threads:%int\",$"},
                        {"\"Baz\": %float,$", MR_Next},
                        {"\"Foo\": %float$", MR_Next},
                        {"}", MR_Next}});
-ADD_CASES(TC_CSVOut, {{"^\"BM_CounterSet2_Tabular/threads:%int\",%csv_report,"
-                       ",%float,%float,%float,,"}});
-// VS2013 does not allow this function to be passed as a lambda argument
-// to CHECK_BENCHMARK_RESULTS()
-void CheckSet2(Results const& e) {
-  CHECK_COUNTER_VALUE(e, int, "Foo", EQ, 10);
-  CHECK_COUNTER_VALUE(e, int, "Bat", EQ, 30);
-  CHECK_COUNTER_VALUE(e, int, "Baz", EQ, 40);
-}
-CHECK_BENCHMARK_RESULTS("BM_CounterSet2_Tabular", &CheckSet2);
 
 // ========================================================================= //
 // --------------------------- TEST CASES END ------------------------------ //

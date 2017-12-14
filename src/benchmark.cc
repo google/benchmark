@@ -76,11 +76,11 @@ DEFINE_bool(benchmark_report_aggregates_only, false,
 
 DEFINE_string(benchmark_format, "console",
               "The format to use for console output. Valid values are "
-              "'console', 'json', or 'csv'.");
+              "'console', or 'json'.");
 
 DEFINE_string(benchmark_out_format, "json",
               "The format to use for file output. Valid values are "
-              "'console', 'json', or 'csv'.");
+              "'console', or 'json'.");
 
 DEFINE_string(benchmark_out, "", "The file to write additonal output to");
 
@@ -532,8 +532,6 @@ std::unique_ptr<BenchmarkReporter> CreateReporter(
     return PtrType(new ConsoleReporter(output_opts));
   } else if (name == "json") {
     return PtrType(new JSONReporter);
-  } else if (name == "csv") {
-    return PtrType(new CSVReporter);
   } else {
     std::cerr << "Unexpected format: '" << name << "'\n";
     std::exit(1);
@@ -642,9 +640,9 @@ void PrintUsageAndExit() {
           "          [--benchmark_min_time=<min_time>]\n"
           "          [--benchmark_repetitions=<num_repetitions>]\n"
           "          [--benchmark_report_aggregates_only={true|false}\n"
-          "          [--benchmark_format=<console|json|csv>]\n"
+          "          [--benchmark_format=<console|json>]\n"
           "          [--benchmark_out=<filename>]\n"
-          "          [--benchmark_out_format=<json|console|csv>]\n"
+          "          [--benchmark_out_format=<json|console>]\n"
           "          [--benchmark_color={auto|true|false}]\n"
           "          [--benchmark_counters_tabular={true|false}]\n"
           "          [--v=<verbosity>]\n");
@@ -684,7 +682,7 @@ void ParseCommandLineFlags(int* argc, char** argv) {
   }
   for (auto const* flag :
        {&FLAGS_benchmark_format, &FLAGS_benchmark_out_format})
-    if (*flag != "console" && *flag != "json" && *flag != "csv") {
+    if (*flag != "console" && *flag != "json") {
       PrintUsageAndExit();
     }
   if (FLAGS_benchmark_color.empty()) {

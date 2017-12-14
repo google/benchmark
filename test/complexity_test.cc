@@ -33,9 +33,6 @@ int AddComplexityTest(std::string big_o_test_name, std::string rms_test_name,
                         {"\"name\": \"%rms_name\",$"},
                         {"\"rms\": %float$", MR_Next},
                         {"}", MR_Next}});
-  AddCases(TC_CSVOut, {{"^\"%bigo_name\",,%float,%float,%bigo,,,,,$"},
-                       {"^\"%bigo_name\"", MR_Not},
-                       {"^\"%rms_name\",,%float,%float,,,,,,$", MR_Next}});
   return 0;
 }
 
