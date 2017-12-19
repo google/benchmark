@@ -1,7 +1,7 @@
 licenses(['notice'])
 package(default_visibility=['//visibility:public'])
 
-benchmark_copts = [
+BENCHMARK_COPTS = [
     # Choose the regex backend by defining one of the macros below:
     #       HAVE_GNU_POSIX_REGEX
     #       HAVE_POSIX_REGEX
@@ -20,7 +20,8 @@ benchmark_copts = [
     '-std=c++11',
 ]
 
-gtest_dep = '@com_github_google_googletest//:gtest'
+
+GTEST_DEP = '@com_github_google_googletest//:gtest'
 
 cc_library(
     name = 'benchmark',
@@ -63,9 +64,10 @@ cc_library(
     includes = [
         'include',
     ],
-    copts = benchmark_copts,
+    copts = BENCHMARK_COPTS,
     linkopts = [
         '-lm',
+        '-pthread',
     ],
 )
 
@@ -74,10 +76,9 @@ cc_library(
     srcs = [
         'test/%s.cc' % f,
     ],
-    copts = benchmark_copts,
+    copts = BENCHMARK_COPTS,
     deps = [
         ':benchmark',
-        gtest_dep,
     ],
     testonly = 1,
 ) for f in [
@@ -101,10 +102,10 @@ cc_library(
     srcs = [
         'test/%s.cc' % f,
     ],
-    copts = benchmark_copts,
+    copts = BENCHMARK_COPTS,
     deps = [
         ':output_test_helper',
-        gtest_dep,
+        GTEST_DEP,
     ],
     testonly = 1,
 ) for f in [
@@ -125,7 +126,6 @@ cc_test(
     ],
     deps = [
         ':benchmark',
-        gtest_dep,
     ],
     testonly = 1,
 )
@@ -142,7 +142,7 @@ cc_library(
         'test/output_test.h',
     ],
     strip_include_prefix = 'test',
-    copts = benchmark_copts,
+    copts = BENCHMARK_COPTS,
     deps = [
         ':benchmark',
     ],
