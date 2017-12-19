@@ -3,10 +3,10 @@ new_git_repository(
     remote = 'https://github.com/google/googletest.git',
     tag = 'release-1.8.0',
     build_file_content = '''
-# This content is copied from
+# This content is modified from
 #   https://github.com/google/googletest/blob/master/BUILD.bazel
-# But because the filename is not BUILD, the git_repository() rule will
-# complain.
+# But we cannot just use that file as-is due to this issue:
+#   https://github.com/google/googletest/pull/1212
 package(default_visibility = ["//visibility:public"])
 
 licenses(["notice"])
@@ -63,7 +63,7 @@ cc_library(
     srcs = [
         "googlemock/src/gmock_main.cc",
     ],
-    deps = ["//:gtest"],
+    deps = [":gtest"],
 )
 ''',
 )
