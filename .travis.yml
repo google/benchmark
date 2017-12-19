@@ -159,7 +159,7 @@ install:
       wget https://github.com/bazelbuild/bazel/releases/download/0.8.1/bazel-0.8.1-installer-linux-x86_64.sh --output-document bazel-installer.sh && sudo bash bazel-installer.sh;
     fi
   - if [ "${TRAVIS_OS_NAME}" == "osx" ]; then
-      brew install bazel@0.8.1;
+      brew install bazel;
     fi
 
 script:
