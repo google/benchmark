@@ -155,11 +155,18 @@ install:
       brew update;
       brew install gcc@7;
     fi
+  - if [ "${TRAVIS_OS_NAME}" == "linux" ]; then
+      wget https://github.com/bazelbuild/bazel/releases/download/0.8.1/bazel-0.8.1-installer-linux-x86_64.sh --output-document bazel-installer.sh && sudo bash bazel-installer.sh;
+    fi
+  - if [ "${TRAVIS_OS_NAME}" == "osx" ]; then
+      brew install bazel@0.8.1;
+    fi
 
 script:
   - cmake -DCMAKE_C_COMPILER=${C_COMPILER} -DCMAKE_CXX_COMPILER=${COMPILER} -DCMAKE_BUILD_TYPE=${BUILD_TYPE} -DCMAKE_CXX_FLAGS="${EXTRA_FLAGS}" -DBENCHMARK_DOWNLOAD_DEPENDENCIES=ON -DBENCHMARK_BUILD_32_BITS=${BUILD_32_BITS} ..
   - make
   - ctest -C ${BUILD_TYPE} --output-on-failure
+  - bazel test //... --test_output=errors
 
 after_success:
   - if [ "${BUILD_TYPE}" == "Coverage" -a "${TRAVIS_OS_NAME}" == "linux" ]; then
