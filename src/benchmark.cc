@@ -711,4 +711,6 @@ bool ReportUnrecognizedArguments(int argc, char** argv) {
   return argc > 1;
 }
 
+Fixture::~Fixture() {}
+
 }  // end namespace benchmark
