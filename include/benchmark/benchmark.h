@@ -505,10 +505,10 @@ class State {
   //
   // REQUIRES: a benchmark has exited its benchmarking loop.
   BENCHMARK_ALWAYS_INLINE
-  void SetBytesProcessed(size_t bytes) { bytes_processed_ = bytes; }
+  void SetBytesProcessed(int64_t bytes) { bytes_processed_ = bytes; }
 
   BENCHMARK_ALWAYS_INLINE
-  size_t bytes_processed() const { return bytes_processed_; }
+  int64_t bytes_processed() const { return bytes_processed_; }
 
   // If this routine is called with complexity_n > 0 and complexity report is
   // requested for the
@@ -528,10 +528,10 @@ class State {
   //
   // REQUIRES: a benchmark has exited its benchmarking loop.
   BENCHMARK_ALWAYS_INLINE
-  void SetItemsProcessed(size_t items) { items_processed_ = items; }
+  void SetItemsProcessed(int64_t items) { items_processed_ = items; }
 
   BENCHMARK_ALWAYS_INLINE
-  size_t items_processed() const { return items_processed_; }
+  int64_t items_processed() const { return items_processed_; }
 
   // If this routine is called, the specified label is printed at the
   // end of the benchmark report line for the currently executing
@@ -565,17 +565,19 @@ class State {
   int range_y() const { return range(1); }
 
   BENCHMARK_ALWAYS_INLINE
-  size_t iterations() const { return (max_iterations - total_iterations_) + 1; }
+  int64_t iterations() const {
+    return static_cast<int64_t>(max_iterations - total_iterations_) + 1;
+  }
 
  private:
   bool started_;
   bool finished_;
-  size_t total_iterations_;
+  int32_t total_iterations_;
 
   std::vector<int> range_;
 
-  size_t bytes_processed_;
-  size_t items_processed_;
+  int64_t bytes_processed_;
+  int64_t items_processed_;
 
   int complexity_n_;
 
@@ -588,10 +590,10 @@ class State {
   const int thread_index;
   // Number of threads concurrently executing the benchmark.
   const int threads;
-  const size_t max_iterations;
+  const int32_t max_iterations;
 
   // TODO(EricWF) make me private
-  State(size_t max_iters, const std::vector<int>& ranges, int thread_i,
+  State(int32_t max_iters, const std::vector<int>& ranges, int thread_i,
         int n_threads, internal::ThreadTimer* timer,
         internal::ThreadManager* manager);
 
@@ -638,7 +640,7 @@ struct State::StateIterator {
   }
 
  private:
-  size_t cached_;
+  int32_t cached_;
   State* const parent_;
 };
 

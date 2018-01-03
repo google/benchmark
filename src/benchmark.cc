@@ -101,7 +101,7 @@ DEFINE_int32(v, 0, "The level of verbose logging to output");
 namespace benchmark {
 
 namespace {
-static const size_t kMaxIterations = 1000000000;
+static const int32_t kMaxIterations = 1000000000;
 }  // end namespace
 
 namespace internal {
@@ -140,8 +140,8 @@ class ThreadManager {
     double real_time_used = 0;
     double cpu_time_used = 0;
     double manual_time_used = 0;
-    int64_t bytes_processed = 0;
-    int64_t items_processed = 0;
+    uint64_t bytes_processed = 0;
+    uint64_t items_processed = 0;
     int complexity_n = 0;
     std::string report_label_;
     std::string error_message_;
@@ -219,7 +219,7 @@ namespace {
 
 BenchmarkReporter::Run CreateRunReport(
     const benchmark::internal::Benchmark::Instance& b,
-    const internal::ThreadManager::Result& results, size_t iters,
+    const internal::ThreadManager::Result& results, int32_t iters,
     double seconds) {
   // Create report about this benchmark run.
   BenchmarkReporter::Run report;
@@ -263,7 +263,7 @@ BenchmarkReporter::Run CreateRunReport(
 // Execute one thread of benchmark b for the specified number of iterations.
 // Adds the stats collected for the thread into *total.
 void RunInThread(const benchmark::internal::Benchmark::Instance* b,
-                 size_t iters, int thread_id,
+                 int32_t iters, int thread_id,
                  internal::ThreadManager* manager) {
   internal::ThreadTimer timer;
   State st(iters, b->arg, thread_id, b->threads, &timer, manager);
@@ -290,7 +290,7 @@ std::vector<BenchmarkReporter::Run> RunBenchmark(
   std::vector<BenchmarkReporter::Run> reports;  // return value
 
   const bool has_explicit_iteration_count = b.iterations != 0;
-  size_t iters = has_explicit_iteration_count ? b.iterations : 1;
+  int32_t iters = has_explicit_iteration_count ? b.iterations : 1;
   std::unique_ptr<internal::ThreadManager> manager;
   std::vector<std::thread> pool(b.threads - 1);
   const int repeats =
@@ -394,7 +394,7 @@ std::vector<BenchmarkReporter::Run> RunBenchmark(
 }  // namespace
 }  // namespace internal
 
-State::State(size_t max_iters, const std::vector<int>& ranges, int thread_i,
+State::State(int32_t max_iters, const std::vector<int>& ranges, int thread_i,
              int n_threads, internal::ThreadTimer* timer,
              internal::ThreadManager* manager)
     : started_(false),
