@@ -67,6 +67,8 @@ endmacro(build_external_gtest)
 
 if (BENCHMARK_ENABLE_GTEST_TESTS)
   if (IS_DIRECTORY ${CMAKE_SOURCE_DIR}/googletest)
+    set(INSTALL_GTEST OFF CACHE INTERNAL "")
+    set(INSTALL_GMOCK OFF CACHE INTERNAL "")
     add_subdirectory(${CMAKE_SOURCE_DIR}/googletest)
     set(GTEST_BOTH_LIBRARIES gtest gtest_main)
   elseif(BENCHMARK_DOWNLOAD_DEPENDENCIES)
