@@ -11,25 +11,50 @@ matrix:
     - compiler: gcc
       addons:
         apt:
+          sources:
+            ubuntu-toolchain-r-test
           packages:
             - lcov
-      env: COMPILER=g++ C_COMPILER=gcc BUILD_TYPE=Coverage
-    - compiler: gcc
-      env: COMPILER=g++ C_COMPILER=gcc BUILD_TYPE=Debug
-    - compiler: gcc
-      env: COMPILER=g++ C_COMPILER=gcc BUILD_TYPE=Release
+            - g++-4.9
+      env: COMPILER=g++-4.9 C_COMPILER=gcc-4.9 BUILD_TYPE=Coverage
     - compiler: gcc
       addons:
         apt:
+          sources:
+            ubuntu-toolchain-r-test
           packages:
-            - g++-multilib
-      env: COMPILER=g++ C_COMPILER=gcc BUILD_TYPE=Debug BUILD_32_BITS=ON
+            - g++-4.9
+      env: COMPILER=g++-4.9 C_COMPILER=gcc-4.9 BUILD_TYPE=Debug
     - compiler: gcc
       addons:
         apt:
+          sources:
+            ubuntu-toolchain-r-test
           packages:
-            - g++-multilib
-      env: COMPILER=g++ C_COMPILER=gcc BUILD_TYPE=Release BUILD_32_BITS=ON
+            - g++-4.9
+      env: COMPILER=g++-4.9 C_COMPILER=gcc-4.9 BUILD_TYPE=Release
+    - compiler: gcc
+      addons:
+        apt:
+          sources:
+            ubuntu-toolchain-r-test
+          packages:
+            - g++-4.9
+            - gcc-4.9-multilib
+            - g++-4.9-multilib
+            - gcc-multilib
+      env: COMPILER=g++-4.9 C_COMPILER=gcc-4.9 BUILD_TYPE=Debug BUILD_32_BITS=ON
+    - compiler: gcc
+      addons:
+        apt:
+          sources:
+            ubuntu-toolchain-r-test
+          packages:
+            - g++-4.9
+            - gcc-4.9-multilib
+            - g++-4.9-multilib
+            - gcc-multilib
+      env: COMPILER=g++-4.9 C_COMPILER=gcc-4.9 BUILD_TYPE=Release BUILD_32_BITS=ON
     - compiler: gcc
       addons:
         apt:
@@ -41,8 +66,20 @@ matrix:
         - COMPILER=g++-6 C_COMPILER=gcc-6  BUILD_TYPE=Debug
         - EXTRA_FLAGS="-fno-omit-frame-pointer -g -O2 -fsanitize=undefined,address -fuse-ld=gold"
     - compiler: clang
+      addons:
+        apt:
+          sources:
+            ubuntu-toolchain-r-test
+          packages:
+            - g++-4.9
       env: COMPILER=clang++ C_COMPILER=clang BUILD_TYPE=Debug
     - compiler: clang
+      addons:
+        apt:
+          sources:
+            ubuntu-toolchain-r-test
+          packages:
+            - g++-4.9
       env: COMPILER=clang++ C_COMPILER=clang BUILD_TYPE=Release
     # Clang w/ libc++
     - compiler: clang
@@ -123,12 +160,12 @@ matrix:
       osx_image: xcode8.3
       compiler: clang
       env:
-        - COMPILER=clang++ BUILD_TYPE=Debug
+        - COMPILER=clang++ C_COMPILER=clang BUILD_TYPE=Debug
     - os: osx
       osx_image: xcode8.3
       compiler: clang
       env:
-        - COMPILER=clang++ BUILD_TYPE=Release
+        - COMPILER=clang++ C_COMPILER=clang BUILD_TYPE=Release
     - os: osx
       osx_image: xcode8.3
       compiler: gcc
@@ -157,6 +194,7 @@ install:
     fi
 
 script:
+  - export CC=${C_COMPILER} CXX=${COMPILER}
   - cmake -DCMAKE_C_COMPILER=${C_COMPILER} -DCMAKE_CXX_COMPILER=${COMPILER} -DCMAKE_BUILD_TYPE=${BUILD_TYPE} -DCMAKE_CXX_FLAGS="${EXTRA_FLAGS}" -DBENCHMARK_DOWNLOAD_DEPENDENCIES=ON -DBENCHMARK_BUILD_32_BITS=${BUILD_32_BITS} ..
   - make
   - ctest -C ${BUILD_TYPE} --output-on-failure

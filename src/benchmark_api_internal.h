@@ -18,6 +18,7 @@ struct Benchmark::Instance {
   Benchmark* benchmark;
   ReportMode report_mode;
   std::vector<int> arg;
+  json json_arg;
   TimeUnit time_unit;
   int range_multiplier;
   bool use_real_time;
