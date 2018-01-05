@@ -804,7 +804,7 @@ BM_memcpy/32k       1834 ns       1837 ns     357143
 
 ## Output Formats
 The library supports multiple output formats. Use the
-`--benchmark_format=<console|json|csv>` flag to set the format type. `console`
+`--benchmark_format=<console|json>` flag to set the format type. `console`
 is the default format.
 
 The Console format is intended to be a human readable format. By default
@@ -873,7 +873,7 @@ name,iterations,real_time,cpu_time,bytes_per_second,items_per_second,label
 ## Output Files
 The library supports writing the output of the benchmark to a file specified
 by `--benchmark_out=<filename>`. The format of the output can be specified
-using `--benchmark_out_format={json|console|csv}`. Specifying
+using `--benchmark_out_format={json|console}`. Specifying
 `--benchmark_out` does not suppress the console output.
 
 ## Debug vs Release
