@@ -39,6 +39,9 @@ dependency can be provided three ways:
 * Otherwise, if nothing is done, CMake will use `find_package(GTest REQUIRED)`
   to resolve the required GTest dependency.
 
+If you do not wish to build and run the tests, add `-DBENCHMARK_ENABLE_GTEST_TESTS=OFF`
+to `CMAKE_ARGS`.
+
 
 ## Installation Guide
 
