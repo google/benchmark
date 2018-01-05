@@ -373,6 +373,41 @@ ADD_CASES(TC_CSVOut, {{"^\"BM_UserStats/repeats:3\",%csv_report$"},
                       {"^\"BM_UserStats/repeats:3_stddev\",%csv_report$"},
                       {"^\"BM_UserStats/repeats:3_\",%csv_report$"}});
 
+void BM_JSONInputTest(benchmark::State& st) {
+  for (auto _ : st) {
+  }
+  st["foo"] = 42;
+  st["baz"] = "abc";
+  st["list"] = {1, 2, 3};
+}
+BENCHMARK(BM_JSONInputTest)
+    ->WithInput({{"name", "case1"}, {"a", 42}})
+    ->WithInput({{"b", 42}, {"c", 101}});
+ADD_CASES(TC_ConsoleOut, {{"^BM_JSONInputTest/case1 %console_report$"},
+                          {"^BM_JSONInputTest/b:42/c:101 %console_report$"}});
+ADD_CASES(TC_JSONOut, {{"\"name\": \"BM_JSONInputTest/case1\",$"},
+                       {"\"name\": \"BM_JSONInputTest/b:42/c:101\",$"}});
+ADD_CASES(TC_CSVOut, {{"^\"BM_JSONInputTest/case1\",%csv_report$"},
+                      {"^\"BM_JSONInputTest/b:42/c:101\",%csv_report$"}});
+
+void BM_JSONOutputTest(benchmark::State& st) {
+  for (auto _ : st) {
+  }
+  st["foo"] = 42;
+  st["baz"] = "abc";
+  st["list"] = {1, 2, 3};
+}
+BENCHMARK(BM_JSONOutputTest);
+ADD_CASES(TC_JSONOut, {{"\"name\": \"BM_JSONOutputTest\",$"},
+                       {"\"json_output\": \\{$"},
+                       {"\"baz\": \"abc\",$"},
+                       {"\"foo\": 42,$"},
+                       {"\"list\": \\[$"},
+                       {"1,$"},
+                       {"2,$"},
+                       {"3$"},
+                       {"]$"},
+                       {"}$"}});
 // ========================================================================= //
 // --------------------------- TEST CASES END ------------------------------ //
 // ========================================================================= //

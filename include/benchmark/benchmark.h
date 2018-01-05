@@ -184,6 +184,14 @@ BENCHMARK(BM_test)->Unit(benchmark::kMillisecond);
 #include <type_traits>
 #include <initializer_list>
 #include <utility>
+#else
+#ifndef BENCHMARK_HAS_NO_JSON_HEADER
+#define BENCHMARK_HAS_NO_JSON_HEADER
+#endif
+#endif
+
+#if !defined(BENCHMARK_HAS_NO_JSON_HEADER)
+#include "json.hpp"
 #endif
 
 #if defined(_MSC_VER)
@@ -272,10 +280,54 @@ size_t RunSpecifiedBenchmarks(BenchmarkReporter* console_reporter,
 // TODO(dominic)
 // void MemoryUsage();
 
+#ifndef BENCHMARK_HAS_NO_JSON_HEADER
+using json = nlohmann::json;
+#endif
+
 namespace internal {
 class Benchmark;
 class BenchmarkImp;
 class BenchmarkFamilies;
+
+/// This class allows objects to store references to json object even
+/// when the header is not currently available. Technically this class
+/// causes ODR violations, but it's unlikely to cause problems.
+class JSONPointer {
+ public:
+  JSONPointer();
+  ~JSONPointer();
+#ifndef BENCHMARK_HAS_NO_JSON_HEADER
+  explicit JSONPointer(json J);
+  inline JSONPointer(JSONPointer&& JP) noexcept;
+  inline JSONPointer& operator=(JSONPointer&& JP) noexcept;
+  inline json& get() const;
+  inline json* operator->() const;
+  json& operator*() const { return get(); }
+#endif
+ private:
+  struct PIMPL;
+  PIMPL* ptr_;
+#ifndef BENCHMARK_HAS_CXX11
+  BENCHMARK_DISALLOW_COPY_AND_ASSIGN(JSONPointer);
+#endif
+};
+
+#ifndef BENCHMARK_HAS_NO_JSON_HEADER
+struct JSONPointer::PIMPL {
+  json value;
+};
+inline JSONPointer::JSONPointer(JSONPointer&& JP) noexcept : ptr_(JP.ptr_) {
+  JP.ptr_ = nullptr;
+}
+inline JSONPointer& JSONPointer::operator=(JSONPointer&& JP) noexcept {
+  PIMPL* tmp = ptr_;
+  ptr_ = JP.ptr_;
+  JP.ptr_ = tmp;
+  return *this;
+}
+inline json& JSONPointer::get() const { return ptr_->value; }
+inline json* JSONPointer::operator->() const { return &ptr_->value; }
+#endif  // BENCHMARK_HAS_NO_JSON_HEADER
 
 void UseCharPointer(char const volatile*);
 
@@ -551,6 +603,24 @@ class State {
     this->SetLabel(str.c_str());
   }
 
+#ifndef BENCHMARK_HAS_NO_JSON_HEADER
+  // Return the JSON input specified when registering the benchmark, if any;
+  // otherwise, return an empty JSON object.
+  BENCHMARK_ALWAYS_INLINE
+  json::const_reference GetInput() const { return json_input_.get(); }
+
+  // Return the JSON object which is used to store output from running the
+  // benchmark.
+  json::const_reference GetOutput() const { return json_output_.get(); }
+
+  // Get or create a JSON object with the specified key and return a reference
+  // to that object. This can be used to specify arbitrary JSON output which
+  // will be reported by the JSON reporter.
+  json::reference operator[](json::object_t::key_type const& key) {
+    return json_output_.get()[key];
+  }
+#endif
+
   // Range arguments for this run. CHECKs if the argument has been set.
   BENCHMARK_ALWAYS_INLINE
   int range(std::size_t pos = 0) const {
@@ -573,6 +643,8 @@ class State {
   size_t total_iterations_;
 
   std::vector<int> range_;
+  internal::JSONPointer json_input_;
+  internal::JSONPointer json_output_;
 
   size_t bytes_processed_;
   size_t items_processed_;
@@ -591,9 +663,9 @@ class State {
   const size_t max_iterations;
 
   // TODO(EricWF) make me private
-  State(size_t max_iters, const std::vector<int>& ranges, int thread_i,
-        int n_threads, internal::ThreadTimer* timer,
-        internal::ThreadManager* manager);
+  State(size_t max_iters, const std::vector<int>& ranges,
+        internal::JSONPointer json_ptr, int thread_i, int n_threads,
+        internal::ThreadTimer* timer, internal::ThreadManager* manager);
 
  private:
   void StartKeepRunning();
@@ -811,6 +883,17 @@ class Benchmark {
   // Equivalent to ThreadRange(NumCPUs(), NumCPUs())
   Benchmark* ThreadPerCpu();
 
+#ifndef BENCHMARK_HAS_NO_JSON_HEADER
+  // Run this benchmark once with "input_value" as the extra arguments passed
+  // to the function, which can be accessed using 'State::GetInput()'.
+  //
+  // The name of the benchmark for the specified input value will be appended
+  // with "/<name>" if the input contains a "name" field; otherwise each of
+  // the fields will be appended as "/<key>:<value>" when value is a primitive,
+  // and "/<key>" otherwise.
+  Benchmark* WithInput(json input_value);
+#endif
+
   virtual void Run(State& state) = 0;
 
   // Used inside the benchmark implementation
@@ -832,6 +915,7 @@ class Benchmark {
   ReportMode report_mode_;
   std::vector<std::string> arg_names_;   // Args for all benchmark runs
   std::vector<std::vector<int> > args_;  // Args for all benchmark runs
+  std::vector<JSONPointer> json_args_;
   TimeUnit time_unit_;
   int range_multiplier_;
   double min_time_;
@@ -1152,9 +1236,9 @@ class Fixture : public internal::Benchmark {
 
 // ------------------------------------------------------
 // Benchmark Reporters
-
 namespace benchmark {
 
+#ifndef BENCHMARK_HAS_NO_JSON_HEADER
 struct CPUInfo {
   struct CacheInfo {
     std::string type;
@@ -1249,6 +1333,8 @@ class BenchmarkReporter {
     bool report_rms;
 
     UserCounters counters;
+
+    json json_output;
   };
 
   // Construct a BenchmarkReporter with the output stream set to 'std::cout'
@@ -1359,6 +1445,7 @@ class CSVReporter : public BenchmarkReporter {
   bool printed_header_;
   std::set< std::string > user_counter_names_;
 };
+#endif  // BENCHMARK_HAS_NO_JSON_HEADER
 
 inline const char* GetTimeUnitString(TimeUnit unit) {
   switch (unit) {
