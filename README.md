@@ -2,6 +2,7 @@
 [![Build Status](https://travis-ci.org/google/benchmark.svg?branch=master)](https://travis-ci.org/google/benchmark)
 [![Build status](https://ci.appveyor.com/api/projects/status/u0qsyp7t1tk7cpxs/branch/master?svg=true)](https://ci.appveyor.com/project/google/benchmark/branch/master)
 [![Coverage Status](https://coveralls.io/repos/google/benchmark/badge.svg)](https://coveralls.io/r/google/benchmark)
+[![slackin](https://slackin-iqtfqnpzxd.now.sh/badge.svg)](https://slackin-iqtfqnpzxd.now.sh/)
 
 A library to support the benchmarking of functions, similar to unit-tests.
 
@@ -37,6 +38,9 @@ dependency can be provided three ways:
   dependencies.
 * Otherwise, if nothing is done, CMake will use `find_package(GTest REQUIRED)`
   to resolve the required GTest dependency.
+
+If you do not wish to build and run the tests, add `-DBENCHMARK_ENABLE_GTEST_TESTS=OFF`
+to `CMAKE_ARGS`.
 
 
 ## Installation Guide
