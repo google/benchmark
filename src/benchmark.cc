@@ -108,6 +108,15 @@ namespace internal {
 
 void UseCharPointer(char const volatile*) {}
 
+JSONPointer::JSONPointer() : JSONPointer(json::object_t{}) {}
+
+JSONPointer::JSONPointer(json val)
+    : ptr_(new JSONPointer::PIMPL{std::move(val)}) {}
+
+JSONPointer::~JSONPointer() {
+  if (ptr_) delete ptr_;
+}
+
 class ThreadManager {
  public:
   ThreadManager(int num_threads)
@@ -146,6 +155,7 @@ class ThreadManager {
     std::string report_label_;
     std::string error_message_;
     bool has_error_ = false;
+    json json_output = json::object_t{};
     UserCounters counters;
   };
   GUARDED_BY(GetBenchmarkMutex()) Result results;
@@ -256,6 +266,7 @@ BenchmarkReporter::Run CreateRunReport(
     report.statistics = b.statistics;
     report.counters = results.counters;
     internal::Finish(&report.counters, seconds, b.threads);
+    report.json_output = results.json_output;
   }
   return report;
 }
@@ -266,7 +277,8 @@ void RunInThread(const benchmark::internal::Benchmark::Instance* b,
                  size_t iters, int thread_id,
                  internal::ThreadManager* manager) {
   internal::ThreadTimer timer;
-  State st(iters, b->arg, thread_id, b->threads, &timer, manager);
+  State st(iters, b->arg, internal::JSONPointer(b->json_arg), thread_id,
+           b->threads, &timer, manager);
   b->benchmark->Run(st);
   CHECK(st.iterations() == st.max_iterations)
       << "Benchmark returned before State::KeepRunning() returned false!";
@@ -279,6 +291,14 @@ void RunInThread(const benchmark::internal::Benchmark::Instance* b,
     results.bytes_processed += st.bytes_processed();
     results.items_processed += st.items_processed();
     results.complexity_n += st.complexity_length_n();
+    for (auto It = st.GetOutput().begin(); It != st.GetOutput().end(); ++It) {
+      auto Key = It.key();
+      if (results.json_output.count(Key) == 0) {
+        results.json_output[Key] = It.value();
+        continue;
+      }
+      // FIXME: Figure out how to merge JSON values.
+    }
     internal::Increment(&results.counters, st.counters);
   }
   manager->NotifyThreadComplete();
@@ -394,13 +414,17 @@ std::vector<BenchmarkReporter::Run> RunBenchmark(
 }  // namespace
 }  // namespace internal
 
-State::State(size_t max_iters, const std::vector<int>& ranges, int thread_i,
-             int n_threads, internal::ThreadTimer* timer,
+State::State(size_t max_iters, const std::vector<int>& ranges,
+             internal::JSONPointer json_ptr,
+
+             int thread_i, int n_threads, internal::ThreadTimer* timer,
              internal::ThreadManager* manager)
     : started_(false),
       finished_(false),
       total_iterations_(max_iters + 1),
       range_(ranges),
+      json_input_(std::move(json_ptr)),
+      json_output_(json::object_t{}),
       bytes_processed_(0),
       items_processed_(0),
       complexity_n_(0),

@@ -195,6 +195,12 @@ void JSONReporter::PrintRunData(Run const& run) {
   if (!run.report_label.empty()) {
     out << ",\n" << indent << FormatKV("label", run.report_label);
   }
+  if (!run.json_output.empty()) {
+    out << ",\n"
+        << indent
+        << "\"json_output\": " << std::setw(static_cast<int>(indent.size()) + 2)
+        << run.json_output;
+  }
   out << '\n';
 }
 

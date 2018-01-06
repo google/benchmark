@@ -189,6 +189,23 @@ pair.
 BENCHMARK(BM_SetInsert)->Ranges({{1<<10, 8<<10}, {128, 512}});
 ```
 
+### Specifying JSON Input Arguments.
+Benchmarks can also accept arbitrary JSON arguments as input using the `WithInput`
+function. See [Working With JSON Objects for more information](#working-with-json-objects).
+
+```c++
+BENCHMARK(BM_Foo)
+->WithInput({
+  {"name", "case1"},
+  {"size", 42},
+  {"input_list", {1, 2, 3, 4}}
+})
+->WithInput({
+  {"name", "case2"},
+  {"use_random_size", true}
+});
+```
+
 For more complex patterns of inputs, passing a custom function to `Apply` allows
 programmatic specification of an arbitrary set of arguments on which to run the
 benchmark. The following example enumerates a dense range on one parameter,
@@ -801,6 +818,46 @@ BM_memcpy/32          12 ns         12 ns   54687500
 BM_memcpy/32k       1834 ns       1837 ns     357143
 ```
 
+## Working with JSON Objects
+
+The benchmark library uses JSON as it's primary input and output format. Specifically
+Google benchmark uses [nlohmann's JSON library](https://github.com/nlohmann/json),
+except with the `nlohmann` namespace changed into `benchmark` to avoid conflict
+with other external users of the header.
+
+For examples and in-depth documentation about using the JSON library, please
+refer to the [original documentation](https://github.com/nlohmann/json#examples).
+
+Because compiling the JSON header can be quite slow, Google Benchmark provides
+the option `BENCHMARK_HAS_NO_JSON_HEADER` which can be defined to to disable
+including it when building benchmarks. However, this also disables usage
+of all API's which traffic in json types.
+
+## Reporting Arbitrary Benchmark Results using JSON.
+
+The benchmark library allows benchmarks to report arbitrary user output as JSON
+using `State::operator[](const std::string &)`. For example:
+
+```c++
+void BM_JSONOutput(benchmark::State& st) {
+  int my_count = 0;
+  bool saw_failure = false;
+  std::vector<int> inputs = GenerateInputs();
+  for (auto _ : st) {
+    /* ... */
+  }
+  st["my_count"] = my_count;
+  st["saw_failure"] = saw_failure;
+  st["inputs"] = inputs;
+}
+```
+
+Currently, only the JSON reporter displays custom user output; but this will
+be fixed in future revisions. Additionally, future revisions will allow
+user counters to be represented and reported using the JSON interface.
+
+Additionally, for multi-threaded benchmarks, if two threads report a field
+with the same name, the first reported value will be chosen.
 
 ## Output Formats
 The library supports multiple output formats. Use the
@@ -904,9 +961,9 @@ a modern C++ toolchain, both compiler and standard library.
 
 The following minimum versions are strongly recommended build the library:
 
-* GCC 4.8
+* GCC 4.9
 * Clang 3.4
-* Visual Studio 2013
+* Visual Studio 2015
 * Intel 2015 Update 1
 
 Anything older *may* work.

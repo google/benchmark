@@ -131,6 +131,14 @@ bool BenchmarkFamilies::FindBenchmarks(
         (family->thread_counts_.empty()
              ? &one_thread
              : &static_cast<const std::vector<int>&>(family->thread_counts_));
+    std::vector<JSONPointer> one_json_arg;
+    one_json_arg.emplace_back(json{});
+    using JSONPointerVect = std::vector<JSONPointer> const*;
+    bool has_json_args = !family->json_args_.empty();
+    JSONPointerVect json_args =
+        (!has_json_args ? &one_json_arg
+                        : &static_cast<const std::vector<JSONPointer>&>(
+                              family->json_args_));
     const size_t family_size = family->args_.size() * thread_counts->size();
     // The benchmark will be run at least 'family_size' different inputs.
     // If 'family_size' is very large warn the user.
@@ -142,63 +150,80 @@ bool BenchmarkFamilies::FindBenchmarks(
     // family size.
     if (spec == ".") benchmarks->reserve(family_size);
 
-    for (auto const& args : family->args_) {
-      for (int num_threads : *thread_counts) {
-        Benchmark::Instance instance;
-        instance.name = family->name_;
-        instance.benchmark = family.get();
-        instance.report_mode = family->report_mode_;
-        instance.arg = args;
-        instance.time_unit = family->time_unit_;
-        instance.range_multiplier = family->range_multiplier_;
-        instance.min_time = family->min_time_;
-        instance.iterations = family->iterations_;
-        instance.repetitions = family->repetitions_;
-        instance.use_real_time = family->use_real_time_;
-        instance.use_manual_time = family->use_manual_time_;
-        instance.complexity = family->complexity_;
-        instance.complexity_lambda = family->complexity_lambda_;
-        instance.statistics = &family->statistics_;
-        instance.threads = num_threads;
+    for (auto const& json_arg : *json_args) {
+      for (auto const& args : family->args_) {
+        for (int num_threads : *thread_counts) {
+          Benchmark::Instance instance;
+          instance.name = family->name_;
+          instance.benchmark = family.get();
+          instance.report_mode = family->report_mode_;
+          instance.arg = args;
+          instance.json_arg = json_arg.get();
+          instance.time_unit = family->time_unit_;
+          instance.range_multiplier = family->range_multiplier_;
+          instance.min_time = family->min_time_;
+          instance.iterations = family->iterations_;
+          instance.repetitions = family->repetitions_;
+          instance.use_real_time = family->use_real_time_;
+          instance.use_manual_time = family->use_manual_time_;
+          instance.complexity = family->complexity_;
+          instance.complexity_lambda = family->complexity_lambda_;
+          instance.statistics = &family->statistics_;
+          instance.threads = num_threads;
 
-        // Add arguments to instance name
-        size_t arg_i = 0;
-        for (auto const& arg : args) {
-          instance.name += "/";
-
-          if (arg_i < family->arg_names_.size()) {
-            const auto& arg_name = family->arg_names_[arg_i];
-            if (!arg_name.empty()) {
-              instance.name +=
-                  StringPrintF("%s:", family->arg_names_[arg_i].c_str());
+          if (has_json_args) {
+            json& arg = json_arg.get();
+            if (arg.count("name") != 0) {
+              instance.name += "/" + arg.at("name").get<std::string>();
+            } else {
+              for (auto It = arg.begin(); It != arg.end(); ++It) {
+                instance.name += "/" + It.key();
+                if (It.value().is_primitive()) {
+                  instance.name += ":" + It.value().dump();
+                }
+              }
             }
           }
-          
-          instance.name += StringPrintF("%d", arg);
-          ++arg_i;
-        }
+          // Add arguments to instance name
+          size_t arg_i = 0;
+          for (auto const& arg : args) {
+            instance.name += "/";
 
-        if (!IsZero(family->min_time_))
-          instance.name += StringPrintF("/min_time:%0.3f", family->min_time_);
-        if (family->iterations_ != 0)
-          instance.name += StringPrintF("/iterations:%d", family->iterations_);
-        if (family->repetitions_ != 0)
-          instance.name += StringPrintF("/repeats:%d", family->repetitions_);
+            if (arg_i < family->arg_names_.size()) {
+              const auto& arg_name = family->arg_names_[arg_i];
+              if (!arg_name.empty()) {
+                instance.name +=
+                    StringPrintF("%s:", family->arg_names_[arg_i].c_str());
+              }
+            }
 
-        if (family->use_manual_time_) {
-          instance.name += "/manual_time";
-        } else if (family->use_real_time_) {
-          instance.name += "/real_time";
-        }
+            instance.name += StringPrintF("%d", arg);
+            ++arg_i;
+          }
 
-        // Add the number of threads used to the name
-        if (!family->thread_counts_.empty()) {
-          instance.name += StringPrintF("/threads:%d", instance.threads);
-        }
+          if (!IsZero(family->min_time_))
+            instance.name += StringPrintF("/min_time:%0.3f", family->min_time_);
+          if (family->iterations_ != 0)
+            instance.name +=
+                StringPrintF("/iterations:%d", family->iterations_);
+          if (family->repetitions_ != 0)
+            instance.name += StringPrintF("/repeats:%d", family->repetitions_);
 
-        if (re.Match(instance.name)) {
-          instance.last_benchmark_instance = (&args == &family->args_.back());
-          benchmarks->push_back(std::move(instance));
+          if (family->use_manual_time_) {
+            instance.name += "/manual_time";
+          } else if (family->use_real_time_) {
+            instance.name += "/real_time";
+          }
+
+          // Add the number of threads used to the name
+          if (!family->thread_counts_.empty()) {
+            instance.name += StringPrintF("/threads:%d", instance.threads);
+          }
+
+          if (re.Match(instance.name)) {
+            instance.last_benchmark_instance = (&args == &family->args_.back());
+            benchmarks->push_back(std::move(instance));
+          }
         }
       }
     }
@@ -451,6 +476,11 @@ Benchmark* Benchmark::ThreadPerCpu() {
   return this;
 }
 
+Benchmark* Benchmark::WithInput(json obj) {
+  json_args_.emplace_back(std::move(obj));
+  return this;
+}
+
 void Benchmark::SetName(const char* name) { name_ = name; }
 
 int Benchmark::ArgsCnt() const {
@@ -468,6 +498,7 @@ int Benchmark::ArgsCnt() const {
 void FunctionBenchmark::Run(State& st) { func_(st); }
 
 }  // end namespace internal
+
 
 void ClearRegisteredBenchmarks() {
   internal::BenchmarkFamilies::GetInstance()->ClearBenchmarks();

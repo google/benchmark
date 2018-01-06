@@ -106,6 +106,7 @@ add_test(user_counters_test user_counters_test --benchmark_min_time=0.01)
 compile_output_test(user_counters_tabular_test)
 add_test(user_counters_tabular_test user_counters_tabular_test --benchmark_counters_tabular=true --benchmark_min_time=0.01)
 
+
 check_cxx_compiler_flag(-std=c++03 BENCHMARK_HAS_CXX03_FLAG)
 if (BENCHMARK_HAS_CXX03_FLAG)
   compile_benchmark_test(cxx03_test)
@@ -134,6 +135,8 @@ endif()
 compile_output_test(complexity_test)
 add_test(complexity_benchmark complexity_test --benchmark_min_time=${COMPLEXITY_MIN_TIME})
 
+compile_benchmark_test(disable_json_test)
+add_test(disable_json disable_json_test)
 ###############################################################################
 # GoogleTest Unit Tests
 ###############################################################################
@@ -154,6 +157,7 @@ if (BENCHMARK_ENABLE_GTEST_TESTS)
   endmacro()
 
   add_gtest(statistics_test)
+  add_gtest(json_test)
 endif(BENCHMARK_ENABLE_GTEST_TESTS)
 
 
@@ -175,6 +179,7 @@ if (${CMAKE_BUILD_TYPE_LOWER} MATCHES "coverage")
       COMMAND ${LCOV} -q --no-external -c -b "${CMAKE_SOURCE_DIR}" -d . -o after.lcov
       COMMAND ${LCOV} -q -a before.lcov -a after.lcov --output-file final.lcov
       COMMAND ${LCOV} -q -r final.lcov "'${CMAKE_SOURCE_DIR}/test/*'" -o final.lcov
+      COMMAND ${LCOV} -q -r final.lcov "${JSON_INCLUDE_DIR}/json.hpp" -o final.lcov
       COMMAND ${GENHTML} final.lcov -o lcov --demangle-cpp --sort -p "${CMAKE_BINARY_DIR}" -t benchmark
       DEPENDS filter_test benchmark_test options_test basic_test fixture_test cxx03_test complexity_test
       WORKING_DIRECTORY ${CMAKE_BINARY_DIR}

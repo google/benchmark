@@ -10,6 +10,7 @@ file(GLOB
   SOURCE_FILES
     *.cc
     ${PROJECT_SOURCE_DIR}/include/benchmark/*.h
+    ${JSON_INCLUDE_DIR}/*.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/*.h)
 
 add_library(benchmark ${SOURCE_FILES})
@@ -20,6 +21,7 @@ set_target_properties(benchmark PROPERTIES
 )
 target_include_directories(benchmark PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../include>
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../third_party/json/src>
     )
 
 # Link threads.
@@ -71,6 +73,9 @@ if (BENCHMARK_ENABLE_INSTALL)
     DIRECTORY "${PROJECT_SOURCE_DIR}/include/benchmark"
     DESTINATION ${include_install_dir}
     FILES_MATCHING PATTERN "*.*h")
+  install(
+    FILES "${JSON_INCLUDE_DIR}/json.hpp"
+    DESTINATION ${include_install_dir}/benchmark)
 
   install(
       FILES "${project_config}" "${version_config}"
