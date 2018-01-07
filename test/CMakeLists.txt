@@ -85,6 +85,9 @@ add_test(donotoptimize_test donotoptimize_test --benchmark_min_time=0.01)
 compile_benchmark_test(fixture_test)
 add_test(fixture_test fixture_test --benchmark_min_time=0.01)
 
+compile_benchmark_test(fixture_init_test)
+add_test(fixture_init_test fixture_init_test --benchmark_min_time=0.01)
+
 compile_benchmark_test(register_benchmark_test)
 add_test(register_benchmark_test register_benchmark_test --benchmark_min_time=0.01)
 
