@@ -110,7 +110,7 @@ void UseCharPointer(char const volatile*) {}
 
 class ThreadManager {
  public:
-  ThreadManager(int num_threads)
+  ThreadManager(int64_t num_threads)
       : alive_threads_(num_threads), start_stop_barrier_(num_threads) {}
 
   Mutex& GetBenchmarkMutex() const RETURN_CAPABILITY(benchmark_mutex_) {
@@ -142,7 +142,7 @@ class ThreadManager {
     double manual_time_used = 0;
     int64_t bytes_processed = 0;
     int64_t items_processed = 0;
-    int complexity_n = 0;
+    int64_t complexity_n = 0;
     std::string report_label_;
     std::string error_message_;
     bool has_error_ = false;
@@ -152,7 +152,7 @@ class ThreadManager {
 
  private:
   mutable Mutex benchmark_mutex_;
-  std::atomic<int> alive_threads_;
+  std::atomic<int64_t> alive_threads_;
   Barrier start_stop_barrier_;
   Mutex end_cond_mutex_;
   Condition end_condition_;
@@ -263,7 +263,7 @@ BenchmarkReporter::Run CreateRunReport(
 // Execute one thread of benchmark b for the specified number of iterations.
 // Adds the stats collected for the thread into *total.
 void RunInThread(const benchmark::internal::Benchmark::Instance* b,
-                 size_t iters, int thread_id,
+                 size_t iters, int64_t thread_id,
                  internal::ThreadManager* manager) {
   internal::ThreadTimer timer;
   State st(iters, b->arg, thread_id, b->threads, &timer, manager);
@@ -293,14 +293,14 @@ std::vector<BenchmarkReporter::Run> RunBenchmark(
   size_t iters = has_explicit_iteration_count ? b.iterations : 1;
   std::unique_ptr<internal::ThreadManager> manager;
   std::vector<std::thread> pool(b.threads - 1);
-  const int repeats =
+  const int64_t repeats =
       b.repetitions != 0 ? b.repetitions : FLAGS_benchmark_repetitions;
   const bool report_aggregates_only =
       repeats != 1 &&
       (b.report_mode == internal::RM_Unspecified
            ? FLAGS_benchmark_report_aggregates_only
            : b.report_mode == internal::RM_ReportAggregatesOnly);
-  for (int repetition_num = 0; repetition_num < repeats; repetition_num++) {
+  for (int64_t repetition_num = 0; repetition_num < repeats; repetition_num++) {
     for (;;) {
       // Try benchmark
       VLOG(2) << "Running " << b.name << " for " << iters << "\n";
@@ -394,8 +394,8 @@ std::vector<BenchmarkReporter::Run> RunBenchmark(
 }  // namespace
 }  // namespace internal
 
-State::State(size_t max_iters, const std::vector<int>& ranges, int thread_i,
-             int n_threads, internal::ThreadTimer* timer,
+State::State(size_t max_iters, const std::vector<int64_t>& ranges, int64_t thread_i,
+             int64_t n_threads, internal::ThreadTimer* timer,
              internal::ThreadManager* manager)
     : started_(false),
       finished_(false),

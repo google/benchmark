@@ -98,7 +98,7 @@ class SCOPED_CAPABILITY MutexLock {
 
 class Barrier {
  public:
-  Barrier(int num_threads) : running_threads_(num_threads) {}
+  Barrier(int64_t num_threads) : running_threads_(num_threads) {}
 
   // Called by each thread
   bool wait() EXCLUDES(lock_) {
@@ -120,11 +120,11 @@ class Barrier {
  private:
   Mutex lock_;
   Condition phase_condition_;
-  int running_threads_;
+  int64_t running_threads_;
 
   // State for barrier management
-  int phase_number_ = 0;
-  int entered_ = 0;  // Number of threads that have entered this barrier
+  int64_t phase_number_ = 0;
+  int64_t entered_ = 0;  // Number of threads that have entered this barrier
 
   // Enter the barrier and wait until all other threads have also
   // entered the barrier.  Returns iff this is the last thread to
@@ -134,7 +134,7 @@ class Barrier {
     entered_++;
     if (entered_ < running_threads_) {
       // Wait for all threads to enter
-      int phase_number_cp = phase_number_;
+      int64_t phase_number_cp = phase_number_;
       auto cb = [this, phase_number_cp]() {
         return this->phase_number_ > phase_number_cp ||
                entered_ == running_threads_;  // A thread has aborted in error

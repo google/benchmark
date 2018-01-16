@@ -5,9 +5,9 @@
 
 namespace {
 
-std::map<int, int> ConstructRandomMap(int size) {
-  std::map<int, int> m;
-  for (int i = 0; i < size; ++i) {
+std::map<int64_t, int64_t> ConstructRandomMap(int64_t size) {
+  std::map<int64_t, int64_t> m;
+  for (int64_t i = 0; i < size; ++i) {
     m.insert(std::make_pair(rand() % size, rand() % size));
   }
   return m;
@@ -17,13 +17,13 @@ std::map<int, int> ConstructRandomMap(int size) {
 
 // Basic version.
 static void BM_MapLookup(benchmark::State& state) {
-  const int size = state.range(0);
-  std::map<int, int> m;
+  const int64_t size = state.range(0);
+  std::map<int64_t, int64_t> m;
   for (auto _ : state) {
     state.PauseTiming();
     m = ConstructRandomMap(size);
     state.ResumeTiming();
-    for (int i = 0; i < size; ++i) {
+    for (int64_t i = 0; i < size; ++i) {
       benchmark::DoNotOptimize(m.find(rand() % size));
     }
   }
@@ -40,11 +40,11 @@ class MapFixture : public ::benchmark::Fixture {
 
   void TearDown(const ::benchmark::State&) { m.clear(); }
 
-  std::map<int, int> m;
+  std::map<int64_t, int64_t> m;
 };
 
 BENCHMARK_DEFINE_F(MapFixture, Lookup)(benchmark::State& state) {
-  const int size = state.range(0);
+  const int64_t size = state.range(0);
   for (auto _ : state) {
     for (int i = 0; i < size; ++i) {
       benchmark::DoNotOptimize(m.find(rand() % size));

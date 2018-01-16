@@ -117,7 +117,7 @@ bool BenchmarkFamilies::FindBenchmarks(
   }
 
   // Special list of thread counts to use when none are specified
-  const std::vector<int> one_thread = {1};
+  const std::vector<int64_t> one_thread = {1};
 
   MutexLock l(mutex_);
   for (std::unique_ptr<Benchmark>& family : families_) {
@@ -127,10 +127,10 @@ bool BenchmarkFamilies::FindBenchmarks(
     if (family->ArgsCnt() == -1) {
       family->Args({});
     }
-    const std::vector<int>* thread_counts =
+    const std::vector<int64_t>* thread_counts =
         (family->thread_counts_.empty()
              ? &one_thread
-             : &static_cast<const std::vector<int>&>(family->thread_counts_));
+             : &static_cast<const std::vector<int64_t>&>(family->thread_counts_));
     const size_t family_size = family->args_.size() * thread_counts->size();
     // The benchmark will be run at least 'family_size' different inputs.
     // If 'family_size' is very large warn the user.
@@ -143,7 +143,7 @@ bool BenchmarkFamilies::FindBenchmarks(
     if (spec == ".") benchmarks->reserve(family_size);
 
     for (auto const& args : family->args_) {
-      for (int num_threads : *thread_counts) {
+      for (int64_t num_threads : *thread_counts) {
         Benchmark::Instance instance;
         instance.name = family->name_;
         instance.benchmark = family.get();
@@ -173,7 +173,7 @@ bool BenchmarkFamilies::FindBenchmarks(
                   StringPrintF("%s:", family->arg_names_[arg_i].c_str());
             }
           }
-          
+
           instance.name += StringPrintF("%d", arg);
           ++arg_i;
         }
@@ -244,7 +244,7 @@ Benchmark::Benchmark(const char* name)
 
 Benchmark::~Benchmark() {}
 
-void Benchmark::AddRange(std::vector<int>* dst, int lo, int hi, int mult) {
+void Benchmark::AddRange(std::vector<int64_t>* dst, int64_t lo, int64_t hi, int64_t mult) {
   CHECK_GE(lo, 0);
   CHECK_GE(hi, lo);
   CHECK_GE(mult, 2);
@@ -267,7 +267,7 @@ void Benchmark::AddRange(std::vector<int>* dst, int lo, int hi, int mult) {
   }
 }
 
-Benchmark* Benchmark::Arg(int x) {
+Benchmark* Benchmark::Arg(int64_t x) {
   CHECK(ArgsCnt() == -1 || ArgsCnt() == 1);
   args_.push_back({x});
   return this;
@@ -278,20 +278,20 @@ Benchmark* Benchmark::Unit(TimeUnit unit) {
   return this;
 }
 
-Benchmark* Benchmark::Range(int start, int limit) {
+Benchmark* Benchmark::Range(int64_t start, int64_t limit) {
   CHECK(ArgsCnt() == -1 || ArgsCnt() == 1);
-  std::vector<int> arglist;
+  std::vector<int64_t> arglist;
   AddRange(&arglist, start, limit, range_multiplier_);
 
-  for (int i : arglist) {
+  for (int64_t i : arglist) {
     args_.push_back({i});
   }
   return this;
 }
 
-Benchmark* Benchmark::Ranges(const std::vector<std::pair<int, int>>& ranges) {
-  CHECK(ArgsCnt() == -1 || ArgsCnt() == static_cast<int>(ranges.size()));
-  std::vector<std::vector<int>> arglists(ranges.size());
+Benchmark* Benchmark::Ranges(const std::vector<std::pair<int64_t, int64_t>>& ranges) {
+  CHECK(ArgsCnt() == -1 || ArgsCnt() == static_cast<int64_t>(ranges.size()));
+  std::vector<std::vector<int64_t>> arglists(ranges.size());
   std::size_t total = 1;
   for (std::size_t i = 0; i < ranges.size(); i++) {
     AddRange(&arglists[i], ranges[i].first, ranges[i].second,
@@ -302,7 +302,7 @@ Benchmark* Benchmark::Ranges(const std::vector<std::pair<int, int>>& ranges) {
   std::vector<std::size_t> ctr(arglists.size(), 0);
 
   for (std::size_t i = 0; i < total; i++) {
-    std::vector<int> tmp;
+    std::vector<int64_t> tmp;
     tmp.reserve(arglists.size());
 
     for (std::size_t j = 0; j < arglists.size(); j++) {
@@ -329,23 +329,23 @@ Benchmark* Benchmark::ArgName(const std::string& name) {
 }
 
 Benchmark* Benchmark::ArgNames(const std::vector<std::string>& names) {
-  CHECK(ArgsCnt() == -1 || ArgsCnt() == static_cast<int>(names.size()));
+  CHECK(ArgsCnt() == -1 || ArgsCnt() == static_cast<int64_t>(names.size()));
   arg_names_ = names;
   return this;
 }
 
-Benchmark* Benchmark::DenseRange(int start, int limit, int step) {
+Benchmark* Benchmark::DenseRange(int64_t start, int64_t limit, int64_t step) {
   CHECK(ArgsCnt() == -1 || ArgsCnt() == 1);
   CHECK_GE(start, 0);
   CHECK_LE(start, limit);
-  for (int arg = start; arg <= limit; arg += step) {
+  for (int64_t arg = start; arg <= limit; arg += step) {
     args_.push_back({arg});
   }
   return this;
 }
 
-Benchmark* Benchmark::Args(const std::vector<int>& args) {
-  CHECK(ArgsCnt() == -1 || ArgsCnt() == static_cast<int>(args.size()));
+Benchmark* Benchmark::Args(const std::vector<int64_t>& args) {
+  CHECK(ArgsCnt() == -1 || ArgsCnt() == static_cast<int64_t>(args.size()));
   args_.push_back(args);
   return this;
 }
@@ -355,7 +355,7 @@ Benchmark* Benchmark::Apply(void (*custom_arguments)(Benchmark* benchmark)) {
   return this;
 }
 
-Benchmark* Benchmark::RangeMultiplier(int multiplier) {
+Benchmark* Benchmark::RangeMultiplier(int64_t multiplier) {
   CHECK(multiplier > 1);
   range_multiplier_ = multiplier;
   return this;
@@ -377,7 +377,7 @@ Benchmark* Benchmark::Iterations(size_t n) {
   return this;
 }
 
-Benchmark* Benchmark::Repetitions(int n) {
+Benchmark* Benchmark::Repetitions(int64_t n) {
   CHECK(n > 0);
   repetitions_ = n;
   return this;
@@ -419,13 +419,13 @@ Benchmark* Benchmark::ComputeStatistics(std::string name,
   return this;
 }
 
-Benchmark* Benchmark::Threads(int t) {
+Benchmark* Benchmark::Threads(int64_t t) {
   CHECK_GT(t, 0);
   thread_counts_.push_back(t);
   return this;
 }
 
-Benchmark* Benchmark::ThreadRange(int min_threads, int max_threads) {
+Benchmark* Benchmark::ThreadRange(int64_t min_threads, int64_t max_threads) {
   CHECK_GT(min_threads, 0);
   CHECK_GE(max_threads, min_threads);
 
@@ -433,13 +433,13 @@ Benchmark* Benchmark::ThreadRange(int min_threads, int max_threads) {
   return this;
 }
 
-Benchmark* Benchmark::DenseThreadRange(int min_threads, int max_threads,
-                                       int stride) {
+Benchmark* Benchmark::DenseThreadRange(int64_t min_threads, int64_t max_threads,
+                                       int64_t stride) {
   CHECK_GT(min_threads, 0);
   CHECK_GE(max_threads, min_threads);
   CHECK_GE(stride, 1);
 
-  for (auto i = min_threads; i < max_threads; i += stride) {
+  for (int64_t i = min_threads; i < max_threads; i += stride) {
     thread_counts_.push_back(i);
   }
   thread_counts_.push_back(max_threads);
@@ -453,12 +453,12 @@ Benchmark* Benchmark::ThreadPerCpu() {
 
 void Benchmark::SetName(const char* name) { name_ = name; }
 
-int Benchmark::ArgsCnt() const {
+int64_t Benchmark::ArgsCnt() const {
   if (args_.empty()) {
     if (arg_names_.empty()) return -1;
-    return static_cast<int>(arg_names_.size());
+    return static_cast<int64_t>(arg_names_.size());
   }
-  return static_cast<int>(args_.front().size());
+  return static_cast<int64_t>(args_.front().size());
 }
 
 //=============================================================================//

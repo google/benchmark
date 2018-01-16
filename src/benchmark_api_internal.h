@@ -17,9 +17,9 @@ struct Benchmark::Instance {
   std::string name;
   Benchmark* benchmark;
   ReportMode report_mode;
-  std::vector<int> arg;
+  std::vector<int64_t> arg;
   TimeUnit time_unit;
-  int range_multiplier;
+  int64_t range_multiplier;
   bool use_real_time;
   bool use_manual_time;
   BigO complexity;
@@ -27,10 +27,10 @@ struct Benchmark::Instance {
   UserCounters counters;
   const std::vector<Statistics>* statistics;
   bool last_benchmark_instance;
-  int repetitions;
+  int64_t repetitions;
   double min_time;
   size_t iterations;
-  int threads;  // Number of concurrent threads to us
+  int64_t threads;  // Number of concurrent threads to us
 };
 
 bool FindBenchmarksInternal(const std::string& re,
