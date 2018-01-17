@@ -72,7 +72,7 @@ static void BM_CalculatePiRange(benchmark::State& state) {
 BENCHMARK_RANGE(BM_CalculatePiRange, 1, 1024 * 1024);
 
 static void BM_CalculatePi(benchmark::State& state) {
-  static const int64_t depth = 1024;
+  static const int depth = 1024;
   for (auto _ : state) {
     benchmark::DoNotOptimize(CalculatePi(depth));
   }

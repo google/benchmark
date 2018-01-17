@@ -229,7 +229,7 @@ BenchmarkReporter::Run CreateRunReport(
   report.error_message = results.error_message_;
   report.report_label = results.report_label_;
   // Report the total iterations across all threads.
-  report.iterations = static_cast<int>(iters) * b.threads;
+  report.iterations = static_cast<int64_t>(iters) * b.threads;
   report.time_unit = b.time_unit;
 
   if (!report.error_occurred) {

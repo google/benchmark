@@ -1213,7 +1213,7 @@ class BenchmarkReporter {
     bool error_occurred;
     std::string error_message;
 
-    int iterations;
+    int64_t iterations;
     TimeUnit time_unit;
     double real_accumulated_time;
     double cpu_accumulated_time;
