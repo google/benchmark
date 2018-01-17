@@ -585,14 +585,14 @@ class State {
   // Container for user-defined counters.
   UserCounters counters;
   // Index of the executing thread. Values from [0, threads).
-  const int64_t thread_index;
+  const int thread_index;
   // Number of threads concurrently executing the benchmark.
-  const int64_t threads;
+  const int threads;
   const size_t max_iterations;
 
   // TODO(EricWF) make me private
-  State(size_t max_iters, const std::vector<int64_t>& ranges, int64_t thread_i,
-        int64_t n_threads, internal::ThreadTimer* timer,
+  State(size_t max_iters, const std::vector<int64_t>& ranges, int thread_i,
+        int n_threads, internal::ThreadTimer* timer,
         internal::ThreadManager* manager);
 
  private:
@@ -747,7 +747,7 @@ class Benchmark {
   // Specify the amount of times to repeat this benchmark. This option overrides
   // the `benchmark_repetitions` flag.
   // REQUIRES: `n > 0`
-  Benchmark* Repetitions(int64_t n);
+  Benchmark* Repetitions(int n);
 
   // Specify if each repetition of the benchmark should be reported separately
   // or if only the final statistics should be reported. If the benchmark
@@ -786,7 +786,7 @@ class Benchmark {
   // of some piece of code.
 
   // Run one instance of this benchmark concurrently in t threads.
-  Benchmark* Threads(int64_t t);
+  Benchmark* Threads(int t);
 
   // Pick a set of values T from [min_threads,max_threads].
   // min_threads and max_threads are always included in T.  Run this
@@ -800,13 +800,13 @@ class Benchmark {
   //    Foo in 4 threads
   //    Foo in 8 threads
   //    Foo in 16 threads
-  Benchmark* ThreadRange(int64_t min_threads, int64_t max_threads);
+  Benchmark* ThreadRange(int min_threads, int max_threads);
 
   // For each value n in the range, run this benchmark once using n threads.
   // min_threads and max_threads are always included in the range.
   // stride specifies the increment. E.g. DenseThreadRange(1, 8, 3) starts
   // a benchmark with 1, 4, 7 and 8 threads.
-  Benchmark* DenseThreadRange(int64_t min_threads, int64_t max_threads, int64_t stride = 1);
+  Benchmark* DenseThreadRange(int min_threads, int max_threads, int stride = 1);
 
   // Equivalent to ThreadRange(NumCPUs(), NumCPUs())
   Benchmark* ThreadPerCpu();
@@ -821,9 +821,10 @@ class Benchmark {
   Benchmark(Benchmark const&);
   void SetName(const char* name);
 
-  int64_t ArgsCnt() const;
+  int ArgsCnt() const;
 
-  static void AddRange(std::vector<int64_t>* dst, int64_t lo, int64_t hi, int64_t mult);
+  template<typename Z>
+  static void AddRange(std::vector<Z>* dst, Z lo, Z hi, Z mult);
 
  private:
   friend class BenchmarkFamilies;
@@ -836,13 +837,13 @@ class Benchmark {
   int64_t range_multiplier_;
   double min_time_;
   size_t iterations_;
-  int64_t repetitions_;
+  int repetitions_;
   bool use_real_time_;
   bool use_manual_time_;
   BigO complexity_;
   BigOFunc* complexity_lambda_;
   std::vector<Statistics> statistics_;
-  std::vector<int64_t> thread_counts_;
+  std::vector<int> thread_counts_;
 
   Benchmark& operator=(Benchmark const&);
 };
@@ -1212,7 +1213,7 @@ class BenchmarkReporter {
     bool error_occurred;
     std::string error_message;
 
-    int64_t iterations;
+    int iterations;
     TimeUnit time_unit;
     double real_accumulated_time;
     double cpu_accumulated_time;

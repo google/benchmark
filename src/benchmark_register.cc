@@ -117,7 +117,7 @@ bool BenchmarkFamilies::FindBenchmarks(
   }
 
   // Special list of thread counts to use when none are specified
-  const std::vector<int64_t> one_thread = {1};
+  const std::vector<int> one_thread = {1};
 
   MutexLock l(mutex_);
   for (std::unique_ptr<Benchmark>& family : families_) {
@@ -127,10 +127,10 @@ bool BenchmarkFamilies::FindBenchmarks(
     if (family->ArgsCnt() == -1) {
       family->Args({});
     }
-    const std::vector<int64_t>* thread_counts =
+    const std::vector<int>* thread_counts =
         (family->thread_counts_.empty()
              ? &one_thread
-             : &static_cast<const std::vector<int64_t>&>(family->thread_counts_));
+             : &static_cast<const std::vector<int>&>(family->thread_counts_));
     const size_t family_size = family->args_.size() * thread_counts->size();
     // The benchmark will be run at least 'family_size' different inputs.
     // If 'family_size' is very large warn the user.
@@ -143,7 +143,7 @@ bool BenchmarkFamilies::FindBenchmarks(
     if (spec == ".") benchmarks->reserve(family_size);
 
     for (auto const& args : family->args_) {
-      for (int64_t num_threads : *thread_counts) {
+      for (int num_threads : *thread_counts) {
         Benchmark::Instance instance;
         instance.name = family->name_;
         instance.benchmark = family.get();
@@ -244,7 +244,8 @@ Benchmark::Benchmark(const char* name)
 
 Benchmark::~Benchmark() {}
 
-void Benchmark::AddRange(std::vector<int64_t>* dst, int64_t lo, int64_t hi, int64_t mult) {
+template<typename Z>
+void Benchmark::AddRange(std::vector<Z>* dst, Z lo, Z hi, Z mult) {
   CHECK_GE(lo, 0);
   CHECK_GE(hi, lo);
   CHECK_GE(mult, 2);
@@ -329,7 +330,7 @@ Benchmark* Benchmark::ArgName(const std::string& name) {
 }
 
 Benchmark* Benchmark::ArgNames(const std::vector<std::string>& names) {
-  CHECK(ArgsCnt() == -1 || ArgsCnt() == static_cast<int64_t>(names.size()));
+  CHECK(ArgsCnt() == -1 || ArgsCnt() == static_cast<int>(names.size()));
   arg_names_ = names;
   return this;
 }
@@ -345,7 +346,7 @@ Benchmark* Benchmark::DenseRange(int64_t start, int64_t limit, int64_t step) {
 }
 
 Benchmark* Benchmark::Args(const std::vector<int64_t>& args) {
-  CHECK(ArgsCnt() == -1 || ArgsCnt() == static_cast<int64_t>(args.size()));
+  CHECK(ArgsCnt() == -1 || ArgsCnt() == static_cast<int>(args.size()));
   args_.push_back(args);
   return this;
 }
@@ -377,7 +378,7 @@ Benchmark* Benchmark::Iterations(size_t n) {
   return this;
 }
 
-Benchmark* Benchmark::Repetitions(int64_t n) {
+Benchmark* Benchmark::Repetitions(int n) {
   CHECK(n > 0);
   repetitions_ = n;
   return this;
@@ -419,13 +420,13 @@ Benchmark* Benchmark::ComputeStatistics(std::string name,
   return this;
 }
 
-Benchmark* Benchmark::Threads(int64_t t) {
+Benchmark* Benchmark::Threads(int t) {
   CHECK_GT(t, 0);
   thread_counts_.push_back(t);
   return this;
 }
 
-Benchmark* Benchmark::ThreadRange(int64_t min_threads, int64_t max_threads) {
+Benchmark* Benchmark::ThreadRange(int min_threads, int max_threads) {
   CHECK_GT(min_threads, 0);
   CHECK_GE(max_threads, min_threads);
 
@@ -433,13 +434,13 @@ Benchmark* Benchmark::ThreadRange(int64_t min_threads, int64_t max_threads) {
   return this;
 }
 
-Benchmark* Benchmark::DenseThreadRange(int64_t min_threads, int64_t max_threads,
-                                       int64_t stride) {
+Benchmark* Benchmark::DenseThreadRange(int min_threads, int max_threads,
+                                       int stride) {
   CHECK_GT(min_threads, 0);
   CHECK_GE(max_threads, min_threads);
   CHECK_GE(stride, 1);
 
-  for (int64_t i = min_threads; i < max_threads; i += stride) {
+  for (int i = min_threads; i < max_threads; i += stride) {
     thread_counts_.push_back(i);
   }
   thread_counts_.push_back(max_threads);
@@ -453,12 +454,12 @@ Benchmark* Benchmark::ThreadPerCpu() {
 
 void Benchmark::SetName(const char* name) { name_ = name; }
 
-int64_t Benchmark::ArgsCnt() const {
+int Benchmark::ArgsCnt() const {
   if (args_.empty()) {
     if (arg_names_.empty()) return -1;
-    return static_cast<int64_t>(arg_names_.size());
+    return static_cast<int>(arg_names_.size());
   }
-  return static_cast<int64_t>(args_.front().size());
+  return static_cast<int>(args_.front().size());
 }
 
 //=============================================================================//

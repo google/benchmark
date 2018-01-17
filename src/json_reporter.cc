@@ -49,6 +49,12 @@ std::string FormatKV(std::string const& key, int64_t value) {
   return ss.str();
 }
 
+std::string FormatKV(std::string const& key, int value) {
+  std::stringstream ss;
+  ss << '"' << key << "\": " << value;
+  return ss.str();
+}
+
 std::string FormatKV(std::string const& key, double value) {
   std::stringstream ss;
   ss << '"' << key << "\": ";

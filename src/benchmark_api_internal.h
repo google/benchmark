@@ -27,10 +27,10 @@ struct Benchmark::Instance {
   UserCounters counters;
   const std::vector<Statistics>* statistics;
   bool last_benchmark_instance;
-  int64_t repetitions;
+  int repetitions;
   double min_time;
   size_t iterations;
-  int64_t threads;  // Number of concurrent threads to us
+  int threads;  // Number of concurrent threads to us
 };
 
 bool FindBenchmarksInternal(const std::string& re,
