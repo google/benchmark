@@ -41,6 +41,8 @@ bool IsZero(double n);
 
 ConsoleReporter::OutputOptions GetOutputOptions(bool force_no_color = false);
 
+Benchmark* RegisterBenchmarkInternal(Benchmark* bench);
+
 }  // end namespace internal
 }  // end namespace benchmark
 

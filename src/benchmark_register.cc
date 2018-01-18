@@ -124,6 +124,8 @@ bool BenchmarkFamilies::FindBenchmarks(
     // Family was deleted or benchmark doesn't match
     if (!family) continue;
 
+    family->Init();
+
     if (family->ArgsCnt() == -1) {
       family->Args({});
     }
@@ -461,16 +463,14 @@ int Benchmark::ArgsCnt() const {
   return static_cast<int>(args_.front().size());
 }
 
-//=============================================================================//
-//                            FunctionBenchmark
-//=============================================================================//
-
-void FunctionBenchmark::Run(State& st) { func_(st); }
+void Benchmark::Init() {}
 
 }  // end namespace internal
 
 void ClearRegisteredBenchmarks() {
   internal::BenchmarkFamilies::GetInstance()->ClearBenchmarks();
 }
+
+Fixture::~Fixture() {}
 
 }  // end namespace benchmark
