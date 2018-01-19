@@ -303,7 +303,7 @@ std::vector<CPUInfo::CacheInfo> GetCacheSizesWindows() {
     if (!B.test(0)) continue;
     CInfo* Cache = &it->Cache;
     CPUInfo::CacheInfo C;
-    C.num_sharing = B.count();
+    C.num_sharing = static_cast<int>(B.count());
     C.level = Cache->Level;
     C.size = Cache->Size;
     switch (Cache->Type) {
