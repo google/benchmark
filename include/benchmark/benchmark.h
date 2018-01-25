@@ -678,7 +678,7 @@ class Benchmark {
   // Run this benchmark once for a number of values picked from the
   // range [start..limit].  (start and limit are always picked.)
   // REQUIRES: The function passed to the constructor must accept an arg1.
-  Benchmark* Range(int start, int limit);
+  Benchmark* Range(int64_t start, int64_t limit);
 
   // Run this benchmark once for all values in the range [start..limit] with
   // specific step
@@ -703,7 +703,7 @@ class Benchmark {
   // Run this benchmark once for a number of values picked from the
   // ranges [start..limit].  (starts and limits are always picked.)
   // REQUIRES: The function passed to the constructor must accept arg1, arg2 ...
-  Benchmark* Ranges(const std::vector<std::pair<int, int> >& ranges);
+  Benchmark* Ranges(const std::vector<std::pair<int64_t, int64_t> >& ranges);
 
   // Equivalent to ArgNames({name})
   Benchmark* ArgName(const std::string& name);
@@ -715,8 +715,8 @@ class Benchmark {
   // Equivalent to Ranges({{lo1, hi1}, {lo2, hi2}}).
   // NOTE: This is a legacy C++03 interface provided for compatibility only.
   //   New code should use 'Ranges'.
-  Benchmark* RangePair(int lo1, int hi1, int lo2, int hi2) {
-    std::vector<std::pair<int, int> > ranges;
+  Benchmark* RangePair(int64_t lo1, int64_t hi1, int64_t lo2, int64_t hi2) {
+    std::vector<std::pair<int64_t, int64_t> > ranges;
     ranges.push_back(std::make_pair(lo1, hi1));
     ranges.push_back(std::make_pair(lo2, hi2));
     return Ranges(ranges);
@@ -823,7 +823,7 @@ class Benchmark {
 
   int ArgsCnt() const;
 
-  static void AddRange(std::vector<int>* dst, int lo, int hi, int mult);
+  static void AddRange(std::vector<int64_t>* dst, int64_t lo, int64_t hi, int mult);
 
  private:
   friend class BenchmarkFamilies;
@@ -831,7 +831,7 @@ class Benchmark {
   std::string name_;
   ReportMode report_mode_;
   std::vector<std::string> arg_names_;   // Args for all benchmark runs
-  std::vector<std::vector<int> > args_;  // Args for all benchmark runs
+  std::vector<std::vector<int64_t> > args_;  // Args for all benchmark runs
   TimeUnit time_unit_;
   int range_multiplier_;
   double min_time_;
@@ -842,7 +842,7 @@ class Benchmark {
   BigO complexity_;
   BigOFunc* complexity_lambda_;
   std::vector<Statistics> statistics_;
-  std::vector<int> thread_counts_;
+  std::vector<int64_t> thread_counts_;
 
   Benchmark& operator=(Benchmark const&);
 };
