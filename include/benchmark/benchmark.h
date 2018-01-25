@@ -823,7 +823,7 @@ class Benchmark {
 
   int ArgsCnt() const;
 
-  static void AddRange(std::vector<int>* dst, int64_t lo, int64_t hi, int mult);
+  static void AddRange(std::vector<int64_t>* dst, int64_t lo, int64_t hi, int mult);
 
  private:
   friend class BenchmarkFamilies;
@@ -831,7 +831,7 @@ class Benchmark {
   std::string name_;
   ReportMode report_mode_;
   std::vector<std::string> arg_names_;   // Args for all benchmark runs
-  std::vector<std::vector<int> > args_;  // Args for all benchmark runs
+  std::vector<std::vector<int64_t> > args_;  // Args for all benchmark runs
   TimeUnit time_unit_;
   int range_multiplier_;
   double min_time_;
@@ -842,7 +842,7 @@ class Benchmark {
   BigO complexity_;
   BigOFunc* complexity_lambda_;
   std::vector<Statistics> statistics_;
-  std::vector<int> thread_counts_;
+  std::vector<int64_t> thread_counts_;
 
   Benchmark& operator=(Benchmark const&);
 };

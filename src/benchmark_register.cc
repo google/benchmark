@@ -117,7 +117,7 @@ bool BenchmarkFamilies::FindBenchmarks(
   }
 
   // Special list of thread counts to use when none are specified
-  const std::vector<int> one_thread = {1};
+  const std::vector<int64_t> one_thread = {1};
 
   MutexLock l(mutex_);
   for (std::unique_ptr<Benchmark>& family : families_) {
@@ -127,10 +127,10 @@ bool BenchmarkFamilies::FindBenchmarks(
     if (family->ArgsCnt() == -1) {
       family->Args({});
     }
-    const std::vector<int>* thread_counts =
+    const std::vector<int64_t>* thread_counts =
         (family->thread_counts_.empty()
              ? &one_thread
-             : &static_cast<const std::vector<int>&>(family->thread_counts_));
+             : &static_cast<const std::vector<int64_t>&>(family->thread_counts_));
     const size_t family_size = family->args_.size() * thread_counts->size();
     // The benchmark will be run at least 'family_size' different inputs.
     // If 'family_size' is very large warn the user.
@@ -244,7 +244,7 @@ Benchmark::Benchmark(const char* name)
 
 Benchmark::~Benchmark() {}
 
-void Benchmark::AddRange(std::vector<int>* dst, int64_t lo, int64_t hi, int mult) {
+void Benchmark::AddRange(std::vector<int64_t>* dst, int64_t lo, int64_t hi, int mult) {
   CHECK_GE(lo, 0);
   CHECK_GE(hi, lo);
   CHECK_GE(mult, 2);
@@ -280,18 +280,18 @@ Benchmark* Benchmark::Unit(TimeUnit unit) {
 
 Benchmark* Benchmark::Range(int64_t start, int64_t limit) {
   CHECK(ArgsCnt() == -1 || ArgsCnt() == 1);
-  std::vector<int> arglist;
+  std::vector<int64_t> arglist;
   AddRange(&arglist, start, limit, range_multiplier_);
 
-  for (int i : arglist) {
+  for (int64_t i : arglist) {
     args_.push_back({i});
   }
   return this;
 }
 
 Benchmark* Benchmark::Ranges(const std::vector<std::pair<int64_t, int64_t>>& ranges) {
-  CHECK(ArgsCnt() == -1 || ArgsCnt() == static_cast<int>(ranges.size()));
-  std::vector<std::vector<int>> arglists(ranges.size());
+  CHECK(ArgsCnt() == -1 || ArgsCnt() == static_cast<int64_t>(ranges.size()));
+  std::vector<std::vector<int64_t>> arglists(ranges.size());
   std::size_t total = 1;
   for (std::size_t i = 0; i < ranges.size(); i++) {
     AddRange(&arglists[i], ranges[i].first, ranges[i].second,
