@@ -244,7 +244,7 @@ Benchmark::Benchmark(const char* name)
 
 Benchmark::~Benchmark() {}
 
-void Benchmark::AddRange(std::vector<int>* dst, int lo, int hi, int mult) {
+void Benchmark::AddRange(std::vector<int>* dst, int64_t lo, int64_t hi, int mult) {
   CHECK_GE(lo, 0);
   CHECK_GE(hi, lo);
   CHECK_GE(mult, 2);
@@ -278,7 +278,7 @@ Benchmark* Benchmark::Unit(TimeUnit unit) {
   return this;
 }
 
-Benchmark* Benchmark::Range(int start, int limit) {
+Benchmark* Benchmark::Range(int64_t start, int64_t limit) {
   CHECK(ArgsCnt() == -1 || ArgsCnt() == 1);
   std::vector<int> arglist;
   AddRange(&arglist, start, limit, range_multiplier_);
@@ -289,7 +289,7 @@ Benchmark* Benchmark::Range(int start, int limit) {
   return this;
 }
 
-Benchmark* Benchmark::Ranges(const std::vector<std::pair<int, int>>& ranges) {
+Benchmark* Benchmark::Ranges(const std::vector<std::pair<int64_t, int64_t>>& ranges) {
   CHECK(ArgsCnt() == -1 || ArgsCnt() == static_cast<int>(ranges.size()));
   std::vector<std::vector<int>> arglists(ranges.size());
   std::size_t total = 1;
