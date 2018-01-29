@@ -30,7 +30,7 @@ auto StatisticsSum = [](const std::vector<double>& v) {
 };
 
 double StatisticsMean(const std::vector<double>& v) {
-  if (v.size() == 0) return 0.0;
+  if (v.empty()) return 0.0;
   return StatisticsSum(v) * (1.0 / v.size());
 }
 
@@ -62,7 +62,7 @@ auto Sqrt = [](const double dat) {
 
 double StatisticsStdDev(const std::vector<double>& v) {
   const auto mean = StatisticsMean(v);
-  if (v.size() == 0) return mean;
+  if (v.empty()) return mean;
 
   // Sample standard deviation is undefined for n = 1
   if (v.size() == 1)
