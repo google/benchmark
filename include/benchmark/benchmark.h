@@ -172,6 +172,7 @@ BENCHMARK(BM_test)->Unit(benchmark::kMillisecond);
 
 #include <stdint.h>
 
+#include <algorithm>
 #include <cassert>
 #include <cstddef>
 #include <iosfwd>
@@ -429,16 +430,18 @@ class State {
   // Returns true if the benchmark should continue through another iteration.
   // NOTE: A benchmark may not return from the test until KeepRunning() has
   // returned false.
-  bool KeepRunning() {
-    if (BENCHMARK_BUILTIN_EXPECT(!started_, false)) {
-      StartKeepRunning();
-    }
-    bool const res = (--total_iterations_ != 0);
-    if (BENCHMARK_BUILTIN_EXPECT(!res, false)) {
-      FinishKeepRunning();
-    }
-    return res;
-  }
+  bool KeepRunning();
+
+  // Returns true iff the benchmark should run n more iterations.
+  // NOTE: A benchmark must not return from the test until KeepRunningBatch()
+  // has returned false.
+  // NOTE: KeepRunningBatch() may overshoot by up to 'n' iterations.
+  //
+  // Intended usage:
+  //   while (state.KeepRunningBatch(1000)) {
+  //     // process 1000 elements
+  //   }
+  bool KeepRunningBatch(int n);
 
   // REQUIRES: timer is running and 'SkipWithError(...)' has not been called
   //           by the current thread.
@@ -565,12 +568,15 @@ class State {
   int range_y() const { return range(1); }
 
   BENCHMARK_ALWAYS_INLINE
-  size_t iterations() const { return (max_iterations - total_iterations_) + 1; }
+  size_t iterations() const { return (completed_iterations_ - total_iterations_); }
 
  private:
   bool started_;
   bool finished_;
+  // When total_iterations_ is 0, KeepRunning() and friends will return false.
   size_t total_iterations_;
+  // May be larger than max_iterations.
+  size_t completed_iterations_;
 
   std::vector<int> range_;
 
@@ -580,6 +586,11 @@ class State {
   int complexity_n_;
 
   bool error_occurred_;
+
+  // When using KeepRunningBatch(), batch_leftover_ holds the number of
+  // iterations beyond max_iters that were run. Used to track
+  // completed_iterations_ accurately.
+  size_t batch_leftover_;
 
  public:
   // Container for user-defined counters.
@@ -597,11 +608,42 @@ class State {
 
  private:
   void StartKeepRunning();
-  void FinishKeepRunning();
+  void FinishKeepRunning(size_t n);
   internal::ThreadTimer* timer_;
   internal::ThreadManager* manager_;
   BENCHMARK_DISALLOW_COPY_AND_ASSIGN(State);
 };
+
+inline BENCHMARK_ALWAYS_INLINE
+bool State::KeepRunningBatch(int n) {
+  if (BENCHMARK_BUILTIN_EXPECT(!started_, false)) {
+    StartKeepRunning();
+  }
+  // leftover only has a sensible value when n > total_iterations.
+  size_t leftover = n - total_iterations_;
+  // total_iterations_ is a size_t. Avoid wrapping around past 0.
+  bool const res = (total_iterations_ > 0);
+  total_iterations_ -= std::min<size_t>(n, total_iterations_);
+  if (BENCHMARK_BUILTIN_EXPECT(!res, false)) {
+    FinishKeepRunning(batch_leftover_);
+  }
+  // If this batch has 0 < n < total_iterations iterations, (i.e. it's the last
+  // batch), track how many extra iterations past max_iters we ran.
+  batch_leftover_ = leftover;
+  return res;
+}
+
+inline BENCHMARK_ALWAYS_INLINE
+bool State::KeepRunning() {
+    if (BENCHMARK_BUILTIN_EXPECT(!started_, false)) {
+      StartKeepRunning();
+    }
+    bool const res = (total_iterations_-- != 0);
+    if (BENCHMARK_BUILTIN_EXPECT(!res, false)) {
+      FinishKeepRunning(0);
+    }
+    return res;
+}
 
 struct State::StateIterator {
   struct BENCHMARK_UNUSED Value {};
@@ -633,7 +675,7 @@ struct State::StateIterator {
   BENCHMARK_ALWAYS_INLINE
   bool operator!=(StateIterator const&) const {
     if (BENCHMARK_BUILTIN_EXPECT(cached_ != 0, true)) return true;
-    parent_->FinishKeepRunning();
+    parent_->FinishKeepRunning(0);
     return false;
   }
 
