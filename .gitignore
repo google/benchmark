@@ -45,6 +45,7 @@ rules.ninja
 build/
 _build/
 
-# in-source dependancies
 /googletest/
 
+# Bazel directories.
+bazel-*
