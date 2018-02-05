@@ -441,7 +441,7 @@ class State {
   //   while (state.KeepRunningBatch(1000)) {
   //     // process 1000 elements
   //   }
-  bool KeepRunningBatch(int n);
+  bool KeepRunningBatch(size_t n);
 
   // REQUIRES: timer is running and 'SkipWithError(...)' has not been called
   //           by the current thread.
@@ -576,7 +576,7 @@ class State {
   bool started_;
   bool finished_;
   // When total_iterations_ is 0, KeepRunning() and friends will return false.
-  int64_t total_iterations_;
+  size_t total_iterations_;
   // May be larger than max_iterations.
 
   std::vector<int> range_;
@@ -635,7 +635,7 @@ bool State::KeepRunning() {
 }
 
 inline BENCHMARK_ALWAYS_INLINE
-bool State::KeepRunningBatch(int n) {
+bool State::KeepRunningBatch(size_t n) {
   // total_iterations_ is set to 0 by the constructor, and always set to a
   // nonzero value by StartKepRunning().
   if (BENCHMARK_BUILTIN_EXPECT(total_iterations_ >= n, true)) {
