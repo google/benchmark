@@ -399,7 +399,7 @@ State::State(size_t max_iters, const std::vector<int>& ranges, int thread_i,
              internal::ThreadManager* manager)
     : started_(false),
       finished_(false),
-      total_iterations_(max_iters),
+      total_iterations_(0),
       range_(ranges),
       bytes_processed_(0),
       items_processed_(0),
@@ -413,7 +413,6 @@ State::State(size_t max_iters, const std::vector<int>& ranges, int thread_i,
       timer_(timer),
       manager_(manager) {
   CHECK(max_iterations != 0) << "At least one iteration must be run";
-  CHECK(total_iterations_ != 0) << "max iterations wrapped around";
   CHECK_LT(thread_index, threads) << "thread_index must be less than threads";
 }
 
@@ -454,18 +453,16 @@ void State::SetLabel(const char* label) {
 void State::StartKeepRunning() {
   CHECK(!started_ && !finished_);
   started_ = true;
-  completed_iterations_ = max_iterations;
+  total_iterations_ = error_occurred_ ? 0 : max_iterations;
   manager_->StartStopBarrier();
   if (!error_occurred_) ResumeTiming();
 }
 
-void State::FinishKeepRunning(size_t n) {
+void State::FinishKeepRunning() {
   CHECK(started_ && (!finished_ || error_occurred_));
   if (!error_occurred_) {
     PauseTiming();
   }
-  // Batch size overshot total_iterations_. Account for it.
-  completed_iterations_ += n;
   // Total iterations has now wrapped around past 0. Fix this.
   total_iterations_ = 0;
   finished_ = true;

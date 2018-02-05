@@ -107,7 +107,8 @@ void BM_KeepRunning(benchmark::State& state) {
 BENCHMARK(BM_KeepRunning);
 
 void BM_KeepRunningBatch(benchmark::State& state) {
-  const size_t batch_size = 100;
+  // Choose a prime batch size to avoid evenly dividing max_iterations.
+  const size_t batch_size = 101;
   size_t iter_count = 0;
   while (state.KeepRunningBatch(batch_size)) {
     iter_count += batch_size;

@@ -568,15 +568,16 @@ class State {
   int range_y() const { return range(1); }
 
   BENCHMARK_ALWAYS_INLINE
-  size_t iterations() const { return (completed_iterations_ - total_iterations_); }
+  size_t iterations() const {
+    return (max_iterations - total_iterations_ + batch_leftover_);
+  }
 
  private:
   bool started_;
   bool finished_;
   // When total_iterations_ is 0, KeepRunning() and friends will return false.
-  size_t total_iterations_;
+  int64_t total_iterations_;
   // May be larger than max_iterations.
-  size_t completed_iterations_;
 
   std::vector<int> range_;
 
@@ -608,41 +609,57 @@ class State {
 
  private:
   void StartKeepRunning();
-  void FinishKeepRunning(size_t n);
+  void FinishKeepRunning();
   internal::ThreadTimer* timer_;
   internal::ThreadManager* manager_;
   BENCHMARK_DISALLOW_COPY_AND_ASSIGN(State);
 };
 
 inline BENCHMARK_ALWAYS_INLINE
-bool State::KeepRunningBatch(int n) {
-  if (BENCHMARK_BUILTIN_EXPECT(!started_, false)) {
+bool State::KeepRunning() {
+  // total_iterations_ is set to 0 by the constructor, and always set to a
+  // nonzero value by StartKepRunning().
+  if (BENCHMARK_BUILTIN_EXPECT(total_iterations_ != 0, true)) {
+    --total_iterations_;
+    return true;
+  }
+  if (!started_ && !error_occurred_) {
     StartKeepRunning();
+    // max_iterations > 0. The first iteration is always valid.
+    --total_iterations_;
+    return true;
+  } else {
+    FinishKeepRunning();
+    return false;
   }
-  // leftover only has a sensible value when n > total_iterations.
-  size_t leftover = n - total_iterations_;
-  // total_iterations_ is a size_t. Avoid wrapping around past 0.
-  bool const res = (total_iterations_ > 0);
-  total_iterations_ -= std::min<size_t>(n, total_iterations_);
-  if (BENCHMARK_BUILTIN_EXPECT(!res, false)) {
-    FinishKeepRunning(batch_leftover_);
-  }
-  // If this batch has 0 < n < total_iterations iterations, (i.e. it's the last
-  // batch), track how many extra iterations past max_iters we ran.
-  batch_leftover_ = leftover;
-  return res;
 }
 
 inline BENCHMARK_ALWAYS_INLINE
-bool State::KeepRunning() {
-    if (BENCHMARK_BUILTIN_EXPECT(!started_, false)) {
-      StartKeepRunning();
+bool State::KeepRunningBatch(int n) {
+  // total_iterations_ is set to 0 by the constructor, and always set to a
+  // nonzero value by StartKepRunning().
+  if (BENCHMARK_BUILTIN_EXPECT(total_iterations_ >= n, true)) {
+    total_iterations_ -= n;
+    return true;
+  }
+  if (!started_ && !error_occurred_) {
+    StartKeepRunning();
+    if (total_iterations_ >= n) {
+      total_iterations_-= n;
+    } else {
+      batch_leftover_  = n - total_iterations_;
+      total_iterations_ = 0;
     }
-    bool const res = (total_iterations_-- != 0);
-    if (BENCHMARK_BUILTIN_EXPECT(!res, false)) {
-      FinishKeepRunning(0);
-    }
-    return res;
+    return true;
+  }
+  if (total_iterations_ != 0) {
+    batch_leftover_  = n - total_iterations_;
+    total_iterations_ = 0;
+    return true;
+  } else {
+    FinishKeepRunning();
+    return false;
+  }
 }
 
 struct State::StateIterator {
@@ -675,7 +692,7 @@ struct State::StateIterator {
   BENCHMARK_ALWAYS_INLINE
   bool operator!=(StateIterator const&) const {
     if (BENCHMARK_BUILTIN_EXPECT(cached_ != 0, true)) return true;
-    parent_->FinishKeepRunning(0);
+    parent_->FinishKeepRunning();
     return false;
   }
 
