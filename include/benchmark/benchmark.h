@@ -623,15 +623,16 @@ bool State::KeepRunning() {
     --total_iterations_;
     return true;
   }
-  if (!started_ && !error_occurred_) {
+  if (!started_) {
     StartKeepRunning();
-    // max_iterations > 0. The first iteration is always valid.
-    --total_iterations_;
-    return true;
-  } else {
-    FinishKeepRunning();
-    return false;
+    if (!error_occurred_) {
+      // max_iterations > 0. The first iteration is always valid.
+      --total_iterations_;
+      return true;
+    }
   }
+  FinishKeepRunning();
+  return false;
 }
 
 inline BENCHMARK_ALWAYS_INLINE
@@ -642,24 +643,25 @@ bool State::KeepRunningBatch(size_t n) {
     total_iterations_ -= n;
     return true;
   }
-  if (!started_ && !error_occurred_) {
+  if (!started_) {
     StartKeepRunning();
-    if (total_iterations_ >= n) {
-      total_iterations_-= n;
-    } else {
-      batch_leftover_  = n - total_iterations_;
-      total_iterations_ = 0;
+    if (!error_occurred_) {
+      if (total_iterations_ >= n) {
+        total_iterations_-= n;
+      } else {
+        batch_leftover_  = n - total_iterations_;
+        total_iterations_ = 0;
+      }
+      return true;
     }
-    return true;
   }
   if (total_iterations_ != 0) {
     batch_leftover_  = n - total_iterations_;
     total_iterations_ = 0;
     return true;
-  } else {
-    FinishKeepRunning();
-    return false;
   }
+  FinishKeepRunning();
+  return false;
 }
 
 struct State::StateIterator {
