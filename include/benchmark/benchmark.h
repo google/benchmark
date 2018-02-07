@@ -645,13 +645,8 @@ bool State::KeepRunningBatch(size_t n) {
   }
   if (!started_) {
     StartKeepRunning();
-    if (!error_occurred_) {
-      if (total_iterations_ >= n) {
-        total_iterations_-= n;
-      } else {
-        batch_leftover_  = n - total_iterations_;
-        total_iterations_ = 0;
-      }
+    if (!error_occurred_ && total_iterations_ >= n) {
+      total_iterations_-= n;
       return true;
     }
   }
