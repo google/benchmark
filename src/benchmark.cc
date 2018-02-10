@@ -268,7 +268,7 @@ void RunInThread(const benchmark::internal::Benchmark::Instance* b,
   internal::ThreadTimer timer;
   State st(iters, b->arg, thread_id, b->threads, &timer, manager);
   b->benchmark->Run(st);
-  CHECK(st.iterations() == st.max_iterations)
+  CHECK(st.iterations() >= st.max_iterations)
       << "Benchmark returned before State::KeepRunning() returned false!";
   {
     MutexLock l(manager->GetBenchmarkMutex());
@@ -399,12 +399,13 @@ State::State(size_t max_iters, const std::vector<int>& ranges, int thread_i,
              internal::ThreadManager* manager)
     : started_(false),
       finished_(false),
-      total_iterations_(max_iters + 1),
+      total_iterations_(0),
       range_(ranges),
       bytes_processed_(0),
       items_processed_(0),
       complexity_n_(0),
       error_occurred_(false),
+      batch_leftover_(0),
       counters(),
       thread_index(thread_i),
       threads(n_threads),
@@ -412,7 +413,6 @@ State::State(size_t max_iters, const std::vector<int>& ranges, int thread_i,
       timer_(timer),
       manager_(manager) {
   CHECK(max_iterations != 0) << "At least one iteration must be run";
-  CHECK(total_iterations_ != 0) << "max iterations wrapped around";
   CHECK_LT(thread_index, threads) << "thread_index must be less than threads";
 }
 
@@ -437,7 +437,7 @@ void State::SkipWithError(const char* msg) {
       manager_->results.has_error_ = true;
     }
   }
-  total_iterations_ = 1;
+  total_iterations_ = 0;
   if (timer_->running()) timer_->StopTimer();
 }
 
@@ -453,6 +453,7 @@ void State::SetLabel(const char* label) {
 void State::StartKeepRunning() {
   CHECK(!started_ && !finished_);
   started_ = true;
+  total_iterations_ = error_occurred_ ? 0 : max_iterations;
   manager_->StartStopBarrier();
   if (!error_occurred_) ResumeTiming();
 }
@@ -462,8 +463,8 @@ void State::FinishKeepRunning() {
   if (!error_occurred_) {
     PauseTiming();
   }
-  // Total iterations has now wrapped around zero. Fix this.
-  total_iterations_ = 1;
+  // Total iterations has now wrapped around past 0. Fix this.
+  total_iterations_ = 0;
   finished_ = true;
   manager_->StartStopBarrier();
 }

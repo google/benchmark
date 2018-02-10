@@ -102,9 +102,20 @@ void BM_KeepRunning(benchmark::State& state) {
   while (state.KeepRunning()) {
     ++iter_count;
   }
-  assert(iter_count == state.max_iterations);
+  assert(iter_count == state.iterations());
 }
 BENCHMARK(BM_KeepRunning);
+
+void BM_KeepRunningBatch(benchmark::State& state) {
+  // Choose a prime batch size to avoid evenly dividing max_iterations.
+  const size_t batch_size = 101;
+  size_t iter_count = 0;
+  while (state.KeepRunningBatch(batch_size)) {
+    iter_count += batch_size;
+  }
+  assert(state.iterations() == iter_count);
+}
+BENCHMARK(BM_KeepRunningBatch);
 
 void BM_RangedFor(benchmark::State& state) {
   size_t iter_count = 0;
