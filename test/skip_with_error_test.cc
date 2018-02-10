@@ -70,6 +70,16 @@ void BM_error_before_running(benchmark::State& state) {
 BENCHMARK(BM_error_before_running);
 ADD_CASES("BM_error_before_running", {{"", true, "error message"}});
 
+
+void BM_error_before_running_batch(benchmark::State& state) {
+  state.SkipWithError("error message");
+  while (state.KeepRunningBatch(17)) {
+    assert(false);
+  }
+}
+BENCHMARK(BM_error_before_running_batch);
+ADD_CASES("BM_error_before_running_batch", {{"", true, "error message"}});
+
 void BM_error_before_running_range_for(benchmark::State& state) {
   state.SkipWithError("error message");
   for (auto _ : state) {
