@@ -142,7 +142,7 @@ class ThreadManager {
     double manual_time_used = 0;
     int64_t bytes_processed = 0;
     int64_t items_processed = 0;
-    int complexity_n = 0;
+    int64_t complexity_n = 0;
     std::string report_label_;
     std::string error_message_;
     bool has_error_ = false;
@@ -394,7 +394,7 @@ std::vector<BenchmarkReporter::Run> RunBenchmark(
 }  // namespace
 }  // namespace internal
 
-State::State(size_t max_iters, const std::vector<int>& ranges, int thread_i,
+State::State(size_t max_iters, const std::vector<int64_t>& ranges, int thread_i,
              int n_threads, internal::ThreadTimer* timer,
              internal::ThreadManager* manager)
     : started_(false),

@@ -380,7 +380,7 @@ enum BigO { oNone, o1, oN, oNSquared, oNCubed, oLogN, oNLogN, oAuto, oLambda };
 
 // BigOFunc is passed to a benchmark in order to specify the asymptotic
 // computational complexity for the benchmark.
-typedef double(BigOFunc)(int);
+typedef double(BigOFunc)(int64_t);
 
 // StatisticsFunc is passed to a benchmark in order to compute some descriptive
 // statistics over all the measurements of some type
@@ -519,10 +519,10 @@ class State {
   // and complexity_n will
   // represent the length of N.
   BENCHMARK_ALWAYS_INLINE
-  void SetComplexityN(int complexity_n) { complexity_n_ = complexity_n; }
+  void SetComplexityN(int64_t complexity_n) { complexity_n_ = complexity_n; }
 
   BENCHMARK_ALWAYS_INLINE
-  int complexity_length_n() { return complexity_n_; }
+  int64_t complexity_length_n() { return complexity_n_; }
 
   // If this routine is called with items > 0, then an items/s
   // label is printed on the benchmark report line for the currently
@@ -556,16 +556,16 @@ class State {
 
   // Range arguments for this run. CHECKs if the argument has been set.
   BENCHMARK_ALWAYS_INLINE
-  int range(std::size_t pos = 0) const {
+  int64_t range(std::size_t pos = 0) const {
     assert(range_.size() > pos);
     return range_[pos];
   }
 
   BENCHMARK_DEPRECATED_MSG("use 'range(0)' instead")
-  int range_x() const { return range(0); }
+  int64_t range_x() const { return range(0); }
 
   BENCHMARK_DEPRECATED_MSG("use 'range(1)' instead")
-  int range_y() const { return range(1); }
+  int64_t range_y() const { return range(1); }
 
   BENCHMARK_ALWAYS_INLINE
   size_t iterations() const {
@@ -579,12 +579,12 @@ class State {
   size_t total_iterations_;
   // May be larger than max_iterations.
 
-  std::vector<int> range_;
+  std::vector<int64_t> range_;
 
   size_t bytes_processed_;
   size_t items_processed_;
 
-  int complexity_n_;
+  int64_t complexity_n_;
 
   bool error_occurred_;
 
@@ -603,7 +603,7 @@ class State {
   const size_t max_iterations;
 
   // TODO(EricWF) make me private
-  State(size_t max_iters, const std::vector<int>& ranges, int thread_i,
+  State(size_t max_iters, const std::vector<int64_t>& ranges, int thread_i,
         int n_threads, internal::ThreadTimer* timer,
         internal::ThreadManager* manager);
 
@@ -726,7 +726,7 @@ class Benchmark {
   // Run this benchmark once with "x" as the extra argument passed
   // to the function.
   // REQUIRES: The function passed to the constructor must accept an arg1.
-  Benchmark* Arg(int x);
+  Benchmark* Arg(int64_t x);
 
   // Run this benchmark with the given time unit for the generated output report
   Benchmark* Unit(TimeUnit unit);
@@ -734,23 +734,23 @@ class Benchmark {
   // Run this benchmark once for a number of values picked from the
   // range [start..limit].  (start and limit are always picked.)
   // REQUIRES: The function passed to the constructor must accept an arg1.
-  Benchmark* Range(int start, int limit);
+  Benchmark* Range(int64_t start, int64_t limit);
 
   // Run this benchmark once for all values in the range [start..limit] with
   // specific step
   // REQUIRES: The function passed to the constructor must accept an arg1.
-  Benchmark* DenseRange(int start, int limit, int step = 1);
+  Benchmark* DenseRange(int64_t start, int64_t limit, int64_t step = 1);
 
   // Run this benchmark once with "args" as the extra arguments passed
   // to the function.
   // REQUIRES: The function passed to the constructor must accept arg1, arg2 ...
-  Benchmark* Args(const std::vector<int>& args);
+  Benchmark* Args(const std::vector<int64_t>& args);
 
   // Equivalent to Args({x, y})
   // NOTE: This is a legacy C++03 interface provided for compatibility only.
   //   New code should use 'Args'.
-  Benchmark* ArgPair(int x, int y) {
-    std::vector<int> args;
+  Benchmark* ArgPair(int64_t x, int64_t y) {
+    std::vector<int64_t> args;
     args.push_back(x);
     args.push_back(y);
     return Args(args);
@@ -759,7 +759,7 @@ class Benchmark {
   // Run this benchmark once for a number of values picked from the
   // ranges [start..limit].  (starts and limits are always picked.)
   // REQUIRES: The function passed to the constructor must accept arg1, arg2 ...
-  Benchmark* Ranges(const std::vector<std::pair<int, int> >& ranges);
+  Benchmark* Ranges(const std::vector<std::pair<int64_t, int64_t> >& ranges);
 
   // Equivalent to ArgNames({name})
   Benchmark* ArgName(const std::string& name);
@@ -771,8 +771,8 @@ class Benchmark {
   // Equivalent to Ranges({{lo1, hi1}, {lo2, hi2}}).
   // NOTE: This is a legacy C++03 interface provided for compatibility only.
   //   New code should use 'Ranges'.
-  Benchmark* RangePair(int lo1, int hi1, int lo2, int hi2) {
-    std::vector<std::pair<int, int> > ranges;
+  Benchmark* RangePair(int64_t lo1, int64_t hi1, int64_t lo2, int64_t hi2) {
+    std::vector<std::pair<int64_t, int64_t> > ranges;
     ranges.push_back(std::make_pair(lo1, hi1));
     ranges.push_back(std::make_pair(lo2, hi2));
     return Ranges(ranges);
@@ -785,7 +785,7 @@ class Benchmark {
 
   // Set the range multiplier for non-dense range. If not called, the range
   // multiplier kRangeMultiplier will be used.
-  Benchmark* RangeMultiplier(int multiplier);
+  Benchmark* RangeMultiplier(int64_t multiplier);
 
   // Set the minimum amount of time to use when running this benchmark. This
   // option overrides the `benchmark_min_time` flag.
@@ -879,7 +879,8 @@ class Benchmark {
 
   int ArgsCnt() const;
 
-  static void AddRange(std::vector<int>* dst, int lo, int hi, int mult);
+  template<typename Z>
+  static void AddRange(std::vector<Z>* dst, Z lo, Z hi, Z mult);
 
  private:
   friend class BenchmarkFamilies;
@@ -887,9 +888,9 @@ class Benchmark {
   std::string name_;
   ReportMode report_mode_;
   std::vector<std::string> arg_names_;   // Args for all benchmark runs
-  std::vector<std::vector<int> > args_;  // Args for all benchmark runs
+  std::vector<std::vector<int64_t> > args_;  // Args for all benchmark runs
   TimeUnit time_unit_;
-  int range_multiplier_;
+  int64_t range_multiplier_;
   double min_time_;
   size_t iterations_;
   int repetitions_;
@@ -1295,7 +1296,7 @@ class BenchmarkReporter {
     // Keep track of arguments to compute asymptotic complexity
     BigO complexity;
     BigOFunc* complexity_lambda;
-    int complexity_n;
+    int64_t complexity_n;
 
     // what statistics to compute from the measurements
     const std::vector<Statistics>* statistics;
