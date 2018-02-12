@@ -433,6 +433,7 @@ class State {
   bool KeepRunning();
 
   // Returns true iff the benchmark should run n more iterations.
+  // REQUIRES: 'n' > 0.
   // NOTE: A benchmark must not return from the test until KeepRunningBatch()
   // has returned false.
   // NOTE: KeepRunningBatch() may overshoot by up to 'n' iterations.
@@ -617,28 +618,14 @@ class State {
 
 inline BENCHMARK_ALWAYS_INLINE
 bool State::KeepRunning() {
-  // total_iterations_ is set to 0 by the constructor, and always set to a
-  // nonzero value by StartKepRunning().
-  if (BENCHMARK_BUILTIN_EXPECT(total_iterations_ != 0, true)) {
-    --total_iterations_;
-    return true;
-  }
-  if (!started_) {
-    StartKeepRunning();
-    if (!error_occurred_) {
-      // max_iterations > 0. The first iteration is always valid.
-      --total_iterations_;
-      return true;
-    }
-  }
-  FinishKeepRunning();
-  return false;
+  return KeepRunningBatch(1);
 }
 
 inline BENCHMARK_ALWAYS_INLINE
 bool State::KeepRunningBatch(size_t n) {
   // total_iterations_ is set to 0 by the constructor, and always set to a
   // nonzero value by StartKepRunning().
+  assert(n > 0);
   if (BENCHMARK_BUILTIN_EXPECT(total_iterations_ >= n, true)) {
     total_iterations_ -= n;
     return true;
