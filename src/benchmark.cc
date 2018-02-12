@@ -399,21 +399,26 @@ State::State(size_t max_iters, const std::vector<int>& ranges, int thread_i,
              internal::ThreadManager* manager)
     : started_(false),
       finished_(false),
+      error_occurred_(false),
       total_iterations_(0),
+      batch_leftover_(0),
+      max_iterations(max_iters),
       range_(ranges),
       bytes_processed_(0),
       items_processed_(0),
       complexity_n_(0),
-      error_occurred_(false),
-      batch_leftover_(0),
       counters(),
       thread_index(thread_i),
       threads(n_threads),
-      max_iterations(max_iters),
       timer_(timer),
       manager_(manager) {
   CHECK(max_iterations != 0) << "At least one iteration must be run";
   CHECK_LT(thread_index, threads) << "thread_index must be less than threads";
+
+  // Offset tests to ensure commonly accessed data is on the first cache line.
+  const int cache_line_size = 64;
+  static_assert(offsetof(State, max_iterations) <=
+                (cache_line_size - sizeof(max_iterations)), "");
 }
 
 void State::PauseTiming() {
