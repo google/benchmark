@@ -433,6 +433,7 @@ class State {
   bool KeepRunning();
 
   // Returns true iff the benchmark should run n more iterations.
+  // REQUIRES: 'n' > 0.
   // NOTE: A benchmark must not return from the test until KeepRunningBatch()
   // has returned false.
   // NOTE: KeepRunningBatch() may overshoot by up to 'n' iterations.
@@ -609,6 +610,9 @@ class State {
 
  private:
   void StartKeepRunning();
+  // Implementation of KeepRunning() and KeepRunningBatch().
+  // is_batch must be true unless n is 1.
+  bool KeepRunningInternal(size_t n, bool is_batch);
   void FinishKeepRunning();
   internal::ThreadTimer* timer_;
   internal::ThreadManager* manager_;
@@ -617,28 +621,21 @@ class State {
 
 inline BENCHMARK_ALWAYS_INLINE
 bool State::KeepRunning() {
-  // total_iterations_ is set to 0 by the constructor, and always set to a
-  // nonzero value by StartKepRunning().
-  if (BENCHMARK_BUILTIN_EXPECT(total_iterations_ != 0, true)) {
-    --total_iterations_;
-    return true;
-  }
-  if (!started_) {
-    StartKeepRunning();
-    if (!error_occurred_) {
-      // max_iterations > 0. The first iteration is always valid.
-      --total_iterations_;
-      return true;
-    }
-  }
-  FinishKeepRunning();
-  return false;
+  return KeepRunningInternal(1, /*is_batch=*/ false);
 }
 
 inline BENCHMARK_ALWAYS_INLINE
 bool State::KeepRunningBatch(size_t n) {
+  return KeepRunningInternal(n, /*is_batch=*/ true);
+}
+
+inline BENCHMARK_ALWAYS_INLINE
+bool State::KeepRunningInternal(size_t n, bool is_batch) {
   // total_iterations_ is set to 0 by the constructor, and always set to a
   // nonzero value by StartKepRunning().
+  assert(n > 0);
+  // n must be 1 unless is_batch is true.
+  assert(is_batch || n == 1);
   if (BENCHMARK_BUILTIN_EXPECT(total_iterations_ >= n, true)) {
     total_iterations_ -= n;
     return true;
@@ -650,7 +647,8 @@ bool State::KeepRunningBatch(size_t n) {
       return true;
     }
   }
-  if (total_iterations_ != 0) {
+  // For non-batch runs, total_iterations_ must be 0 by now.
+  if (is_batch && total_iterations_ != 0) {
     batch_leftover_  = n - total_iterations_;
     total_iterations_ = 0;
     return true;
