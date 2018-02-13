@@ -23,6 +23,11 @@ macro(build_external_gtest)
   if ("${GTEST_BUILD_TYPE}" STREQUAL "COVERAGE")
     set(GTEST_BUILD_TYPE "DEBUG")
   endif()
+  # FIXME: Since 10/Feb/2017 the googletest trunk has had a bug where
+  # -Werror=unused-function fires during the build on OS X. This is a temporary
+  # workaround to keep our travis bots from failing. It should be removed
+  # once gtest is fixed.
+  list(APPEND GTEST_FLAGS "-Wno-unused-function")
   split_list(GTEST_FLAGS)
   ExternalProject_Add(googletest
       EXCLUDE_FROM_ALL ON
