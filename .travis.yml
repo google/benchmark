@@ -31,13 +31,8 @@ matrix:
             - g++-multilib
       env: COMPILER=g++ C_COMPILER=gcc BUILD_TYPE=Release BUILD_32_BITS=ON
     - compiler: gcc
-      addons:
-        apt:
-          sources:
-            - ubuntu-toolchain-r-test
-          packages:
-            - g++-6
       env:
+        - INSTALL_GCC6_FROM_PPA=1
         - COMPILER=g++-6 C_COMPILER=gcc-6  BUILD_TYPE=Debug
         - EXTRA_FLAGS="-fno-omit-frame-pointer -g -O2 -fsanitize=undefined,address -fuse-ld=gold"
     - compiler: clang
@@ -144,7 +139,16 @@ before_script:
     fi
   - mkdir -p build && cd build
 
+before_install:
+  - if [ -n "${INSTALL_GCC6_FROM_PPA}" ]; then
+      sudo add-apt-repository -y "ppa:ubuntu-toolchain-r/test";
+      sudo apt-get update --option Acquire::Retries=100 --option Acquire::http::Timeout="60";
+    fi
+
 install:
+  - if [ -n "${INSTALL_GCC6_FROM_PPA}" ]; then
+      sudo -E apt-get -yq --no-install-suggests --no-install-recommends --force-yes install g++-6;
+    fi
   - if [ "${BUILD_TYPE}" == "Coverage" -a "${TRAVIS_OS_NAME}" == "linux" ]; then
       PATH=~/.local/bin:${PATH};
       pip install --user --upgrade pip;
