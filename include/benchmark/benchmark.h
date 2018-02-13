@@ -573,9 +573,9 @@ class State {
   }
 
 private: // items we expect on the first cache line (ie 64 bytes of the struct)
-  bool started_ : 1;
-  bool finished_ : 1;
-  bool error_occurred_ : 1;
+  bool started_;
+  bool finished_;
+  bool error_occurred_;
   // When total_iterations_ is 0, KeepRunning() and friends will return false.
   // May be larger than max_iterations.
   size_t total_iterations_;
