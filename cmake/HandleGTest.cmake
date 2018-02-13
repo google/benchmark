@@ -27,7 +27,9 @@ macro(build_external_gtest)
   # -Werror=unused-function fires during the build on OS X. This is a temporary
   # workaround to keep our travis bots from failing. It should be removed
   # once gtest is fixed.
-  list(APPEND GTEST_FLAGS "-Wno-unused-function")
+  if (NOT "${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
+    list(APPEND GTEST_FLAGS "-Wno-unused-function")
+  endif()
   split_list(GTEST_FLAGS)
   ExternalProject_Add(googletest
       EXCLUDE_FROM_ALL ON
