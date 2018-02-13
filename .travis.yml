@@ -141,13 +141,13 @@ before_script:
 
 before_install:
   - if [ -n "${INSTALL_GCC6_FROM_PPA}" ]; then
-      sudo add-apt-repository -y "ppa:ubuntu-toolchain-r/test"
-      sudo apt-get update --option Acquire::Retries=100 --option Acquire::http::Timeout="60"
+      sudo add-apt-repository -y "ppa:ubuntu-toolchain-r/test";
+      sudo apt-get update --option Acquire::Retries=100 --option Acquire::http::Timeout="60";
     fi
 
 install:
   - if [ -n "${INSTALL_GCC6_FROM_PPA}" ]; then
-      sudo -E apt-get -yq --no-install-suggests --no-install-recommends --force-yes install g++-6
+      sudo -E apt-get -yq --no-install-suggests --no-install-recommends --force-yes install g++-6;
     fi
   - if [ "${BUILD_TYPE}" == "Coverage" -a "${TRAVIS_OS_NAME}" == "linux" ]; then
       PATH=~/.local/bin:${PATH};
