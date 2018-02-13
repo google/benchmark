@@ -397,12 +397,12 @@ std::vector<BenchmarkReporter::Run> RunBenchmark(
 State::State(size_t max_iters, const std::vector<int>& ranges, int thread_i,
              int n_threads, internal::ThreadTimer* timer,
              internal::ThreadManager* manager)
-    : started_(false),
-      finished_(false),
-      error_occurred_(false),
-      total_iterations_(0),
+    : total_iterations_(0),
       batch_leftover_(0),
       max_iterations(max_iters),
+      started_(false),
+      finished_(false),
+      error_occurred_(false),
       range_(ranges),
       bytes_processed_(0),
       items_processed_(0),
@@ -417,8 +417,8 @@ State::State(size_t max_iters, const std::vector<int>& ranges, int thread_i,
 
   // Offset tests to ensure commonly accessed data is on the first cache line.
   const int cache_line_size = 64;
-  static_assert(offsetof(State, max_iterations) <=
-                (cache_line_size - sizeof(max_iterations)), "");
+  static_assert(offsetof(State, finished_) <=
+                (cache_line_size + sizeof(finished_)), "");
 }
 
 void State::PauseTiming() {

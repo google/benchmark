@@ -573,9 +573,7 @@ class State {
   }
 
 private: // items we expect on the first cache line (ie 64 bytes of the struct)
-  bool started_;
-  bool finished_;
-  bool error_occurred_;
+
   // When total_iterations_ is 0, KeepRunning() and friends will return false.
   // May be larger than max_iterations.
   size_t total_iterations_;
@@ -587,6 +585,11 @@ private: // items we expect on the first cache line (ie 64 bytes of the struct)
 
 public:
   const size_t max_iterations;
+
+private:
+  bool started_;
+  bool finished_;
+  bool error_occurred_;
 
 private: // items we don't need on the first cache line
   std::vector<int> range_;
