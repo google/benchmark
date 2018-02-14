@@ -21,7 +21,7 @@
 #include <Windows.h>
 #else
 #include <fcntl.h>
-#ifndef __Fuchsia__
+#ifndef BENCHMARK_OS_FUCHSIA
 #include <sys/resource.h>
 #endif
 #include <sys/time.h>
@@ -76,7 +76,7 @@ double MakeTime(FILETIME const& kernel_time, FILETIME const& user_time) {
           static_cast<double>(user.QuadPart)) *
          1e-7;
 }
-#elif !defined(__Fuchsia__)
+#elif !defined(BENCHMARK_OS_FUCHSIA)
 double MakeTime(struct rusage const& ru) {
   return (static_cast<double>(ru.ru_utime.tv_sec) +
           static_cast<double>(ru.ru_utime.tv_usec) * 1e-6 +

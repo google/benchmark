@@ -20,7 +20,7 @@
 #include <Windows.h>
 #else
 #include <fcntl.h>
-#ifndef __Fuchsia__
+#ifndef BENCHMARK_OS_FUCHSIA
 #include <sys/resource.h>
 #endif
 #include <sys/time.h>

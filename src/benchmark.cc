@@ -17,7 +17,7 @@
 #include "internal_macros.h"
 
 #ifndef BENCHMARK_OS_WINDOWS
-#ifndef __Fuchsia__
+#ifndef BENCHMARK_OS_FUCHSIA
 #include <sys/resource.h>
 #endif
 #include <sys/time.h>
