@@ -573,26 +573,32 @@ class State {
     return (max_iterations - total_iterations_ + batch_leftover_);
   }
 
- private:
+private: // items we expect on the first cache line (ie 64 bytes of the struct)
+
+  // When total_iterations_ is 0, KeepRunning() and friends will return false.
+  // May be larger than max_iterations.
+  size_t total_iterations_;
+
+  // When using KeepRunningBatch(), batch_leftover_ holds the number of
+  // iterations beyond max_iters that were run. Used to track
+  // completed_iterations_ accurately.
+  size_t batch_leftover_;
+
+public:
+  const size_t max_iterations;
+
+private:
   bool started_;
   bool finished_;
-  // When total_iterations_ is 0, KeepRunning() and friends will return false.
-  size_t total_iterations_;
-  // May be larger than max_iterations.
+  bool error_occurred_;
 
+private: // items we don't need on the first cache line
   std::vector<int> range_;
 
   size_t bytes_processed_;
   size_t items_processed_;
 
   int complexity_n_;
-
-  bool error_occurred_;
-
-  // When using KeepRunningBatch(), batch_leftover_ holds the number of
-  // iterations beyond max_iters that were run. Used to track
-  // completed_iterations_ accurately.
-  size_t batch_leftover_;
 
  public:
   // Container for user-defined counters.
@@ -601,7 +607,7 @@ class State {
   const int thread_index;
   // Number of threads concurrently executing the benchmark.
   const int threads;
-  const size_t max_iterations;
+
 
   // TODO(EricWF) make me private
   State(size_t max_iters, const std::vector<int>& ranges, int thread_i,
