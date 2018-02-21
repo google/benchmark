@@ -1247,7 +1247,7 @@ class BenchmarkReporter {
     CPUInfo const& cpu_info;
     // The number of chars in the longest benchmark name.
     size_t name_field_width;
-
+    static const char *executable_name;
     Context();
   };
 
