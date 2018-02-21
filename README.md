@@ -893,8 +893,11 @@ If you are using gcc, you might need to set `GCC_AR` and `GCC_RANLIB` cmake cach
 If you are using clang, you may need to set `LLVMAR_EXECUTABLE`, `LLVMNM_EXECUTABLE` and `LLVMRANLIB_EXECUTABLE` cmake cache variables.
 
 ## Linking against the library
-When using gcc, it is necessary to link against pthread to avoid runtime exceptions.
-This is due to how gcc implements std::thread.
+
+When the library is built using GCC it is necessary to link with `-pthread`,
+due to how GCC implements `std::thread`.
+
+For GCC 4.x failing to link to pthreads will lead to runtime exceptions, not linker errors.
 See [issue #67](https://github.com/google/benchmark/issues/67) for more details.
 
 ## Compiler Support
