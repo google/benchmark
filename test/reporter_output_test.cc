@@ -17,11 +17,13 @@ static int AddContextCases() {
   AddCases(TC_ConsoleErr,
            {
                {"%int[-/]%int[-/]%int %int:%int:%int$", MR_Default},
+               {"Running .*/reporter_output_test(\\.exe)?$", MR_Next},
                {"Run on \\(%int X %float MHz CPU s\\)", MR_Next},
            });
   AddCases(TC_JSONOut, {{"^\\{", MR_Default},
                         {"\"context\":", MR_Next},
                         {"\"date\": \"", MR_Next},
+                        {"\"executable\": \".*/reporter_output_test(\\.exe)?\",", MR_Next},
                         {"\"num_cpus\": %int,$", MR_Next},
                         {"\"mhz_per_cpu\": %float,$", MR_Next},
                         {"\"cpu_scaling_enabled\": ", MR_Next},
