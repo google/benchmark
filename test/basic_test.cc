@@ -126,4 +126,10 @@ void BM_RangedFor(benchmark::State& state) {
 }
 BENCHMARK(BM_RangedFor);
 
+// Ensure that StateIterator provides all the necessary typedefs required to
+// instantiate std::iterator_traits.
+static_assert(std::is_same<
+  typename std::iterator_traits<benchmark::State::StateIterator>::value_type,
+  typename benchmark::State::StateIterator::value_type>::value, "");
+
 BENCHMARK_MAIN();

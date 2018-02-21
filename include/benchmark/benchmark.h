@@ -669,6 +669,7 @@ struct State::StateIterator {
   typedef Value value_type;
   typedef Value reference;
   typedef Value pointer;
+  typedef std::ptrdiff_t difference_type;
 
  private:
   friend class State;
