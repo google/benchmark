@@ -1,0 +1,21 @@
+licenses(["notice"])
+
+load("//bazel:have_regex.bzl", "have_regex_copts")
+
+cc_library(
+    name = "benchmark",
+    srcs = glob([
+        "src/*.cc",
+        "src/*.h",
+    ]),
+    hdrs = ["include/benchmark/benchmark.h"],
+    copts = have_regex_copts(),
+    strip_include_prefix = "include",
+    visibility = ["//visibility:public"],
+)
+
+cc_library(
+    name = "benchmark_internal_headers",
+    hdrs = glob(["src/*.h"]),
+    visibility = ["//test:__pkg__"],
+)
