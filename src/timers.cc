@@ -122,6 +122,10 @@ double ProcessCPUUsage() {
   // same as total time, but this is ok because there aren't long-latency
   // syncronous system calls in Emscripten.
   return emscripten_get_now() * 1e-3;
+#elif defined(BENCHMARK_OS_SOLARIS)
+  struct rusage ru;
+  if (getrusage(RUSAGE_SELF, &ru) == 0) return MakeTime(ru);
+  DiagnoseAndExit("getrusage(RUSAGE_LWP, ...) failed");
 #elif defined(CLOCK_PROCESS_CPUTIME_ID) && !defined(BENCHMARK_OS_MACOSX)
   // FIXME We want to use clock_gettime, but its not available in MacOS 10.11. See
   // https://github.com/google/benchmark/pull/292
@@ -164,6 +168,10 @@ double ThreadCPUUsage() {
   // RTEMS doesn't support CLOCK_THREAD_CPUTIME_ID. See
   // https://github.com/RTEMS/rtems/blob/master/cpukit/posix/src/clockgettime.c
   return ProcessCPUUsage();
+#elif defined(BENCHMARK_OS_SOLARIS)
+  struct rusage ru;
+  if (getrusage(RUSAGE_LWP, &ru) == 0) return MakeTime(ru);
+  DiagnoseAndExit("getrusage(RUSAGE_LWP, ...) failed");
 #elif defined(CLOCK_THREAD_CPUTIME_ID)
   struct timespec ts;
   if (clock_gettime(CLOCK_THREAD_CPUTIME_ID, &ts) == 0) return MakeTime(ts);
