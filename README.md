@@ -936,3 +936,6 @@ sudo cpupower frequency-set --governor powersave
 * Users must manually link `shlwapi.lib`. Failure to do so may result
 in unresolved symbols.
 
+### Solaris
+
+* Users must explicitly link with kstat library (-lkstat compilation flag).
