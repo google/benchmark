@@ -34,6 +34,11 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
   target_link_libraries(benchmark Shlwapi)
 endif()
 
+# We need extra libraries on Solaris
+if(${CMAKE_SYSTEM_NAME} MATCHES "SunOS")
+  target_link_libraries(benchmark kstat)
+endif()
+
 set(include_install_dir "include")
 set(lib_install_dir "lib/")
 set(bin_install_dir "bin/")
