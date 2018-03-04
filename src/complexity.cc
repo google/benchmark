@@ -65,10 +65,10 @@ std::string GetBigOString(BigO complexity) {
 
 // Find the coefficient for the high-order term in the running time, by
 // minimizing the sum of squares of relative error, for the fitting curve
-// given by the lambda expresion.
+// given by the lambda expression.
 //   - n             : Vector containing the size of the benchmark tests.
 //   - time          : Vector containing the times for the benchmark tests.
-//   - fitting_curve : lambda expresion (e.g. [](int n) {return n; };).
+//   - fitting_curve : lambda expression (e.g. [](int n) {return n; };).
 
 // For a deeper explanation on the algorithm logic, look the README file at
 // http://github.com/ismaelJimenez/Minimal-Cpp-Least-Squared-Fit

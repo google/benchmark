@@ -84,7 +84,7 @@ DEFINE_string(benchmark_out_format, "json",
               "The format to use for file output. Valid values are "
               "'console', 'json', or 'csv'.");
 
-DEFINE_string(benchmark_out, "", "The file to write additonal output to");
+DEFINE_string(benchmark_out, "", "The file to write additional output to");
 
 DEFINE_string(benchmark_color, "auto",
               "Whether to use colors in the output.  Valid values: "
@@ -503,7 +503,7 @@ void RunBenchmarks(const std::vector<Benchmark::Instance>& benchmarks,
   BenchmarkReporter::Context context;
   context.name_field_width = name_field_width;
 
-  // Keep track of runing times of all instances of current benchmark
+  // Keep track of running times of all instances of current benchmark
   std::vector<BenchmarkReporter::Run> complexity_reports;
 
   // We flush streams after invoking reporter methods that write to them. This
