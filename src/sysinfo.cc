@@ -16,6 +16,7 @@
 
 #ifdef BENCHMARK_OS_WINDOWS
 #include <Shlwapi.h>
+#undef StrCat // Don't let StrCat in string_util.h be renamed to lstrcatA
 #include <VersionHelpers.h>
 #include <Windows.h>
 #else
