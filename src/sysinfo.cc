@@ -191,8 +191,8 @@ bool CpuScalingEnabled(int num_cpus) {
   // running on Linux, so we silently ignore all the read errors.
   std::string res;
   for (int cpu = 0; cpu < num_cpus; ++cpu) {
-    std::string governor_file =
-        StrCat("/sys/devices/system/cpu/cpu", cpu, "/cpufreq/scaling_governor");
+    std::string governor_file = StringCat("/sys/devices/system/cpu/cpu", cpu,
+        "/cpufreq/scaling_governor");
     if (ReadFromFile(governor_file, &res) && res != "performance") return true;
   }
 #endif
@@ -225,8 +225,8 @@ std::vector<CPUInfo::CacheInfo> GetCacheSizesFromKVFS() {
   int Idx = 0;
   while (true) {
     CPUInfo::CacheInfo info;
-    std::string FPath = StrCat(dir, "index", Idx++, "/");
-    std::ifstream f(StrCat(FPath, "size").c_str());
+    std::string FPath = StringCat(dir, "index", Idx++, "/");
+    std::ifstream f(StringCat(FPath, "size").c_str());
     if (!f.is_open()) break;
     std::string suffix;
     f >> info.size;
@@ -242,12 +242,12 @@ std::vector<CPUInfo::CacheInfo> GetCacheSizesFromKVFS() {
       else if (suffix == "K")
         info.size *= 1000;
     }
-    if (!ReadFromFile(StrCat(FPath, "type"), &info.type))
+    if (!ReadFromFile(StringCat(FPath, "type"), &info.type))
       PrintErrorAndDie("Failed to read from file ", FPath, "type");
-    if (!ReadFromFile(StrCat(FPath, "level"), &info.level))
+    if (!ReadFromFile(StringCat(FPath, "level"), &info.level))
       PrintErrorAndDie("Failed to read from file ", FPath, "level");
     std::string map_str;
-    if (!ReadFromFile(StrCat(FPath, "shared_cpu_map"), &map_str))
+    if (!ReadFromFile(StringCat(FPath, "shared_cpu_map"), &map_str))
       PrintErrorAndDie("Failed to read from file ", FPath, "shared_cpu_map");
     info.num_sharing = CountSetBitsInCPUMap(map_str);
     res.push_back(info);

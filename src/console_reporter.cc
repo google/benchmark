@@ -117,14 +117,14 @@ void ConsoleReporter::PrintRunData(const Run& result) {
   // Format bytes per second
   std::string rate;
   if (result.bytes_per_second > 0) {
-    rate = StrCat(" ", HumanReadableNumber(result.bytes_per_second), "B/s");
+    rate = StringCat(" ", HumanReadableNumber(result.bytes_per_second), "B/s");
   }
 
   // Format items per second
   std::string items;
   if (result.items_per_second > 0) {
-    items =
-        StrCat(" ", HumanReadableNumber(result.items_per_second), " items/s");
+    items = StringCat(" ", HumanReadableNumber(result.items_per_second),
+        " items/s");
   }
 
   const double real_time = result.GetAdjustedRealTime();
