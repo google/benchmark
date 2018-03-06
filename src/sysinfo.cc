@@ -455,7 +455,7 @@ double GetCPUCyclesPerSecond() {
     std::string value;
     if (SplitIdx != std::string::npos) value = ln.substr(SplitIdx + 1);
     // When parsing the "cpu MHz" and "bogomips" (fallback) entries, we only
-    // accept postive values. Some environments (virtual machines) report zero,
+    // accept positive values. Some environments (virtual machines) report zero,
     // which would cause infinite looping in WallTime_Init.
     if (startsWithKey(ln, "cpu MHz")) {
       if (!value.empty()) {
