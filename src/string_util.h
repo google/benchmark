@@ -12,7 +12,7 @@ void AppendHumanReadable(int n, std::string* str);
 
 std::string HumanReadableNumber(double n, double one_k = 1024.0);
 
-std::string StrPrintF(const char* format, ...);
+std::string StrFormat(const char* format, ...);
 
 inline std::ostream& StrCatImp(std::ostream& out) BENCHMARK_NOEXCEPT {
   return out;
