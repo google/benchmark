@@ -32,15 +32,15 @@ namespace benchmark {
 namespace {
 
 std::string FormatKV(std::string const& key, std::string const& value) {
-  return StringPrintF("\"%s\": \"%s\"", key.c_str(), value.c_str());
+  return StrFormat("\"%s\": \"%s\"", key.c_str(), value.c_str());
 }
 
 std::string FormatKV(std::string const& key, const char* value) {
-  return StringPrintF("\"%s\": \"%s\"", key.c_str(), value);
+  return StrFormat("\"%s\": \"%s\"", key.c_str(), value);
 }
 
 std::string FormatKV(std::string const& key, bool value) {
-  return StringPrintF("\"%s\": %s", key.c_str(), value ? "true" : "false");
+  return StrFormat("\"%s\": %s", key.c_str(), value ? "true" : "false");
 }
 
 std::string FormatKV(std::string const& key, int64_t value) {
