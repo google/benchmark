@@ -1,3 +1,5 @@
+workspace(name = "com_github_google_benchmark")
+
 load("@bazel_tools//tools/build_defs/repo:git.bzl", "git_repository")
 
 git_repository(
