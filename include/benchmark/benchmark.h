@@ -543,7 +543,7 @@ class State {
   //  static void BM_Compress(benchmark::State& state) {
   //    ...
   //    double compress = input_size / output_size;
-  //    state.SetLabel(StringPrintf("compress:%.1f%%", 100.0*compression));
+  //    state.SetLabel(StrFormat("compress:%.1f%%", 100.0*compression));
   //  }
   // Produces output that looks like:
   //  BM_Compress   50         50   14115038  compress:27.3%

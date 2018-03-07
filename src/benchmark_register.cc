@@ -172,20 +172,20 @@ bool BenchmarkFamilies::FindBenchmarks(
             const auto& arg_name = family->arg_names_[arg_i];
             if (!arg_name.empty()) {
               instance.name +=
-                  StringPrintF("%s:", family->arg_names_[arg_i].c_str());
+                  StrFormat("%s:", family->arg_names_[arg_i].c_str());
             }
           }
           
-          instance.name += StringPrintF("%d", arg);
+          instance.name += StrFormat("%d", arg);
           ++arg_i;
         }
 
         if (!IsZero(family->min_time_))
-          instance.name += StringPrintF("/min_time:%0.3f", family->min_time_);
+          instance.name += StrFormat("/min_time:%0.3f", family->min_time_);
         if (family->iterations_ != 0)
-          instance.name += StringPrintF("/iterations:%d", family->iterations_);
+          instance.name += StrFormat("/iterations:%d", family->iterations_);
         if (family->repetitions_ != 0)
-          instance.name += StringPrintF("/repeats:%d", family->repetitions_);
+          instance.name += StrFormat("/repeats:%d", family->repetitions_);
 
         if (family->use_manual_time_) {
           instance.name += "/manual_time";
@@ -195,7 +195,7 @@ bool BenchmarkFamilies::FindBenchmarks(
 
         // Add the number of threads used to the name
         if (!family->thread_counts_.empty()) {
-          instance.name += StringPrintF("/threads:%d", instance.threads);
+          instance.name += StrFormat("/threads:%d", instance.threads);
         }
 
         if (re.Match(instance.name)) {
