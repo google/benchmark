@@ -12,9 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "benchmark/benchmark.h"
-#include "benchmark_api_internal.h"
-#include "internal_macros.h"
+#include "benchmark_register.h"
 
 #ifndef BENCHMARK_OS_WINDOWS
 #ifndef BENCHMARK_OS_FUCHSIA
@@ -36,13 +34,16 @@
 #include <sstream>
 #include <thread>
 
+#include "benchmark/benchmark.h"
+#include "benchmark_api_internal.h"
 #include "check.h"
 #include "commandlineflags.h"
 #include "complexity.h"
-#include "statistics.h"
+#include "internal_macros.h"
 #include "log.h"
 #include "mutex.h"
 #include "re.h"
+#include "statistics.h"
 #include "string_util.h"
 #include "timers.h"
 
@@ -175,7 +176,7 @@ bool BenchmarkFamilies::FindBenchmarks(
                   StrFormat("%s:", family->arg_names_[arg_i].c_str());
             }
           }
-          
+
           instance.name += StrFormat("%d", arg);
           ++arg_i;
         }
@@ -246,30 +247,7 @@ Benchmark::Benchmark(const char* name)
 
 Benchmark::~Benchmark() {}
 
-void Benchmark::AddRange(std::vector<int>* dst, int lo, int hi, int mult) {
-  CHECK_GE(lo, 0);
-  CHECK_GE(hi, lo);
-  CHECK_GE(mult, 2);
-
-  // Add "lo"
-  dst->push_back(lo);
-
-  static const int kint32max = std::numeric_limits<int32_t>::max();
-
-  // Now space out the benchmarks in multiples of "mult"
-  for (int32_t i = 1; i < kint32max / mult; i *= mult) {
-    if (i >= hi) break;
-    if (i > lo) {
-      dst->push_back(i);
-    }
-  }
-  // Add "hi" (if different from "lo")
-  if (hi != lo) {
-    dst->push_back(hi);
-  }
-}
-
-Benchmark* Benchmark::Arg(int x) {
+Benchmark* Benchmark::Arg(int64_t x) {
   CHECK(ArgsCnt() == -1 || ArgsCnt() == 1);
   args_.push_back({x});
   return this;
@@ -280,20 +258,21 @@ Benchmark* Benchmark::Unit(TimeUnit unit) {
   return this;
 }
 
-Benchmark* Benchmark::Range(int start, int limit) {
+Benchmark* Benchmark::Range(int64_t start, int64_t limit) {
   CHECK(ArgsCnt() == -1 || ArgsCnt() == 1);
-  std::vector<int> arglist;
+  std::vector<int64_t> arglist;
   AddRange(&arglist, start, limit, range_multiplier_);
 
-  for (int i : arglist) {
+  for (int64_t i : arglist) {
     args_.push_back({i});
   }
   return this;
 }
 
-Benchmark* Benchmark::Ranges(const std::vector<std::pair<int, int>>& ranges) {
+Benchmark* Benchmark::Ranges(
+    const std::vector<std::pair<int64_t, int64_t>>& ranges) {
   CHECK(ArgsCnt() == -1 || ArgsCnt() == static_cast<int>(ranges.size()));
-  std::vector<std::vector<int>> arglists(ranges.size());
+  std::vector<std::vector<int64_t>> arglists(ranges.size());
   std::size_t total = 1;
   for (std::size_t i = 0; i < ranges.size(); i++) {
     AddRange(&arglists[i], ranges[i].first, ranges[i].second,
@@ -304,7 +283,7 @@ Benchmark* Benchmark::Ranges(const std::vector<std::pair<int, int>>& ranges) {
   std::vector<std::size_t> ctr(arglists.size(), 0);
 
   for (std::size_t i = 0; i < total; i++) {
-    std::vector<int> tmp;
+    std::vector<int64_t> tmp;
     tmp.reserve(arglists.size());
 
     for (std::size_t j = 0; j < arglists.size(); j++) {
@@ -336,17 +315,17 @@ Benchmark* Benchmark::ArgNames(const std::vector<std::string>& names) {
   return this;
 }
 
-Benchmark* Benchmark::DenseRange(int start, int limit, int step) {
+Benchmark* Benchmark::DenseRange(int64_t start, int64_t limit, int step) {
   CHECK(ArgsCnt() == -1 || ArgsCnt() == 1);
   CHECK_GE(start, 0);
   CHECK_LE(start, limit);
-  for (int arg = start; arg <= limit; arg += step) {
+  for (int64_t arg = start; arg <= limit; arg += step) {
     args_.push_back({arg});
   }
   return this;
 }
 
-Benchmark* Benchmark::Args(const std::vector<int>& args) {
+Benchmark* Benchmark::Args(const std::vector<int64_t>& args) {
   CHECK(ArgsCnt() == -1 || ArgsCnt() == static_cast<int>(args.size()));
   args_.push_back(args);
   return this;
@@ -363,14 +342,12 @@ Benchmark* Benchmark::RangeMultiplier(int multiplier) {
   return this;
 }
 
-
 Benchmark* Benchmark::MinTime(double t) {
   CHECK(t > 0.0);
   CHECK(iterations_ == 0);
   min_time_ = t;
   return this;
 }
-
 
 Benchmark* Benchmark::Iterations(size_t n) {
   CHECK(n > 0);

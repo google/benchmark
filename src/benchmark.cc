@@ -290,7 +290,7 @@ std::vector<BenchmarkReporter::Run> RunBenchmark(
 }  // namespace
 }  // namespace internal
 
-State::State(size_t max_iters, const std::vector<int>& ranges, int thread_i,
+State::State(size_t max_iters, const std::vector<int64_t>& ranges, int thread_i,
              int n_threads, internal::ThreadTimer* timer,
              internal::ThreadManager* manager)
     : total_iterations_(0),
