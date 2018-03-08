@@ -41,6 +41,9 @@ build.ninja
 install_manifest.txt
 rules.ninja
 
+# bazel output symlinks.
+bazel-*
+
 # out-of-source build top-level folders.
 build/
 _build/
