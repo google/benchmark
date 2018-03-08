@@ -525,10 +525,10 @@ class State {
   // and complexity_n will
   // represent the length of N.
   BENCHMARK_ALWAYS_INLINE
-  void SetComplexityN(int complexity_n) { complexity_n_ = complexity_n; }
+  void SetComplexityN(int64_t complexity_n) { complexity_n_ = complexity_n; }
 
   BENCHMARK_ALWAYS_INLINE
-  int complexity_length_n() { return complexity_n_; }
+  int64_t complexity_length_n() { return complexity_n_; }
 
   // If this routine is called with items > 0, then an items/s
   // label is printed on the benchmark report line for the currently
@@ -603,7 +603,7 @@ private: // items we don't need on the first cache line
   size_t bytes_processed_;
   size_t items_processed_;
 
-  int complexity_n_;
+  int64_t complexity_n_;
 
  public:
   // Container for user-defined counters.

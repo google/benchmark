@@ -67,8 +67,8 @@ class MultipleRangesFixture : public ::benchmark::Fixture {
 
 BENCHMARK_DEFINE_F(MultipleRangesFixture, Empty)(benchmark::State& state) {
   for (auto _ : state) {
-    int product = state.range(0) * state.range(1) * state.range(2);
-    for (int x = 0; x < product; x++) {
+    int64_t product = state.range(0) * state.range(1) * state.range(2);
+    for (int64_t x = 0; x < product; x++) {
       benchmark::DoNotOptimize(x);
     }
   }

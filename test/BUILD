@@ -2,6 +2,12 @@ TEST_COPTS = [
     "-pedantic",
     "-pedantic-errors",
     "-std=c++11",
+    "-Wall",
+    "-Wextra",
+    "-Wshadow",
+#    "-Wshorten-64-to-32",
+    "-Wfloat-equal",
+    "-fstrict-aliasing",
 ]
 
 PER_SRC_COPTS = ({
