@@ -105,7 +105,7 @@ static void BM_Sequential(benchmark::State& state) {
     Container c;
     for (int64_t i = state.range(0); --i;) c.push_back(v);
   }
-  const size_t items_processed = state.iterations() * state.range(0);
+  const int64_t items_processed = state.iterations() * state.range(0);
   state.SetItemsProcessed(items_processed);
   state.SetBytesProcessed(items_processed * sizeof(v));
 }
@@ -118,8 +118,9 @@ BENCHMARK_TEMPLATE(BM_Sequential, std::vector<int>, int)->Arg(512);
 #endif
 
 static void BM_StringCompare(benchmark::State& state) {
-  std::string s1(state.range(0), '-');
-  std::string s2(state.range(0), '-');
+  size_t len = static_cast<size_t>(state.range(0));
+  std::string s1(len, '-');
+  std::string s2(len, '-');
   for (auto _ : state) benchmark::DoNotOptimize(s1.compare(s2));
 }
 BENCHMARK(BM_StringCompare)->Range(1, 1 << 20);
@@ -160,7 +161,7 @@ static void BM_ParallelMemset(benchmark::State& state) {
   int to = from + thread_size;
 
   if (state.thread_index == 0) {
-    test_vector = new std::vector<int>(size);
+    test_vector = new std::vector<int>(static_cast<size_t>(size));
   }
 
   for (auto _ : state) {

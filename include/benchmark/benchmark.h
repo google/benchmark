@@ -514,10 +514,10 @@ class State {
   //
   // REQUIRES: a benchmark has exited its benchmarking loop.
   BENCHMARK_ALWAYS_INLINE
-  void SetBytesProcessed(size_t bytes) { bytes_processed_ = bytes; }
+  void SetBytesProcessed(int64_t bytes) { bytes_processed_ = bytes; }
 
   BENCHMARK_ALWAYS_INLINE
-  size_t bytes_processed() const { return bytes_processed_; }
+  int64_t bytes_processed() const { return bytes_processed_; }
 
   // If this routine is called with complexity_n > 0 and complexity report is
   // requested for the
@@ -537,10 +537,10 @@ class State {
   //
   // REQUIRES: a benchmark has exited its benchmarking loop.
   BENCHMARK_ALWAYS_INLINE
-  void SetItemsProcessed(size_t items) { items_processed_ = items; }
+  void SetItemsProcessed(int64_t items) { items_processed_ = items; }
 
   BENCHMARK_ALWAYS_INLINE
-  size_t items_processed() const { return items_processed_; }
+  int64_t items_processed() const { return items_processed_; }
 
   // If this routine is called, the specified label is printed at the
   // end of the benchmark report line for the currently executing
@@ -600,8 +600,8 @@ private:
 private: // items we don't need on the first cache line
   std::vector<int64_t> range_;
 
-  size_t bytes_processed_;
-  size_t items_processed_;
+  int64_t bytes_processed_;
+  int64_t items_processed_;
 
   int64_t complexity_n_;
 
