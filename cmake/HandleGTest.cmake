@@ -31,8 +31,14 @@ macro(build_external_gtest)
     list(APPEND GTEST_FLAGS "-Wno-unused-function")
   endif()
   split_list(GTEST_FLAGS)
+  set(EXCLUDE_FROM_ALL_OPT "")
+  set(EXCLUDE_FROM_ALL_VALUE "")
+  if (${CMAKE_VERSION} VERSION_GREATER "3.0.99")
+      set(EXCLUDE_FROM_ALL_OPT "EXCLUDE_FROM_ALL")
+      set(EXCLUDE_FROM_ALL_VALUE "ON")
+  endif()
   ExternalProject_Add(googletest
-      EXCLUDE_FROM_ALL ON
+      ${EXCLUDE_FROM_ALL_OPT} ${EXCLUDE_FROM_ALL_VALUE}
       GIT_REPOSITORY https://github.com/google/googletest.git
       GIT_TAG master
       PREFIX "${CMAKE_BINARY_DIR}/googletest"
@@ -42,6 +48,7 @@ macro(build_external_gtest)
         -DCMAKE_C_COMPILER:STRING=${CMAKE_C_COMPILER}
         -DCMAKE_CXX_COMPILER:STRING=${CMAKE_CXX_COMPILER}
         -DCMAKE_INSTALL_PREFIX:PATH=<INSTALL_DIR>
+        -DCMAKE_INSTALL_LIBDIR:PATH=<INSTALL_DIR>/lib
         -DCMAKE_CXX_FLAGS:STRING=${GTEST_FLAGS}
         -Dgtest_force_shared_crt:BOOL=ON
       )
@@ -69,7 +76,7 @@ macro(build_external_gtest)
   add_dependencies(gtest googletest)
   add_dependencies(gtest_main googletest)
   set(GTEST_BOTH_LIBRARIES gtest gtest_main)
-  #set(GTEST_INCLUDE_DIRS ${install_dir}/include)
+  set(GTEST_INCLUDE_DIRS ${install_dir}/include)
 endmacro(build_external_gtest)
 
 if (BENCHMARK_ENABLE_GTEST_TESTS)
