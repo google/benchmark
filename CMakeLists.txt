@@ -120,13 +120,6 @@ else()
     cxx_feature_check(THREAD_SAFETY_ATTRIBUTES)
   endif()
 
-  # GCC doesn't report invalid -Wno-warning flags, so check the positive
-  # version, and if it exists add the negative.
-  check_cxx_warning_flag(-Winvalid-offsetof)
-  if (HAVE_CXX_FLAG_WINVALID_OFFSETOF)
-    add_cxx_compiler_flag(-Wno-invalid-offsetof)
-  endif()
-
   # On most UNIX like platforms g++ and clang++ define _GNU_SOURCE as a
   # predefined macro, which turns on all of the wonderful libc extensions.
   # However g++ doesn't do this in Cygwin so we have to define it ourselfs
