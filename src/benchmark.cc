@@ -311,10 +311,23 @@ State::State(size_t max_iters, const std::vector<int>& ranges, int thread_i,
   CHECK(max_iterations != 0) << "At least one iteration must be run";
   CHECK_LT(thread_index, threads) << "thread_index must be less than threads";
 
+  // Note: The use of offsetof below is technically undefined until C++17
+  // because State is not a standard layout type. However, all compilers
+  // currently provide well-defined behavior as an extension (which is
+  // demonstrated since constexpr evaluation must diagnose all undefined
+  // behavior). However, GCC and Clang also warn about this use of offsetof,
+  // which must be suppressed.
+#ifdef __GNUC__
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Winvalid-offsetof"
+#endif
   // Offset tests to ensure commonly accessed data is on the first cache line.
   const int cache_line_size = 64;
   static_assert(offsetof(State, error_occurred_) <=
                 (cache_line_size - sizeof(error_occurred_)), "");
+#ifdef __GNUC__
+#pragma GCC diagnostic pop
+#endif
 }
 
 void State::PauseTiming() {
