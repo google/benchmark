@@ -1,5 +1,3 @@
-load("//bazel:have_regex.bzl", "have_regex_copts")
-
 NEEDS_GTEST_MAIN = [
     "statistics_test.cc",
 ]
@@ -8,7 +6,7 @@ TEST_COPTS = [
     "-pedantic",
     "-pedantic-errors",
     "-std=c++11",
-] + have_regex_copts()
+]
 
 TEST_ARGS = ["--benchmark_min_time=0.01"]
 
