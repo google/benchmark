@@ -303,15 +303,20 @@ BENCHMARK_UNUSED static int stream_init_anchor = InitializeStreams();
 // See: https://youtu.be/nXaxk27zwlk?t=2441
 #ifndef BENCHMARK_HAS_NO_INLINE_ASSEMBLY
 template <class Tp>
-inline BENCHMARK_ALWAYS_INLINE void DoNotOptimize(Tp const& value) {
-  // Clang doesn't like the 'X' constraint on `value` and certain GCC versions
-  // don't like the 'g' constraint. Attempt to placate them both.
+inline BENCHMARK_ALWAYS_INLINE
+void DoNotOptimize(Tp const& value) {
+    asm volatile("" : : "r,m"(value) : "memory");
+}
+
+template <class Tp>
+inline BENCHMARK_ALWAYS_INLINE void DoNotOptimize(Tp& value) {
 #if defined(__clang__)
-  asm volatile("" : : "g"(value) : "memory");
+  asm volatile("" : "+r,m"(value) : : "memory");
 #else
-  asm volatile("" : : "i,r,m"(value) : "memory");
+  asm volatile("" : "+m,r"(value) : : "memory");
 #endif
 }
+
 // Force the compiler to flush pending writes to global memory. Acts as an
 // effective read/write barrier
 inline BENCHMARK_ALWAYS_INLINE void ClobberMemory() {

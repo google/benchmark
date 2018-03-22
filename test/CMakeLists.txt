@@ -22,6 +22,12 @@ if( NOT uppercase_CMAKE_BUILD_TYPE STREQUAL "DEBUG" )
   endforeach()
 endif()
 
+check_cxx_compiler_flag(-O3 BENCHMARK_HAS_O3_FLAG)
+set(BENCHMARK_O3_FLAG "")
+if (BENCHMARK_HAS_O3_FLAG)
+  set(BENCHMARK_O3_FLAG "-O3")
+endif()
+
 # NOTE: These flags must be added after find_package(Threads REQUIRED) otherwise
 # they will break the configuration check.
 if (DEFINED BENCHMARK_CXX_LINKER_FLAGS)
@@ -159,6 +165,25 @@ if (BENCHMARK_ENABLE_GTEST_TESTS)
   add_gtest(statistics_test)
 endif(BENCHMARK_ENABLE_GTEST_TESTS)
 
+###############################################################################
+# Assembly Unit Tests
+###############################################################################
+
+if (BENCHMARK_ENABLE_ASSEMBLY_TESTS)
+  if (NOT LLVM_FILECHECK_EXE)
+    message(FATAL_ERROR "LLVM FileCheck is required when including this file")
+  endif()
+  include(AssemblyTests.cmake)
+  add_filecheck_test(donotoptimize_assembly_test)
+  add_filecheck_test(state_assembly_test)
+  add_filecheck_test(clobber_memory_assembly_test)
+endif()
+
+
+
+###############################################################################
+# Code Coverage Configuration
+###############################################################################
 
 # Add the coverage command(s)
 if(CMAKE_BUILD_TYPE)

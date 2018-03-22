@@ -27,9 +27,47 @@ option(BENCHMARK_DOWNLOAD_DEPENDENCIES "Allow the downloading and in-tree buildi
 # in cases where it is not possible to build or find a valid version of gtest.
 option(BENCHMARK_ENABLE_GTEST_TESTS "Enable building the unit tests which depend on gtest" ON)
 
+set(ENABLE_ASSEMBLY_TESTS_DEFAULT OFF)
+function(should_enable_assembly_tests)
+  if(CMAKE_BUILD_TYPE)
+    string(TOLOWER ${CMAKE_BUILD_TYPE} CMAKE_BUILD_TYPE_LOWER)
+    if (${CMAKE_BUILD_TYPE_LOWER} MATCHES "coverage")
+      # FIXME: The --coverage flag needs to be removed when building assembly
+      # tests for this to work.
+      return()
+    endif()
+  endif()
+  if (MSVC)
+    return()
+  elseif(NOT CMAKE_SYSTEM_PROCESSOR MATCHES "x86_64")
+    return()
+  elseif(NOT CMAKE_SIZEOF_VOID_P EQUAL 8)
+    # FIXME: Make these work on 32 bit builds
+    return()
+  elseif(BENCHMARK_BUILD_32_BITS)
+     # FIXME: Make these work on 32 bit builds
+    return()
+  endif()
+  find_program(LLVM_FILECHECK_EXE FileCheck)
+  if (LLVM_FILECHECK_EXE)
+    set(LLVM_FILECHECK_EXE "${LLVM_FILECHECK_EXE}" CACHE PATH "llvm filecheck" FORCE)
+    message(STATUS "LLVM FileCheck Found: ${LLVM_FILECHECK_EXE}")
+  else()
+    message(STATUS "Failed to find LLVM FileCheck")
+    return()
+  endif()
+  set(ENABLE_ASSEMBLY_TESTS_DEFAULT ON PARENT_SCOPE)
+endfunction()
+should_enable_assembly_tests()
+
+# This option disables the building and running of the assembly verification tests
+option(BENCHMARK_ENABLE_ASSEMBLY_TESTS "Enable building and running the assembly tests"
+    ${ENABLE_ASSEMBLY_TESTS_DEFAULT})
+
 # Make sure we can import out CMake functions
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake/Modules")
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
+
 
 # Read the git tags to determine the project version
 include(GetGitVersion)
