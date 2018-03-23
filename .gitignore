@@ -6,6 +6,7 @@
 *.dylib
 *.cmake
 !/cmake/*.cmake
+!/test/AssemblyTests.cmake
 *~
 *.pyc
 __pycache__

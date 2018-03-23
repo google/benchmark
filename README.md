@@ -14,6 +14,8 @@ IRC channel: https://freenode.net #googlebenchmark
 
 [Additional Tooling Documentation](docs/tools.md)
 
+[Assembly Testing Documentation](docs/AssemblyTests.md)
+
 
 ## Building
 
