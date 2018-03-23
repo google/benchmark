@@ -13,7 +13,6 @@ IRC channel: https://freenode.net #googlebenchmark
 [Known issues and common problems](#known-issues)
 
 [Additional Tooling Documentation](docs/tools.md)
-
 [Assembly Testing Documentation](docs/AssemblyTests.md)
 
 
@@ -450,8 +449,8 @@ BENCHMARK(BM_ManualTiming)->Range(1, 1<<17)->UseManualTime();
 
 ### Preventing optimisation
 To prevent a value or expression from being optimized away by the compiler
-the `benchmark::DoNotOptimize(...)` and `benchmark::ClobberMemory()`
-functions can be used.
+the `benchmark::DoNotOptimize(...)`, `benchmark::ClobberMemory()`, and
+`benchmark::MakeUnpredictable(...)` functions can be used.
 
 ```c++
 static void BM_test(benchmark::State& state) {
@@ -505,6 +504,29 @@ static void BM_vector_push_back(benchmark::State& state) {
 ```
 
 Note that `ClobberMemory()` is only available for GNU or MSVC based compilers.
+
+The third tool for preventing optimizations is `MakeUnpredictable(object)`, which
+can be used to hide the value of an object from the optimizer. This
+is useful when you need to prevent the optimizer from performing things like
+constant propagation or power reductions.
+
+```
+static void BM_divide_by_two(benchmark::State& state) {
+  int divisor = benchmark::MakeUnpredictable(2);
+  int x = 1;
+  for (auto _ : state) {
+    const uint32_t quotient = x++ / divisor;
+		benchmark::DoNotOptimize(quotient);
+  }
+}
+```
+
+If 'object' is a non-const lvalue reference then a reference to 'object'
+is returned. Otherwise, the function returns a new object by value where
+the new object is copy or moved constructed from the specified input.
+
+When the function returns by value a warning is emitted when the return
+value is discarded.
 
 ### Set time unit manually
 If a benchmark runs a few milliseconds it may be hard to visually compare the

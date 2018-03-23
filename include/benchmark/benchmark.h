@@ -236,6 +236,15 @@ BENCHMARK(BM_test)->Unit(benchmark::kMillisecond);
 #define BENCHMARK_WARNING_MSG(msg) __pragma(message(__FILE__ "(" BENCHMARK_INTERNAL_TOSTRING(__LINE__) ") : warning note: " msg))
 #endif
 
+#if defined(__has_cpp_attribute) && __has_cpp_attribute(nodiscard) \
+  && __cplusplus > 201402L
+#define BENCHMARK_NODISCARD [[nodiscard]]
+#elif defined(__GNUC__)
+#define BENCHMARK_NODISCARD __attribute__((warn_unused_result))
+#else
+#define BENCHMARK_NODISCARD
+#endif
+
 #if defined(__GNUC__) && !defined(__clang__)
 #define BENCHMARK_GCC_VERSION (__GNUC__ * 100 + __GNUC_MINOR__)
 #endif
@@ -296,7 +305,6 @@ BENCHMARK_UNUSED static int stream_init_anchor = InitializeStreams();
 # define BENCHMARK_HAS_NO_INLINE_ASSEMBLY
 #endif
 
-
 // The DoNotOptimize(...) function can be used to prevent a value or
 // expression from being optimized away by the compiler. This function is
 // intended to add little to no overhead.
@@ -340,6 +348,40 @@ inline BENCHMARK_ALWAYS_INLINE void DoNotOptimize(Tp const& value) {
 // FIXME Add ClobberMemory() for non-gnu and non-msvc compilers
 #endif
 
+// The MakeUnpredictable(...) functions can be used to prevent the optimizer
+// from knowing the value of the specified 'object'.
+//
+// If 'object' is a non-const lvalue reference then a reference to 'object'
+// is returned. Otherwise, the function returns a new object by value where
+// the new object is copy or moved constructed from the specified input.
+template <class Tp>
+inline BENCHMARK_ALWAYS_INLINE
+Tp& MakeUnpredictable(Tp& object) {
+  benchmark::DoNotOptimize(object);
+  return object;
+}
+
+template <class Tp>
+BENCHMARK_NODISCARD
+inline BENCHMARK_ALWAYS_INLINE
+Tp MakeUnpredictable(const Tp& object) {
+  Tp copy(object);
+  benchmark::DoNotOptimize(copy);
+  return copy;
+}
+
+#ifdef BENCHMARK_HAS_CXX11
+template <class Tp,
+    class UnCVRef = typename std::decay<Tp>::type,
+    class = typename std::enable_if<!std::is_lvalue_reference<Tp>::value>::type>
+BENCHMARK_NODISCARD
+inline BENCHMARK_ALWAYS_INLINE
+UnCVRef MakeUnpredictable(Tp&& object) {
+  UnCVRef new_object(std::forward<Tp>(object));
+  benchmark::DoNotOptimize(new_object);
+  return new_object;
+}
+#endif
 
 
 // This class is used for user-defined counters.

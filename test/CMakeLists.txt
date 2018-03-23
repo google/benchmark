@@ -81,12 +81,15 @@ compile_benchmark_test(skip_with_error_test)
 add_test(skip_with_error_test skip_with_error_test --benchmark_min_time=0.01)
 
 compile_benchmark_test(donotoptimize_test)
+compile_benchmark_test(makeunpredictable_test)
 # Some of the issues with DoNotOptimize only occur when optimization is enabled
 check_cxx_compiler_flag(-O3 BENCHMARK_HAS_O3_FLAG)
 if (BENCHMARK_HAS_O3_FLAG)
   set_target_properties(donotoptimize_test PROPERTIES COMPILE_FLAGS "-O3")
+  set_target_properties(makeunpredictable_test PROPERTIES COMPILE_FLAGS "-O3")
 endif()
 add_test(donotoptimize_test donotoptimize_test --benchmark_min_time=0.01)
+add_test(makeunpredictable_test makeunpredictable_test --benchmark_min_time=0.01)
 
 compile_benchmark_test(fixture_test)
 add_test(fixture_test fixture_test --benchmark_min_time=0.01)
@@ -177,6 +180,7 @@ if (BENCHMARK_ENABLE_ASSEMBLY_TESTS)
   add_filecheck_test(donotoptimize_assembly_test)
   add_filecheck_test(state_assembly_test)
   add_filecheck_test(clobber_memory_assembly_test)
+  add_filecheck_test(makeunpredictable_assembly_test)
 endif()
 
 
