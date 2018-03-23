@@ -36,7 +36,10 @@ struct MoveOnly {
 
 using benchmark::MakeUnpredictable;
 
-#define UNUSED (void)
+template <class Tp>
+void UseResult(Tp const& val) {
+  ((void)val);
+}
 
 void verify_compile() {
   // this test verifies compilation of MakeUnpredictable() for some types
@@ -49,21 +52,20 @@ void verify_compile() {
 
   char buffer1024[1024];
   MakeUnpredictable(buffer1024);
-  UNUSED MakeUnpredictable(&buffer1024[0]);
+  UseResult(MakeUnpredictable(&buffer1024[0]));
 
   int x = 123;
   MakeUnpredictable(x);
-  UNUSED MakeUnpredictable(&x);
-  UNUSED MakeUnpredictable(x += 42);
+  UseResult(MakeUnpredictable(&x));
+  MakeUnpredictable(x += 42);
 
-  UNUSED MakeUnpredictable(double_up(x));
+  UseResult(MakeUnpredictable(double_up(x)));
 
   // These tests are to e
-  UNUSED MakeUnpredictable(BitRef::Make());
+  UseResult(MakeUnpredictable(BitRef::Make()));
   BitRef lval = BitRef::Make();
   MakeUnpredictable(lval);
 }
-#undef UNUSED
 
 #define ASSERT_TYPE(Expr, Expect) \
   static_assert(std::is_same<decltype(MakeUnpredictable(Expr)), Expect>::value, "")
