@@ -39,6 +39,7 @@
 #elif defined(_WIN32)
   #define BENCHMARK_OS_WINDOWS 1
 #elif defined(__APPLE__)
+  #define BENCHMARK_OS_APPLE 1
   #include "TargetConditionals.h"
   #if defined(TARGET_OS_MAC)
     #define BENCHMARK_OS_MACOSX 1
