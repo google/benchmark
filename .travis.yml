@@ -34,6 +34,7 @@ matrix:
       env:
         - INSTALL_GCC6_FROM_PPA=1
         - COMPILER=g++-6 C_COMPILER=gcc-6  BUILD_TYPE=Debug
+        - ENABLE_SANITIZER=1
         - EXTRA_FLAGS="-fno-omit-frame-pointer -g -O2 -fsanitize=undefined,address -fuse-ld=gold"
     - compiler: clang
       env: COMPILER=clang++ C_COMPILER=clang BUILD_TYPE=Debug
@@ -91,6 +92,7 @@ matrix:
       env:
         - COMPILER=clang++-3.8 C_COMPILER=clang-3.8 BUILD_TYPE=Debug
         - LIBCXX_BUILD=1 LIBCXX_SANITIZER="Undefined;Address"
+        - ENABLE_SANITIZER=1
         - EXTRA_FLAGS="-stdlib=libc++ -g -O2 -fno-omit-frame-pointer -fsanitize=undefined,address -fno-sanitize-recover=all"
         - UBSAN_OPTIONS=print_stacktrace=1
     # Clang w/ libc++ and MSAN
@@ -102,6 +104,7 @@ matrix:
       env:
         - COMPILER=clang++-3.8 C_COMPILER=clang-3.8 BUILD_TYPE=Debug
         - LIBCXX_BUILD=1 LIBCXX_SANITIZER=MemoryWithOrigins
+        - ENABLE_SANITIZER=1
         - EXTRA_FLAGS="-stdlib=libc++ -g -O2 -fno-omit-frame-pointer -fsanitize=memory -fsanitize-memory-track-origins"
     # Clang w/ libc++ and MSAN
     - compiler: clang
@@ -112,8 +115,8 @@ matrix:
       env:
         - COMPILER=clang++-3.8 C_COMPILER=clang-3.8 BUILD_TYPE=RelWithDebInfo
         - LIBCXX_BUILD=1 LIBCXX_SANITIZER=Thread
+        - ENABLE_SANITIZER=1
         - EXTRA_FLAGS="-stdlib=libc++ -g -O2 -fno-omit-frame-pointer -fsanitize=thread -fno-sanitize-recover=all"
-
     - os: osx
       osx_image: xcode8.3
       compiler: clang
@@ -131,15 +134,20 @@ matrix:
         - COMPILER=g++-7 C_COMPILER=gcc-7  BUILD_TYPE=Debug
 
 before_script:
-  - if [ -z "$BUILD_32_BITS" ]; then
-      export BUILD_32_BITS=OFF && echo disabling 32 bit build;
-    fi
   - if [ -n "${LIBCXX_BUILD}" ]; then
       source .travis-libcxx-setup.sh;
+    fi
+  - if [ -n "${ENABLE_SANITIZER}" ]; then
+      export EXTRA_OPTIONS="-DBENCHMARK_ENABLE_ASSEMBLY_TESTS=OFF";
+    else
+      export EXTRA_OPTIONS="";
     fi
   - mkdir -p build && cd build
 
 before_install:
+  - if [ -z "$BUILD_32_BITS" ]; then
+      export BUILD_32_BITS=OFF && echo disabling 32 bit build;
+    fi
   - if [ -n "${INSTALL_GCC6_FROM_PPA}" ]; then
       sudo add-apt-repository -y "ppa:ubuntu-toolchain-r/test";
       sudo apt-get update --option Acquire::Retries=100 --option Acquire::http::Timeout="60";
@@ -147,7 +155,11 @@ before_install:
 
 install:
   - if [ -n "${INSTALL_GCC6_FROM_PPA}" ]; then
-      sudo -E apt-get -yq --no-install-suggests --no-install-recommends --force-yes install g++-6;
+      sudo -E apt-get -yq --no-install-suggests --no-install-recommends install g++-6;
+    fi
+  - if [ "${TRAVIS_OS_NAME}" == "linux" -a "${BUILD_32_BITS}" == "OFF" ]; then
+      sudo -E apt-get -y --no-install-suggests --no-install-recommends install llvm-3.9-tools;
+      sudo cp /usr/lib/llvm-3.9/bin/FileCheck /usr/local/bin/;
     fi
   - if [ "${BUILD_TYPE}" == "Coverage" -a "${TRAVIS_OS_NAME}" == "linux" ]; then
       PATH=~/.local/bin:${PATH};
@@ -171,7 +183,7 @@ install:
     fi
 
 script:
-  - cmake -DCMAKE_C_COMPILER=${C_COMPILER} -DCMAKE_CXX_COMPILER=${COMPILER} -DCMAKE_BUILD_TYPE=${BUILD_TYPE} -DCMAKE_CXX_FLAGS="${EXTRA_FLAGS}" -DBENCHMARK_DOWNLOAD_DEPENDENCIES=ON -DBENCHMARK_BUILD_32_BITS=${BUILD_32_BITS} ..
+  - cmake -DCMAKE_C_COMPILER=${C_COMPILER} -DCMAKE_CXX_COMPILER=${COMPILER} -DCMAKE_BUILD_TYPE=${BUILD_TYPE} -DCMAKE_CXX_FLAGS="${EXTRA_FLAGS}" -DBENCHMARK_DOWNLOAD_DEPENDENCIES=ON -DBENCHMARK_BUILD_32_BITS=${BUILD_32_BITS} ${EXTRA_OPTIONS} ..
   - make
   - ctest -C ${BUILD_TYPE} --output-on-failure
   - bazel test -c dbg --define google_benchmark.have_regex=posix --announce_rc --verbose_failures --test_output=errors --keep_going //test/...
