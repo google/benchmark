@@ -236,13 +236,17 @@ BENCHMARK(BM_test)->Unit(benchmark::kMillisecond);
 #define BENCHMARK_WARNING_MSG(msg) __pragma(message(__FILE__ "(" BENCHMARK_INTERNAL_TOSTRING(__LINE__) ") : warning note: " msg))
 #endif
 
-#if defined(__has_cpp_attribute) && __has_cpp_attribute(nodiscard) \
-  && __cplusplus > 201402L
-#define BENCHMARK_NODISCARD [[nodiscard]]
-#elif defined(__GNUC__)
-#define BENCHMARK_NODISCARD __attribute__((warn_unused_result))
-#else
-#define BENCHMARK_NODISCARD
+#if __cplusplus > 201402L && defined(__has_cpp_attribute)
+# if __has_cpp_attribute(nodiscard)
+#   define BENCHMARK_NODISCARD [[nodiscard]]
+# endif
+#endif
+#ifndef BENCHMARK_NODISCARD
+# if defined(__GNUC__)
+#   define BENCHMARK_NODISCARD __attribute__((warn_unused_result))
+# else
+#   define BENCHMARK_NODISCARD
+# endif
 #endif
 
 #if defined(__GNUC__) && !defined(__clang__)
