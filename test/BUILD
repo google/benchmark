@@ -44,4 +44,5 @@ cc_library(
     ] + (
         ["@com_google_googletest//:gtest_main"] if (test_src in NEEDS_GTEST_MAIN) else []
     ),
-) for test_src in glob(["*_test.cc"])]
+# FIXME: Add support for assembly tests to bazel.
+) for test_src in glob(["*_test.cc"], exclude = ["*_assembly_test.cc"])]
