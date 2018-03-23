@@ -28,8 +28,9 @@ extern "C" void test_redundant_store() {
   ExternInt = 3;
   benchmark::ClobberMemory();
   ExternInt = 51;
-  // CHECK: movl	$3, ExternInt(%rip)
-  // CHECK: movl	$51, ExternInt(%rip)
+  // CHECK-DAG: ExternInt
+  // CHECK-DAG: movl $3
+  // CHECK: movl $51
 }
 
 // CHECK-LABEL: test_redundant_read:
@@ -40,9 +41,9 @@ extern "C" void test_redundant_read() {
   benchmark::ClobberMemory();
   x = ExternInt2;
   // CHECK: leaq [[DEST:[^,]+]], %rax
-  // CHECK: movl ExternInt(%rip), %eax
+  // CHECK: ExternInt(%rip)
   // CHECK: movl %eax, [[DEST]]
-  // CHECK-NOT: movl ExternInt2
+  // CHECK-NOT: ExternInt2
   // CHECK: ret
 }
 
@@ -55,9 +56,9 @@ extern "C" void test_redundant_read2() {
   x = ExternInt2;
   benchmark::ClobberMemory();
   // CHECK: leaq [[DEST:[^,]+]], %rax
-  // CHECK: movl ExternInt(%rip), %eax
+  // CHECK: ExternInt(%rip)
   // CHECK: movl %eax, [[DEST]]
-  // CHECK: movl ExternInt2(%rip), %eax
+  // CHECK: ExternInt2(%rip)
   // CHECK: movl %eax, [[DEST]]
   // CHECK: ret
 }
