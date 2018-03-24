@@ -352,6 +352,37 @@ inline BENCHMARK_ALWAYS_INLINE void DoNotOptimize(Tp const& value) {
 // FIXME Add ClobberMemory() for non-gnu and non-msvc compilers
 #endif
 
+#if defined(__clang__) || (defined(__GNUC__) && __GNUC__ >= 5)
+// FIXME: We probably shouldn't be using this trait directly
+#define BENCHMARK_HAS_TRIVIAL_COPY(T) __is_trivially_copyable(T)
+#elif defined(BENCHMARK_HAS_CXX11) && !defined(__GNUG__)
+#define BENCHMARK_HAS_TRIVIAL_COPY(T) std::is_trivially_copyable<T>::value
+#else
+#define BENCHMARK_HAS_TRIVIAL_COPY(T) false
+#endif
+
+template <class Tp, bool = BENCHMARK_HAS_TRIVIAL_COPY(Tp)>
+struct MakeUnpredictableImp {
+  static inline BENCHMARK_ALWAYS_INLINE
+  void DoIt(Tp& object) {
+    benchmark::DoNotOptimize(object);
+  }
+};
+
+#ifndef BENCHMARK_HAS_NO_INLINE_ASSEMBLY
+template <class Tp>
+struct MakeUnpredictableImp<Tp, false> {
+  static inline BENCHMARK_ALWAYS_INLINE
+  void DoIt(Tp& object) {
+#if defined(__clang__)
+  asm volatile("" : "+r,m"(object) : : "memory");
+#else
+  asm volatile("" : "+m"(object) : : "memory");
+#endif
+  }
+};
+#endif // BENCHMARK_HAS_NO_INLINE_ASSEMBLY
+
 // The MakeUnpredictable(...) functions can be used to prevent the optimizer
 // from knowing the value of the specified 'object'.
 //
@@ -370,11 +401,13 @@ BENCHMARK_NODISCARD
 inline BENCHMARK_ALWAYS_INLINE
 Tp MakeUnpredictable(const Tp& object) {
   Tp copy(object);
-  benchmark::DoNotOptimize(copy);
+  MakeUnpredictableImp<Tp>::DoIt(copy);
   return copy;
 }
 
 #ifdef BENCHMARK_HAS_CXX11
+
+
 template <class Tp,
     class UnCVRef = typename std::decay<Tp>::type,
     class = typename std::enable_if<!std::is_lvalue_reference<Tp>::value>::type>
@@ -382,7 +415,7 @@ BENCHMARK_NODISCARD
 inline BENCHMARK_ALWAYS_INLINE
 UnCVRef MakeUnpredictable(Tp&& object) {
   UnCVRef new_object(std::forward<Tp>(object));
-  benchmark::DoNotOptimize(new_object);
+  MakeUnpredictableImp<UnCVRef>::DoIt(new_object);
   return new_object;
 }
 #endif

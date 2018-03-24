@@ -34,6 +34,14 @@ struct MoveOnly {
   int value;
 };
 
+
+struct CopyOnly {
+  explicit CopyOnly(int xvalue) : value(xvalue) {}
+  CopyOnly(CopyOnly const& other) : value(other.value) {
+  }
+  int value;
+};
+
 using benchmark::MakeUnpredictable;
 
 template <class Tp>
@@ -100,6 +108,11 @@ void verify_return_type() {
     int result = MakeUnpredictable(std::move(const_rvalue));
     assert(const_rvalue == 42);
     assert(result == 42);
+  }
+  {
+    const CopyOnly cp(42);
+    CopyOnly result = MakeUnpredictable(cp);
+    assert(result.value == 42);
   }
   {
     MoveOnly mv(42);

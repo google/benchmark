@@ -27,7 +27,11 @@ set(BENCHMARK_O3_FLAG "")
 if (BENCHMARK_HAS_O3_FLAG)
   set(BENCHMARK_O3_FLAG "-O3")
 endif()
-
+check_cxx_compiler_flag(-O0 BENCHMARK_HAS_O0_FLAG)
+set(BENCHMARK_O0_FLAG "")
+if (BENCHMARK_HAS_O0_FLAG)
+  set(BENCHMARK_O0_FLAG "-O0")
+endif()
 # NOTE: These flags must be added after find_package(Threads REQUIRED) otherwise
 # they will break the configuration check.
 if (DEFINED BENCHMARK_CXX_LINKER_FLAGS)
@@ -36,10 +40,15 @@ endif()
 
 add_library(output_test_helper STATIC output_test_helper.cc output_test.h)
 
-macro(compile_benchmark_test name)
-  add_executable(${name} "${name}.cc")
-  target_link_libraries(${name} benchmark ${CMAKE_THREAD_LIBS_INIT})
-endmacro(compile_benchmark_test)
+function(compile_benchmark_test name)
+  cmake_parse_arguments(ARG "" "TARGET" "" ${ARGN})
+  set(target "${name}")
+  if (ARG_TARGET)
+    set(target "${ARG_TARGET}")
+  endif()
+  add_executable(${target} "${name}.cc")
+  target_link_libraries(${target} benchmark ${CMAKE_THREAD_LIBS_INIT})
+endfunction(compile_benchmark_test)
 
 
 macro(compile_output_test name)
@@ -82,15 +91,21 @@ add_test(skip_with_error_test skip_with_error_test --benchmark_min_time=0.01)
 
 compile_benchmark_test(donotoptimize_test)
 compile_benchmark_test(makeunpredictable_test)
-# Some of the issues with DoNotOptimize only occur when optimization is enabled
-check_cxx_compiler_flag(-O3 BENCHMARK_HAS_O3_FLAG)
 if (BENCHMARK_HAS_O3_FLAG)
   set_target_properties(donotoptimize_test PROPERTIES COMPILE_FLAGS "-O3")
   set_target_properties(makeunpredictable_test PROPERTIES COMPILE_FLAGS "-O3")
 endif()
 add_test(donotoptimize_test donotoptimize_test --benchmark_min_time=0.01)
 add_test(makeunpredictable_test makeunpredictable_test --benchmark_min_time=0.01)
+if (BENCHMARK_HAS_O0_FLAG)
+  compile_benchmark_test(donotoptimize_test TARGET donotoptimize_test_O0)
+  set_target_properties(donotoptimize_test_O0 PROPERTIES COMPILE_FLAGS "-O0")
+  add_test(donotoptimize_test_O0 donotoptimize_test_O0 --benchmark_min_time=0.01)
 
+  compile_benchmark_test(makeunpredictable_test TARGET makeunpredictable_test_O0)
+  set_target_properties(makeunpredictable_test_O0 PROPERTIES COMPILE_FLAGS "-O0")
+  add_test(makeunpredictable_test_O0 makeunpredictable_test_O0 --benchmark_min_time=0.01)
+endif()
 compile_benchmark_test(fixture_test)
 add_test(fixture_test fixture_test --benchmark_min_time=0.01)
 
