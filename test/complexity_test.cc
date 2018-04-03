@@ -81,9 +81,9 @@ ADD_COMPLEXITY_CASES(big_o_1_test_name, rms_o_1_test_name, lambda_big_o_1);
 // --------------------------- Testing BigO O(N) --------------------------- //
 // ========================================================================= //
 
-std::vector<int> ConstructRandomVector(int size) {
+std::vector<int> ConstructRandomVector(int64_t size) {
   std::vector<int> v;
-  v.reserve(size);
+  v.reserve(static_cast<int>(size));
   for (int i = 0; i < size; ++i) {
     v.push_back(std::rand() % size);
   }
@@ -92,8 +92,8 @@ std::vector<int> ConstructRandomVector(int size) {
 
 void BM_Complexity_O_N(benchmark::State& state) {
   auto v = ConstructRandomVector(state.range(0));
-  const int item_not_in_vector =
-      state.range(0) * 2;  // Test worst case scenario (item not in vector)
+  // Test worst case scenario (item not in vector)
+  const int64_t item_not_in_vector = state.range(0) * 2;
   for (auto _ : state) {
     benchmark::DoNotOptimize(std::find(v.begin(), v.end(), item_not_in_vector));
   }
