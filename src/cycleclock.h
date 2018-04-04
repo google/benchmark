@@ -58,7 +58,7 @@ namespace benchmark {
 //    https://setisvn.ssl.berkeley.edu/svn/lib/fftw-3.0.1/kernel/cycle.h
 namespace cycleclock {
 // This should return the number of cycles since power-on.  Thread-safe.
-inline BENCHMARK_ALWAYS_INLINE int64_t Now() {
+BENCHMARK_ALWAYS_INLINE int64_t Now() {
 #if defined(BENCHMARK_OS_MACOSX)
   // this goes at the top because we need ALL Macs, regardless of
   // architecture, to return the number of "mach time units" that
