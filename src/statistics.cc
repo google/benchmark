@@ -36,16 +36,19 @@ double StatisticsMean(const std::vector<double>& v) {
 
 double StatisticsMedian(const std::vector<double>& v) {
   if (v.size() < 3) return StatisticsMean(v);
-  std::vector<double> partial;
-  // we need roundDown(count/2)+1 slots
-  partial.resize(1 + (v.size() / 2));
-  std::partial_sort_copy(v.begin(), v.end(), partial.begin(), partial.end());
-  // did we have odd number of samples?
-  // if yes, then the last element of partially-sorted vector is the median
-  // it no, then the average of the last two elements is the median
+  std::vector<double> copy(v);
+
+  auto center = copy.begin() + v.size() / 2;
+  std::nth_element(copy.begin(), center, copy.end());
+
+  // did we have an odd number of samples?
+  // if yes, then center is the median
+  // it no, then we are looking for the average between center and the value before
   if(v.size() % 2 == 1)
-    return partial.back();
-  return (partial[partial.size() - 2] + partial[partial.size() - 1]) / 2.0;
+    return *center;
+  auto center2 = copy.begin() + v.size() / 2 - 1;
+  std::nth_element(copy.begin(), center2, copy.end());
+  return (*center + *center2) / 2.0;
 }
 
 // Return the sum of the squares of this sample set
