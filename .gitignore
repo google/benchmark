@@ -55,3 +55,6 @@ _build/
 # Visual Studio 2015/2017 cache/options directory
 .vs/
 CMakeSettings.json
+
+# Visual Studio Code user and repository options directory
+.vscode/

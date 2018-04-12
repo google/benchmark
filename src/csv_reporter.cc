@@ -32,6 +32,7 @@ namespace benchmark {
 
 namespace {
 std::vector<std::string> elements = {
+    "id",
     "name",           "iterations",       "real_time",        "cpu_time",
     "time_unit",      "bytes_per_second", "items_per_second", "label",
     "error_occurred", "error_message"};
@@ -86,6 +87,7 @@ void CSVReporter::ReportRuns(const std::vector<Run> & reports) {
 void CSVReporter::PrintRunData(const Run & run) {
   std::ostream& Out = GetOutputStream();
 
+  Out << run.benchmark_id << ",";
   // Field with embedded double-quote characters must be doubled and the field
   // delimited with double-quotes.
   std::string name = run.benchmark_name;

@@ -111,6 +111,17 @@ namespace internal {
 
 void UseCharPointer(char const volatile*) {}
 
+size_t Base10Digits(size_t num) {
+  if (num < 10) return 1;
+  if (num < 100) return 2;
+  if (num < 1000) return 3;
+  if (num < 10000) return 4;
+  // chances of having more than 10000
+  // benchmarks is almost impossible,
+  // but we define the fallback here just in case
+  return static_cast<size_t>(std::floor(std::log10(num)) + 1);
+}
+
 namespace {
 
 BenchmarkReporter::Run CreateRunReport(
@@ -121,6 +132,7 @@ BenchmarkReporter::Run CreateRunReport(
   BenchmarkReporter::Run report;
 
   report.benchmark_name = b.name;
+  report.benchmark_id = b.id;
   report.error_occurred = results.has_error_;
   report.error_message = results.error_message_;
   report.report_label = results.report_label_;
@@ -394,9 +406,12 @@ void RunBenchmarks(const std::vector<Benchmark::Instance>& benchmarks,
 
   // Determine the width of the name field using a minimum width of 10.
   bool has_repetitions = FLAGS_benchmark_repetitions > 1;
+  size_t id_field_width = 3;
   size_t name_field_width = 10;
   size_t stat_field_width = 0;
   for (const Benchmark::Instance& benchmark : benchmarks) {
+    id_field_width = 
+        std::max<size_t>(id_field_width, Base10Digits(static_cast<size_t>(benchmark.id)));
     name_field_width =
         std::max<size_t>(name_field_width, benchmark.name.size());
     has_repetitions |= benchmark.repetitions > 1;
@@ -408,6 +423,7 @@ void RunBenchmarks(const std::vector<Benchmark::Instance>& benchmarks,
 
   // Print header here
   BenchmarkReporter::Context context;
+  context.id_field_width = id_field_width;
   context.name_field_width = name_field_width;
 
   // Keep track of running times of all instances of current benchmark
