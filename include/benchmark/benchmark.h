@@ -1303,7 +1303,7 @@ class BenchmarkReporter {
     // Keep track of arguments to compute asymptotic complexity
     BigO complexity;
     BigOFunc* complexity_lambda;
-    int complexity_n;
+    int64_t complexity_n;
 
     // what statistics to compute from the measurements
     const std::vector<Statistics>* statistics;
