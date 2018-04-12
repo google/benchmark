@@ -55,7 +55,7 @@ void BM_Complexity_O1(benchmark::State& state) {
 }
 BENCHMARK(BM_Complexity_O1)->Range(1, 1 << 18)->Complexity(benchmark::o1);
 BENCHMARK(BM_Complexity_O1)->Range(1, 1 << 18)->Complexity();
-BENCHMARK(BM_Complexity_O1)->Range(1, 1 << 18)->Complexity([](int) {
+BENCHMARK(BM_Complexity_O1)->Range(1, 1 << 18)->Complexity([](int64_t) {
   return 1.0;
 });
 
@@ -106,7 +106,7 @@ BENCHMARK(BM_Complexity_O_N)
 BENCHMARK(BM_Complexity_O_N)
     ->RangeMultiplier(2)
     ->Range(1 << 10, 1 << 16)
-    ->Complexity([](int n) -> double { return n; });
+    ->Complexity([](int64_t n) -> double { return n; });
 BENCHMARK(BM_Complexity_O_N)
     ->RangeMultiplier(2)
     ->Range(1 << 10, 1 << 16)
@@ -141,7 +141,7 @@ BENCHMARK(BM_Complexity_O_N_log_N)
 BENCHMARK(BM_Complexity_O_N_log_N)
     ->RangeMultiplier(2)
     ->Range(1 << 10, 1 << 16)
-    ->Complexity([](int n) { return n * log2(n); });
+    ->Complexity([](int64_t n) { return n * log2(n); });
 BENCHMARK(BM_Complexity_O_N_log_N)
     ->RangeMultiplier(2)
     ->Range(1 << 10, 1 << 16)
