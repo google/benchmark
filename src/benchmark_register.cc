@@ -225,13 +225,13 @@ bool FindBenchmarksInternal(const std::string& re,
   return BenchmarkFamilies::GetInstance()->FindBenchmarks(re, benchmarks, Err);
 }
 
-// This function is exclusively for generating a unique identifier for a benchmark
-// This is to uniquely identify both statistics and benchmarks runs
-// in the case where names of benchmarks have whole names and prefixes which overlap
-// when multiple benchmarks are run
+// This function is exclusively for generating a unique identifier for a
+// benchmark. This is to uniquely identify both statistics and benchmarks runs
+// in the case where names of benchmarks have whole names and prefixes which
+// overlap when multiple benchmarks are run
 int GetBenchmarkUniqueId() {
   static std::atomic<int> benchid(0);
-  return benchid.fetch_add(1);
+  return benchid.fetch_add(1, std::memory_order::memory_order_relaxed);
 }
 
 //=============================================================================//
