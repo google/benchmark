@@ -385,7 +385,7 @@ enum BigO { oNone, o1, oN, oNSquared, oNCubed, oLogN, oNLogN, oAuto, oLambda };
 
 // BigOFunc is passed to a benchmark in order to specify the asymptotic
 // computational complexity for the benchmark.
-typedef double(BigOFunc)(int);
+typedef double(BigOFunc)(int64_t);
 
 // StatisticsFunc is passed to a benchmark in order to compute some descriptive
 // statistics over all the measurements of some type
@@ -1303,7 +1303,7 @@ class BenchmarkReporter {
     // Keep track of arguments to compute asymptotic complexity
     BigO complexity;
     BigOFunc* complexity_lambda;
-    int complexity_n;
+    int64_t complexity_n;
 
     // what statistics to compute from the measurements
     const std::vector<Statistics>* statistics;
