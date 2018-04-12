@@ -40,7 +40,7 @@ class ThreadManager {
     double manual_time_used = 0;
     int64_t bytes_processed = 0;
     int64_t items_processed = 0;
-    int complexity_n = 0;
+    int64_t complexity_n = 0;
     std::string report_label_;
     std::string error_message_;
     bool has_error_ = false;
