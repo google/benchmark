@@ -21,9 +21,9 @@ int AddComplexityTest(std::string big_o_test_name, std::string rms_test_name,
                     {"%rms", "[ ]*[0-9]+ %"}});
   AddCases(
       TC_ConsoleOut,
-      {{"^%int [ ]*%bigo_name %bigo_str %bigo_str[ ]*$"},
+      {{"^%bigo_name %bigo_str %bigo_str[ ]*$"},
        {"^%bigo_name", MR_Not},  // Assert we we didn't only matched a name.
-       {"^%int [ ]*%rms_name %rms %rms[ ]*$", MR_Next}});
+       {"^%rms_name %rms %rms[ ]*$", MR_Next}});
   AddCases(TC_JSONOut, {{"\"id\": %int,$"},
                         {"\"name\": \"%bigo_name\",$"},
                         {"\"cpu_coefficient\": %float,$", MR_Next},
@@ -46,7 +46,7 @@ int AddComplexityTest(std::string big_o_test_name, std::string rms_test_name,
 // --------------------------- Testing BigO O(1) --------------------------- //
 // ========================================================================= //
 
-void BM_Complexity_O1(benchmark::State& state) {
+void BM_Complexity_O1(benchmark::State &state) {
   for (auto _ : state) {
     for (int i = 0; i < 1024; ++i) {
       benchmark::DoNotOptimize(&i);
@@ -91,7 +91,7 @@ std::vector<int> ConstructRandomVector(int64_t size) {
   return v;
 }
 
-void BM_Complexity_O_N(benchmark::State& state) {
+void BM_Complexity_O_N(benchmark::State &state) {
   auto v = ConstructRandomVector(state.range(0));
   // Test worst case scenario (item not in vector)
   const int64_t item_not_in_vector = state.range(0) * 2;
@@ -128,7 +128,7 @@ ADD_COMPLEXITY_CASES(big_o_n_test_name, rms_o_n_test_name, lambda_big_o_n);
 // ------------------------- Testing BigO O(N*lgN) ------------------------- //
 // ========================================================================= //
 
-static void BM_Complexity_O_N_log_N(benchmark::State& state) {
+static void BM_Complexity_O_N_log_N(benchmark::State &state) {
   auto v = ConstructRandomVector(state.range(0));
   for (auto _ : state) {
     std::sort(v.begin(), v.end());

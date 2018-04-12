@@ -46,7 +46,7 @@ bool ConsoleReporter::ReportContext(const Context& context) {
     GetErrorStream()
         << "Color printing is only supported for stdout on windows."
            " Disabling color printing\n";
-    output_options_ = static_cast< OutputOptions >(output_options_ & ~OO_Color);
+    output_options_ = static_cast<OutputOptions>(output_options_ & ~OO_Color);
   }
 #endif
 
@@ -54,11 +54,18 @@ bool ConsoleReporter::ReportContext(const Context& context) {
 }
 
 void ConsoleReporter::PrintHeader(const Run& run) {
-  std::string str = FormatString("%-*s %-*s %13s %13s %10s", static_cast<int>(id_field_width_), "ID", 
-                                 static_cast<int>(name_field_width_), "Benchmark", "Time", "CPU", "Iterations");
-  if(!run.counters.empty()) {
-    if(output_options_ & OO_Tabular) {
-      for(auto const& c : run.counters) {
+  std::string str =
+      (output_options_ & OO_ID)
+          ? FormatString("%-*s %-*s %13s %13s %10s",
+                         static_cast<int>(id_field_width_), "ID",
+                         static_cast<int>(name_field_width_), "Benchmark",
+                         "Time", "CPU", "Iterations")
+          : FormatString("%-*s %13s %13s %10s",
+                         static_cast<int>(name_field_width_), "Benchmark",
+                         "Time", "CPU", "Iterations");
+  if (!run.counters.empty()) {
+    if (output_options_ & OO_Tabular) {
+      for (auto const& c : run.counters) {
         str += FormatString(" %10s", c.first.c_str());
       }
     } else {
@@ -102,12 +109,13 @@ static void IgnoreColorPrint(std::ostream& out, LogColor, const char* fmt,
 void ConsoleReporter::PrintRunData(const Run& result) {
   typedef void(PrinterFn)(std::ostream&, LogColor, const char*, ...);
   auto& Out = GetOutputStream();
-  PrinterFn* printer = (output_options_ & OO_Color) ?
-                         (PrinterFn*)ColorPrintf : IgnoreColorPrint;
-  auto id_color =
-      (result.report_big_o || result.report_rms) ? COLOR_BLUE : COLOR_GREEN;
-  printer(Out, id_color, "%-*d ", id_field_width_,
-          result.benchmark_id);
+  PrinterFn* printer =
+      (output_options_ & OO_Color) ? (PrinterFn*)ColorPrintf : IgnoreColorPrint;
+  if (output_options_ & OO_ID) {
+    auto id_color =
+        (result.report_big_o || result.report_rms) ? COLOR_BLUE : COLOR_GREEN;
+    printer(Out, id_color, "%-*d ", id_field_width_, result.benchmark_id);
+  }
   auto name_color =
       (result.report_big_o || result.report_rms) ? COLOR_BLUE : COLOR_GREEN;
   printer(Out, name_color, "%-*s ", name_field_width_,
@@ -153,8 +161,8 @@ void ConsoleReporter::PrintRunData(const Run& result) {
   }
 
   for (auto& c : result.counters) {
-    const std::size_t cNameLen = std::max(std::string::size_type(10),
-                                          c.first.length());
+    const std::size_t cNameLen =
+        std::max(std::string::size_type(10), c.first.length());
     auto const& s = HumanReadableNumber(c.second.value, 1000);
     if (output_options_ & OO_Tabular) {
       if (c.second.flags & Counter::kIsRate) {
@@ -164,8 +172,7 @@ void ConsoleReporter::PrintRunData(const Run& result) {
       }
     } else {
       const char* unit = (c.second.flags & Counter::kIsRate) ? "/s" : "";
-      printer(Out, COLOR_DEFAULT, " %s=%s%s", c.first.c_str(), s.c_str(),
-              unit);
+      printer(Out, COLOR_DEFAULT, " %s=%s%s", c.first.c_str(), s.c_str(), unit);
     }
   }
 
