@@ -157,7 +157,7 @@ std::vector<BenchmarkReporter::Run> ComputeBigO(
   if (reports.size() < 2) return results;
 
   // Accumulators.
-  std::vector<int> n;
+  std::vector<int64_t> n;
   std::vector<double> real_time;
   std::vector<double> cpu_time;
 
