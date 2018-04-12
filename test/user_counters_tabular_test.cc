@@ -11,39 +11,39 @@ ADD_CASES(TC_ConsoleOut, {
 // keeping these lines long improves readability, so:
 // clang-format off
     {"^[-]+$", MR_Next},
-    {"^Benchmark %s Time %s CPU %s Iterations %s Bar %s Bat %s Baz %s Foo %s Frob %s Lob$", MR_Next},
+    {"^ID %s Benchmark %s Time %s CPU %s Iterations %s Bar %s Bat %s Baz %s Foo %s Frob %s Lob$", MR_Next},
     {"^[-]+$", MR_Next},
-    {"^BM_Counters_Tabular/threads:%int %console_report [ ]*%hrfloat [ ]*%hrfloat [ ]*%hrfloat [ ]*%hrfloat [ ]*%hrfloat [ ]*%hrfloat$", MR_Next},
-    {"^BM_Counters_Tabular/threads:%int %console_report [ ]*%hrfloat [ ]*%hrfloat [ ]*%hrfloat [ ]*%hrfloat [ ]*%hrfloat [ ]*%hrfloat$", MR_Next},
-    {"^BM_Counters_Tabular/threads:%int %console_report [ ]*%hrfloat [ ]*%hrfloat [ ]*%hrfloat [ ]*%hrfloat [ ]*%hrfloat [ ]*%hrfloat$", MR_Next},
-    {"^BM_Counters_Tabular/threads:%int %console_report [ ]*%hrfloat [ ]*%hrfloat [ ]*%hrfloat [ ]*%hrfloat [ ]*%hrfloat [ ]*%hrfloat$", MR_Next},
-    {"^BM_Counters_Tabular/threads:%int %console_report [ ]*%hrfloat [ ]*%hrfloat [ ]*%hrfloat [ ]*%hrfloat [ ]*%hrfloat [ ]*%hrfloat$", MR_Next},
-    {"^BM_CounterRates_Tabular/threads:%int %console_report [ ]*%hrfloat/s [ ]*%hrfloat/s [ ]*%hrfloat/s [ ]*%hrfloat/s [ ]*%hrfloat/s [ ]*%hrfloat/s$", MR_Next},
-    {"^BM_CounterRates_Tabular/threads:%int %console_report [ ]*%hrfloat/s [ ]*%hrfloat/s [ ]*%hrfloat/s [ ]*%hrfloat/s [ ]*%hrfloat/s [ ]*%hrfloat/s$", MR_Next},
-    {"^BM_CounterRates_Tabular/threads:%int %console_report [ ]*%hrfloat/s [ ]*%hrfloat/s [ ]*%hrfloat/s [ ]*%hrfloat/s [ ]*%hrfloat/s [ ]*%hrfloat/s$", MR_Next},
-    {"^BM_CounterRates_Tabular/threads:%int %console_report [ ]*%hrfloat/s [ ]*%hrfloat/s [ ]*%hrfloat/s [ ]*%hrfloat/s [ ]*%hrfloat/s [ ]*%hrfloat/s$", MR_Next},
-    {"^BM_CounterRates_Tabular/threads:%int %console_report [ ]*%hrfloat/s [ ]*%hrfloat/s [ ]*%hrfloat/s [ ]*%hrfloat/s [ ]*%hrfloat/s [ ]*%hrfloat/s$", MR_Next},
+    {"^%id %s BM_Counters_Tabular/threads:%int %console_report [ ]*%hrfloat [ ]*%hrfloat [ ]*%hrfloat [ ]*%hrfloat [ ]*%hrfloat [ ]*%hrfloat$", MR_Next},
+    {"^%id %s BM_Counters_Tabular/threads:%int %console_report [ ]*%hrfloat [ ]*%hrfloat [ ]*%hrfloat [ ]*%hrfloat [ ]*%hrfloat [ ]*%hrfloat$", MR_Next},
+    {"^%id %s BM_Counters_Tabular/threads:%int %console_report [ ]*%hrfloat [ ]*%hrfloat [ ]*%hrfloat [ ]*%hrfloat [ ]*%hrfloat [ ]*%hrfloat$", MR_Next},
+    {"^%id %s BM_Counters_Tabular/threads:%int %console_report [ ]*%hrfloat [ ]*%hrfloat [ ]*%hrfloat [ ]*%hrfloat [ ]*%hrfloat [ ]*%hrfloat$", MR_Next},
+    {"^%id %s BM_Counters_Tabular/threads:%int %console_report [ ]*%hrfloat [ ]*%hrfloat [ ]*%hrfloat [ ]*%hrfloat [ ]*%hrfloat [ ]*%hrfloat$", MR_Next},
+    {"^%id %s BM_CounterRates_Tabular/threads:%int %console_report [ ]*%hrfloat/s [ ]*%hrfloat/s [ ]*%hrfloat/s [ ]*%hrfloat/s [ ]*%hrfloat/s [ ]*%hrfloat/s$", MR_Next},
+    {"^%id %s BM_CounterRates_Tabular/threads:%int %console_report [ ]*%hrfloat/s [ ]*%hrfloat/s [ ]*%hrfloat/s [ ]*%hrfloat/s [ ]*%hrfloat/s [ ]*%hrfloat/s$", MR_Next},
+    {"^%id %s BM_CounterRates_Tabular/threads:%int %console_report [ ]*%hrfloat/s [ ]*%hrfloat/s [ ]*%hrfloat/s [ ]*%hrfloat/s [ ]*%hrfloat/s [ ]*%hrfloat/s$", MR_Next},
+    {"^%id %s BM_CounterRates_Tabular/threads:%int %console_report [ ]*%hrfloat/s [ ]*%hrfloat/s [ ]*%hrfloat/s [ ]*%hrfloat/s [ ]*%hrfloat/s [ ]*%hrfloat/s$", MR_Next},
+    {"^%id %s BM_CounterRates_Tabular/threads:%int %console_report [ ]*%hrfloat/s [ ]*%hrfloat/s [ ]*%hrfloat/s [ ]*%hrfloat/s [ ]*%hrfloat/s [ ]*%hrfloat/s$", MR_Next},
     {"^[-]+$", MR_Next},
-    {"^Benchmark %s Time %s CPU %s Iterations %s Bar %s Baz %s Foo$", MR_Next},
+    {"^ID %s Benchmark %s Time %s CPU %s Iterations %s Bar %s Baz %s Foo$", MR_Next},
     {"^[-]+$", MR_Next},
-    {"^BM_CounterSet0_Tabular/threads:%int %console_report [ ]*%hrfloat [ ]*%hrfloat [ ]*%hrfloat$", MR_Next},
-    {"^BM_CounterSet0_Tabular/threads:%int %console_report [ ]*%hrfloat [ ]*%hrfloat [ ]*%hrfloat$", MR_Next},
-    {"^BM_CounterSet0_Tabular/threads:%int %console_report [ ]*%hrfloat [ ]*%hrfloat [ ]*%hrfloat$", MR_Next},
-    {"^BM_CounterSet0_Tabular/threads:%int %console_report [ ]*%hrfloat [ ]*%hrfloat [ ]*%hrfloat$", MR_Next},
-    {"^BM_CounterSet0_Tabular/threads:%int %console_report [ ]*%hrfloat [ ]*%hrfloat [ ]*%hrfloat$", MR_Next},
-    {"^BM_CounterSet1_Tabular/threads:%int %console_report [ ]*%hrfloat [ ]*%hrfloat [ ]*%hrfloat$", MR_Next},
-    {"^BM_CounterSet1_Tabular/threads:%int %console_report [ ]*%hrfloat [ ]*%hrfloat [ ]*%hrfloat$", MR_Next},
-    {"^BM_CounterSet1_Tabular/threads:%int %console_report [ ]*%hrfloat [ ]*%hrfloat [ ]*%hrfloat$", MR_Next},
-    {"^BM_CounterSet1_Tabular/threads:%int %console_report [ ]*%hrfloat [ ]*%hrfloat [ ]*%hrfloat$", MR_Next},
-    {"^BM_CounterSet1_Tabular/threads:%int %console_report [ ]*%hrfloat [ ]*%hrfloat [ ]*%hrfloat$", MR_Next},
+    {"^%id %s BM_CounterSet0_Tabular/threads:%int %console_report [ ]*%hrfloat [ ]*%hrfloat [ ]*%hrfloat$", MR_Next},
+    {"^%id %s BM_CounterSet0_Tabular/threads:%int %console_report [ ]*%hrfloat [ ]*%hrfloat [ ]*%hrfloat$", MR_Next},
+    {"^%id %s BM_CounterSet0_Tabular/threads:%int %console_report [ ]*%hrfloat [ ]*%hrfloat [ ]*%hrfloat$", MR_Next},
+    {"^%id %s BM_CounterSet0_Tabular/threads:%int %console_report [ ]*%hrfloat [ ]*%hrfloat [ ]*%hrfloat$", MR_Next},
+    {"^%id %s BM_CounterSet0_Tabular/threads:%int %console_report [ ]*%hrfloat [ ]*%hrfloat [ ]*%hrfloat$", MR_Next},
+    {"^%id %s BM_CounterSet1_Tabular/threads:%int %console_report [ ]*%hrfloat [ ]*%hrfloat [ ]*%hrfloat$", MR_Next},
+    {"^%id %s BM_CounterSet1_Tabular/threads:%int %console_report [ ]*%hrfloat [ ]*%hrfloat [ ]*%hrfloat$", MR_Next},
+    {"^%id %s BM_CounterSet1_Tabular/threads:%int %console_report [ ]*%hrfloat [ ]*%hrfloat [ ]*%hrfloat$", MR_Next},
+    {"^%id %s BM_CounterSet1_Tabular/threads:%int %console_report [ ]*%hrfloat [ ]*%hrfloat [ ]*%hrfloat$", MR_Next},
+    {"^%id %s BM_CounterSet1_Tabular/threads:%int %console_report [ ]*%hrfloat [ ]*%hrfloat [ ]*%hrfloat$", MR_Next},
     {"^[-]+$", MR_Next},
-    {"^Benchmark %s Time %s CPU %s Iterations %s Bat %s Baz %s Foo$", MR_Next},
+    {"^ID %s Benchmark %s Time %s CPU %s Iterations %s Bat %s Baz %s Foo$", MR_Next},
     {"^[-]+$", MR_Next},
-    {"^BM_CounterSet2_Tabular/threads:%int %console_report [ ]*%hrfloat [ ]*%hrfloat [ ]*%hrfloat$", MR_Next},
-    {"^BM_CounterSet2_Tabular/threads:%int %console_report [ ]*%hrfloat [ ]*%hrfloat [ ]*%hrfloat$", MR_Next},
-    {"^BM_CounterSet2_Tabular/threads:%int %console_report [ ]*%hrfloat [ ]*%hrfloat [ ]*%hrfloat$", MR_Next},
-    {"^BM_CounterSet2_Tabular/threads:%int %console_report [ ]*%hrfloat [ ]*%hrfloat [ ]*%hrfloat$", MR_Next},
-    {"^BM_CounterSet2_Tabular/threads:%int %console_report [ ]*%hrfloat [ ]*%hrfloat [ ]*%hrfloat$"},
+    {"^%id %s BM_CounterSet2_Tabular/threads:%int %console_report [ ]*%hrfloat [ ]*%hrfloat [ ]*%hrfloat$", MR_Next},
+    {"^%id %s BM_CounterSet2_Tabular/threads:%int %console_report [ ]*%hrfloat [ ]*%hrfloat [ ]*%hrfloat$", MR_Next},
+    {"^%id %s BM_CounterSet2_Tabular/threads:%int %console_report [ ]*%hrfloat [ ]*%hrfloat [ ]*%hrfloat$", MR_Next},
+    {"^%id %s BM_CounterSet2_Tabular/threads:%int %console_report [ ]*%hrfloat [ ]*%hrfloat [ ]*%hrfloat$", MR_Next},
+    {"^%id %s BM_CounterSet2_Tabular/threads:%int %console_report [ ]*%hrfloat [ ]*%hrfloat [ ]*%hrfloat$"},
 // clang-format on
 });
 ADD_CASES(TC_CSVOut, {{"%csv_header,"
@@ -67,7 +67,8 @@ void BM_Counters_Tabular(benchmark::State& state) {
   });
 }
 BENCHMARK(BM_Counters_Tabular)->ThreadRange(1, 16);
-ADD_CASES(TC_JSONOut, {{"\"name\": \"BM_Counters_Tabular/threads:%int\",$"},
+ADD_CASES(TC_JSONOut, {{"\"id\": %int,$"},
+                       {"\"name\": \"BM_Counters_Tabular/threads:%int\",$"},
                        {"\"iterations\": %int,$", MR_Next},
                        {"\"real_time\": %float,$", MR_Next},
                        {"\"cpu_time\": %float,$", MR_Next},
@@ -79,7 +80,7 @@ ADD_CASES(TC_JSONOut, {{"\"name\": \"BM_Counters_Tabular/threads:%int\",$"},
                        {"\"Frob\": %float,$", MR_Next},
                        {"\"Lob\": %float$", MR_Next},
                        {"}", MR_Next}});
-ADD_CASES(TC_CSVOut, {{"^\"BM_Counters_Tabular/threads:%int\",%csv_report,"
+ADD_CASES(TC_CSVOut, {{"^%id,\"BM_Counters_Tabular/threads:%int\",%csv_report,"
                        "%float,%float,%float,%float,%float,%float$"}});
 // VS2013 does not allow this function to be passed as a lambda argument
 // to CHECK_BENCHMARK_RESULTS()
@@ -111,7 +112,8 @@ void BM_CounterRates_Tabular(benchmark::State& state) {
   });
 }
 BENCHMARK(BM_CounterRates_Tabular)->ThreadRange(1, 16);
-ADD_CASES(TC_JSONOut, {{"\"name\": \"BM_CounterRates_Tabular/threads:%int\",$"},
+ADD_CASES(TC_JSONOut, {{"\"id\": %int,$"},
+                       {"\"name\": \"BM_CounterRates_Tabular/threads:%int\",$"},
                        {"\"iterations\": %int,$", MR_Next},
                        {"\"real_time\": %float,$", MR_Next},
                        {"\"cpu_time\": %float,$", MR_Next},
@@ -123,7 +125,7 @@ ADD_CASES(TC_JSONOut, {{"\"name\": \"BM_CounterRates_Tabular/threads:%int\",$"},
                        {"\"Frob\": %float,$", MR_Next},
                        {"\"Lob\": %float$", MR_Next},
                        {"}", MR_Next}});
-ADD_CASES(TC_CSVOut, {{"^\"BM_CounterRates_Tabular/threads:%int\",%csv_report,"
+ADD_CASES(TC_CSVOut, {{"^%id,\"BM_CounterRates_Tabular/threads:%int\",%csv_report,"
                        "%float,%float,%float,%float,%float,%float$"}});
 // VS2013 does not allow this function to be passed as a lambda argument
 // to CHECK_BENCHMARK_RESULTS()
@@ -155,7 +157,8 @@ void BM_CounterSet0_Tabular(benchmark::State& state) {
   });
 }
 BENCHMARK(BM_CounterSet0_Tabular)->ThreadRange(1, 16);
-ADD_CASES(TC_JSONOut, {{"\"name\": \"BM_CounterSet0_Tabular/threads:%int\",$"},
+ADD_CASES(TC_JSONOut, {{"\"id\": %int,$"},
+                       {"\"name\": \"BM_CounterSet0_Tabular/threads:%int\",$"},
                        {"\"iterations\": %int,$", MR_Next},
                        {"\"real_time\": %float,$", MR_Next},
                        {"\"cpu_time\": %float,$", MR_Next},
@@ -164,7 +167,7 @@ ADD_CASES(TC_JSONOut, {{"\"name\": \"BM_CounterSet0_Tabular/threads:%int\",$"},
                        {"\"Baz\": %float,$", MR_Next},
                        {"\"Foo\": %float$", MR_Next},
                        {"}", MR_Next}});
-ADD_CASES(TC_CSVOut, {{"^\"BM_CounterSet0_Tabular/threads:%int\",%csv_report,"
+ADD_CASES(TC_CSVOut, {{"^%id,\"BM_CounterSet0_Tabular/threads:%int\",%csv_report,"
                        "%float,,%float,%float,,"}});
 // VS2013 does not allow this function to be passed as a lambda argument
 // to CHECK_BENCHMARK_RESULTS()
@@ -187,7 +190,8 @@ void BM_CounterSet1_Tabular(benchmark::State& state) {
   });
 }
 BENCHMARK(BM_CounterSet1_Tabular)->ThreadRange(1, 16);
-ADD_CASES(TC_JSONOut, {{"\"name\": \"BM_CounterSet1_Tabular/threads:%int\",$"},
+ADD_CASES(TC_JSONOut, {{"\"id\": %int,$"},
+                       {"\"name\": \"BM_CounterSet1_Tabular/threads:%int\",$"},
                        {"\"iterations\": %int,$", MR_Next},
                        {"\"real_time\": %float,$", MR_Next},
                        {"\"cpu_time\": %float,$", MR_Next},
@@ -196,7 +200,7 @@ ADD_CASES(TC_JSONOut, {{"\"name\": \"BM_CounterSet1_Tabular/threads:%int\",$"},
                        {"\"Baz\": %float,$", MR_Next},
                        {"\"Foo\": %float$", MR_Next},
                        {"}", MR_Next}});
-ADD_CASES(TC_CSVOut, {{"^\"BM_CounterSet1_Tabular/threads:%int\",%csv_report,"
+ADD_CASES(TC_CSVOut, {{"^%id,\"BM_CounterSet1_Tabular/threads:%int\",%csv_report,"
                        "%float,,%float,%float,,"}});
 // VS2013 does not allow this function to be passed as a lambda argument
 // to CHECK_BENCHMARK_RESULTS()
@@ -223,7 +227,8 @@ void BM_CounterSet2_Tabular(benchmark::State& state) {
   });
 }
 BENCHMARK(BM_CounterSet2_Tabular)->ThreadRange(1, 16);
-ADD_CASES(TC_JSONOut, {{"\"name\": \"BM_CounterSet2_Tabular/threads:%int\",$"},
+ADD_CASES(TC_JSONOut, {{"\"id\": %int,$"},
+                       {"\"name\": \"BM_CounterSet2_Tabular/threads:%int\",$"},
                        {"\"iterations\": %int,$", MR_Next},
                        {"\"real_time\": %float,$", MR_Next},
                        {"\"cpu_time\": %float,$", MR_Next},
@@ -232,7 +237,7 @@ ADD_CASES(TC_JSONOut, {{"\"name\": \"BM_CounterSet2_Tabular/threads:%int\",$"},
                        {"\"Baz\": %float,$", MR_Next},
                        {"\"Foo\": %float$", MR_Next},
                        {"}", MR_Next}});
-ADD_CASES(TC_CSVOut, {{"^\"BM_CounterSet2_Tabular/threads:%int\",%csv_report,"
+ADD_CASES(TC_CSVOut, {{"^%id,\"BM_CounterSet2_Tabular/threads:%int\",%csv_report,"
                        ",%float,%float,%float,,"}});
 // VS2013 does not allow this function to be passed as a lambda argument
 // to CHECK_BENCHMARK_RESULTS()

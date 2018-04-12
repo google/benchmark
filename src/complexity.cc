@@ -184,6 +184,7 @@ std::vector<BenchmarkReporter::Run> ComputeBigO(
 
   // Get the data from the accumulator to BenchmarkReporter::Run's.
   Run big_o;
+  big_o.benchmark_id = reports[0].benchmark_id;
   big_o.benchmark_name = benchmark_name + "_BigO";
   big_o.iterations = 0;
   big_o.real_accumulated_time = result_real.coef;
@@ -201,6 +202,7 @@ std::vector<BenchmarkReporter::Run> ComputeBigO(
   // Only add label to mean/stddev if it is same for all runs
   Run rms;
   big_o.report_label = reports[0].report_label;
+  rms.benchmark_id = reports[0].benchmark_id;
   rms.benchmark_name = benchmark_name + "_RMS";
   rms.report_label = big_o.report_label;
   rms.iterations = 0;

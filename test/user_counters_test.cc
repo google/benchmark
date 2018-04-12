@@ -10,7 +10,7 @@
 
 ADD_CASES(TC_ConsoleOut,
           {{"^[-]+$", MR_Next},
-           {"^Benchmark %s Time %s CPU %s Iterations UserCounters...$", MR_Next},
+           {"^ID %s Benchmark %s Time %s CPU %s Iterations UserCounters...$", MR_Next},
            {"^[-]+$", MR_Next}});
 ADD_CASES(TC_CSVOut, {{"%csv_header,\"bar\",\"foo\""}});
 
@@ -25,8 +25,9 @@ void BM_Counters_Simple(benchmark::State& state) {
   state.counters["bar"] = 2 * (double)state.iterations();
 }
 BENCHMARK(BM_Counters_Simple);
-ADD_CASES(TC_ConsoleOut, {{"^BM_Counters_Simple %console_report bar=%hrfloat foo=%hrfloat$"}});
-ADD_CASES(TC_JSONOut, {{"\"name\": \"BM_Counters_Simple\",$"},
+ADD_CASES(TC_ConsoleOut, {{"^%id %s BM_Counters_Simple %console_report bar=%hrfloat foo=%hrfloat$"}});
+ADD_CASES(TC_JSONOut, {{"\"id\": %id,$"},
+                       {"\"name\": \"BM_Counters_Simple\",$"},
                        {"\"iterations\": %int,$", MR_Next},
                        {"\"real_time\": %float,$", MR_Next},
                        {"\"cpu_time\": %float,$", MR_Next},
@@ -34,7 +35,7 @@ ADD_CASES(TC_JSONOut, {{"\"name\": \"BM_Counters_Simple\",$"},
                        {"\"bar\": %float,$", MR_Next},
                        {"\"foo\": %float$", MR_Next},
                        {"}", MR_Next}});
-ADD_CASES(TC_CSVOut, {{"^\"BM_Counters_Simple\",%csv_report,%float,%float$"}});
+ADD_CASES(TC_CSVOut, {{"^%id,\"BM_Counters_Simple\",%csv_report,%float,%float$"}});
 // VS2013 does not allow this function to be passed as a lambda argument
 // to CHECK_BENCHMARK_RESULTS()
 void CheckSimple(Results const& e) {
@@ -60,9 +61,10 @@ void BM_Counters_WithBytesAndItemsPSec(benchmark::State& state) {
 }
 BENCHMARK(BM_Counters_WithBytesAndItemsPSec);
 ADD_CASES(TC_ConsoleOut,
-          {{"^BM_Counters_WithBytesAndItemsPSec %console_report "
+          {{"^%id %s BM_Counters_WithBytesAndItemsPSec %console_report "
             "bar=%hrfloat foo=%hrfloat +%hrfloatB/s +%hrfloat items/s$"}});
-ADD_CASES(TC_JSONOut, {{"\"name\": \"BM_Counters_WithBytesAndItemsPSec\",$"},
+ADD_CASES(TC_JSONOut, {{"\"id\": %id,$"},
+                       {"\"name\": \"BM_Counters_WithBytesAndItemsPSec\",$"},
                        {"\"iterations\": %int,$", MR_Next},
                        {"\"real_time\": %float,$", MR_Next},
                        {"\"cpu_time\": %float,$", MR_Next},
@@ -72,7 +74,7 @@ ADD_CASES(TC_JSONOut, {{"\"name\": \"BM_Counters_WithBytesAndItemsPSec\",$"},
                        {"\"bar\": %float,$", MR_Next},
                        {"\"foo\": %float$", MR_Next},
                        {"}", MR_Next}});
-ADD_CASES(TC_CSVOut, {{"^\"BM_Counters_WithBytesAndItemsPSec\","
+ADD_CASES(TC_CSVOut, {{"^%id,\"BM_Counters_WithBytesAndItemsPSec\","
                        "%csv_bytes_items_report,%float,%float$"}});
 // VS2013 does not allow this function to be passed as a lambda argument
 // to CHECK_BENCHMARK_RESULTS()
@@ -99,8 +101,9 @@ void BM_Counters_Rate(benchmark::State& state) {
   state.counters["bar"] = bm::Counter{2, bm::Counter::kIsRate};
 }
 BENCHMARK(BM_Counters_Rate);
-ADD_CASES(TC_ConsoleOut, {{"^BM_Counters_Rate %console_report bar=%hrfloat/s foo=%hrfloat/s$"}});
-ADD_CASES(TC_JSONOut, {{"\"name\": \"BM_Counters_Rate\",$"},
+ADD_CASES(TC_ConsoleOut, {{"^%id %s BM_Counters_Rate %console_report bar=%hrfloat/s foo=%hrfloat/s$"}});
+ADD_CASES(TC_JSONOut, {{"\"id\": %id,$"},
+                       {"\"name\": \"BM_Counters_Rate\",$"},
                        {"\"iterations\": %int,$", MR_Next},
                        {"\"real_time\": %float,$", MR_Next},
                        {"\"cpu_time\": %float,$", MR_Next},
@@ -108,7 +111,7 @@ ADD_CASES(TC_JSONOut, {{"\"name\": \"BM_Counters_Rate\",$"},
                        {"\"bar\": %float,$", MR_Next},
                        {"\"foo\": %float$", MR_Next},
                        {"}", MR_Next}});
-ADD_CASES(TC_CSVOut, {{"^\"BM_Counters_Rate\",%csv_report,%float,%float$"}});
+ADD_CASES(TC_CSVOut, {{"^%id,\"BM_Counters_Rate\",%csv_report,%float,%float$"}});
 // VS2013 does not allow this function to be passed as a lambda argument
 // to CHECK_BENCHMARK_RESULTS()
 void CheckRate(Results const& e) {
@@ -130,8 +133,9 @@ void BM_Counters_Threads(benchmark::State& state) {
   state.counters["bar"] = 2;
 }
 BENCHMARK(BM_Counters_Threads)->ThreadRange(1, 8);
-ADD_CASES(TC_ConsoleOut, {{"^BM_Counters_Threads/threads:%int %console_report bar=%hrfloat foo=%hrfloat$"}});
-ADD_CASES(TC_JSONOut, {{"\"name\": \"BM_Counters_Threads/threads:%int\",$"},
+ADD_CASES(TC_ConsoleOut, {{"^%id %s BM_Counters_Threads/threads:%int %console_report bar=%hrfloat foo=%hrfloat$"}});
+ADD_CASES(TC_JSONOut, {{"\"id\": %id,$"},
+                       {"\"name\": \"BM_Counters_Threads/threads:%int\",$"},
                        {"\"iterations\": %int,$", MR_Next},
                        {"\"real_time\": %float,$", MR_Next},
                        {"\"cpu_time\": %float,$", MR_Next},
@@ -139,7 +143,7 @@ ADD_CASES(TC_JSONOut, {{"\"name\": \"BM_Counters_Threads/threads:%int\",$"},
                        {"\"bar\": %float,$", MR_Next},
                        {"\"foo\": %float$", MR_Next},
                        {"}", MR_Next}});
-ADD_CASES(TC_CSVOut, {{"^\"BM_Counters_Threads/threads:%int\",%csv_report,%float,%float$"}});
+ADD_CASES(TC_CSVOut, {{"^%id,\"BM_Counters_Threads/threads:%int\",%csv_report,%float,%float$"}});
 // VS2013 does not allow this function to be passed as a lambda argument
 // to CHECK_BENCHMARK_RESULTS()
 void CheckThreads(Results const& e) {
@@ -160,8 +164,9 @@ void BM_Counters_AvgThreads(benchmark::State& state) {
   state.counters["bar"] = bm::Counter{2, bm::Counter::kAvgThreads};
 }
 BENCHMARK(BM_Counters_AvgThreads)->ThreadRange(1, 8);
-ADD_CASES(TC_ConsoleOut, {{"^BM_Counters_AvgThreads/threads:%int %console_report bar=%hrfloat foo=%hrfloat$"}});
-ADD_CASES(TC_JSONOut, {{"\"name\": \"BM_Counters_AvgThreads/threads:%int\",$"},
+ADD_CASES(TC_ConsoleOut, {{"^%id %s BM_Counters_AvgThreads/threads:%int %console_report bar=%hrfloat foo=%hrfloat$"}});
+ADD_CASES(TC_JSONOut, {{"\"id\": %id,$"},
+                       {"\"name\": \"BM_Counters_AvgThreads/threads:%int\",$"},
                        {"\"iterations\": %int,$", MR_Next},
                        {"\"real_time\": %float,$", MR_Next},
                        {"\"cpu_time\": %float,$", MR_Next},
@@ -169,7 +174,7 @@ ADD_CASES(TC_JSONOut, {{"\"name\": \"BM_Counters_AvgThreads/threads:%int\",$"},
                        {"\"bar\": %float,$", MR_Next},
                        {"\"foo\": %float$", MR_Next},
                        {"}", MR_Next}});
-ADD_CASES(TC_CSVOut, {{"^\"BM_Counters_AvgThreads/threads:%int\",%csv_report,%float,%float$"}});
+ADD_CASES(TC_CSVOut, {{"^%id,\"BM_Counters_AvgThreads/threads:%int\",%csv_report,%float,%float$"}});
 // VS2013 does not allow this function to be passed as a lambda argument
 // to CHECK_BENCHMARK_RESULTS()
 void CheckAvgThreads(Results const& e) {
@@ -191,8 +196,9 @@ void BM_Counters_AvgThreadsRate(benchmark::State& state) {
   state.counters["bar"] = bm::Counter{2, bm::Counter::kAvgThreadsRate};
 }
 BENCHMARK(BM_Counters_AvgThreadsRate)->ThreadRange(1, 8);
-ADD_CASES(TC_ConsoleOut, {{"^BM_Counters_AvgThreadsRate/threads:%int %console_report bar=%hrfloat/s foo=%hrfloat/s$"}});
-ADD_CASES(TC_JSONOut, {{"\"name\": \"BM_Counters_AvgThreadsRate/threads:%int\",$"},
+ADD_CASES(TC_ConsoleOut, {{"^%id %s BM_Counters_AvgThreadsRate/threads:%int %console_report bar=%hrfloat/s foo=%hrfloat/s$"}});
+ADD_CASES(TC_JSONOut, {{"\"id\": %id,$"},
+                       {"\"name\": \"BM_Counters_AvgThreadsRate/threads:%int\",$"},
                        {"\"iterations\": %int,$", MR_Next},
                        {"\"real_time\": %float,$", MR_Next},
                        {"\"cpu_time\": %float,$", MR_Next},
@@ -200,7 +206,7 @@ ADD_CASES(TC_JSONOut, {{"\"name\": \"BM_Counters_AvgThreadsRate/threads:%int\",$
                        {"\"bar\": %float,$", MR_Next},
                        {"\"foo\": %float$", MR_Next},
                        {"}", MR_Next}});
-ADD_CASES(TC_CSVOut, {{"^\"BM_Counters_AvgThreadsRate/threads:%int\",%csv_report,%float,%float$"}});
+ADD_CASES(TC_CSVOut, {{"^%id,\"BM_Counters_AvgThreadsRate/threads:%int\",%csv_report,%float,%float$"}});
 // VS2013 does not allow this function to be passed as a lambda argument
 // to CHECK_BENCHMARK_RESULTS()
 void CheckAvgThreadsRate(Results const& e) {

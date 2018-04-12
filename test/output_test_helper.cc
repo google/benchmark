@@ -41,10 +41,12 @@ SubMap& GetSubstitutions() {
       {"%int", "[ ]*[0-9]+"},
       {" %s ", "[ ]+"},
       {"%time", "[ ]*[0-9]{1,6} ns"},
+      // id: if the id format changes to some other kind of text, change this
+      {"%id", "[ ]*[0-9]+"},
       {"%console_report", "[ ]*[0-9]{1,6} ns [ ]*[0-9]{1,6} ns [ ]*[0-9]+"},
       {"%console_us_report", "[ ]*[0-9] us [ ]*[0-9] us [ ]*[0-9]+"},
       {"%csv_header",
-       "name,iterations,real_time,cpu_time,time_unit,bytes_per_second,"
+       "id,name,iterations,real_time,cpu_time,time_unit,bytes_per_second,"
        "items_per_second,label,error_occurred,error_message"},
       {"%csv_report", "[0-9]+," + safe_dec_re + "," + safe_dec_re + ",ns,,,,,"},
       {"%csv_us_report", "[0-9]+," + safe_dec_re + "," + safe_dec_re + ",us,,,,,"},

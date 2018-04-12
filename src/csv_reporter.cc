@@ -94,7 +94,7 @@ void CSVReporter::PrintRunData(const Run & run) {
   ReplaceAll(&name, "\"", "\"\"");
   Out << '"' << name << "\",";
   if (run.error_occurred) {
-    Out << std::string(elements.size() - 3, ',');
+    Out << std::string(elements.size() - 4, ',');
     Out << "true,";
     std::string msg = run.error_message;
     ReplaceAll(&msg, "\"", "\"\"");
