@@ -34,7 +34,7 @@
 namespace benchmark {
 
 bool ConsoleReporter::ReportContext(const Context& context) {
-  id_field_width_ = context.id_field_width;
+  base_name_field_width_ = context.base_name_field_width;
   name_field_width_ = context.name_field_width;
   printed_header_ = false;
   prev_counters_.clear();
@@ -55,9 +55,9 @@ bool ConsoleReporter::ReportContext(const Context& context) {
 
 void ConsoleReporter::PrintHeader(const Run& run) {
   std::string str =
-      (output_options_ & OO_ID)
+      (output_options_ & OO_Base_Name)
           ? FormatString("%-*s %-*s %13s %13s %10s",
-                         static_cast<int>(id_field_width_), "ID",
+                         static_cast<int>(base_name_field_width_), "Base Name",
                          static_cast<int>(name_field_width_), "Benchmark",
                          "Time", "CPU", "Iterations")
           : FormatString("%-*s %13s %13s %10s",
@@ -111,10 +111,10 @@ void ConsoleReporter::PrintRunData(const Run& result) {
   auto& Out = GetOutputStream();
   PrinterFn* printer =
       (output_options_ & OO_Color) ? (PrinterFn*)ColorPrintf : IgnoreColorPrint;
-  if (output_options_ & OO_ID) {
+  if (output_options_ & OO_Base_Name) {
     auto id_color =
         (result.report_big_o || result.report_rms) ? COLOR_BLUE : COLOR_GREEN;
-    printer(Out, id_color, "%-*d ", id_field_width_, result.benchmark_id);
+    printer(Out, id_color, "%-*s ", base_name_field_width_, result.benchmark_base_name);
   }
   auto name_color =
       (result.report_big_o || result.report_rms) ? COLOR_BLUE : COLOR_GREEN;

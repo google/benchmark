@@ -32,10 +32,9 @@ namespace benchmark {
 
 namespace {
 std::vector<std::string> elements = {
-    "id",
     "name",           "iterations",       "real_time",        "cpu_time",
     "time_unit",      "bytes_per_second", "items_per_second", "label",
-    "error_occurred", "error_message"};
+    "error_occurred", "error_message", "base_name"};
 }  // namespace
 
 bool CSVReporter::ReportContext(const Context& context) {
@@ -87,9 +86,14 @@ void CSVReporter::ReportRuns(const std::vector<Run> & reports) {
 void CSVReporter::PrintRunData(const Run & run) {
   std::ostream& Out = GetOutputStream();
 
-  Out << run.benchmark_id << ",";
   // Field with embedded double-quote characters must be doubled and the field
   // delimited with double-quotes.
+  // Base benchmark name handling: we do replace up here
+  // since early-return for message printing also uses
+  // this.
+  std::string base_name = run.benchmark_base_name;
+  ReplaceAll(&base_name, "\"", "\"\"");
+  // Benchmark name handling.
   std::string name = run.benchmark_name;
   ReplaceAll(&name, "\"", "\"\"");
   Out << '"' << name << "\",";
@@ -98,7 +102,9 @@ void CSVReporter::PrintRunData(const Run & run) {
     Out << "true,";
     std::string msg = run.error_message;
     ReplaceAll(&msg, "\"", "\"\"");
-    Out << '"' << msg << "\"\n";
+    Out << '"' << msg << "\"";
+    Out << ",\"" << base_name << "\"";
+    Out << "\n";
     return;
   }
 
@@ -135,6 +141,7 @@ void CSVReporter::PrintRunData(const Run & run) {
     Out << "\"" << label << "\"";
   }
   Out << ",,";  // for error_occurred and error_message
+  Out << ",\"" << base_name << "\"";
 
   // Print user counters
   for (const auto &ucn : user_counter_names_) {

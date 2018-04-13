@@ -12,9 +12,10 @@ namespace {
 #define ADD_COMPLEXITY_CASES(...) \
   int CONCAT(dummy, __LINE__) = AddComplexityTest(__VA_ARGS__)
 
-int AddComplexityTest(std::string big_o_test_name, std::string rms_test_name,
+int AddComplexityTest(std::string big_o_base_name, std::string big_o_test_name, std::string rms_test_name,
                       std::string big_o) {
-  SetSubstitutions({{"%bigo_name", big_o_test_name},
+  SetSubstitutions({{"%base_name", big_o_base_name},
+                    {"%bigo_name", big_o_test_name},
                     {"%rms_name", rms_test_name},
                     {"%bigo_str", "[ ]* %float " + big_o},
                     {"%bigo", big_o},
@@ -24,7 +25,7 @@ int AddComplexityTest(std::string big_o_test_name, std::string rms_test_name,
       {{"^%bigo_name %bigo_str %bigo_str[ ]*$"},
        {"^%bigo_name", MR_Not},  // Assert we we didn't only matched a name.
        {"^%rms_name %rms %rms[ ]*$", MR_Next}});
-  AddCases(TC_JSONOut, {{"\"id\": %int,$"},
+  AddCases(TC_JSONOut, {{"\"base_name\": \"%base_name\",$"},
                         {"\"name\": \"%bigo_name\",$"},
                         {"\"cpu_coefficient\": %float,$", MR_Next},
                         {"\"real_coefficient\": %float,$", MR_Next},
@@ -34,9 +35,9 @@ int AddComplexityTest(std::string big_o_test_name, std::string rms_test_name,
                         {"\"name\": \"%rms_name\",$"},
                         {"\"rms\": %float$", MR_Next},
                         {"}", MR_Next}});
-  AddCases(TC_CSVOut, {{"^%int,\"%bigo_name\",,%float,%float,%bigo,,,,,$"},
+  AddCases(TC_CSVOut, {{"^\"%bigo_name\",,%float,%float,%bigo,,,,,,\"%base_name\"$"},
                        {"^\"%bigo_name\"", MR_Not},
-                       {"^%int,\"%rms_name\",,%float,%float,,,,,,$", MR_Next}});
+                       {"^\"%rms_name\",,%float,%float,,,,,,,\"%base_name\"$", MR_Next}});
   return 0;
 }
 
@@ -60,6 +61,7 @@ BENCHMARK(BM_Complexity_O1)->Range(1, 1 << 18)->Complexity([](int) {
   return 1.0;
 });
 
+const char *big_o_1_test_base_name = "BM_Complexity_O1";
 const char *big_o_1_test_name = "BM_Complexity_O1_BigO";
 const char *rms_o_1_test_name = "BM_Complexity_O1_RMS";
 const char *enum_big_o_1 = "\\([0-9]+\\)";
@@ -70,13 +72,13 @@ const char *auto_big_o_1 = "(\\([0-9]+\\))|(lgN)";
 const char *lambda_big_o_1 = "f\\(N\\)";
 
 // Add enum tests
-ADD_COMPLEXITY_CASES(big_o_1_test_name, rms_o_1_test_name, enum_big_o_1);
+ADD_COMPLEXITY_CASES(big_o_1_test_base_name, big_o_1_test_name, rms_o_1_test_name, enum_big_o_1);
 
 // Add auto enum tests
-ADD_COMPLEXITY_CASES(big_o_1_test_name, rms_o_1_test_name, auto_big_o_1);
+ADD_COMPLEXITY_CASES(big_o_1_test_base_name, big_o_1_test_name, rms_o_1_test_name, auto_big_o_1);
 
 // Add lambda tests
-ADD_COMPLEXITY_CASES(big_o_1_test_name, rms_o_1_test_name, lambda_big_o_1);
+ADD_COMPLEXITY_CASES(big_o_1_test_base_name, big_o_1_test_name, rms_o_1_test_name, lambda_big_o_1);
 
 // ========================================================================= //
 // --------------------------- Testing BigO O(N) --------------------------- //
@@ -113,16 +115,17 @@ BENCHMARK(BM_Complexity_O_N)
     ->Range(1 << 10, 1 << 16)
     ->Complexity();
 
+const char *big_o_n_test_base_name = "BM_Complexity_O_N";
 const char *big_o_n_test_name = "BM_Complexity_O_N_BigO";
 const char *rms_o_n_test_name = "BM_Complexity_O_N_RMS";
 const char *enum_auto_big_o_n = "N";
 const char *lambda_big_o_n = "f\\(N\\)";
 
 // Add enum tests
-ADD_COMPLEXITY_CASES(big_o_n_test_name, rms_o_n_test_name, enum_auto_big_o_n);
+ADD_COMPLEXITY_CASES(big_o_n_test_base_name, big_o_n_test_name, rms_o_n_test_name, enum_auto_big_o_n);
 
 // Add lambda tests
-ADD_COMPLEXITY_CASES(big_o_n_test_name, rms_o_n_test_name, lambda_big_o_n);
+ADD_COMPLEXITY_CASES(big_o_n_test_base_name, big_o_n_test_name, rms_o_n_test_name, lambda_big_o_n);
 
 // ========================================================================= //
 // ------------------------- Testing BigO O(N*lgN) ------------------------- //
@@ -148,17 +151,18 @@ BENCHMARK(BM_Complexity_O_N_log_N)
     ->Range(1 << 10, 1 << 16)
     ->Complexity();
 
+const char *big_o_n_lg_n_test_base_name = "BM_Complexity_O_N_log_N";
 const char *big_o_n_lg_n_test_name = "BM_Complexity_O_N_log_N_BigO";
 const char *rms_o_n_lg_n_test_name = "BM_Complexity_O_N_log_N_RMS";
 const char *enum_auto_big_o_n_lg_n = "NlgN";
 const char *lambda_big_o_n_lg_n = "f\\(N\\)";
 
 // Add enum tests
-ADD_COMPLEXITY_CASES(big_o_n_lg_n_test_name, rms_o_n_lg_n_test_name,
+ADD_COMPLEXITY_CASES(big_o_n_lg_n_test_base_name, big_o_n_lg_n_test_name, rms_o_n_lg_n_test_name,
                      enum_auto_big_o_n_lg_n);
 
 // Add lambda tests
-ADD_COMPLEXITY_CASES(big_o_n_lg_n_test_name, rms_o_n_lg_n_test_name,
+ADD_COMPLEXITY_CASES(big_o_n_lg_n_test_base_name, big_o_n_lg_n_test_name, rms_o_n_lg_n_test_name,
                      lambda_big_o_n_lg_n);
 
 // ========================================================================= //
