@@ -186,7 +186,8 @@ void RunInThread(const benchmark::internal::Benchmark::Instance* b,
     results.manual_time_used += timer.manual_time_used();
     results.bytes_processed += st.bytes_processed();
     results.items_processed += st.items_processed();
-    results.complexity_n += st.complexity_length_n();
+    // explicitly avoid warning on Visual C++ about truncating int64_t
+    results.complexity_n += static_cast<int>(st.complexity_length_n());
     internal::Increment(&results.counters, st.counters);
   }
   manager->NotifyThreadComplete();
@@ -247,15 +248,16 @@ std::vector<BenchmarkReporter::Run> RunBenchmark(
 
       // Determine if this run should be reported; Either it has
       // run for a sufficient amount of time or because an error was reported.
-      const bool should_report =  repetition_num > 0
-        || has_explicit_iteration_count // An exact iteration count was requested
-        || results.has_error_
-        || iters >= kMaxIterations
-        || seconds >= min_time // the elapsed time is large enough
-        // CPU time is specified but the elapsed real time greatly exceeds the
-        // minimum time. Note that user provided timers are except from this
-        // sanity check.
-        || ((results.real_time_used >= 5 * min_time) && !b.use_manual_time);
+      const bool should_report =
+          repetition_num > 0 ||
+          has_explicit_iteration_count  // An exact iteration count was
+                                        // requested
+          || results.has_error_ || iters >= kMaxIterations ||
+          seconds >= min_time  // the elapsed time is large enough
+          // CPU time is specified but the elapsed real time greatly exceeds the
+          // minimum time. Note that user provided timers are except from this
+          // sanity check.
+          || ((results.real_time_used >= 5 * min_time) && !b.use_manual_time);
 
       if (should_report) {
         BenchmarkReporter::Run report =
@@ -336,7 +338,8 @@ State::State(size_t max_iters, const std::vector<int64_t>& ranges, int thread_i,
   // Offset tests to ensure commonly accessed data is on the first cache line.
   const int cache_line_size = 64;
   static_assert(offsetof(State, error_occurred_) <=
-                (cache_line_size - sizeof(error_occurred_)), "");
+                    (cache_line_size - sizeof(error_occurred_)),
+                "");
 #ifdef __GNUC__
 #pragma GCC diagnostic pop
 #endif
@@ -399,8 +402,8 @@ namespace internal {
 namespace {
 
 void RunBenchmarks(const std::vector<Benchmark::Instance>& benchmarks,
-                           BenchmarkReporter* console_reporter,
-                           BenchmarkReporter* file_reporter) {
+                   BenchmarkReporter* console_reporter,
+                   BenchmarkReporter* file_reporter) {
   // Note the file_reporter can be null.
   CHECK(console_reporter != nullptr);
 
@@ -410,13 +413,13 @@ void RunBenchmarks(const std::vector<Benchmark::Instance>& benchmarks,
   size_t name_field_width = 10;
   size_t stat_field_width = 0;
   for (const Benchmark::Instance& benchmark : benchmarks) {
-    base_name_field_width = std::max<size_t>(
-        base_name_field_width, benchmark.name.size());
+    base_name_field_width =
+        std::max<size_t>(base_name_field_width, benchmark.name.size());
     name_field_width =
         std::max<size_t>(name_field_width, benchmark.name.size());
     has_repetitions |= benchmark.repetitions > 1;
 
-    for(const auto& Stat : *benchmark.statistics)
+    for (const auto& Stat : *benchmark.statistics)
       stat_field_width = std::max<size_t>(stat_field_width, Stat.name_.size());
   }
   if (has_repetitions) name_field_width += 1 + stat_field_width;
@@ -485,15 +488,15 @@ ConsoleReporter::OutputOptions GetOutputOptions(bool force_no_color) {
   } else {
     output_opts &= ~ConsoleReporter::OO_Color;
   }
-  if(force_no_color) {
+  if (force_no_color) {
     output_opts &= ~ConsoleReporter::OO_Color;
   }
-  if(FLAGS_benchmark_counters_tabular) {
+  if (FLAGS_benchmark_counters_tabular) {
     output_opts |= ConsoleReporter::OO_Tabular;
   } else {
     output_opts &= ~ConsoleReporter::OO_Tabular;
   }
-  return static_cast< ConsoleReporter::OutputOptions >(output_opts);
+  return static_cast<ConsoleReporter::OutputOptions>(output_opts);
 }
 
 }  // end namespace internal
@@ -518,7 +521,7 @@ size_t RunSpecifiedBenchmarks(BenchmarkReporter* console_reporter,
   std::unique_ptr<BenchmarkReporter> default_file_reporter;
   if (!console_reporter) {
     default_console_reporter = internal::CreateReporter(
-          FLAGS_benchmark_format, internal::GetOutputOptions());
+        FLAGS_benchmark_format, internal::GetOutputOptions());
     console_reporter = default_console_reporter.get();
   }
   auto& Out = console_reporter->GetOutputStream();
@@ -604,7 +607,7 @@ void ParseCommandLineFlags(int* argc, char** argv) {
         // TODO: Remove this.
         ParseStringFlag(argv[i], "color_print", &FLAGS_benchmark_color) ||
         ParseBoolFlag(argv[i], "benchmark_counters_tabular",
-                        &FLAGS_benchmark_counters_tabular) ||
+                      &FLAGS_benchmark_counters_tabular) ||
         ParseInt32Flag(argv[i], "v", &FLAGS_v)) {
       for (int j = i; j != *argc - 1; ++j) argv[j] = argv[j + 1];
 
@@ -638,7 +641,8 @@ void Initialize(int* argc, char** argv) {
 
 bool ReportUnrecognizedArguments(int argc, char** argv) {
   for (int i = 1; i < argc; ++i) {
-    fprintf(stderr, "%s: error: unrecognized command-line flag: %s\n", argv[0], argv[i]);
+    fprintf(stderr, "%s: error: unrecognized command-line flag: %s\n", argv[0],
+            argv[i]);
   }
   return argc > 1;
 }
