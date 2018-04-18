@@ -111,17 +111,6 @@ namespace internal {
 
 void UseCharPointer(char const volatile*) {}
 
-size_t Base10Digits(size_t num) {
-  if (num < 10) return 1;
-  if (num < 100) return 2;
-  if (num < 1000) return 3;
-  if (num < 10000) return 4;
-  // chances of having more than 10000
-  // benchmarks is almost impossible,
-  // but we define the fallback here just in case
-  return static_cast<size_t>(std::floor(std::log10(num)) + 1);
-}
-
 namespace {
 
 BenchmarkReporter::Run CreateRunReport(
@@ -132,7 +121,7 @@ BenchmarkReporter::Run CreateRunReport(
   BenchmarkReporter::Run report;
 
   report.benchmark_name = b.name;
-  report.benchmark_base_name = b.base_name;
+  report.base_name = b.base_name;
   report.error_occurred = results.has_error_;
   report.error_message = results.error_message_;
   report.report_label = results.report_label_;
@@ -186,8 +175,7 @@ void RunInThread(const benchmark::internal::Benchmark::Instance* b,
     results.manual_time_used += timer.manual_time_used();
     results.bytes_processed += st.bytes_processed();
     results.items_processed += st.items_processed();
-    // explicitly avoid warning on Visual C++ about truncating int64_t
-    results.complexity_n += static_cast<int>(st.complexity_length_n());
+    results.complexity_n += st.complexity_length_n();
     internal::Increment(&results.counters, st.counters);
   }
   manager->NotifyThreadComplete();
@@ -246,19 +234,20 @@ std::vector<BenchmarkReporter::Run> RunBenchmark(
       const double min_time =
           !IsZero(b.min_time) ? b.min_time : FLAGS_benchmark_min_time;
 
+      // clang-format off
       // Determine if this run should be reported; Either it has
       // run for a sufficient amount of time or because an error was reported.
       const bool should_report =
-          repetition_num > 0 ||
-          has_explicit_iteration_count  // An exact iteration count was
-                                        // requested
-          || results.has_error_ || iters >= kMaxIterations ||
-          seconds >= min_time  // the elapsed time is large enough
+          repetition_num > 0 
+          || has_explicit_iteration_count  // An exact iteration count was requested
+          || results.has_error_ 
+          || iters >= kMaxIterations 
+          || seconds >= min_time // the elapsed time is large enough
           // CPU time is specified but the elapsed real time greatly exceeds the
           // minimum time. Note that user provided timers are except from this
           // sanity check.
           || ((results.real_time_used >= 5 * min_time) && !b.use_manual_time);
-
+      // clang-format on
       if (should_report) {
         BenchmarkReporter::Run report =
             CreateRunReport(b, results, iters, seconds);

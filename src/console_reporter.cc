@@ -114,8 +114,8 @@ void ConsoleReporter::PrintRunData(const Run& result) {
   if (output_options_ & OO_Base_Name) {
     auto id_color =
         (result.report_big_o || result.report_rms) ? COLOR_BLUE : COLOR_GREEN;
-    printer(Out, id_color, "%-*s ", base_name_field_width_, 
-           result.benchmark_base_name.c_str());
+    printer(Out, id_color, "%-*s ", base_name_field_width_,
+            result.base_name.c_str());
   }
   auto name_color =
       (result.report_big_o || result.report_rms) ? COLOR_BLUE : COLOR_GREEN;

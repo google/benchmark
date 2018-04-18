@@ -159,7 +159,7 @@ void JSONReporter::Finalize() {
 void JSONReporter::PrintRunData(Run const& run) {
   std::string indent(6, ' ');
   std::ostream& out = GetOutputStream();
-  out << indent << FormatKV("base_name", run.benchmark_base_name) << ",\n";
+  out << indent << FormatKV("base_name", run.base_name) << ",\n";
   out << indent << FormatKV("name", run.benchmark_name) << ",\n";
   if (run.error_occurred) {
     out << indent << FormatKV("error_occurred", run.error_occurred) << ",\n";

@@ -567,8 +567,8 @@ class State {
     return (max_iterations - total_iterations_ + batch_leftover_);
   }
 
- private
-     :  // items we expect on the first cache line (ie 64 bytes of the struct)
+ private:
+  // items we expect on the first cache line (ie 64 bytes of the struct)
   // When total_iterations_ is 0, KeepRunning() and friends will return false.
   // May be larger than max_iterations.
   size_t total_iterations_;
@@ -878,7 +878,6 @@ class Benchmark {
  private:
   friend class BenchmarkFamilies;
 
-  int id_;
   std::string name_;
   ReportMode report_mode_;
   std::vector<std::string> arg_names_;       // Args for all benchmark runs
@@ -1262,7 +1261,7 @@ class BenchmarkReporter {
           report_rms(false),
           counters() {}
 
-    std::string benchmark_base_name;
+    std::string base_name;
     std::string benchmark_name;
     std::string report_label;  // Empty if not set by benchmark.
     bool error_occurred;
