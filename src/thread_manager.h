@@ -1,6 +1,9 @@
 #ifndef BENCHMARK_THREAD_MANAGER_H
 #define BENCHMARK_THREAD_MANAGER_H
 
+#include <atomic>
+
+#include "benchmark/benchmark.h"
 #include "mutex.h"
 
 namespace benchmark {
@@ -35,6 +38,7 @@ class ThreadManager {
 
  public:
   struct Result {
+    int64_t iterations = 0;
     double real_time_used = 0;
     double cpu_time_used = 0;
     double manual_time_used = 0;
