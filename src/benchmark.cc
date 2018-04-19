@@ -115,7 +115,7 @@ namespace {
 
 BenchmarkReporter::Run CreateRunReport(
     const benchmark::internal::Benchmark::Instance& b,
-    const internal::ThreadManager::Result& results, size_t iters,
+    const internal::ThreadManager::Result& results,
     double seconds) {
   // Create report about this benchmark run.
   BenchmarkReporter::Run report;
@@ -124,8 +124,8 @@ BenchmarkReporter::Run CreateRunReport(
   report.error_occurred = results.has_error_;
   report.error_message = results.error_message_;
   report.report_label = results.report_label_;
-  // Report the total iterations across all threads.
-  report.iterations = static_cast<int64_t>(iters) * b.threads;
+  // This is the total iterations across all threads.
+  report.iterations = results.iterations;
   report.time_unit = b.time_unit;
 
   if (!report.error_occurred) {
@@ -169,6 +169,7 @@ void RunInThread(const benchmark::internal::Benchmark::Instance* b,
   {
     MutexLock l(manager->GetBenchmarkMutex());
     internal::ThreadManager::Result& results = manager->results;
+    results.iterations += st.iterations();
     results.cpu_time_used += timer.cpu_time_used();
     results.real_time_used += timer.real_time_used();
     results.manual_time_used += timer.manual_time_used();
@@ -236,18 +237,17 @@ std::vector<BenchmarkReporter::Run> RunBenchmark(
       // Determine if this run should be reported; Either it has
       // run for a sufficient amount of time or because an error was reported.
       const bool should_report =  repetition_num > 0
-        || has_explicit_iteration_count // An exact iteration count was requested
+        || has_explicit_iteration_count  // An exact iteration count was requested
         || results.has_error_
-        || iters >= kMaxIterations
-        || seconds >= min_time // the elapsed time is large enough
+        || iters >= kMaxIterations  // No chance to try again, we hit the limit.
+        || seconds >= min_time  // the elapsed time is large enough
         // CPU time is specified but the elapsed real time greatly exceeds the
         // minimum time. Note that user provided timers are except from this
         // sanity check.
         || ((results.real_time_used >= 5 * min_time) && !b.use_manual_time);
 
       if (should_report) {
-        BenchmarkReporter::Run report =
-            CreateRunReport(b, results, iters, seconds);
+        BenchmarkReporter::Run report = CreateRunReport(b, results, seconds);
         if (!report.error_occurred && b.complexity != oNone)
           complexity_reports->push_back(report);
         reports.push_back(report);
