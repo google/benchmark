@@ -398,12 +398,9 @@ void RunBenchmarks(const std::vector<Benchmark::Instance>& benchmarks,
 
   // Determine the width of the name field using a minimum width of 10.
   bool has_repetitions = FLAGS_benchmark_repetitions > 1;
-  size_t base_name_field_width = 10;
   size_t name_field_width = 10;
   size_t stat_field_width = 0;
   for (const Benchmark::Instance& benchmark : benchmarks) {
-    base_name_field_width =
-        std::max<size_t>(base_name_field_width, benchmark.name.size());
     name_field_width =
         std::max<size_t>(name_field_width, benchmark.name.size());
     has_repetitions |= benchmark.repetitions > 1;
@@ -415,7 +412,6 @@ void RunBenchmarks(const std::vector<Benchmark::Instance>& benchmarks,
 
   // Print header here
   BenchmarkReporter::Context context;
-  context.base_name_field_width = base_name_field_width;
   context.name_field_width = name_field_width;
 
   // Keep track of running times of all instances of current benchmark
