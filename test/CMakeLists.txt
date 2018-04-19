@@ -22,6 +22,12 @@ if( NOT uppercase_CMAKE_BUILD_TYPE STREQUAL "DEBUG" )
   endforeach()
 endif()
 
+check_cxx_compiler_flag(-O3 BENCHMARK_HAS_O3_FLAG)
+set(BENCHMARK_O3_FLAG "")
+if (BENCHMARK_HAS_O3_FLAG)
+  set(BENCHMARK_O3_FLAG "-O3")
+endif()
+
 # NOTE: These flags must be added after find_package(Threads REQUIRED) otherwise
 # they will break the configuration check.
 if (DEFINED BENCHMARK_CXX_LINKER_FLAGS)
@@ -144,8 +150,11 @@ if (BENCHMARK_ENABLE_GTEST_TESTS)
     if (TARGET googletest)
       add_dependencies(${name} googletest)
     endif()
+    if (GTEST_INCLUDE_DIRS)
+      target_include_directories(${name} PRIVATE ${GTEST_INCLUDE_DIRS})
+    endif()
     target_link_libraries(${name} benchmark
-        "${GTEST_BOTH_LIBRARIES}" ${CMAKE_THREAD_LIBS_INIT})
+        ${GTEST_BOTH_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
   endmacro(compile_gtest)
 
   macro(add_gtest name)
@@ -153,9 +162,29 @@ if (BENCHMARK_ENABLE_GTEST_TESTS)
     add_test(${name} ${name})
   endmacro()
 
-  add_gtest(statistics_test)
+  add_gtest(benchmark_gtest)
+  add_gtest(statistics_gtest)
 endif(BENCHMARK_ENABLE_GTEST_TESTS)
 
+###############################################################################
+# Assembly Unit Tests
+###############################################################################
+
+if (BENCHMARK_ENABLE_ASSEMBLY_TESTS)
+  if (NOT LLVM_FILECHECK_EXE)
+    message(FATAL_ERROR "LLVM FileCheck is required when including this file")
+  endif()
+  include(AssemblyTests.cmake)
+  add_filecheck_test(donotoptimize_assembly_test)
+  add_filecheck_test(state_assembly_test)
+  add_filecheck_test(clobber_memory_assembly_test)
+endif()
+
+
+
+###############################################################################
+# Code Coverage Configuration
+###############################################################################
 
 # Add the coverage command(s)
 if(CMAKE_BUILD_TYPE)

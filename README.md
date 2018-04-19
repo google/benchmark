@@ -14,6 +14,8 @@ IRC channel: https://freenode.net #googlebenchmark
 
 [Additional Tooling Documentation](docs/tools.md)
 
+[Assembly Testing Documentation](docs/AssemblyTests.md)
+
 
 ## Building
 
@@ -821,7 +823,7 @@ BM_SetInsert/1024/10                       33157      33648      21431  1.13369M
 The JSON format outputs human readable json split into two top level attributes.
 The `context` attribute contains information about the run in general, including
 information about the CPU and the date.
-The `benchmarks` attribute contains a list of ever benchmark run. Example json
+The `benchmarks` attribute contains a list of every benchmark run. Example json
 output looks like:
 ```json
 {
@@ -893,8 +895,11 @@ If you are using gcc, you might need to set `GCC_AR` and `GCC_RANLIB` cmake cach
 If you are using clang, you may need to set `LLVMAR_EXECUTABLE`, `LLVMNM_EXECUTABLE` and `LLVMRANLIB_EXECUTABLE` cmake cache variables.
 
 ## Linking against the library
-When using gcc, it is necessary to link against pthread to avoid runtime exceptions.
-This is due to how gcc implements std::thread.
+
+When the library is built using GCC it is necessary to link with `-pthread`,
+due to how GCC implements `std::thread`.
+
+For GCC 4.x failing to link to pthreads will lead to runtime exceptions, not linker errors.
 See [issue #67](https://github.com/google/benchmark/issues/67) for more details.
 
 ## Compiler Support
@@ -933,3 +938,6 @@ sudo cpupower frequency-set --governor powersave
 * Users must manually link `shlwapi.lib`. Failure to do so may result
 in unresolved symbols.
 
+### Solaris
+
+* Users must explicitly link with kstat library (-lkstat compilation flag).
