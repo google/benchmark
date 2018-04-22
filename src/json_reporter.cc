@@ -165,9 +165,15 @@ void JSONReporter::PrintRunData(Run const& run) {
         << FormatKV("real_time", run.GetAdjustedRealTime())
         << ",\n";
     out << indent
-        << FormatKV("cpu_time", run.GetAdjustedCPUTime());
+        << FormatKV("cpu_time", run.GetAdjustedCPUTime())
+       << ",\n";
+    out << indent
+       << FormatKV("standard_deviation_real_time", run.GetStandardDeviationRealTime())
+       << ",\n";
+    out << indent
+       << FormatKV("standard_deviation_cpu_time", run.GetStandardDeviationRealTime());
     out << ",\n"
-        << indent << FormatKV("time_unit", GetTimeUnitString(run.time_unit));
+       << indent << FormatKV("time_unit", GetTimeUnitString(run.time_unit));
   } else if (run.report_big_o) {
     out << indent
         << FormatKV("cpu_coefficient", run.GetAdjustedCPUTime())

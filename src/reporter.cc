@@ -72,6 +72,20 @@ const char* BenchmarkReporter::Context::executable_name;
 
 BenchmarkReporter::Context::Context() : cpu_info(CPUInfo::Get()) {}
 
+double BenchmarkReporter::Run::GetStandardDeviationRealTime() const {
+   if (iterations == 0)
+      return 0.;
+   double deviation = std::sqrt(std::max(real_accumulated_squared_time * iterations - real_accumulated_time * real_accumulated_time, 0.));
+   return deviation / iterations * GetTimeUnitMultiplier(time_unit);
+}
+
+double BenchmarkReporter::Run::GetStandardDeviationCPUTime() const {
+   if (iterations == 0)
+      return 0.;
+   double deviation = std::sqrt(std::max(cpu_accumulated_squared_time * iterations - cpu_accumulated_time * cpu_accumulated_time, 0.));
+   return deviation / iterations * GetTimeUnitMultiplier(time_unit);
+}
+
 double BenchmarkReporter::Run::GetAdjustedRealTime() const {
   double new_time = real_accumulated_time * GetTimeUnitMultiplier(time_unit);
   if (iterations != 0) new_time /= static_cast<double>(iterations);

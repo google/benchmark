@@ -92,11 +92,15 @@ std::vector<BenchmarkReporter::Run> ComputeStats(
   // Accumulators.
   std::vector<double> real_accumulated_time_stat;
   std::vector<double> cpu_accumulated_time_stat;
+  std::vector<double> real_accumulated_squared_time_stat;
+  std::vector<double> cpu_accumulated_squared_time_stat;
   std::vector<double> bytes_per_second_stat;
   std::vector<double> items_per_second_stat;
 
   real_accumulated_time_stat.reserve(reports.size());
   cpu_accumulated_time_stat.reserve(reports.size());
+  real_accumulated_squared_time_stat.reserve(reports.size());
+  cpu_accumulated_squared_time_stat.reserve(reports.size());
   bytes_per_second_stat.reserve(reports.size());
   items_per_second_stat.reserve(reports.size());
 
@@ -129,6 +133,8 @@ std::vector<BenchmarkReporter::Run> ComputeStats(
     if (run.error_occurred) continue;
     real_accumulated_time_stat.emplace_back(run.real_accumulated_time);
     cpu_accumulated_time_stat.emplace_back(run.cpu_accumulated_time);
+    real_accumulated_squared_time_stat.emplace_back(run.real_accumulated_squared_time);
+    cpu_accumulated_squared_time_stat.emplace_back(run.cpu_accumulated_squared_time);
     items_per_second_stat.emplace_back(run.items_per_second);
     bytes_per_second_stat.emplace_back(run.bytes_per_second);
     // user counters
@@ -157,6 +163,8 @@ std::vector<BenchmarkReporter::Run> ComputeStats(
 
     data.real_accumulated_time = Stat.compute_(real_accumulated_time_stat);
     data.cpu_accumulated_time = Stat.compute_(cpu_accumulated_time_stat);
+    data.real_accumulated_squared_time = Stat.compute_(real_accumulated_squared_time_stat);
+    data.cpu_accumulated_squared_time = Stat.compute_(cpu_accumulated_squared_time_stat);
     data.bytes_per_second = Stat.compute_(bytes_per_second_stat);
     data.items_per_second = Stat.compute_(items_per_second_stat);
 

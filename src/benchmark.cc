@@ -140,10 +140,19 @@ BenchmarkReporter::Run CreateRunReport(
 
     if (b.use_manual_time) {
       report.real_accumulated_time = results.manual_time_used;
+      report.real_accumulated_squared_time = results.manual_time_squared_used;
+      report.min_real_time = results.min_manual_time;
+      report.max_real_time = results.max_manual_time;
     } else {
       report.real_accumulated_time = results.real_time_used;
+      report.real_accumulated_squared_time = results.real_time_squared_used;
+      report.min_real_time = results.min_real_time;
+      report.max_real_time = results.max_real_time;
     }
+    report.min_cpu_time = results.min_cpu_time;
+    report.max_cpu_time = results.max_cpu_time;
     report.cpu_accumulated_time = results.cpu_time_used;
+    report.cpu_accumulated_squared_time = results.cpu_time_squared_used;
     report.bytes_per_second = bytes_per_second;
     report.items_per_second = items_per_second;
     report.complexity_n = results.complexity_n;
@@ -173,6 +182,21 @@ void RunInThread(const benchmark::internal::Benchmark::Instance* b,
     results.cpu_time_used += timer.cpu_time_used();
     results.real_time_used += timer.real_time_used();
     results.manual_time_used += timer.manual_time_used();
+    results.cpu_time_squared_used += timer.cpu_squared_time_used();
+    results.real_time_squared_used += timer.real_squared_time_used();
+    results.manual_time_squared_used += timer.manual_squared_time_used();
+    results.min_cpu_time =
+        std::min(results.min_cpu_time, timer.min_cpu_time_used());
+    results.max_cpu_time =
+        std::max(results.max_cpu_time, timer.max_cpu_time_used());
+    results.min_real_time =
+        std::min(results.min_real_time, timer.min_real_time_used());
+    results.max_real_time =
+        std::max(results.max_real_time, timer.max_real_time_used());
+    results.min_manual_time =
+        std::min(results.min_manual_time, timer.min_manual_time_used());
+    results.max_manual_time =
+        std::max(results.max_manual_time, timer.max_manual_time_used());
     results.bytes_processed += st.bytes_processed();
     results.items_processed += st.items_processed();
     results.complexity_n += st.complexity_length_n();
@@ -219,6 +243,8 @@ std::vector<BenchmarkReporter::Run> RunBenchmark(
       // Adjust real/manual time stats since they were reported per thread.
       results.real_time_used /= b.threads;
       results.manual_time_used /= b.threads;
+      results.real_time_squared_used /= b.threads * b.threads;
+      results.manual_time_squared_used /= b.threads * b.threads;
 
       VLOG(2) << "Ran in " << results.cpu_time_used << "/"
               << results.real_time_used << "\n";
@@ -341,6 +367,11 @@ void State::ResumeTiming() {
   timer_->StartTimer();
 }
 
+void State::WriteTiming() {
+  CHECK(started_ && !finished_ && !error_occurred_);
+  timer_->WriteTimer();
+}
+
 void State::SkipWithError(const char* msg) {
   CHECK(msg);
   error_occurred_ = true;
@@ -370,6 +401,13 @@ void State::StartKeepRunning() {
   total_iterations_ = error_occurred_ ? 0 : max_iterations;
   manager_->StartStopBarrier();
   if (!error_occurred_) ResumeTiming();
+}
+
+void State::WriteKeepRunning() {
+  CHECK(started_ && (!finished_ || error_occurred_));
+  if (!error_occurred_) {
+    WriteTiming();
+  }
 }
 
 void State::FinishKeepRunning() {

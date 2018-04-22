@@ -476,6 +476,8 @@ class State {
   // within each benchmark iteration, if possible.
   void ResumeTiming();
 
+  void WriteTiming();
+
   // REQUIRES: 'SkipWithError(...)' has not been called previously by the
   //            current thread.
   // Report the benchmark as resulting in an error with the specified 'msg'.
@@ -625,6 +627,7 @@ private: // items we don't need on the first cache line
   // is_batch must be true unless n is 1.
   bool KeepRunningInternal(size_t n, bool is_batch);
   void FinishKeepRunning();
+  void WriteKeepRunning();
   internal::ThreadTimer* timer_;
   internal::ThreadManager* manager_;
   BENCHMARK_DISALLOW_COPY_AND_ASSIGN(State);
@@ -647,6 +650,9 @@ bool State::KeepRunningInternal(size_t n, bool is_batch) {
   assert(n > 0);
   // n must be 1 unless is_batch is true.
   assert(is_batch || n == 1);
+  if (started_ && !error_occurred_)
+    WriteTiming();
+
   if (BENCHMARK_BUILTIN_EXPECT(total_iterations_ >= n, true)) {
     total_iterations_ -= n;
     return true;
@@ -693,6 +699,7 @@ struct State::StateIterator {
   StateIterator& operator++() {
     assert(cached_ > 0);
     --cached_;
+    parent_->WriteKeepRunning();
     return *this;
   }
 
@@ -1250,7 +1257,7 @@ class BenchmarkReporter {
     CPUInfo const& cpu_info;
     // The number of chars in the longest benchmark name.
     size_t name_field_width;
-    static const char *executable_name;
+    static const char* executable_name;
     Context();
   };
 
@@ -1261,6 +1268,12 @@ class BenchmarkReporter {
           time_unit(kNanosecond),
           real_accumulated_time(0),
           cpu_accumulated_time(0),
+          real_accumulated_squared_time(0),
+          cpu_accumulated_squared_time(0),
+          min_real_time(0),
+          max_real_time(0),
+          min_cpu_time(0),
+          max_cpu_time(0),
           bytes_per_second(0),
           items_per_second(0),
           max_heapbytes_used(0),
@@ -1280,6 +1293,15 @@ class BenchmarkReporter {
     TimeUnit time_unit;
     double real_accumulated_time;
     double cpu_accumulated_time;
+    // Used for standard deviation calculation on the fly
+    double real_accumulated_squared_time;
+    double cpu_accumulated_squared_time;
+    // Min and max values
+    double min_real_time;
+    double max_real_time;
+    double min_cpu_time;
+    double max_cpu_time;
+
 
     // Return a value representing the real time per iteration in the unit
     // specified by 'time_unit'.
@@ -1292,6 +1314,14 @@ class BenchmarkReporter {
     // NOTE: If 'iterations' is zero the returned value represents the
     // accumulated time.
     double GetAdjustedCPUTime() const;
+
+    // Return the standard deviation of the real time measures.
+    // NOTE: If 'iterations' is zero the returns zero.
+    double GetStandardDeviationRealTime() const;
+
+    // Return the standard deviation of the CPU time measures.
+    // NOTE: If 'iterations' is zero the returns zero.
+    double GetStandardDeviationCPUTime() const;
 
     // Zero if not set by benchmark.
     double bytes_per_second;

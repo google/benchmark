@@ -11,19 +11,19 @@
 
 ADD_CASES(TC_ConsoleOut,
           {{"^[-]+$", MR_Next},
-           {"^Benchmark %s Time %s CPU %s Iterations$", MR_Next},
+           {"^%console_header$", MR_Next},
            {"^[-]+$", MR_Next}});
 static int AddContextCases() {
   AddCases(TC_ConsoleErr,
            {
                {"%int[-/]%int[-/]%int %int:%int:%int$", MR_Default},
-               {"Running .*/reporter_output_test(\\.exe)?$", MR_Next},
+               {"Running .*(/|\\\\)reporter_output_test(\\.exe)?$", MR_Next},
                {"Run on \\(%int X %float MHz CPU s\\)", MR_Next},
            });
   AddCases(TC_JSONOut, {{"^\\{", MR_Default},
                         {"\"context\":", MR_Next},
                         {"\"date\": \"", MR_Next},
-                        {"\"executable\": \".*/reporter_output_test(\\.exe)?\",", MR_Next},
+                        {"\"executable\": \".*(/|\\\\)reporter_output_test(\\.exe)?\",", MR_Next},
                         {"\"num_cpus\": %int,$", MR_Next},
                         {"\"mhz_per_cpu\": %float,$", MR_Next},
                         {"\"cpu_scaling_enabled\": ", MR_Next},
@@ -67,8 +67,10 @@ ADD_CASES(TC_JSONOut, {{"\"name\": \"BM_basic\",$"},
                        {"\"iterations\": %int,$", MR_Next},
                        {"\"real_time\": %float,$", MR_Next},
                        {"\"cpu_time\": %float,$", MR_Next},
+                       {"\"standard_deviation_real_time\": %float,$", MR_Next},
+                       {"\"standard_deviation_cpu_time\": %float,$", MR_Next},
                        {"\"time_unit\": \"ns\"$", MR_Next},
-                       {"}", MR_Next}});
+                       {"}", MR_Next} });
 ADD_CASES(TC_CSVOut, {{"^\"BM_basic\",%csv_report$"}});
 
 // ========================================================================= //
@@ -88,6 +90,8 @@ ADD_CASES(TC_JSONOut, {{"\"name\": \"BM_bytes_per_second\",$"},
                        {"\"iterations\": %int,$", MR_Next},
                        {"\"real_time\": %float,$", MR_Next},
                        {"\"cpu_time\": %float,$", MR_Next},
+                       {"\"standard_deviation_real_time\": %float,$", MR_Next},
+                       {"\"standard_deviation_cpu_time\": %float,$", MR_Next},
                        {"\"time_unit\": \"ns\",$", MR_Next},
                        {"\"bytes_per_second\": %float$", MR_Next},
                        {"}", MR_Next}});
@@ -110,6 +114,8 @@ ADD_CASES(TC_JSONOut, {{"\"name\": \"BM_items_per_second\",$"},
                        {"\"iterations\": %int,$", MR_Next},
                        {"\"real_time\": %float,$", MR_Next},
                        {"\"cpu_time\": %float,$", MR_Next},
+                       {"\"standard_deviation_real_time\": %float,$", MR_Next},
+                       {"\"standard_deviation_cpu_time\": %float,$", MR_Next},
                        {"\"time_unit\": \"ns\",$", MR_Next},
                        {"\"items_per_second\": %float$", MR_Next},
                        {"}", MR_Next}});
@@ -131,6 +137,8 @@ ADD_CASES(TC_JSONOut, {{"\"name\": \"BM_label\",$"},
                        {"\"iterations\": %int,$", MR_Next},
                        {"\"real_time\": %float,$", MR_Next},
                        {"\"cpu_time\": %float,$", MR_Next},
+                       {"\"standard_deviation_real_time\": %float,$", MR_Next},
+                       {"\"standard_deviation_cpu_time\": %float,$", MR_Next},
                        {"\"time_unit\": \"ns\",$", MR_Next},
                        {"\"label\": \"some label\"$", MR_Next},
                        {"}", MR_Next}});
@@ -152,7 +160,7 @@ ADD_CASES(TC_JSONOut, {{"\"name\": \"BM_error\",$"},
                        {"\"error_occurred\": true,$", MR_Next},
                        {"\"error_message\": \"message\",$", MR_Next}});
 
-ADD_CASES(TC_CSVOut, {{"^\"BM_error\",,,,,,,,true,\"message\"$"}});
+ADD_CASES(TC_CSVOut, {{"^\"BM_error\",,,,,,,,,,true,\"message\"$"}});
 
 // ========================================================================= //
 // ------------------------ Testing No Arg Name Output -----------------------

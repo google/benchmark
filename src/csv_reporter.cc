@@ -33,6 +33,7 @@ namespace benchmark {
 namespace {
 std::vector<std::string> elements = {
     "name",           "iterations",       "real_time",        "cpu_time",
+    "standard_dev_real_time", "standard_dev_cpu_time",
     "time_unit",      "bytes_per_second", "items_per_second", "label",
     "error_occurred", "error_message"};
 }  // namespace
@@ -108,6 +109,9 @@ void CSVReporter::PrintRunData(const Run & run) {
 
   Out << run.GetAdjustedRealTime() << ",";
   Out << run.GetAdjustedCPUTime() << ",";
+
+  Out << run.GetStandardDeviationRealTime() << ",";
+  Out << run.GetStandardDeviationCPUTime() << ",";
 
   // Do not print timeLabel on bigO and RMS report
   if (run.report_big_o) {

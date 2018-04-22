@@ -54,7 +54,7 @@ bool ConsoleReporter::ReportContext(const Context& context) {
 
 void ConsoleReporter::PrintHeader(const Run& run) {
   std::string str = FormatString("%-*s %13s %13s %10s", static_cast<int>(name_field_width_),
-                                 "Benchmark", "Time", "CPU", "Iterations");
+                                 "Benchmark", "Time (Std Dev)", "CPU (Std Dev)", "Iterations");
   if(!run.counters.empty()) {
     if(output_options_ & OO_Tabular) {
       for(auto const& c : run.counters) {
@@ -130,6 +130,9 @@ void ConsoleReporter::PrintRunData(const Run& result) {
   const double real_time = result.GetAdjustedRealTime();
   const double cpu_time = result.GetAdjustedCPUTime();
 
+  const double std_dev_real_time = result.GetStandardDeviationRealTime();
+  const double std_dev_cpu_time = result.GetStandardDeviationCPUTime();
+
   if (result.report_big_o) {
     std::string big_o = GetBigOString(result.complexity);
     printer(Out, COLOR_YELLOW, "%10.2f %s %10.2f %s ", real_time, big_o.c_str(),
@@ -139,8 +142,8 @@ void ConsoleReporter::PrintRunData(const Run& result) {
             cpu_time * 100);
   } else {
     const char* timeLabel = GetTimeUnitString(result.time_unit);
-    printer(Out, COLOR_YELLOW, "%10.0f %s %10.0f %s ", real_time, timeLabel,
-            cpu_time, timeLabel);
+    printer(Out, COLOR_YELLOW, "%10.0f %s (%10.0f) %10.0f %s (%10.0f)", real_time, timeLabel,
+            std_dev_real_time, cpu_time, timeLabel, std_dev_cpu_time);
   }
 
   if (!result.report_big_o && !result.report_rms) {
