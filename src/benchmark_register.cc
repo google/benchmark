@@ -114,7 +114,14 @@ bool BenchmarkFamilies::FindBenchmarks(
   // Make regular expression out of command-line flag
   std::string error_msg;
   Regex re;
-  if (!re.Init(spec, &error_msg)) {
+  std::string prefix("-");
+  std::string temp_spec = std::string(spec);
+  bool isNegativeFilter = false;
+  if(spec[0] == '-') {
+      temp_spec.replace(0, 1, "");
+      isNegativeFilter = true;
+  }
+  if (!re.Init(temp_spec, &error_msg)) {
     Err << "Could not compile benchmark re: " << error_msg << std::endl;
     return false;
   }
@@ -199,7 +206,8 @@ bool BenchmarkFamilies::FindBenchmarks(
           instance.name += StrFormat("/threads:%d", instance.threads);
         }
 
-        if (re.Match(instance.name)) {
+        if ((re.Match(instance.name) && !isNegativeFilter) ||
+            (!re.Match(instance.name) && isNegativeFilter)) {
           instance.last_benchmark_instance = (&args == &family->args_.back());
           benchmarks->push_back(std::move(instance));
         }
