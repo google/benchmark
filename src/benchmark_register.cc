@@ -77,7 +77,7 @@ class BenchmarkFamilies {
 
   // Extract the list of benchmark instances that match the specified
   // regular expression.
-  bool FindBenchmarks(const std::string& re,
+  bool FindBenchmarks(std::string re,
                       std::vector<Benchmark::Instance>* benchmarks,
                       std::ostream* Err);
 
@@ -107,13 +107,18 @@ void BenchmarkFamilies::ClearBenchmarks() {
 }
 
 bool BenchmarkFamilies::FindBenchmarks(
-    const std::string& spec, std::vector<Benchmark::Instance>* benchmarks,
+    std::string spec, std::vector<Benchmark::Instance>* benchmarks,
     std::ostream* ErrStream) {
   CHECK(ErrStream);
   auto& Err = *ErrStream;
   // Make regular expression out of command-line flag
   std::string error_msg;
   Regex re;
+  bool isNegativeFilter = false;
+  if(spec[0] == '-') {
+      spec.replace(0, 1, "");
+      isNegativeFilter = true;
+  }
   if (!re.Init(spec, &error_msg)) {
     Err << "Could not compile benchmark re: " << error_msg << std::endl;
     return false;
@@ -199,7 +204,8 @@ bool BenchmarkFamilies::FindBenchmarks(
           instance.name += StrFormat("/threads:%d", instance.threads);
         }
 
-        if (re.Match(instance.name)) {
+        if ((re.Match(instance.name) && !isNegativeFilter) ||
+            (!re.Match(instance.name) && isNegativeFilter)) {
           instance.last_benchmark_instance = (&args == &family->args_.back());
           benchmarks->push_back(std::move(instance));
         }
