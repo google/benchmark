@@ -1,5 +1,13 @@
 licenses(["notice"])
 
+config_setting(
+    name = "windows",
+    values = {
+        "cpu": "x64_windows",
+    },
+    visibility = [":__subpackages__"],
+)
+
 cc_library(
     name = "benchmark",
     srcs = glob([
@@ -7,6 +15,10 @@ cc_library(
         "src/*.h",
     ]),
     hdrs = ["include/benchmark/benchmark.h"],
+    linkopts = select({
+        ":windows": [],
+        "//conditions:default": ["-pthread"],
+    }),
     strip_include_prefix = "include",
     visibility = ["//visibility:public"],
 )
