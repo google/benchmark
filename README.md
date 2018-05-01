@@ -73,7 +73,7 @@ We need to install the library globally now
 sudo make install
 ```
 
-Now you have google/benchmark installed in your machine 
+Now you have google/benchmark installed in your machine
 Note: Don't forget to link to pthread library while building
 
 ## Stable and Experimental Library Versions
@@ -933,7 +933,7 @@ sudo cpupower frequency-set --governor powersave
 
 # Known Issues
 
-### Windows
+### Windows with CMake
 
 * Users must manually link `shlwapi.lib`. Failure to do so may result
 in unresolved symbols.
