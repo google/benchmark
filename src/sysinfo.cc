@@ -28,7 +28,7 @@
 #include <sys/types.h>  // this header must be included before 'sys/sysctl.h' to avoid compilation error on FreeBSD
 #include <unistd.h>
 #if defined BENCHMARK_OS_FREEBSD || defined BENCHMARK_OS_MACOSX || \
-    defined BENCHMARK_OS_NETBSD
+    defined BENCHMARK_OS_NETBSD || defined BENCHMARK_OS_OPENBSD
 #define BENCHMARK_HAS_SYSCTL
 #include <sys/sysctl.h>
 #endif
@@ -136,6 +136,26 @@ struct ValueUnion {
 };
 
 ValueUnion GetSysctlImp(std::string const& Name) {
+#if defined BENCHMARK_OS_OPENBSD
+  int mib[2];
+
+  mib[0] = CTL_HW;
+  if ((Name == "hw.ncpu") || (Name == "hw.cpuspeed")){
+    ValueUnion buff(sizeof(int));
+
+    if (Name == "hw.ncpu") {
+      mib[1] = HW_NCPU;
+    } else {
+      mib[1] = HW_CPUSPEED;
+    }
+
+    if (sysctl(mib, 2, buff.data(), &buff.Size, nullptr, 0) == -1) {
+      return ValueUnion();
+    }
+    return buff;
+  }
+  return ValueUnion();
+#else
   size_t CurBuffSize = 0;
   if (sysctlbyname(Name.c_str(), nullptr, &CurBuffSize, nullptr, 0) == -1)
     return ValueUnion();
@@ -144,6 +164,7 @@ ValueUnion GetSysctlImp(std::string const& Name) {
   if (sysctlbyname(Name.c_str(), buff.data(), &buff.Size, nullptr, 0) == 0)
     return buff;
   return ValueUnion();
+#endif
 }
 
 BENCHMARK_MAYBE_UNUSED
@@ -488,12 +509,17 @@ double GetCPUCyclesPerSecond() {
   constexpr auto* FreqStr =
 #if defined(BENCHMARK_OS_FREEBSD) || defined(BENCHMARK_OS_NETBSD)
       "machdep.tsc_freq";
+#elif defined BENCHMARK_OS_OPENBSD
+      "hw.cpuspeed";
 #else
       "hw.cpufrequency";
 #endif
   unsigned long long hz = 0;
+#if defined BENCHMARK_OS_OPENBSD
+  if (GetSysctl(FreqStr, &hz)) return hz * 1000000;
+#else
   if (GetSysctl(FreqStr, &hz)) return hz;
-
+#endif
   fprintf(stderr, "Unable to determine clock rate from sysctl: %s: %s\n",
           FreqStr, strerror(errno));
 
