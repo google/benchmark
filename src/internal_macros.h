@@ -57,7 +57,7 @@
   #define BENCHMARK_OS_LINUX 1
 #elif defined(__native_client__)
   #define BENCHMARK_OS_NACL 1
-#elif defined(EMSCRIPTEN)
+#elif defined(__EMSCRIPTEN__)
   #define BENCHMARK_OS_EMSCRIPTEN 1
 #elif defined(__rtems__)
   #define BENCHMARK_OS_RTEMS 1
