@@ -216,7 +216,7 @@ if (BENCHMARK_USE_LIBCXX)
     # linker flags appear before all linker inputs and -lc++ must appear after.
     list(APPEND BENCHMARK_CXX_LIBRARIES c++)
   else()
-    message(FATAL "-DBENCHMARK_USE_LIBCXX:BOOL=ON is not supported for compiler")
+    message(FATAL_ERROR "-DBENCHMARK_USE_LIBCXX:BOOL=ON is not supported for compiler")
   endif()
 endif(BENCHMARK_USE_LIBCXX)
 
