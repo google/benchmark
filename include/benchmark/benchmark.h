@@ -292,7 +292,7 @@ BENCHMARK_UNUSED static int stream_init_anchor = InitializeStreams();
 
 
 #if (!defined(__GNUC__) && !defined(__clang__)) || defined(__pnacl__) || \
-    defined(EMSCRIPTN)
+    defined(__EMSCRIPTEN__)
 # define BENCHMARK_HAS_NO_INLINE_ASSEMBLY
 #endif
 
