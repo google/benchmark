@@ -28,7 +28,7 @@ namespace benchmark {
 BigOFunc* FittingCurve(BigO complexity) {
   switch (complexity) {
     case oN:
-      return [](int64_t n) -> double { return n; };
+      return [](int64_t n) -> double { return static_cast<double>(n); };
     case oNSquared:
       return [](int64_t n) -> double { return std::pow(n, 2); };
     case oNCubed:
