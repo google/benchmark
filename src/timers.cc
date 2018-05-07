@@ -193,7 +193,6 @@ std::string DateTimeString(bool local) {
         std::strftime(storage, sizeof(storage), "%x %X", ::localtime(&now));
 #else
     std::tm timeinfo;
-    std::memset(&timeinfo, 0, sizeof(std::tm));
     ::localtime_r(&now, &timeinfo);
     written = std::strftime(storage, sizeof(storage), "%F %T", &timeinfo);
 #endif
@@ -202,7 +201,6 @@ std::string DateTimeString(bool local) {
     written = std::strftime(storage, sizeof(storage), "%x %X", ::gmtime(&now));
 #else
     std::tm timeinfo;
-    std::memset(&timeinfo, 0, sizeof(std::tm));
     ::gmtime_r(&now, &timeinfo);
     written = std::strftime(storage, sizeof(storage), "%F %T", &timeinfo);
 #endif
