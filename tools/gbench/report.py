@@ -191,7 +191,7 @@ class TestReportDifferenceBetweenFamilies(unittest.TestCase):
         json2 = filter_benchmark(json, "BM_O.e", ".")
         output_lines_with_header = generate_difference_report(json1, json2, use_color=False)
         output_lines = output_lines_with_header[2:]
-        print "\n"
+        print("\n")
         print("\n".join(output_lines_with_header))
         self.assertEqual(len(output_lines), len(expect_lines))
         for i in range(0, len(output_lines)):
