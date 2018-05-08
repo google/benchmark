@@ -138,6 +138,9 @@ def main():
     # Parse the command line flags
     parser = create_parser()
     args, unknown_args = parser.parse_known_args()
+    if args.mode is None:
+      parser.print_help()
+      exit(1)
     assert not unknown_args
     benchmark_options = args.benchmark_options
 
@@ -175,6 +178,7 @@ def main():
     else:
         # should never happen
         print("Unrecognized mode of operation: '%s'" % args.mode)
+        parser.print_help()
         exit(1)
 
     check_inputs(test_baseline, test_contender, benchmark_options)
@@ -218,8 +222,8 @@ class TestParser(unittest.TestCase):
                 os.path.realpath(__file__)),
             'gbench',
             'Inputs')
-        self.testInput0 = os.path.join(testInputs, 'test_baseline_run1.json')
-        self.testInput1 = os.path.join(testInputs, 'test_baseline_run2.json')
+        self.testInput0 = os.path.join(testInputs, 'test1_run1.json')
+        self.testInput1 = os.path.join(testInputs, 'test1_run2.json')
 
     def test_benchmarks_basic(self):
         parsed = self.parser.parse_args(
