@@ -94,7 +94,7 @@ if (BENCHMARK_ENABLE_GTEST_TESTS)
           HINTS ${HPATH}
       )
       if (NOT HEADER_PATH_${HEADER})
-        message(FATAL "Failed to find header ${HFILE} in ${HPATH}")
+        message(FATAL_ERROR "Failed to find header ${HFILE} in ${HPATH}")
       endif()
       list(APPEND GTEST_INCLUDE_DIRS ${HEADER_PATH_${HEADER}})
     endforeach()
@@ -105,7 +105,7 @@ if (BENCHMARK_ENABLE_GTEST_TESTS)
     find_path(GMOCK_INCLUDE_DIRS gmock/gmock.h
         HINTS ${GTEST_INCLUDE_DIRS})
     if (NOT GMOCK_INCLUDE_DIRS)
-      message(FATAL "Failed to find header gmock/gmock.h with hint ${GTEST_INCLUDE_DIRS}")
+      message(FATAL_ERROR "Failed to find header gmock/gmock.h with hint ${GTEST_INCLUDE_DIRS}")
     endif()
     set(GTEST_INCLUDE_DIRS ${GTEST_INCLUDE_DIRS} ${GMOCK_INCLUDE_DIRS})
     # FIXME: We don't currently require the gmock library to build the tests,
