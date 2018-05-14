@@ -1,4 +1,5 @@
 
+include(split_list)
 
 set(ASM_TEST_FLAGS "")
 check_cxx_compiler_flag(-O3 BENCHMARK_HAS_O3_FLAG)
