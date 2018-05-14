@@ -1,7 +1,5 @@
 
-macro(split_list listname)
-  string(REPLACE ";" " " ${listname} "${${listname}}")
-endmacro()
+include(split_list)
 
 macro(build_external_gtest)
   include(ExternalProject)
