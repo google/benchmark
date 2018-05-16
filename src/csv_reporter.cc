@@ -22,9 +22,9 @@
 #include <tuple>
 #include <vector>
 
+#include "check.h"
 #include "string_util.h"
 #include "timers.h"
-#include "check.h"
 
 // File format reference: http://edoceo.com/utilitas/csv-file-format.
 
@@ -34,7 +34,7 @@ namespace {
 std::vector<std::string> elements = {
     "name",           "iterations",       "real_time",        "cpu_time",
     "time_unit",      "bytes_per_second", "items_per_second", "label",
-    "error_occurred", "error_message"};
+    "error_occurred", "error_message",    "base_name"};
 }  // namespace
 
 bool CSVReporter::ReportContext(const Context& context) {
@@ -42,7 +42,7 @@ bool CSVReporter::ReportContext(const Context& context) {
   return true;
 }
 
-void CSVReporter::ReportRuns(const std::vector<Run> & reports) {
+void CSVReporter::ReportRuns(const std::vector<Run>& reports) {
   std::ostream& Out = GetOutputStream();
 
   if (!printed_header_) {
@@ -58,7 +58,8 @@ void CSVReporter::ReportRuns(const std::vector<Run> & reports) {
       Out << *B++;
       if (B != elements.end()) Out << ",";
     }
-    for (auto B = user_counter_names_.begin(); B != user_counter_names_.end();) {
+    for (auto B = user_counter_names_.begin();
+         B != user_counter_names_.end();) {
       Out << ",\"" << *B++ << "\"";
     }
     Out << "\n";
@@ -69,9 +70,9 @@ void CSVReporter::ReportRuns(const std::vector<Run> & reports) {
     for (const auto& run : reports) {
       for (const auto& cnt : run.counters) {
         CHECK(user_counter_names_.find(cnt.first) != user_counter_names_.end())
-              << "All counters must be present in each run. "
-              << "Counter named \"" << cnt.first
-              << "\" was not in a run after being added to the header";
+            << "All counters must be present in each run. "
+            << "Counter named \"" << cnt.first
+            << "\" was not in a run after being added to the header";
       }
     }
   }
@@ -80,23 +81,30 @@ void CSVReporter::ReportRuns(const std::vector<Run> & reports) {
   for (const auto& run : reports) {
     PrintRunData(run);
   }
-
 }
 
-void CSVReporter::PrintRunData(const Run & run) {
+void CSVReporter::PrintRunData(const Run& run) {
   std::ostream& Out = GetOutputStream();
 
   // Field with embedded double-quote characters must be doubled and the field
   // delimited with double-quotes.
+  // Base benchmark name handling: we do replace up here
+  // since early-return for message printing also uses
+  // this.
+  std::string base_name = run.base_name;
+  ReplaceAll(&base_name, "\"", "\"\"");
+  // Benchmark name handling.
   std::string name = run.benchmark_name;
   ReplaceAll(&name, "\"", "\"\"");
   Out << '"' << name << "\",";
   if (run.error_occurred) {
-    Out << std::string(elements.size() - 3, ',');
+    Out << std::string(elements.size() - 4, ',');
     Out << "true,";
     std::string msg = run.error_message;
     ReplaceAll(&msg, "\"", "\"\"");
-    Out << '"' << msg << "\"\n";
+    Out << '"' << msg << "\"";
+    Out << ",\"" << base_name << "\"";
+    Out << "\n";
     return;
   }
 
@@ -133,11 +141,12 @@ void CSVReporter::PrintRunData(const Run & run) {
     Out << "\"" << label << "\"";
   }
   Out << ",,";  // for error_occurred and error_message
+  Out << ",\"" << base_name << "\"";
 
   // Print user counters
-  for (const auto &ucn : user_counter_names_) {
+  for (const auto& ucn : user_counter_names_) {
     auto it = run.counters.find(ucn);
-    if(it == run.counters.end()) {
+    if (it == run.counters.end()) {
       Out << ",";
     } else {
       Out << "," << it->second;

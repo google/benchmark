@@ -153,6 +153,7 @@ bool BenchmarkFamilies::FindBenchmarks(
     for (auto const& args : family->args_) {
       for (int num_threads : *thread_counts) {
         Benchmark::Instance instance;
+        instance.base_name = family->name_;
         instance.name = family->name_;
         instance.benchmark = family.get();
         instance.report_mode = family->report_mode_;
