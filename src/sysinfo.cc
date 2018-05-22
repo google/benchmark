@@ -140,7 +140,7 @@ ValueUnion GetSysctlImp(std::string const& Name) {
   int mib[2];
 
   mib[0] = CTL_HW;
-  if ((Name == "hw.ncpu") || (Name == "hw.cpuspeed")){
+  if ((Name == "hw.ncpu") || (Name == "hw.cpuspeed")) {
     ValueUnion buff(sizeof(int));
 
     if (Name == "hw.ncpu") {
@@ -385,8 +385,7 @@ int GetNumCPUs() {
   // Returns -1 in case of a failure.
   int NumCPU = sysconf(_SC_NPROCESSORS_ONLN);
   if (NumCPU < 0) {
-    fprintf(stderr,
-            "sysconf(_SC_NPROCESSORS_ONLN) failed with error: %s\n",
+    fprintf(stderr, "sysconf(_SC_NPROCESSORS_ONLN) failed with error: %s\n",
             strerror(errno));
   }
   return NumCPU;
@@ -534,13 +533,13 @@ double GetCPUCyclesPerSecond() {
                       "~MHz", nullptr, &data, &data_size)))
     return static_cast<double>((int64_t)data *
                                (int64_t)(1000 * 1000));  // was mhz
-#elif defined (BENCHMARK_OS_SOLARIS)
-  kstat_ctl_t *kc = kstat_open();
+#elif defined(BENCHMARK_OS_SOLARIS)
+  kstat_ctl_t* kc = kstat_open();
   if (!kc) {
     std::cerr << "failed to open /dev/kstat\n";
     return -1;
   }
-  kstat_t *ksp = kstat_lookup(kc, (char*)"cpu_info", -1, (char*)"cpu_info0");
+  kstat_t* ksp = kstat_lookup(kc, (char*)"cpu_info", -1, (char*)"cpu_info0");
   if (!ksp) {
     std::cerr << "failed to lookup in /dev/kstat\n";
     return -1;
@@ -549,7 +548,7 @@ double GetCPUCyclesPerSecond() {
     std::cerr << "failed to read from /dev/kstat\n";
     return -1;
   }
-  kstat_named_t *knp =
+  kstat_named_t* knp =
       (kstat_named_t*)kstat_data_lookup(ksp, (char*)"current_clock_Hz");
   if (!knp) {
     std::cerr << "failed to lookup data in /dev/kstat\n";

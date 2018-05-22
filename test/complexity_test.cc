@@ -45,7 +45,7 @@ int AddComplexityTest(std::string big_o_test_name, std::string rms_test_name,
 // --------------------------- Testing BigO O(1) --------------------------- //
 // ========================================================================= //
 
-void BM_Complexity_O1(benchmark::State& state) {
+void BM_Complexity_O1(benchmark::State &state) {
   for (auto _ : state) {
     for (int i = 0; i < 1024; ++i) {
       benchmark::DoNotOptimize(&i);
@@ -90,7 +90,7 @@ std::vector<int> ConstructRandomVector(int64_t size) {
   return v;
 }
 
-void BM_Complexity_O_N(benchmark::State& state) {
+void BM_Complexity_O_N(benchmark::State &state) {
   auto v = ConstructRandomVector(state.range(0));
   // Test worst case scenario (item not in vector)
   const int64_t item_not_in_vector = state.range(0) * 2;
@@ -106,7 +106,7 @@ BENCHMARK(BM_Complexity_O_N)
 BENCHMARK(BM_Complexity_O_N)
     ->RangeMultiplier(2)
     ->Range(1 << 10, 1 << 16)
-    ->Complexity([](int64_t n) -> double { return n; });
+    ->Complexity([](int64_t n) -> double { return static_cast<double>(n); });
 BENCHMARK(BM_Complexity_O_N)
     ->RangeMultiplier(2)
     ->Range(1 << 10, 1 << 16)
@@ -127,7 +127,7 @@ ADD_COMPLEXITY_CASES(big_o_n_test_name, rms_o_n_test_name, lambda_big_o_n);
 // ------------------------- Testing BigO O(N*lgN) ------------------------- //
 // ========================================================================= //
 
-static void BM_Complexity_O_N_log_N(benchmark::State& state) {
+static void BM_Complexity_O_N_log_N(benchmark::State &state) {
   auto v = ConstructRandomVector(state.range(0));
   for (auto _ : state) {
     std::sort(v.begin(), v.end());

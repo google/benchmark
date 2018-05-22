@@ -124,8 +124,8 @@ double ProcessCPUUsage() {
   // syncronous system calls in Emscripten.
   return emscripten_get_now() * 1e-3;
 #elif defined(CLOCK_PROCESS_CPUTIME_ID) && !defined(BENCHMARK_OS_MACOSX)
-  // FIXME We want to use clock_gettime, but its not available in MacOS 10.11. See
-  // https://github.com/google/benchmark/pull/292
+  // FIXME We want to use clock_gettime, but its not available in MacOS 10.11.
+  // See https://github.com/google/benchmark/pull/292
   struct timespec spec;
   if (clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &spec) == 0)
     return MakeTime(spec);
@@ -148,8 +148,8 @@ double ThreadCPUUsage() {
                  &user_time);
   return MakeTime(kernel_time, user_time);
 #elif defined(BENCHMARK_OS_MACOSX)
-  // FIXME We want to use clock_gettime, but its not available in MacOS 10.11. See
-  // https://github.com/google/benchmark/pull/292
+  // FIXME We want to use clock_gettime, but its not available in MacOS 10.11.
+  // See https://github.com/google/benchmark/pull/292
   mach_msg_type_number_t count = THREAD_BASIC_INFO_COUNT;
   thread_basic_info_data_t info;
   mach_port_t thread = pthread_mach_thread_np(pthread_self());

@@ -179,12 +179,16 @@ std::vector<BenchmarkReporter::Run> ComputeBigO(
     result_cpu = MinimalLeastSq(n, cpu_time, reports[0].complexity);
     result_real = MinimalLeastSq(n, real_time, result_cpu.complexity);
   }
-  std::string benchmark_name =
-      reports[0].benchmark_name.substr(0, reports[0].benchmark_name.find('/'));
+  std::string benchmark_name = reports[0].base_name;
 
   // Get the data from the accumulator to BenchmarkReporter::Run's.
   Run big_o;
+  big_o.base_name = benchmark_name;
+  big_o.id = reports[0].id;
+  big_o.threads = reports[0].threads;
+  big_o.repetitions = reports[0].repetitions;
   big_o.benchmark_name = benchmark_name + "_BigO";
+  big_o.report_label = reports[0].report_label;
   big_o.iterations = 0;
   big_o.real_accumulated_time = result_real.coef;
   big_o.cpu_accumulated_time = result_cpu.coef;
@@ -200,7 +204,10 @@ std::vector<BenchmarkReporter::Run> ComputeBigO(
 
   // Only add label to mean/stddev if it is same for all runs
   Run rms;
-  big_o.report_label = reports[0].report_label;
+  rms.base_name = benchmark_name;
+  rms.id = reports[0].id;
+  rms.threads = reports[0].threads;
+  rms.repetitions = reports[0].repetitions;
   rms.benchmark_name = benchmark_name + "_RMS";
   rms.report_label = big_o.report_label;
   rms.iterations = 0;

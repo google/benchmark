@@ -115,9 +115,9 @@ bool BenchmarkFamilies::FindBenchmarks(
   std::string error_msg;
   Regex re;
   bool isNegativeFilter = false;
-  if(spec[0] == '-') {
-      spec.replace(0, 1, "");
-      isNegativeFilter = true;
+  if (spec[0] == '-') {
+    spec.replace(0, 1, "");
+    isNegativeFilter = true;
   }
   if (!re.Init(spec, &error_msg)) {
     Err << "Could not compile benchmark re: " << error_msg << std::endl;
@@ -153,6 +153,8 @@ bool BenchmarkFamilies::FindBenchmarks(
     for (auto const& args : family->args_) {
       for (int num_threads : *thread_counts) {
         Benchmark::Instance instance;
+        instance.id = family->id_;
+        instance.base_name = family->name_;
         instance.name = family->name_;
         instance.benchmark = family.get();
         instance.report_mode = family->report_mode_;
@@ -233,9 +235,21 @@ bool FindBenchmarksInternal(const std::string& re,
 //=============================================================================//
 //                               Benchmark
 //=============================================================================//
+int GetBenchmarkUniqueId() {
+  static std::atomic<int64_t> benchid(0);
+  // This function is exclusively for generating a unique identifier for a
+  // benchmark. This is to uniquely identify both statistics and benchmarks
+  // runs in the case where names of benchmarks have whole names and prefixes
+  // which overlap when multiple benchmarks are run
+  // it also uniquely identifiers benchmarks derived from the same name,
+  // but that may not have additional counters/options set
+  // which separate one from the other
+  return benchid.fetch_add(1, std::memory_order::memory_order_relaxed);
+}
 
 Benchmark::Benchmark(const char* name)
     : name_(name),
+      id_(GetBenchmarkUniqueId()),
       report_mode_(RM_Unspecified),
       time_unit_(kNanosecond),
       range_multiplier_(kRangeMultiplier),
