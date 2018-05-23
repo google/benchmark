@@ -575,7 +575,7 @@ class State {
 
   BENCHMARK_ALWAYS_INLINE
   size_t iterations() const {
-    if (!started_) {
+    if (BENCHMARK_BUILTIN_EXPECT(!started_, false)) {
       return 0;
     }
     return max_iterations - total_iterations_ + batch_leftover_;
