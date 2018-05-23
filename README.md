@@ -31,15 +31,13 @@ $ cmake -G <generator> [options] ../benchmark
 $ make
 ```
 
-Note that Google Benchmark requires GTest to build and run the tests. This
-dependency can be provided three ways:
+Note that Google Benchmark requires Google Test to build and run the tests. This
+dependency can be provided two ways:
 
-* Checkout the GTest sources into `benchmark/googletest`.
+* Checkout the GTest sources into `benchmark/googletest` as above.
 * Otherwise, if `-DBENCHMARK_DOWNLOAD_DEPENDENCIES=ON` is specified during
   configuration, the library will automatically download and build any required
   dependencies.
-* Otherwise, if nothing is done, CMake will use `find_package(GTest REQUIRED)`
-  to resolve the required GTest dependency.
 
 If you do not wish to build and run the tests, add `-DBENCHMARK_ENABLE_GTEST_TESTS=OFF`
 to `CMAKE_ARGS`.
@@ -61,6 +59,7 @@ Now, let's clone the repository and build it
 ```
 git clone https://github.com/google/benchmark.git
 cd benchmark
+git clone https://github.com/google/googletest.git
 mkdir build
 cd build
 cmake .. -DCMAKE_BUILD_TYPE=RELEASE
