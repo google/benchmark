@@ -255,18 +255,17 @@ std::vector<BenchmarkReporter::Run> RunBenchmark(
 
       // Determine if this run should be reported; Either it has
       // run for a sufficient amount of time or because an error was reported.
-      const bool should_report =
-          repetition_num > 0 ||
-          has_explicit_iteration_count  // An exact iteration count was
-                                        // requested
-          || results.has_error_ ||
-          iters >= kMaxIterations  // No chance to try again, we hit the limit.
-          || seconds >= min_time   // the elapsed time is large enough
-          // CPU time is specified but the elapsed real time greatly exceeds the
-          // minimum time. Note that user provided timers are except from this
-          // sanity check.
-          || ((results.real_time_used >= 5 * min_time) && !b.use_manual_time);
-
+      // clang-format off
+      const bool should_report =  repetition_num > 0
+        || has_explicit_iteration_count  // An exact iteration count was requested
+        || results.has_error_
+        || iters >= kMaxIterations  // No chance to try again, we hit the limit.
+        || seconds >= min_time  // the elapsed time is large enough
+        // CPU time is specified but the elapsed real time greatly exceeds the
+        // minimum time. Note that user provided timers are except from this
+        // sanity check.
+        || ((results.real_time_used >= 5 * min_time) && !b.use_manual_time);
+      // clang-format on
       if (should_report) {
         BenchmarkReporter::Run report = CreateRunReport(b, results, seconds);
         if (!report.error_occurred && b.complexity != oNone)
