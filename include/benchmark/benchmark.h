@@ -575,7 +575,10 @@ class State {
 
   BENCHMARK_ALWAYS_INLINE
   size_t iterations() const {
-    return (max_iterations - total_iterations_ + batch_leftover_);
+    if (!started_) {
+      return 0;
+    }
+    return max_iterations - total_iterations_ + batch_leftover_;
   }
 
 private: // items we expect on the first cache line (ie 64 bytes of the struct)
