@@ -407,7 +407,7 @@ void State::FinishKeepRunning() {
 namespace internal {
 namespace {
 
-int base10_digit_count(int64_t n) {
+int Base10DigitCount(int64_t n) {
   int neg = 0;
   if (n < 0) {
     neg = 1;
@@ -441,9 +441,9 @@ void RunBenchmarks(const std::vector<Benchmark::Instance>& benchmarks,
     base_name_field_width =
         std::max<size_t>(base_name_field_width, benchmark.base_name.size());
     id_field_width =
-        std::max<size_t>(id_field_width, base10_digit_count(benchmark.id));
+        std::max<size_t>(id_field_width, Base10DigitCount(benchmark.id));
     family_id_field_width = std::max<size_t>(
-        family_id_field_width, base10_digit_count(benchmark.family_id));
+        family_id_field_width, Base10DigitCount(benchmark.family_id));
     has_repetitions |= benchmark.repetitions > 1;
 
     for (const auto& Stat : *benchmark.statistics)
