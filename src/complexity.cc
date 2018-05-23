@@ -185,6 +185,7 @@ std::vector<BenchmarkReporter::Run> ComputeBigO(
   Run big_o;
   big_o.base_name = benchmark_name;
   big_o.id = reports[0].id;
+  big_o.family_id = reports[0].family_id;
   big_o.threads = reports[0].threads;
   big_o.repetitions = reports[0].repetitions;
   big_o.benchmark_name = benchmark_name + "_BigO";
@@ -206,6 +207,7 @@ std::vector<BenchmarkReporter::Run> ComputeBigO(
   Run rms;
   rms.base_name = benchmark_name;
   rms.id = reports[0].id;
+  rms.family_id = reports[0].family_id;
   rms.threads = reports[0].threads;
   rms.repetitions = reports[0].repetitions;
   rms.benchmark_name = benchmark_name + "_RMS";

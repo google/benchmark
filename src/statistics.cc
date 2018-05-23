@@ -151,6 +151,8 @@ std::vector<BenchmarkReporter::Run> ComputeStats(
     // Get the data from the accumulator to BenchmarkReporter::Run's.
     Run data;
     data.base_name = reports[0].base_name;
+    data.id = reports[0].id;
+    data.family_id = reports[0].family_id;
     data.benchmark_name = reports[0].benchmark_name + "_" + Stat.name_;
     data.report_label = report_label;
     data.iterations = run_iterations;

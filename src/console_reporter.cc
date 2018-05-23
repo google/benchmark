@@ -37,6 +37,7 @@ bool ConsoleReporter::ReportContext(const Context& context) {
   name_field_width_ = context.name_field_width;
   base_name_field_width_ = context.base_name_field_width;
   id_field_width_ = context.id_field_width;
+  family_id_field_width_ = context.family_id_field_width;
   printed_header_ = false;
   prev_counters_.clear();
 
@@ -57,14 +58,17 @@ bool ConsoleReporter::ReportContext(const Context& context) {
 void ConsoleReporter::PrintHeader(const Run& run) {
   std::string header;
   header.reserve(13 + 10 + name_field_width_ + id_field_width_ +
-                 base_name_field_width_);
-  // Append name, then basename, then id
-  header.append(
-      FormatString("%-*s ", static_cast<int>(name_field_width_), "Benchmark"));
+                 family_id_field_width_ + base_name_field_width_);
   if (output_options_ & OO_ID) {
     header.append(
         FormatString("%-*s ", static_cast<int>(id_field_width_), "ID"));
   }
+  if (output_options_ & OO_Family) {
+    header.append(FormatString(
+        "%-*s ", static_cast<int>(family_id_field_width_), "Family"));
+  }
+  header.append(
+      FormatString("%-*s ", static_cast<int>(name_field_width_), "Benchmark"));
   if (output_options_ & OO_BaseName) {
     header.append(FormatString(
         "%-*s ", static_cast<int>(base_name_field_width_), "Base Name"));
@@ -121,12 +125,16 @@ void ConsoleReporter::PrintRunData(const Run& result) {
       (output_options_ & OO_Color) ? (PrinterFn*)ColorPrintf : IgnoreColorPrint;
   auto name_color =
       (result.report_big_o || result.report_rms) ? COLOR_BLUE : COLOR_GREEN;
-  printer(Out, name_color, "%-*s ", name_field_width_,
-          result.benchmark_name.c_str());
   if (output_options_ & OO_ID) {
     std::string idstr = std::to_string(result.id);
     printer(Out, name_color, "%-*s ", id_field_width_, idstr.c_str());
   }
+  if (output_options_ & OO_Family) {
+    std::string idstr = std::to_string(result.family_id);
+    printer(Out, name_color, "%-*s ", family_id_field_width_, idstr.c_str());
+  }
+  printer(Out, name_color, "%-*s ", name_field_width_,
+          result.benchmark_name.c_str());
   if (output_options_ & OO_BaseName) {
     printer(Out, name_color, "%-*s ", base_name_field_width_,
             result.base_name.c_str());

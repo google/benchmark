@@ -33,10 +33,11 @@ namespace benchmark {
 namespace {
 // clang-format off
 std::vector<std::string> elements = {
-    "name",           "base_name",        "id",               "repetitions",      
-    "threads",        "iterations",       "real_time",        "cpu_time",
-    "time_unit",      "bytes_per_second", "items_per_second", "label",
-    "error_occurred", "error_message"};
+    "name",        "base_name",      "id",               "family", 
+    "repetitions", "threads",        "iterations",       "real_time",        
+    "cpu_time",    "time_unit",      "bytes_per_second", "items_per_second",
+    "label",       "error_occurred", "error_message"
+};
 // clang-format on
 }  // namespace
 
@@ -97,13 +98,15 @@ void CSVReporter::PrintRunData(const Run& run) {
   // identifying information
   std::string base_name = run.base_name;
   ReplaceAll(&base_name, "\"", "\"\"");
+  Out << '"' << name << "\",";
   Out << '"' << base_name << "\",";
   Out << run.id << ",";
+  Out << run.family_id << ",";
   Out << run.repetitions << ",";
   Out << run.threads << ",";
 
   if (run.error_occurred) {
-    Out << std::string(elements.size() - 3, ',');
+    Out << std::string(elements.size() - 6 - 1 - 1, ',');
     Out << "true,";
     std::string msg = run.error_message;
     ReplaceAll(&msg, "\"", "\"\"");

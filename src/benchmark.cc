@@ -100,8 +100,13 @@ DEFINE_bool(benchmark_counters_tabular, false,
             "Defaults to false.");
 
 DEFINE_bool(benchmark_console_id, false,
-            "Whether to print benchmark id numbers to the console output. "
+            "Whether to print benchmark id to the console output. "
             " Valid values: 'true'/'yes'/1, 'false'/'no'/0."
+            "Defaults to false.");
+
+DEFINE_bool(benchmark_console_family, false,
+            "Whether to print benchmark family id to the "
+            "console output. Valid values: 'true'/'yes'/1, 'false'/'no'/0."
             "Defaults to false.");
 
 DEFINE_bool(benchmark_console_base_name, false,
@@ -131,6 +136,8 @@ BenchmarkReporter::Run CreateRunReport(
 
   report.benchmark_name = b.name;
   report.base_name = b.base_name;
+  report.id = b.id;
+  report.family_id = b.family_id;
   report.error_occurred = results.has_error_;
   report.error_message = results.error_message_;
   report.report_label = results.report_label_;
@@ -426,7 +433,8 @@ void RunBenchmarks(const std::vector<Benchmark::Instance>& benchmarks,
   bool has_repetitions = FLAG(benchmark_repetitions) > 1;
   size_t name_field_width = 10;
   size_t base_name_field_width = 10;
-  size_t id_field_width = 1;
+  size_t id_field_width = 3;
+  size_t family_id_field_width = 7;
   size_t stat_field_width = 0;
   for (const Benchmark::Instance& benchmark : benchmarks) {
     name_field_width =
@@ -435,6 +443,8 @@ void RunBenchmarks(const std::vector<Benchmark::Instance>& benchmarks,
         std::max<size_t>(base_name_field_width, benchmark.base_name.size());
     id_field_width =
         std::max<size_t>(id_field_width, base10_digit_count(benchmark.id));
+    family_id_field_width = std::max<size_t>(
+        family_id_field_width, base10_digit_count(benchmark.family_id));
     has_repetitions |= benchmark.repetitions > 1;
 
     for (const auto& Stat : *benchmark.statistics)
@@ -447,6 +457,7 @@ void RunBenchmarks(const std::vector<Benchmark::Instance>& benchmarks,
   context.name_field_width = name_field_width;
   context.base_name_field_width = base_name_field_width;
   context.id_field_width = id_field_width;
+  context.family_id_field_width = family_id_field_width;
 
   // Keep track of running times of all instances of current benchmark
   std::vector<BenchmarkReporter::Run> complexity_reports;
@@ -524,6 +535,11 @@ ConsoleReporter::OutputOptions GetOutputOptions(bool force_no_color) {
     output_opts |= ConsoleReporter::OO_ID;
   } else {
     output_opts &= ~ConsoleReporter::OO_ID;
+  }
+  if (FLAG(benchmark_console_family)) {
+    output_opts |= ConsoleReporter::OO_Family;
+  } else {
+    output_opts &= ~ConsoleReporter::OO_Family;
   }
   return static_cast<ConsoleReporter::OutputOptions>(output_opts);
 }
@@ -610,6 +626,9 @@ void PrintUsageAndExit() {
           "          [--benchmark_out_format=<json|console|csv>]\n"
           "          [--benchmark_color={auto|true|false}]\n"
           "          [--benchmark_counters_tabular={true|false}]\n"
+          "          [--benchmark_console_id={true|false}]\n"
+          "          [--benchmark_console_family={true|false}]\n"
+          "          [--benchmark_console_base_name={true|false}]\n"
           "          [--v=<verbosity>]\n");
   exit(0);
 }
@@ -631,6 +650,12 @@ void ParseCommandLineFlags(int* argc, char** argv) {
         ParseStringFlag(argv[i], "benchmark_out", &FLAG(benchmark_out)) ||
         ParseStringFlag(argv[i], "benchmark_out_format",
                         &FLAG(benchmark_out_format)) ||
+        ParseBoolFlag(argv[i], "benchmark_console_id",
+                      &FLAG(benchmark_console_id)) ||
+        ParseBoolFlag(argv[i], "benchmark_console_family",
+                      &FLAG(benchmark_console_family)) ||
+        ParseBoolFlag(argv[i], "benchmark_console_base_name",
+                      &FLAG(benchmark_console_base_name)) ||
         ParseStringFlag(argv[i], "benchmark_color", &FLAG(benchmark_color)) ||
         // "color_print" is the deprecated name for "benchmark_color".
         // TODO: Remove this.
