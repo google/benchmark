@@ -23,7 +23,7 @@ The basic steps for configuring and building the library look like this:
 
 ```bash
 $ git clone https://github.com/google/benchmark.git
-# Benchmark requires GTest as a dependency. Add the source tree as a subdirectory.
+# Benchmark requires Google Test as a dependency. Add the source tree as a subdirectory.
 $ git clone https://github.com/google/googletest.git benchmark/googletest
 $ mkdir build && cd build
 $ cmake -G <generator> [options] ../benchmark
@@ -34,7 +34,7 @@ $ make
 Note that Google Benchmark requires Google Test to build and run the tests. This
 dependency can be provided two ways:
 
-* Checkout the GTest sources into `benchmark/googletest` as above.
+* Checkout the Google Test sources into `benchmark/googletest` as above.
 * Otherwise, if `-DBENCHMARK_DOWNLOAD_DEPENDENCIES=ON` is specified during
   configuration, the library will automatically download and build any required
   dependencies.
