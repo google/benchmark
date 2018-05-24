@@ -87,6 +87,11 @@ to use, test, and provide feedback on the new features are encouraged to try
 this branch. However, this branch provides no stability guarantees and reserves
 the right to change and break the API at any time.
 
+##Prerequisite knowledge
+
+Before attempting to understand this framework one should ideally have some familiarity with the structure and format of the Google Test framework, upon which it is based. Documentation for Google Test, including a "Getting Started" (primer) guide, is available here:
+https://github.com/google/googletest/blob/master/googletest/docs/Documentation.md
+
 
 ## Example usage
 ### Basic usage
