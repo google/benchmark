@@ -23,7 +23,7 @@ The basic steps for configuring and building the library look like this:
 
 ```bash
 $ git clone https://github.com/google/benchmark.git
-# Benchmark requires GTest as a dependency. Add the source tree as a subdirectory.
+# Benchmark requires Google Test as a dependency. Add the source tree as a subdirectory.
 $ git clone https://github.com/google/googletest.git benchmark/googletest
 $ mkdir build && cd build
 $ cmake -G <generator> [options] ../benchmark
@@ -31,15 +31,13 @@ $ cmake -G <generator> [options] ../benchmark
 $ make
 ```
 
-Note that Google Benchmark requires GTest to build and run the tests. This
-dependency can be provided three ways:
+Note that Google Benchmark requires Google Test to build and run the tests. This
+dependency can be provided two ways:
 
-* Checkout the GTest sources into `benchmark/googletest`.
+* Checkout the Google Test sources into `benchmark/googletest` as above.
 * Otherwise, if `-DBENCHMARK_DOWNLOAD_DEPENDENCIES=ON` is specified during
   configuration, the library will automatically download and build any required
   dependencies.
-* Otherwise, if nothing is done, CMake will use `find_package(GTest REQUIRED)`
-  to resolve the required GTest dependency.
 
 If you do not wish to build and run the tests, add `-DBENCHMARK_ENABLE_GTEST_TESTS=OFF`
 to `CMAKE_ARGS`.
@@ -61,6 +59,7 @@ Now, let's clone the repository and build it
 ```
 git clone https://github.com/google/benchmark.git
 cd benchmark
+git clone https://github.com/google/googletest.git
 mkdir build
 cd build
 cmake .. -DCMAKE_BUILD_TYPE=RELEASE
@@ -87,6 +86,11 @@ Newer, experimental, features are implemented and tested on the
 to use, test, and provide feedback on the new features are encouraged to try
 this branch. However, this branch provides no stability guarantees and reserves
 the right to change and break the API at any time.
+
+##Prerequisite knowledge
+
+Before attempting to understand this framework one should ideally have some familiarity with the structure and format of the Google Test framework, upon which it is based. Documentation for Google Test, including a "Getting Started" (primer) guide, is available here:
+https://github.com/google/googletest/blob/master/googletest/docs/Documentation.md
 
 
 ## Example usage
