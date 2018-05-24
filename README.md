@@ -118,7 +118,10 @@ BENCHMARK(BM_StringCopy);
 BENCHMARK_MAIN();
 ```
 
-Don't forget to inform your linker to add benchmark library e.g. through `-lbenchmark` compilation flag.
+Don't forget to inform your linker to add benchmark library e.g. through 
+`-lbenchmark` compilation flag. Alternatively, you may leave out the 
+`BENCHMARK_MAIN();` at the end of the source file and link against 
+`-lbenchmark_main` to get the same default behavior.
 
 The benchmark library will reporting the timing for the code within the `for(...)` loop.
 
