@@ -99,6 +99,7 @@ BENCHMARK(BM_empty_stop_start)->ThreadPerCpu();
 
 void BM_KeepRunning(benchmark::State& state) {
   size_t iter_count = 0;
+  assert(iter_count == state.iterations());
   while (state.KeepRunning()) {
     ++iter_count;
   }
