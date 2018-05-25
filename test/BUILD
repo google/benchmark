@@ -53,5 +53,13 @@ cc_library(
   # FIXME: Add support for assembly tests to bazel.
   # See Issue #556
   # https://github.com/google/benchmark/issues/556
-  ) for test_src in glob(["*test.cc"], exclude = ["*_assembly_test.cc"])
+  ) for test_src in glob(["*test.cc"], exclude = ["*_assembly_test.cc", "link_main_test.cc"])
 ]
+
+cc_test(
+    name = "link_main_test",
+    size = "small",
+    srcs = ["link_main_test.cc"],
+    copts = TEST_COPTS,
+    deps = ["//:benchmark_main"],
+)

@@ -41,6 +41,10 @@ macro(compile_benchmark_test name)
   target_link_libraries(${name} benchmark ${CMAKE_THREAD_LIBS_INIT})
 endmacro(compile_benchmark_test)
 
+macro(compile_benchmark_test_with_main name)
+  add_executable(${name} "${name}.cc")
+  target_link_libraries(${name} benchmark_main)
+endmacro(compile_benchmark_test_with_main)
 
 macro(compile_output_test name)
   add_executable(${name} "${name}.cc" output_test.h)
@@ -108,6 +112,9 @@ add_test(map_test map_test --benchmark_min_time=0.01)
 
 compile_benchmark_test(multiple_ranges_test)
 add_test(multiple_ranges_test multiple_ranges_test --benchmark_min_time=0.01)
+
+compile_benchmark_test_with_main(link_main_test)
+add_test(link_main_test link_main_test --benchmark_min_time=0.01)
 
 compile_output_test(reporter_output_test)
 add_test(reporter_output_test reporter_output_test --benchmark_min_time=0.01)
