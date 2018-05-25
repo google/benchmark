@@ -11,6 +11,7 @@ file(GLOB
     *.cc
     ${PROJECT_SOURCE_DIR}/include/benchmark/*.h
     ${CMAKE_CURRENT_SOURCE_DIR}/*.h)
+list(FILTER SOURCE_FILES EXCLUDE REGEX "benchmark_main\\.cc")
 
 add_library(benchmark ${SOURCE_FILES})
 set_target_properties(benchmark PROPERTIES
@@ -39,6 +40,18 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "SunOS")
   target_link_libraries(benchmark kstat)
 endif()
 
+# Benchmark main library
+add_library(benchmark_main "benchmark_main.cc")
+set_target_properties(benchmark_main PROPERTIES
+  OUTPUT_NAME "benchmark_main"
+  VERSION ${GENERIC_LIB_VERSION}
+  SOVERSION ${GENERIC_LIB_SOVERSION}
+)
+target_include_directories(benchmark PUBLIC
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../include>
+    )
+target_link_libraries(benchmark_main benchmark)
+
 set(include_install_dir "include")
 set(lib_install_dir "lib/")
 set(bin_install_dir "bin/")
@@ -65,7 +78,7 @@ configure_file("${PROJECT_SOURCE_DIR}/cmake/benchmark.pc.in" "${pkg_config}" @ON
 if (BENCHMARK_ENABLE_INSTALL)
   # Install target (will install the library to specified CMAKE_INSTALL_PREFIX variable)
   install(
-    TARGETS benchmark
+    TARGETS benchmark benchmark_main
     EXPORT ${targets_export_name}
     ARCHIVE DESTINATION ${lib_install_dir}
     LIBRARY DESTINATION ${lib_install_dir}
