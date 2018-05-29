@@ -42,6 +42,15 @@ class ThreadManager {
     double real_time_used = 0;
     double cpu_time_used = 0;
     double manual_time_used = 0;
+    double real_time_squared_used = 0;
+    double cpu_time_squared_used = 0;
+    double manual_time_squared_used = 0;
+    double min_real_time = std::numeric_limits<double>::max();
+    double max_real_time = 0;
+    double min_cpu_time = std::numeric_limits<double>::max();
+    double max_cpu_time = 0;
+    double min_manual_time = std::numeric_limits<double>::max();
+    double max_manual_time = 0;
     int64_t bytes_processed = 0;
     int64_t items_processed = 0;
     int64_t complexity_n = 0;

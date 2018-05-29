@@ -41,21 +41,22 @@ SubMap& GetSubstitutions() {
       {"%int", "[ ]*[0-9]+"},
       {" %s ", "[ ]+"},
       {"%time", "[ ]*[0-9]{1,6} ns"},
-      {"%console_report", "[ ]*[0-9]{1,6} ns [ ]*[0-9]{1,6} ns [ ]*[0-9]+"},
-      {"%console_us_report", "[ ]*[0-9] us [ ]*[0-9] us [ ]*[0-9]+"},
+      {"%console_header", "Benchmark[ ]+Time[ ]+\\(Std Dev\\) CPU[ ]+\\(Std Dev\\) Iterations"},
+      {"%console_report", "[ ]*[0-9]{1,6} ns \\([ ]*[0-9]{1,7}\\) [ ]*[0-9]{1,6} ns \\([ ]*[0-9]{1,7}\\) [ ]*[0-9]+"},
+      {"%console_us_report", "[ ]*[0-9] us \\([ ]*[0-9]{1,7}\\) [ ]*[0-9] us \\([ ]*[0-9]{1,7}\\) [ ]*[0-9]+"},
       {"%csv_header",
-       "name,iterations,real_time,cpu_time,time_unit,bytes_per_second,"
+       "name,iterations,real_time,cpu_time,standard_dev_real_time,standard_dev_cpu_time,time_unit,bytes_per_second,"
        "items_per_second,label,error_occurred,error_message"},
-      {"%csv_report", "[0-9]+," + safe_dec_re + "," + safe_dec_re + ",ns,,,,,"},
-      {"%csv_us_report", "[0-9]+," + safe_dec_re + "," + safe_dec_re + ",us,,,,,"},
+      {"%csv_report", "[0-9]+," + safe_dec_re + "," + safe_dec_re + "," + safe_dec_re + "," + safe_dec_re + ",ns,,,,,"},
+      {"%csv_us_report", "[0-9]+," + safe_dec_re + "," + safe_dec_re + "," + safe_dec_re + "," + safe_dec_re + ",us,,,,,"},
       {"%csv_bytes_report",
-       "[0-9]+," + safe_dec_re + "," + safe_dec_re + ",ns," + safe_dec_re + ",,,,"},
+       "[0-9]+," + safe_dec_re + "," + safe_dec_re + "," + safe_dec_re + "," + safe_dec_re + ",ns," + safe_dec_re + ",,,,"},
       {"%csv_items_report",
-       "[0-9]+," + safe_dec_re + "," + safe_dec_re + ",ns,," + safe_dec_re + ",,,"},
+       "[0-9]+," + safe_dec_re + "," + safe_dec_re + "," + safe_dec_re + "," + safe_dec_re + ",ns,," + safe_dec_re + ",,,"},
       {"%csv_bytes_items_report",
-       "[0-9]+," + safe_dec_re + "," + safe_dec_re + ",ns," + safe_dec_re +
+       "[0-9]+," + safe_dec_re + "," + safe_dec_re + "," + safe_dec_re + "," + safe_dec_re + ",ns," + safe_dec_re +
        "," + safe_dec_re + ",,,"},
-      {"%csv_label_report_begin", "[0-9]+," + safe_dec_re + "," + safe_dec_re + ",ns,,,"},
+      {"%csv_label_report_begin", "[0-9]+," + safe_dec_re + "," + safe_dec_re + "," + safe_dec_re + "," + safe_dec_re + ",ns,,,"},
       {"%csv_label_report_end", ",,"}};
   return map;
 }
