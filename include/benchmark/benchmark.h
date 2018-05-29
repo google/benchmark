@@ -732,7 +732,6 @@ typedef void(Function)(State&);
 class Benchmark {
  public:
   virtual ~Benchmark();
-
   // Note: the following methods all return "this" so that multiple
   // method calls can be chained together in one expression.
 
@@ -857,6 +856,10 @@ class Benchmark {
   // Run one instance of this benchmark concurrently in t threads.
   Benchmark* Threads(int t);
 
+  typedef std::map<std::string, std::string> MetaDataType;
+  Benchmark* AddMetaData(const std::string & key, const std::string & val);
+  const MetaDataType & MetaData()const;
+
   // Pick a set of values T from [min_threads,max_threads].
   // min_threads and max_threads are always included in T.  Run this
   // benchmark once for each value in T.  The benchmark run for a
@@ -910,7 +913,7 @@ class Benchmark {
   BigOFunc* complexity_lambda_;
   std::vector<Statistics> statistics_;
   std::vector<int> thread_counts_;
-
+  MetaDataType meta_data_;
   Benchmark& operator=(Benchmark const&);
 };
 
@@ -1272,7 +1275,11 @@ class BenchmarkReporter {
           complexity_n(0),
           report_big_o(false),
           report_rms(false),
-          counters() {}
+          counters(),
+          meta_data(){
+
+          }
+
 
     std::string benchmark_name;
     std::string report_label;  // Empty if not set by benchmark.
@@ -1316,6 +1323,7 @@ class BenchmarkReporter {
     bool report_rms;
 
     UserCounters counters;
+    std::map<std::string, std::string> meta_data;
   };
 
   // Construct a BenchmarkReporter with the output stream set to 'std::cout'

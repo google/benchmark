@@ -64,6 +64,17 @@ void ConsoleReporter::PrintHeader(const Run& run) {
       str += " UserCounters...";
     }
   }
+  if(!run.meta_data.empty()) {
+
+    if(output_options_ & OO_Tabular) {
+      for(auto const & kv : run.meta_data) {
+        str += FormatString(" %10s", kv.first);
+      }
+    } else {
+      str += " MetaData...";
+    }
+
+  }
   str += "\n";
   std::string line = std::string(str.length(), '-');
   GetOutputStream() << line << "\n" << str << line << "\n";
@@ -146,7 +157,7 @@ void ConsoleReporter::PrintRunData(const Run& result) {
   if (!result.report_big_o && !result.report_rms) {
     printer(Out, COLOR_CYAN, "%10lld", result.iterations);
   }
-
+  
   for (auto& c : result.counters) {
     const std::size_t cNameLen = std::max(std::string::size_type(10),
                                           c.first.length());
@@ -162,6 +173,10 @@ void ConsoleReporter::PrintRunData(const Run& result) {
       printer(Out, COLOR_DEFAULT, " %s=%s%s", c.first.c_str(), s.c_str(),
               unit);
     }
+  }
+  
+  for (auto & kv : result.meta_data) {
+    printer(Out, COLOR_DEFAULT, " %s=%s",kv.first.c_str(), kv.second.c_str());
   }
 
   if (!rate.empty()) {

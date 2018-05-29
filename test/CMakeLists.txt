@@ -81,6 +81,7 @@ add_filter_test(filter_regex_begin2_negative "-^N" 4)
 add_filter_test(filter_regex_end ".*Ba$" 1)
 add_filter_test(filter_regex_end_negative "-.*Ba$" 4)
 
+
 compile_benchmark_test(options_test)
 add_test(options_benchmarks options_test --benchmark_min_time=0.01)
 
@@ -124,6 +125,11 @@ add_test(templated_fixture_test templated_fixture_test --benchmark_min_time=0.01
 
 compile_output_test(user_counters_test)
 add_test(user_counters_test user_counters_test --benchmark_min_time=0.01)
+
+compile_output_test(meta_data_test)
+add_test(meta_data_test meta_data_test --benchmark_min_time=0.01)
+
+
 
 compile_output_test(user_counters_tabular_test)
 add_test(user_counters_tabular_test user_counters_tabular_test --benchmark_counters_tabular=true --benchmark_min_time=0.01)

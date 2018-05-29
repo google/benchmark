@@ -61,10 +61,14 @@ void CSVReporter::ReportRuns(const std::vector<Run> & reports) {
     for (auto B = user_counter_names_.begin(); B != user_counter_names_.end();) {
       Out << ",\"" << *B++ << "\"";
     }
+    for (auto & kv : reports.front().meta_data) {
+      Out << ","<< kv.first ;
+    }
     Out << "\n";
 
     printed_header_ = true;
   } else {
+
     // check that all the current counters are saved in the name set
     for (const auto& run : reports) {
       for (const auto& cnt : run.counters) {
@@ -133,7 +137,19 @@ void CSVReporter::PrintRunData(const Run & run) {
     Out << "\"" << label << "\"";
   }
   Out << ",,";  // for error_occurred and error_message
-
+  // Print meta data values
+  if(!run.meta_data.empty()){
+    std::size_t c=0;
+    for (auto & kv : run.meta_data) {
+      if(c + 1 < run.meta_data.size()){
+        Out << ",";
+      }
+      else{
+        Out << "," << kv.second;
+      }
+      ++c;
+    }
+  }
   // Print user counters
   for (const auto &ucn : user_counter_names_) {
     auto it = run.counters.find(ucn);

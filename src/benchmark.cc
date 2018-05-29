@@ -128,6 +128,8 @@ BenchmarkReporter::Run CreateRunReport(
   report.iterations = results.iterations;
   report.time_unit = b.time_unit;
 
+  // meta data
+  report.meta_data = b.benchmark->MetaData();
   if (!report.error_occurred) {
     double bytes_per_second = 0;
     if (results.bytes_processed > 0 && seconds > 0.0) {
