@@ -568,7 +568,8 @@ void PrintUsageAndExit() {
 
 void ParseCommandLineFlags(int* argc, char** argv) {
   using namespace benchmark;
-  BenchmarkReporter::Context::executable_name = argv[0];
+  BenchmarkReporter::Context::executable_name =
+      (argc && *argc > 0) ? argv[0] : "unknown";
   for (int i = 1; i < *argc; ++i) {
     if (ParseBoolFlag(argv[i], "benchmark_list_tests",
                       &FLAGS_benchmark_list_tests) ||
