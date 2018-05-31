@@ -73,7 +73,7 @@ sudo make install
 ```
 
 Now you have google/benchmark installed in your machine
-Note: Don't forget to link to pthread library while building
+
 
 ## Stable and Experimental Library Versions
 
@@ -118,9 +118,9 @@ BENCHMARK(BM_StringCopy);
 BENCHMARK_MAIN();
 ```
 
-Don't forget to inform your linker to add benchmark library e.g. through `-lbenchmark` compilation flag.
+Don't forget to inform your linker to link to the benchmark library e.g. through `-lbenchmark` compilation flag, and also the pthread library ('-lpthread').
 
-The benchmark library will reporting the timing for the code within the `for(...)` loop.
+The resultant compiled program should, if correctly compiled and linked, report timing for the code within the `for(...)` loop.
 
 ### Passing arguments
 Sometimes a family of benchmarks can be implemented with just one routine that
