@@ -122,6 +122,34 @@ Don't forget to inform your linker to link to the benchmark library e.g. through
 
 The resultant compiled program should, if correctly compiled and linked, report timing for the code within the `for(...)` loop.
 
+
+### Basic usage code explanation
+
+The following code:
+```BENCHMARK(BM_StringCreation);```
+registers the function as a google benchmark function, to be run when the:
+```BENCHMARK_MAIN();```
+function is called, along with any other registered benchmark functions.
+
+When the benchmark is run, google benchmark first runs it a certain number of times to ascertain how long the function usually takes to run. This serves two purposes: (a) "warming up" the cpu cache/prediction-code by running the code a number of times, (b) finding out how many iterations of the function will be necessary to get a statistically-meaningful result. For example, a function that only takes a couple of nanoseconds to run is far more sensitive during measurement to the effects of other things the OS is doing (networking, background processes) than a function which takes a couple of seconds. So the 2-nanosecond function needs to be run a greater number of times to get accurate timings.
+
+Once this first 'test run' is done, google benchmark then runs the function for the number of times specified by the test run, averages the results and reports back. The results should look something like the following:
+```2018-05-31 14:01:08
+Running ./google_benchmark_test
+Run on (2 X 3800.38 MHz CPU s)
+CPU Caches:
+  L1 Data 32K (x2)
+  L1 Instruction 32K (x2)
+  L2 Unified 6144K (x1)
+---------------------------------------------------------
+Benchmark                  Time           CPU Iterations
+---------------------------------------------------------
+BM_StringCreation          6 ns          6 ns  114882743
+BM_StringCopy             12 ns         12 ns   56443826
+```
+This gives some basic information about the program, CPU, and then the results of the benchmarks, including the number of iterations necessary and the total time vs time spent by the CPU (for most functions these two will be the same - for a function which, for example, depends on disk I/O, they might be very different).
+
+
 ### Passing arguments
 Sometimes a family of benchmarks can be implemented with just one routine that
 takes an extra argument to specify which one of the family of benchmarks to
