@@ -9,10 +9,9 @@
 // ---------------------- Testing Prologue Output -------------------------- //
 // ========================================================================= //
 
-ADD_CASES(TC_ConsoleOut,
-          {{"^[-]+$", MR_Next},
-           {"^Benchmark %s Time %s CPU %s Iterations$", MR_Next},
-           {"^[-]+$", MR_Next}});
+ADD_CASES(TC_ConsoleOut, {{"^[-]+$", MR_Next},
+                          {"^Benchmark %s Time %s CPU %s Iterations$", MR_Next},
+                          {"^[-]+$", MR_Next}});
 static int AddContextCases() {
   AddCases(TC_ConsoleErr,
            {
@@ -20,14 +19,15 @@ static int AddContextCases() {
                {"Running .*/reporter_output_test(\\.exe)?$", MR_Next},
                {"Run on \\(%int X %float MHz CPU s\\)", MR_Next},
            });
-  AddCases(TC_JSONOut, {{"^\\{", MR_Default},
-                        {"\"context\":", MR_Next},
-                        {"\"date\": \"", MR_Next},
-                        {"\"executable\": \".*/reporter_output_test(\\.exe)?\",", MR_Next},
-                        {"\"num_cpus\": %int,$", MR_Next},
-                        {"\"mhz_per_cpu\": %float,$", MR_Next},
-                        {"\"cpu_scaling_enabled\": ", MR_Next},
-                        {"\"caches\": \\[$", MR_Next}});
+  AddCases(TC_JSONOut,
+           {{"^\\{", MR_Default},
+            {"\"context\":", MR_Next},
+            {"\"date\": \"", MR_Next},
+            {"\"executable\": \".*/reporter_output_test(\\.exe)?\",", MR_Next},
+            {"\"num_cpus\": %int,$", MR_Next},
+            {"\"mhz_per_cpu\": %float,$", MR_Next},
+            {"\"cpu_scaling_enabled\": ", MR_Next},
+            {"\"caches\": \\[$", MR_Next}});
   auto const& Caches = benchmark::CPUInfo::Get().caches;
   if (!Caches.empty()) {
     AddCases(TC_ConsoleErr, {{"CPU Caches:$", MR_Next}});
@@ -348,9 +348,12 @@ void BM_UserStats(benchmark::State& state) {
   for (auto _ : state) {
   }
 }
+// clang-format off
 BENCHMARK(BM_UserStats)
-    ->Repetitions(3)
-    ->ComputeStatistics("", UserStatistics);
+  ->Repetitions(3)
+  ->ComputeStatistics("", UserStatistics);
+// clang-format on
+
 // check that user-provided stats is calculated, and is after the default-ones
 // empty string as name is intentional, it would sort before anything else
 ADD_CASES(TC_ConsoleOut, {{"^BM_UserStats/repeats:3 %console_report$"},
