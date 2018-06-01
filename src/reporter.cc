@@ -68,7 +68,7 @@ void BenchmarkReporter::PrintBasicContext(std::ostream *out,
 }
 
 // No initializer because it's already initialized to NULL.
-const char* BenchmarkReporter::Context::executable_name;
+const char *BenchmarkReporter::Context::executable_name;
 
 BenchmarkReporter::Context::Context() : cpu_info(CPUInfo::Get()) {}
 

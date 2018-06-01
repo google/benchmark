@@ -3,6 +3,8 @@
 
 #include "benchmark/benchmark.h"
 
+// clang-format off
+
 #ifndef __has_feature
 #define __has_feature(x) 0
 #endif
@@ -85,5 +87,7 @@
 #else
   #define BENCHMARK_UNREACHABLE() ((void)0)
 #endif
+
+// clang-format on
 
 #endif  // BENCHMARK_INTERNAL_MACROS_H_
