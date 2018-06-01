@@ -115,9 +115,9 @@ bool BenchmarkFamilies::FindBenchmarks(
   std::string error_msg;
   Regex re;
   bool isNegativeFilter = false;
-  if(spec[0] == '-') {
-      spec.replace(0, 1, "");
-      isNegativeFilter = true;
+  if (spec[0] == '-') {
+    spec.replace(0, 1, "");
+    isNegativeFilter = true;
   }
   if (!re.Init(spec, &error_msg)) {
     Err << "Could not compile benchmark re: " << error_msg << std::endl;

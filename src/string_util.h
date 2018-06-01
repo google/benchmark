@@ -19,8 +19,7 @@ inline std::ostream& StrCatImp(std::ostream& out) BENCHMARK_NOEXCEPT {
 }
 
 template <class First, class... Rest>
-inline std::ostream& StrCatImp(std::ostream& out, First&& f,
-                                  Rest&&... rest) {
+inline std::ostream& StrCatImp(std::ostream& out, First&& f, Rest&&... rest) {
   out << std::forward<First>(f);
   return StrCatImp(out, std::forward<Rest>(rest)...);
 }
