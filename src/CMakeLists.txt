@@ -69,7 +69,7 @@ set(namespace "${PROJECT_NAME}::")
 
 include(CMakePackageConfigHelpers)
 write_basic_package_version_file(
-    "${version_config}" VERSION ${GIT_VERSION} COMPATIBILITY SameMajorVersion
+  "${version_config}" VERSION ${GENERIC_LIB_VERSION} COMPATIBILITY SameMajorVersion
 )
 
 configure_file("${PROJECT_SOURCE_DIR}/cmake/Config.cmake.in" "${project_config}" @ONLY)
