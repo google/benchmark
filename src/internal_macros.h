@@ -3,6 +3,9 @@
 
 #include "benchmark/benchmark.h"
 
+/* Needed to detect STL */
+#include <cstdlib>
+
 // clang-format off
 
 #ifndef __has_feature
@@ -67,6 +70,10 @@
 #define BENCHMARK_OS_FUCHSIA 1
 #elif defined (__SVR4) && defined (__sun)
 #define BENCHMARK_OS_SOLARIS 1
+#endif
+
+#if defined(__ANDROID__) && defined(__GLIBCXX__)
+#define BENCHMARK_STL_ANDROID_GNUSTL 1
 #endif
 
 #if !__has_feature(cxx_exceptions) && !defined(__cpp_exceptions) \

@@ -169,4 +169,93 @@ void ReplaceAll(std::string* str, const std::string& from,
   }
 }
 
+#ifdef BENCHMARK_STL_ANDROID_GNUSTL
+/*
+ * GNU STL in Android NDK lacks support for some C++11 functions, including
+ * stoul, stoi, stod. We reimplement them here using C functions strtoul,
+ * strtol, strtod. Note that reimplemented functions are in benchmark::
+ * namespace, not std:: namespace.
+ */
+unsigned long stoul(const std::string& str, size_t* pos, int base) {
+  /* Record previous errno */
+  const int oldErrno = errno;
+  errno = 0;
+
+  const char* strStart = str.c_str();
+  char* strEnd = const_cast<char*>(strStart);
+  const unsigned long result = strtoul(strStart, &strEnd, base);
+
+  const int strtoulErrno = errno;
+  /* Restore previous errno */
+  errno = oldErrno;
+
+  /* Check for errors and return */
+  if (strtoulErrno == ERANGE) {
+    throw std::out_of_range(
+      "stoul failed: " + str + " is outside of range of unsigned long");
+  } else if (strEnd == strStart || strtoulErrno != 0) {
+    throw std::invalid_argument(
+      "stoul failed: " + str + " is not an integer");
+  }
+  if (pos != nullptr) {
+    *pos = static_cast<size_t>(strEnd - strStart);
+  }
+  return result;
+}
+
+int stoi(const std::string& str, size_t* pos, int base) {
+  /* Record previous errno */
+  const int oldErrno = errno;
+  errno = 0;
+
+  const char* strStart = str.c_str();
+  char* strEnd = const_cast<char*>(strStart);
+  const long result = strtol(strStart, &strEnd, base);
+
+  const int strtolErrno = errno;
+  /* Restore previous errno */
+  errno = oldErrno;
+
+  /* Check for errors and return */
+  if (strtolErrno == ERANGE || long(int(result)) != result) {
+    throw std::out_of_range(
+      "stoul failed: " + str + " is outside of range of int");
+  } else if (strEnd == strStart || strtolErrno != 0) {
+    throw std::invalid_argument(
+      "stoul failed: " + str + " is not an integer");
+  }
+  if (pos != nullptr) {
+    *pos = static_cast<size_t>(strEnd - strStart);
+  }
+  return int(result);
+}
+
+double stod(const std::string& str, size_t* pos) {
+  /* Record previous errno */
+  const int oldErrno = errno;
+  errno = 0;
+
+  const char* strStart = str.c_str();
+  char* strEnd = const_cast<char*>(strStart);
+  const double result = strtod(strStart, &strEnd);
+
+  /* Restore previous errno */
+  const int strtodErrno = errno;
+  errno = oldErrno;
+
+  /* Check for errors and return */
+  if (strtodErrno == ERANGE) {
+    throw std::out_of_range(
+      "stoul failed: " + str + " is outside of range of int");
+  } else if (strEnd == strStart || strtodErrno != 0) {
+    throw std::invalid_argument(
+      "stoul failed: " + str + " is not an integer");
+  }
+  if (pos != nullptr) {
+    *pos = static_cast<size_t>(strEnd - strStart);
+  }
+  return result;
+}
+#endif
+
 }  // end namespace benchmark
