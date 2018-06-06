@@ -51,6 +51,9 @@ First make sure you have git and cmake installed (If not please install them)
 sudo apt-get install git cmake
 ```
 
+_See [dependencies.md](dependencies.md) for more details about the supported
+versions of build tools._
+
 Now, let's clone the repository and build it
 
 ```
