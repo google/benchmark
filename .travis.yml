@@ -173,7 +173,7 @@ install:
     fi
   - if [ "${TRAVIS_OS_NAME}" == "linux" ]; then
       sudo apt-get update -qq;
-      sudo apt-get install -qq unzip;
+      sudo apt-get install -qq unzip cmake3;
       wget https://github.com/bazelbuild/bazel/releases/download/0.10.1/bazel-0.10.1-installer-linux-x86_64.sh --output-document bazel-installer.sh;
       travis_wait sudo bash bazel-installer.sh;
     fi
@@ -183,6 +183,7 @@ install:
     fi
 
 script:
+  - cmake --version
   - cmake -DCMAKE_C_COMPILER=${C_COMPILER} -DCMAKE_CXX_COMPILER=${COMPILER} -DCMAKE_BUILD_TYPE=${BUILD_TYPE} -DCMAKE_CXX_FLAGS="${EXTRA_FLAGS}" -DBENCHMARK_DOWNLOAD_DEPENDENCIES=ON -DBENCHMARK_BUILD_32_BITS=${BUILD_32_BITS} ${EXTRA_OPTIONS} ..
   - make
   - ctest -C ${BUILD_TYPE} --output-on-failure
