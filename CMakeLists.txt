@@ -143,6 +143,10 @@ else()
   # Disable warnings regarding deprecated parts of the library while building
   # and testing those parts of the library.
   add_cxx_compiler_flag(-Wno-deprecated-declarations)
+  # Disable deprecation warnings for release builds (when -Werror is enabled).
+  add_cxx_compiler_flag(-Wno-deprecated RELEASE)
+  add_cxx_compiler_flag(-Wno-deprecated RELWITHDEBINFO)
+  add_cxx_compiler_flag(-Wno-deprecated MINSIZEREL)
   if (NOT BENCHMARK_ENABLE_EXCEPTIONS)
     add_cxx_compiler_flag(-fno-exceptions)
   endif()
