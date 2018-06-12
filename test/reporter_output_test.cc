@@ -64,6 +64,11 @@ BENCHMARK(BM_basic);
 
 ADD_CASES(TC_ConsoleOut, {{"^BM_basic %console_report$"}});
 ADD_CASES(TC_JSONOut, {{"\"name\": \"BM_basic\",$"},
+                       {"\"base_name\": \"BM_basic\",$", MR_Next},
+                       {"\"id\": %int,$", MR_Next},
+                       {"\"family\": %int,$", MR_Next},
+                       {"\"repetitions\": %int,$", MR_Next},
+                       {"\"threads\": %int,$", MR_Next},
                        {"\"iterations\": %int,$", MR_Next},
                        {"\"real_time\": %float,$", MR_Next},
                        {"\"cpu_time\": %float,$", MR_Next},
@@ -85,6 +90,11 @@ BENCHMARK(BM_bytes_per_second);
 ADD_CASES(TC_ConsoleOut,
           {{"^BM_bytes_per_second %console_report +%float[kM]{0,1}B/s$"}});
 ADD_CASES(TC_JSONOut, {{"\"name\": \"BM_bytes_per_second\",$"},
+                       {"\"base_name\": \"BM_bytes_per_second\",$", MR_Next},
+                       {"\"id\": %int,$", MR_Next},
+                       {"\"family\": %int,$", MR_Next},
+                       {"\"repetitions\": %int,$", MR_Next},
+                       {"\"threads\": %int,$", MR_Next},
                        {"\"iterations\": %int,$", MR_Next},
                        {"\"real_time\": %float,$", MR_Next},
                        {"\"cpu_time\": %float,$", MR_Next},
@@ -107,6 +117,11 @@ BENCHMARK(BM_items_per_second);
 ADD_CASES(TC_ConsoleOut,
           {{"^BM_items_per_second %console_report +%float[kM]{0,1} items/s$"}});
 ADD_CASES(TC_JSONOut, {{"\"name\": \"BM_items_per_second\",$"},
+                       {"\"base_name\": \"BM_items_per_second\",$", MR_Next},
+                       {"\"id\": %int,$", MR_Next},
+                       {"\"family\": %int,$", MR_Next},
+                       {"\"repetitions\": %int,$", MR_Next},
+                       {"\"threads\": %int,$", MR_Next},
                        {"\"iterations\": %int,$", MR_Next},
                        {"\"real_time\": %float,$", MR_Next},
                        {"\"cpu_time\": %float,$", MR_Next},
@@ -128,6 +143,11 @@ BENCHMARK(BM_label);
 
 ADD_CASES(TC_ConsoleOut, {{"^BM_label %console_report some label$"}});
 ADD_CASES(TC_JSONOut, {{"\"name\": \"BM_label\",$"},
+                       {"\"base_name\": \"BM_label\",$", MR_Next},
+                       {"\"id\": %int,$", MR_Next},
+                       {"\"family\": %int,$", MR_Next},
+                       {"\"repetitions\": %int,$", MR_Next},
+                       {"\"threads\": %int,$", MR_Next},
                        {"\"iterations\": %int,$", MR_Next},
                        {"\"real_time\": %float,$", MR_Next},
                        {"\"cpu_time\": %float,$", MR_Next},
@@ -149,6 +169,11 @@ void BM_error(benchmark::State& state) {
 BENCHMARK(BM_error);
 ADD_CASES(TC_ConsoleOut, {{"^BM_error[ ]+ERROR OCCURRED: 'message'$"}});
 ADD_CASES(TC_JSONOut, {{"\"name\": \"BM_error\",$"},
+                       {"\"base_name\": \"BM_error\",$", MR_Next},
+                       {"\"id\": %int,$", MR_Next},
+                       {"\"family\": %int,$", MR_Next},
+                       {"\"repetitions\": %int,$", MR_Next},
+                       {"\"threads\": %int,$", MR_Next},
                        {"\"error_occurred\": true,$", MR_Next},
                        {"\"error_message\": \"message\",$", MR_Next}});
 
