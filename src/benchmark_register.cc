@@ -62,6 +62,23 @@ namespace internal {
 //=============================================================================//
 //                         BenchmarkFamilies
 //=============================================================================//
+int64_t GetBenchmarkUniqueId() {
+  // This function is exclusively for generating a unique identifier for a
+  // benchmark that will help identify a "group" or a "family"
+  // this is useful for grouping benchmarks when using tools
+  // to easily, accurately and appropriately describe
+  // trends and characteristics between them
+  static std::atomic<int64_t> benchid(0);
+  return benchid.fetch_add(1, std::memory_order::memory_order_relaxed);
+}
+
+int64_t GetBenchmarkInstanceUniqueId() {
+  // Similar to the above, but this allows a benchmark to
+  // identify statistics, counters and other information
+  // tightly coupled to a single instance + its repetitions
+  static std::atomic<int64_t> benchid(0);
+  return benchid.fetch_add(1, std::memory_order::memory_order_relaxed);
+}
 
 // Class for managing registered benchmarks.  Note that each registered
 // benchmark identifies a family of related benchmarks to run.
@@ -153,6 +170,9 @@ bool BenchmarkFamilies::FindBenchmarks(
     for (auto const& args : family->args_) {
       for (int num_threads : *thread_counts) {
         Benchmark::Instance instance;
+        instance.id = GetBenchmarkInstanceUniqueId();
+        instance.family_id = family->id_;
+        instance.base_name = family->name_;
         instance.name = family->name_;
         instance.benchmark = family.get();
         instance.report_mode = family->report_mode_;
@@ -236,6 +256,7 @@ bool FindBenchmarksInternal(const std::string& re,
 
 Benchmark::Benchmark(const char* name)
     : name_(name),
+      id_(GetBenchmarkUniqueId()),
       report_mode_(RM_Unspecified),
       time_unit_(kNanosecond),
       range_multiplier_(kRangeMultiplier),

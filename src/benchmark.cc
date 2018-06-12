@@ -123,6 +123,17 @@ BenchmarkReporter::Run CreateRunReport(
   report.error_occurred = results.has_error_;
   report.error_message = results.error_message_;
   report.report_label = results.report_label_;
+  report.base_name = b.base_name;
+  report.id = b.id;
+  report.family_id = b.family_id;
+  report.error_occurred = results.has_error_;
+  report.error_message = results.error_message_;
+  report.report_label = results.report_label_;
+  // This is the total iterations across all threads.
+  report.iterations = results.iterations;
+  report.repetitions = b.repetitions;
+  report.threads = b.threads;
+  report.time_unit = b.time_unit;
   // This is the total iterations across all threads.
   report.iterations = results.iterations;
   report.time_unit = b.time_unit;

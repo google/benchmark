@@ -78,7 +78,12 @@ bool JSONReporter::ReportContext(const Context& context) {
   out << indent << FormatKV("date", walltime_value) << ",\n";
 
   if (Context::executable_name) {
-    out << indent << FormatKV("executable", Context::executable_name) << ",\n";
+    // windows uses backslash for its path separator,
+    // which must be escaped in JSON otherwise it blows up conforming JSON
+    // decoders
+    std::string executable_name = Context::executable_name;
+    ReplaceAll(&executable_name, "\\", "\\\\");
+    out << indent << FormatKV("executable", executable_name) << ",\n";
   }
 
   CPUInfo const& info = context.cpu_info;
@@ -155,6 +160,11 @@ void JSONReporter::PrintRunData(Run const& run) {
   std::string indent(6, ' ');
   std::ostream& out = GetOutputStream();
   out << indent << FormatKV("name", run.benchmark_name) << ",\n";
+  out << indent << FormatKV("base_name", run.base_name) << ",\n";
+  out << indent << FormatKV("id", run.id) << ",\n";
+  out << indent << FormatKV("family", run.family_id) << ",\n";
+  out << indent << FormatKV("repetitions", run.repetitions) << ",\n";
+  out << indent << FormatKV("threads", run.threads) << ",\n";
   if (run.error_occurred) {
     out << indent << FormatKV("error_occurred", run.error_occurred) << ",\n";
     out << indent << FormatKV("error_message", run.error_message) << ",\n";

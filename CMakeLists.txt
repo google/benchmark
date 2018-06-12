@@ -87,7 +87,10 @@ include(AddCXXCompilerFlag)
 include(CXXFeatureCheck)
 
 if (BENCHMARK_BUILD_32_BITS)
-  add_required_cxx_compiler_flag(-m32)
+  # Exclude -m32 when using MSVC as it is incompatible
+  if (NOT MSVC)
+    add_required_cxx_compiler_flag(-m32)
+  endif()
 endif()
 
 if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")

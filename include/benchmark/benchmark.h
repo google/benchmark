@@ -1262,11 +1262,16 @@ class BenchmarkReporter {
           report_rms(false),
           counters() {}
 
+    int64_t id;
+    int64_t family_id;
+    std::string base_name;
     std::string benchmark_name;
     std::string report_label;  // Empty if not set by benchmark.
     bool error_occurred;
     std::string error_message;
 
+    int64_t threads;
+    int64_t repetitions;
     int64_t iterations;
     TimeUnit time_unit;
     double real_accumulated_time;
