@@ -38,10 +38,11 @@ def create_parser():
 
     utest = parser.add_argument_group()
     utest.add_argument(
-        '-u',
-        '--utest',
-        action="store_true",
-        help="Do a two-tailed Mann-Whitney U test with the null hypothesis that it is equally likely that a randomly selected value from one sample will be less than or greater than a randomly selected value from a second sample.\nWARNING: requires **LARGE** (no less than 9) number of repetitions to be meaningful!")
+        '--no-utest',
+        dest='utest',
+        default=True,
+        action="store_false",
+        help="The tool can do a two-tailed Mann-Whitney U test with the null hypothesis that it is equally likely that a randomly selected value from one sample will be less than or greater than a randomly selected value from a second sample.\nWARNING: requires **LARGE** (no less than {}) number of repetitions to be meaningful!\nThe test is being done by default, if at least {} repetitions were done.\nThis option can disable the U Test.".format(report.UTEST_OPTIMAL_REPETITIONS, report.UTEST_MIN_REPETITIONS))
     alpha_default = 0.05
     utest.add_argument(
         "--alpha",
@@ -245,26 +246,16 @@ class TestParser(unittest.TestCase):
     def test_benchmarks_basic(self):
         parsed = self.parser.parse_args(
             ['benchmarks', self.testInput0, self.testInput1])
+        self.assertTrue(parsed.utest)
+        self.assertEqual(parsed.mode, 'benchmarks')
+        self.assertEqual(parsed.test_baseline[0].name, self.testInput0)
+        self.assertEqual(parsed.test_contender[0].name, self.testInput1)
+        self.assertFalse(parsed.benchmark_options)
+
+    def test_benchmarks_basic_without_utest(self):
+        parsed = self.parser.parse_args(
+            ['--no-utest', 'benchmarks', self.testInput0, self.testInput1])
         self.assertFalse(parsed.utest)
-        self.assertEqual(parsed.mode, 'benchmarks')
-        self.assertEqual(parsed.test_baseline[0].name, self.testInput0)
-        self.assertEqual(parsed.test_contender[0].name, self.testInput1)
-        self.assertFalse(parsed.benchmark_options)
-
-    def test_benchmarks_basic_with_utest(self):
-        parsed = self.parser.parse_args(
-            ['-u', 'benchmarks', self.testInput0, self.testInput1])
-        self.assertTrue(parsed.utest)
-        self.assertEqual(parsed.utest_alpha, 0.05)
-        self.assertEqual(parsed.mode, 'benchmarks')
-        self.assertEqual(parsed.test_baseline[0].name, self.testInput0)
-        self.assertEqual(parsed.test_contender[0].name, self.testInput1)
-        self.assertFalse(parsed.benchmark_options)
-
-    def test_benchmarks_basic_with_utest(self):
-        parsed = self.parser.parse_args(
-            ['--utest', 'benchmarks', self.testInput0, self.testInput1])
-        self.assertTrue(parsed.utest)
         self.assertEqual(parsed.utest_alpha, 0.05)
         self.assertEqual(parsed.mode, 'benchmarks')
         self.assertEqual(parsed.test_baseline[0].name, self.testInput0)
@@ -273,8 +264,18 @@ class TestParser(unittest.TestCase):
 
     def test_benchmarks_basic_with_utest_alpha(self):
         parsed = self.parser.parse_args(
-            ['--utest', '--alpha=0.314', 'benchmarks', self.testInput0, self.testInput1])
+            ['--alpha=0.314', 'benchmarks', self.testInput0, self.testInput1])
         self.assertTrue(parsed.utest)
+        self.assertEqual(parsed.utest_alpha, 0.314)
+        self.assertEqual(parsed.mode, 'benchmarks')
+        self.assertEqual(parsed.test_baseline[0].name, self.testInput0)
+        self.assertEqual(parsed.test_contender[0].name, self.testInput1)
+        self.assertFalse(parsed.benchmark_options)
+
+    def test_benchmarks_basic_without_utest_with_utest_alpha(self):
+        parsed = self.parser.parse_args(
+            ['--no-utest', '--alpha=0.314', 'benchmarks', self.testInput0, self.testInput1])
+        self.assertFalse(parsed.utest)
         self.assertEqual(parsed.utest_alpha, 0.314)
         self.assertEqual(parsed.mode, 'benchmarks')
         self.assertEqual(parsed.test_baseline[0].name, self.testInput0)
@@ -284,7 +285,7 @@ class TestParser(unittest.TestCase):
     def test_benchmarks_with_remainder(self):
         parsed = self.parser.parse_args(
             ['benchmarks', self.testInput0, self.testInput1, 'd'])
-        self.assertFalse(parsed.utest)
+        self.assertTrue(parsed.utest)
         self.assertEqual(parsed.mode, 'benchmarks')
         self.assertEqual(parsed.test_baseline[0].name, self.testInput0)
         self.assertEqual(parsed.test_contender[0].name, self.testInput1)
@@ -293,7 +294,7 @@ class TestParser(unittest.TestCase):
     def test_benchmarks_with_remainder_after_doubleminus(self):
         parsed = self.parser.parse_args(
             ['benchmarks', self.testInput0, self.testInput1, '--', 'e'])
-        self.assertFalse(parsed.utest)
+        self.assertTrue(parsed.utest)
         self.assertEqual(parsed.mode, 'benchmarks')
         self.assertEqual(parsed.test_baseline[0].name, self.testInput0)
         self.assertEqual(parsed.test_contender[0].name, self.testInput1)
@@ -302,7 +303,7 @@ class TestParser(unittest.TestCase):
     def test_filters_basic(self):
         parsed = self.parser.parse_args(
             ['filters', self.testInput0, 'c', 'd'])
-        self.assertFalse(parsed.utest)
+        self.assertTrue(parsed.utest)
         self.assertEqual(parsed.mode, 'filters')
         self.assertEqual(parsed.test[0].name, self.testInput0)
         self.assertEqual(parsed.filter_baseline[0], 'c')
@@ -312,7 +313,7 @@ class TestParser(unittest.TestCase):
     def test_filters_with_remainder(self):
         parsed = self.parser.parse_args(
             ['filters', self.testInput0, 'c', 'd', 'e'])
-        self.assertFalse(parsed.utest)
+        self.assertTrue(parsed.utest)
         self.assertEqual(parsed.mode, 'filters')
         self.assertEqual(parsed.test[0].name, self.testInput0)
         self.assertEqual(parsed.filter_baseline[0], 'c')
@@ -322,7 +323,7 @@ class TestParser(unittest.TestCase):
     def test_filters_with_remainder_after_doubleminus(self):
         parsed = self.parser.parse_args(
             ['filters', self.testInput0, 'c', 'd', '--', 'f'])
-        self.assertFalse(parsed.utest)
+        self.assertTrue(parsed.utest)
         self.assertEqual(parsed.mode, 'filters')
         self.assertEqual(parsed.test[0].name, self.testInput0)
         self.assertEqual(parsed.filter_baseline[0], 'c')
@@ -332,7 +333,7 @@ class TestParser(unittest.TestCase):
     def test_benchmarksfiltered_basic(self):
         parsed = self.parser.parse_args(
             ['benchmarksfiltered', self.testInput0, 'c', self.testInput1, 'e'])
-        self.assertFalse(parsed.utest)
+        self.assertTrue(parsed.utest)
         self.assertEqual(parsed.mode, 'benchmarksfiltered')
         self.assertEqual(parsed.test_baseline[0].name, self.testInput0)
         self.assertEqual(parsed.filter_baseline[0], 'c')
@@ -343,7 +344,7 @@ class TestParser(unittest.TestCase):
     def test_benchmarksfiltered_with_remainder(self):
         parsed = self.parser.parse_args(
             ['benchmarksfiltered', self.testInput0, 'c', self.testInput1, 'e', 'f'])
-        self.assertFalse(parsed.utest)
+        self.assertTrue(parsed.utest)
         self.assertEqual(parsed.mode, 'benchmarksfiltered')
         self.assertEqual(parsed.test_baseline[0].name, self.testInput0)
         self.assertEqual(parsed.filter_baseline[0], 'c')
@@ -354,7 +355,7 @@ class TestParser(unittest.TestCase):
     def test_benchmarksfiltered_with_remainder_after_doubleminus(self):
         parsed = self.parser.parse_args(
             ['benchmarksfiltered', self.testInput0, 'c', self.testInput1, 'e', '--', 'g'])
-        self.assertFalse(parsed.utest)
+        self.assertTrue(parsed.utest)
         self.assertEqual(parsed.mode, 'benchmarksfiltered')
         self.assertEqual(parsed.test_baseline[0].name, self.testInput0)
         self.assertEqual(parsed.filter_baseline[0], 'c')
