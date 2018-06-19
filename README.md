@@ -12,6 +12,8 @@ IRC channel: https://freenode.net #googlebenchmark
 
 [Known issues and common problems](#known-issues)
 
+[Running Your First Benchmark Documentation](docs/RunningFirstBenchmark.md)
+
 [Additional Tooling Documentation](docs/tools.md)
 
 [Assembly Testing Documentation](docs/AssemblyTests.md)
@@ -118,9 +120,9 @@ BENCHMARK(BM_StringCopy);
 BENCHMARK_MAIN();
 ```
 
-Don't forget to inform your linker to add benchmark library e.g. through 
-`-lbenchmark` compilation flag. Alternatively, you may leave out the 
-`BENCHMARK_MAIN();` at the end of the source file and link against 
+Don't forget to inform your linker to add benchmark library e.g. through
+`-lbenchmark` compilation flag. Alternatively, you may leave out the
+`BENCHMARK_MAIN();` at the end of the source file and link against
 `-lbenchmark_main` to get the same default behavior.
 
 The benchmark library will reporting the timing for the code within the `for(...)` loop.
@@ -334,7 +336,7 @@ Compared to an empty `KeepRunning` loop, which looks like:
 ```
 
 Unless C++03 compatibility is required, the ranged-for variant of writing
-the benchmark loop should be preferred.  
+the benchmark loop should be preferred.
 
 ## Passing arbitrary arguments to a benchmark
 In C++11 it is possible to define a benchmark that takes an arbitrary number
