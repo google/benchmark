@@ -114,28 +114,28 @@ TEST(StringUtilTest, stoi) {
 TEST(StringUtilTest, stod) {
   {
     size_t pos = 0;
-    EXPECT_EQ(0.0, benchmark::stod("0", &pos));
+    EXPECT_DOUBLE_EQ(0.0, benchmark::stod("0", &pos));
     EXPECT_EQ(1, pos);
   }
   {
     size_t pos = 0;
-    EXPECT_EQ(-84.0, benchmark::stod("-84", &pos));
+    EXPECT_DOUBLE_EQ(-84.0, benchmark::stod("-84", &pos));
     EXPECT_EQ(3, pos);
   }
   {
     size_t pos = 0;
-    EXPECT_EQ(1234.0, benchmark::stod("1234", &pos));
+    EXPECT_DOUBLE_EQ(1234.0, benchmark::stod("1234", &pos));
     EXPECT_EQ(4, pos);
   }
   {
     size_t pos = 0;
-    EXPECT_EQ(1.5, benchmark::stod("1.5", &pos));
+    EXPECT_DOUBLE_EQ(1.5, benchmark::stod("1.5", &pos));
     EXPECT_EQ(3, pos);
   }
   {
     size_t pos = 0;
     /* Note: exactly representable as double */
-    EXPECT_EQ(-1.25e+9, benchmark::stod("-1.25e+9", &pos));
+    EXPECT_DOUBLE_EQ(-1.25e+9, benchmark::stod("-1.25e+9", &pos));
     EXPECT_EQ(8, pos);
   }
   {
