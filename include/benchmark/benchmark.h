@@ -1431,8 +1431,14 @@ class MemoryManager {
   struct Result {
     explicit Result(int64_t iters)
         : num_allocs(0), max_bytes_used(0), iterations(iters) {}
+
+    // The number of allocations made in total between Start and Stop.
     int64_t num_allocs;
+
+    // The peak memory use between Start and Stop.
     int64_t max_bytes_used;
+
+    // The number of iterations run for the memory test.
     const int64_t iterations;
   };
 

@@ -24,7 +24,7 @@ ADD_CASES(TC_JSONOut, {{"\"name\": \"BM_empty\",$"},
                        {"\"cpu_time\": %float,$", MR_Next},
                        {"\"time_unit\": \"ns\"$", MR_Next},
                        {"\"allocs_per_iter\": %float,$", MR_Next},
-                       {"\"max_bytes_used\": %float,$", MR_Next},
+                       {"\"max_bytes_used\": %int,$", MR_Next},
                        {"}", MR_Next}});
 ADD_CASES(TC_CSVOut, {{"^\"BM_empty\",%csv_report$"}});
 
