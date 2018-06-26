@@ -118,7 +118,7 @@ namespace {
 BenchmarkReporter::Run CreateRunReport(
     const benchmark::internal::Benchmark::Instance& b,
     const internal::ThreadManager::Result& results,
-    const MemoryManager::Result& memory_results, double seconds) {
+    std::unique_ptr<MemoryManager::Result> memory_result, double seconds) {
   // Create report about this benchmark run.
   BenchmarkReporter::Run report;
 
@@ -154,12 +154,15 @@ BenchmarkReporter::Run CreateRunReport(
     report.statistics = b.statistics;
     report.counters = results.counters;
 
-    report.allocs_per_iter =
-        memory_results.iterations
-            ? static_cast<double>(memory_results.num_allocs) /
-                  memory_results.iterations
-            : 0;
-    report.max_bytes_used = memory_results.max_bytes_used;
+    if (memory_result) {
+      report.has_memory_result = true;
+      report.allocs_per_iter =
+          memory_result->iterations
+              ? static_cast<double>(memory_result->num_allocs) /
+                    memory_result->iterations
+              : 0;
+      report.max_bytes_used = memory_result->max_bytes_used;
+    }
 
     internal::Finish(&report.counters, seconds, b.threads);
   }
@@ -260,23 +263,23 @@ std::vector<BenchmarkReporter::Run> RunBenchmark(
       // clang-format on
 
       if (should_report) {
-        MemoryManager::Result memory_result;
+        std::unique_ptr<MemoryManager::Result> memory_result;
         if (memory_manager != nullptr) {
           // Only run a few iterations to reduce the impact of one-time
           // allocations in benchmarks that are not properly managed.
-          memory_result.iterations = std::min<int64_t>(16, iters);
-
+          memory_result.reset(
+              new MemoryManager::Result(std::min<int64_t>(16, iters)));
           memory_manager->Start();
           manager.reset(new internal::ThreadManager(1));
-          RunInThread(&b, memory_result.iterations, 0, manager.get());
+          RunInThread(&b, memory_result->iterations, 0, manager.get());
           manager->WaitForAllThreads();
           manager.reset();
 
-          memory_manager->Stop(&memory_result);
+          memory_manager->Stop(memory_result.get());
         }
 
         BenchmarkReporter::Run report =
-            CreateRunReport(b, results, memory_result, seconds);
+            CreateRunReport(b, results, std::move(memory_result), seconds);
         if (!report.error_occurred && b.complexity != oNone)
           complexity_reports->push_back(report);
         reports.push_back(report);

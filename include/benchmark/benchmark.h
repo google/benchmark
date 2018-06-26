@@ -1259,6 +1259,7 @@ class BenchmarkReporter {
           report_big_o(false),
           report_rms(false),
           counters(),
+          has_memory_result(false),
           allocs_per_iter(0.0),
           max_bytes_used(0) {}
 
@@ -1306,6 +1307,7 @@ class BenchmarkReporter {
     UserCounters counters;
 
     // Memory metrics.
+    bool has_memory_result;
     double allocs_per_iter;
     int64_t max_bytes_used;
   };
@@ -1427,10 +1429,11 @@ class BENCHMARK_DEPRECATED_MSG("The CSV Reporter will be removed in a future rel
 class MemoryManager {
  public:
   struct Result {
-    Result() : num_allocs(0), max_bytes_used(0), iterations(0) {}
+    explicit Result(int64_t iters)
+        : num_allocs(0), max_bytes_used(0), iterations(iters) {}
     int64_t num_allocs;
     int64_t max_bytes_used;
-    int64_t iterations;
+    const int64_t iterations;
   };
 
   // Implement this to start recording allocation information.
