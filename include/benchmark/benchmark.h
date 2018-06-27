@@ -268,8 +268,8 @@ size_t RunSpecifiedBenchmarks(BenchmarkReporter* console_reporter);
 size_t RunSpecifiedBenchmarks(BenchmarkReporter* console_reporter,
                               BenchmarkReporter* file_reporter);
 
-// Register a MemoryManager instance that will be used to report on allocation
-// data for benchmark runs.
+// Register a MemoryManager instance that will be used to collect and report
+// allocation measurements for benchmark runs.
 void RegisterMemoryManager(MemoryManager* memory_manager);
 
 namespace internal {
@@ -1424,23 +1424,21 @@ class BENCHMARK_DEPRECATED_MSG("The CSV Reporter will be removed in a future rel
   std::set<std::string> user_counter_names_;
 };
 
-// If a MemoryManager is registered, it can be used to report memory statistics
-// for a run of the benchmark.
+// If a MemoryManager is registered, it can be used to collect and report
+// allocation metrics for a run of the benchmark.
 class MemoryManager {
  public:
   struct Result {
-    explicit Result(int64_t iters)
-        : num_allocs(0), max_bytes_used(0), iterations(iters) {}
+    Result() : num_allocs(0), max_bytes_used(0) {}
 
     // The number of allocations made in total between Start and Stop.
     int64_t num_allocs;
 
     // The peak memory use between Start and Stop.
     int64_t max_bytes_used;
-
-    // The number of iterations run for the memory test.
-    const int64_t iterations;
   };
+
+  virtual ~MemoryManager() {}
 
   // Implement this to start recording allocation information.
   virtual void Start() = 0;

@@ -1,3 +1,5 @@
+#include <memory>
+
 #include "../src/check.h"
 #include "benchmark/benchmark.h"
 #include "output_test.h"
@@ -22,15 +24,17 @@ ADD_CASES(TC_JSONOut, {{"\"name\": \"BM_empty\",$"},
                        {"\"iterations\": %int,$", MR_Next},
                        {"\"real_time\": %float,$", MR_Next},
                        {"\"cpu_time\": %float,$", MR_Next},
-                       {"\"time_unit\": \"ns\"$", MR_Next},
+                       {"\"time_unit\": \"ns\",$", MR_Next},
                        {"\"allocs_per_iter\": %float,$", MR_Next},
-                       {"\"max_bytes_used\": %int,$", MR_Next},
+                       {"\"max_bytes_used\": 42000$", MR_Next},
                        {"}", MR_Next}});
 ADD_CASES(TC_CSVOut, {{"^\"BM_empty\",%csv_report$"}});
 
 
 int main(int argc, char *argv[]) {
-  benchmark::Initialize(&argc, argv);
-  benchmark::RegisterMemoryManager(new TestMemoryManager());
-  benchmark::RunSpecifiedBenchmarks();
+  std::unique_ptr<benchmark::MemoryManager> mm(new TestMemoryManager());
+
+  benchmark::RegisterMemoryManager(mm.get());
+  RunOutputTests(argc, argv);
+  benchmark::RegisterMemoryManager(nullptr);
 }
