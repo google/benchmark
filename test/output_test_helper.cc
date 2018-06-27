@@ -301,6 +301,10 @@ int Results::NumThreads() const {
   return num;
 }
 
+double Results::NumIterations() const {
+  return GetAs<double>("iterations");
+}
+
 double Results::GetTime(BenchmarkTime which) const {
   CHECK(which == kCpuTime || which == kRealTime);
   const char* which_str = which == kCpuTime ? "cpu_time" : "real_time";
