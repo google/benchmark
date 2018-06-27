@@ -141,7 +141,6 @@ else()
   add_cxx_compiler_flag(-pedantic)
   add_cxx_compiler_flag(-pedantic-errors)
   add_cxx_compiler_flag(-Wshorten-64-to-32)
-  add_cxx_compiler_flag(-Wfloat-equal)
   add_cxx_compiler_flag(-fstrict-aliasing)
   # Disable warnings regarding deprecated parts of the library while building
   # and testing those parts of the library.
