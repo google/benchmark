@@ -6,6 +6,7 @@
 *.dylib
 *.cmake
 !/cmake/*.cmake
+!/test/AssemblyTests.cmake
 *~
 *.pyc
 __pycache__
@@ -40,6 +41,9 @@ tags
 build.ninja
 install_manifest.txt
 rules.ninja
+
+# bazel output symlinks.
+bazel-*
 
 # out-of-source build top-level folders.
 build/

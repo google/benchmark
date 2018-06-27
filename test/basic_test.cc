@@ -99,6 +99,7 @@ BENCHMARK(BM_empty_stop_start)->ThreadPerCpu();
 
 void BM_KeepRunning(benchmark::State& state) {
   size_t iter_count = 0;
+  assert(iter_count == state.iterations());
   while (state.KeepRunning()) {
     ++iter_count;
   }
@@ -125,5 +126,11 @@ void BM_RangedFor(benchmark::State& state) {
   assert(iter_count == state.max_iterations);
 }
 BENCHMARK(BM_RangedFor);
+
+// Ensure that StateIterator provides all the necessary typedefs required to
+// instantiate std::iterator_traits.
+static_assert(std::is_same<
+  typename std::iterator_traits<benchmark::State::StateIterator>::value_type,
+  typename benchmark::State::StateIterator::value_type>::value, "");
 
 BENCHMARK_MAIN();
