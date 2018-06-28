@@ -90,7 +90,7 @@ the right to change and break the API at any time.
 ## Prerequisite knowledge
 
 Before attempting to understand this framework one should ideally have some familiarity with the structure and format of the Google Test framework, upon which it is based. Documentation for Google Test, including a "Getting Started" (primer) guide, is available here:
-https://github.com/google/googletest/blob/master/googletest/docs/Documentation.md
+https://github.com/google/googletest/blob/master/googletest/docs/primer.md
 
 
 ## Example usage
