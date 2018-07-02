@@ -163,7 +163,7 @@ BenchmarkReporter::Run CreateRunReport(
       report.max_bytes_used = memory_result.max_bytes_used;
     }
 
-    internal::Finish(&report.counters, seconds, b.threads);
+    internal::Finish(&report.counters, results.iterations, seconds, b.threads);
   }
   return report;
 }

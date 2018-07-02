@@ -341,12 +341,24 @@ class Counter {
     kDefaults = 0,
     // Mark the counter as a rate. It will be presented divided
     // by the duration of the benchmark.
-    kIsRate = 1,
+    kIsRate = 1U << 0U,
     // Mark the counter as a thread-average quantity. It will be
     // presented divided by the number of threads.
-    kAvgThreads = 2,
+    kAvgThreads = 1U << 1U,
     // Mark the counter as a thread-average rate. See above.
-    kAvgThreadsRate = kIsRate | kAvgThreads
+    kAvgThreadsRate = kIsRate | kAvgThreads,
+    // Mark the counter as a constant value, valid/same for *every* iteration.
+    // When reporting, it will be *multiplied* by the iteration count.
+    kIsIterationInvariant = 1U << 2U,
+    // Mark the counter as a constant rate.
+    // When reporting, it will be *multiplied* by the iteration count
+    // and then divided by the duration of the benchmark.
+    kIsIterationInvariantRate = kIsRate | kIsIterationInvariant,
+    // Mark the counter as a iteration-average quantity.
+    // It will be presented divided by the number of iterations.
+    kAvgIterations = 1U << 3U,
+    // Mark the counter as a iteration-average rate. See above.
+    kAvgIterationsRate = kIsRate | kAvgIterations
   };
 
   double value;
@@ -358,6 +370,14 @@ class Counter {
   BENCHMARK_ALWAYS_INLINE operator double const&() const { return value; }
   BENCHMARK_ALWAYS_INLINE operator double&() { return value; }
 };
+
+// A helper for user code to create unforeseen combinations of Flags, without
+// having to do this cast manually each time, or providing this operator.
+Counter::Flags inline operator|(const Counter::Flags& LHS,
+                                const Counter::Flags& RHS) {
+  return static_cast<Counter::Flags>(static_cast<int>(LHS) |
+                                     static_cast<int>(RHS));
+}
 
 // This is the container for the user-defined counters.
 typedef std::map<std::string, Counter> UserCounters;
