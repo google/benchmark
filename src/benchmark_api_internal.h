@@ -29,7 +29,7 @@ struct Benchmark::Instance {
   bool last_benchmark_instance;
   int repetitions;
   double min_time;
-  size_t iterations;
+  int64_t iterations;
   int threads;  // Number of concurrent threads to us
 };
 
