@@ -56,8 +56,7 @@ static void BM_memcpy(benchmark::State& state) {
   memset(src, 'x', state.range(0));
   for (auto _ : state)
     memcpy(dst, src, state.range(0));
-  state.SetBytesProcessed(int64_t(state.iterations()) *
-                          int64_t(state.range(0)));
+  state.SetBytesProcessed(state.iterations() * state.range(0));
   delete[] src; delete[] dst;
 }
 BENCHMARK(BM_memcpy)->Arg(8)->Arg(64)->Arg(512)->Arg(1<<10)->Arg(8<<10);
@@ -122,8 +121,7 @@ template <class Q> int BM_Sequential(benchmark::State& state) {
       q.Wait(&v);
   }
   // actually messages, not bytes:
-  state.SetBytesProcessed(
-      static_cast<int64_t>(state.iterations())*state.range(0));
+  state.SetBytesProcessed(state.iterations() * state.range(0));
 }
 BENCHMARK_TEMPLATE(BM_Sequential, WaitQueue<int>)->Range(1<<0, 1<<10);
 
@@ -454,7 +452,7 @@ class State {
   //   while (state.KeepRunningBatch(1000)) {
   //     // process 1000 elements
   //   }
-  bool KeepRunningBatch(size_t n);
+  bool KeepRunningBatch(int64_t n);
 
   // REQUIRES: timer is running and 'SkipWithError(...)' has not been called
   //           by the current thread.
@@ -581,7 +579,7 @@ class State {
   int64_t range_y() const { return range(1); }
 
   BENCHMARK_ALWAYS_INLINE
-  size_t iterations() const {
+  int64_t iterations() const {
     if (BENCHMARK_BUILTIN_EXPECT(!started_, false)) {
       return 0;
     }
@@ -592,15 +590,15 @@ class State {
      :  // items we expect on the first cache line (ie 64 bytes of the struct)
   // When total_iterations_ is 0, KeepRunning() and friends will return false.
   // May be larger than max_iterations.
-  size_t total_iterations_;
+  int64_t total_iterations_;
 
   // When using KeepRunningBatch(), batch_leftover_ holds the number of
   // iterations beyond max_iters that were run. Used to track
   // completed_iterations_ accurately.
-  size_t batch_leftover_;
+  int64_t batch_leftover_;
 
  public:
-  const size_t max_iterations;
+  const int64_t max_iterations;
 
  private:
   bool started_;
@@ -624,7 +622,7 @@ class State {
   const int threads;
 
   // TODO(EricWF) make me private
-  State(size_t max_iters, const std::vector<int64_t>& ranges, int thread_i,
+  State(int64_t max_iters, const std::vector<int64_t>& ranges, int thread_i,
         int n_threads, internal::ThreadTimer* timer,
         internal::ThreadManager* manager);
 
@@ -632,7 +630,7 @@ class State {
   void StartKeepRunning();
   // Implementation of KeepRunning() and KeepRunningBatch().
   // is_batch must be true unless n is 1.
-  bool KeepRunningInternal(size_t n, bool is_batch);
+  bool KeepRunningInternal(int64_t n, bool is_batch);
   void FinishKeepRunning();
   internal::ThreadTimer* timer_;
   internal::ThreadManager* manager_;
@@ -643,11 +641,11 @@ inline BENCHMARK_ALWAYS_INLINE bool State::KeepRunning() {
   return KeepRunningInternal(1, /*is_batch=*/false);
 }
 
-inline BENCHMARK_ALWAYS_INLINE bool State::KeepRunningBatch(size_t n) {
+inline BENCHMARK_ALWAYS_INLINE bool State::KeepRunningBatch(int64_t n) {
   return KeepRunningInternal(n, /*is_batch=*/true);
 }
 
-inline BENCHMARK_ALWAYS_INLINE bool State::KeepRunningInternal(size_t n,
+inline BENCHMARK_ALWAYS_INLINE bool State::KeepRunningInternal(int64_t n,
                                                                bool is_batch) {
   // total_iterations_ is set to 0 by the constructor, and always set to a
   // nonzero value by StartKepRunning().
@@ -711,7 +709,7 @@ struct State::StateIterator {
   }
 
  private:
-  size_t cached_;
+  int64_t cached_;
   State* const parent_;
 };
 
@@ -815,7 +813,7 @@ class Benchmark {
   // NOTE: This function should only be used when *exact* iteration control is
   //   needed and never to control or limit how long a benchmark runs, where
   // `--benchmark_min_time=N` or `MinTime(...)` should be used instead.
-  Benchmark* Iterations(size_t n);
+  Benchmark* Iterations(int64_t n);
 
   // Specify the amount of times to repeat this benchmark. This option overrides
   // the `benchmark_repetitions` flag.
@@ -906,7 +904,7 @@ class Benchmark {
   TimeUnit time_unit_;
   int range_multiplier_;
   double min_time_;
-  size_t iterations_;
+  int64_t iterations_;
   int repetitions_;
   bool use_real_time_;
   bool use_manual_time_;
