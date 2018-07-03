@@ -319,7 +319,10 @@ State::State(size_t max_iters, const std::vector<int64_t>& ranges, int thread_i,
   // demonstrated since constexpr evaluation must diagnose all undefined
   // behavior). However, GCC and Clang also warn about this use of offsetof,
   // which must be suppressed.
-#ifdef __GNUC__
+#if defined(__INTEL_COMPILER)
+#pragma warning push
+#pragma warning(disable:1875)
+#elif defined(__GNUC__)
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Winvalid-offsetof"
 #endif
@@ -328,7 +331,9 @@ State::State(size_t max_iters, const std::vector<int64_t>& ranges, int thread_i,
   static_assert(offsetof(State, error_occurred_) <=
                     (cache_line_size - sizeof(error_occurred_)),
                 "");
-#ifdef __GNUC__
+#if defined(__INTEL_COMPILER)
+#pragma warning pop
+#elif defined(__GNUC__)
 #pragma GCC diagnostic pop
 #endif
 }
