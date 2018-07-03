@@ -104,7 +104,7 @@ DEFINE_int32(v, 0, "The level of verbose logging to output");
 namespace benchmark {
 
 namespace {
-static const int64_t kMaxIterations = 1000000000;
+static const size_t kMaxIterations = 1000000000;
 
 static MemoryManager* memory_manager = nullptr;
 }  // end namespace
@@ -117,7 +117,7 @@ namespace {
 
 BenchmarkReporter::Run CreateRunReport(
     const benchmark::internal::Benchmark::Instance& b,
-    const internal::ThreadManager::Result& results, int64_t memory_iterations,
+    const internal::ThreadManager::Result& results, size_t memory_iterations,
     const MemoryManager::Result& memory_result, double seconds) {
   // Create report about this benchmark run.
   BenchmarkReporter::Run report;
@@ -171,7 +171,7 @@ BenchmarkReporter::Run CreateRunReport(
 // Execute one thread of benchmark b for the specified number of iterations.
 // Adds the stats collected for the thread into *total.
 void RunInThread(const benchmark::internal::Benchmark::Instance* b,
-                 int64_t iters, int thread_id,
+                 size_t iters, int thread_id,
                  internal::ThreadManager* manager) {
   internal::ThreadTimer timer;
   State st(iters, b->arg, thread_id, b->threads, &timer, manager);
@@ -199,7 +199,7 @@ std::vector<BenchmarkReporter::Run> RunBenchmark(
   std::vector<BenchmarkReporter::Run> reports;  // return value
 
   const bool has_explicit_iteration_count = b.iterations != 0;
-  int64_t iters = has_explicit_iteration_count ? b.iterations : 1;
+  size_t iters = has_explicit_iteration_count ? b.iterations : 1;
   std::unique_ptr<internal::ThreadManager> manager;
   std::vector<std::thread> pool(b.threads - 1);
   const int repeats =
@@ -263,11 +263,11 @@ std::vector<BenchmarkReporter::Run> RunBenchmark(
 
       if (should_report) {
         MemoryManager::Result memory_result;
-        int64_t memory_iterations = 0;
+        size_t memory_iterations = 0;
         if (memory_manager != nullptr) {
           // Only run a few iterations to reduce the impact of one-time
           // allocations in benchmarks that are not properly managed.
-          memory_iterations = std::min<int64_t>(16, iters);
+          memory_iterations = std::min<size_t>(16, iters);
           memory_manager->Start();
           manager.reset(new internal::ThreadManager(1));
           RunInThread(&b, memory_iterations, 0, manager.get());
