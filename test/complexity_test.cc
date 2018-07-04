@@ -85,7 +85,7 @@ std::vector<int> ConstructRandomVector(int64_t size) {
   std::vector<int> v;
   v.reserve(static_cast<int>(size));
   for (int i = 0; i < size; ++i) {
-    v.push_back(std::rand() % size);
+    v.push_back(static_cast<int>(std::rand() % size));
   }
   return v;
 }
