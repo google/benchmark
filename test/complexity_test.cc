@@ -106,7 +106,7 @@ BENCHMARK(BM_Complexity_O_N)
 BENCHMARK(BM_Complexity_O_N)
     ->RangeMultiplier(2)
     ->Range(1 << 10, 1 << 16)
-    ->Complexity([](int64_t n) -> double { return n; });
+    ->Complexity([](int64_t n) -> double { return static_cast<double>(n); });
 BENCHMARK(BM_Complexity_O_N)
     ->RangeMultiplier(2)
     ->Range(1 << 10, 1 << 16)
@@ -142,7 +142,7 @@ BENCHMARK(BM_Complexity_O_N_log_N)
 BENCHMARK(BM_Complexity_O_N_log_N)
     ->RangeMultiplier(2)
     ->Range(1 << 10, 1 << 16)
-    ->Complexity([](int64_t n) { return kLog2E * n * log(n); });
+    ->Complexity([](int64_t n) { return kLog2E * n * log(static_cast<double>(n)); });
 BENCHMARK(BM_Complexity_O_N_log_N)
     ->RangeMultiplier(2)
     ->Range(1 << 10, 1 << 16)
