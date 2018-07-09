@@ -36,10 +36,10 @@ BigOFunc* FittingCurve(BigO complexity) {
       return [](int64_t n) -> double { return std::pow(n, 3); };
     case oLogN:
       /* Note: can't use log2 because Android's GNU STL lacks it */
-      return [](int64_t n) { return kLog2E * log(n); };
+      return [](int64_t n) { return kLog2E * log(static_cast<double>(n)); };
     case oNLogN:
       /* Note: can't use log2 because Android's GNU STL lacks it */
-      return [](int64_t n) { return kLog2E * n * log(n); };
+      return [](int64_t n) { return kLog2E * n * log(static_cast<double>(n)); };
     case o1:
     default:
       return [](int64_t) { return 1.0; };
