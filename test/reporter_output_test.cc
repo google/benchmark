@@ -28,7 +28,8 @@ static int AddContextCases() {
             {"\"mhz_per_cpu\": %float,$", MR_Next},
             {"\"cpu_scaling_enabled\": ", MR_Next},
             {"\"caches\": \\[$", MR_Next}});
-  auto const& Caches = benchmark::CPUInfo::Get().caches;
+  auto const& Info = benchmark::CPUInfo::Get();
+  auto const& Caches = Info.caches;
   if (!Caches.empty()) {
     AddCases(TC_ConsoleErr, {{"CPU Caches:$", MR_Next}});
   }
@@ -45,8 +46,13 @@ static int AddContextCases() {
                           {"\"num_sharing\": %int$", MR_Next},
                           {"}[,]{0,1}$", MR_Next}});
   }
-
   AddCases(TC_JSONOut, {{"],$"}});
+  auto const& LoadAvg = Info.load_avg;
+  if (!LoadAvg.empty()) {
+    AddCases(TC_ConsoleErr,
+             {{"Load Average: (%float, ){0,2}%float$", MR_Next}});
+  }
+  AddCases(TC_JSONOut, {{"\"load_avg\": \\[(%float,?){0,3}],$", MR_Next}});
   return 0;
 }
 int dummy_register = AddContextCases();
