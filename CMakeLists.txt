@@ -141,12 +141,12 @@ else()
   add_cxx_compiler_flag(-fstrict-aliasing)
   # Disable warnings regarding deprecated parts of the library while building
   # and testing those parts of the library.
+  add_cxx_compiler_flag(-Wno-deprecated-declarations)
   if (CMAKE_CXX_COMPILER_ID STREQUAL "Intel")
     # Intel silently ignores '-Wno-deprecated-declarations',
     # warning no. 1786 must be explicitly disabled.
+    # See #631 for rationale.
     add_cxx_compiler_flag(-wd1786)
-  else()
-    add_cxx_compiler_flag(-Wno-deprecated-declarations)
   endif()
   # Disable deprecation warnings for release builds (when -Werror is enabled).
   add_cxx_compiler_flag(-Wno-deprecated RELEASE)
