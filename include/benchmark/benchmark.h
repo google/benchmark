@@ -241,14 +241,16 @@ BENCHMARK(BM_test)->Unit(benchmark::kMillisecond);
 #define BENCHMARK_GCC_VERSION (__GNUC__ * 100 + __GNUC_MINOR__)
 #endif
 
+#include "benchmark_export.h"
+
 namespace benchmark {
 class BenchmarkReporter;
 
-void Initialize(int* argc, char** argv);
+BENCHMARK_EXPORT void Initialize(int* argc, char** argv);
 
 // Report to stdout all arguments in 'argv' as unrecognized except the first.
 // Returns true there is at least on unrecognized argument (i.e. 'argc' > 1).
-bool ReportUnrecognizedArguments(int argc, char** argv);
+BENCHMARK_EXPORT bool ReportUnrecognizedArguments(int argc, char** argv);
 
 // Generate a list of benchmarks matching the specified --benchmark_filter flag
 // and if --benchmark_list_tests is specified return after printing the name
@@ -262,9 +264,9 @@ bool ReportUnrecognizedArguments(int argc, char** argv);
 //  'file_reporter' is ignored.
 //
 // RETURNS: The number of matching benchmarks.
-size_t RunSpecifiedBenchmarks();
-size_t RunSpecifiedBenchmarks(BenchmarkReporter* console_reporter);
-size_t RunSpecifiedBenchmarks(BenchmarkReporter* console_reporter,
+BENCHMARK_EXPORT size_t RunSpecifiedBenchmarks();
+BENCHMARK_EXPORT size_t RunSpecifiedBenchmarks(BenchmarkReporter* console_reporter);
+BENCHMARK_EXPORT size_t RunSpecifiedBenchmarks(BenchmarkReporter* console_reporter,
                               BenchmarkReporter* file_reporter);
 
 // If this routine is called, peak memory allocation past this point in the
@@ -279,14 +281,14 @@ class Benchmark;
 class BenchmarkImp;
 class BenchmarkFamilies;
 
-void UseCharPointer(char const volatile*);
+BENCHMARK_EXPORT void UseCharPointer(char const volatile*);
 
 // Take ownership of the pointer and register the benchmark. Return the
 // registered benchmark.
-Benchmark* RegisterBenchmarkInternal(Benchmark*);
+BENCHMARK_EXPORT Benchmark* RegisterBenchmarkInternal(Benchmark*);
 
 // Ensure that the standard streams are properly initialized in every TU.
-int InitializeStreams();
+BENCHMARK_EXPORT int InitializeStreams();
 BENCHMARK_UNUSED static int stream_init_anchor = InitializeStreams();
 
 }  // namespace internal
@@ -337,8 +339,9 @@ inline BENCHMARK_ALWAYS_INLINE void DoNotOptimize(Tp const& value) {
 #endif
 
 // This class is used for user-defined counters.
-class Counter {
- public:
+class BENCHMARK_EXPORT Counter {
+public:
+
   enum Flags {
     kDefaults = 0,
     // Mark the counter as a rate. It will be presented divided
@@ -426,7 +429,7 @@ enum ReportMode
 
 // State is passed to a running Benchmark and contains state for the
 // benchmark to use.
-class State {
+class BENCHMARK_EXPORT State {
  public:
   struct StateIterator;
   friend struct StateIterator;
@@ -735,7 +738,7 @@ typedef void(Function)(State&);
 // be called on this object to change the properties of the benchmark.
 // Each method returns "this" so that multiple method calls can
 // chained into one expression.
-class Benchmark {
+class BENCHMARK_EXPORT Benchmark {
  public:
   virtual ~Benchmark();
 
@@ -893,7 +896,11 @@ class Benchmark {
 
  protected:
   explicit Benchmark(const char* name);
+#ifdef BENCHMARK_HAS_CXX11
+  Benchmark(Benchmark const&) = delete;
+#else
   Benchmark(Benchmark const&);
+#endif
   void SetName(const char* name);
 
   int ArgsCnt() const;
@@ -916,8 +923,11 @@ class Benchmark {
   BigOFunc* complexity_lambda_;
   std::vector<Statistics> statistics_;
   std::vector<int> thread_counts_;
-
+#ifdef BENCHMARK_HAS_CXX11
   Benchmark& operator=(Benchmark const&);
+#else
+  Benchmark& operator=(Benchmark const&);
+#endif
 };
 
 }  // namespace internal
@@ -926,22 +936,22 @@ class Benchmark {
 // the specified functor 'fn'.
 //
 // RETURNS: A pointer to the registered benchmark.
-internal::Benchmark* RegisterBenchmark(const char* name,
+BENCHMARK_EXPORT internal::Benchmark* RegisterBenchmark(const char* name,
                                        internal::Function* fn);
 
 #if defined(BENCHMARK_HAS_CXX11)
 template <class Lambda>
-internal::Benchmark* RegisterBenchmark(const char* name, Lambda&& fn);
+BENCHMARK_EXPORT internal::Benchmark* RegisterBenchmark(const char* name, Lambda&& fn);
 #endif
 
 // Remove all registered benchmarks. All pointers to previously registered
 // benchmarks are invalidated.
-void ClearRegisteredBenchmarks();
+BENCHMARK_EXPORT void ClearRegisteredBenchmarks();
 
 namespace internal {
 // The class used to hold all Benchmarks created from static function.
 // (ie those created using the BENCHMARK(...) macros.
-class FunctionBenchmark : public Benchmark {
+class BENCHMARK_EXPORT FunctionBenchmark : public Benchmark {
  public:
   FunctionBenchmark(const char* name, Function* func)
       : Benchmark(name), func_(func) {}
@@ -1230,7 +1240,7 @@ class Fixture : public internal::Benchmark {
 
 namespace benchmark {
 
-struct CPUInfo {
+struct BENCHMARK_EXPORT CPUInfo {
   struct CacheInfo {
     std::string type;
     int level;
@@ -1255,7 +1265,7 @@ struct CPUInfo {
 // can control the destination of the reports by calling
 // RunSpecifiedBenchmarks and passing it a custom reporter object.
 // The reporter object must implement the following interface.
-class BenchmarkReporter {
+class BENCHMARK_EXPORT BenchmarkReporter {
  public:
   struct Context {
     CPUInfo const& cpu_info;
@@ -1383,8 +1393,8 @@ class BenchmarkReporter {
 
 // Simple reporter that outputs benchmark data to the console. This is the
 // default reporter used by RunSpecifiedBenchmarks().
-class ConsoleReporter : public BenchmarkReporter {
- public:
+class BENCHMARK_EXPORT ConsoleReporter : public BenchmarkReporter {
+public:
   enum OutputOptions {
     OO_None = 0,
     OO_Color = 1,
@@ -1411,7 +1421,7 @@ class ConsoleReporter : public BenchmarkReporter {
   bool printed_header_;
 };
 
-class JSONReporter : public BenchmarkReporter {
+class BENCHMARK_EXPORT JSONReporter : public BenchmarkReporter {
  public:
   JSONReporter() : first_report_(true) {}
   virtual bool ReportContext(const Context& context);
@@ -1424,7 +1434,7 @@ class JSONReporter : public BenchmarkReporter {
   bool first_report_;
 };
 
-class BENCHMARK_DEPRECATED_MSG("The CSV Reporter will be removed in a future release")
+class BENCHMARK_EXPORT BENCHMARK_DEPRECATED_MSG("The CSV Reporter will be removed in a future release")
       CSVReporter : public BenchmarkReporter {
  public:
   CSVReporter() : printed_header_(false) {}

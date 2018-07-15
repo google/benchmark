@@ -2,6 +2,7 @@
 #define BENCHMARK_API_INTERNAL_H
 
 #include "benchmark/benchmark.h"
+#include "benchmark_export.h"
 
 #include <cmath>
 #include <iosfwd>
@@ -33,13 +34,13 @@ struct Benchmark::Instance {
   int threads;  // Number of concurrent threads to us
 };
 
-bool FindBenchmarksInternal(const std::string& re,
+BENCHMARK_EXPORT bool FindBenchmarksInternal(const std::string& re,
                             std::vector<Benchmark::Instance>* benchmarks,
                             std::ostream* Err);
 
-bool IsZero(double n);
+BENCHMARK_EXPORT bool IsZero(double n);
 
-ConsoleReporter::OutputOptions GetOutputOptions(bool force_no_color = false);
+BENCHMARK_EXPORT ConsoleReporter::OutputOptions GetOutputOptions(bool force_no_color = false);
 
 }  // end namespace internal
 }  // end namespace benchmark
