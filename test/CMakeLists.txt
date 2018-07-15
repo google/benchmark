@@ -35,6 +35,7 @@ if (DEFINED BENCHMARK_CXX_LINKER_FLAGS)
 endif()
 
 add_library(output_test_helper STATIC output_test_helper.cc output_test.h)
+target_link_libraries(output_test_helper PRIVATE benchmark)
 
 macro(compile_benchmark_test name)
   add_executable(${name} "${name}.cc")

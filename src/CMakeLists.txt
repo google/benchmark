@@ -22,9 +22,16 @@ set_target_properties(benchmark PROPERTIES
   VERSION ${GENERIC_LIB_VERSION}
   SOVERSION ${GENERIC_LIB_SOVERSION}
 )
+
+include(GenerateExportHeader)
+generate_export_header(benchmark)
+
 target_include_directories(benchmark PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../include>
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
     )
+
+set_target_properties(benchmark PROPERTIES PUBLIC_HEADER ${CMAKE_CURRENT_BINARY_DIR}/benchmark_export.h)
 
 # Link threads.
 target_link_libraries(benchmark  ${BENCHMARK_CXX_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
@@ -44,7 +51,12 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "SunOS")
 endif()
 
 # Benchmark main library
+if(WIN32)
+# benchmark_main only exports main(), but it's not allowed to export main from DLLs
+add_library(benchmark_main STATIC "benchmark_main.cc")
+else()
 add_library(benchmark_main "benchmark_main.cc")
+endif()
 set_target_properties(benchmark_main PROPERTIES
   OUTPUT_NAME "benchmark_main"
   VERSION ${GENERIC_LIB_VERSION}
@@ -86,6 +98,7 @@ if (BENCHMARK_ENABLE_INSTALL)
     ARCHIVE DESTINATION ${lib_install_dir}
     LIBRARY DESTINATION ${lib_install_dir}
     RUNTIME DESTINATION ${bin_install_dir}
+    PUBLIC_HEADER DESTINATION ${include_install_dir}
     INCLUDES DESTINATION ${include_install_dir})
 
   install(
