@@ -305,9 +305,9 @@ Three macros are provided for adding benchmark templates.
 #define BENCHMARK_TEMPLATE2(func, arg1, arg2)
 ```
 
-### A Faster KeepRunning loop
+### Building a fast loop
 
-In C++11 mode, a ranged-based for loop should be used in preference to
+You may manually write your own for-loops for google benchmarks using the `KeepRunning()` function, which returns true if an adequate number of benchmark runs have completed. However, in C++11 a ranged-based for loop should be used in preference to
 the `KeepRunning` loop for running the benchmarks. For example:
 
 ```c++
