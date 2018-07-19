@@ -118,7 +118,7 @@ BENCHMARK(BM_StringCopy);
 BENCHMARK_MAIN();
 ```
 
-Don't forget to inform your linker to link to the benchmark library e.g. through `-lbenchmark` compilation flag, and also the pthread library ('-lpthread'). If running google benchmarks on Windows, the shlwapi must additionally be linked to (`-lshlwapi`) and the library location specified eg. ../../libraries/google_benchmark/lib.
+Don't forget to inform your linker to link to the benchmark library e.g. through `-lbenchmark` compilation flag, and also the pthread library ('-lpthread'). If running google benchmarks on Windows, the shlwapi library must additionally be linked to (`-lshlwapi`) and the library location specified eg. ../../libraries/google_benchmark/lib. If running Solaris, kstat (`-lkstat`) must be linked to.
 
 The resultant compiled program should, if correctly compiled and linked, report timing for any registered functions with code within the `for(auto _ : state)` loops.
 
@@ -562,7 +562,7 @@ of the overall behavior. For this reason it's possible to repeatedly rerun the
 benchmark.
 
 The number of runs of each benchmark can be specified globally by using the
-`--benchmark_repetitions` command-line option on the executable call (eg. "./benchmark --benchmark_repetitions=20") or on a per benchmark basis by calling `Repetitions` on the registered benchmark object (eg. `BENCHMARK(do_stuff)->Repetitions(3);`). When a benchmark is run more than once the mean, median and standard deviation of the runs will be reported.
+`--benchmark_repetitions` command-line option on the executable call (eg. "./benchmark --benchmark_repetitions=20") or on a per benchmark basis by calling `Repetitions` on the registered benchmark object (eg. `BENCHMARK(do_stuff)->Repetitions(3);`). When a benchmark is run more than once, the timing of all runs will be reported individually, followed by the mean, median and standard deviation of the runs as a whole.
 
 Additionally the `--benchmark_report_aggregates_only={true|false}` flag or
 `ReportAggregatesOnly(bool)` function can be used to change how repeated tests
@@ -961,13 +961,3 @@ sudo cpupower frequency-set --governor performance
 sudo cpupower frequency-set --governor powersave
 ```
 
-# Known Issues
-
-### Windows with CMake
-
-* Users must manually link `shlwapi.lib`. Failure to do so may result
-in unresolved symbols.
-
-### Solaris
-
-* Users must explicitly link with kstat library (-lkstat compilation flag).
