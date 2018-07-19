@@ -562,8 +562,7 @@ of the overall behavior. For this reason it's possible to repeatedly rerun the
 benchmark.
 
 The number of runs of each benchmark can be specified globally by using the
-`--benchmark_repetitions` command-line option on the executable call (eg. "./benchmark --benchmark_repetitions=20") or on a per benchmark basis by calling `Repetitions` on the registered benchmark object. When a benchmark is run more
-than once the mean, median and standard deviation of the runs will be reported.
+`--benchmark_repetitions` command-line option on the executable call (eg. "./benchmark --benchmark_repetitions=20") or on a per benchmark basis by calling `Repetitions` on the registered benchmark object (eg. `BENCHMARK(do_stuff)->Repetitions(3);`). When a benchmark is run more than once the mean, median and standard deviation of the runs will be reported.
 
 Additionally the `--benchmark_report_aggregates_only={true|false}` flag or
 `ReportAggregatesOnly(bool)` function can be used to change how repeated tests
