@@ -118,9 +118,9 @@ BENCHMARK(BM_StringCopy);
 BENCHMARK_MAIN();
 ```
 
-Don't forget to inform your linker to link to the benchmark library e.g. through `-lbenchmark` compilation flag, and also the pthread library ('-lpthread').
+Don't forget to inform your linker to link to the benchmark library e.g. through `-lbenchmark` compilation flag, and also the pthread library ('-lpthread'). If running google benchmarks on Windows, the shlwapi must additionally be linked to (`-lshlwapi`) and the library location specified eg. ../../libraries/google_benchmark/lib.
 
-The resultant compiled program should, if correctly compiled and linked, report timing for the code within the `for(...)` loop.
+The resultant compiled program should, if correctly compiled and linked, report timing for any registered functions with code within the `for(auto _ : state)` loops.
 
 
 ### Basic usage code explanation
