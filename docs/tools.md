@@ -9,6 +9,8 @@ The program is invoked like:
 $ compare_bench.py <old-benchmark> <new-benchmark> [benchmark options]...
 ```
 
+Note, it relies on the scipy package which can be installed using [these instructions](https://www.scipy.org/install.html).
+
 Where `<old-benchmark>` and `<new-benchmark>` either specify a benchmark executable file, or a JSON output file. The type of the input file is automatically detected. If a benchmark executable is specified then the benchmark is run to obtain the results. Otherwise the results are simply loaded from the output file.
 
 `[benchmark options]` will be passed to the benchmarks invocations. They can be anything that binary accepts, be it either normal `--benchmark_*` parameters, or some custom parameters your binary takes.
