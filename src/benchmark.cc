@@ -104,7 +104,7 @@ DEFINE_int32(v, 0, "The level of verbose logging to output");
 namespace benchmark {
 
 namespace {
-static const size_t kMaxIterations = 1000000000;
+static const int64_t kMaxIterations = 1000000000;
 
 static MemoryManager* memory_manager = nullptr;
 }  // end namespace
@@ -171,7 +171,7 @@ BenchmarkReporter::Run CreateRunReport(
 // Execute one thread of benchmark b for the specified number of iterations.
 // Adds the stats collected for the thread into *total.
 void RunInThread(const benchmark::internal::Benchmark::Instance* b,
-                 size_t iters, int thread_id,
+                 int64_t iters, int thread_id,
                  internal::ThreadManager* manager) {
   internal::ThreadTimer timer;
   State st(iters, b->arg, thread_id, b->threads, &timer, manager);
@@ -199,7 +199,7 @@ std::vector<BenchmarkReporter::Run> RunBenchmark(
   std::vector<BenchmarkReporter::Run> reports;  // return value
 
   const bool has_explicit_iteration_count = b.iterations != 0;
-  size_t iters = has_explicit_iteration_count ? b.iterations : 1;
+  int64_t iters = has_explicit_iteration_count ? b.iterations : 1;
   std::unique_ptr<internal::ThreadManager> manager;
   std::vector<std::thread> pool(b.threads - 1);
   const int repeats =
@@ -321,8 +321,8 @@ std::vector<BenchmarkReporter::Run> RunBenchmark(
 }  // namespace
 }  // namespace internal
 
-State::State(size_t max_iters, const std::vector<int64_t>& ranges, int thread_i,
-             int n_threads, internal::ThreadTimer* timer,
+State::State(int64_t max_iters, const std::vector<int64_t>& ranges,
+             int thread_i, int n_threads, internal::ThreadTimer* timer,
              internal::ThreadManager* manager)
     : total_iterations_(0),
       batch_leftover_(0),
