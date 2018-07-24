@@ -196,6 +196,12 @@ void JSONReporter::PrintRunData(Run const& run) {
   for (auto& c : run.counters) {
     out << ",\n" << indent << FormatKV(c.first, c.second);
   }
+
+  if (run.has_memory_result) {
+    out << ",\n" << indent << FormatKV("allocs_per_iter", run.allocs_per_iter);
+    out << ",\n" << indent << FormatKV("max_bytes_used", run.max_bytes_used);
+  }
+
   if (!run.report_label.empty()) {
     out << ",\n" << indent << FormatKV("label", run.report_label);
   }
