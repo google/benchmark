@@ -243,6 +243,7 @@ BENCHMARK(BM_test)->Unit(benchmark::kMillisecond);
 
 namespace benchmark {
 class BenchmarkReporter;
+class MemoryManager;
 
 void Initialize(int* argc, char** argv);
 
@@ -267,12 +268,9 @@ size_t RunSpecifiedBenchmarks(BenchmarkReporter* console_reporter);
 size_t RunSpecifiedBenchmarks(BenchmarkReporter* console_reporter,
                               BenchmarkReporter* file_reporter);
 
-// If this routine is called, peak memory allocation past this point in the
-// benchmark is reported at the end of the benchmark report line. (It is
-// computed by running the benchmark once with a single iteration and a memory
-// tracer.)
-// TODO(dominic)
-// void MemoryUsage();
+// Register a MemoryManager instance that will be used to collect and report
+// allocation measurements for benchmark runs.
+void RegisterMemoryManager(MemoryManager* memory_manager);
 
 namespace internal {
 class Benchmark;
@@ -1280,7 +1278,10 @@ class BenchmarkReporter {
           complexity_n(0),
           report_big_o(false),
           report_rms(false),
-          counters() {}
+          counters(),
+          has_memory_result(false),
+          allocs_per_iter(0.0),
+          max_bytes_used(0) {}
 
     std::string benchmark_name;
     std::string report_label;  // Empty if not set by benchmark.
@@ -1324,6 +1325,11 @@ class BenchmarkReporter {
     bool report_rms;
 
     UserCounters counters;
+
+    // Memory metrics.
+    bool has_memory_result;
+    double allocs_per_iter;
+    int64_t max_bytes_used;
   };
 
   // Construct a BenchmarkReporter with the output stream set to 'std::cout'
@@ -1436,6 +1442,29 @@ class BENCHMARK_DEPRECATED_MSG("The CSV Reporter will be removed in a future rel
 
   bool printed_header_;
   std::set<std::string> user_counter_names_;
+};
+
+// If a MemoryManager is registered, it can be used to collect and report
+// allocation metrics for a run of the benchmark.
+class MemoryManager {
+ public:
+  struct Result {
+    Result() : num_allocs(0), max_bytes_used(0) {}
+
+    // The number of allocations made in total between Start and Stop.
+    int64_t num_allocs;
+
+    // The peak memory use between Start and Stop.
+    int64_t max_bytes_used;
+  };
+
+  virtual ~MemoryManager() {}
+
+  // Implement this to start recording allocation information.
+  virtual void Start() = 0;
+
+  // Implement this to stop recording and fill out the given Result structure.
+  virtual void Stop(Result* result) = 0;
 };
 
 inline const char* GetTimeUnitString(TimeUnit unit) {
