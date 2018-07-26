@@ -532,15 +532,7 @@ order to manually set the time unit, you can specify it manually:
 BENCHMARK(BM_test)->Unit(benchmark::kMillisecond);
 ```
 
-## Controlling number of iterations
-In all cases, the number of iterations for which the benchmark is run is
-governed by the amount of time the benchmark takes. Concretely, the number of
-iterations is at least one, not more than 1e9, until CPU time is greater than
-the minimum time, or the wallclock time is 5x minimum time. The minimum time is
-set as a flag `--benchmark_min_time` or per benchmark by calling `MinTime` on
-the registered benchmark object.
-
-## Reporting the mean, median and standard deviation by repeated benchmarks
+### Reporting the mean, median and standard deviation by repeated benchmarks
 By default each benchmark is run once and that single result is reported.
 However benchmarks are often noisy and a single result may not be representative
 of the overall behavior. For this reason it's possible to repeatedly rerun the
@@ -828,6 +820,12 @@ ultimate result will be statistically stable. As such, faster benchmark
 functions will be run for more iterations than slower benchmark functions, and
 the number of iterations is thus reported.
 
+In all cases, the number of iterations for which the benchmark is run is
+governed by the amount of time the benchmark takes. Concretely, the number of
+iterations is at least one, not more than 1e9, until CPU time is greater than
+the minimum time, or the wallclock time is 5x minimum time. The minimum time is
+set per benchmark by calling `MinTime` on the registered benchmark object.
+
 Average timings are then reported over the iterations run. If multiple
 repetitions are requested using the `--benchmark_repetitions` command-line
 option, or at registration time, the benchmark function will be run several
@@ -836,7 +834,7 @@ times and statistical results across these repetitions will also be reported.
 As well as the per-benchmark entries, a preamble in the report will include
 information about the machine on which the benchmarks are run.
 
-## Output Formats
+### Output Formats
 The library supports multiple output formats. Use the
 `--benchmark_format=<console|json|csv>` flag to set the format type. `console`
 is the default format.
@@ -904,7 +902,7 @@ name,iterations,real_time,cpu_time,bytes_per_second,items_per_second,label
 "BM_SetInsert/1024/10",106365,17238.4,8421.53,4.74973e+06,1.18743e+06,
 ```
 
-## Output Files
+### Output Files
 The library supports writing the output of the benchmark to a file specified
 by `--benchmark_out=<filename>`. The format of the output can be specified
 using `--benchmark_out_format={json|console|csv}`. Specifying
