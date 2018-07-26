@@ -119,15 +119,17 @@ Don't forget to inform your linker to add benchmark library e.g. through
 `BENCHMARK_MAIN();` at the end of the source file and link against 
 `-lbenchmark_main` to get the same default behavior.
 
-The benchmark library will reporting the timing for the code within the
+The benchmark library will measure and report the timing for code within the
 `for(...)` loop.
 
 #### Platform-specific libraries
 When the library is built using GCC it is necessary to link with the pthread
 library due to how GCC implements `std::thread`. Failing to link to pthread will
-lead to runtime exceptions, not linker errors. See [issue #67](https://github.com/google/benchmark/issues/67)
-for more details. You can link to pthread by adding `-lpthread` to your linker
-command.
+lead to runtime exceptions (unless you're using libc++), not linker errors. See
+[issue #67](https://github.com/google/benchmark/issues/67) for more details. You
+can link to pthread by adding `-pthread` to your linker command. Note, you can
+also use `-lpthread`, but there are potential issues with ordering of command
+line parameters if you use that.
 
 If you're running benchmarks on Windows, the shlwapi library (`-lshlwapi`) is
 also required.
