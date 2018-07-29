@@ -117,6 +117,49 @@ matrix:
         - LIBCXX_BUILD=1 LIBCXX_SANITIZER=Thread
         - ENABLE_SANITIZER=1
         - EXTRA_FLAGS="-stdlib=libc++ -g -O2 -fno-omit-frame-pointer -fsanitize=thread -fno-sanitize-recover=all"
+    # Conan testing and uploading
+    - compiler: gcc
+      env: CONAN=True
+      language: python
+      python: "3.6"
+      before_script:
+        - pip install -U pip
+      before_install:
+        - pip --version
+      install:
+        - pip install conan
+      script:
+        - conan create . benchmark/master@google/testing --build
+      after_success:
+        # If this build is NOT triggered by a pull request; AND got triggered by either a tag OR push to master
+        # and the following environment variables are set:
+        #   CONAN_UPLOAD - a reference to the Conan repository e.g. https://bintray.com/google/conan
+        #   CONAN_LOGIN_USERNAME - user for the upload e.g. upload_bot_username
+        #   CONAN_PASSWORD - password for the CONAN_LOGIN_USERNAME; for Bintray this is the API key
+        # then upload the new recipe version to the Conan repository.
+        #
+        # For the tag pushes we are using for the
+        #   version the tag name, removing the "v"
+        #   channel "stable"
+        # For master pushes we are using for the
+        #   version simply "master"
+        #   channel "testing"
+        - if [[ "${TRAVIS_PULL_REQUEST}" == "false" && ( -n "${TRAVIS_TAG}" || "${TRAVIS_BRANCH}" == "master" ) && -n "${CONAN_UPLOAD}" && -n "${CONAN_LOGIN_USERNAME}" && -n "${CONAN_PASSWORD}" ]]; then
+            conan remote add benchmark ${CONAN_UPLOAD} --insert;
+            conan remote list;
+
+            if [ -n "${TRAVIS_TAG}" ]; then
+              CONANVERSION=${TRAVIS_TAG//v};
+              CONANREFERENCE=benchmark/${CONANVERSION}@google/stable;
+              conan export . ${CONANREFERENCE};
+            else
+              CONANVERSION="master";
+              CONANREFERENCE=benchmark/${CONANVERSION}@google/testing;
+            fi;
+
+            conan user -p "${CONAN_PASSWORD}" -r benchmark "${CONAN_LOGIN_USERNAME}";
+            conan upload --force -r benchmark --retry 3 --retry-wait 10 --confirm "${CONANREFERENCE}";
+          fi;
     - os: osx
       osx_image: xcode8.3
       compiler: clang
