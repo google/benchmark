@@ -241,6 +241,10 @@ BENCHMARK(BM_test)->Unit(benchmark::kMillisecond);
 #define BENCHMARK_GCC_VERSION (__GNUC__ * 100 + __GNUC_MINOR__)
 #endif
 
+#ifndef __has_builtin
+#define __has_builtin(x) 0
+#endif
+
 #if defined(COMPILER_GCC) || __has_builtin(__builtin_unreachable)
   #define BENCHMARK_UNREACHABLE() __builtin_unreachable()
 #elif defined(COMPILER_MSVC)
