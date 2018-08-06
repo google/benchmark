@@ -87,14 +87,6 @@
   #define BENCHMARK_MAYBE_UNUSED
 #endif
 
-#if defined(COMPILER_GCC) || __has_builtin(__builtin_unreachable)
-  #define BENCHMARK_UNREACHABLE() __builtin_unreachable()
-#elif defined(COMPILER_MSVC)
-  #define BENCHMARK_UNREACHABLE() __assume(false)
-#else
-  #define BENCHMARK_UNREACHABLE() ((void)0)
-#endif
-
 // clang-format on
 
 #endif  // BENCHMARK_INTERNAL_MACROS_H_
