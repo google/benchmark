@@ -1476,6 +1476,7 @@ inline const char* GetTimeUnitString(TimeUnit unit) {
     case kNanosecond:
       return "ns";
   }
+  return "ns";
 }
 
 inline double GetTimeUnitMultiplier(TimeUnit unit) {
@@ -1487,6 +1488,7 @@ inline double GetTimeUnitMultiplier(TimeUnit unit) {
     case kNanosecond:
       return 1e9;
   }
+  return 1e9;
 }
 
 }  // namespace benchmark
