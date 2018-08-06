@@ -1474,7 +1474,6 @@ inline const char* GetTimeUnitString(TimeUnit unit) {
     case kMicrosecond:
       return "us";
     case kNanosecond:
-    default:
       return "ns";
   }
 }
@@ -1486,7 +1485,6 @@ inline double GetTimeUnitMultiplier(TimeUnit unit) {
     case kMicrosecond:
       return 1e6;
     case kNanosecond:
-    default:
       return 1e9;
   }
 }
