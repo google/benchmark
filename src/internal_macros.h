@@ -12,20 +12,6 @@
 #define __has_feature(x) 0
 #endif
 
-#if defined(__clang__)
-  #if !defined(COMPILER_CLANG)
-    #define COMPILER_CLANG
-  #endif
-#elif defined(_MSC_VER)
-  #if !defined(COMPILER_MSVC)
-    #define COMPILER_MSVC
-  #endif
-#elif defined(__GNUC__)
-  #if !defined(COMPILER_GCC)
-    #define COMPILER_GCC
-  #endif
-#endif
-
 #if __has_feature(cxx_attributes)
   #define BENCHMARK_NORETURN [[noreturn]]
 #elif defined(__GNUC__)

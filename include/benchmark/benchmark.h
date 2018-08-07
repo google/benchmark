@@ -241,6 +241,20 @@ BENCHMARK(BM_test)->Unit(benchmark::kMillisecond);
 #define BENCHMARK_GCC_VERSION (__GNUC__ * 100 + __GNUC_MINOR__)
 #endif
 
+#if defined(__clang__)
+  #if !defined(COMPILER_CLANG)
+    #define COMPILER_CLANG
+  #endif
+#elif defined(_MSC_VER)
+  #if !defined(COMPILER_MSVC)
+    #define COMPILER_MSVC
+  #endif
+#elif defined(__GNUC__)
+  #if !defined(COMPILER_GCC)
+    #define COMPILER_GCC
+  #endif
+#endif
+
 #ifndef __has_builtin
 #define __has_builtin(x) 0
 #endif
