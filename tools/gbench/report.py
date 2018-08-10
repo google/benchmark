@@ -34,6 +34,9 @@ BC_ENDC = BenchmarkColor('ENDC', '\033[0m')
 BC_BOLD = BenchmarkColor('BOLD', '\033[1m')
 BC_UNDERLINE = BenchmarkColor('UNDERLINE', '\033[4m')
 
+UTEST_MIN_REPETITIONS = 2
+UTEST_OPTIMAL_REPETITIONS = 9  # Lowest reasonable number, More is better.
+
 
 def color_format(use_color, fmt_str, *args, **kwargs):
     """
@@ -109,11 +112,11 @@ def generate_difference_report(
                 return b
         return None
 
-    utest_col_name = "U-test (p-value)"
+    utest_col_name = "_pvalue"
     first_col_width = max(
         first_col_width,
-        len('Benchmark'),
-        len(utest_col_name))
+        len('Benchmark'))
+    first_col_width += len(utest_col_name)
     first_line = "{:<{}s}Time             CPU      Time Old      Time New       CPU Old       CPU New".format(
         'Benchmark', 12 + first_col_width)
     output_strs = [first_line, '-' * len(first_line)]
@@ -126,16 +129,15 @@ def generate_difference_report(
            if 'real_time' in bn and 'cpu_time' in bn)
     for bn in gen:
         fmt_str = "{}{:<{}s}{endc}{}{:+16.4f}{endc}{}{:+16.4f}{endc}{:14.0f}{:14.0f}{endc}{:14.0f}{:14.0f}"
-        special_str = "{}{:<{}s}{endc}{}{:16.4f}{endc}{}{:16.4f}"
+        special_str = "{}{:<{}s}{endc}{}{:16.4f}{endc}{}{:16.4f}{endc}{}      {}"
 
         if last_name is None:
             last_name = bn['name']
         if last_name != bn['name']:
-            MIN_REPETITIONS = 2
-            if ((len(timings_time[0]) >= MIN_REPETITIONS) and
-                (len(timings_time[1]) >= MIN_REPETITIONS) and
-                (len(timings_cpu[0]) >= MIN_REPETITIONS) and
-                    (len(timings_cpu[1]) >= MIN_REPETITIONS)):
+            if ((len(timings_time[0]) >= UTEST_MIN_REPETITIONS) and
+                (len(timings_time[1]) >= UTEST_MIN_REPETITIONS) and
+                (len(timings_cpu[0]) >= UTEST_MIN_REPETITIONS) and
+                    (len(timings_cpu[1]) >= UTEST_MIN_REPETITIONS)):
                 if utest:
                     def get_utest_color(pval):
                         if pval >= utest_alpha:
@@ -146,15 +148,24 @@ def generate_difference_report(
                         timings_time[0], timings_time[1], alternative='two-sided').pvalue
                     cpu_pvalue = mannwhitneyu(
                         timings_cpu[0], timings_cpu[1], alternative='two-sided').pvalue
+                    dsc = "U Test, Repetitions: {}".format(len(timings_cpu[0]))
+                    dsc_color = BC_OKGREEN
+                    if len(timings_cpu[0]) < UTEST_OPTIMAL_REPETITIONS:
+                        dsc_color = BC_WARNING
+                        dsc += ". WARNING: Results unreliable! {}+ repetitions recommended.".format(
+                            UTEST_OPTIMAL_REPETITIONS)
                     output_strs += [color_format(use_color,
                                                  special_str,
                                                  BC_HEADER,
-                                                 utest_col_name,
+                                                 "{}{}".format(last_name,
+                                                               utest_col_name),
                                                  first_col_width,
                                                  get_utest_color(time_pvalue),
                                                  time_pvalue,
                                                  get_utest_color(cpu_pvalue),
                                                  cpu_pvalue,
+                                                 dsc_color,
+                                                 dsc,
                                                  endc=BC_ENDC)]
             last_name = bn['name']
             timings_time = [[], []]
@@ -229,9 +240,12 @@ class TestReportDifference(unittest.TestCase):
             ['BM_1PercentSlower', '+0.0100', '+0.0100', '100', '101', '100', '101'],
             ['BM_10PercentFaster', '-0.1000', '-0.1000', '100', '90', '100', '90'],
             ['BM_10PercentSlower', '+0.1000', '+0.1000', '100', '110', '100', '110'],
-            ['BM_100xSlower', '+99.0000', '+99.0000', '100', '10000', '100', '10000'],
-            ['BM_100xFaster', '-0.9900', '-0.9900', '10000', '100', '10000', '100'],
-            ['BM_10PercentCPUToTime', '+0.1000', '-0.1000', '100', '110', '100', '90'],
+            ['BM_100xSlower', '+99.0000', '+99.0000',
+                '100', '10000', '100', '10000'],
+            ['BM_100xFaster', '-0.9900', '-0.9900',
+                '10000', '100', '10000', '100'],
+            ['BM_10PercentCPUToTime', '+0.1000',
+                '-0.1000', '100', '110', '100', '90'],
             ['BM_ThirdFaster', '-0.3333', '-0.3334', '100', '67', '100', '67'],
             ['BM_BadTimeUnit', '-0.9000', '+0.2000', '0', '0', '0', '1'],
         ]
@@ -239,6 +253,7 @@ class TestReportDifference(unittest.TestCase):
         output_lines_with_header = generate_difference_report(
             json1, json2, use_color=False)
         output_lines = output_lines_with_header[2:]
+        print("\n")
         print("\n".join(output_lines_with_header))
         self.assertEqual(len(output_lines), len(expect_lines))
         for i in range(0, len(output_lines)):
@@ -302,13 +317,26 @@ class TestReportDifferenceWithUTest(unittest.TestCase):
             ['BM_One', '-0.1000', '+0.1000', '10', '9', '100', '110'],
             ['BM_Two', '+0.1111', '-0.0111', '9', '10', '90', '89'],
             ['BM_Two', '+0.2500', '+0.1125', '8', '10', '80', '89'],
-            ['U-test', '(p-value)', '0.2207', '0.6831'],
-            ['BM_Two_stat', '+0.0000', '+0.0000', '8', '8', '80', '80'],
+            ['BM_Two_pvalue',
+             '0.2207',
+             '0.6831',
+             'U',
+             'Test,',
+             'Repetitions:',
+             '2.',
+             'WARNING:',
+             'Results',
+             'unreliable!',
+             '9+',
+             'repetitions',
+             'recommended.'],
+            ['short', '+0.0000', '+0.0000', '8', '8', '80', '80'],
         ]
         json1, json2 = self.load_results()
         output_lines_with_header = generate_difference_report(
             json1, json2, True, 0.05, use_color=False)
         output_lines = output_lines_with_header[2:]
+        print("\n")
         print("\n".join(output_lines_with_header))
         self.assertEqual(len(output_lines), len(expect_lines))
         for i in range(0, len(output_lines)):

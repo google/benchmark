@@ -105,6 +105,8 @@ namespace benchmark {
 
 namespace {
 static const size_t kMaxIterations = 1000000000;
+
+static MemoryManager* memory_manager = nullptr;
 }  // end namespace
 
 namespace internal {
@@ -115,7 +117,8 @@ namespace {
 
 BenchmarkReporter::Run CreateRunReport(
     const benchmark::internal::Benchmark::Instance& b,
-    const internal::ThreadManager::Result& results, double seconds) {
+    const internal::ThreadManager::Result& results, size_t memory_iterations,
+    const MemoryManager::Result& memory_result, double seconds) {
   // Create report about this benchmark run.
   BenchmarkReporter::Run report;
 
@@ -161,7 +164,17 @@ BenchmarkReporter::Run CreateRunReport(
     report.complexity_lambda = b.complexity_lambda;
     report.statistics = b.statistics;
     report.counters = results.counters;
-    internal::Finish(&report.counters, seconds, b.threads);
+
+    if (memory_iterations > 0) {
+      report.has_memory_result = true;
+      report.allocs_per_iter =
+          memory_iterations ? static_cast<double>(memory_result.num_allocs) /
+                                  memory_iterations
+                            : 0;
+      report.max_bytes_used = memory_result.max_bytes_used;
+    }
+
+    internal::Finish(&report.counters, results.iterations, seconds, b.threads);
   }
   return report;
 }
@@ -260,7 +273,23 @@ std::vector<BenchmarkReporter::Run> RunBenchmark(
       // clang-format on
 
       if (should_report) {
-        BenchmarkReporter::Run report = CreateRunReport(b, results, seconds);
+        MemoryManager::Result memory_result;
+        size_t memory_iterations = 0;
+        if (memory_manager != nullptr) {
+          // Only run a few iterations to reduce the impact of one-time
+          // allocations in benchmarks that are not properly managed.
+          memory_iterations = std::min<size_t>(16, iters);
+          memory_manager->Start();
+          manager.reset(new internal::ThreadManager(1));
+          RunInThread(&b, memory_iterations, 0, manager.get());
+          manager->WaitForAllThreads();
+          manager.reset();
+
+          memory_manager->Stop(&memory_result);
+        }
+
+        BenchmarkReporter::Run report = CreateRunReport(
+            b, results, memory_iterations, memory_result, seconds);
         if (!report.error_occurred && b.complexity != oNone)
           complexity_reports->push_back(report);
         reports.push_back(report);
@@ -330,7 +359,10 @@ State::State(size_t max_iters, const std::vector<int64_t>& ranges, int thread_i,
   // demonstrated since constexpr evaluation must diagnose all undefined
   // behavior). However, GCC and Clang also warn about this use of offsetof,
   // which must be suppressed.
-#ifdef __GNUC__
+#if defined(__INTEL_COMPILER)
+#pragma warning push
+#pragma warning(disable:1875)
+#elif defined(__GNUC__)
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Winvalid-offsetof"
 #endif
@@ -339,7 +371,9 @@ State::State(size_t max_iters, const std::vector<int64_t>& ranges, int thread_i,
   static_assert(offsetof(State, error_occurred_) <=
                     (cache_line_size - sizeof(error_occurred_)),
                 "");
-#ifdef __GNUC__
+#if defined(__INTEL_COMPILER)
+#pragma warning pop
+#elif defined(__GNUC__)
 #pragma GCC diagnostic pop
 #endif
 }
@@ -560,6 +594,8 @@ size_t RunSpecifiedBenchmarks(BenchmarkReporter* console_reporter,
 
   return benchmarks.size();
 }
+
+void RegisterMemoryManager(MemoryManager* manager) { memory_manager = manager; }
 
 namespace internal {
 

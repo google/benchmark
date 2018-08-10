@@ -48,6 +48,7 @@ bazel-*
 # out-of-source build top-level folders.
 build/
 _build/
+build*/
 
 # in-source dependencies
 /googletest/

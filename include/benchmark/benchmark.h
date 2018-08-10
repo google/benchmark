@@ -241,8 +241,21 @@ BENCHMARK(BM_test)->Unit(benchmark::kMillisecond);
 #define BENCHMARK_GCC_VERSION (__GNUC__ * 100 + __GNUC_MINOR__)
 #endif
 
+#ifndef __has_builtin
+#define __has_builtin(x) 0
+#endif
+
+#if defined(__GNUC__) || __has_builtin(__builtin_unreachable)
+  #define BENCHMARK_UNREACHABLE() __builtin_unreachable()
+#elif defined(_MSC_VER)
+  #define BENCHMARK_UNREACHABLE() __assume(false)
+#else
+  #define BENCHMARK_UNREACHABLE() ((void)0)
+#endif
+
 namespace benchmark {
 class BenchmarkReporter;
+class MemoryManager;
 
 void Initialize(int* argc, char** argv);
 
@@ -267,12 +280,9 @@ size_t RunSpecifiedBenchmarks(BenchmarkReporter* console_reporter);
 size_t RunSpecifiedBenchmarks(BenchmarkReporter* console_reporter,
                               BenchmarkReporter* file_reporter);
 
-// If this routine is called, peak memory allocation past this point in the
-// benchmark is reported at the end of the benchmark report line. (It is
-// computed by running the benchmark once with a single iteration and a memory
-// tracer.)
-// TODO(dominic)
-// void MemoryUsage();
+// Register a MemoryManager instance that will be used to collect and report
+// allocation measurements for benchmark runs.
+void RegisterMemoryManager(MemoryManager* memory_manager);
 
 namespace internal {
 class Benchmark;
@@ -343,12 +353,24 @@ class Counter {
     kDefaults = 0,
     // Mark the counter as a rate. It will be presented divided
     // by the duration of the benchmark.
-    kIsRate = 1,
+    kIsRate = 1U << 0U,
     // Mark the counter as a thread-average quantity. It will be
     // presented divided by the number of threads.
-    kAvgThreads = 2,
+    kAvgThreads = 1U << 1U,
     // Mark the counter as a thread-average rate. See above.
-    kAvgThreadsRate = kIsRate | kAvgThreads
+    kAvgThreadsRate = kIsRate | kAvgThreads,
+    // Mark the counter as a constant value, valid/same for *every* iteration.
+    // When reporting, it will be *multiplied* by the iteration count.
+    kIsIterationInvariant = 1U << 2U,
+    // Mark the counter as a constant rate.
+    // When reporting, it will be *multiplied* by the iteration count
+    // and then divided by the duration of the benchmark.
+    kIsIterationInvariantRate = kIsRate | kIsIterationInvariant,
+    // Mark the counter as a iteration-average quantity.
+    // It will be presented divided by the number of iterations.
+    kAvgIterations = 1U << 3U,
+    // Mark the counter as a iteration-average rate. See above.
+    kAvgIterationsRate = kIsRate | kAvgIterations
   };
 
   double value;
@@ -360,6 +382,14 @@ class Counter {
   BENCHMARK_ALWAYS_INLINE operator double const&() const { return value; }
   BENCHMARK_ALWAYS_INLINE operator double&() { return value; }
 };
+
+// A helper for user code to create unforeseen combinations of Flags, without
+// having to do this cast manually each time, or providing this operator.
+Counter::Flags inline operator|(const Counter::Flags& LHS,
+                                const Counter::Flags& RHS) {
+  return static_cast<Counter::Flags>(static_cast<int>(LHS) |
+                                     static_cast<int>(RHS));
+}
 
 // This is the container for the user-defined counters.
 typedef std::map<std::string, Counter> UserCounters;
@@ -1261,7 +1291,10 @@ class BenchmarkReporter {
           complexity_n(0),
           report_big_o(false),
           report_rms(false),
-          counters() {}
+          counters(),
+          has_memory_result(false),
+          allocs_per_iter(0.0),
+          max_bytes_used(0) {}
 
     int64_t id;
     int64_t family_id;
@@ -1310,6 +1343,11 @@ class BenchmarkReporter {
     bool report_rms;
 
     UserCounters counters;
+
+    // Memory metrics.
+    bool has_memory_result;
+    double allocs_per_iter;
+    int64_t max_bytes_used;
   };
 
   // Construct a BenchmarkReporter with the output stream set to 'std::cout'
@@ -1425,6 +1463,29 @@ class BENCHMARK_DEPRECATED_MSG(
   std::set<std::string> user_counter_names_;
 };
 
+// If a MemoryManager is registered, it can be used to collect and report
+// allocation metrics for a run of the benchmark.
+class MemoryManager {
+ public:
+  struct Result {
+    Result() : num_allocs(0), max_bytes_used(0) {}
+
+    // The number of allocations made in total between Start and Stop.
+    int64_t num_allocs;
+
+    // The peak memory use between Start and Stop.
+    int64_t max_bytes_used;
+  };
+
+  virtual ~MemoryManager() {}
+
+  // Implement this to start recording allocation information.
+  virtual void Start() = 0;
+
+  // Implement this to stop recording and fill out the given Result structure.
+  virtual void Stop(Result* result) = 0;
+};
+
 inline const char* GetTimeUnitString(TimeUnit unit) {
   switch (unit) {
     case kMillisecond:
@@ -1432,9 +1493,9 @@ inline const char* GetTimeUnitString(TimeUnit unit) {
     case kMicrosecond:
       return "us";
     case kNanosecond:
-    default:
       return "ns";
   }
+  BENCHMARK_UNREACHABLE();
 }
 
 inline double GetTimeUnitMultiplier(TimeUnit unit) {
@@ -1444,9 +1505,9 @@ inline double GetTimeUnitMultiplier(TimeUnit unit) {
     case kMicrosecond:
       return 1e6;
     case kNanosecond:
-    default:
       return 1e9;
   }
+  BENCHMARK_UNREACHABLE();
 }
 
 }  // namespace benchmark

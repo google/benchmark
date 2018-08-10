@@ -29,7 +29,7 @@
       "time_unit": "ns"
     },
     {
-      "name": "BM_Two_stat",
+      "name": "short",
       "iterations": 1000,
       "real_time": 8,
       "cpu_time": 80,
