@@ -126,7 +126,7 @@ void UseCharPointer(char const volatile*) {}
 namespace {
 
 BenchmarkReporter::Run CreateRunReport(
-    const benchmark::internal::Benchmark::Instance& b,
+    const benchmark::internal::BenchmarkInstance& b,
     const internal::ThreadManager::Result& results, size_t memory_iterations,
     const MemoryManager::Result& memory_result, double seconds) {
   // Create report about this benchmark run.
@@ -169,12 +169,10 @@ BenchmarkReporter::Run CreateRunReport(
 
 // Execute one thread of benchmark b for the specified number of iterations.
 // Adds the stats collected for the thread into *total.
-void RunInThread(const benchmark::internal::Benchmark::Instance* b,
-                 size_t iters, int thread_id,
-                 internal::ThreadManager* manager) {
+void RunInThread(const BenchmarkInstance* b, size_t iters, int thread_id,
+                 ThreadManager* manager) {
   internal::ThreadTimer timer;
-  State st(iters, b->arg, thread_id, b->threads, &timer, manager);
-  b->benchmark->Run(st);
+  State st = b->Run(iters, thread_id, &timer, manager);
   CHECK(st.iterations() >= st.max_iterations)
       << "Benchmark returned before State::KeepRunning() returned false!";
   {
@@ -199,7 +197,7 @@ struct RunResults {
 };
 
 RunResults RunBenchmark(
-    const benchmark::internal::Benchmark::Instance& b,
+    const benchmark::internal::BenchmarkInstance& b,
     std::vector<BenchmarkReporter::Run>* complexity_reports) {
   RunResults run_results;
 
@@ -437,7 +435,7 @@ void State::FinishKeepRunning() {
 namespace internal {
 namespace {
 
-void RunBenchmarks(const std::vector<Benchmark::Instance>& benchmarks,
+void RunBenchmarks(const std::vector<BenchmarkInstance>& benchmarks,
                    BenchmarkReporter* display_reporter,
                    BenchmarkReporter* file_reporter) {
   // Note the file_reporter can be null.
@@ -447,7 +445,7 @@ void RunBenchmarks(const std::vector<Benchmark::Instance>& benchmarks,
   bool has_repetitions = FLAGS_benchmark_repetitions > 1;
   size_t name_field_width = 10;
   size_t stat_field_width = 0;
-  for (const Benchmark::Instance& benchmark : benchmarks) {
+  for (const BenchmarkInstance& benchmark : benchmarks) {
     name_field_width =
         std::max<size_t>(name_field_width, benchmark.name.size());
     has_repetitions |= benchmark.repetitions > 1;
@@ -595,7 +593,7 @@ size_t RunSpecifiedBenchmarks(BenchmarkReporter* display_reporter,
     file_reporter->SetErrorStream(&output_file);
   }
 
-  std::vector<internal::Benchmark::Instance> benchmarks;
+  std::vector<internal::BenchmarkInstance> benchmarks;
   if (!FindBenchmarksInternal(spec, &benchmarks, &Err)) return 0;
 
   if (benchmarks.empty()) {
