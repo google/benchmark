@@ -425,9 +425,6 @@ struct BenchmarkInstance;
 class ThreadTimer;
 class ThreadManager;
 
-void RunInThread(const internal::BenchmarkInstance* b, size_t iters,
-                 int thread_id, ThreadManager* manager);
-
 enum ReportMode
 #if defined(BENCHMARK_HAS_CXX11)
     : unsigned
@@ -653,9 +650,7 @@ class State {
   internal::ThreadManager* manager_;
   BENCHMARK_DISALLOW_COPY_AND_ASSIGN(State);
 
-  friend void internal::RunInThread(const internal::BenchmarkInstance* b,
-                                    size_t iters, int thread_id,
-                                    internal::ThreadManager* manager);
+  friend struct internal::BenchmarkInstance;
 };
 
 inline BENCHMARK_ALWAYS_INLINE bool State::KeepRunning() {

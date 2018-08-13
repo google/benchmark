@@ -113,30 +113,6 @@ namespace internal {
 
 void UseCharPointer(char const volatile*) {}
 
-// Execute one thread of benchmark b for the specified number of iterations.
-// Adds the stats collected for the thread into *total.
-void RunInThread(const internal::BenchmarkInstance* b, size_t iters,
-                 int thread_id, internal::ThreadManager* manager) {
-  internal::ThreadTimer timer;
-  State st(iters, b->arg, thread_id, b->threads, &timer, manager);
-  b->benchmark->Run(st);
-  CHECK(st.iterations() >= st.max_iterations)
-      << "Benchmark returned before State::KeepRunning() returned false!";
-  {
-    MutexLock l(manager->GetBenchmarkMutex());
-    internal::ThreadManager::Result& results = manager->results;
-    results.iterations += st.iterations();
-    results.cpu_time_used += timer.cpu_time_used();
-    results.real_time_used += timer.real_time_used();
-    results.manual_time_used += timer.manual_time_used();
-    results.bytes_processed += st.bytes_processed();
-    results.items_processed += st.items_processed();
-    results.complexity_n += st.complexity_length_n();
-    internal::Increment(&results.counters, st.counters);
-  }
-  manager->NotifyThreadComplete();
-}
-
 namespace {
 
 BenchmarkReporter::Run CreateRunReport(
@@ -190,6 +166,29 @@ BenchmarkReporter::Run CreateRunReport(
     internal::Finish(&report.counters, results.iterations, seconds, b.threads);
   }
   return report;
+}
+
+// Execute one thread of benchmark b for the specified number of iterations.
+// Adds the stats collected for the thread into *total.
+void RunInThread(const internal::BenchmarkInstance* b, size_t iters,
+                 int thread_id, internal::ThreadManager* manager) {
+  internal::ThreadTimer timer;
+  std::unique_ptr<State> st = b->Run(iters, thread_id, &timer, manager);
+  CHECK(st->iterations() >= st->max_iterations)
+      << "Benchmark returned before State::KeepRunning() returned false!";
+  {
+    MutexLock l(manager->GetBenchmarkMutex());
+    internal::ThreadManager::Result& results = manager->results;
+    results.iterations += st->iterations();
+    results.cpu_time_used += timer.cpu_time_used();
+    results.real_time_used += timer.real_time_used();
+    results.manual_time_used += timer.manual_time_used();
+    results.bytes_processed += st->bytes_processed();
+    results.items_processed += st->items_processed();
+    results.complexity_n += st->complexity_length_n();
+    internal::Increment(&results.counters, st->counters);
+  }
+  manager->NotifyThreadComplete();
 }
 
 std::vector<BenchmarkReporter::Run> RunBenchmark(

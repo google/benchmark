@@ -6,6 +6,7 @@
 #include <cmath>
 #include <iosfwd>
 #include <limits>
+#include <memory>
 #include <string>
 #include <vector>
 
@@ -31,6 +32,10 @@ struct BenchmarkInstance {
   double min_time;
   size_t iterations;
   int threads;  // Number of concurrent threads to us
+
+  std::unique_ptr<State> Run(size_t iters, int thread_id,
+                             internal::ThreadTimer* timer,
+                             internal::ThreadManager* manager) const;
 };
 
 bool FindBenchmarksInternal(const std::string& re,
