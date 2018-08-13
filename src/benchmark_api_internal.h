@@ -13,7 +13,7 @@ namespace benchmark {
 namespace internal {
 
 // Information kept per benchmark we may want to run
-struct Benchmark::Instance {
+struct BenchmarkInstance {
   std::string name;
   Benchmark* benchmark;
   ReportMode report_mode;
@@ -34,7 +34,7 @@ struct Benchmark::Instance {
 };
 
 bool FindBenchmarksInternal(const std::string& re,
-                            std::vector<Benchmark::Instance>* benchmarks,
+                            std::vector<BenchmarkInstance>* benchmarks,
                             std::ostream* Err);
 
 bool IsZero(double n);

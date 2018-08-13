@@ -113,10 +113,34 @@ namespace internal {
 
 void UseCharPointer(char const volatile*) {}
 
+// Execute one thread of benchmark b for the specified number of iterations.
+// Adds the stats collected for the thread into *total.
+void RunInThread(const internal::BenchmarkInstance* b, size_t iters,
+                 int thread_id, internal::ThreadManager* manager) {
+  internal::ThreadTimer timer;
+  State st(iters, b->arg, thread_id, b->threads, &timer, manager);
+  b->benchmark->Run(st);
+  CHECK(st.iterations() >= st.max_iterations)
+      << "Benchmark returned before State::KeepRunning() returned false!";
+  {
+    MutexLock l(manager->GetBenchmarkMutex());
+    internal::ThreadManager::Result& results = manager->results;
+    results.iterations += st.iterations();
+    results.cpu_time_used += timer.cpu_time_used();
+    results.real_time_used += timer.real_time_used();
+    results.manual_time_used += timer.manual_time_used();
+    results.bytes_processed += st.bytes_processed();
+    results.items_processed += st.items_processed();
+    results.complexity_n += st.complexity_length_n();
+    internal::Increment(&results.counters, st.counters);
+  }
+  manager->NotifyThreadComplete();
+}
+
 namespace {
 
 BenchmarkReporter::Run CreateRunReport(
-    const benchmark::internal::Benchmark::Instance& b,
+    const benchmark::internal::BenchmarkInstance& b,
     const internal::ThreadManager::Result& results, size_t memory_iterations,
     const MemoryManager::Result& memory_result, double seconds) {
   // Create report about this benchmark run.
@@ -168,33 +192,8 @@ BenchmarkReporter::Run CreateRunReport(
   return report;
 }
 
-// Execute one thread of benchmark b for the specified number of iterations.
-// Adds the stats collected for the thread into *total.
-void RunInThread(const benchmark::internal::Benchmark::Instance* b,
-                 size_t iters, int thread_id,
-                 internal::ThreadManager* manager) {
-  internal::ThreadTimer timer;
-  State st(iters, b->arg, thread_id, b->threads, &timer, manager);
-  b->benchmark->Run(st);
-  CHECK(st.iterations() >= st.max_iterations)
-      << "Benchmark returned before State::KeepRunning() returned false!";
-  {
-    MutexLock l(manager->GetBenchmarkMutex());
-    internal::ThreadManager::Result& results = manager->results;
-    results.iterations += st.iterations();
-    results.cpu_time_used += timer.cpu_time_used();
-    results.real_time_used += timer.real_time_used();
-    results.manual_time_used += timer.manual_time_used();
-    results.bytes_processed += st.bytes_processed();
-    results.items_processed += st.items_processed();
-    results.complexity_n += st.complexity_length_n();
-    internal::Increment(&results.counters, st.counters);
-  }
-  manager->NotifyThreadComplete();
-}
-
 std::vector<BenchmarkReporter::Run> RunBenchmark(
-    const benchmark::internal::Benchmark::Instance& b,
+    const benchmark::internal::BenchmarkInstance& b,
     std::vector<BenchmarkReporter::Run>* complexity_reports) {
   std::vector<BenchmarkReporter::Run> reports;  // return value
 
@@ -423,7 +422,7 @@ void State::FinishKeepRunning() {
 namespace internal {
 namespace {
 
-void RunBenchmarks(const std::vector<Benchmark::Instance>& benchmarks,
+void RunBenchmarks(const std::vector<BenchmarkInstance>& benchmarks,
                    BenchmarkReporter* console_reporter,
                    BenchmarkReporter* file_reporter) {
   // Note the file_reporter can be null.
@@ -433,7 +432,7 @@ void RunBenchmarks(const std::vector<Benchmark::Instance>& benchmarks,
   bool has_repetitions = FLAGS_benchmark_repetitions > 1;
   size_t name_field_width = 10;
   size_t stat_field_width = 0;
-  for (const Benchmark::Instance& benchmark : benchmarks) {
+  for (const BenchmarkInstance& benchmark : benchmarks) {
     name_field_width =
         std::max<size_t>(name_field_width, benchmark.name.size());
     has_repetitions |= benchmark.repetitions > 1;
@@ -567,7 +566,7 @@ size_t RunSpecifiedBenchmarks(BenchmarkReporter* console_reporter,
     file_reporter->SetErrorStream(&output_file);
   }
 
-  std::vector<internal::Benchmark::Instance> benchmarks;
+  std::vector<internal::BenchmarkInstance> benchmarks;
   if (!FindBenchmarksInternal(spec, &benchmarks, &Err)) return 0;
 
   if (benchmarks.empty()) {
