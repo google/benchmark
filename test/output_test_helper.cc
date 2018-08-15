@@ -33,6 +33,7 @@ TestCaseList& GetTestCaseList(TestCaseID ID) {
 
 SubMap& GetSubstitutions() {
   // Don't use 'dec_re' from header because it may not yet be initialized.
+  // clang-format off
   static std::string safe_dec_re = "[0-9]*[.]?[0-9]+([eE][-+][0-9]+)?";
   static SubMap map = {
       {"%float", "[0-9]*[.]?[0-9]+([eE][-+][0-9]+)?"},
@@ -66,6 +67,7 @@ SubMap& GetSubstitutions() {
                                       safe_dec_re + "," + safe_dec_re +
                                       ",ns,,,"},
       {"%csv_label_report_end", ",,"}};
+  // clang-format on
   return map;
 }
 
@@ -306,6 +308,10 @@ int Results::NumThreads() const {
   ss >> num;
   CHECK(!ss.fail());
   return num;
+}
+
+double Results::NumIterations() const {
+  return GetAs<double>("iterations");
 }
 
 double Results::GetTime(BenchmarkTime which) const {

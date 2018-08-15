@@ -7,55 +7,22 @@
 
 namespace {
 TEST(StatisticsTest, Mean) {
-  std::vector<double> Inputs;
-  {
-    Inputs = {42, 42, 42, 42};
-    double Res = benchmark::StatisticsMean(Inputs);
-    EXPECT_DOUBLE_EQ(Res, 42.0);
-  }
-  {
-    Inputs = {1, 2, 3, 4};
-    double Res = benchmark::StatisticsMean(Inputs);
-    EXPECT_DOUBLE_EQ(Res, 2.5);
-  }
-  {
-    Inputs = {1, 2, 5, 10, 10, 14};
-    double Res = benchmark::StatisticsMean(Inputs);
-    EXPECT_DOUBLE_EQ(Res, 7.0);
-  }
+  EXPECT_DOUBLE_EQ(benchmark::StatisticsMean({42, 42, 42, 42}), 42.0);
+  EXPECT_DOUBLE_EQ(benchmark::StatisticsMean({1, 2, 3, 4}), 2.5);
+  EXPECT_DOUBLE_EQ(benchmark::StatisticsMean({1, 2, 5, 10, 10, 14}), 7.0);
 }
 
 TEST(StatisticsTest, Median) {
-  std::vector<double> Inputs;
-  {
-    Inputs = {42, 42, 42, 42};
-    double Res = benchmark::StatisticsMedian(Inputs);
-    EXPECT_DOUBLE_EQ(Res, 42.0);
-  }
-  {
-    Inputs = {1, 2, 3, 4};
-    double Res = benchmark::StatisticsMedian(Inputs);
-    EXPECT_DOUBLE_EQ(Res, 2.5);
-  }
-  {
-    Inputs = {1, 2, 5, 10, 10};
-    double Res = benchmark::StatisticsMedian(Inputs);
-    EXPECT_DOUBLE_EQ(Res, 5.0);
-  }
+  EXPECT_DOUBLE_EQ(benchmark::StatisticsMedian({42, 42, 42, 42}), 42.0);
+  EXPECT_DOUBLE_EQ(benchmark::StatisticsMedian({1, 2, 3, 4}), 2.5);
+  EXPECT_DOUBLE_EQ(benchmark::StatisticsMedian({1, 2, 5, 10, 10}), 5.0);
 }
 
 TEST(StatisticsTest, StdDev) {
-  std::vector<double> Inputs;
-  {
-    Inputs = {101, 101, 101, 101};
-    double Res = benchmark::StatisticsStdDev(Inputs);
-    EXPECT_DOUBLE_EQ(Res, 0.0);
-  }
-  {
-    Inputs = {1, 2, 3};
-    double Res = benchmark::StatisticsStdDev(Inputs);
-    EXPECT_DOUBLE_EQ(Res, 1.0);
-  }
+  EXPECT_DOUBLE_EQ(benchmark::StatisticsStdDev({101, 101, 101, 101}), 0.0);
+  EXPECT_DOUBLE_EQ(benchmark::StatisticsStdDev({1, 2, 3}), 1.0);
+  EXPECT_FLOAT_EQ(benchmark::StatisticsStdDev({1.5, 2.4, 3.3, 4.2, 5.1}),
+                  1.42302495);
 }
 
 }  // end namespace

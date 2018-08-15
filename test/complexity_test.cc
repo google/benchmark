@@ -103,7 +103,7 @@ std::vector<int> ConstructRandomVector(int64_t size) {
   std::vector<int> v;
   v.reserve(static_cast<int>(size));
   for (int i = 0; i < size; ++i) {
-    v.push_back(std::rand() % size);
+    v.push_back(static_cast<int>(std::rand() % size));
   }
   return v;
 }
@@ -155,6 +155,7 @@ static void BM_Complexity_O_N_log_N(benchmark::State &state) {
   }
   state.SetComplexityN(state.range(0));
 }
+static const double kLog2E = 1.44269504088896340736;
 BENCHMARK(BM_Complexity_O_N_log_N)
     ->RangeMultiplier(2)
     ->Range(1 << 10, 1 << 16)
@@ -162,7 +163,7 @@ BENCHMARK(BM_Complexity_O_N_log_N)
 BENCHMARK(BM_Complexity_O_N_log_N)
     ->RangeMultiplier(2)
     ->Range(1 << 10, 1 << 16)
-    ->Complexity([](int64_t n) { return n * log2(n); });
+    ->Complexity([](int64_t n) { return kLog2E * n * log(static_cast<double>(n)); });
 BENCHMARK(BM_Complexity_O_N_log_N)
     ->RangeMultiplier(2)
     ->Range(1 << 10, 1 << 16)

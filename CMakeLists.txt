@@ -133,7 +133,6 @@ else()
 
   # Turn compiler warnings up to 11
   add_cxx_compiler_flag(-Wall)
-
   add_cxx_compiler_flag(-Wextra)
   add_cxx_compiler_flag(-Wshadow)
   add_cxx_compiler_flag(-Werror RELEASE)
@@ -142,8 +141,20 @@ else()
   add_cxx_compiler_flag(-pedantic)
   add_cxx_compiler_flag(-pedantic-errors)
   add_cxx_compiler_flag(-Wshorten-64-to-32)
-  add_cxx_compiler_flag(-Wfloat-equal)
   add_cxx_compiler_flag(-fstrict-aliasing)
+  # Disable warnings regarding deprecated parts of the library while building
+  # and testing those parts of the library.
+  add_cxx_compiler_flag(-Wno-deprecated-declarations)
+  if (CMAKE_CXX_COMPILER_ID STREQUAL "Intel")
+    # Intel silently ignores '-Wno-deprecated-declarations',
+    # warning no. 1786 must be explicitly disabled.
+    # See #631 for rationale.
+    add_cxx_compiler_flag(-wd1786)
+  endif()
+  # Disable deprecation warnings for release builds (when -Werror is enabled).
+  add_cxx_compiler_flag(-Wno-deprecated RELEASE)
+  add_cxx_compiler_flag(-Wno-deprecated RELWITHDEBINFO)
+  add_cxx_compiler_flag(-Wno-deprecated MINSIZEREL)
   if (NOT BENCHMARK_ENABLE_EXCEPTIONS)
     add_cxx_compiler_flag(-fno-exceptions)
   endif()

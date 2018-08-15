@@ -225,7 +225,7 @@ int CountSetBitsInCPUMap(std::string Val) {
   auto CountBits = [](std::string Part) {
     using CPUMask = std::bitset<sizeof(std::uintptr_t) * CHAR_BIT>;
     Part = "0x" + Part;
-    CPUMask Mask(std::stoul(Part, nullptr, 16));
+    CPUMask Mask(benchmark::stoul(Part, nullptr, 16));
     return static_cast<int>(Mask.count());
   };
   size_t Pos;
@@ -407,7 +407,7 @@ int GetNumCPUs() {
     if (ln.size() >= Key.size() && ln.compare(0, Key.size(), Key) == 0) {
       NumCPUs++;
       if (!value.empty()) {
-        int CurID = std::stoi(value);
+        int CurID = benchmark::stoi(value);
         MaxID = std::max(CurID, MaxID);
       }
     }
@@ -480,12 +480,12 @@ double GetCPUCyclesPerSecond() {
     // which would cause infinite looping in WallTime_Init.
     if (startsWithKey(ln, "cpu MHz")) {
       if (!value.empty()) {
-        double cycles_per_second = std::stod(value) * 1000000.0;
+        double cycles_per_second = benchmark::stod(value) * 1000000.0;
         if (cycles_per_second > 0) return cycles_per_second;
       }
     } else if (startsWithKey(ln, "bogomips")) {
       if (!value.empty()) {
-        bogo_clock = std::stod(value) * 1000000.0;
+        bogo_clock = benchmark::stod(value) * 1000000.0;
         if (bogo_clock < 0.0) bogo_clock = error_value;
       }
     }

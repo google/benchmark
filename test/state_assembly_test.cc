@@ -4,11 +4,13 @@
 #pragma clang diagnostic ignored "-Wreturn-type"
 #endif
 
+// clang-format off
 extern "C" {
   extern int ExternInt;
   benchmark::State& GetState();
   void Fn();
 }
+// clang-format on
 
 using benchmark::State;
 

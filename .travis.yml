@@ -155,31 +155,31 @@ before_install:
 
 install:
   - if [ -n "${INSTALL_GCC6_FROM_PPA}" ]; then
-      sudo -E apt-get -yq --no-install-suggests --no-install-recommends install g++-6;
+      travis_wait sudo -E apt-get -yq --no-install-suggests --no-install-recommends install g++-6;
     fi
   - if [ "${TRAVIS_OS_NAME}" == "linux" -a "${BUILD_32_BITS}" == "OFF" ]; then
-      sudo -E apt-get -y --no-install-suggests --no-install-recommends install llvm-3.9-tools;
+      travis_wait sudo -E apt-get -y --no-install-suggests --no-install-recommends install llvm-3.9-tools;
       sudo cp /usr/lib/llvm-3.9/bin/FileCheck /usr/local/bin/;
     fi
   - if [ "${BUILD_TYPE}" == "Coverage" -a "${TRAVIS_OS_NAME}" == "linux" ]; then
       PATH=~/.local/bin:${PATH};
       pip install --user --upgrade pip;
-      pip install --user cpp-coveralls;
+      travis_wait pip install --user cpp-coveralls;
     fi
   - if [ "${C_COMPILER}" == "gcc-7" -a "${TRAVIS_OS_NAME}" == "osx" ]; then
       rm -f /usr/local/include/c++;
       brew update;
-      brew install gcc@7;
+      travis_wait brew install gcc@7;
     fi
   - if [ "${TRAVIS_OS_NAME}" == "linux" ]; then
       sudo apt-get update -qq;
       sudo apt-get install -qq unzip;
       wget https://github.com/bazelbuild/bazel/releases/download/0.10.1/bazel-0.10.1-installer-linux-x86_64.sh --output-document bazel-installer.sh;
-      sudo bash bazel-installer.sh;
+      travis_wait sudo bash bazel-installer.sh;
     fi
   - if [ "${TRAVIS_OS_NAME}" == "osx" ]; then
       curl -L -o bazel-installer.sh https://github.com/bazelbuild/bazel/releases/download/0.10.1/bazel-0.10.1-installer-darwin-x86_64.sh;
-      sudo bash bazel-installer.sh;
+      travis_wait sudo bash bazel-installer.sh;
     fi
 
 script:

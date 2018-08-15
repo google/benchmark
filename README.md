@@ -6,11 +6,9 @@
 
 A library to support the benchmarking of functions, similar to unit-tests.
 
-Discussion group: https://groups.google.com/d/forum/benchmark-discuss
+[Discussion group](https://groups.google.com/d/forum/benchmark-discuss)
 
-IRC channel: https://freenode.net #googlebenchmark
-
-[Known issues and common problems](#known-issues)
+IRC channel: [freenode](https://freenode.net) #googlebenchmark
 
 [Additional Tooling Documentation](docs/tools.md)
 
@@ -23,7 +21,7 @@ The basic steps for configuring and building the library look like this:
 
 ```bash
 $ git clone https://github.com/google/benchmark.git
-# Benchmark requires GTest as a dependency. Add the source tree as a subdirectory.
+# Benchmark requires Google Test as a dependency. Add the source tree as a subdirectory.
 $ git clone https://github.com/google/googletest.git benchmark/googletest
 $ mkdir build && cd build
 $ cmake -G <generator> [options] ../benchmark
@@ -31,15 +29,13 @@ $ cmake -G <generator> [options] ../benchmark
 $ make
 ```
 
-Note that Google Benchmark requires GTest to build and run the tests. This
-dependency can be provided three ways:
+Note that Google Benchmark requires Google Test to build and run the tests. This
+dependency can be provided two ways:
 
-* Checkout the GTest sources into `benchmark/googletest`.
+* Checkout the Google Test sources into `benchmark/googletest` as above.
 * Otherwise, if `-DBENCHMARK_DOWNLOAD_DEPENDENCIES=ON` is specified during
   configuration, the library will automatically download and build any required
   dependencies.
-* Otherwise, if nothing is done, CMake will use `find_package(GTest REQUIRED)`
-  to resolve the required GTest dependency.
 
 If you do not wish to build and run the tests, add `-DBENCHMARK_ENABLE_GTEST_TESTS=OFF`
 to `CMAKE_ARGS`.
@@ -49,11 +45,10 @@ to `CMAKE_ARGS`.
 
 For Ubuntu and Debian Based System
 
-First make sure you have git and cmake installed (If not please install it)
+First make sure you have git and cmake installed (If not please install them)
 
 ```
-sudo apt-get install git
-sudo apt-get install cmake
+sudo apt-get install git cmake
 ```
 
 Now, let's clone the repository and build it
@@ -61,20 +56,19 @@ Now, let's clone the repository and build it
 ```
 git clone https://github.com/google/benchmark.git
 cd benchmark
+# If you want to build tests and don't use BENCHMARK_DOWNLOAD_DEPENDENCIES, then
+# git clone https://github.com/google/googletest.git
 mkdir build
 cd build
 cmake .. -DCMAKE_BUILD_TYPE=RELEASE
 make
 ```
 
-We need to install the library globally now
+If you need to install the library globally
 
 ```
 sudo make install
 ```
-
-Now you have google/benchmark installed in your machine
-Note: Don't forget to link to pthread library while building
 
 ## Stable and Experimental Library Versions
 
@@ -88,10 +82,16 @@ to use, test, and provide feedback on the new features are encouraged to try
 this branch. However, this branch provides no stability guarantees and reserves
 the right to change and break the API at any time.
 
+## Further knowledge
+
+It may help to read the [Google Test documentation](https://github.com/google/googletest/blob/master/googletest/docs/primer.md)
+as some of the structural aspects of the APIs are similar.
 
 ## Example usage
 ### Basic usage
-Define a function that executes the code to be measured.
+Define a function that executes the code to be measured, register it as a
+benchmark function using the `BENCHMARK` macro, and ensure an appropriate `main`
+function is available:
 
 ```c++
 #include <benchmark/benchmark.h>
@@ -114,9 +114,28 @@ BENCHMARK(BM_StringCopy);
 BENCHMARK_MAIN();
 ```
 
-Don't forget to inform your linker to add benchmark library e.g. through `-lbenchmark` compilation flag.
+Don't forget to inform your linker to add benchmark library e.g. through 
+`-lbenchmark` compilation flag. Alternatively, you may leave out the 
+`BENCHMARK_MAIN();` at the end of the source file and link against 
+`-lbenchmark_main` to get the same default behavior.
 
-The benchmark library will reporting the timing for the code within the `for(...)` loop.
+The benchmark library will measure and report the timing for code within the
+`for(...)` loop.
+
+#### Platform-specific libraries
+When the library is built using GCC it is necessary to link with the pthread
+library due to how GCC implements `std::thread`. Failing to link to pthread will
+lead to runtime exceptions (unless you're using libc++), not linker errors. See
+[issue #67](https://github.com/google/benchmark/issues/67) for more details. You
+can link to pthread by adding `-pthread` to your linker command. Note, you can
+also use `-lpthread`, but there are potential issues with ordering of command
+line parameters if you use that.
+
+If you're running benchmarks on Windows, the shlwapi library (`-lshlwapi`) is
+also required.
+
+If you're running benchmarks on solaris, you'll want the kstat library linked in
+too (`-lkstat`).
 
 ### Passing arguments
 Sometimes a family of benchmarks can be implemented with just one routine that
@@ -515,15 +534,7 @@ order to manually set the time unit, you can specify it manually:
 BENCHMARK(BM_test)->Unit(benchmark::kMillisecond);
 ```
 
-## Controlling number of iterations
-In all cases, the number of iterations for which the benchmark is run is
-governed by the amount of time the benchmark takes. Concretely, the number of
-iterations is at least one, not more than 1e9, until CPU time is greater than
-the minimum time, or the wallclock time is 5x minimum time. The minimum time is
-set as a flag `--benchmark_min_time` or per benchmark by calling `MinTime` on
-the registered benchmark object.
-
-## Reporting the mean, median and standard deviation by repeated benchmarks
+### Reporting the mean, median and standard deviation by repeated benchmarks
 By default each benchmark is run once and that single result is reported.
 However benchmarks are often noisy and a single result may not be representative
 of the overall behavior. For this reason it's possible to repeatedly rerun the
@@ -803,8 +814,29 @@ BM_memcpy/32          12 ns         12 ns   54687500
 BM_memcpy/32k       1834 ns       1837 ns     357143
 ```
 
+## Runtime and reporting considerations
+When the benchmark binary is executed, each benchmark function is run serially.
+The number of iterations to run is determined dynamically by running the
+benchmark a few times and measuring the time taken and ensuring that the
+ultimate result will be statistically stable. As such, faster benchmark
+functions will be run for more iterations than slower benchmark functions, and
+the number of iterations is thus reported.
 
-## Output Formats
+In all cases, the number of iterations for which the benchmark is run is
+governed by the amount of time the benchmark takes. Concretely, the number of
+iterations is at least one, not more than 1e9, until CPU time is greater than
+the minimum time, or the wallclock time is 5x minimum time. The minimum time is
+set per benchmark by calling `MinTime` on the registered benchmark object.
+
+Average timings are then reported over the iterations run. If multiple
+repetitions are requested using the `--benchmark_repetitions` command-line
+option, or at registration time, the benchmark function will be run several
+times and statistical results across these repetitions will also be reported.
+
+As well as the per-benchmark entries, a preamble in the report will include
+information about the machine on which the benchmarks are run.
+
+### Output Formats
 The library supports multiple output formats. Use the
 `--benchmark_format=<console|json|csv>` flag to set the format type. `console`
 is the default format.
@@ -872,14 +904,15 @@ name,iterations,real_time,cpu_time,bytes_per_second,items_per_second,label
 "BM_SetInsert/1024/10",106365,17238.4,8421.53,4.74973e+06,1.18743e+06,
 ```
 
-## Output Files
+### Output Files
 The library supports writing the output of the benchmark to a file specified
 by `--benchmark_out=<filename>`. The format of the output can be specified
 using `--benchmark_out_format={json|console|csv}`. Specifying
 `--benchmark_out` does not suppress the console output.
 
 ## Debug vs Release
-By default, benchmark builds as a debug library. You will see a warning in the output when this is the case. To build it as a release library instead, use:
+By default, benchmark builds as a debug library. You will see a warning in the
+output when this is the case. To build it as a release library instead, use:
 
 ```
 cmake -DCMAKE_BUILD_TYPE=Release
@@ -891,16 +924,11 @@ To enable link-time optimisation, use
 cmake -DCMAKE_BUILD_TYPE=Release -DBENCHMARK_ENABLE_LTO=true
 ```
 
-If you are using gcc, you might need to set `GCC_AR` and `GCC_RANLIB` cmake cache variables, if autodetection fails.
-If you are using clang, you may need to set `LLVMAR_EXECUTABLE`, `LLVMNM_EXECUTABLE` and `LLVMRANLIB_EXECUTABLE` cmake cache variables.
+If you are using gcc, you might need to set `GCC_AR` and `GCC_RANLIB` cmake
+cache variables, if autodetection fails.
 
-## Linking against the library
-
-When the library is built using GCC it is necessary to link with `-pthread`,
-due to how GCC implements `std::thread`.
-
-For GCC 4.x failing to link to pthreads will lead to runtime exceptions, not linker errors.
-See [issue #67](https://github.com/google/benchmark/issues/67) for more details.
+If you are using clang, you may need to set `LLVMAR_EXECUTABLE`,
+`LLVMNM_EXECUTABLE` and `LLVMRANLIB_EXECUTABLE` cmake cache variables.
 
 ## Compiler Support
 
@@ -930,14 +958,3 @@ sudo cpupower frequency-set --governor performance
 ./mybench
 sudo cpupower frequency-set --governor powersave
 ```
-
-# Known Issues
-
-### Windows with CMake
-
-* Users must manually link `shlwapi.lib`. Failure to do so may result
-in unresolved symbols.
-
-### Solaris
-
-* Users must explicitly link with kstat library (-lkstat compilation flag).
