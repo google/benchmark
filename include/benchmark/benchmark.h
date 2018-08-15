@@ -246,11 +246,11 @@ BENCHMARK(BM_test)->Unit(benchmark::kMillisecond);
 #endif
 
 #if defined(__GNUC__) || __has_builtin(__builtin_unreachable)
-  #define BENCHMARK_UNREACHABLE() __builtin_unreachable()
+#define BENCHMARK_UNREACHABLE() __builtin_unreachable()
 #elif defined(_MSC_VER)
-  #define BENCHMARK_UNREACHABLE() __assume(false)
+#define BENCHMARK_UNREACHABLE() __assume(false)
 #else
-  #define BENCHMARK_UNREACHABLE() ((void)0)
+#define BENCHMARK_UNREACHABLE() ((void)0)
 #endif
 
 namespace benchmark {
@@ -1300,6 +1300,7 @@ class BenchmarkReporter {
     int64_t family_id;
     std::string base_name;
     std::string benchmark_name;
+    std::string stats_name;
     std::string report_label;  // Empty if not set by benchmark.
     bool error_occurred;
     std::string error_message;

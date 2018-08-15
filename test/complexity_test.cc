@@ -27,6 +27,7 @@ int AddComplexityTest(std::string base_name, std::string big_o_test_name,
        {"^%rms_name %rms %rms[ ]*$", MR_Next}});
   AddCases(TC_JSONOut, {{"\"name\": \"%bigo_name\",$"},
                         {"\"base_name\": \"%base_name\",$", MR_Next},
+                        {"\"stats\": \"BigO\"", MR_Next},
                         {"\"id\": %int,$", MR_Next},
                         {"\"family\": %int,$", MR_Next},
                         {"\"repetitions\": %int,$", MR_Next},
@@ -38,6 +39,7 @@ int AddComplexityTest(std::string base_name, std::string big_o_test_name,
                         {"}", MR_Next},
                         {"\"name\": \"%rms_name\",$"},
                         {"\"base_name\": \"%base_name\",$", MR_Next},
+                        {"\"stats\": \"RMS\"", MR_Next},
                         {"\"id\": %int,$", MR_Next},
                         {"\"family\": %int,$", MR_Next},
                         {"\"repetitions\": %int,$", MR_Next},
@@ -160,7 +162,9 @@ BENCHMARK(BM_Complexity_O_N_log_N)
 BENCHMARK(BM_Complexity_O_N_log_N)
     ->RangeMultiplier(2)
     ->Range(1 << 10, 1 << 16)
-    ->Complexity([](int64_t n) { return kLog2E * n * log(static_cast<double>(n)); });
+    ->Complexity([](int64_t n) {
+      return kLog2E * n * log(static_cast<double>(n));
+    });
 BENCHMARK(BM_Complexity_O_N_log_N)
     ->RangeMultiplier(2)
     ->Range(1 << 10, 1 << 16)

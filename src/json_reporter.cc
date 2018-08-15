@@ -161,6 +161,9 @@ void JSONReporter::PrintRunData(Run const& run) {
   std::ostream& out = GetOutputStream();
   out << indent << FormatKV("name", run.benchmark_name) << ",\n";
   out << indent << FormatKV("base_name", run.base_name) << ",\n";
+  if (!run.stats_name.empty()) {
+    out << indent << FormatKV("stats", run.stats_name) << ",\n";
+  }
   out << indent << FormatKV("id", run.id) << ",\n";
   out << indent << FormatKV("family", run.family_id) << ",\n";
   out << indent << FormatKV("repetitions", run.repetitions) << ",\n";

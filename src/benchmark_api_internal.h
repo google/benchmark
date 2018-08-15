@@ -17,6 +17,7 @@ struct Benchmark::Instance {
   int64_t id;
   int64_t family_id;
   std::string base_name;
+  std::string stats_name;
   std::string name;
   Benchmark* benchmark;
   ReportMode report_mode;
