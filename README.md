@@ -910,6 +910,10 @@ by `--benchmark_out=<filename>`. The format of the output can be specified
 using `--benchmark_out_format={json|console|csv}`. Specifying
 `--benchmark_out` does not suppress the console output.
 
+## Result comparison
+
+It is possible to compare the benchmarking results. See [Additional Tooling Documentation](docs/tools.md)
+
 ## Debug vs Release
 By default, benchmark builds as a debug library. You will see a warning in the
 output when this is the case. To build it as a release library instead, use:
