@@ -21,6 +21,11 @@ BENCHMARK(BM_empty);
 
 ADD_CASES(TC_ConsoleOut, {{"^BM_empty %console_report$"}});
 ADD_CASES(TC_JSONOut, {{"\"name\": \"BM_empty\",$"},
+                       {"\"base_name\": \"BM_basic\",$", MR_Next},
+                       {"\"id\": %int,$", MR_Next},
+                       {"\"family\": %int,$", MR_Next},
+                       {"\"repetitions\": %int,$", MR_Next},
+                       {"\"threads\": %int,$", MR_Next},
                        {"\"iterations\": %int,$", MR_Next},
                        {"\"real_time\": %float,$", MR_Next},
                        {"\"cpu_time\": %float,$", MR_Next},
@@ -30,8 +35,7 @@ ADD_CASES(TC_JSONOut, {{"\"name\": \"BM_empty\",$"},
                        {"}", MR_Next}});
 ADD_CASES(TC_CSVOut, {{"^\"BM_empty\",%csv_report$"}});
 
-
-int main(int argc, char *argv[]) {
+int main(int argc, char* argv[]) {
   std::unique_ptr<benchmark::MemoryManager> mm(new TestMemoryManager());
 
   benchmark::RegisterMemoryManager(mm.get());
