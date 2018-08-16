@@ -78,7 +78,7 @@ bool JSONReporter::ReportContext(const Context& context) {
   out << indent << FormatKV("date", walltime_value) << ",\n";
 
   if (Context::executable_name) {
-    out << indent << FormatKV("executable", executable_name) << ",\n";
+    out << indent << FormatKV("executable", Context::executable_name) << ",\n";
   }
 
   CPUInfo const& info = context.cpu_info;
