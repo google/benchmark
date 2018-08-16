@@ -16,7 +16,7 @@ option(BENCHMARK_ENABLE_TESTING "Enable testing of the benchmark library." ON)
 option(BENCHMARK_ENABLE_EXCEPTIONS "Enable the use of exceptions in the benchmark library." ON)
 option(BENCHMARK_ENABLE_LTO "Enable link time optimisation of the benchmark library." OFF)
 option(BENCHMARK_USE_LIBCXX "Build and test using libc++ as the standard library." OFF)
-option(BENCHMARK_BUILD_32_BITS "Build a 32 bit version of the library." OFF)
+option(BENCHMARK_BUILD_32_BITS "Build a 32 bit version of the library." OFF) # Ignored if using MSVC
 option(BENCHMARK_ENABLE_INSTALL "Enable installation of benchmark. (Projects embedding benchmark may want to turn this OFF.)" ON)
 
 # Allow unmet dependencies to be met using CMake's ExternalProject mechanics, which
@@ -86,7 +86,8 @@ include(CheckCXXCompilerFlag)
 include(AddCXXCompilerFlag)
 include(CXXFeatureCheck)
 
-if (BENCHMARK_BUILD_32_BITS)
+# Exclude -m32 when using MSVC as it is incompatible
+if (BENCHMARK_BUILD_32_BITS AND NOT "${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
   add_required_cxx_compiler_flag(-m32)
 endif()
 
