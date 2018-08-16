@@ -21,7 +21,7 @@ BENCHMARK(BM_empty);
 
 ADD_CASES(TC_ConsoleOut, {{"^BM_empty %console_report$"}});
 ADD_CASES(TC_JSONOut, {{"\"name\": \"BM_empty\",$"},
-                       {"\"base_name\": \"BM_basic\",$", MR_Next},
+                       {"\"base_name\": \"BM_empty\",$", MR_Next},
                        {"\"id\": %int,$", MR_Next},
                        {"\"family\": %int,$", MR_Next},
                        {"\"repetitions\": %int,$", MR_Next},
