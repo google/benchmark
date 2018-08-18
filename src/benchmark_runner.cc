@@ -166,9 +166,11 @@ struct AbstractIterationResults {
                          const benchmark::internal::BenchmarkInstance& b) = 0;
 };
 
-template <typename Derived, typename IterationResults>
+template <typename Derived, typename iteration_results>
 class BenchmarkRunnerBase {
  public:
+  using IterationResults = iteration_results;
+
   BenchmarkRunnerBase(const benchmark::internal::BenchmarkInstance& b_,
                       std::vector<BenchmarkReporter::Run>* complexity_reports_)
       : b(b_),
@@ -198,7 +200,7 @@ class BenchmarkRunnerBase {
   void DoWork() {
     for (int repetition_num = 0; repetition_num < repeats; repetition_num++) {
       const bool is_the_first_repetition = repetition_num == 0;
-      getDerived().DoOneRepetition(is_the_first_repetition);
+      DoOneRepetition(is_the_first_repetition);
     }
 
     // Calculate additional statistics
