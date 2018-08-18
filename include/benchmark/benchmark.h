@@ -542,9 +542,17 @@ class State {
   //
   // REQUIRES: a benchmark has exited its benchmarking loop.
   BENCHMARK_ALWAYS_INLINE
+  BENCHMARK_DEPRECATED_MSG(
+      "The SetItemsProcessed()/items_processed()/SetBytesProcessed()/"
+      "bytes_processed() will be removed in a future release. "
+      "Please use custom user counters.")
   void SetBytesProcessed(int64_t bytes) { bytes_processed_ = bytes; }
 
   BENCHMARK_ALWAYS_INLINE
+  BENCHMARK_DEPRECATED_MSG(
+      "The SetItemsProcessed()/items_processed()/SetBytesProcessed()/"
+      "bytes_processed() will be removed in a future release. "
+      "Please use custom user counters.")
   int64_t bytes_processed() const { return bytes_processed_; }
 
   // If this routine is called with complexity_n > 0 and complexity report is
@@ -565,9 +573,17 @@ class State {
   //
   // REQUIRES: a benchmark has exited its benchmarking loop.
   BENCHMARK_ALWAYS_INLINE
+  BENCHMARK_DEPRECATED_MSG(
+      "The SetItemsProcessed()/items_processed()/SetBytesProcessed()/"
+      "bytes_processed() will be removed in a future release. "
+      "Please use custom user counters.")
   void SetItemsProcessed(int64_t items) { items_processed_ = items; }
 
   BENCHMARK_ALWAYS_INLINE
+  BENCHMARK_DEPRECATED_MSG(
+      "The SetItemsProcessed()/items_processed()/SetBytesProcessed()/"
+      "bytes_processed() will be removed in a future release. "
+      "Please use custom user counters.")
   int64_t items_processed() const { return items_processed_; }
 
   // If this routine is called, the specified label is printed at the
