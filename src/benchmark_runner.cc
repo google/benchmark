@@ -124,6 +124,57 @@ void RunInThread(const BenchmarkInstance* b, size_t iters, int thread_id,
   manager->NotifyThreadComplete();
 }
 
+struct AbstractIterationResults {
+  std::vector<internal::ThreadManager::Result> results;
+
+  bool has_error = false;
+  size_t iters = 0;
+  double real_time_used = 0.0;
+  double seconds = 0.0;
+
+  AbstractIterationResults() = default;
+
+  virtual ~AbstractIterationResults() = default;
+
+  // *Append* the new data.
+  void append(internal::ThreadManager::Result result,
+              const benchmark::internal::BenchmarkInstance& b) {
+    has_error |= result.has_error_;
+    iters += result.iterations;
+
+    // Adjust real/manual time stats since they were reported per thread.
+    result.real_time_used /= b.threads;
+    result.manual_time_used /= b.threads;
+
+    // So for how long were we running?
+    real_time_used += result.real_time_used;
+    // Base decisions off of real time if requested by this benchmark.
+    if (b.use_manual_time) {
+      seconds += result.manual_time_used;
+    } else if (b.use_real_time) {
+      seconds += result.real_time_used;
+    } else
+      seconds += result.cpu_time_used;
+
+    results.emplace_back(result);
+  }
+
+  // This is the business logic. You need to decide what this does.
+  virtual void new_result(internal::ThreadManager::Result result,
+                          const benchmark::internal::BenchmarkInstance& b) = 0;
+};
+
+struct IterationAveragedResults final : public AbstractIterationResults {
+  // Just replace all of the existing data.
+  void new_result(internal::ThreadManager::Result result,
+                  const benchmark::internal::BenchmarkInstance& b) final {
+    IterationAveragedResults empty;
+    empty.append(result, b);
+    *this = std::move(empty);
+  }
+};
+
+template <typename IterationResults = IterationAveragedResults>
 class BenchmarkRunner {
  public:
   BenchmarkRunner(const benchmark::internal::BenchmarkInstance& b_,
@@ -135,7 +186,7 @@ class BenchmarkRunner {
                                    : FLAGS_benchmark_repetitions),
         has_explicit_iteration_count(b.iterations != 0),
         pool(b.threads - 1),
-        iters(has_explicit_iteration_count ? b.iterations : 1) {
+        predictedItersTotal(has_explicit_iteration_count ? b.iterations : 1) {
     run_results.display_report_aggregates_only =
         (FLAGS_benchmark_report_aggregates_only ||
          FLAGS_benchmark_display_aggregates_only);
@@ -148,10 +199,12 @@ class BenchmarkRunner {
       run_results.file_report_aggregates_only =
           (b.aggregation_report_mode & internal::ARM_FileReportAggregatesOnly);
     }
+  }
 
+  void do_work() {  // DO NOT CALL ME FROM THE CONSTRUCTOR!!!
     for (int repetition_num = 0; repetition_num < repeats; repetition_num++) {
       const bool is_the_first_repetition = repetition_num == 0;
-      DoOneRepetition(is_the_first_repetition);
+      DoOneRepetition(is_the_first_repetition);  // WARNING: virtual method!
     }
 
     // Calculate additional statistics
@@ -167,7 +220,10 @@ class BenchmarkRunner {
     }
   }
 
-  RunResults&& get_results() { return std::move(run_results); }
+  RunResults&& get_results() {
+    do_work();
+    return std::move(run_results);
+  }
 
  private:
   RunResults run_results;
@@ -181,30 +237,28 @@ class BenchmarkRunner {
 
   std::vector<std::thread> pool;
 
-  size_t iters;  // preserved between repetitions!
+  size_t predictedItersTotal;  // preserved between repetitions!
   // So only the first repetition has to find/calculate it,
   // the other repetitions will just use that precomputed iteration count.
 
-  struct IterationResults {
-    internal::ThreadManager::Result results;
-    size_t iters;
-    double seconds;
-  };
-  IterationResults DoNIterations() {
-    VLOG(2) << "Running " << b.name << " for " << iters << "\n";
+ protected:
+  virtual IterationResults DoNIterations(
+      size_t runForNumIters, const IterationResults& /*prev_iters*/) {
+    // WARNING: runForNumIters and predictedItersTotal are not interchangeable!
+    VLOG(2) << "Running " << b.name << " for " << runForNumIters << "\n";
 
     std::unique_ptr<internal::ThreadManager> manager;
     manager.reset(new internal::ThreadManager(b.threads));
 
     // Run all but one thread in separate threads
     for (std::size_t ti = 0; ti < pool.size(); ++ti) {
-      pool[ti] = std::thread(&RunInThread, &b, iters, static_cast<int>(ti + 1),
-                             manager.get());
+      pool[ti] = std::thread(&RunInThread, &b, runForNumIters,
+                             static_cast<int>(ti + 1), manager.get());
     }
     // And run one thread here directly.
     // (If we were asked to run just one thread, we don't create new threads.)
     // Yes, we need to do this here *after* we start the separate threads.
-    RunInThread(&b, iters, 0, manager.get());
+    RunInThread(&b, runForNumIters, 0, manager.get());
 
     // The main thread has finished. Now let's wait for the other threads.
     manager->WaitForAllThreads();
@@ -214,32 +268,19 @@ class BenchmarkRunner {
     // Acquire the measurements/counters from the manager, UNDER THE LOCK!
     {
       MutexLock l(manager->GetBenchmarkMutex());
-      i.results = manager->results;
+      i.new_result(manager->results, b);
     }
 
     // And get rid of the manager.
     manager.reset();
 
-    // Adjust real/manual time stats since they were reported per thread.
-    i.results.real_time_used /= b.threads;
-    i.results.manual_time_used /= b.threads;
-
-    VLOG(2) << "Ran in " << i.results.cpu_time_used << "/"
-            << i.results.real_time_used << "\n";
-
-    // So for how long were we running?
-    i.iters = iters;
-    // Base decisions off of real time if requested by this benchmark.
-    i.seconds = i.results.cpu_time_used;
-    if (b.use_manual_time) {
-      i.seconds = i.results.manual_time_used;
-    } else if (b.use_real_time) {
-      i.seconds = i.results.real_time_used;
-    }
+    VLOG(2) << "Ran in " << b.threads * i.results.back().cpu_time_used << "/"
+            << b.threads * i.results.back().real_time_used << "\n";
 
     return i;
   }
 
+ private:
   size_t PredictNumItersNeeded(const IterationResults& i) const {
     // See how much iterations should be increased by.
     // Note: Avoid division by zero with max(seconds, 1ns).
@@ -267,13 +308,13 @@ class BenchmarkRunner {
     // Determine if this run should be reported;
     // Either it has run for a sufficient amount of time
     // or because an error was reported.
-    return i.results.has_error_ ||
+    return i.has_error ||
            i.iters >= kMaxIterations ||  // Too many iterations already.
            i.seconds >= min_time ||      // The elapsed time is large enough.
            // CPU time is specified but the elapsed real time greatly exceeds
            // the minimum time.
            // Note that user provided timers are except from this sanity check.
-           ((i.results.real_time_used >= 5 * min_time) && !b.use_manual_time);
+           ((i.real_time_used >= 5 * min_time) && !b.use_manual_time);
   }
 
   void DoOneRepetition(bool is_the_first_repetition) {
@@ -286,7 +327,7 @@ class BenchmarkRunner {
     // is *only* calculated for the *first* repetition, and other repetitions
     // simply use that precomputed iteration count.
     for (;;) {
-      i = DoNIterations();
+      i = DoNIterations(predictedItersTotal, i);
 
       // Do we consider the results to be significant?
       // If we are doing repetitions, and the first repetition was already done,
@@ -302,8 +343,8 @@ class BenchmarkRunner {
       // Nope, bad iteration. Let's re-estimate the hopefully-sufficient
       // iteration count, and run the benchmark again...
 
-      iters = PredictNumItersNeeded(i);
-      assert(iters > i.iters &&
+      predictedItersTotal = PredictNumItersNeeded(i);
+      assert(predictedItersTotal > i.iters &&
              "if we did more iterations than we want to do the next time, "
              "then we should have accepted the current iteration run.");
     }
@@ -314,7 +355,7 @@ class BenchmarkRunner {
     if (memory_manager != nullptr) {
       // Only run a few iterations to reduce the impact of one-time
       // allocations in benchmarks that are not properly managed.
-      memory_iterations = std::min<size_t>(16, iters);
+      memory_iterations = std::min<size_t>(16, predictedItersTotal);
       memory_manager->Start();
       std::unique_ptr<internal::ThreadManager> manager;
       manager.reset(new internal::ThreadManager(1));
@@ -325,14 +366,16 @@ class BenchmarkRunner {
       memory_manager->Stop(&memory_result);
     }
 
-    // Ok, now actualy report.
-    BenchmarkReporter::Run report = CreateRunReport(
-        b, i.results, memory_iterations, memory_result, i.seconds);
+    for (const internal::ThreadManager::Result& result : i.results) {
+      // Ok, now actualy report.
+      BenchmarkReporter::Run report = CreateRunReport(
+          b, result, memory_iterations, memory_result, i.seconds);
 
-    if (!report.error_occurred && b.complexity != oNone)
-      complexity_reports.push_back(report);
+      if (!report.error_occurred && b.complexity != oNone)
+        complexity_reports.push_back(report);
 
-    run_results.non_aggregates.push_back(report);
+      run_results.non_aggregates.push_back(report);
+    }
   }
 };
 
@@ -341,7 +384,7 @@ class BenchmarkRunner {
 RunResults RunBenchmark(
     const benchmark::internal::BenchmarkInstance& b,
     std::vector<BenchmarkReporter::Run>* complexity_reports) {
-  internal::BenchmarkRunner r(b, complexity_reports);
+  internal::BenchmarkRunner<> r(b, complexity_reports);
   return r.get_results();
 }
 
