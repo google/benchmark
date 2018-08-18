@@ -14,6 +14,7 @@
 
 #include "benchmark/benchmark.h"
 #include "benchmark_api_internal.h"
+#include "benchmark_runner.h"
 #include "internal_macros.h"
 
 #ifndef BENCHMARK_OS_WINDOWS
@@ -112,228 +113,6 @@ DEFINE_bool(benchmark_counters_tabular, false,
 DEFINE_int32(v, 0, "The level of verbose logging to output");
 
 namespace benchmark {
-
-namespace {
-static const size_t kMaxIterations = 1000000000;
-
-static MemoryManager* memory_manager = nullptr;
-}  // end namespace
-
-namespace internal {
-
-void UseCharPointer(char const volatile*) {}
-
-namespace {
-
-BenchmarkReporter::Run CreateRunReport(
-    const benchmark::internal::BenchmarkInstance& b,
-    const internal::ThreadManager::Result& results, size_t memory_iterations,
-    const MemoryManager::Result& memory_result, double seconds) {
-  // Create report about this benchmark run.
-  BenchmarkReporter::Run report;
-
-  report.run_name = b.name;
-  report.error_occurred = results.has_error_;
-  report.error_message = results.error_message_;
-  report.report_label = results.report_label_;
-  // This is the total iterations across all threads.
-  report.iterations = results.iterations;
-  report.time_unit = b.time_unit;
-
-  if (!report.error_occurred) {
-    if (b.use_manual_time) {
-      report.real_accumulated_time = results.manual_time_used;
-    } else {
-      report.real_accumulated_time = results.real_time_used;
-    }
-    report.cpu_accumulated_time = results.cpu_time_used;
-    report.complexity_n = results.complexity_n;
-    report.complexity = b.complexity;
-    report.complexity_lambda = b.complexity_lambda;
-    report.statistics = b.statistics;
-    report.counters = results.counters;
-
-    if (memory_iterations > 0) {
-      report.has_memory_result = true;
-      report.allocs_per_iter =
-          memory_iterations ? static_cast<double>(memory_result.num_allocs) /
-                                  memory_iterations
-                            : 0;
-      report.max_bytes_used = memory_result.max_bytes_used;
-    }
-
-    internal::Finish(&report.counters, results.iterations, seconds, b.threads);
-  }
-  return report;
-}
-
-// Execute one thread of benchmark b for the specified number of iterations.
-// Adds the stats collected for the thread into *total.
-void RunInThread(const BenchmarkInstance* b, size_t iters, int thread_id,
-                 ThreadManager* manager) {
-  internal::ThreadTimer timer;
-  State st = b->Run(iters, thread_id, &timer, manager);
-  CHECK(st.iterations() >= st.max_iterations)
-      << "Benchmark returned before State::KeepRunning() returned false!";
-  {
-    MutexLock l(manager->GetBenchmarkMutex());
-    internal::ThreadManager::Result& results = manager->results;
-    results.iterations += st.iterations();
-    results.cpu_time_used += timer.cpu_time_used();
-    results.real_time_used += timer.real_time_used();
-    results.manual_time_used += timer.manual_time_used();
-    results.complexity_n += st.complexity_length_n();
-    internal::Increment(&results.counters, st.counters);
-  }
-  manager->NotifyThreadComplete();
-}
-
-struct RunResults {
-  std::vector<BenchmarkReporter::Run> non_aggregates;
-  std::vector<BenchmarkReporter::Run> aggregates_only;
-
-  bool display_report_aggregates_only = false;
-  bool file_report_aggregates_only = false;
-};
-
-RunResults RunBenchmark(
-    const benchmark::internal::BenchmarkInstance& b,
-    std::vector<BenchmarkReporter::Run>* complexity_reports) {
-  RunResults run_results;
-
-  const bool has_explicit_iteration_count = b.iterations != 0;
-  size_t iters = has_explicit_iteration_count ? b.iterations : 1;
-  std::unique_ptr<internal::ThreadManager> manager;
-  std::vector<std::thread> pool(b.threads - 1);
-  const int repeats =
-      b.repetitions != 0 ? b.repetitions : FLAGS_benchmark_repetitions;
-  if (repeats != 1) {
-    run_results.display_report_aggregates_only =
-        (FLAGS_benchmark_report_aggregates_only ||
-         FLAGS_benchmark_display_aggregates_only);
-    run_results.file_report_aggregates_only =
-        FLAGS_benchmark_report_aggregates_only;
-    if (b.aggregation_report_mode != internal::ARM_Unspecified) {
-      run_results.display_report_aggregates_only =
-          (b.aggregation_report_mode &
-           internal::ARM_DisplayReportAggregatesOnly);
-      run_results.file_report_aggregates_only =
-          (b.aggregation_report_mode & internal::ARM_FileReportAggregatesOnly);
-    }
-  }
-  for (int repetition_num = 0; repetition_num < repeats; repetition_num++) {
-    for (;;) {
-      // Try benchmark
-      VLOG(2) << "Running " << b.name << " for " << iters << "\n";
-
-      manager.reset(new internal::ThreadManager(b.threads));
-      for (std::size_t ti = 0; ti < pool.size(); ++ti) {
-        pool[ti] = std::thread(&RunInThread, &b, iters,
-                               static_cast<int>(ti + 1), manager.get());
-      }
-      RunInThread(&b, iters, 0, manager.get());
-      manager->WaitForAllThreads();
-      for (std::thread& thread : pool) thread.join();
-      internal::ThreadManager::Result results;
-      {
-        MutexLock l(manager->GetBenchmarkMutex());
-        results = manager->results;
-      }
-      manager.reset();
-      // Adjust real/manual time stats since they were reported per thread.
-      results.real_time_used /= b.threads;
-      results.manual_time_used /= b.threads;
-
-      VLOG(2) << "Ran in " << results.cpu_time_used << "/"
-              << results.real_time_used << "\n";
-
-      // Base decisions off of real time if requested by this benchmark.
-      double seconds = results.cpu_time_used;
-      if (b.use_manual_time) {
-        seconds = results.manual_time_used;
-      } else if (b.use_real_time) {
-        seconds = results.real_time_used;
-      }
-
-      const double min_time =
-          !IsZero(b.min_time) ? b.min_time : FLAGS_benchmark_min_time;
-
-      // clang-format off
-      // turn off clang-format since it mangles prettiness here
-      // Determine if this run should be reported; Either it has
-      // run for a sufficient amount of time or because an error was reported.
-      const bool should_report =  repetition_num > 0
-        || has_explicit_iteration_count  // An exact iteration count was requested
-        || results.has_error_
-        || iters >= kMaxIterations  // No chance to try again, we hit the limit.
-        || seconds >= min_time  // the elapsed time is large enough
-        // CPU time is specified but the elapsed real time greatly exceeds the
-        // minimum time. Note that user provided timers are except from this
-        // sanity check.
-        || ((results.real_time_used >= 5 * min_time) && !b.use_manual_time);
-      // clang-format on
-
-      if (should_report) {
-        MemoryManager::Result memory_result;
-        size_t memory_iterations = 0;
-        if (memory_manager != nullptr) {
-          // Only run a few iterations to reduce the impact of one-time
-          // allocations in benchmarks that are not properly managed.
-          memory_iterations = std::min<size_t>(16, iters);
-          memory_manager->Start();
-          manager.reset(new internal::ThreadManager(1));
-          RunInThread(&b, memory_iterations, 0, manager.get());
-          manager->WaitForAllThreads();
-          manager.reset();
-
-          memory_manager->Stop(&memory_result);
-        }
-
-        BenchmarkReporter::Run report = CreateRunReport(
-            b, results, memory_iterations, memory_result, seconds);
-        if (!report.error_occurred && b.complexity != oNone)
-          complexity_reports->push_back(report);
-        run_results.non_aggregates.push_back(report);
-        break;
-      }
-
-      // See how much iterations should be increased by
-      // Note: Avoid division by zero with max(seconds, 1ns).
-      double multiplier = min_time * 1.4 / std::max(seconds, 1e-9);
-      // If our last run was at least 10% of FLAGS_benchmark_min_time then we
-      // use the multiplier directly. Otherwise we use at most 10 times
-      // expansion.
-      // NOTE: When the last run was at least 10% of the min time the max
-      // expansion should be 14x.
-      bool is_significant = (seconds / min_time) > 0.1;
-      multiplier = is_significant ? multiplier : std::min(10.0, multiplier);
-      if (multiplier <= 1.0) multiplier = 2.0;
-      double next_iters = std::max(multiplier * iters, iters + 1.0);
-      if (next_iters > kMaxIterations) {
-        next_iters = kMaxIterations;
-      }
-      VLOG(3) << "Next iters: " << next_iters << ", " << multiplier << "\n";
-      iters = static_cast<int>(next_iters + 0.5);
-    }
-  }
-
-  // Calculate additional statistics
-  run_results.aggregates_only = ComputeStats(run_results.non_aggregates);
-
-  // Maybe calculate complexity report
-  if ((b.complexity != oNone) && b.last_benchmark_instance) {
-    auto additional_run_stats = ComputeBigO(*complexity_reports);
-    run_results.aggregates_only.insert(run_results.aggregates_only.end(),
-                                       additional_run_stats.begin(),
-                                       additional_run_stats.end());
-    complexity_reports->clear();
-  }
-
-  return run_results;
-}
-
-}  // namespace
-}  // namespace internal
 
 State::State(size_t max_iters, const std::vector<int64_t>& ranges, int thread_i,
              int n_threads, internal::ThreadTimer* timer,
@@ -610,7 +389,9 @@ size_t RunSpecifiedBenchmarks(BenchmarkReporter* display_reporter,
   return benchmarks.size();
 }
 
-void RegisterMemoryManager(MemoryManager* manager) { memory_manager = manager; }
+void RegisterMemoryManager(MemoryManager* manager) {
+  internal::memory_manager = manager;
+}
 
 namespace internal {
 
