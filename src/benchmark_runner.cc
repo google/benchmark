@@ -136,20 +136,17 @@ class BenchmarkRunner {
         has_explicit_iteration_count(b.iterations != 0),
         pool(b.threads - 1),
         iters(has_explicit_iteration_count ? b.iterations : 1) {
-    if (repeats != 1) {
+    run_results.display_report_aggregates_only =
+        (FLAGS_benchmark_report_aggregates_only ||
+         FLAGS_benchmark_display_aggregates_only);
+    run_results.file_report_aggregates_only =
+        FLAGS_benchmark_report_aggregates_only;
+    if (b.aggregation_report_mode != internal::ARM_Unspecified) {
       run_results.display_report_aggregates_only =
-          (FLAGS_benchmark_report_aggregates_only ||
-           FLAGS_benchmark_display_aggregates_only);
+          (b.aggregation_report_mode &
+           internal::ARM_DisplayReportAggregatesOnly);
       run_results.file_report_aggregates_only =
-          FLAGS_benchmark_report_aggregates_only;
-      if (b.aggregation_report_mode != internal::ARM_Unspecified) {
-        run_results.display_report_aggregates_only =
-            (b.aggregation_report_mode &
-             internal::ARM_DisplayReportAggregatesOnly);
-        run_results.file_report_aggregates_only =
-            (b.aggregation_report_mode &
-             internal::ARM_FileReportAggregatesOnly);
-      }
+          (b.aggregation_report_mode & internal::ARM_FileReportAggregatesOnly);
     }
 
     for (int repetition_num = 0; repetition_num < repeats; repetition_num++) {
