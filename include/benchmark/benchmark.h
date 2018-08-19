@@ -375,9 +375,11 @@ class Counter {
 
   double value;
   Flags flags;
+  int thousand;
 
   BENCHMARK_ALWAYS_INLINE
-  Counter(double v = 0., Flags f = kDefaults) : value(v), flags(f) {}
+  Counter(double v = 0., Flags f = kDefaults, int t = 1000)
+      : value(v), flags(f), thousand(t) {}
 
   BENCHMARK_ALWAYS_INLINE operator double const&() const { return value; }
   BENCHMARK_ALWAYS_INLINE operator double&() { return value; }

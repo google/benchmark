@@ -150,7 +150,7 @@ void ConsoleReporter::PrintRunData(const Run& result) {
   for (auto& c : result.counters) {
     const std::size_t cNameLen = std::max(std::string::size_type(10),
                                           c.first.length());
-    auto const& s = HumanReadableNumber(c.second.value, 1000);
+    auto const& s = HumanReadableNumber(c.second.value, c.second.thousand);
     if (output_options_ & OO_Tabular) {
       if (c.second.flags & Counter::kIsRate) {
         printer(Out, COLOR_DEFAULT, " %*s/s", cNameLen - 2, s.c_str());
