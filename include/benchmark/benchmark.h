@@ -375,10 +375,11 @@ class Counter {
 
   double value;
   Flags flags;
-  int thousand;
+  std::pair<int /*Num*/, int /*Denom*/> thousand;
 
   BENCHMARK_ALWAYS_INLINE
-  Counter(double v = 0., Flags f = kDefaults, int t = 1000)
+  Counter(double v = 0., Flags f = kDefaults,
+          std::pair<int /*Num*/, int /*Denom*/> t = std::make_pair(1000, 1))
       : value(v), flags(f), thousand(t) {}
 
   BENCHMARK_ALWAYS_INLINE operator double const&() const { return value; }
