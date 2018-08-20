@@ -160,6 +160,15 @@ void JSONReporter::PrintRunData(Run const& run) {
   std::string indent(6, ' ');
   std::ostream& out = GetOutputStream();
   out << indent << FormatKV("name", run.benchmark_name) << ",\n";
+  out << indent << FormatKV("run_type", [&run]() -> const char* {
+    switch (run.run_type) {
+      case BenchmarkReporter::Run::RT_Iteration:
+        return "iteration";
+      case BenchmarkReporter::Run::RT_Aggregate:
+        return "aggregate";
+    }
+    BENCHMARK_UNREACHABLE();
+  }()) << ",\n";
   if (run.error_occurred) {
     out << indent << FormatKV("error_occurred", run.error_occurred) << ",\n";
     out << indent << FormatKV("error_message", run.error_message) << ",\n";
