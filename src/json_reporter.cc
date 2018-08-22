@@ -159,7 +159,7 @@ void JSONReporter::PrintRunData(Run const& run) {
   if (!run.stats_name.empty()) {
     out << indent << FormatKV("stats", run.stats_name) << ",\n";
   }
-  out << indent << FormatKV("id", run.id) << ",\n";
+  out << indent << FormatKV("stats_group", run.group_id) << ",\n";
   out << indent << FormatKV("family", run.family_id) << ",\n";
   out << indent << FormatKV("repetitions", run.repetitions) << ",\n";
   out << indent << FormatKV("threads", run.threads) << ",\n";

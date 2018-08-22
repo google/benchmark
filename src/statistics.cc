@@ -154,7 +154,7 @@ std::vector<BenchmarkReporter::Run> ComputeStats(
     data.stats_name = Stat.name_;
     data.repetitions = reports[0].repetitions;
     data.threads = reports[0].threads;
-    data.id = reports[0].id;
+    data.group_id = reports[0].group_id;
     data.family_id = reports[0].family_id;
     data.benchmark_name = reports[0].benchmark_name + "_" + Stat.name_;
     data.report_label = report_label;

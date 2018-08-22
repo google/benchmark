@@ -1296,7 +1296,7 @@ class BenchmarkReporter {
           allocs_per_iter(0.0),
           max_bytes_used(0) {}
 
-    int64_t id;
+    int64_t group_id;
     int64_t family_id;
     std::string base_name;
     std::string benchmark_name;

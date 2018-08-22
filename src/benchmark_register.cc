@@ -64,7 +64,7 @@ namespace internal {
 //=============================================================================//
 int64_t GetBenchmarkUniqueId() {
   // This function is exclusively for generating a unique identifier for a
-  // benchmark that will help identify a "group" or a "family"
+  // benchmark that will help identify a "family"
   // this is useful for grouping benchmarks when using tools
   // to easily, accurately and appropriately describe
   // trends and characteristics between them
@@ -170,7 +170,7 @@ bool BenchmarkFamilies::FindBenchmarks(
     for (auto const& args : family->args_) {
       for (int num_threads : *thread_counts) {
         Benchmark::Instance instance;
-        instance.id = GetBenchmarkInstanceUniqueId();
+        instance.group_id = GetBenchmarkInstanceUniqueId();
         instance.family_id = family->id_;
         instance.base_name = family->name_;
         instance.name = family->name_;

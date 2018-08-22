@@ -71,7 +71,7 @@ void BM_Counters_Tabular(benchmark::State& state) {
 BENCHMARK(BM_Counters_Tabular)->ThreadRange(1, 16);
 ADD_CASES(TC_JSONOut, {{"\"name\": \"BM_Counters_Tabular/threads:%int\",$"},
                        {"\"base_name\": \"BM_Counters_Tabular\",$", MR_Next},
-                       {"\"id\": %int,$", MR_Next},
+                       {"\"stats_group\": %int,$", MR_Next},
                        {"\"family\": %int,$", MR_Next},
                        {"\"repetitions\": %int,$", MR_Next},
                        {"\"threads\": %int,$", MR_Next},
@@ -121,7 +121,7 @@ BENCHMARK(BM_CounterRates_Tabular)->ThreadRange(1, 16);
 ADD_CASES(TC_JSONOut,
           {{"\"name\": \"BM_CounterRates_Tabular/threads:%int\",$"},
            {"\"base_name\": \"BM_CounterRates_Tabular\",$", MR_Next},
-           {"\"id\": %int,$", MR_Next},
+           {"\"stats_group\": %int,$", MR_Next},
            {"\"family\": %int,$", MR_Next},
            {"\"repetitions\": %int,$", MR_Next},
            {"\"threads\": %int,$", MR_Next},
@@ -170,7 +170,7 @@ void BM_CounterSet0_Tabular(benchmark::State& state) {
 BENCHMARK(BM_CounterSet0_Tabular)->ThreadRange(1, 16);
 ADD_CASES(TC_JSONOut, {{"\"name\": \"BM_CounterSet0_Tabular/threads:%int\",$"},
                        {"\"base_name\": \"BM_CounterSet0_Tabular\",$", MR_Next},
-                       {"\"id\": %int,$", MR_Next},
+                       {"\"stats_group\": %int,$", MR_Next},
                        {"\"family\": %int,$", MR_Next},
                        {"\"repetitions\": %int,$", MR_Next},
                        {"\"threads\": %int,$", MR_Next},
@@ -207,7 +207,7 @@ void BM_CounterSet1_Tabular(benchmark::State& state) {
 BENCHMARK(BM_CounterSet1_Tabular)->ThreadRange(1, 16);
 ADD_CASES(TC_JSONOut, {{"\"name\": \"BM_CounterSet1_Tabular/threads:%int\",$"},
                        {"\"base_name\": \"BM_CounterSet1_Tabular\",$", MR_Next},
-                       {"\"id\": %int,$", MR_Next},
+                       {"\"stats_group\": %int,$", MR_Next},
                        {"\"family\": %int,$", MR_Next},
                        {"\"repetitions\": %int,$", MR_Next},
                        {"\"threads\": %int,$", MR_Next},
@@ -248,7 +248,7 @@ void BM_CounterSet2_Tabular(benchmark::State& state) {
 BENCHMARK(BM_CounterSet2_Tabular)->ThreadRange(1, 16);
 ADD_CASES(TC_JSONOut, {{"\"name\": \"BM_CounterSet2_Tabular/threads:%int\",$"},
                        {"\"base_name\": \"BM_CounterSet2_Tabular\",$", MR_Next},
-                       {"\"id\": %int,$", MR_Next},
+                       {"\"stats_group\": %int,$", MR_Next},
                        {"\"family\": %int,$", MR_Next},
                        {"\"repetitions\": %int,$", MR_Next},
                        {"\"threads\": %int,$", MR_Next},

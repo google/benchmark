@@ -127,7 +127,7 @@ BenchmarkReporter::Run CreateRunReport(
   report.error_message = results.error_message_;
   report.report_label = results.report_label_;
   report.base_name = b.base_name;
-  report.id = b.id;
+  report.group_id = b.group_id;
   report.family_id = b.family_id;
   report.error_occurred = results.has_error_;
   report.error_message = results.error_message_;
@@ -361,7 +361,7 @@ State::State(size_t max_iters, const std::vector<int64_t>& ranges, int thread_i,
   // which must be suppressed.
 #if defined(__INTEL_COMPILER)
 #pragma warning push
-#pragma warning(disable:1875)
+#pragma warning(disable : 1875)
 #elif defined(__GNUC__)
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Winvalid-offsetof"
