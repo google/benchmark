@@ -22,10 +22,9 @@ class ThreadManager {
     return start_stop_barrier_.wait();
   }
 
-  void NotifyThreadComplete() EXCLUDES(end_cond_mutex_) {
+  void NotifyThreadComplete() {
     start_stop_barrier_.removeThread();
     if (--alive_threads_ == 0) {
-      MutexLock lock(end_cond_mutex_);
       end_condition_.notify_all();
     }
   }
