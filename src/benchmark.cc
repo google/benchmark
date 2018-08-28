@@ -424,10 +424,10 @@ namespace internal {
 namespace {
 
 void RunBenchmarks(const std::vector<Benchmark::Instance>& benchmarks,
-                   BenchmarkReporter* console_reporter,
+                   BenchmarkReporter* display_reporter,
                    BenchmarkReporter* file_reporter) {
   // Note the file_reporter can be null.
-  CHECK(console_reporter != nullptr);
+  CHECK(display_reporter != nullptr);
 
   // Determine the width of the name field using a minimum width of 10.
   bool has_repetitions = FLAGS_benchmark_repetitions > 1;
@@ -458,22 +458,22 @@ void RunBenchmarks(const std::vector<Benchmark::Instance>& benchmarks,
     std::flush(reporter->GetErrorStream());
   };
 
-  if (console_reporter->ReportContext(context) &&
+  if (display_reporter->ReportContext(context) &&
       (!file_reporter || file_reporter->ReportContext(context))) {
-    flushStreams(console_reporter);
+    flushStreams(display_reporter);
     flushStreams(file_reporter);
     for (const auto& benchmark : benchmarks) {
       std::vector<BenchmarkReporter::Run> reports =
           RunBenchmark(benchmark, &complexity_reports);
-      console_reporter->ReportRuns(reports);
+      display_reporter->ReportRuns(reports);
       if (file_reporter) file_reporter->ReportRuns(reports);
-      flushStreams(console_reporter);
+      flushStreams(display_reporter);
       flushStreams(file_reporter);
     }
   }
-  console_reporter->Finalize();
+  display_reporter->Finalize();
   if (file_reporter) file_reporter->Finalize();
-  flushStreams(console_reporter);
+  flushStreams(display_reporter);
   flushStreams(file_reporter);
 }
 
@@ -523,11 +523,11 @@ size_t RunSpecifiedBenchmarks() {
   return RunSpecifiedBenchmarks(nullptr, nullptr);
 }
 
-size_t RunSpecifiedBenchmarks(BenchmarkReporter* console_reporter) {
-  return RunSpecifiedBenchmarks(console_reporter, nullptr);
+size_t RunSpecifiedBenchmarks(BenchmarkReporter* display_reporter) {
+  return RunSpecifiedBenchmarks(display_reporter, nullptr);
 }
 
-size_t RunSpecifiedBenchmarks(BenchmarkReporter* console_reporter,
+size_t RunSpecifiedBenchmarks(BenchmarkReporter* display_reporter,
                               BenchmarkReporter* file_reporter) {
   std::string spec = FLAGS_benchmark_filter;
   if (spec.empty() || spec == "all")
@@ -535,15 +535,15 @@ size_t RunSpecifiedBenchmarks(BenchmarkReporter* console_reporter,
 
   // Setup the reporters
   std::ofstream output_file;
-  std::unique_ptr<BenchmarkReporter> default_console_reporter;
+  std::unique_ptr<BenchmarkReporter> default_display_reporter;
   std::unique_ptr<BenchmarkReporter> default_file_reporter;
-  if (!console_reporter) {
-    default_console_reporter = internal::CreateReporter(
+  if (!display_reporter) {
+    default_display_reporter = internal::CreateReporter(
         FLAGS_benchmark_format, internal::GetOutputOptions());
-    console_reporter = default_console_reporter.get();
+    display_reporter = default_display_reporter.get();
   }
-  auto& Out = console_reporter->GetOutputStream();
-  auto& Err = console_reporter->GetErrorStream();
+  auto& Out = display_reporter->GetOutputStream();
+  auto& Err = display_reporter->GetErrorStream();
 
   std::string const& fname = FLAGS_benchmark_out;
   if (fname.empty() && file_reporter) {
@@ -578,7 +578,7 @@ size_t RunSpecifiedBenchmarks(BenchmarkReporter* console_reporter,
   if (FLAGS_benchmark_list_tests) {
     for (auto const& benchmark : benchmarks) Out << benchmark.name << "\n";
   } else {
-    internal::RunBenchmarks(benchmarks, console_reporter, file_reporter);
+    internal::RunBenchmarks(benchmarks, display_reporter, file_reporter);
   }
 
   return benchmarks.size();
