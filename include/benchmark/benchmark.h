@@ -424,14 +424,14 @@ namespace internal {
 class ThreadTimer;
 class ThreadManager;
 
-enum ReportMode
+enum AggregationReportMode
 #if defined(BENCHMARK_HAS_CXX11)
     : unsigned
 #else
 #endif
-{ RM_Unspecified,  // The mode has not been manually specified
-  RM_Default,      // The mode is user-specified as default.
-  RM_ReportAggregatesOnly };
+{ ARM_Unspecified,  // The mode has not been manually specified
+  ARM_Default,      // The mode is user-specified as default.
+  ARM_ReportAggregatesOnly };
 }  // namespace internal
 
 // State is passed to a running Benchmark and contains state for the
@@ -912,7 +912,7 @@ class Benchmark {
   friend class BenchmarkFamilies;
 
   std::string name_;
-  ReportMode report_mode_;
+  AggregationReportMode aggregation_report_mode_;
   std::vector<std::string> arg_names_;       // Args for all benchmark runs
   std::vector<std::vector<int64_t> > args_;  // Args for all benchmark runs
   TimeUnit time_unit_;
