@@ -373,6 +373,11 @@ Benchmark* Benchmark::ReportAggregatesOnly(bool value) {
   return this;
 }
 
+Benchmark* Benchmark::DisplayAggregatesOnly(bool value) {
+  aggregation_report_mode_ = value ? ARM_DisplayAggregatesOnly : ARM_Default;
+  return this;
+}
+
 Benchmark* Benchmark::UseRealTime() {
   CHECK(!use_manual_time_)
       << "Cannot set UseRealTime and UseManualTime simultaneously.";

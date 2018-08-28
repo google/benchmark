@@ -342,6 +342,33 @@ ADD_CASES(TC_CSVOut, {{".*BM_SummaryRepeat/repeats:3 ", MR_Not},
                       {"^\"BM_SummaryRepeat/repeats:3_median\",%csv_report$"},
                       {"^\"BM_SummaryRepeat/repeats:3_stddev\",%csv_report$"}});
 
+// Test that non-aggregate data is not displayed.
+// NOTE: this test is kinda bad. we are only testing the display output.
+//       But we don't check that the file output still contains everything...
+void BM_SummaryDisplay(benchmark::State& state) {
+  for (auto _ : state) {
+  }
+}
+BENCHMARK(BM_SummaryDisplay)->Repetitions(2)->DisplayAggregatesOnly();
+ADD_CASES(TC_ConsoleOut,
+          {{".*BM_SummaryDisplay/repeats:2 ", MR_Not},
+           {"^BM_SummaryDisplay/repeats:2_mean %console_report$"},
+           {"^BM_SummaryDisplay/repeats:2_median %console_report$"},
+           {"^BM_SummaryDisplay/repeats:2_stddev %console_report$"}});
+ADD_CASES(TC_JSONOut, {{".*BM_SummaryDisplay/repeats:2 ", MR_Not},
+                       {"\"name\": \"BM_SummaryDisplay/repeats:2_mean\",$"},
+                       {"\"run_type\": \"aggregate\",$", MR_Next},
+                       {"\"name\": \"BM_SummaryDisplay/repeats:2_median\",$"},
+                       {"\"run_type\": \"aggregate\",$", MR_Next},
+                       {"\"name\": \"BM_SummaryDisplay/repeats:2_stddev\",$"},
+                       {"\"run_type\": \"aggregate\",$", MR_Next}});
+ADD_CASES(TC_CSVOut,
+          {{".*BM_SummaryDisplay/repeats:2 ", MR_Not},
+           {"^\"BM_SummaryDisplay/repeats:2_mean\",%csv_report$"},
+           {"^\"BM_SummaryDisplay/repeats:2_median\",%csv_report$"},
+           {"^\"BM_SummaryDisplay/repeats:2_stddev\",%csv_report$"}});
+
+// Test repeats with custom time unit.
 void BM_RepeatTimeUnit(benchmark::State& state) {
   for (auto _ : state) {
   }
