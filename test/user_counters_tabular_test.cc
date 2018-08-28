@@ -70,6 +70,7 @@ void BM_Counters_Tabular(benchmark::State& state) {
 }
 BENCHMARK(BM_Counters_Tabular)->ThreadRange(1, 16);
 ADD_CASES(TC_JSONOut, {{"\"name\": \"BM_Counters_Tabular/threads:%int\",$"},
+                       {"\"run_type\": \"iteration\",$", MR_Next},
                        {"\"iterations\": %int,$", MR_Next},
                        {"\"real_time\": %float,$", MR_Next},
                        {"\"cpu_time\": %float,$", MR_Next},
@@ -114,6 +115,7 @@ void BM_CounterRates_Tabular(benchmark::State& state) {
 }
 BENCHMARK(BM_CounterRates_Tabular)->ThreadRange(1, 16);
 ADD_CASES(TC_JSONOut, {{"\"name\": \"BM_CounterRates_Tabular/threads:%int\",$"},
+                       {"\"run_type\": \"iteration\",$", MR_Next},
                        {"\"iterations\": %int,$", MR_Next},
                        {"\"real_time\": %float,$", MR_Next},
                        {"\"cpu_time\": %float,$", MR_Next},
@@ -158,6 +160,7 @@ void BM_CounterSet0_Tabular(benchmark::State& state) {
 }
 BENCHMARK(BM_CounterSet0_Tabular)->ThreadRange(1, 16);
 ADD_CASES(TC_JSONOut, {{"\"name\": \"BM_CounterSet0_Tabular/threads:%int\",$"},
+                       {"\"run_type\": \"iteration\",$", MR_Next},
                        {"\"iterations\": %int,$", MR_Next},
                        {"\"real_time\": %float,$", MR_Next},
                        {"\"cpu_time\": %float,$", MR_Next},
@@ -190,6 +193,7 @@ void BM_CounterSet1_Tabular(benchmark::State& state) {
 }
 BENCHMARK(BM_CounterSet1_Tabular)->ThreadRange(1, 16);
 ADD_CASES(TC_JSONOut, {{"\"name\": \"BM_CounterSet1_Tabular/threads:%int\",$"},
+                       {"\"run_type\": \"iteration\",$", MR_Next},
                        {"\"iterations\": %int,$", MR_Next},
                        {"\"real_time\": %float,$", MR_Next},
                        {"\"cpu_time\": %float,$", MR_Next},
@@ -226,6 +230,7 @@ void BM_CounterSet2_Tabular(benchmark::State& state) {
 }
 BENCHMARK(BM_CounterSet2_Tabular)->ThreadRange(1, 16);
 ADD_CASES(TC_JSONOut, {{"\"name\": \"BM_CounterSet2_Tabular/threads:%int\",$"},
+                       {"\"run_type\": \"iteration\",$", MR_Next},
                        {"\"iterations\": %int,$", MR_Next},
                        {"\"real_time\": %float,$", MR_Next},
                        {"\"cpu_time\": %float,$", MR_Next},

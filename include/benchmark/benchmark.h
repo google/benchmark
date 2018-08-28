@@ -1276,8 +1276,11 @@ class BenchmarkReporter {
   };
 
   struct Run {
+    enum RunType { RT_Iteration, RT_Aggregate };
+
     Run()
-        : error_occurred(false),
+        : run_type(RT_Iteration),
+          error_occurred(false),
           iterations(1),
           time_unit(kNanosecond),
           real_accumulated_time(0),
@@ -1296,6 +1299,7 @@ class BenchmarkReporter {
           max_bytes_used(0) {}
 
     std::string benchmark_name;
+    RunType run_type;          // is this a measurement, or an aggregate?
     std::string report_label;  // Empty if not set by benchmark.
     bool error_occurred;
     std::string error_message;
