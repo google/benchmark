@@ -206,9 +206,9 @@ std::vector<BenchmarkReporter::Run> RunBenchmark(
       b.repetitions != 0 ? b.repetitions : FLAGS_benchmark_repetitions;
   const bool report_aggregates_only =
       repeats != 1 &&
-      (b.report_mode == internal::RM_Unspecified
+      (b.aggregation_report_mode == internal::ARM_Unspecified
            ? FLAGS_benchmark_report_aggregates_only
-           : b.report_mode == internal::RM_ReportAggregatesOnly);
+           : b.aggregation_report_mode == internal::ARM_ReportAggregatesOnly);
   for (int repetition_num = 0; repetition_num < repeats; repetition_num++) {
     for (;;) {
       // Try benchmark
