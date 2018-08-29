@@ -150,8 +150,15 @@ void ConsoleReporter::PrintRunData(const Run& result) {
   for (auto& c : result.counters) {
     const std::size_t cNameLen = std::max(std::string::size_type(10),
                                           c.first.length());
-    const double one_k =
-        double(c.second.thousand.first) / double(c.second.thousand.second);
+    const double one_k = [](benchmark::Counter::One_K k) -> double {
+      switch (k) {
+        case benchmark::Counter::One_K::kIs1000:
+          return 1000.0;
+        case benchmark::Counter::One_K::kIs1024:
+          return 1024.0;
+      }
+      BENCHMARK_UNREACHABLE();
+    }(c.second.oneK);
     auto const& s = HumanReadableNumber(c.second.value, one_k);
     if (output_options_ & OO_Tabular) {
       if (c.second.flags & Counter::kIsRate) {

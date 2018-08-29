@@ -166,7 +166,7 @@ std::vector<BenchmarkReporter::Run> ComputeStats(
     for (auto const& kv : counter_stats) {
       const auto uc_stat = Stat.compute_(kv.second.s);
       auto c = Counter(uc_stat, counter_stats[kv.first].c.flags,
-                       counter_stats[kv.first].c.thousand);
+                       counter_stats[kv.first].c.oneK);
       data.counters[kv.first] = c;
     }
 

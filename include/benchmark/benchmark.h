@@ -373,14 +373,20 @@ class Counter {
     kAvgIterationsRate = kIsRate | kAvgIterations
   };
 
+  enum One_K {
+    // 1'000 items per 1k
+    kIs1000,
+    // 1'024 items per 1k
+    kIs1024
+  };
+
   double value;
   Flags flags;
-  std::pair<int /*Num*/, int /*Denom*/> thousand;
+  One_K oneK;
 
   BENCHMARK_ALWAYS_INLINE
-  Counter(double v = 0., Flags f = kDefaults,
-          std::pair<int /*Num*/, int /*Denom*/> t = std::make_pair(1000, 1))
-      : value(v), flags(f), thousand(t) {}
+  Counter(double v = 0., Flags f = kDefaults, One_K k = kIs1000)
+      : value(v), flags(f), oneK(k) {}
 
   BENCHMARK_ALWAYS_INLINE operator double const&() const { return value; }
   BENCHMARK_ALWAYS_INLINE operator double&() { return value; }

@@ -660,8 +660,9 @@ the resulting sum is the value which will be shown for the benchmark.
 The `Counter` constructor accepts three parameters: the value as a `double`
 ; a bit flag which allows you to show counters as rates, and/or as per-thread
 iteration, and/or as per-thread averages, and/or iteration invariants;
-and a 'thousand' multiplier (`std::pair<int /*Num*/, int /*Denom*/> `) -
-i.e. what should be counted as 1k - 1000 (default) or 1024?
+and a flag specifying the 'unit' - i.e. is 1k a 1000 (default,
+`benchmark::Counter::One_K::kIs1000`), or 1024
+(`benchmark::Counter::One_K::kIs1024`)?
 
 ```c++
   // sets a simple counter
@@ -679,7 +680,7 @@ i.e. what should be counted as 1k - 1000 (default) or 1024?
   state.counters["FooAvgRate"] = Counter(numFoos,benchmark::Counter::kAvgThreadsRate);
 
   // This says that we process with the rate of state.range(0) bytes every iteration:
-  state.counters["BytesProcessed"] = Counter(state.range(0), benchmark::Counter::kIsIterationInvariantRate, {1024, 1});
+  state.counters["BytesProcessed"] = Counter(state.range(0), benchmark::Counter::kIsIterationInvariantRate, benchmark::Counter::One_K::kIs1024);
 ```
 
 When you're compiling in C++11 mode or later you can use `insert()` with
