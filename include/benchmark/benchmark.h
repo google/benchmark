@@ -268,7 +268,7 @@ bool ReportUnrecognizedArguments(int argc, char** argv);
 // of each matching benchmark. Otherwise run each matching benchmark and
 // report the results.
 //
-// The second and third overload use the specified 'console_reporter' and
+// The second and third overload use the specified 'display_reporter' and
 //  'file_reporter' respectively. 'file_reporter' will write to the file
 //  specified
 //   by '--benchmark_output'. If '--benchmark_output' is not given the
@@ -276,8 +276,8 @@ bool ReportUnrecognizedArguments(int argc, char** argv);
 //
 // RETURNS: The number of matching benchmarks.
 size_t RunSpecifiedBenchmarks();
-size_t RunSpecifiedBenchmarks(BenchmarkReporter* console_reporter);
-size_t RunSpecifiedBenchmarks(BenchmarkReporter* console_reporter,
+size_t RunSpecifiedBenchmarks(BenchmarkReporter* display_reporter);
+size_t RunSpecifiedBenchmarks(BenchmarkReporter* display_reporter,
                               BenchmarkReporter* file_reporter);
 
 // Register a MemoryManager instance that will be used to collect and report
