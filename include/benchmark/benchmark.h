@@ -373,11 +373,20 @@ class Counter {
     kAvgIterationsRate = kIsRate | kAvgIterations
   };
 
+  enum OneK {
+    // 1'000 items per 1k
+    kIs1000 = 1000,
+    // 1'024 items per 1k
+    kIs1024 = 1024
+  };
+
   double value;
   Flags flags;
+  OneK oneK;
 
   BENCHMARK_ALWAYS_INLINE
-  Counter(double v = 0., Flags f = kDefaults) : value(v), flags(f) {}
+  Counter(double v = 0., Flags f = kDefaults, OneK k = kIs1000)
+      : value(v), flags(f), oneK(k) {}
 
   BENCHMARK_ALWAYS_INLINE operator double const&() const { return value; }
   BENCHMARK_ALWAYS_INLINE operator double&() { return value; }
