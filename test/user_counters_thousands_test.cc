@@ -16,13 +16,13 @@ void BM_Counters_Thousands(benchmark::State& state) {
       {"t0_1000000DefaultBase",
        bm::Counter(1000 * 1000, bm::Counter::kDefaults)},
       {"t1_1000000Base1000", bm::Counter(1000 * 1000, bm::Counter::kDefaults,
-                                         benchmark::Counter::One_K::kIs1000)},
+                                         benchmark::Counter::OneK::kIs1000)},
       {"t2_1000000Base1024", bm::Counter(1000 * 1000, bm::Counter::kDefaults,
-                                         benchmark::Counter::One_K::kIs1024)},
+                                         benchmark::Counter::OneK::kIs1024)},
       {"t3_1048576Base1000", bm::Counter(1024 * 1024, bm::Counter::kDefaults,
-                                         benchmark::Counter::One_K::kIs1000)},
+                                         benchmark::Counter::OneK::kIs1000)},
       {"t4_1048576Base1024", bm::Counter(1024 * 1024, bm::Counter::kDefaults,
-                                         benchmark::Counter::One_K::kIs1024)},
+                                         benchmark::Counter::OneK::kIs1024)},
   });
 }
 BENCHMARK(BM_Counters_Thousands)->Repetitions(2);
