@@ -375,9 +375,9 @@ class Counter {
 
   enum One_K {
     // 1'000 items per 1k
-    kIs1000,
+    kIs1000 = 1000,
     // 1'024 items per 1k
-    kIs1024
+    kIs1024 = 1024
   };
 
   double value;
