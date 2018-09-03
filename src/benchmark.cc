@@ -207,8 +207,8 @@ struct RunResults {
   std::vector<BenchmarkReporter::Run> non_aggregates;
   std::vector<BenchmarkReporter::Run> aggregates_only;
 
-  bool display_report_aggregates_only;
-  bool file_report_aggregates_only;
+  bool display_report_aggregates_only = false;
+  bool file_report_aggregates_only = false;
 };
 
 RunResults RunBenchmark(
@@ -222,17 +222,20 @@ RunResults RunBenchmark(
   std::vector<std::thread> pool(b.threads - 1);
   const int repeats =
       b.repetitions != 0 ? b.repetitions : FLAGS_benchmark_repetitions;
-  run_results.display_report_aggregates_only =
-      repeats != 1 && (b.aggregation_report_mode == internal::ARM_Unspecified
-                           ? FLAGS_benchmark_report_aggregates_only ||
-                                 FLAGS_benchmark_display_aggregates_only
-                           : b.aggregation_report_mode &
-                                 internal::ARM_DisplayReportAggregatesOnly);
-  run_results.file_report_aggregates_only =
-      repeats != 1 && (b.aggregation_report_mode == internal::ARM_Unspecified
-                           ? FLAGS_benchmark_report_aggregates_only
-                           : b.aggregation_report_mode &
-                                 internal::ARM_FileReportAggregatesOnly);
+  if (repeats != 1) {
+    run_results.display_report_aggregates_only =
+        (FLAGS_benchmark_report_aggregates_only ||
+         FLAGS_benchmark_display_aggregates_only);
+    run_results.file_report_aggregates_only =
+        FLAGS_benchmark_report_aggregates_only;
+    if (b.aggregation_report_mode != internal::ARM_Unspecified) {
+      run_results.display_report_aggregates_only =
+          (b.aggregation_report_mode &
+           internal::ARM_DisplayReportAggregatesOnly);
+      run_results.file_report_aggregates_only =
+          (b.aggregation_report_mode & internal::ARM_FileReportAggregatesOnly);
+    }
+  }
   for (int repetition_num = 0; repetition_num < repeats; repetition_num++) {
     for (;;) {
       // Try benchmark
