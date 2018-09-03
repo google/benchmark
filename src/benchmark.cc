@@ -203,12 +203,18 @@ void RunInThread(const benchmark::internal::Benchmark::Instance* b,
   manager->NotifyThreadComplete();
 }
 
-std::pair<std::vector<BenchmarkReporter::Run> /*everything*/,
-          std::vector<BenchmarkReporter::Run> /*aggregates_only*/>
-RunBenchmark(const benchmark::internal::Benchmark::Instance& b,
-             std::vector<BenchmarkReporter::Run>* complexity_reports,
-             bool& display_aggregates_only) {
-  std::vector<BenchmarkReporter::Run> reports;  // return value
+struct RunResults {
+  std::vector<BenchmarkReporter::Run> non_aggregates;
+  std::vector<BenchmarkReporter::Run> aggregates_only;
+
+  bool display_report_aggregates_only;
+  bool file_report_aggregates_only;
+};
+
+RunResults RunBenchmark(
+    const benchmark::internal::Benchmark::Instance& b,
+    std::vector<BenchmarkReporter::Run>* complexity_reports) {
+  RunResults run_results;
 
   const bool has_explicit_iteration_count = b.iterations != 0;
   size_t iters = has_explicit_iteration_count ? b.iterations : 1;
@@ -216,16 +222,17 @@ RunBenchmark(const benchmark::internal::Benchmark::Instance& b,
   std::vector<std::thread> pool(b.threads - 1);
   const int repeats =
       b.repetitions != 0 ? b.repetitions : FLAGS_benchmark_repetitions;
-  const bool report_aggregates_only =
-      repeats != 1 &&
-      (b.aggregation_report_mode == internal::ARM_Unspecified
-           ? FLAGS_benchmark_report_aggregates_only
-           : b.aggregation_report_mode == internal::ARM_ReportAggregatesOnly);
-  display_aggregates_only =
-      repeats != 1 &&
-      (b.aggregation_report_mode == internal::ARM_Unspecified
-           ? FLAGS_benchmark_display_aggregates_only
-           : b.aggregation_report_mode == internal::ARM_DisplayAggregatesOnly);
+  run_results.display_report_aggregates_only =
+      repeats != 1 && (b.aggregation_report_mode == internal::ARM_Unspecified
+                           ? FLAGS_benchmark_report_aggregates_only ||
+                                 FLAGS_benchmark_display_aggregates_only
+                           : b.aggregation_report_mode &
+                                 internal::ARM_DisplayReportAggregatesOnly);
+  run_results.file_report_aggregates_only =
+      repeats != 1 && (b.aggregation_report_mode == internal::ARM_Unspecified
+                           ? FLAGS_benchmark_report_aggregates_only
+                           : b.aggregation_report_mode &
+                                 internal::ARM_FileReportAggregatesOnly);
   for (int repetition_num = 0; repetition_num < repeats; repetition_num++) {
     for (;;) {
       // Try benchmark
@@ -298,7 +305,7 @@ RunBenchmark(const benchmark::internal::Benchmark::Instance& b,
             b, results, memory_iterations, memory_result, seconds);
         if (!report.error_occurred && b.complexity != oNone)
           complexity_reports->push_back(report);
-        reports.push_back(report);
+        run_results.non_aggregates.push_back(report);
         break;
       }
 
@@ -323,24 +330,18 @@ RunBenchmark(const benchmark::internal::Benchmark::Instance& b,
   }
 
   // Calculate additional statistics
-  auto aggregate_reports = ComputeStats(reports);
+  run_results.aggregates_only = ComputeStats(run_results.non_aggregates);
 
   // Maybe calculate complexity report
   if ((b.complexity != oNone) && b.last_benchmark_instance) {
     auto additional_run_stats = ComputeBigO(*complexity_reports);
-    aggregate_reports.insert(aggregate_reports.end(),
-                             additional_run_stats.begin(),
-                             additional_run_stats.end());
+    run_results.aggregates_only.insert(run_results.aggregates_only.end(),
+                                       additional_run_stats.begin(),
+                                       additional_run_stats.end());
     complexity_reports->clear();
   }
 
-  if (report_aggregates_only) reports.clear();
-
-  // Append aggregate statistics to the report
-  reports.insert(reports.end(), aggregate_reports.begin(),
-                 aggregate_reports.end());
-
-  return std::make_pair(reports, aggregate_reports);
+  return run_results;
 }
 
 }  // namespace
@@ -487,19 +488,25 @@ void RunBenchmarks(const std::vector<Benchmark::Instance>& benchmarks,
       (!file_reporter || file_reporter->ReportContext(context))) {
     flushStreams(display_reporter);
     flushStreams(file_reporter);
+
     for (const auto& benchmark : benchmarks) {
-      bool display_aggregates_only;
-      std::pair<std::vector<BenchmarkReporter::Run> /*everything*/,
-                std::vector<BenchmarkReporter::Run> /*aggregates_only*/>
-          reports = RunBenchmark(benchmark, &complexity_reports,
-                                 display_aggregates_only);
+      RunResults run_results = RunBenchmark(benchmark, &complexity_reports);
 
-      const std::vector<BenchmarkReporter::Run>& report_for_display =
-          display_aggregates_only ? reports.second /*aggregates_only*/
-                                  : reports.first /*everything*/;
+      auto report = [&run_results](BenchmarkReporter* reporter,
+                                   bool report_aggregates_only) {
+        assert(reporter);
+        assert(
+            !(report_aggregates_only && run_results.aggregates_only.empty()));
+        if (!report_aggregates_only)
+          reporter->ReportRuns(run_results.non_aggregates);
+        if (!run_results.aggregates_only.empty())
+          reporter->ReportRuns(run_results.aggregates_only);
+      };
 
-      display_reporter->ReportRuns(report_for_display);
-      if (file_reporter) file_reporter->ReportRuns(reports.first);
+      report(display_reporter, run_results.display_report_aggregates_only);
+      if (file_reporter)
+        report(file_reporter, run_results.file_report_aggregates_only);
+
       flushStreams(display_reporter);
       flushStreams(file_reporter);
     }

@@ -374,7 +374,18 @@ Benchmark* Benchmark::ReportAggregatesOnly(bool value) {
 }
 
 Benchmark* Benchmark::DisplayAggregatesOnly(bool value) {
-  aggregation_report_mode_ = value ? ARM_DisplayAggregatesOnly : ARM_Default;
+  // If we were called, the report mode is no longer 'unspecified', in any case.
+  aggregation_report_mode_ = static_cast<AggregationReportMode>(
+      aggregation_report_mode_ | ARM_Default);
+
+  if (value) {
+    aggregation_report_mode_ = static_cast<AggregationReportMode>(
+        aggregation_report_mode_ | ARM_DisplayReportAggregatesOnly);
+  } else {
+    aggregation_report_mode_ = static_cast<AggregationReportMode>(
+        aggregation_report_mode_ & ~ARM_DisplayReportAggregatesOnly);
+  }
+
   return this;
 }
 
