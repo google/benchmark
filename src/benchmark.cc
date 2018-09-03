@@ -595,7 +595,7 @@ void PrintUsageAndExit() {
           "          [--benchmark_filter=<regex>]\n"
           "          [--benchmark_min_time=<min_time>]\n"
           "          [--benchmark_repetitions=<num_repetitions>]\n"
-          "          [--benchmark_report_aggregates_only={true|false}\n"
+          "          [--benchmark_report_aggregates_only={true|false}]\n"
           "          [--benchmark_format=<console|json|csv>]\n"
           "          [--benchmark_out=<filename>]\n"
           "          [--benchmark_out_format=<json|console|csv>]\n"
