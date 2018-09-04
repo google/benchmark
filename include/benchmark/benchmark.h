@@ -425,7 +425,7 @@ struct Statistics {
   std::string name_;
   StatisticsFunc* compute_;
 
-  Statistics(std::string name, StatisticsFunc* compute)
+  Statistics(const std::string& name, StatisticsFunc* compute)
       : name_(name), compute_(compute) {}
 };
 
