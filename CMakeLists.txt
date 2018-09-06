@@ -79,7 +79,7 @@ get_git_version(GIT_VERSION)
 
 # Tell the user what versions we are using
 string(REGEX MATCH "[0-9]+\\.[0-9]+\\.[0-9]+" VERSION ${GIT_VERSION})
-message("-- Version: ${VERSION}")
+message(STATUS "Version: ${VERSION}")
 
 # The version of the libraries
 set(GENERIC_LIB_VERSION ${VERSION})
