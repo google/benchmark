@@ -19,7 +19,7 @@ void BM_SummaryRepeat(benchmark::State& state) {
 }
 BENCHMARK(BM_SummaryRepeat)->Repetitions(3)->DisplayAggregatesOnly();
 
-int SubstringCount(const std::string& haystack, const std::string& pat) {
+int SubstrCnt(const std::string& haystack, const std::string& pat) {
   if (pat.length() == 0) return 0;
   int count = 0;
   for (size_t offset = haystack.find(pat); offset != std::string::npos;
@@ -50,10 +50,11 @@ int main(int argc, char* argv[]) {
                          std::istreambuf_iterator<char>());
   std::remove(tmp_file_name.c_str());
 
-  if (SubstringCount(JsonOutput, "BM_SummaryRepeat/repeats:3") != 6 ||
-      SubstringCount(JsonOutput, "BM_SummaryRepeat/repeats:3_mean") != 1 ||
-      SubstringCount(JsonOutput, "BM_SummaryRepeat/repeats:3_median") != 1 ||
-      SubstringCount(JsonOutput, "BM_SummaryRepeat/repeats:3_stddev") != 1) {
+  if (SubstrCnt(JsonOutput, "BM_SummaryRepeat/repeats:3") != 6 ||
+      SubstrCnt(JsonOutput, "\"BM_SummaryRepeat/repeats:3\"") != 3 ||
+      SubstrCnt(JsonOutput, "\"BM_SummaryRepeat/repeats:3_mean\"") != 1 ||
+      SubstrCnt(JsonOutput, "\"BM_SummaryRepeat/repeats:3_median\"") != 1 ||
+      SubstrCnt(JsonOutput, "\"BM_SummaryRepeat/repeats:3_stddev\"") != 1) {
     std::cout << "Precondition mismatch. Expected to only find 6 "
                  "occurrences of \"BM_SummaryRepeat/repeats:3\" substring:\n"
                  "\"BM_SummaryRepeat/repeats:3\", "
