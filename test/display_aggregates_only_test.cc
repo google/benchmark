@@ -30,7 +30,7 @@ int SubstrCnt(const std::string& haystack, const std::string& pat) {
 
 int main(int argc, char* argv[]) {
   std::vector<char*> new_argv(argv, argv + argc);
-  assert(argc == new_argv.size());
+  assert(static_cast<decltype(new_argv)::size_type>(argc) == new_argv.size());
 
   std::string tmp_file_name = std::tmpnam(nullptr);
   std::cout << "Will be using this as the tmp file: " << tmp_file_name << '\n';
@@ -39,7 +39,7 @@ int main(int argc, char* argv[]) {
   tmp += tmp_file_name;
   new_argv.emplace_back(const_cast<char*>(tmp.c_str()));
 
-  argc = new_argv.size();
+  argc = int(new_argv.size());
 
   benchmark::Initialize(&argc, new_argv.data());
   benchmark::RunSpecifiedBenchmarks();

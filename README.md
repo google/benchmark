@@ -545,12 +545,19 @@ The number of runs of each benchmark is specified globally by the
 `Repetitions` on the registered benchmark object. When a benchmark is run more
 than once the mean, median and standard deviation of the runs will be reported.
 
-Additionally the `--benchmark_report_aggregates_only={true|false}` flag or
-`ReportAggregatesOnly(bool)` function can be used to change how repeated tests
-are reported. By default the result of each repeated run is reported. When this
-option is `true` only the mean, median and standard deviation of the runs is reported.
-Calling `ReportAggregatesOnly(bool)` on a registered benchmark object overrides
-the value of the flag for that benchmark.
+Additionally the `--benchmark_report_aggregates_only={true|false}`, `--benchmark_display_aggregates_only={true|false}` flags or
+`ReportAggregatesOnly(bool)`, `DisplayAggregatesOnly(bool)` functions can be
+used to change how repeated tests are reported. By default the result of each
+repeated run is reported. When `report aggregates only` option is `true`,
+only the aggregates (i.e. mean, median and standard deviation, maybe complexity
+measurements if they were requested) of the runs is reported, to both the
+reporters - standard output (console), and the file.
+However when only the `display aggregates only` option is `true`,
+only the aggregates are displayed in the standard output, while the file
+output still contains everything.
+Calling `ReportAggregatesOnly(bool)` / `DisplayAggregatesOnly(bool)` on a
+registered benchmark object overrides the value of the appropriate flag for that
+benchmark.
 
 ## User-defined statistics for repeated benchmarks
 While having mean, median and standard deviation is nice, this may not be
