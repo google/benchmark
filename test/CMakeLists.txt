@@ -125,6 +125,12 @@ add_test(templated_fixture_test templated_fixture_test --benchmark_min_time=0.01
 compile_output_test(user_counters_test)
 add_test(user_counters_test user_counters_test --benchmark_min_time=0.01)
 
+compile_output_test(report_aggregates_only_test)
+add_test(report_aggregates_only_test report_aggregates_only_test --benchmark_min_time=0.01)
+
+compile_output_test(display_aggregates_only_test)
+add_test(display_aggregates_only_test display_aggregates_only_test --benchmark_min_time=0.01)
+
 compile_output_test(user_counters_tabular_test)
 add_test(user_counters_tabular_test user_counters_tabular_test --benchmark_counters_tabular=true --benchmark_min_time=0.01)
 
