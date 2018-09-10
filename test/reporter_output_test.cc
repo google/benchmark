@@ -17,13 +17,14 @@ static int AddContextCases() {
            {
                {"%int[-/]%int[-/]%int %int:%int:%int$", MR_Default},
                {"Running .*/reporter_output_test(\\.exe)?$", MR_Next},
-               {"Run on \\(%int X %float MHz CPU s\\)", MR_Next},
+               {"Run on \\(%int X %float MHz CPU s?\\)", MR_Next},
            });
   AddCases(TC_JSONOut,
            {{"^\\{", MR_Default},
             {"\"context\":", MR_Next},
             {"\"date\": \"", MR_Next},
-            {"\"executable\": \".*/reporter_output_test(\\.exe)?\",", MR_Next},
+            {"\"executable\": \".*(/|\\\\)reporter_output_test(\\.exe)?\",",
+             MR_Next},
             {"\"num_cpus\": %int,$", MR_Next},
             {"\"mhz_per_cpu\": %float,$", MR_Next},
             {"\"cpu_scaling_enabled\": ", MR_Next},
@@ -64,6 +65,7 @@ BENCHMARK(BM_basic);
 
 ADD_CASES(TC_ConsoleOut, {{"^BM_basic %console_report$"}});
 ADD_CASES(TC_JSONOut, {{"\"name\": \"BM_basic\",$"},
+                       {"\"run_type\": \"iteration\",$", MR_Next},
                        {"\"iterations\": %int,$", MR_Next},
                        {"\"real_time\": %float,$", MR_Next},
                        {"\"cpu_time\": %float,$", MR_Next},
@@ -85,6 +87,7 @@ BENCHMARK(BM_bytes_per_second);
 ADD_CASES(TC_ConsoleOut,
           {{"^BM_bytes_per_second %console_report +%float[kM]{0,1}B/s$"}});
 ADD_CASES(TC_JSONOut, {{"\"name\": \"BM_bytes_per_second\",$"},
+                       {"\"run_type\": \"iteration\",$", MR_Next},
                        {"\"iterations\": %int,$", MR_Next},
                        {"\"real_time\": %float,$", MR_Next},
                        {"\"cpu_time\": %float,$", MR_Next},
@@ -107,6 +110,7 @@ BENCHMARK(BM_items_per_second);
 ADD_CASES(TC_ConsoleOut,
           {{"^BM_items_per_second %console_report +%float[kM]{0,1} items/s$"}});
 ADD_CASES(TC_JSONOut, {{"\"name\": \"BM_items_per_second\",$"},
+                       {"\"run_type\": \"iteration\",$", MR_Next},
                        {"\"iterations\": %int,$", MR_Next},
                        {"\"real_time\": %float,$", MR_Next},
                        {"\"cpu_time\": %float,$", MR_Next},
@@ -128,6 +132,7 @@ BENCHMARK(BM_label);
 
 ADD_CASES(TC_ConsoleOut, {{"^BM_label %console_report some label$"}});
 ADD_CASES(TC_JSONOut, {{"\"name\": \"BM_label\",$"},
+                       {"\"run_type\": \"iteration\",$", MR_Next},
                        {"\"iterations\": %int,$", MR_Next},
                        {"\"real_time\": %float,$", MR_Next},
                        {"\"cpu_time\": %float,$", MR_Next},
@@ -149,6 +154,7 @@ void BM_error(benchmark::State& state) {
 BENCHMARK(BM_error);
 ADD_CASES(TC_ConsoleOut, {{"^BM_error[ ]+ERROR OCCURRED: 'message'$"}});
 ADD_CASES(TC_JSONOut, {{"\"name\": \"BM_error\",$"},
+                       {"\"run_type\": \"iteration\",$", MR_Next},
                        {"\"error_occurred\": true,$", MR_Next},
                        {"\"error_message\": \"message\",$", MR_Next}});
 
@@ -165,7 +171,8 @@ void BM_no_arg_name(benchmark::State& state) {
 }
 BENCHMARK(BM_no_arg_name)->Arg(3);
 ADD_CASES(TC_ConsoleOut, {{"^BM_no_arg_name/3 %console_report$"}});
-ADD_CASES(TC_JSONOut, {{"\"name\": \"BM_no_arg_name/3\",$"}});
+ADD_CASES(TC_JSONOut, {{"\"name\": \"BM_no_arg_name/3\",$"},
+                       {"\"run_type\": \"iteration\",$", MR_Next}});
 ADD_CASES(TC_CSVOut, {{"^\"BM_no_arg_name/3\",%csv_report$"}});
 
 // ========================================================================= //
@@ -178,7 +185,8 @@ void BM_arg_name(benchmark::State& state) {
 }
 BENCHMARK(BM_arg_name)->ArgName("first")->Arg(3);
 ADD_CASES(TC_ConsoleOut, {{"^BM_arg_name/first:3 %console_report$"}});
-ADD_CASES(TC_JSONOut, {{"\"name\": \"BM_arg_name/first:3\",$"}});
+ADD_CASES(TC_JSONOut, {{"\"name\": \"BM_arg_name/first:3\",$"},
+                       {"\"run_type\": \"iteration\",$", MR_Next}});
 ADD_CASES(TC_CSVOut, {{"^\"BM_arg_name/first:3\",%csv_report$"}});
 
 // ========================================================================= //
@@ -192,7 +200,8 @@ void BM_arg_names(benchmark::State& state) {
 BENCHMARK(BM_arg_names)->Args({2, 5, 4})->ArgNames({"first", "", "third"});
 ADD_CASES(TC_ConsoleOut,
           {{"^BM_arg_names/first:2/5/third:4 %console_report$"}});
-ADD_CASES(TC_JSONOut, {{"\"name\": \"BM_arg_names/first:2/5/third:4\",$"}});
+ADD_CASES(TC_JSONOut, {{"\"name\": \"BM_arg_names/first:2/5/third:4\",$"},
+                       {"\"run_type\": \"iteration\",$", MR_Next}});
 ADD_CASES(TC_CSVOut, {{"^\"BM_arg_names/first:2/5/third:4\",%csv_report$"}});
 
 // ========================================================================= //
@@ -227,10 +236,15 @@ ADD_CASES(TC_ConsoleOut, {{"^BM_Repeat/repeats:2 %console_report$"},
                           {"^BM_Repeat/repeats:2_median %console_report$"},
                           {"^BM_Repeat/repeats:2_stddev %console_report$"}});
 ADD_CASES(TC_JSONOut, {{"\"name\": \"BM_Repeat/repeats:2\",$"},
+                       {"\"run_type\": \"iteration\",$", MR_Next},
                        {"\"name\": \"BM_Repeat/repeats:2\",$"},
+                       {"\"run_type\": \"iteration\",$", MR_Next},
                        {"\"name\": \"BM_Repeat/repeats:2_mean\",$"},
+                       {"\"run_type\": \"aggregate\",$", MR_Next},
                        {"\"name\": \"BM_Repeat/repeats:2_median\",$"},
-                       {"\"name\": \"BM_Repeat/repeats:2_stddev\",$"}});
+                       {"\"run_type\": \"aggregate\",$", MR_Next},
+                       {"\"name\": \"BM_Repeat/repeats:2_stddev\",$"},
+                       {"\"run_type\": \"aggregate\",$", MR_Next}});
 ADD_CASES(TC_CSVOut, {{"^\"BM_Repeat/repeats:2\",%csv_report$"},
                       {"^\"BM_Repeat/repeats:2\",%csv_report$"},
                       {"^\"BM_Repeat/repeats:2_mean\",%csv_report$"},
@@ -245,11 +259,17 @@ ADD_CASES(TC_ConsoleOut, {{"^BM_Repeat/repeats:3 %console_report$"},
                           {"^BM_Repeat/repeats:3_median %console_report$"},
                           {"^BM_Repeat/repeats:3_stddev %console_report$"}});
 ADD_CASES(TC_JSONOut, {{"\"name\": \"BM_Repeat/repeats:3\",$"},
+                       {"\"run_type\": \"iteration\",$", MR_Next},
                        {"\"name\": \"BM_Repeat/repeats:3\",$"},
+                       {"\"run_type\": \"iteration\",$", MR_Next},
                        {"\"name\": \"BM_Repeat/repeats:3\",$"},
+                       {"\"run_type\": \"iteration\",$", MR_Next},
                        {"\"name\": \"BM_Repeat/repeats:3_mean\",$"},
+                       {"\"run_type\": \"aggregate\",$", MR_Next},
                        {"\"name\": \"BM_Repeat/repeats:3_median\",$"},
-                       {"\"name\": \"BM_Repeat/repeats:3_stddev\",$"}});
+                       {"\"run_type\": \"aggregate\",$", MR_Next},
+                       {"\"name\": \"BM_Repeat/repeats:3_stddev\",$"},
+                       {"\"run_type\": \"aggregate\",$", MR_Next}});
 ADD_CASES(TC_CSVOut, {{"^\"BM_Repeat/repeats:3\",%csv_report$"},
                       {"^\"BM_Repeat/repeats:3\",%csv_report$"},
                       {"^\"BM_Repeat/repeats:3\",%csv_report$"},
@@ -266,12 +286,19 @@ ADD_CASES(TC_ConsoleOut, {{"^BM_Repeat/repeats:4 %console_report$"},
                           {"^BM_Repeat/repeats:4_median %console_report$"},
                           {"^BM_Repeat/repeats:4_stddev %console_report$"}});
 ADD_CASES(TC_JSONOut, {{"\"name\": \"BM_Repeat/repeats:4\",$"},
+                       {"\"run_type\": \"iteration\",$", MR_Next},
                        {"\"name\": \"BM_Repeat/repeats:4\",$"},
+                       {"\"run_type\": \"iteration\",$", MR_Next},
                        {"\"name\": \"BM_Repeat/repeats:4\",$"},
+                       {"\"run_type\": \"iteration\",$", MR_Next},
                        {"\"name\": \"BM_Repeat/repeats:4\",$"},
+                       {"\"run_type\": \"iteration\",$", MR_Next},
                        {"\"name\": \"BM_Repeat/repeats:4_mean\",$"},
+                       {"\"run_type\": \"aggregate\",$", MR_Next},
                        {"\"name\": \"BM_Repeat/repeats:4_median\",$"},
-                       {"\"name\": \"BM_Repeat/repeats:4_stddev\",$"}});
+                       {"\"run_type\": \"aggregate\",$", MR_Next},
+                       {"\"name\": \"BM_Repeat/repeats:4_stddev\",$"},
+                       {"\"run_type\": \"aggregate\",$", MR_Next}});
 ADD_CASES(TC_CSVOut, {{"^\"BM_Repeat/repeats:4\",%csv_report$"},
                       {"^\"BM_Repeat/repeats:4\",%csv_report$"},
                       {"^\"BM_Repeat/repeats:4\",%csv_report$"},
@@ -288,7 +315,8 @@ void BM_RepeatOnce(benchmark::State& state) {
 }
 BENCHMARK(BM_RepeatOnce)->Repetitions(1)->ReportAggregatesOnly();
 ADD_CASES(TC_ConsoleOut, {{"^BM_RepeatOnce/repeats:1 %console_report$"}});
-ADD_CASES(TC_JSONOut, {{"\"name\": \"BM_RepeatOnce/repeats:1\",$"}});
+ADD_CASES(TC_JSONOut, {{"\"name\": \"BM_RepeatOnce/repeats:1\",$"},
+                       {"\"run_type\": \"iteration\",$", MR_Next}});
 ADD_CASES(TC_CSVOut, {{"^\"BM_RepeatOnce/repeats:1\",%csv_report$"}});
 
 // Test that non-aggregate data is not reported
@@ -304,8 +332,11 @@ ADD_CASES(TC_ConsoleOut,
            {"^BM_SummaryRepeat/repeats:3_stddev %console_report$"}});
 ADD_CASES(TC_JSONOut, {{".*BM_SummaryRepeat/repeats:3 ", MR_Not},
                        {"\"name\": \"BM_SummaryRepeat/repeats:3_mean\",$"},
+                       {"\"run_type\": \"aggregate\",$", MR_Next},
                        {"\"name\": \"BM_SummaryRepeat/repeats:3_median\",$"},
-                       {"\"name\": \"BM_SummaryRepeat/repeats:3_stddev\",$"}});
+                       {"\"run_type\": \"aggregate\",$", MR_Next},
+                       {"\"name\": \"BM_SummaryRepeat/repeats:3_stddev\",$"},
+                       {"\"run_type\": \"aggregate\",$", MR_Next}});
 ADD_CASES(TC_CSVOut, {{".*BM_SummaryRepeat/repeats:3 ", MR_Not},
                       {"^\"BM_SummaryRepeat/repeats:3_mean\",%csv_report$"},
                       {"^\"BM_SummaryRepeat/repeats:3_median\",%csv_report$"},
@@ -326,10 +357,13 @@ ADD_CASES(TC_ConsoleOut,
            {"^BM_RepeatTimeUnit/repeats:3_stddev %console_us_report$"}});
 ADD_CASES(TC_JSONOut, {{".*BM_RepeatTimeUnit/repeats:3 ", MR_Not},
                        {"\"name\": \"BM_RepeatTimeUnit/repeats:3_mean\",$"},
+                       {"\"run_type\": \"aggregate\",$", MR_Next},
                        {"\"time_unit\": \"us\",?$"},
                        {"\"name\": \"BM_RepeatTimeUnit/repeats:3_median\",$"},
+                       {"\"run_type\": \"aggregate\",$", MR_Next},
                        {"\"time_unit\": \"us\",?$"},
                        {"\"name\": \"BM_RepeatTimeUnit/repeats:3_stddev\",$"},
+                       {"\"run_type\": \"aggregate\",$", MR_Next},
                        {"\"time_unit\": \"us\",?$"}});
 ADD_CASES(TC_CSVOut,
           {{".*BM_RepeatTimeUnit/repeats:3 ", MR_Not},
@@ -364,12 +398,19 @@ ADD_CASES(TC_ConsoleOut, {{"^BM_UserStats/repeats:3 %console_report$"},
                           {"^BM_UserStats/repeats:3_stddev %console_report$"},
                           {"^BM_UserStats/repeats:3_ %console_report$"}});
 ADD_CASES(TC_JSONOut, {{"\"name\": \"BM_UserStats/repeats:3\",$"},
+                       {"\"run_type\": \"iteration\",$", MR_Next},
                        {"\"name\": \"BM_UserStats/repeats:3\",$"},
+                       {"\"run_type\": \"iteration\",$", MR_Next},
                        {"\"name\": \"BM_UserStats/repeats:3\",$"},
+                       {"\"run_type\": \"iteration\",$", MR_Next},
                        {"\"name\": \"BM_UserStats/repeats:3_mean\",$"},
+                       {"\"run_type\": \"aggregate\",$", MR_Next},
                        {"\"name\": \"BM_UserStats/repeats:3_median\",$"},
+                       {"\"run_type\": \"aggregate\",$", MR_Next},
                        {"\"name\": \"BM_UserStats/repeats:3_stddev\",$"},
-                       {"\"name\": \"BM_UserStats/repeats:3_\",$"}});
+                       {"\"run_type\": \"aggregate\",$", MR_Next},
+                       {"\"name\": \"BM_UserStats/repeats:3_\",$"},
+                       {"\"run_type\": \"aggregate\",$", MR_Next}});
 ADD_CASES(TC_CSVOut, {{"^\"BM_UserStats/repeats:3\",%csv_report$"},
                       {"^\"BM_UserStats/repeats:3\",%csv_report$"},
                       {"^\"BM_UserStats/repeats:3\",%csv_report$"},

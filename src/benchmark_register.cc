@@ -155,7 +155,7 @@ bool BenchmarkFamilies::FindBenchmarks(
         BenchmarkInstance instance;
         instance.name = family->name_;
         instance.benchmark = family.get();
-        instance.report_mode = family->report_mode_;
+        instance.aggregation_report_mode = family->aggregation_report_mode_;
         instance.arg = args;
         instance.time_unit = family->time_unit_;
         instance.range_multiplier = family->range_multiplier_;
@@ -236,7 +236,7 @@ bool FindBenchmarksInternal(const std::string& re,
 
 Benchmark::Benchmark(const char* name)
     : name_(name),
-      report_mode_(RM_Unspecified),
+      aggregation_report_mode_(ARM_Unspecified),
       time_unit_(kNanosecond),
       range_multiplier_(kRangeMultiplier),
       min_time_(0),
@@ -369,7 +369,7 @@ Benchmark* Benchmark::Repetitions(int n) {
 }
 
 Benchmark* Benchmark::ReportAggregatesOnly(bool value) {
-  report_mode_ = value ? RM_ReportAggregatesOnly : RM_Default;
+  aggregation_report_mode_ = value ? ARM_ReportAggregatesOnly : ARM_Default;
   return this;
 }
 

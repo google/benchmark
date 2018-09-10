@@ -150,6 +150,7 @@ std::vector<BenchmarkReporter::Run> ComputeStats(
   for (const auto& Stat : *reports[0].statistics) {
     // Get the data from the accumulator to BenchmarkReporter::Run's.
     Run data;
+    data.run_type = BenchmarkReporter::Run::RT_Aggregate;
     data.benchmark_name = reports[0].benchmark_name + "_" + Stat.name_;
     data.report_label = report_label;
     data.iterations = run_iterations;
@@ -164,7 +165,8 @@ std::vector<BenchmarkReporter::Run> ComputeStats(
     // user counters
     for (auto const& kv : counter_stats) {
       const auto uc_stat = Stat.compute_(kv.second.s);
-      auto c = Counter(uc_stat, counter_stats[kv.first].c.flags);
+      auto c = Counter(uc_stat, counter_stats[kv.first].c.flags,
+                       counter_stats[kv.first].c.oneK);
       data.counters[kv.first] = c;
     }
 

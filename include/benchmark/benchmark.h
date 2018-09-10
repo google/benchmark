@@ -268,7 +268,7 @@ bool ReportUnrecognizedArguments(int argc, char** argv);
 // of each matching benchmark. Otherwise run each matching benchmark and
 // report the results.
 //
-// The second and third overload use the specified 'console_reporter' and
+// The second and third overload use the specified 'display_reporter' and
 //  'file_reporter' respectively. 'file_reporter' will write to the file
 //  specified
 //   by '--benchmark_output'. If '--benchmark_output' is not given the
@@ -276,8 +276,8 @@ bool ReportUnrecognizedArguments(int argc, char** argv);
 //
 // RETURNS: The number of matching benchmarks.
 size_t RunSpecifiedBenchmarks();
-size_t RunSpecifiedBenchmarks(BenchmarkReporter* console_reporter);
-size_t RunSpecifiedBenchmarks(BenchmarkReporter* console_reporter,
+size_t RunSpecifiedBenchmarks(BenchmarkReporter* display_reporter);
+size_t RunSpecifiedBenchmarks(BenchmarkReporter* display_reporter,
                               BenchmarkReporter* file_reporter);
 
 // Register a MemoryManager instance that will be used to collect and report
@@ -373,11 +373,20 @@ class Counter {
     kAvgIterationsRate = kIsRate | kAvgIterations
   };
 
+  enum OneK {
+    // 1'000 items per 1k
+    kIs1000 = 1000,
+    // 1'024 items per 1k
+    kIs1024 = 1024
+  };
+
   double value;
   Flags flags;
+  OneK oneK;
 
   BENCHMARK_ALWAYS_INLINE
-  Counter(double v = 0., Flags f = kDefaults) : value(v), flags(f) {}
+  Counter(double v = 0., Flags f = kDefaults, OneK k = kIs1000)
+      : value(v), flags(f), oneK(k) {}
 
   BENCHMARK_ALWAYS_INLINE operator double const&() const { return value; }
   BENCHMARK_ALWAYS_INLINE operator double&() { return value; }
@@ -416,7 +425,7 @@ struct Statistics {
   std::string name_;
   StatisticsFunc* compute_;
 
-  Statistics(std::string name, StatisticsFunc* compute)
+  Statistics(const std::string& name, StatisticsFunc* compute)
       : name_(name), compute_(compute) {}
 };
 
@@ -425,14 +434,14 @@ struct BenchmarkInstance;
 class ThreadTimer;
 class ThreadManager;
 
-enum ReportMode
+enum AggregationReportMode
 #if defined(BENCHMARK_HAS_CXX11)
     : unsigned
 #else
 #endif
-{ RM_Unspecified,  // The mode has not been manually specified
-  RM_Default,      // The mode is user-specified as default.
-  RM_ReportAggregatesOnly };
+{ ARM_Unspecified,  // The mode has not been manually specified
+  ARM_Default,      // The mode is user-specified as default.
+  ARM_ReportAggregatesOnly };
 }  // namespace internal
 
 // State is passed to a running Benchmark and contains state for the
@@ -534,9 +543,17 @@ class State {
   //
   // REQUIRES: a benchmark has exited its benchmarking loop.
   BENCHMARK_ALWAYS_INLINE
+  BENCHMARK_DEPRECATED_MSG(
+      "The SetItemsProcessed()/items_processed()/SetBytesProcessed()/"
+      "bytes_processed() will be removed in a future release. "
+      "Please use custom user counters.")
   void SetBytesProcessed(int64_t bytes) { bytes_processed_ = bytes; }
 
   BENCHMARK_ALWAYS_INLINE
+  BENCHMARK_DEPRECATED_MSG(
+      "The SetItemsProcessed()/items_processed()/SetBytesProcessed()/"
+      "bytes_processed() will be removed in a future release. "
+      "Please use custom user counters.")
   int64_t bytes_processed() const { return bytes_processed_; }
 
   // If this routine is called with complexity_n > 0 and complexity report is
@@ -557,9 +574,17 @@ class State {
   //
   // REQUIRES: a benchmark has exited its benchmarking loop.
   BENCHMARK_ALWAYS_INLINE
+  BENCHMARK_DEPRECATED_MSG(
+      "The SetItemsProcessed()/items_processed()/SetBytesProcessed()/"
+      "bytes_processed() will be removed in a future release. "
+      "Please use custom user counters.")
   void SetItemsProcessed(int64_t items) { items_processed_ = items; }
 
   BENCHMARK_ALWAYS_INLINE
+  BENCHMARK_DEPRECATED_MSG(
+      "The SetItemsProcessed()/items_processed()/SetBytesProcessed()/"
+      "bytes_processed() will be removed in a future release. "
+      "Please use custom user counters.")
   int64_t items_processed() const { return items_processed_; }
 
   // If this routine is called, the specified label is printed at the
@@ -911,7 +936,7 @@ class Benchmark {
   friend class BenchmarkFamilies;
 
   std::string name_;
-  ReportMode report_mode_;
+  AggregationReportMode aggregation_report_mode_;
   std::vector<std::string> arg_names_;       // Args for all benchmark runs
   std::vector<std::vector<int64_t> > args_;  // Args for all benchmark runs
   TimeUnit time_unit_;
@@ -1275,8 +1300,11 @@ class BenchmarkReporter {
   };
 
   struct Run {
+    enum RunType { RT_Iteration, RT_Aggregate };
+
     Run()
-        : error_occurred(false),
+        : run_type(RT_Iteration),
+          error_occurred(false),
           iterations(1),
           time_unit(kNanosecond),
           real_accumulated_time(0),
@@ -1295,6 +1323,7 @@ class BenchmarkReporter {
           max_bytes_used(0) {}
 
     std::string benchmark_name;
+    RunType run_type;          // is this a measurement, or an aggregate?
     std::string report_label;  // Empty if not set by benchmark.
     bool error_occurred;
     std::string error_message;
