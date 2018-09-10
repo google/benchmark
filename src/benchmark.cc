@@ -421,7 +421,7 @@ void State::FinishKeepRunning() {
 namespace internal {
 namespace {
 
-void RunBenchmarks(const std::vector<Benchmark::Instance>& benchmarks,
+void RunBenchmarks(const std::vector<BenchmarkInstance>& benchmarks,
                    BenchmarkReporter* display_reporter,
                    BenchmarkReporter* file_reporter) {
   // Note the file_reporter can be null.
