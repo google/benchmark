@@ -438,9 +438,21 @@ enum AggregationReportMode
     : unsigned
 #else
 #endif
-{ ARM_Unspecified,  // The mode has not been manually specified
-  ARM_Default,      // The mode is user-specified as default.
-  ARM_ReportAggregatesOnly };
+{
+  // The mode has not been manually specified
+  ARM_Unspecified = 0,
+  // The mode is user-specified.
+  // This may or may not be set when the following bit-flags are set.
+  ARM_Default = 1U << 0U,
+  // File reporter should only output aggregates.
+  ARM_FileReportAggregatesOnly = 1U << 1U,
+  // Display reporter should only output aggregates
+  ARM_DisplayReportAggregatesOnly = 1U << 2U,
+  // Both reporters should only display aggregates.
+  ARM_ReportAggregatesOnly =
+      ARM_FileReportAggregatesOnly | ARM_DisplayReportAggregatesOnly
+};
+
 }  // namespace internal
 
 // State is passed to a running Benchmark and contains state for the
@@ -862,7 +874,11 @@ class Benchmark {
   // Specify if each repetition of the benchmark should be reported separately
   // or if only the final statistics should be reported. If the benchmark
   // is not repeated then the single result is always reported.
+  // Applies to *ALL* reporters (display and file).
   Benchmark* ReportAggregatesOnly(bool value = true);
+
+  // Same as ReportAggregatesOnly(), but applies to display reporter only.
+  Benchmark* DisplayAggregatesOnly(bool value = true);
 
   // If a particular benchmark is I/O bound, runs multiple threads internally or
   // if for some reason CPU timings are not representative, call this method. If
