@@ -545,7 +545,8 @@ The number of runs of each benchmark is specified globally by the
 `Repetitions` on the registered benchmark object. When a benchmark is run more
 than once the mean, median and standard deviation of the runs will be reported.
 
-Additionally the `--benchmark_report_aggregates_only={true|false}`, `--benchmark_display_aggregates_only={true|false}` flags or
+Additionally the `--benchmark_report_aggregates_only={true|false}`,
+`--benchmark_display_aggregates_only={true|false}` flags or
 `ReportAggregatesOnly(bool)`, `DisplayAggregatesOnly(bool)` functions can be
 used to change how repeated tests are reported. By default the result of each
 repeated run is reported. When `report aggregates only` option is `true`,
