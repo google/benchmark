@@ -201,6 +201,15 @@ namespace {
 
 const char* const dec_re = "[0-9]*[.]?[0-9]+([eE][-+][0-9]+)?";
 
+inline int SubstrCnt(const std::string& haystack, const std::string& pat) {
+  if (pat.length() == 0) return 0;
+  int count = 0;
+  for (size_t offset = haystack.find(pat); offset != std::string::npos;
+       offset = haystack.find(pat, offset + pat.length()))
+    ++count;
+  return count;
+}
+
 }  //  end namespace
 
 #endif  // TEST_OUTPUT_TEST_H

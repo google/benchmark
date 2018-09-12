@@ -19,15 +19,6 @@ void BM_SummaryRepeat(benchmark::State& state) {
 }
 BENCHMARK(BM_SummaryRepeat)->Repetitions(3)->ReportAggregatesOnly();
 
-int SubstrCnt(const std::string& haystack, const std::string& pat) {
-  if (pat.length() == 0) return 0;
-  int count = 0;
-  for (size_t offset = haystack.find(pat); offset != std::string::npos;
-       offset = haystack.find(pat, offset + pat.length()))
-    ++count;
-  return count;
-}
-
 int main(int argc, char* argv[]) {
   std::vector<char*> new_argv(argv, argv + argc);
   assert(static_cast<decltype(new_argv)::size_type>(argc) == new_argv.size());
