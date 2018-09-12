@@ -373,6 +373,22 @@ Benchmark* Benchmark::ReportAggregatesOnly(bool value) {
   return this;
 }
 
+Benchmark* Benchmark::DisplayAggregatesOnly(bool value) {
+  // If we were called, the report mode is no longer 'unspecified', in any case.
+  aggregation_report_mode_ = static_cast<AggregationReportMode>(
+      aggregation_report_mode_ | ARM_Default);
+
+  if (value) {
+    aggregation_report_mode_ = static_cast<AggregationReportMode>(
+        aggregation_report_mode_ | ARM_DisplayReportAggregatesOnly);
+  } else {
+    aggregation_report_mode_ = static_cast<AggregationReportMode>(
+        aggregation_report_mode_ & ~ARM_DisplayReportAggregatesOnly);
+  }
+
+  return this;
+}
+
 Benchmark* Benchmark::UseRealTime() {
   CHECK(!use_manual_time_)
       << "Cannot set UseRealTime and UseManualTime simultaneously.";
