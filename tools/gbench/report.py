@@ -96,6 +96,7 @@ def filter_benchmark(json_orig, family, replacement=""):
 def generate_difference_report(
         json1,
         json2,
+        display_aggregates_only=False,
         utest=False,
         utest_alpha=0.05,
         use_color=True):
@@ -190,6 +191,13 @@ def generate_difference_report(
         timings_time[1].append(other_bench['real_time'])
         timings_cpu[0].append(bn['cpu_time'])
         timings_cpu[1].append(other_bench['cpu_time'])
+
+        # *After* recording this run for u test, *if* we were asked to only
+        # display aggregates, and if it is non-aggregate, then skip it.
+        if display_aggregates_only and 'run_type' in bn and 'run_type' in other_bench:
+            assert bn['run_type'] == other_bench['run_type']
+            if bn['run_type'] != 'aggregate':
+                continue;
 
         tres = calculate_change(timings_time[0][-1], timings_time[1][-1])
         cpures = calculate_change(timings_cpu[0][-1], timings_cpu[1][-1])
@@ -331,10 +339,60 @@ class TestReportDifferenceWithUTest(unittest.TestCase):
              'repetitions',
              'recommended.'],
             ['short', '+0.0000', '+0.0000', '8', '8', '80', '80'],
+            ['medium', '-0.3750', '-0.3375', '8', '5', '80', '53'],
         ]
         json1, json2 = self.load_results()
         output_lines_with_header = generate_difference_report(
-            json1, json2, True, 0.05, use_color=False)
+            json1, json2, utest=True, utest_alpha=0.05, use_color=False)
+        output_lines = output_lines_with_header[2:]
+        print("\n")
+        print("\n".join(output_lines_with_header))
+        self.assertEqual(len(output_lines), len(expect_lines))
+        for i in range(0, len(output_lines)):
+            parts = [x for x in output_lines[i].split(' ') if x]
+            self.assertEqual(parts, expect_lines[i])
+
+
+class TestReportDifferenceWithUTestWhileDisplayingAggregatesOnly(unittest.TestCase):
+    def load_results(self):
+        import json
+        testInputs = os.path.join(
+            os.path.dirname(
+                os.path.realpath(__file__)),
+            'Inputs')
+        testOutput1 = os.path.join(testInputs, 'test3_run0.json')
+        testOutput2 = os.path.join(testInputs, 'test3_run1.json')
+        with open(testOutput1, 'r') as f:
+            json1 = json.load(f)
+        with open(testOutput2, 'r') as f:
+            json2 = json.load(f)
+        return json1, json2
+
+    def test_utest(self):
+        expect_lines = []
+        expect_lines = [
+            ['BM_One', '-0.1000', '+0.1000', '10', '9', '100', '110'],
+            ['BM_Two', '+0.1111', '-0.0111', '9', '10', '90', '89'],
+            ['BM_Two', '+0.2500', '+0.1125', '8', '10', '80', '89'],
+            ['BM_Two_pvalue',
+             '0.2207',
+             '0.6831',
+             'U',
+             'Test,',
+             'Repetitions:',
+             '2.',
+             'WARNING:',
+             'Results',
+             'unreliable!',
+             '9+',
+             'repetitions',
+             'recommended.'],
+            ['short', '+0.0000', '+0.0000', '8', '8', '80', '80'],
+        ]
+        json1, json2 = self.load_results()
+        output_lines_with_header = generate_difference_report(
+            json1, json2, display_aggregates_only=True,
+            utest=True, utest_alpha=0.05, use_color=False)
         output_lines = output_lines_with_header[2:]
         print("\n")
         print("\n".join(output_lines_with_header))

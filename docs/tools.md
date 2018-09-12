@@ -6,6 +6,15 @@ The `compare.py` can be used to compare the result of benchmarks.
 
 **NOTE**: the utility relies on the scipy package which can be installed using [these instructions](https://www.scipy.org/install.html).
 
+### Displaying aggregates only
+
+The switch `-a` / `--display_aggregates_only` can be used to control the
+displayment of the normal iterations vs the aggregates. When passed, it will
+be passthrough to the benchmark binaries to be run, and will be accounted for
+in the tool itself; only the aggregates will be displayed, but not normal runs.
+It only affects the display, the separate runs will still be used to calculate
+the U test.
+
 ### Modes of operation
 
 There are three modes of operation:

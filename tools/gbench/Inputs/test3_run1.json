@@ -16,6 +16,7 @@
     },
     {
       "name": "BM_Two",
+      "run_type": "aggregate",
       "iterations": 1000,
       "real_time": 10,
       "cpu_time": 89,
@@ -30,9 +31,18 @@
     },
     {
       "name": "short",
+      "run_type": "aggregate",
       "iterations": 1000,
       "real_time": 8,
       "cpu_time": 80,
+      "time_unit": "ns"
+    },
+    {
+      "name": "medium",
+      "run_type": "iteration",
+      "iterations": 1200,
+      "real_time": 5,
+      "cpu_time": 53,
       "time_unit": "ns"
     }
   ]
