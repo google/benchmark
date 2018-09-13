@@ -141,23 +141,12 @@ BenchmarkReporter::Run CreateRunReport(
   report.time_unit = b.time_unit;
 
   if (!report.error_occurred) {
-    double bytes_per_second = 0;
-    if (results.bytes_processed > 0 && seconds > 0.0) {
-      bytes_per_second = (results.bytes_processed / seconds);
-    }
-    double items_per_second = 0;
-    if (results.items_processed > 0 && seconds > 0.0) {
-      items_per_second = (results.items_processed / seconds);
-    }
-
     if (b.use_manual_time) {
       report.real_accumulated_time = results.manual_time_used;
     } else {
       report.real_accumulated_time = results.real_time_used;
     }
     report.cpu_accumulated_time = results.cpu_time_used;
-    report.bytes_per_second = bytes_per_second;
-    report.items_per_second = items_per_second;
     report.complexity_n = results.complexity_n;
     report.complexity = b.complexity;
     report.complexity_lambda = b.complexity_lambda;
@@ -195,8 +184,6 @@ void RunInThread(const benchmark::internal::Benchmark::Instance* b,
     results.cpu_time_used += timer.cpu_time_used();
     results.real_time_used += timer.real_time_used();
     results.manual_time_used += timer.manual_time_used();
-    results.bytes_processed += st.bytes_processed();
-    results.items_processed += st.items_processed();
     results.complexity_n += st.complexity_length_n();
     internal::Increment(&results.counters, st.counters);
   }
@@ -360,8 +347,6 @@ State::State(size_t max_iters, const std::vector<int64_t>& ranges, int thread_i,
       finished_(false),
       error_occurred_(false),
       range_(ranges),
-      bytes_processed_(0),
-      items_processed_(0),
       complexity_n_(0),
       counters(),
       thread_index(thread_i),

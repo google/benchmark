@@ -68,9 +68,9 @@ void BM_Counters_WithBytesAndItemsPSec(benchmark::State& state) {
   state.SetItemsProcessed(150);
 }
 BENCHMARK(BM_Counters_WithBytesAndItemsPSec);
-ADD_CASES(TC_ConsoleOut,
-          {{"^BM_Counters_WithBytesAndItemsPSec %console_report "
-            "bar=%hrfloat foo=%hrfloat +%hrfloatB/s +%hrfloat items/s$"}});
+ADD_CASES(TC_ConsoleOut, {{"^BM_Counters_WithBytesAndItemsPSec %console_report "
+                           "bar=%hrfloat bytes_per_second=%hrfloat/s "
+                           "foo=%hrfloat items_per_second=%hrfloat/s$"}});
 ADD_CASES(TC_JSONOut,
           {{"\"name\": \"BM_Counters_WithBytesAndItemsPSec\",$"},
            {"\"run_name\": \"BM_Counters_WithBytesAndItemsPSec\",$", MR_Next},
@@ -79,10 +79,10 @@ ADD_CASES(TC_JSONOut,
            {"\"real_time\": %float,$", MR_Next},
            {"\"cpu_time\": %float,$", MR_Next},
            {"\"time_unit\": \"ns\",$", MR_Next},
-           {"\"bytes_per_second\": %float,$", MR_Next},
-           {"\"items_per_second\": %float,$", MR_Next},
            {"\"bar\": %float,$", MR_Next},
-           {"\"foo\": %float$", MR_Next},
+           {"\"bytes_per_second\": %float,$", MR_Next},
+           {"\"foo\": %float,$", MR_Next},
+           {"\"items_per_second\": %float$", MR_Next},
            {"}", MR_Next}});
 ADD_CASES(TC_CSVOut, {{"^\"BM_Counters_WithBytesAndItemsPSec\","
                        "%csv_bytes_items_report,%float,%float$"}});
