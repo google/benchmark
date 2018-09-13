@@ -85,8 +85,8 @@ void BM_bytes_per_second(benchmark::State& state) {
 }
 BENCHMARK(BM_bytes_per_second);
 
-ADD_CASES(TC_ConsoleOut,
-          {{"^BM_bytes_per_second %console_report +%float[kM]{0,1}B/s$"}});
+ADD_CASES(TC_ConsoleOut, {{"^BM_bytes_per_second %console_report "
+                           "bytes_per_second=%float[kM]{0,1}/s$"}});
 ADD_CASES(TC_JSONOut, {{"\"name\": \"BM_bytes_per_second\",$"},
                        {"\"run_name\": \"BM_bytes_per_second\",$", MR_Next},
                        {"\"run_type\": \"iteration\",$", MR_Next},
@@ -109,8 +109,8 @@ void BM_items_per_second(benchmark::State& state) {
 }
 BENCHMARK(BM_items_per_second);
 
-ADD_CASES(TC_ConsoleOut,
-          {{"^BM_items_per_second %console_report +%float[kM]{0,1} items/s$"}});
+ADD_CASES(TC_ConsoleOut, {{"^BM_items_per_second %console_report "
+                           "items_per_second=%float[kM]{0,1}/s$"}});
 ADD_CASES(TC_JSONOut, {{"\"name\": \"BM_items_per_second\",$"},
                        {"\"run_name\": \"BM_items_per_second\",$", MR_Next},
                        {"\"run_type\": \"iteration\",$", MR_Next},

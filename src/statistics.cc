@@ -91,13 +91,9 @@ std::vector<BenchmarkReporter::Run> ComputeStats(
   // Accumulators.
   std::vector<double> real_accumulated_time_stat;
   std::vector<double> cpu_accumulated_time_stat;
-  std::vector<double> bytes_per_second_stat;
-  std::vector<double> items_per_second_stat;
 
   real_accumulated_time_stat.reserve(reports.size());
   cpu_accumulated_time_stat.reserve(reports.size());
-  bytes_per_second_stat.reserve(reports.size());
-  items_per_second_stat.reserve(reports.size());
 
   // All repetitions should be run with the same number of iterations so we
   // can take this information from the first benchmark.
@@ -128,8 +124,6 @@ std::vector<BenchmarkReporter::Run> ComputeStats(
     if (run.error_occurred) continue;
     real_accumulated_time_stat.emplace_back(run.real_accumulated_time);
     cpu_accumulated_time_stat.emplace_back(run.cpu_accumulated_time);
-    items_per_second_stat.emplace_back(run.items_per_second);
-    bytes_per_second_stat.emplace_back(run.bytes_per_second);
     // user counters
     for (auto const& cnt : run.counters) {
       auto it = counter_stats.find(cnt.first);
@@ -158,8 +152,6 @@ std::vector<BenchmarkReporter::Run> ComputeStats(
 
     data.real_accumulated_time = Stat.compute_(real_accumulated_time_stat);
     data.cpu_accumulated_time = Stat.compute_(cpu_accumulated_time_stat);
-    data.bytes_per_second = Stat.compute_(bytes_per_second_stat);
-    data.items_per_second = Stat.compute_(items_per_second_stat);
 
     data.time_unit = reports[0].time_unit;
 
