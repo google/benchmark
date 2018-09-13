@@ -72,6 +72,14 @@ const char *BenchmarkReporter::Context::executable_name;
 
 BenchmarkReporter::Context::Context() : cpu_info(CPUInfo::Get()) {}
 
+std::string BenchmarkReporter::Run::benchmark_name() const {
+  std::string name = run_name;
+  if (run_type == RT_Aggregate) {
+    name += "_" + aggregate_name;
+  }
+  return name;
+}
+
 double BenchmarkReporter::Run::GetAdjustedRealTime() const {
   double new_time = real_accumulated_time * GetTimeUnitMultiplier(time_unit);
   if (iterations != 0) new_time /= static_cast<double>(iterations);

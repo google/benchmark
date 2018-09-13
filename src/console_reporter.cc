@@ -106,7 +106,7 @@ void ConsoleReporter::PrintRunData(const Run& result) {
   auto name_color =
       (result.report_big_o || result.report_rms) ? COLOR_BLUE : COLOR_GREEN;
   printer(Out, name_color, "%-*s ", name_field_width_,
-          result.benchmark_name.c_str());
+          result.benchmark_name().c_str());
 
   if (result.error_occurred) {
     printer(Out, COLOR_RED, "ERROR OCCURRED: \'%s\'",
