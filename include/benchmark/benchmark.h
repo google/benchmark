@@ -1339,7 +1339,7 @@ class BenchmarkReporter {
           allocs_per_iter(0.0),
           max_bytes_used(0) {}
 
-    std::string benchmark_name;
+    std::string benchmark_name() const;
     std::string run_name;
     RunType run_type;          // is this a measurement, or an aggregate?
     std::string aggregate_name;
