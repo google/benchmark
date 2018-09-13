@@ -88,7 +88,7 @@ void CSVReporter::PrintRunData(const Run& run) {
 
   // Field with embedded double-quote characters must be doubled and the field
   // delimited with double-quotes.
-  std::string name = run.benchmark_name;
+  std::string name = run.benchmark_name();
   ReplaceAll(&name, "\"", "\"\"");
   Out << '"' << name << "\",";
   if (run.error_occurred) {

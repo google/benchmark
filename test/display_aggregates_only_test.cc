@@ -19,19 +19,22 @@ BENCHMARK(BM_SummaryRepeat)->Repetitions(3)->DisplayAggregatesOnly();
 int main(int argc, char* argv[]) {
   const std::string output = GetFileReporterOutput(argc, argv);
 
-  if (SubstrCnt(output, "BM_SummaryRepeat/repeats:3") != 6 ||
-      SubstrCnt(output, "\"BM_SummaryRepeat/repeats:3\"") != 3 ||
-      SubstrCnt(output, "\"BM_SummaryRepeat/repeats:3_mean\"") != 1 ||
-      SubstrCnt(output, "\"BM_SummaryRepeat/repeats:3_median\"") != 1 ||
-      SubstrCnt(output, "\"BM_SummaryRepeat/repeats:3_stddev\"") != 1) {
+  if (SubstrCnt(output, "\"name\": \"BM_SummaryRepeat/repeats:3") != 6 ||
+      SubstrCnt(output, "\"name\": \"BM_SummaryRepeat/repeats:3\"") != 3 ||
+      SubstrCnt(output, "\"name\": \"BM_SummaryRepeat/repeats:3_mean\"") != 1 ||
+      SubstrCnt(output, "\"name\": \"BM_SummaryRepeat/repeats:3_median\"") !=
+          1 ||
+      SubstrCnt(output, "\"name\": \"BM_SummaryRepeat/repeats:3_stddev\"") !=
+          1) {
     std::cout << "Precondition mismatch. Expected to only find 6 "
                  "occurrences of \"BM_SummaryRepeat/repeats:3\" substring:\n"
-                 "\"BM_SummaryRepeat/repeats:3\", "
-                 "\"BM_SummaryRepeat/repeats:3\", "
-                 "\"BM_SummaryRepeat/repeats:3\", "
-                 "\"BM_SummaryRepeat/repeats:3_mean\", "
-                 "\"BM_SummaryRepeat/repeats:3_median\", "
-                 "\"BM_SummaryRepeat/repeats:3_stddev\"\nThe entire output:\n";
+                 "\"name\": \"BM_SummaryRepeat/repeats:3\", "
+                 "\"name\": \"BM_SummaryRepeat/repeats:3\", "
+                 "\"name\": \"BM_SummaryRepeat/repeats:3\", "
+                 "\"name\": \"BM_SummaryRepeat/repeats:3_mean\", "
+                 "\"name\": \"BM_SummaryRepeat/repeats:3_median\", "
+                 "\"name\": \"BM_SummaryRepeat/repeats:3_stddev\"\nThe entire "
+                 "output:\n";
     std::cout << output;
     return 1;
   }
