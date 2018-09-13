@@ -32,6 +32,7 @@ BENCHMARK(BM_Counters_Simple);
 ADD_CASES(TC_ConsoleOut,
           {{"^BM_Counters_Simple %console_report bar=%hrfloat foo=%hrfloat$"}});
 ADD_CASES(TC_JSONOut, {{"\"name\": \"BM_Counters_Simple\",$"},
+                       {"\"run_name\": \"BM_Counters_Simple\",$", MR_Next},
                        {"\"run_type\": \"iteration\",$", MR_Next},
                        {"\"iterations\": %int,$", MR_Next},
                        {"\"real_time\": %float,$", MR_Next},
@@ -70,17 +71,19 @@ BENCHMARK(BM_Counters_WithBytesAndItemsPSec);
 ADD_CASES(TC_ConsoleOut,
           {{"^BM_Counters_WithBytesAndItemsPSec %console_report "
             "bar=%hrfloat foo=%hrfloat +%hrfloatB/s +%hrfloat items/s$"}});
-ADD_CASES(TC_JSONOut, {{"\"name\": \"BM_Counters_WithBytesAndItemsPSec\",$"},
-                       {"\"run_type\": \"iteration\",$", MR_Next},
-                       {"\"iterations\": %int,$", MR_Next},
-                       {"\"real_time\": %float,$", MR_Next},
-                       {"\"cpu_time\": %float,$", MR_Next},
-                       {"\"time_unit\": \"ns\",$", MR_Next},
-                       {"\"bytes_per_second\": %float,$", MR_Next},
-                       {"\"items_per_second\": %float,$", MR_Next},
-                       {"\"bar\": %float,$", MR_Next},
-                       {"\"foo\": %float$", MR_Next},
-                       {"}", MR_Next}});
+ADD_CASES(TC_JSONOut,
+          {{"\"name\": \"BM_Counters_WithBytesAndItemsPSec\",$"},
+           {"\"run_name\": \"BM_Counters_WithBytesAndItemsPSec\",$", MR_Next},
+           {"\"run_type\": \"iteration\",$", MR_Next},
+           {"\"iterations\": %int,$", MR_Next},
+           {"\"real_time\": %float,$", MR_Next},
+           {"\"cpu_time\": %float,$", MR_Next},
+           {"\"time_unit\": \"ns\",$", MR_Next},
+           {"\"bytes_per_second\": %float,$", MR_Next},
+           {"\"items_per_second\": %float,$", MR_Next},
+           {"\"bar\": %float,$", MR_Next},
+           {"\"foo\": %float$", MR_Next},
+           {"}", MR_Next}});
 ADD_CASES(TC_CSVOut, {{"^\"BM_Counters_WithBytesAndItemsPSec\","
                        "%csv_bytes_items_report,%float,%float$"}});
 // VS2013 does not allow this function to be passed as a lambda argument
@@ -112,6 +115,7 @@ ADD_CASES(
     TC_ConsoleOut,
     {{"^BM_Counters_Rate %console_report bar=%hrfloat/s foo=%hrfloat/s$"}});
 ADD_CASES(TC_JSONOut, {{"\"name\": \"BM_Counters_Rate\",$"},
+                       {"\"run_name\": \"BM_Counters_Rate\",$", MR_Next},
                        {"\"run_type\": \"iteration\",$", MR_Next},
                        {"\"iterations\": %int,$", MR_Next},
                        {"\"real_time\": %float,$", MR_Next},
@@ -144,15 +148,17 @@ void BM_Counters_Threads(benchmark::State& state) {
 BENCHMARK(BM_Counters_Threads)->ThreadRange(1, 8);
 ADD_CASES(TC_ConsoleOut, {{"^BM_Counters_Threads/threads:%int %console_report "
                            "bar=%hrfloat foo=%hrfloat$"}});
-ADD_CASES(TC_JSONOut, {{"\"name\": \"BM_Counters_Threads/threads:%int\",$"},
-                       {"\"run_type\": \"iteration\",$", MR_Next},
-                       {"\"iterations\": %int,$", MR_Next},
-                       {"\"real_time\": %float,$", MR_Next},
-                       {"\"cpu_time\": %float,$", MR_Next},
-                       {"\"time_unit\": \"ns\",$", MR_Next},
-                       {"\"bar\": %float,$", MR_Next},
-                       {"\"foo\": %float$", MR_Next},
-                       {"}", MR_Next}});
+ADD_CASES(TC_JSONOut,
+          {{"\"name\": \"BM_Counters_Threads/threads:%int\",$"},
+           {"\"run_name\": \"BM_Counters_Threads/threads:%int\",$", MR_Next},
+           {"\"run_type\": \"iteration\",$", MR_Next},
+           {"\"iterations\": %int,$", MR_Next},
+           {"\"real_time\": %float,$", MR_Next},
+           {"\"cpu_time\": %float,$", MR_Next},
+           {"\"time_unit\": \"ns\",$", MR_Next},
+           {"\"bar\": %float,$", MR_Next},
+           {"\"foo\": %float$", MR_Next},
+           {"}", MR_Next}});
 ADD_CASES(
     TC_CSVOut,
     {{"^\"BM_Counters_Threads/threads:%int\",%csv_report,%float,%float$"}});
@@ -178,15 +184,17 @@ void BM_Counters_AvgThreads(benchmark::State& state) {
 BENCHMARK(BM_Counters_AvgThreads)->ThreadRange(1, 8);
 ADD_CASES(TC_ConsoleOut, {{"^BM_Counters_AvgThreads/threads:%int "
                            "%console_report bar=%hrfloat foo=%hrfloat$"}});
-ADD_CASES(TC_JSONOut, {{"\"name\": \"BM_Counters_AvgThreads/threads:%int\",$"},
-                       {"\"run_type\": \"iteration\",$", MR_Next},
-                       {"\"iterations\": %int,$", MR_Next},
-                       {"\"real_time\": %float,$", MR_Next},
-                       {"\"cpu_time\": %float,$", MR_Next},
-                       {"\"time_unit\": \"ns\",$", MR_Next},
-                       {"\"bar\": %float,$", MR_Next},
-                       {"\"foo\": %float$", MR_Next},
-                       {"}", MR_Next}});
+ADD_CASES(TC_JSONOut,
+          {{"\"name\": \"BM_Counters_AvgThreads/threads:%int\",$"},
+           {"\"run_name\": \"BM_Counters_AvgThreads/threads:%int\",$", MR_Next},
+           {"\"run_type\": \"iteration\",$", MR_Next},
+           {"\"iterations\": %int,$", MR_Next},
+           {"\"real_time\": %float,$", MR_Next},
+           {"\"cpu_time\": %float,$", MR_Next},
+           {"\"time_unit\": \"ns\",$", MR_Next},
+           {"\"bar\": %float,$", MR_Next},
+           {"\"foo\": %float$", MR_Next},
+           {"}", MR_Next}});
 ADD_CASES(
     TC_CSVOut,
     {{"^\"BM_Counters_AvgThreads/threads:%int\",%csv_report,%float,%float$"}});
@@ -215,6 +223,8 @@ ADD_CASES(TC_ConsoleOut, {{"^BM_Counters_AvgThreadsRate/threads:%int "
                            "%console_report bar=%hrfloat/s foo=%hrfloat/s$"}});
 ADD_CASES(TC_JSONOut,
           {{"\"name\": \"BM_Counters_AvgThreadsRate/threads:%int\",$"},
+           {"\"run_name\": \"BM_Counters_AvgThreadsRate/threads:%int\",$",
+            MR_Next},
            {"\"run_type\": \"iteration\",$", MR_Next},
            {"\"iterations\": %int,$", MR_Next},
            {"\"real_time\": %float,$", MR_Next},
@@ -248,15 +258,17 @@ void BM_Counters_IterationInvariant(benchmark::State& state) {
 BENCHMARK(BM_Counters_IterationInvariant);
 ADD_CASES(TC_ConsoleOut, {{"^BM_Counters_IterationInvariant %console_report "
                            "bar=%hrfloat foo=%hrfloat$"}});
-ADD_CASES(TC_JSONOut, {{"\"name\": \"BM_Counters_IterationInvariant\",$"},
-                       {"\"run_type\": \"iteration\",$", MR_Next},
-                       {"\"iterations\": %int,$", MR_Next},
-                       {"\"real_time\": %float,$", MR_Next},
-                       {"\"cpu_time\": %float,$", MR_Next},
-                       {"\"time_unit\": \"ns\",$", MR_Next},
-                       {"\"bar\": %float,$", MR_Next},
-                       {"\"foo\": %float$", MR_Next},
-                       {"}", MR_Next}});
+ADD_CASES(TC_JSONOut,
+          {{"\"name\": \"BM_Counters_IterationInvariant\",$"},
+           {"\"run_name\": \"BM_Counters_IterationInvariant\",$", MR_Next},
+           {"\"run_type\": \"iteration\",$", MR_Next},
+           {"\"iterations\": %int,$", MR_Next},
+           {"\"real_time\": %float,$", MR_Next},
+           {"\"cpu_time\": %float,$", MR_Next},
+           {"\"time_unit\": \"ns\",$", MR_Next},
+           {"\"bar\": %float,$", MR_Next},
+           {"\"foo\": %float$", MR_Next},
+           {"}", MR_Next}});
 ADD_CASES(TC_CSVOut,
           {{"^\"BM_Counters_IterationInvariant\",%csv_report,%float,%float$"}});
 // VS2013 does not allow this function to be passed as a lambda argument
@@ -288,6 +300,8 @@ ADD_CASES(TC_ConsoleOut, {{"^BM_Counters_kIsIterationInvariantRate "
                            "%console_report bar=%hrfloat/s foo=%hrfloat/s$"}});
 ADD_CASES(TC_JSONOut,
           {{"\"name\": \"BM_Counters_kIsIterationInvariantRate\",$"},
+           {"\"run_name\": \"BM_Counters_kIsIterationInvariantRate\",$",
+            MR_Next},
            {"\"run_type\": \"iteration\",$", MR_Next},
            {"\"iterations\": %int,$", MR_Next},
            {"\"real_time\": %float,$", MR_Next},
@@ -324,15 +338,17 @@ void BM_Counters_AvgIterations(benchmark::State& state) {
 BENCHMARK(BM_Counters_AvgIterations);
 ADD_CASES(TC_ConsoleOut, {{"^BM_Counters_AvgIterations %console_report "
                            "bar=%hrfloat foo=%hrfloat$"}});
-ADD_CASES(TC_JSONOut, {{"\"name\": \"BM_Counters_AvgIterations\",$"},
-                       {"\"run_type\": \"iteration\",$", MR_Next},
-                       {"\"iterations\": %int,$", MR_Next},
-                       {"\"real_time\": %float,$", MR_Next},
-                       {"\"cpu_time\": %float,$", MR_Next},
-                       {"\"time_unit\": \"ns\",$", MR_Next},
-                       {"\"bar\": %float,$", MR_Next},
-                       {"\"foo\": %float$", MR_Next},
-                       {"}", MR_Next}});
+ADD_CASES(TC_JSONOut,
+          {{"\"name\": \"BM_Counters_AvgIterations\",$"},
+           {"\"run_name\": \"BM_Counters_AvgIterations\",$", MR_Next},
+           {"\"run_type\": \"iteration\",$", MR_Next},
+           {"\"iterations\": %int,$", MR_Next},
+           {"\"real_time\": %float,$", MR_Next},
+           {"\"cpu_time\": %float,$", MR_Next},
+           {"\"time_unit\": \"ns\",$", MR_Next},
+           {"\"bar\": %float,$", MR_Next},
+           {"\"foo\": %float$", MR_Next},
+           {"}", MR_Next}});
 ADD_CASES(TC_CSVOut,
           {{"^\"BM_Counters_AvgIterations\",%csv_report,%float,%float$"}});
 // VS2013 does not allow this function to be passed as a lambda argument
@@ -360,15 +376,17 @@ void BM_Counters_kAvgIterationsRate(benchmark::State& state) {
 BENCHMARK(BM_Counters_kAvgIterationsRate);
 ADD_CASES(TC_ConsoleOut, {{"^BM_Counters_kAvgIterationsRate "
                            "%console_report bar=%hrfloat/s foo=%hrfloat/s$"}});
-ADD_CASES(TC_JSONOut, {{"\"name\": \"BM_Counters_kAvgIterationsRate\",$"},
-                       {"\"run_type\": \"iteration\",$", MR_Next},
-                       {"\"iterations\": %int,$", MR_Next},
-                       {"\"real_time\": %float,$", MR_Next},
-                       {"\"cpu_time\": %float,$", MR_Next},
-                       {"\"time_unit\": \"ns\",$", MR_Next},
-                       {"\"bar\": %float,$", MR_Next},
-                       {"\"foo\": %float$", MR_Next},
-                       {"}", MR_Next}});
+ADD_CASES(TC_JSONOut,
+          {{"\"name\": \"BM_Counters_kAvgIterationsRate\",$"},
+           {"\"run_name\": \"BM_Counters_kAvgIterationsRate\",$", MR_Next},
+           {"\"run_type\": \"iteration\",$", MR_Next},
+           {"\"iterations\": %int,$", MR_Next},
+           {"\"real_time\": %float,$", MR_Next},
+           {"\"cpu_time\": %float,$", MR_Next},
+           {"\"time_unit\": \"ns\",$", MR_Next},
+           {"\"bar\": %float,$", MR_Next},
+           {"\"foo\": %float$", MR_Next},
+           {"}", MR_Next}});
 ADD_CASES(TC_CSVOut, {{"^\"BM_Counters_kAvgIterationsRate\",%csv_report,"
                        "%float,%float$"}});
 // VS2013 does not allow this function to be passed as a lambda argument

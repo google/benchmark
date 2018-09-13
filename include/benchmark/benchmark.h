@@ -1340,7 +1340,9 @@ class BenchmarkReporter {
           max_bytes_used(0) {}
 
     std::string benchmark_name;
+    std::string run_name;
     RunType run_type;          // is this a measurement, or an aggregate?
+    std::string aggregate_name;
     std::string report_label;  // Empty if not set by benchmark.
     bool error_occurred;
     std::string error_message;

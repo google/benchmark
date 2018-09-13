@@ -132,7 +132,8 @@ BenchmarkReporter::Run CreateRunReport(
   // Create report about this benchmark run.
   BenchmarkReporter::Run report;
 
-  report.benchmark_name = b.name;
+  report.run_name = b.name;
+  report.benchmark_name = report.run_name;
   report.error_occurred = results.has_error_;
   report.error_message = results.error_message_;
   report.report_label = results.report_label_;
