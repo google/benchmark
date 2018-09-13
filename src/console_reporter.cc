@@ -114,18 +114,6 @@ void ConsoleReporter::PrintRunData(const Run& result) {
     printer(Out, COLOR_DEFAULT, "\n");
     return;
   }
-  // Format bytes per second
-  std::string rate;
-  if (result.bytes_per_second > 0) {
-    rate = StrCat(" ", HumanReadableNumber(result.bytes_per_second), "B/s");
-  }
-
-  // Format items per second
-  std::string items;
-  if (result.items_per_second > 0) {
-    items =
-        StrCat(" ", HumanReadableNumber(result.items_per_second), " items/s");
-  }
 
   const double real_time = result.GetAdjustedRealTime();
   const double cpu_time = result.GetAdjustedCPUTime();
@@ -162,14 +150,6 @@ void ConsoleReporter::PrintRunData(const Run& result) {
       printer(Out, COLOR_DEFAULT, " %s=%s%s", c.first.c_str(), s.c_str(),
               unit);
     }
-  }
-
-  if (!rate.empty()) {
-    printer(Out, COLOR_DEFAULT, " %*s", 13, rate.c_str());
-  }
-
-  if (!items.empty()) {
-    printer(Out, COLOR_DEFAULT, " %*s", 18, items.c_str());
   }
 
   if (!result.report_label.empty()) {

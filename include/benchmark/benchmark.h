@@ -548,24 +548,21 @@ class State {
 
   // Set the number of bytes processed by the current benchmark
   // execution.  This routine is typically called once at the end of a
-  // throughput oriented benchmark.  If this routine is called with a
-  // value > 0, the report is printed in MB/sec instead of nanoseconds
-  // per iteration.
+  // throughput oriented benchmark.
   //
   // REQUIRES: a benchmark has exited its benchmarking loop.
   BENCHMARK_ALWAYS_INLINE
-  BENCHMARK_DEPRECATED_MSG(
-      "The SetItemsProcessed()/items_processed()/SetBytesProcessed()/"
-      "bytes_processed() will be removed in a future release. "
-      "Please use custom user counters.")
-  void SetBytesProcessed(int64_t bytes) { bytes_processed_ = bytes; }
+  void SetBytesProcessed(int64_t bytes) {
+    counters["bytes_per_second"] =
+        Counter(bytes, Counter::kIsRate, Counter::kIs1024);
+  }
 
   BENCHMARK_ALWAYS_INLINE
-  BENCHMARK_DEPRECATED_MSG(
-      "The SetItemsProcessed()/items_processed()/SetBytesProcessed()/"
-      "bytes_processed() will be removed in a future release. "
-      "Please use custom user counters.")
-  int64_t bytes_processed() const { return bytes_processed_; }
+  int64_t bytes_processed() const {
+    if (counters.find("bytes_per_second") != counters.end())
+      return counters.at("bytes_per_second");
+    return 0;
+  }
 
   // If this routine is called with complexity_n > 0 and complexity report is
   // requested for the
@@ -585,18 +582,16 @@ class State {
   //
   // REQUIRES: a benchmark has exited its benchmarking loop.
   BENCHMARK_ALWAYS_INLINE
-  BENCHMARK_DEPRECATED_MSG(
-      "The SetItemsProcessed()/items_processed()/SetBytesProcessed()/"
-      "bytes_processed() will be removed in a future release. "
-      "Please use custom user counters.")
-  void SetItemsProcessed(int64_t items) { items_processed_ = items; }
+  void SetItemsProcessed(int64_t items) {
+    counters["items_per_second"] = Counter(items, benchmark::Counter::kIsRate);
+  }
 
   BENCHMARK_ALWAYS_INLINE
-  BENCHMARK_DEPRECATED_MSG(
-      "The SetItemsProcessed()/items_processed()/SetBytesProcessed()/"
-      "bytes_processed() will be removed in a future release. "
-      "Please use custom user counters.")
-  int64_t items_processed() const { return items_processed_; }
+  int64_t items_processed() const {
+    if (counters.find("items_per_second") != counters.end())
+      return counters.at("items_per_second");
+    return 0;
+  }
 
   // If this routine is called, the specified label is printed at the
   // end of the benchmark report line for the currently executing
@@ -658,9 +653,6 @@ class State {
 
  private:  // items we don't need on the first cache line
   std::vector<int64_t> range_;
-
-  int64_t bytes_processed_;
-  int64_t items_processed_;
 
   int64_t complexity_n_;
 
@@ -1326,8 +1318,6 @@ class BenchmarkReporter {
           time_unit(kNanosecond),
           real_accumulated_time(0),
           cpu_accumulated_time(0),
-          bytes_per_second(0),
-          items_per_second(0),
           max_heapbytes_used(0),
           complexity(oNone),
           complexity_lambda(),
@@ -1363,10 +1353,6 @@ class BenchmarkReporter {
     // NOTE: If 'iterations' is zero the returned value represents the
     // accumulated time.
     double GetAdjustedCPUTime() const;
-
-    // Zero if not set by benchmark.
-    double bytes_per_second;
-    double items_per_second;
 
     // This is set to 0.0 if memory tracing is not enabled.
     double max_heapbytes_used;
