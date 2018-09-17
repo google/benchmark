@@ -105,17 +105,12 @@ def get_unique_benchmark_names(json):
     return uniqued
 
 
-def get_shared_members(list1, list2):
+def intersect(list1, list2):
     """
     Given two lists, get a new list consisting of the elements only contained
     in *both of the input lists*, while preserving the ordering.
     """
-    seen_in_list1 = set(list1)
-    seen_in_list2 = set(list2)
-    common_set = seen_in_list1 & seen_in_list2
-    # It doesn't matter which list we will now use.
-    common = [x for x in list1 if x in common_set]
-    return common
+    return [x for x in list1 if x in list2]
 
 
 def partition_benchmarks(json1, json2):
@@ -126,7 +121,7 @@ def partition_benchmarks(json1, json2):
     """
     json1_unique_names = get_unique_benchmark_names(json1)
     json2_unique_names = get_unique_benchmark_names(json2)
-    names = get_shared_members(json1_unique_names, json2_unique_names)
+    names = intersect(json1_unique_names, json2_unique_names)
     partitions = []
     for name in names:
         # Pick the time unit from the first entry of the lhs benchmark.
@@ -162,10 +157,7 @@ def print_utest(partition, utest_alpha, first_col_width, use_color=True):
         return []
 
     def get_utest_color(pval):
-        if pval >= utest_alpha:
-            return BC_FAIL
-        else:
-            return BC_OKGREEN
+        return BC_FAIL if pval >= utest_alpha else BC_OKGREEN
 
     time_pvalue = mannwhitneyu(
         timings_time[0], timings_time[1], alternative='two-sided').pvalue
@@ -280,6 +272,33 @@ def generate_difference_report(
 
 import unittest
 
+
+class TestGetUniqueBenchmarkNames(unittest.TestCase):
+    def load_results(self):
+        import json
+        testInputs = os.path.join(
+            os.path.dirname(
+                os.path.realpath(__file__)),
+            'Inputs')
+        testOutput = os.path.join(testInputs, 'test3_run0.json')
+        with open(testOutput, 'r') as f:
+            json = json.load(f)
+        return json
+
+    def test_basic(self):
+        expect_lines = [
+            'BM_One',
+            'BM_Two',
+            'short',  # These two are not sorted
+            'medium', # These two are not sorted
+        ]
+        json = self.load_results()
+        output_lines = get_unique_benchmark_names(json)
+        print("\n")
+        print("\n".join(output_lines))
+        self.assertEqual(len(output_lines), len(expect_lines))
+        for i in range(0, len(output_lines)):
+            self.assertEqual(expect_lines[i], output_lines[i])
 
 class TestReportDifference(unittest.TestCase):
     def load_results(self):
