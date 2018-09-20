@@ -128,6 +128,9 @@ add_test(user_counters_test user_counters_test --benchmark_min_time=0.01)
 compile_output_test(user_counters_tabular_test)
 add_test(user_counters_tabular_test user_counters_tabular_test --benchmark_counters_tabular=true --benchmark_min_time=0.01)
 
+compile_output_test(user_counters_thousands_test)
+add_test(user_counters_thousands_test user_counters_thousands_test --benchmark_min_time=0.01)
+
 check_cxx_compiler_flag(-std=c++03 BENCHMARK_HAS_CXX03_FLAG)
 if (BENCHMARK_HAS_CXX03_FLAG)
   compile_benchmark_test(cxx03_test)
@@ -180,6 +183,7 @@ if (BENCHMARK_ENABLE_GTEST_TESTS)
 
   add_gtest(benchmark_gtest)
   add_gtest(statistics_gtest)
+  add_gtest(string_util_gtest)
 endif(BENCHMARK_ENABLE_GTEST_TESTS)
 
 ###############################################################################

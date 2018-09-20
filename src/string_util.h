@@ -19,8 +19,7 @@ inline std::ostream& StrCatImp(std::ostream& out) BENCHMARK_NOEXCEPT {
 }
 
 template <class First, class... Rest>
-inline std::ostream& StrCatImp(std::ostream& out, First&& f,
-                                  Rest&&... rest) {
+inline std::ostream& StrCatImp(std::ostream& out, First&& f, Rest&&... rest) {
   out << std::forward<First>(f);
   return StrCatImp(out, std::forward<Rest>(rest)...);
 }
@@ -34,6 +33,23 @@ inline std::string StrCat(Args&&... args) {
 
 void ReplaceAll(std::string* str, const std::string& from,
                 const std::string& to);
+
+#ifdef BENCHMARK_STL_ANDROID_GNUSTL
+/*
+ * GNU STL in Android NDK lacks support for some C++11 functions, including
+ * stoul, stoi, stod. We reimplement them here using C functions strtoul,
+ * strtol, strtod. Note that reimplemented functions are in benchmark::
+ * namespace, not std:: namespace.
+ */
+unsigned long stoul(const std::string& str, size_t* pos = nullptr,
+                           int base = 10);
+int stoi(const std::string& str, size_t* pos = nullptr, int base = 10);
+double stod(const std::string& str, size_t* pos = nullptr);
+#else
+using std::stoul;
+using std::stoi;
+using std::stod;
+#endif
 
 }  // end namespace benchmark
 

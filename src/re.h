@@ -17,6 +17,8 @@
 
 #include "internal_macros.h"
 
+// clang-format off
+
 #if !defined(HAVE_STD_REGEX) && \
     !defined(HAVE_GNU_POSIX_REGEX) && \
     !defined(HAVE_POSIX_REGEX)
@@ -45,6 +47,9 @@
 #else
 #error No regular expression backend was found!
 #endif
+
+// clang-format on
+
 #include <string>
 
 #include "check.h"
@@ -76,7 +81,7 @@ class Regex {
 #elif defined(HAVE_POSIX_REGEX) || defined(HAVE_GNU_POSIX_REGEX)
   regex_t re_;
 #else
-  #error No regular expression backend implementation available
+#error No regular expression backend implementation available
 #endif
 };
 
@@ -84,20 +89,21 @@ class Regex {
 
 inline bool Regex::Init(const std::string& spec, std::string* error) {
 #ifdef BENCHMARK_HAS_NO_EXCEPTIONS
-  ((void)error); // suppress unused warning
+  ((void)error);  // suppress unused warning
 #else
   try {
 #endif
-    re_ = std::regex(spec, std::regex_constants::extended);
-    init_ = true;
+  re_ = std::regex(spec, std::regex_constants::extended);
+  init_ = true;
 #ifndef BENCHMARK_HAS_NO_EXCEPTIONS
-  } catch (const std::regex_error& e) {
-    if (error) {
-      *error = e.what();
-    }
+}
+catch (const std::regex_error& e) {
+  if (error) {
+    *error = e.what();
   }
+}
 #endif
-  return init_;
+return init_;
 }
 
 inline Regex::~Regex() {}

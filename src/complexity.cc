@@ -26,6 +26,7 @@ namespace benchmark {
 
 // Internal function to calculate the different scalability forms
 BigOFunc* FittingCurve(BigO complexity) {
+  static const double kLog2E = 1.44269504088896340736;
   switch (complexity) {
     case oN:
       return [](int64_t n) -> double { return static_cast<double>(n); };
@@ -34,9 +35,11 @@ BigOFunc* FittingCurve(BigO complexity) {
     case oNCubed:
       return [](int64_t n) -> double { return std::pow(n, 3); };
     case oLogN:
-      return [](int64_t n) { return log2(n); };
+      /* Note: can't use log2 because Android's GNU STL lacks it */
+      return [](int64_t n) { return kLog2E * log(static_cast<double>(n)); };
     case oNLogN:
-      return [](int64_t n) { return n * log2(n); };
+      /* Note: can't use log2 because Android's GNU STL lacks it */
+      return [](int64_t n) { return kLog2E * n * log(static_cast<double>(n)); };
     case o1:
     default:
       return [](int64_t) { return 1.0; };
@@ -184,6 +187,7 @@ std::vector<BenchmarkReporter::Run> ComputeBigO(
 
   // Get the data from the accumulator to BenchmarkReporter::Run's.
   Run big_o;
+  big_o.run_type = BenchmarkReporter::Run::RT_Aggregate;
   big_o.benchmark_name = benchmark_name + "_BigO";
   big_o.iterations = 0;
   big_o.real_accumulated_time = result_real.coef;
@@ -201,6 +205,7 @@ std::vector<BenchmarkReporter::Run> ComputeBigO(
   // Only add label to mean/stddev if it is same for all runs
   Run rms;
   big_o.report_label = reports[0].report_label;
+  rms.run_type = BenchmarkReporter::Run::RT_Aggregate;
   rms.benchmark_name = benchmark_name + "_RMS";
   rms.report_label = big_o.report_label;
   rms.iterations = 0;
