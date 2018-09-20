@@ -12,6 +12,12 @@ foreach(p
   endif()
 endforeach()
 
+set(BENCHMARK_INSTALL_BINDIR "bin" CACHE STRING "Installation directory for executables")
+set(BENCHMARK_INSTALL_INCLUDEDIR "include" CACHE STRING "Installation directory for headers")
+set(BENCHMARK_INSTALL_LIBDIR "lib" CACHE STRING "Installation directory for libraries")
+set(BENCHMARK_INSTALL_CMAKEDIR "lib/cmake/${PACKAGE_NAME}" CACHE STRING "Installation directory for cmake config files")
+set(BENCHMARK_INSTALL_PKGCONFIG "lib/pkgconfig" CACHE STRING "Installation directory for pkgconfig config files")
+
 option(BENCHMARK_ENABLE_TESTING "Enable testing of the benchmark library." ON)
 option(BENCHMARK_ENABLE_EXCEPTIONS "Enable the use of exceptions in the benchmark library." ON)
 option(BENCHMARK_ENABLE_LTO "Enable link time optimisation of the benchmark library." OFF)

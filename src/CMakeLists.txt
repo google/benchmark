@@ -55,12 +55,6 @@ target_include_directories(benchmark PUBLIC
     )
 target_link_libraries(benchmark_main benchmark)
 
-set(include_install_dir "include")
-set(lib_install_dir "lib/")
-set(bin_install_dir "bin/")
-set(config_install_dir "lib/cmake/${PROJECT_NAME}")
-set(pkgconfig_install_dir "lib/pkgconfig")
-
 set(generated_dir "${CMAKE_CURRENT_BINARY_DIR}/generated")
 
 set(version_config "${generated_dir}/${PROJECT_NAME}ConfigVersion.cmake")
@@ -83,26 +77,26 @@ if (BENCHMARK_ENABLE_INSTALL)
   install(
     TARGETS benchmark benchmark_main
     EXPORT ${targets_export_name}
-    ARCHIVE DESTINATION ${lib_install_dir}
-    LIBRARY DESTINATION ${lib_install_dir}
-    RUNTIME DESTINATION ${bin_install_dir}
-    INCLUDES DESTINATION ${include_install_dir})
+    ARCHIVE DESTINATION ${BENCHMARK_INSTALL_LIBDIR}
+    LIBRARY DESTINATION ${BENCHMARK_INSTALL_LIBDIR}
+    RUNTIME DESTINATION ${BENCHMARK_INSTALL_BINDIR}
+    INCLUDES DESTINATION ${BENCHMARK_INSTALL_INCLUDEDIR})
 
   install(
     DIRECTORY "${PROJECT_SOURCE_DIR}/include/benchmark"
-    DESTINATION ${include_install_dir}
+    DESTINATION ${BENCHMARK_INSTALL_INCLUDEDIR}
     FILES_MATCHING PATTERN "*.*h")
 
   install(
       FILES "${project_config}" "${version_config}"
-      DESTINATION "${config_install_dir}")
+      DESTINATION "${BENCHMARK_INSTALL_CMAKEDIR}")
 
   install(
       FILES "${pkg_config}"
-      DESTINATION "${pkgconfig_install_dir}")
+      DESTINATION "${BENCHMARK_INSTALL_PKGCONFIG}")
 
   install(
       EXPORT "${targets_export_name}"
       NAMESPACE "${namespace}"
-      DESTINATION "${config_install_dir}")
+      DESTINATION "${BENCHMARK_INSTALL_CMAKEDIR}")
 endif()
