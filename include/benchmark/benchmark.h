@@ -430,6 +430,7 @@ struct Statistics {
 };
 
 namespace internal {
+struct BenchmarkInstance;
 class ThreadTimer;
 class ThreadManager;
 
@@ -664,12 +665,11 @@ class State {
   // Number of threads concurrently executing the benchmark.
   const int threads;
 
-  // TODO(EricWF) make me private
+ private:
   State(size_t max_iters, const std::vector<int64_t>& ranges, int thread_i,
         int n_threads, internal::ThreadTimer* timer,
         internal::ThreadManager* manager);
 
- private:
   void StartKeepRunning();
   // Implementation of KeepRunning() and KeepRunningBatch().
   // is_batch must be true unless n is 1.
@@ -677,7 +677,8 @@ class State {
   void FinishKeepRunning();
   internal::ThreadTimer* timer_;
   internal::ThreadManager* manager_;
-  BENCHMARK_DISALLOW_COPY_AND_ASSIGN(State);
+
+  friend struct internal::BenchmarkInstance;
 };
 
 inline BENCHMARK_ALWAYS_INLINE bool State::KeepRunning() {
@@ -930,9 +931,6 @@ class Benchmark {
   Benchmark* ThreadPerCpu();
 
   virtual void Run(State& state) = 0;
-
-  // Used inside the benchmark implementation
-  struct Instance;
 
  protected:
   explicit Benchmark(const char* name);
