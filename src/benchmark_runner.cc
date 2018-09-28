@@ -154,7 +154,7 @@ class BenchmarkRunner {
 
     for (int repetition_num = 0; repetition_num < repeats; repetition_num++) {
       const bool is_the_first_repetition = repetition_num == 0;
-      doOneRepetition(is_the_first_repetition);
+      DoOneRepetition(is_the_first_repetition);
     }
 
     // Calculate additional statistics
@@ -170,7 +170,7 @@ class BenchmarkRunner {
     }
   }
 
-  RunResults getResults() { return run_results; }
+  RunResults&& get_results() { return std::move(run_results); }
 
  private:
   RunResults run_results;
@@ -193,7 +193,7 @@ class BenchmarkRunner {
     size_t iters;
     double seconds;
   };
-  IterationResults doNIterations() {
+  IterationResults DoNIterations() {
     VLOG(2) << "Running " << b.name << " for " << iters << "\n";
 
     std::unique_ptr<internal::ThreadManager> manager;
@@ -243,7 +243,7 @@ class BenchmarkRunner {
     return i;
   }
 
-  size_t predictNumItersNeeded(const IterationResults& i) const {
+  size_t PredictNumItersNeeded(const IterationResults& i) const {
     // See how much iterations should be increased by.
     // Note: Avoid division by zero with max(seconds, 1ns).
     double multiplier = min_time * 1.4 / std::max(i.seconds, 1e-9);
@@ -266,7 +266,7 @@ class BenchmarkRunner {
     return next_iters;  // round up before conversion to integer.
   }
 
-  bool shouldReportIterationResults(const IterationResults& i) const {
+  bool ShouldReportIterationResults(const IterationResults& i) const {
     // Determine if this run should be reported;
     // Either it has run for a sufficient amount of time
     // or because an error was reported.
@@ -279,7 +279,7 @@ class BenchmarkRunner {
            ((i.results.real_time_used >= 5 * min_time) && !b.use_manual_time);
   }
 
-  void doOneRepetition(bool is_the_first_repetition) {
+  void DoOneRepetition(bool is_the_first_repetition) {
     IterationResults i;
 
     // We *may* be gradually increasing the length (iteration count)
@@ -289,7 +289,7 @@ class BenchmarkRunner {
     // is *only* calculated for the *first* repetition, and other repetitions
     // simply use that precomputed iteration count.
     for (;;) {
-      i = doNIterations();
+      i = DoNIterations();
 
       // Do we consider the results to be significant?
       // If we are doing repetitions, and the first repetition was already done,
@@ -298,14 +298,14 @@ class BenchmarkRunner {
       // Else, the normal rules apply.
       const bool results_are_significant = !is_the_first_repetition ||
                                            has_explicit_iteration_count ||
-                                           shouldReportIterationResults(i);
+                                           ShouldReportIterationResults(i);
 
       if (results_are_significant) break;  // Good, let's report them!
 
       // Nope, bad iteration. Let's re-estimate the hopefully-sufficient
       // iteration count, and run the benchmark again...
 
-      iters = predictNumItersNeeded(i);
+      iters = PredictNumItersNeeded(i);
       assert(iters > i.iters &&
              "if we did more iterations than we want to do the next time, "
              "then we should have accepted the current iteration run.");
@@ -345,7 +345,7 @@ RunResults RunBenchmark(
     const benchmark::internal::BenchmarkInstance& b,
     std::vector<BenchmarkReporter::Run>* complexity_reports) {
   internal::BenchmarkRunner r(b, complexity_reports);
-  return r.getResults();
+  return r.get_results();
 }
 
 }  // end namespace internal
