@@ -78,7 +78,7 @@ class BenchmarkFamilies {
   // Extract the list of benchmark instances that match the specified
   // regular expression.
   bool FindBenchmarks(std::string re,
-                      std::vector<Benchmark::Instance>* benchmarks,
+                      std::vector<BenchmarkInstance>* benchmarks,
                       std::ostream* Err);
 
  private:
@@ -107,7 +107,7 @@ void BenchmarkFamilies::ClearBenchmarks() {
 }
 
 bool BenchmarkFamilies::FindBenchmarks(
-    std::string spec, std::vector<Benchmark::Instance>* benchmarks,
+    std::string spec, std::vector<BenchmarkInstance>* benchmarks,
     std::ostream* ErrStream) {
   CHECK(ErrStream);
   auto& Err = *ErrStream;
@@ -152,7 +152,7 @@ bool BenchmarkFamilies::FindBenchmarks(
 
     for (auto const& args : family->args_) {
       for (int num_threads : *thread_counts) {
-        Benchmark::Instance instance;
+        BenchmarkInstance instance;
         instance.name = family->name_;
         instance.benchmark = family.get();
         instance.aggregation_report_mode = family->aggregation_report_mode_;
@@ -225,7 +225,7 @@ Benchmark* RegisterBenchmarkInternal(Benchmark* bench) {
 // FIXME: This function is a hack so that benchmark.cc can access
 // `BenchmarkFamilies`
 bool FindBenchmarksInternal(const std::string& re,
-                            std::vector<Benchmark::Instance>* benchmarks,
+                            std::vector<BenchmarkInstance>* benchmarks,
                             std::ostream* Err) {
   return BenchmarkFamilies::GetInstance()->FindBenchmarks(re, benchmarks, Err);
 }
