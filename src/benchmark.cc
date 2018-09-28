@@ -114,6 +114,13 @@ DEFINE_int32(v, 0, "The level of verbose logging to output");
 
 namespace benchmark {
 
+namespace internal {
+
+// FIXME: wouldn't LTO mess this up?
+void UseCharPointer(char const volatile*) {}
+
+}  // namespace internal
+
 State::State(size_t max_iters, const std::vector<int64_t>& ranges, int thread_i,
              int n_threads, internal::ThreadTimer* timer,
              internal::ThreadManager* manager)
