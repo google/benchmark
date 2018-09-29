@@ -179,7 +179,7 @@ if (BENCHMARK_ENABLE_GTEST_TESTS)
       add_dependencies(${name} googletest)
     endif()
     if (GTEST_INCLUDE_DIRS)
-      target_include_directories(${name} PRIVATE ${GTEST_INCLUDE_DIRS})
+      target_include_directories(${name} SYSTEM PRIVATE ${GTEST_INCLUDE_DIRS})
     endif()
     target_link_libraries(${name} benchmark
         ${GTEST_BOTH_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
