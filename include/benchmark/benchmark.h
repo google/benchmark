@@ -555,13 +555,13 @@ class State {
   BENCHMARK_ALWAYS_INLINE
   void SetBytesProcessed(int64_t bytes) {
     counters["bytes_per_second"] =
-        Counter(bytes, Counter::kIsRate, Counter::kIs1024);
+        Counter(static_cast<double>(bytes), Counter::kIsRate, Counter::kIs1024);
   }
 
   BENCHMARK_ALWAYS_INLINE
   int64_t bytes_processed() const {
     if (counters.find("bytes_per_second") != counters.end())
-      return counters.at("bytes_per_second");
+      return static_cast<int64_t>(counters.at("bytes_per_second"));
     return 0;
   }
 
@@ -584,13 +584,14 @@ class State {
   // REQUIRES: a benchmark has exited its benchmarking loop.
   BENCHMARK_ALWAYS_INLINE
   void SetItemsProcessed(int64_t items) {
-    counters["items_per_second"] = Counter(items, benchmark::Counter::kIsRate);
+    counters["items_per_second"] =
+        Counter(static_cast<double>(items), benchmark::Counter::kIsRate);
   }
 
   BENCHMARK_ALWAYS_INLINE
   int64_t items_processed() const {
     if (counters.find("items_per_second") != counters.end())
-      return counters.at("items_per_second");
+      return static_cast<int64_t>(counters.at("items_per_second"));
     return 0;
   }
 
