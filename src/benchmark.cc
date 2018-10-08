@@ -312,13 +312,18 @@ bool IsZero(double n) {
 
 ConsoleReporter::OutputOptions GetOutputOptions(bool force_no_color) {
   int output_opts = ConsoleReporter::OO_Defaults;
-  if ((FLAGS_benchmark_color == "auto" && IsColorTerminal()) ||
-      IsTruthyFlagValue(FLAGS_benchmark_color)) {
+  auto is_benchmark_color = [force_no_color] () -> bool {
+    if (force_no_color) {
+      return false;
+    }
+    if (FLAGS_benchmark_color == "auto") {
+      return IsColorTerminal();
+    }
+    return IsTruthyFlagValue(FLAGS_benchmark_color);
+  };
+  if (is_benchmark_color()) {
     output_opts |= ConsoleReporter::OO_Color;
   } else {
-    output_opts &= ~ConsoleReporter::OO_Color;
-  }
-  if (force_no_color) {
     output_opts &= ~ConsoleReporter::OO_Color;
   }
   if (FLAGS_benchmark_counters_tabular) {
