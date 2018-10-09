@@ -132,6 +132,23 @@ else()
     add_cxx_compiler_flag(-std=c++0x)
   endif()
 
+  # Turn off some compiler warnings for clang-cl
+  if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang" AND MSVC)
+    add_cxx_compiler_flag(-Wno-c++98-compat-pedantic)
+    add_cxx_compiler_flag(-Wno-unknown-argument)
+    add_cxx_compiler_flag(-Wno-global-constructors)
+    add_cxx_compiler_flag(-Wno-covered-switch-default)
+    add_cxx_compiler_flag(-Wno-switch-enum)
+    add_cxx_compiler_flag(-Wno-format-nonliteral)
+    add_cxx_compiler_flag(-Wno-old-style-cast)
+    add_cxx_compiler_flag(-Wno-reserved-id-macro)
+    add_cxx_compiler_flag(-Wno-missing-variable-declarations)
+    add_cxx_compiler_flag(-Wno-exit-time-destructors)
+    add_cxx_compiler_flag(-Wno-sign-conversion)
+    add_cxx_compiler_flag(-Wno-missing-noreturn)
+    add_cxx_compiler_flag(-Wno-missing-prototypes)
+  endif()
+
   # Turn compiler warnings up to 11
   add_cxx_compiler_flag(-Wall)
   add_cxx_compiler_flag(-Wextra)
