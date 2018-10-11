@@ -273,10 +273,8 @@ class BenchmarkRunner {
     return i.results.has_error_ ||
            i.iters >= kMaxIterations ||  // Too many iterations already.
            i.seconds >= min_time ||      // The elapsed time is large enough.
-           // CPU time is specified but the elapsed real time greatly exceeds
-           // the minimum time.
-           // Note that user provided timers are except from this sanity check.
-           ((i.results.real_time_used >= 5 * min_time) && !b.use_manual_time);
+           // The elapsed real time greatly exceeds the minimum time.
+           i.results.real_time_used >= 5 * min_time;
   }
 
   void DoOneRepetition(bool is_the_first_repetition) {
