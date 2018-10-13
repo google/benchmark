@@ -75,34 +75,27 @@ macro(build_external_gtest)
   endforeach()
 endmacro(build_external_gtest)
 
-macro(build_gtest_from_dir)
-  set(INSTALL_GTEST OFF CACHE INTERNAL "")
-  set(INSTALL_GMOCK OFF CACHE INTERNAL "")
-  add_subdirectory(${GTEST_ROOT} build)
-  set(GTEST_BOTH_LIBRARIES gtest gmock gmock_main)
-  foreach(HEADER test mock)
-    # CMake 2.8 and older don't respect INTERFACE_INCLUDE_DIRECTORIES, so we
-    # have to add the paths ourselves.
-    set(HFILE g${HEADER}/g${HEADER}.h)
-    set(HPATH ${GTEST_ROOT}/google${HEADER}/include)
-    find_path(HEADER_PATH_${HEADER} ${HFILE}
-            NO_DEFAULT_PATHS
-            HINTS ${HPATH}
-            )
-    if (NOT HEADER_PATH_${HEADER})
-      message(FATAL_ERROR "Failed to find header ${HFILE} in ${HPATH}")
-    endif()
-    list(APPEND GTEST_INCLUDE_DIRS ${HEADER_PATH_${HEADER}})
-  endforeach()
-endmacro()
-
 if (BENCHMARK_ENABLE_GTEST_TESTS)
   if (IS_DIRECTORY ${CMAKE_SOURCE_DIR}/googletest)
     set(GTEST_ROOT "${CMAKE_SOURCE_DIR}/googletest")
-    build_gtest_from_dir()
-  elseif (IS_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/googletest)
-    set(GTEST_ROOT "${CMAKE_CURRENT_SOURCE_DIR}/googletest")
-    build_gtest_from_dir()
+    set(INSTALL_GTEST OFF CACHE INTERNAL "")
+    set(INSTALL_GMOCK OFF CACHE INTERNAL "")
+    add_subdirectory(${CMAKE_SOURCE_DIR}/googletest)
+    set(GTEST_BOTH_LIBRARIES gtest gmock gmock_main)
+    foreach(HEADER test mock)
+      # CMake 2.8 and older don't respect INTERFACE_INCLUDE_DIRECTORIES, so we
+      # have to add the paths ourselves.
+      set(HFILE g${HEADER}/g${HEADER}.h)
+      set(HPATH ${GTEST_ROOT}/google${HEADER}/include)
+      find_path(HEADER_PATH_${HEADER} ${HFILE}
+          NO_DEFAULT_PATHS
+          HINTS ${HPATH}
+      )
+      if (NOT HEADER_PATH_${HEADER})
+        message(FATAL_ERROR "Failed to find header ${HFILE} in ${HPATH}")
+      endif()
+      list(APPEND GTEST_INCLUDE_DIRS ${HEADER_PATH_${HEADER}})
+    endforeach()
   elseif(BENCHMARK_DOWNLOAD_DEPENDENCIES)
     build_external_gtest()
   else()
