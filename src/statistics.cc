@@ -95,9 +95,6 @@ std::vector<BenchmarkReporter::Run> ComputeStats(
   real_accumulated_time_stat.reserve(reports.size());
   cpu_accumulated_time_stat.reserve(reports.size());
 
-  // All repetitions should be run with the same number of iterations so we
-  // can take this information from the first benchmark.
-  int64_t const run_iterations = reports.front().iterations;
   // create stats for user counters
   struct CounterStat {
     Counter c;
@@ -120,7 +117,6 @@ std::vector<BenchmarkReporter::Run> ComputeStats(
   // Populate the accumulators.
   for (Run const& run : reports) {
     CHECK_EQ(reports[0].benchmark_name(), run.benchmark_name());
-    CHECK_EQ(run_iterations, run.iterations);
     if (run.error_occurred) continue;
     real_accumulated_time_stat.emplace_back(run.real_accumulated_time);
     cpu_accumulated_time_stat.emplace_back(run.cpu_accumulated_time);
@@ -148,7 +144,13 @@ std::vector<BenchmarkReporter::Run> ComputeStats(
     data.run_type = BenchmarkReporter::Run::RT_Aggregate;
     data.aggregate_name = Stat.name_;
     data.report_label = report_label;
-    data.iterations = run_iterations;
+
+    // It is incorrect to say that an aggregate is computed over
+    // run's iterations, because those iterations already got averaged.
+    // Similarly, if there are N repetitions with 1 iterations each,
+    // an aggregate will be computed over N measurements, not 1.
+    // Thus it is best to simply use the count of separate reports.
+    data.iterations = reports.size();
 
     data.real_accumulated_time = Stat.compute_(real_accumulated_time_stat);
     data.cpu_accumulated_time = Stat.compute_(cpu_accumulated_time_stat);
