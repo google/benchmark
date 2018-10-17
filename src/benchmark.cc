@@ -228,18 +228,18 @@ void RunBenchmarks(const std::vector<BenchmarkInstance>& benchmarks,
   CHECK(display_reporter != nullptr);
 
   // Determine the width of the name field using a minimum width of 10.
-  bool has_repetitions = FLAGS_benchmark_repetitions > 1;
+  bool might_have_aggregates = FLAGS_benchmark_repetitions > 1;
   size_t name_field_width = 10;
   size_t stat_field_width = 0;
   for (const BenchmarkInstance& benchmark : benchmarks) {
     name_field_width =
         std::max<size_t>(name_field_width, benchmark.name.size());
-    has_repetitions |= benchmark.repetitions > 1;
+    might_have_aggregates |= benchmark.repetitions > 1;
 
     for (const auto& Stat : *benchmark.statistics)
       stat_field_width = std::max<size_t>(stat_field_width, Stat.name_.size());
   }
-  if (has_repetitions) name_field_width += 1 + stat_field_width;
+  if (might_have_aggregates) name_field_width += 1 + stat_field_width;
 
   // Print header here
   BenchmarkReporter::Context context;
