@@ -45,9 +45,9 @@ ADD_CASES(
          "t0_1000000DefaultBase=1000k t1_1000000Base1000=1000k "
          "t2_1000000Base1024=976.56[23]k t3_1048576Base1000=1048.58k "
          "t4_1048576Base1024=1024k$"},
-        {"^BM_Counters_Thousands/repeats:2_stddev %console_report "
-         "t0_1000000DefaultBase=0 t1_1000000Base1000=0 t2_1000000Base1024=0 "
-         "t3_1048576Base1000=0 t4_1048576Base1024=0$"},
+        {"^BM_Counters_Thousands/repeats:2_stddev %console_time_only_report [ "
+         "]*2 t0_1000000DefaultBase=0 t1_1000000Base1000=0 "
+         "t2_1000000Base1024=0 t3_1048576Base1000=0 t4_1048576Base1024=0$"},
     });
 ADD_CASES(TC_JSONOut,
           {{"\"name\": \"BM_Counters_Thousands/repeats:2\",$"},
@@ -82,7 +82,7 @@ ADD_CASES(TC_JSONOut,
            {"\"run_name\": \"BM_Counters_Thousands/repeats:2\",$", MR_Next},
            {"\"run_type\": \"aggregate\",$", MR_Next},
            {"\"aggregate_name\": \"mean\",$", MR_Next},
-           {"\"iterations\": %int,$", MR_Next},
+           {"\"iterations\": 2,$", MR_Next},
            {"\"real_time\": %float,$", MR_Next},
            {"\"cpu_time\": %float,$", MR_Next},
            {"\"time_unit\": \"ns\",$", MR_Next},
@@ -97,7 +97,7 @@ ADD_CASES(TC_JSONOut,
            {"\"run_name\": \"BM_Counters_Thousands/repeats:2\",$", MR_Next},
            {"\"run_type\": \"aggregate\",$", MR_Next},
            {"\"aggregate_name\": \"median\",$", MR_Next},
-           {"\"iterations\": %int,$", MR_Next},
+           {"\"iterations\": 2,$", MR_Next},
            {"\"real_time\": %float,$", MR_Next},
            {"\"cpu_time\": %float,$", MR_Next},
            {"\"time_unit\": \"ns\",$", MR_Next},
@@ -112,7 +112,7 @@ ADD_CASES(TC_JSONOut,
            {"\"run_name\": \"BM_Counters_Thousands/repeats:2\",$", MR_Next},
            {"\"run_type\": \"aggregate\",$", MR_Next},
            {"\"aggregate_name\": \"stddev\",$", MR_Next},
-           {"\"iterations\": %int,$", MR_Next},
+           {"\"iterations\": 2,$", MR_Next},
            {"\"real_time\": %float,$", MR_Next},
            {"\"cpu_time\": %float,$", MR_Next},
            {"\"time_unit\": \"ns\",$", MR_Next},

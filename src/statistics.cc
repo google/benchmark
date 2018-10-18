@@ -141,6 +141,9 @@ std::vector<BenchmarkReporter::Run> ComputeStats(
     }
   }
 
+  const double iteration_rescale_factor =
+      double(reports.size()) / double(run_iterations);
+
   for (const auto& Stat : *reports[0].statistics) {
     // Get the data from the accumulator to BenchmarkReporter::Run's.
     Run data;
@@ -148,15 +151,30 @@ std::vector<BenchmarkReporter::Run> ComputeStats(
     data.run_type = BenchmarkReporter::Run::RT_Aggregate;
     data.aggregate_name = Stat.name_;
     data.report_label = report_label;
-    data.iterations = run_iterations;
+
+    // It is incorrect to say that an aggregate is computed over
+    // run's iterations, because those iterations already got averaged.
+    // Similarly, if there are N repetitions with 1 iterations each,
+    // an aggregate will be computed over N measurements, not 1.
+    // Thus it is best to simply use the count of separate reports.
+    data.iterations = reports.size();
 
     data.real_accumulated_time = Stat.compute_(real_accumulated_time_stat);
     data.cpu_accumulated_time = Stat.compute_(cpu_accumulated_time_stat);
+
+    // We will divide these times by data.iterations when reporting, but the
+    // data.iterations is not nessesairly the scale of these measurements,
+    // because in each repetition, these timers are sum over all the iterations.
+    // And if we want to say that the stats are over N repetitions and not
+    // M iterations, we need to multiply these by (N/M).
+    data.real_accumulated_time *= iteration_rescale_factor;
+    data.cpu_accumulated_time *= iteration_rescale_factor;
 
     data.time_unit = reports[0].time_unit;
 
     // user counters
     for (auto const& kv : counter_stats) {
+      // Do *NOT* rescale the custom counters. They are already properly scaled.
       const auto uc_stat = Stat.compute_(kv.second.s);
       auto c = Counter(uc_stat, counter_stats[kv.first].c.flags,
                        counter_stats[kv.first].c.oneK);
