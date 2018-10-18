@@ -558,7 +558,7 @@ ADD_CASES(
      {"\"run_type\": \"aggregate\",$", MR_Next},
      {"\"aggregate_name\": \"stddev\",$", MR_Next},
      {"\"iterations\": 3,$", MR_Next},
-     {"\"real_time\": (0)*\\.(0)*e\\+(0)*,$", MR_Next},
+     {"\"real_time\": %float,$", MR_Next},
      {"\"name\": \"BM_UserStats/iterations:5/repeats:3/manual_time_\",$"},
      {"\"run_name\": \"BM_UserStats/iterations:5/repeats:3/manual_time\",$",
       MR_Next},
