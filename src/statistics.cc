@@ -95,6 +95,9 @@ std::vector<BenchmarkReporter::Run> ComputeStats(
   real_accumulated_time_stat.reserve(reports.size());
   cpu_accumulated_time_stat.reserve(reports.size());
 
+  // All repetitions should be run with the same number of iterations so we
+  // can take this information from the first benchmark.
+  int64_t const run_iterations = reports.front().iterations;
   // create stats for user counters
   struct CounterStat {
     Counter c;
@@ -117,6 +120,7 @@ std::vector<BenchmarkReporter::Run> ComputeStats(
   // Populate the accumulators.
   for (Run const& run : reports) {
     CHECK_EQ(reports[0].benchmark_name(), run.benchmark_name());
+    CHECK_EQ(run_iterations, run.iterations);
     if (run.error_occurred) continue;
     real_accumulated_time_stat.emplace_back(run.real_accumulated_time);
     cpu_accumulated_time_stat.emplace_back(run.cpu_accumulated_time);
@@ -137,6 +141,9 @@ std::vector<BenchmarkReporter::Run> ComputeStats(
     }
   }
 
+  const double iteration_rescale_factor =
+      double(reports.size()) / double(run_iterations);
+
   for (const auto& Stat : *reports[0].statistics) {
     // Get the data from the accumulator to BenchmarkReporter::Run's.
     Run data;
@@ -155,10 +162,19 @@ std::vector<BenchmarkReporter::Run> ComputeStats(
     data.real_accumulated_time = Stat.compute_(real_accumulated_time_stat);
     data.cpu_accumulated_time = Stat.compute_(cpu_accumulated_time_stat);
 
+    // We will divide these times by data.iterations when reporting, but the
+    // data.iterations is not nessesairly the scale of these measurements,
+    // because in each repetition, these timers are sum over all the iterations.
+    // And if we want to say that the stats are over N repetitions and not
+    // M iterations, we need to multiply these by (N/M).
+    data.real_accumulated_time *= iteration_rescale_factor;
+    data.cpu_accumulated_time *= iteration_rescale_factor;
+
     data.time_unit = reports[0].time_unit;
 
     // user counters
     for (auto const& kv : counter_stats) {
+      // Do *NOT* rescale the custom counters. They are already properly scaled.
       const auto uc_stat = Stat.compute_(kv.second.s);
       auto c = Counter(uc_stat, counter_stats[kv.first].c.flags,
                        counter_stats[kv.first].c.oneK);

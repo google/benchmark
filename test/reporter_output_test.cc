@@ -491,60 +491,92 @@ const auto UserStatistics = [](const std::vector<double>& v) {
 };
 void BM_UserStats(benchmark::State& state) {
   for (auto _ : state) {
+    state.SetIterationTime(150 / 10e8);
   }
 }
 // clang-format off
 BENCHMARK(BM_UserStats)
   ->Repetitions(3)
+  ->Iterations(5)
+  ->UseManualTime()
   ->ComputeStatistics("", UserStatistics);
 // clang-format on
 
 // check that user-provided stats is calculated, and is after the default-ones
 // empty string as name is intentional, it would sort before anything else
-ADD_CASES(TC_ConsoleOut,
-          {{"^BM_UserStats/repeats:3 %console_report$"},
-           {"^BM_UserStats/repeats:3 %console_report$"},
-           {"^BM_UserStats/repeats:3 %console_report$"},
-           {"^BM_UserStats/repeats:3_mean %console_time_only_report [ ]*3$"},
-           {"^BM_UserStats/repeats:3_median %console_time_only_report [ ]*3$"},
-           {"^BM_UserStats/repeats:3_stddev %console_time_only_report [ ]*3$"},
-           {"^BM_UserStats/repeats:3_ %console_report$"}});
-ADD_CASES(TC_JSONOut, {{"\"name\": \"BM_UserStats/repeats:3\",$"},
-                       {"\"run_name\": \"BM_UserStats/repeats:3\",$", MR_Next},
-                       {"\"run_type\": \"iteration\",$", MR_Next},
-                       {"\"name\": \"BM_UserStats/repeats:3\",$"},
-                       {"\"run_name\": \"BM_UserStats/repeats:3\",$", MR_Next},
-                       {"\"run_type\": \"iteration\",$", MR_Next},
-                       {"\"name\": \"BM_UserStats/repeats:3\",$"},
-                       {"\"run_name\": \"BM_UserStats/repeats:3\",$", MR_Next},
-                       {"\"run_type\": \"iteration\",$", MR_Next},
-                       {"\"name\": \"BM_UserStats/repeats:3_mean\",$"},
-                       {"\"run_name\": \"BM_UserStats/repeats:3\",$", MR_Next},
-                       {"\"run_type\": \"aggregate\",$", MR_Next},
-                       {"\"aggregate_name\": \"mean\",$", MR_Next},
-                       {"\"iterations\": 3,$", MR_Next},
-                       {"\"name\": \"BM_UserStats/repeats:3_median\",$"},
-                       {"\"run_name\": \"BM_UserStats/repeats:3\",$", MR_Next},
-                       {"\"run_type\": \"aggregate\",$", MR_Next},
-                       {"\"aggregate_name\": \"median\",$", MR_Next},
-                       {"\"iterations\": 3,$", MR_Next},
-                       {"\"name\": \"BM_UserStats/repeats:3_stddev\",$"},
-                       {"\"run_name\": \"BM_UserStats/repeats:3\",$", MR_Next},
-                       {"\"run_type\": \"aggregate\",$", MR_Next},
-                       {"\"aggregate_name\": \"stddev\",$", MR_Next},
-                       {"\"iterations\": 3,$", MR_Next},
-                       {"\"name\": \"BM_UserStats/repeats:3_\",$"},
-                       {"\"run_name\": \"BM_UserStats/repeats:3\",$", MR_Next},
-                       {"\"run_type\": \"aggregate\",$", MR_Next},
-                       {"\"aggregate_name\": \"\",$", MR_Next},
-                       {"\"iterations\": 3,$", MR_Next}});
-ADD_CASES(TC_CSVOut, {{"^\"BM_UserStats/repeats:3\",%csv_report$"},
-                      {"^\"BM_UserStats/repeats:3\",%csv_report$"},
-                      {"^\"BM_UserStats/repeats:3\",%csv_report$"},
-                      {"^\"BM_UserStats/repeats:3_mean\",%csv_report$"},
-                      {"^\"BM_UserStats/repeats:3_median\",%csv_report$"},
-                      {"^\"BM_UserStats/repeats:3_stddev\",%csv_report$"},
-                      {"^\"BM_UserStats/repeats:3_\",%csv_report$"}});
+ADD_CASES(TC_ConsoleOut, {{"^BM_UserStats/iterations:5/repeats:3/manual_time [ "
+                           "]* 150 ns %time [ ]*5$"},
+                          {"^BM_UserStats/iterations:5/repeats:3/manual_time [ "
+                           "]* 150 ns %time [ ]*5$"},
+                          {"^BM_UserStats/iterations:5/repeats:3/manual_time [ "
+                           "]* 150 ns %time [ ]*5$"},
+                          {"^BM_UserStats/iterations:5/repeats:3/"
+                           "manual_time_mean [ ]* 150 ns %time [ ]*3$"},
+                          {"^BM_UserStats/iterations:5/repeats:3/"
+                           "manual_time_median [ ]* 150 ns %time [ ]*3$"},
+                          {"^BM_UserStats/iterations:5/repeats:3/"
+                           "manual_time_stddev [ ]* 0 ns %time [ ]*3$"},
+                          {"^BM_UserStats/iterations:5/repeats:3/manual_time_ "
+                           "[ ]* 150 ns %time [ ]*3$"}});
+ADD_CASES(
+    TC_JSONOut,
+    {{"\"name\": \"BM_UserStats/iterations:5/repeats:3/manual_time\",$"},
+     {"\"run_name\": \"BM_UserStats/iterations:5/repeats:3/manual_time\",$",
+      MR_Next},
+     {"\"run_type\": \"iteration\",$", MR_Next},
+     {"\"iterations\": 5,$", MR_Next},
+     {"\"real_time\": 1\\.5(0)*e\\+(0)*2,$", MR_Next},
+     {"\"name\": \"BM_UserStats/iterations:5/repeats:3/manual_time\",$"},
+     {"\"run_name\": \"BM_UserStats/iterations:5/repeats:3/manual_time\",$",
+      MR_Next},
+     {"\"run_type\": \"iteration\",$", MR_Next},
+     {"\"iterations\": 5,$", MR_Next},
+     {"\"real_time\": 1\\.5(0)*e\\+(0)*2,$", MR_Next},
+     {"\"name\": \"BM_UserStats/iterations:5/repeats:3/manual_time\",$"},
+     {"\"run_name\": \"BM_UserStats/iterations:5/repeats:3/manual_time\",$",
+      MR_Next},
+     {"\"run_type\": \"iteration\",$", MR_Next},
+     {"\"iterations\": 5,$", MR_Next},
+     {"\"real_time\": 1\\.5(0)*e\\+(0)*2,$", MR_Next},
+     {"\"name\": \"BM_UserStats/iterations:5/repeats:3/manual_time_mean\",$"},
+     {"\"run_name\": \"BM_UserStats/iterations:5/repeats:3/manual_time\",$",
+      MR_Next},
+     {"\"run_type\": \"aggregate\",$", MR_Next},
+     {"\"aggregate_name\": \"mean\",$", MR_Next},
+     {"\"iterations\": 3,$", MR_Next},
+     {"\"real_time\": 1\\.5(0)*e\\+(0)*2,$", MR_Next},
+     {"\"name\": \"BM_UserStats/iterations:5/repeats:3/manual_time_median\",$"},
+     {"\"run_name\": \"BM_UserStats/iterations:5/repeats:3/manual_time\",$",
+      MR_Next},
+     {"\"run_type\": \"aggregate\",$", MR_Next},
+     {"\"aggregate_name\": \"median\",$", MR_Next},
+     {"\"iterations\": 3,$", MR_Next},
+     {"\"real_time\": 1\\.5(0)*e\\+(0)*2,$", MR_Next},
+     {"\"name\": \"BM_UserStats/iterations:5/repeats:3/manual_time_stddev\",$"},
+     {"\"run_name\": \"BM_UserStats/iterations:5/repeats:3/manual_time\",$",
+      MR_Next},
+     {"\"run_type\": \"aggregate\",$", MR_Next},
+     {"\"aggregate_name\": \"stddev\",$", MR_Next},
+     {"\"iterations\": 3,$", MR_Next},
+     {"\"real_time\": (0)*\\.(0)*e\\+(0)*,$", MR_Next},
+     {"\"name\": \"BM_UserStats/iterations:5/repeats:3/manual_time_\",$"},
+     {"\"run_name\": \"BM_UserStats/iterations:5/repeats:3/manual_time\",$",
+      MR_Next},
+     {"\"run_type\": \"aggregate\",$", MR_Next},
+     {"\"aggregate_name\": \"\",$", MR_Next},
+     {"\"iterations\": 3,$", MR_Next},
+     {"\"real_time\": 1\\.5(0)*e\\+(0)*2,$", MR_Next}});
+ADD_CASES(
+    TC_CSVOut,
+    {{"^\"BM_UserStats/iterations:5/repeats:3/manual_time\",%csv_report$"},
+     {"^\"BM_UserStats/iterations:5/repeats:3/manual_time\",%csv_report$"},
+     {"^\"BM_UserStats/iterations:5/repeats:3/manual_time\",%csv_report$"},
+     {"^\"BM_UserStats/iterations:5/repeats:3/manual_time_mean\",%csv_report$"},
+     {"^\"BM_UserStats/iterations:5/repeats:3/"
+      "manual_time_median\",%csv_report$"},
+     {"^\"BM_UserStats/iterations:5/repeats:3/"
+      "manual_time_stddev\",%csv_report$"},
+     {"^\"BM_UserStats/iterations:5/repeats:3/manual_time_\",%csv_report$"}});
 
 // ========================================================================= //
 // --------------------------- TEST CASES END ------------------------------ //
