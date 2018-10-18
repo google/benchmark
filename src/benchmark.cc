@@ -267,8 +267,8 @@ void RunBenchmarks(const std::vector<BenchmarkInstance>& benchmarks,
       auto report = [&run_results](BenchmarkReporter* reporter,
                                    bool report_aggregates_only) {
         assert(reporter);
-        assert(
-            !(report_aggregates_only && run_results.aggregates_only.empty()));
+        // If there are no aggregates, do output non-aggregates.
+        report_aggregates_only &= !run_results.aggregates_only.empty();
         if (!report_aggregates_only)
           reporter->ReportRuns(run_results.non_aggregates);
         if (!run_results.aggregates_only.empty())
