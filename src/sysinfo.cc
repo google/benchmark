@@ -404,7 +404,13 @@ int GetNumCPUs() {
     if (ln.empty()) continue;
     size_t SplitIdx = ln.find(':');
     std::string value;
+#if defined(__s390__)
+    // s390 has another format in /proc/cpuinfo
+    // it needs to be parsed differently
+    if (SplitIdx != std::string::npos) value = ln.substr(Key.size()+1,SplitIdx-Key.size()-1);
+#else
     if (SplitIdx != std::string::npos) value = ln.substr(SplitIdx + 1);
+#endif
     if (ln.size() >= Key.size() && ln.compare(0, Key.size(), Key) == 0) {
       NumCPUs++;
       if (!value.empty()) {
