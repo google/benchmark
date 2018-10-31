@@ -70,6 +70,16 @@ DEFINE_double(benchmark_min_time, 0.5,
               "of the benchmark execution, regardless of number of "
               "threads.");
 
+DEFINE_bool(benchmark_report_separate_iterations, false,
+            "Normally, each benchmark is run for a number of iterations, "
+            "and then the total measurements over all the iterations are "
+            "averaged (divided by the iteration count) to get mean estimates. "
+            "This is done because it is assumed that in most cases, "
+            "any one single iteration is too noisy, and besides, stopping "
+            "timers each time is costly. However. There are situations "
+            "where you would want to measure all the iterations separately, "
+            "and this flag allows to do just that. Use with caution.");
+
 DEFINE_int32(benchmark_repetitions, 1,
              "The number of runs of each benchmark. If greater than 1, the "
              "mean and standard deviation of the runs will be reported.");
@@ -228,13 +238,16 @@ void RunBenchmarks(const std::vector<BenchmarkInstance>& benchmarks,
   CHECK(display_reporter != nullptr);
 
   // Determine the width of the name field using a minimum width of 10.
-  bool might_have_aggregates = FLAGS_benchmark_repetitions > 1;
+  bool might_have_aggregates = FLAGS_benchmark_repetitions > 1 ||
+                               FLAGS_benchmark_report_separate_iterations;
   size_t name_field_width = 10;
   size_t stat_field_width = 0;
   for (const BenchmarkInstance& benchmark : benchmarks) {
     name_field_width =
         std::max<size_t>(name_field_width, benchmark.name.size());
     might_have_aggregates |= benchmark.repetitions > 1;
+    might_have_aggregates |= benchmark.iteration_report_mode ==
+                             internal::IRM_ReportSeparateIterations;
 
     for (const auto& Stat : *benchmark.statistics)
       stat_field_width = std::max<size_t>(stat_field_width, Stat.name_.size());
@@ -413,6 +426,7 @@ void PrintUsageAndExit() {
           " [--benchmark_list_tests={true|false}]\n"
           "          [--benchmark_filter=<regex>]\n"
           "          [--benchmark_min_time=<min_time>]\n"
+          "          [--benchmark_report_separate_iterations={true|false}\n"
           "          [--benchmark_repetitions=<num_repetitions>]\n"
           "          [--benchmark_report_aggregates_only={true|false}]\n"
           "          [--benchmark_display_aggregates_only={true|false}]\n"
@@ -435,6 +449,8 @@ void ParseCommandLineFlags(int* argc, char** argv) {
         ParseStringFlag(argv[i], "benchmark_filter", &FLAGS_benchmark_filter) ||
         ParseDoubleFlag(argv[i], "benchmark_min_time",
                         &FLAGS_benchmark_min_time) ||
+        ParseBoolFlag(argv[i], "benchmark_report_separate_iterations",
+                      &FLAGS_benchmark_report_separate_iterations) ||
         ParseInt32Flag(argv[i], "benchmark_repetitions",
                        &FLAGS_benchmark_repetitions) ||
         ParseBoolFlag(argv[i], "benchmark_report_aggregates_only",

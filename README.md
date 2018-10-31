@@ -534,16 +534,33 @@ order to manually set the time unit, you can specify it manually:
 BENCHMARK(BM_test)->Unit(benchmark::kMillisecond);
 ```
 
-### Reporting the mean, median and standard deviation by repeated benchmarks
-By default each benchmark is run once and that single result is reported.
+### Reporting each iteration of an run/repetition separately
+It is worth noting that internally each run/repetition usually runs several
+iterations of the benchmarked code, and then the total measurements over all
+the iterations are averaged (divided by the iteration count). It makes sense,
+since normally the measurements are expected to be noisy, and besides,
+it would be quite costly to measure each iteration separately.
+
+But, sometimes this averaging is unwelcomed.
+You can use `--benchmark_report_separate_iterations={true|false}` flag or
+`ReportSeparateIterations(bool)` function can be used to control the behaviour,
+and force each iteration to be reported separately.
+Please be aware that it comes with cost, and does introduce overhead,
+linearly dependent on the iteration count.
+
+### Reporting the mean, median and standard deviation by benchmarks
+By default each benchmark is run once and that single result is reported,
+unless reporting of separate iterations was requested.
 However benchmarks are often noisy and a single result may not be representative
 of the overall behavior. For this reason it's possible to repeatedly rerun the
 benchmark.
 
 The number of runs of each benchmark is specified globally by the
 `--benchmark_repetitions` flag or on a per benchmark basis by calling
-`Repetitions` on the registered benchmark object. When a benchmark is run more
-than once the mean, median and standard deviation of the runs will be reported.
+`Repetitions` on the registered benchmark object.
+
+When either the benchmark is run more than once, or the separate iterations are
+reported, the mean, median and standard deviation of the runs will be reported.
 
 Additionally the `--benchmark_report_aggregates_only={true|false}`,
 `--benchmark_display_aggregates_only={true|false}` flags or

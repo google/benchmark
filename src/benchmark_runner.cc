@@ -164,6 +164,14 @@ struct AbstractIterationResults {
   // This is the business logic. Implementations need to decide what this does.
   virtual void NewResult(internal::ThreadManager::Result result,
                          const benchmark::internal::BenchmarkInstance& b) = 0;
+
+  void append(const AbstractIterationResults& RHS) {
+    results.insert(results.end(), RHS.results.begin(), RHS.results.end());
+    has_error |= RHS.has_error;
+    iters += RHS.iters;
+    real_time_used += RHS.real_time_used;
+    seconds += RHS.seconds;
+  }
 };
 
 template <typename Derived, typename iteration_results>
@@ -396,11 +404,49 @@ class AveragingBenchmarkRunner final
       : BenchmarkRunnerBase(b_, complexity_reports_) {}
 };
 
+struct SeparateIterationResults final : public AbstractIterationResults {
+  // *Append* the new data.
+  void NewResult(internal::ThreadManager::Result result,
+                 const benchmark::internal::BenchmarkInstance& b) final {
+    append(result, b);
+  }
+};
+
+class NonAveragingBenchmarkRunner final
+    : public BenchmarkRunnerBase<NonAveragingBenchmarkRunner,
+                                 SeparateIterationResults> {
+  using Parent = BenchmarkRunnerBase<NonAveragingBenchmarkRunner,
+                                     SeparateIterationResults>;
+
+ public:
+  NonAveragingBenchmarkRunner(
+      const benchmark::internal::BenchmarkInstance& b_,
+      std::vector<BenchmarkReporter::Run>* complexity_reports_)
+      : BenchmarkRunnerBase(b_, complexity_reports_) {}
+
+  IterationResults DoNIterations(size_t runForNumIters,
+                                 const IterationResults& prev_iters) {
+    const auto iterations_left_to_do =
+        runForNumIters - prev_iters.results.size();
+    assert(iterations_left_to_do > 0);
+
+    IterationResults i;
+    for (auto iteration = 0U; iteration < iterations_left_to_do; iteration++)
+      i.append(Parent::DoNIterations(/*runForNumIters*/ 1, prev_iters));
+    return i;
+  }
+};
+
 }  // end namespace
 
 RunResults RunBenchmark(
     const benchmark::internal::BenchmarkInstance& b,
     std::vector<BenchmarkReporter::Run>* complexity_reports) {
+  if (b.iteration_report_mode == internal::IRM_ReportSeparateIterations) {
+    internal::NonAveragingBenchmarkRunner r(b, complexity_reports);
+    return r.get_results();
+  }
+
   internal::AveragingBenchmarkRunner r(b, complexity_reports);
   return r.get_results();
 }

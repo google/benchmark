@@ -18,6 +18,8 @@
 #include "benchmark_api_internal.h"
 #include "internal_macros.h"
 
+DECLARE_bool(benchmark_report_separate_iterations);
+
 DECLARE_double(benchmark_min_time);
 
 DECLARE_int32(benchmark_repetitions);

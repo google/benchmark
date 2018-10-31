@@ -18,6 +18,7 @@ namespace internal {
 struct BenchmarkInstance {
   std::string name;
   Benchmark* benchmark;
+  IterationReportMode iteration_report_mode;
   AggregationReportMode aggregation_report_mode;
   std::vector<int64_t> arg;
   TimeUnit time_unit;

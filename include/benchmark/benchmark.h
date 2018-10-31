@@ -434,6 +434,15 @@ struct BenchmarkInstance;
 class ThreadTimer;
 class ThreadManager;
 
+enum IterationReportMode
+#if defined(BENCHMARK_HAS_CXX11)
+    : unsigned
+#else
+#endif
+{ IRM_Unspecified,  // The mode has not been manually specified
+  IRM_Default,      // The mode is user-specified as default.
+  IRM_ReportSeparateIterations };
+
 enum AggregationReportMode
 #if defined(BENCHMARK_HAS_CXX11)
     : unsigned
@@ -860,6 +869,10 @@ class Benchmark {
   // `--benchmark_min_time=N` or `MinTime(...)` should be used instead.
   Benchmark* Iterations(size_t n);
 
+  // Specify if each iteration of the repetition should be reported separately,
+  // or if the per-repetition averages should be reported (default).
+  Benchmark* ReportSeparateIterations(bool value = true);
+
   // Specify the amount of times to repeat this benchmark. This option overrides
   // the `benchmark_repetitions` flag.
   // REQUIRES: `n > 0`
@@ -867,7 +880,8 @@ class Benchmark {
 
   // Specify if each repetition of the benchmark should be reported separately
   // or if only the final statistics should be reported. If the benchmark
-  // is not repeated then the single result is always reported.
+  // is not repeated then the single result is always reported,
+  // unless the separate iterations are reported.
   // Applies to *ALL* reporters (display and file).
   Benchmark* ReportAggregatesOnly(bool value = true);
 
@@ -944,6 +958,7 @@ class Benchmark {
   friend class BenchmarkFamilies;
 
   std::string name_;
+  IterationReportMode iteration_report_mode_;
   AggregationReportMode aggregation_report_mode_;
   std::vector<std::string> arg_names_;       // Args for all benchmark runs
   std::vector<std::vector<int64_t> > args_;  // Args for all benchmark runs

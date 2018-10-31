@@ -47,6 +47,8 @@
 #include "string_util.h"
 #include "timers.h"
 
+DECLARE_bool(benchmark_report_separate_iterations);
+
 namespace benchmark {
 
 namespace {
@@ -169,6 +171,13 @@ bool BenchmarkFamilies::FindBenchmarks(
         instance.statistics = &family->statistics_;
         instance.threads = num_threads;
 
+        instance.iteration_report_mode =
+            FLAGS_benchmark_report_separate_iterations
+                ? IRM_ReportSeparateIterations
+                : IRM_Unspecified;
+        if (family->iteration_report_mode_ != IRM_Unspecified)
+          instance.iteration_report_mode = family->iteration_report_mode_;
+
         // Add arguments to instance name
         size_t arg_i = 0;
         for (auto const& arg : args) {
@@ -236,6 +245,7 @@ bool FindBenchmarksInternal(const std::string& re,
 
 Benchmark::Benchmark(const char* name)
     : name_(name),
+      iteration_report_mode_(IRM_Unspecified),
       aggregation_report_mode_(ARM_Unspecified),
       time_unit_(kNanosecond),
       range_multiplier_(kRangeMultiplier),
@@ -359,6 +369,11 @@ Benchmark* Benchmark::Iterations(size_t n) {
   CHECK(n > 0);
   CHECK(IsZero(min_time_));
   iterations_ = n;
+  return this;
+}
+
+Benchmark* Benchmark::ReportSeparateIterations(bool value) {
+  iteration_report_mode_ = value ? IRM_ReportSeparateIterations : IRM_Default;
   return this;
 }
 
