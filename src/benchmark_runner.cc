@@ -193,10 +193,12 @@ class BenchmarkRunnerBase {
     }
   }
 
+  Derived& getDerived() { return *static_cast<Derived*>(this); }
+
   void DoWork() {
     for (int repetition_num = 0; repetition_num < repeats; repetition_num++) {
       const bool is_the_first_repetition = repetition_num == 0;
-      Derived::DoOneRepetition(is_the_first_repetition);
+      getDerived().DoOneRepetition(is_the_first_repetition);
     }
 
     // Calculate additional statistics
@@ -320,7 +322,7 @@ class BenchmarkRunnerBase {
     // is *only* calculated for the *first* repetition, and other repetitions
     // simply use that precomputed iteration count.
     for (;;) {
-      i = Derived::DoNIterations(predictedItersTotal, i);
+      i = getDerived().DoNIterations(predictedItersTotal, i);
 
       // Do we consider the results to be significant?
       // If we are doing repetitions, and the first repetition was already done,
