@@ -148,37 +148,29 @@ struct AbstractIterationResults {
 
     // So for how long were we running?
     real_time_used += result.real_time_used;
-    // Base decisions off of real time if requested by this benchmark.
+    // The benchmark may have requested manual or real time be used
+    // in decision making. Respect that.
     if (b.use_manual_time) {
       seconds += result.manual_time_used;
     } else if (b.use_real_time) {
       seconds += result.real_time_used;
-    } else
+    } else {
       seconds += result.cpu_time_used;
+    }
 
     results.emplace_back(result);
   }
 
-  // This is the business logic. You need to decide what this does.
-  virtual void new_result(internal::ThreadManager::Result result,
-                          const benchmark::internal::BenchmarkInstance& b) = 0;
+  // This is the business logic. Implementations need to decide what this does.
+  virtual void NewResult(internal::ThreadManager::Result result,
+                         const benchmark::internal::BenchmarkInstance& b) = 0;
 };
 
-struct IterationAveragedResults final : public AbstractIterationResults {
-  // Just replace all of the existing data.
-  void new_result(internal::ThreadManager::Result result,
-                  const benchmark::internal::BenchmarkInstance& b) final {
-    IterationAveragedResults empty;
-    empty.append(result, b);
-    *this = std::move(empty);
-  }
-};
-
-template <typename IterationResults = IterationAveragedResults>
-class BenchmarkRunner {
+template <typename Derived, typename IterationResults>
+class BenchmarkRunnerBase {
  public:
-  BenchmarkRunner(const benchmark::internal::BenchmarkInstance& b_,
-                  std::vector<BenchmarkReporter::Run>* complexity_reports_)
+  BenchmarkRunnerBase(const benchmark::internal::BenchmarkInstance& b_,
+                      std::vector<BenchmarkReporter::Run>* complexity_reports_)
       : b(b_),
         complexity_reports(*complexity_reports_),
         min_time(!IsZero(b.min_time) ? b.min_time : FLAGS_benchmark_min_time),
@@ -201,10 +193,10 @@ class BenchmarkRunner {
     }
   }
 
-  void do_work() {  // DO NOT CALL ME FROM THE CONSTRUCTOR!!!
+  void DoWork() {
     for (int repetition_num = 0; repetition_num < repeats; repetition_num++) {
       const bool is_the_first_repetition = repetition_num == 0;
-      DoOneRepetition(is_the_first_repetition);  // WARNING: virtual method!
+      Derived::DoOneRepetition(is_the_first_repetition);
     }
 
     // Calculate additional statistics
@@ -221,7 +213,7 @@ class BenchmarkRunner {
   }
 
   RunResults&& get_results() {
-    do_work();
+    DoWork();
     return std::move(run_results);
   }
 
@@ -242,8 +234,8 @@ class BenchmarkRunner {
   // the other repetitions will just use that precomputed iteration count.
 
  protected:
-  virtual IterationResults DoNIterations(
-      size_t runForNumIters, const IterationResults& /*prev_iters*/) {
+  IterationResults DoNIterations(size_t runForNumIters,
+                                 const IterationResults& /*prev_iters*/) {
     // WARNING: runForNumIters and predictedItersTotal are not interchangeable!
     VLOG(2) << "Running " << b.name << " for " << runForNumIters << "\n";
 
@@ -268,7 +260,7 @@ class BenchmarkRunner {
     // Acquire the measurements/counters from the manager, UNDER THE LOCK!
     {
       MutexLock l(manager->GetBenchmarkMutex());
-      i.new_result(manager->results, b);
+      i.NewResult(manager->results, b);
     }
 
     // And get rid of the manager.
@@ -327,7 +319,7 @@ class BenchmarkRunner {
     // is *only* calculated for the *first* repetition, and other repetitions
     // simply use that precomputed iteration count.
     for (;;) {
-      i = DoNIterations(predictedItersTotal, i);
+      i = Derived::DoNIterations(predictedItersTotal, i);
 
       // Do we consider the results to be significant?
       // If we are doing repetitions, and the first repetition was already done,
@@ -379,12 +371,32 @@ class BenchmarkRunner {
   }
 };
 
+struct IterationAveragedResults final : public AbstractIterationResults {
+  // Just replace all of the existing data.
+  void NewResult(internal::ThreadManager::Result result,
+                 const benchmark::internal::BenchmarkInstance& b) final {
+    IterationAveragedResults empty;
+    empty.append(result, b);
+    *this = std::move(empty);
+  }
+};
+
+class AveragingBenchmarkRunner final
+    : public BenchmarkRunnerBase<AveragingBenchmarkRunner,
+                                 IterationAveragedResults> {
+ public:
+  AveragingBenchmarkRunner(
+      const benchmark::internal::BenchmarkInstance& b_,
+      std::vector<BenchmarkReporter::Run>* complexity_reports_)
+      : BenchmarkRunnerBase(b_, complexity_reports_) {}
+};
+
 }  // end namespace
 
 RunResults RunBenchmark(
     const benchmark::internal::BenchmarkInstance& b,
     std::vector<BenchmarkReporter::Run>* complexity_reports) {
-  internal::BenchmarkRunner<> r(b, complexity_reports);
+  internal::AveragingBenchmarkRunner r(b, complexity_reports);
   return r.get_results();
 }
 
