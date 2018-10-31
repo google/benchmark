@@ -309,6 +309,7 @@ class BenchmarkRunnerBase {
            ((i.real_time_used >= 5 * min_time) && !b.use_manual_time);
   }
 
+ protected:
   void DoOneRepetition(bool is_the_first_repetition) {
     IterationResults i;
 
