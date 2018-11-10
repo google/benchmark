@@ -1518,10 +1518,10 @@ inline const char* GetTimeUnitString(TimeUnit unit) {
     case kMicrosecond:
       return "us";
     case kNanosecond:
-    default:	
       return "ns";
   }
   BENCHMARK_UNREACHABLE();
+  return "ns";
 }
 
 inline double GetTimeUnitMultiplier(TimeUnit unit) {
@@ -1531,10 +1531,10 @@ inline double GetTimeUnitMultiplier(TimeUnit unit) {
     case kMicrosecond:
       return 1e6;
     case kNanosecond:
-    default:	
       return 1e9;
   }
   BENCHMARK_UNREACHABLE();
+  return 1e9;
 }
 
 }  // namespace benchmark
