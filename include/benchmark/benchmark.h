@@ -1284,6 +1284,7 @@ struct CPUInfo {
   double cycles_per_second;
   std::vector<CacheInfo> caches;
   bool scaling_enabled;
+  std::vector<double> load_avg;
 
   static const CPUInfo& Get();
 
