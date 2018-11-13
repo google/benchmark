@@ -116,6 +116,12 @@ bool JSONReporter::ReportContext(const Context& context) {
   }
   indent = std::string(4, ' ');
   out << indent << "],\n";
+  out << indent << "\"load_avg\": [";
+  for (auto it = info.load_avg.begin(); it != info.load_avg.end();) {
+    out << *it++;
+    if (it != info.load_avg.end()) out << ",";
+  }
+  out << "],\n";
 
 #if defined(NDEBUG)
   const char build_type[] = "release";

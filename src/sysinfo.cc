@@ -577,6 +577,24 @@ double GetCPUCyclesPerSecond() {
   return static_cast<double>(cycleclock::Now() - start_ticks);
 }
 
+std::vector<double> GetLoadAvg() {
+#if defined BENCHMARK_OS_FREEBSD || defined(BENCHMARK_OS_LINUX) || \
+    defined BENCHMARK_OS_MACOSX || defined BENCHMARK_OS_NETBSD ||  \
+    defined BENCHMARK_OS_OPENBSD
+  constexpr int kMaxSamples = 3;
+  std::vector<double> res(kMaxSamples, 0.0);
+  const int nelem = getloadavg(res.data(), kMaxSamples);
+  if (nelem < 1) {
+    res.clear();
+  } else {
+    res.resize(nelem);
+  }
+  return res;
+#else
+  return {};
+#endif
+}
+
 }  // end namespace
 
 const CPUInfo& CPUInfo::Get() {
@@ -588,6 +606,7 @@ CPUInfo::CPUInfo()
     : num_cpus(GetNumCPUs()),
       cycles_per_second(GetCPUCyclesPerSecond()),
       caches(GetCacheSizes()),
-      scaling_enabled(CpuScalingEnabled(num_cpus)) {}
+      scaling_enabled(CpuScalingEnabled(num_cpus)),
+      load_avg(GetLoadAvg()) {}
 
 }  // end namespace benchmark
