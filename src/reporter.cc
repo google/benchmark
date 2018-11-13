@@ -22,6 +22,7 @@
 #include <vector>
 
 #include "check.h"
+#include "string_util.h"
 
 namespace benchmark {
 
@@ -53,6 +54,14 @@ void BenchmarkReporter::PrintBasicContext(std::ostream *out,
         Out << " (x" << (info.num_cpus / CInfo.num_sharing) << ")";
       Out << "\n";
     }
+  }
+  if (!info.load_avg.empty()) {
+    Out << "Load Average: ";
+    for (auto It = info.load_avg.begin(); It != info.load_avg.end();) {
+      Out << StrFormat("%.2f", *It++);
+      if (It != info.load_avg.end()) Out << ", ";
+    }
+    Out << "\n";
   }
 
   if (info.scaling_enabled) {
