@@ -11,7 +11,7 @@ available for Ubuntu 16.04 (Xenial), Ubuntu 18.04 (Bionic), and Debian stretch.
 
 However, there are projects that rely on Benchmark that require a slightly older
 version than this
-([LVM](https://github.com/llvm-mirror/llvm/blob/master/CMakeLists.txt)], so we
+([LLVM](https://github.com/llvm-mirror/llvm/blob/master/CMakeLists.txt)], so we
 will choose something that allows this compatibility requirement to be met.
 
 _Note, [travis](.travis.yml) runs under Ubuntu 14.04 (Trusty) for linux builds._
