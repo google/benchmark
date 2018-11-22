@@ -207,7 +207,7 @@ void ResultsChecker::Add(const std::string& entry_pattern, ResultsCheckFn fn) {
 void ResultsChecker::CheckResults(std::stringstream& output) {
   // first reset the stream to the start
   {
-    auto start = std::ios::streampos(0);
+    auto start = std::stringstream::pos_type(0);
     // clear before calling tellg()
     output.clear();
     // seek to zero only when needed
