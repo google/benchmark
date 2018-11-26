@@ -264,7 +264,7 @@ messages of size `sizeof(v)` `range_x` times. It also outputs throughput in the
 absence of multiprogramming.
 
 ```c++
-template <class Q> int BM_Sequential(benchmark::State& state) {
+template <class Q> void BM_Sequential(benchmark::State& state) {
   Q q;
   typename Q::value_type v;
   for (auto _ : state) {
