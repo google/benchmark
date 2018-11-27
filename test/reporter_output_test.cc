@@ -220,6 +220,18 @@ ADD_CASES(TC_JSONOut,
 ADD_CASES(TC_CSVOut, {{"^\"BM_arg_names/first:2/5/third:4\",%csv_report$"}});
 
 // ========================================================================= //
+// ------------------------ Testing Big Args Output ------------------------ //
+// ========================================================================= //
+
+void BM_BigArgs(benchmark::State& state) {
+  for (auto _ : state) {
+  }
+}
+BENCHMARK(BM_BigArgs)->RangeMultiplier(2)->Range(1U << 30U, 1U << 31U);
+ADD_CASES(TC_ConsoleOut, {{"^BM_BigArgs/1073741824 %console_report$"},
+                          {"^BM_BigArgs/2147483648 %console_report$"}});
+
+// ========================================================================= //
 // ----------------------- Testing Complexity Output ----------------------- //
 // ========================================================================= //
 
