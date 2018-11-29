@@ -41,6 +41,9 @@ void BenchmarkReporter::PrintBasicContext(std::ostream *out,
   if (context.executable_name)
     Out << "Running " << context.executable_name << "\n";
 
+  const SystemInformation &sys_info = context.sys_info;
+  Out << "System Name "<<  sys_info.name << "\n";
+  
   const CPUInfo &info = context.cpu_info;
   Out << "Run on (" << info.num_cpus << " X "
       << (info.cycles_per_second / 1000000.0) << " MHz CPU "
@@ -79,7 +82,7 @@ void BenchmarkReporter::PrintBasicContext(std::ostream *out,
 // No initializer because it's already initialized to NULL.
 const char *BenchmarkReporter::Context::executable_name;
 
-BenchmarkReporter::Context::Context() : cpu_info(CPUInfo::Get()) {}
+BenchmarkReporter::Context::Context() : cpu_info(CPUInfo::Get()), sys_info(SystemInformation::Get()) {}
 
 std::string BenchmarkReporter::Run::benchmark_name() const {
   std::string name = run_name;
