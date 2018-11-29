@@ -16,6 +16,7 @@ static int AddContextCases() {
   AddCases(TC_ConsoleErr,
            {
                {"%int[-/]%int[-/]%int %int:%int:%int$", MR_Default},
+               {"System Name", MR_Next},
                {"Running .*/reporter_output_test(\\.exe)?$", MR_Next},
                {"Run on \\(%int X %float MHz CPU s?\\)", MR_Next},
            });

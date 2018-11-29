@@ -38,6 +38,9 @@ void BenchmarkReporter::PrintBasicContext(std::ostream *out,
 
   Out << LocalDateTimeString() << "\n";
 
+  const SystemInformation &sys_info = context.sys_info;
+  Out << "System Name "<< sys_info.name << "\n";
+
   if (context.executable_name)
     Out << "Running " << context.executable_name << "\n";
 
@@ -79,7 +82,7 @@ void BenchmarkReporter::PrintBasicContext(std::ostream *out,
 // No initializer because it's already initialized to NULL.
 const char *BenchmarkReporter::Context::executable_name;
 
-BenchmarkReporter::Context::Context() : cpu_info(CPUInfo::Get()) {}
+BenchmarkReporter::Context::Context() : cpu_info(CPUInfo::Get()), sys_info(SystemInformation::Get()) {}
 
 std::string BenchmarkReporter::Run::benchmark_name() const {
   std::string name = run_name;

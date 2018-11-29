@@ -366,6 +366,30 @@ std::vector<CPUInfo::CacheInfo> GetCacheSizes() {
 #endif
 }
 
+std::string GetSystemName() {
+#if defined(BENCHMARK_OS_WINDOWS)
+  std::string str;
+  const unsigned COUNT =  32767;
+  TCHAR  hostname[COUNT];
+  DWORD DWCOUNT = COUNT;
+  if (!GetComputerName(hostname, &DWCOUNT))
+    return std::string("Unable to Get Host Name");
+#ifndef UNICODE
+  str = hostname;
+#else
+  std::wstring wStr = hostname;
+  str = std::string(wStr.begin(), wStr.end());
+#endif
+  return str;
+#else
+  const unsigned COUNT = 64;
+  char hostname[COUNT];
+  int retVal = gethostname(hostname, COUNT);
+  if (retVal != 0) return std::string("Unable to Get Host Name");
+  return std::string(hostname);
+#endif
+}
+
 int GetNumCPUs() {
 #ifdef BENCHMARK_HAS_SYSCTL
   int NumCPU = -1;
@@ -609,4 +633,11 @@ CPUInfo::CPUInfo()
       scaling_enabled(CpuScalingEnabled(num_cpus)),
       load_avg(GetLoadAvg()) {}
 
+
+const SystemInformation& SystemInformation::Get() {
+  static const SystemInformation* info = new SystemInformation();
+  return *info;
+}
+
+SystemInformation::SystemInformation() : name(GetSystemName()) {}
 }  // end namespace benchmark
