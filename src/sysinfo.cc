@@ -382,6 +382,9 @@ std::string GetSystemName() {
 #endif
   return str;
 #else
+#ifdef BENCHMARK_OS_MACOSX
+#define HOST_NAME_MAX 64
+#endif
   const unsigned COUNT = HOST_NAME_MAX;
   char hostname[COUNT];
   int retVal = gethostname(hostname, COUNT);
