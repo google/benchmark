@@ -38,12 +38,12 @@ void BenchmarkReporter::PrintBasicContext(std::ostream *out,
 
   Out << LocalDateTimeString() << "\n";
 
+  const SystemInformation &sys_info = context.sys_info;
+  Out << "System Name "<< sys_info.name << "\n";
+
   if (context.executable_name)
     Out << "Running " << context.executable_name << "\n";
 
-  const SystemInformation &sys_info = context.sys_info;
-  Out << "System Name "<<  sys_info.name << "\n";
-  
   const CPUInfo &info = context.cpu_info;
   Out << "Run on (" << info.num_cpus << " X "
       << (info.cycles_per_second / 1000000.0) << " MHz CPU "

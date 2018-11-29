@@ -16,8 +16,9 @@ static int AddContextCases() {
   AddCases(TC_ConsoleErr,
            {
                {"%int[-/]%int[-/]%int %int:%int:%int$", MR_Default},
-               {"Running .*/reporter_output_test(\\.exe)?$", MR_Next},
-               {"System Name .*", MR_Next}, {"Run on \\(%int X %float MHz CPU s?\\)", MR_Next},
+               {"System Name", MR_Next},
+               {"Running .*/reporter_output_test(\\.exe)?$", MR_Next}, 
+               {"Run on \\(%int X %float MHz CPU s?\\)", MR_Next},
            });
   AddCases(TC_JSONOut,
            {{"^\\{", MR_Default},
