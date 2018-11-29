@@ -369,7 +369,7 @@ std::vector<CPUInfo::CacheInfo> GetCacheSizes() {
 std::string GetSystemName() {
 #if defined(BENCHMARK_OS_WINDOWS)
   std::string str;
-  const unsigned COUNT =  32767;
+  const unsigned COUNT = MAX_COMPUTERNAME_LENGTH+1;
   TCHAR  hostname[COUNT];
   DWORD DWCOUNT = COUNT;
   if (!GetComputerName(hostname, &DWCOUNT))
@@ -382,7 +382,7 @@ std::string GetSystemName() {
 #endif
   return str;
 #else
-  const unsigned COUNT = 64;
+  const unsigned COUNT = HOST_NAME_MAX;
   char hostname[COUNT];
   int retVal = gethostname(hostname, COUNT);
   if (retVal != 0) return std::string("Unable to Get Host Name");
