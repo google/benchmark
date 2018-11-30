@@ -382,7 +382,7 @@ std::string GetSystemName() {
 #endif
   return str;
 #else
-#ifdef BENCHMARK_OS_MACOSX
+#ifdef BENCHMARK_OS_MACOSX //Mac Doesnt have a copy for Host Name in it
 #define HOST_NAME_MAX 64
 #endif
   const unsigned COUNT = HOST_NAME_MAX;
