@@ -143,11 +143,7 @@ def extract_field(partition, field_name):
     rhs = [x[field_name] for x in partition[1]]
     return [lhs, rhs]
 
-
-def print_utest(partition, utest_alpha, first_col_width, use_color=True):
-    timings_time = extract_field(partition, 'real_time')
-    timings_cpu = extract_field(partition, 'cpu_time')
-
+def calc_utest(timings_cpu, timings_time):
     min_rep_cnt = min(len(timings_time[0]),
                       len(timings_time[1]),
                       len(timings_cpu[0]),
@@ -155,21 +151,33 @@ def print_utest(partition, utest_alpha, first_col_width, use_color=True):
 
     # Does *everything* has at least UTEST_MIN_REPETITIONS repetitions?
     if min_rep_cnt < UTEST_MIN_REPETITIONS:
-        return []
-
-    def get_utest_color(pval):
-        return BC_FAIL if pval >= utest_alpha else BC_OKGREEN
+        return False, None, None
 
     time_pvalue = mannwhitneyu(
         timings_time[0], timings_time[1], alternative='two-sided').pvalue
     cpu_pvalue = mannwhitneyu(
         timings_cpu[0], timings_cpu[1], alternative='two-sided').pvalue
 
+    return (min_rep_cnt >= UTEST_OPTIMAL_REPETITIONS), cpu_pvalue, time_pvalue
+
+def print_utest(partition, utest_alpha, first_col_width, use_color=True):
+    def get_utest_color(pval):
+        return BC_FAIL if pval >= utest_alpha else BC_OKGREEN
+
+    timings_time = extract_field(partition, 'real_time')
+    timings_cpu = extract_field(partition, 'cpu_time')
+    optimal_repetitions, cpu_pvalue, time_pvalue = calc_utest(timings_cpu, timings_time)
+
+    # Check if we failed miserably with minimum required repetitions for utest
+    if not optimal_repetitions and cpu_pvalue is None and time_pvalue is None:
+        return []
+
     dsc = "U Test, Repetitions: {} vs {}".format(
         len(timings_cpu[0]), len(timings_cpu[1]))
     dsc_color = BC_OKGREEN
 
-    if min_rep_cnt < UTEST_OPTIMAL_REPETITIONS:
+    # We still got some results to show but issue a warning about it.
+    if not optimal_repetitions:
         dsc_color = BC_WARNING
         dsc += ". WARNING: Results unreliable! {}+ repetitions recommended.".format(
             UTEST_OPTIMAL_REPETITIONS)
