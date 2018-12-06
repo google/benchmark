@@ -286,6 +286,72 @@ def generate_difference_report(
 
     return output_strs
 
+def get_json_difference_report(
+        json1,
+        json2,
+        include_aggregates_only=False,
+        utest=False):
+    """
+    Calculate and report the difference between each test of two benchmarks
+    runs specified as 'json1' and 'json2'. Output is another json containing
+    relevant details for each test run.
+    """
+    assert utest is True or utest is False
+
+    diff_report = []
+    partitions = partition_benchmarks(json1, json2)
+    for partition in partitions:
+        benchmark_name = partition[0][0]['name']
+        time_unit = partition[0][0]['time_unit']
+        measurements = []
+        utest_results = {}
+        # Careful, we may have different repetition count.
+        for i in range(min(len(partition[0]), len(partition[1]))):
+            bn = partition[0][i]
+            other_bench = partition[1][i]
+
+            # *If* we were asked to only include aggregates,
+            # and if it is non-aggregate, then skip it.
+            if include_aggregates_only and 'run_type' in bn and 'run_type' in other_bench:
+                assert bn['run_type'] == other_bench['run_type']
+                if bn['run_type'] != 'aggregate':
+                    continue
+
+            measurements.append({
+                'real_time': bn['real_time'],
+                'cpu_time': bn['cpu_time'],
+                'real_time_other': other_bench['real_time'],
+                'cpu_time_other': other_bench['cpu_time'],
+                'time': calculate_change(bn['real_time'], other_bench['real_time']),
+                'cpu': calculate_change(bn['cpu_time'], other_bench['cpu_time'])
+            })
+
+        # After processing the whole partition, if requested, do the U test.
+        if utest:
+            stable_results, cpu_pvalue, time_pvalue = calc_utest(
+                extract_field(partition, 'real_time'),
+                extract_field(partition, 'cpu_time')
+            )
+            if cpu_pvalue and time_pvalue:
+                utest_results = {
+                    'stable': stable_results,
+                    'cpu_pvalue': cpu_pvalue,
+                    'time_pvalue': time_pvalue
+                }
+
+        # Store only if we had any measurements for given benchmark.
+        # E.g. partition_benchmarks will filter out the benchmarks having
+        # time units which are not compatible with other time units in the
+        # benchmark suite.
+        if measurements:
+            diff_report.append({
+                'name': benchmark_name,
+                'measurements': measurements,
+                'time_unit' : time_unit,
+                'utest' : utest_results
+            })
+
+    return diff_report
 
 ###############################################################################
 # Unit tests
