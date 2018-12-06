@@ -56,6 +56,12 @@ def create_parser():
         help="Do not use colors in the terminal output"
     )
 
+    parser.add_argument(
+        '-d',
+        '--dump_to_json',
+        dest='dump_to_json',
+        help="Dump benchmark comparison output to this file in JSON format.")
+
     utest = parser.add_argument_group()
     utest.add_argument(
         '--no-utest',
@@ -244,7 +250,7 @@ def main():
         json2 = gbench.report.filter_benchmark(
             json2_orig, filter_contender, replacement)
 
-    # Diff and output
+    # Diff and output to stdout
     output_lines = gbench.report.generate_difference_report(
         json1, json2, args.display_aggregates_only,
         args.utest, args.utest_alpha, args.color)
@@ -252,6 +258,14 @@ def main():
     for ln in output_lines:
         print(ln)
 
+    # Optionally, diff and output to JSON
+    if args.dump_to_json is not None:
+        import json
+        output_json = gbench.report.get_json_difference_report(
+            json1, json2, args.display_aggregates_only,
+            args.utest)
+        with open(args.dump_to_json, 'w') as f_json:
+            json.dump(output_json, f_json)
 
 class TestParser(unittest.TestCase):
     def setUp(self):
