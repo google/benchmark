@@ -1,4 +1,5 @@
 import unittest
+import itertools
 """report.py - Utilities for reporting statistics about benchmark results
 """
 import os
@@ -155,6 +156,7 @@ def extract_field(partition, field_name):
     rhs = [x[field_name] for x in partition[1]]
     return [lhs, rhs]
 
+
 def calc_utest(timings_cpu, timings_time):
     min_rep_cnt = min(len(timings_time[0]),
                       len(timings_time[1]),
@@ -280,6 +282,7 @@ def generate_difference_report(
 
     return output_strs
 
+
 def get_json_difference_report(
         json1,
         json2,
@@ -341,8 +344,8 @@ def get_json_difference_report(
             diff_report.append({
                 'name': benchmark_name,
                 'measurements': measurements,
-                'time_unit' : time_unit,
-                'utest' : utest_results
+                'time_unit': time_unit,
+                'utest': utest_results
             })
 
     return diff_report
@@ -351,7 +354,6 @@ def get_json_difference_report(
 # Unit tests
 
 
-import itertools
 class TestGetUniqueBenchmarkNames(unittest.TestCase):
     def load_results(self):
         import json
@@ -430,73 +432,73 @@ class TestReportDifference(unittest.TestCase):
             {
                 'name': 'BM_SameTimes',
                 'measurements': [{'time': 0.0000, 'cpu': 0.0000, 'real_time': 10, 'real_time_other': 10, 'cpu_time': 10, 'cpu_time_other': 10}],
-                'time_unit' : 'ns',
+                'time_unit': 'ns',
                 'utest': {}
             },
             {
                 'name': 'BM_2xFaster',
                 'measurements': [{'time': -0.5000, 'cpu': -0.5000, 'real_time': 50, 'real_time_other': 25, 'cpu_time': 50, 'cpu_time_other': 25}],
-                'time_unit' : 'ns',
+                'time_unit': 'ns',
                 'utest': {}
             },
             {
                 'name': 'BM_2xSlower',
                 'measurements': [{'time': 1.0000, 'cpu': 1.0000, 'real_time': 50, 'real_time_other': 100, 'cpu_time': 50, 'cpu_time_other': 100}],
-                'time_unit' : 'ns',
+                'time_unit': 'ns',
                 'utest': {}
             },
             {
                 'name': 'BM_1PercentFaster',
                 'measurements': [{'time': -0.0100, 'cpu': -0.0100, 'real_time': 100, 'real_time_other': 98.9999999, 'cpu_time': 100, 'cpu_time_other': 98.9999999}],
-                'time_unit' : 'ns',
+                'time_unit': 'ns',
                 'utest': {}
             },
             {
                 'name': 'BM_1PercentSlower',
                 'measurements': [{'time': 0.0100, 'cpu': 0.0100, 'real_time': 100, 'real_time_other': 101, 'cpu_time': 100, 'cpu_time_other': 101}],
-                'time_unit' : 'ns',
+                'time_unit': 'ns',
                 'utest': {}
             },
             {
                 'name': 'BM_10PercentFaster',
                 'measurements': [{'time': -0.1000, 'cpu': -0.1000, 'real_time': 100, 'real_time_other': 90, 'cpu_time': 100, 'cpu_time_other': 90}],
-                'time_unit' : 'ns',
+                'time_unit': 'ns',
                 'utest': {}
             },
             {
                 'name': 'BM_10PercentSlower',
                 'measurements': [{'time': 0.1000, 'cpu': 0.1000, 'real_time': 100, 'real_time_other': 110, 'cpu_time': 100, 'cpu_time_other': 110}],
-                'time_unit' : 'ns',
+                'time_unit': 'ns',
                 'utest': {}
             },
             {
                 'name': 'BM_100xSlower',
                 'measurements': [{'time': 99.0000, 'cpu': 99.0000, 'real_time': 100, 'real_time_other': 10000, 'cpu_time': 100, 'cpu_time_other': 10000}],
-                'time_unit' : 'ns',
+                'time_unit': 'ns',
                 'utest': {}
             },
             {
                 'name': 'BM_100xFaster',
                 'measurements': [{'time': -0.9900, 'cpu': -0.9900, 'real_time': 10000, 'real_time_other': 100, 'cpu_time': 10000, 'cpu_time_other': 100}],
-                'time_unit' : 'ns',
+                'time_unit': 'ns',
                 'utest': {}
             },
             {
                 'name': 'BM_10PercentCPUToTime',
                 'measurements': [{'time': 0.1000, 'cpu': -0.1000, 'real_time': 100, 'real_time_other': 110, 'cpu_time': 100, 'cpu_time_other': 90}],
-                'time_unit' : 'ns',
+                'time_unit': 'ns',
                 'utest': {}
             },
             {
                 'name': 'BM_ThirdFaster',
                 'measurements': [{'time': -0.3333, 'cpu': -0.3334, 'real_time': 100, 'real_time_other': 67, 'cpu_time': 100, 'cpu_time_other': 67}],
-                'time_unit' : 'ns',
+                'time_unit': 'ns',
                 'utest': {}
             },
             {
                 'name': 'BM_BadTimeUnit',
                 'measurements': [{'time': -0.9000, 'cpu': 0.2000, 'real_time': 0.4, 'real_time_other': 0.04, 'cpu_time': 0.5, 'cpu_time_other': 0.6}],
-                'time_unit' : 's',
+                'time_unit': 's',
                 'utest': {}
             },
         ]
@@ -508,6 +510,7 @@ class TestReportDifference(unittest.TestCase):
             self.assertEqual(out['time_unit'], expected['time_unit'])
             assert_utest(self, out, expected)
             assert_measurements(self, out, expected)
+
 
 class TestReportDifferenceBetweenFamilies(unittest.TestCase):
     def load_result(self):
@@ -547,25 +550,25 @@ class TestReportDifferenceBetweenFamilies(unittest.TestCase):
             {
                 'name': u'.',
                 'measurements': [{'time': -0.5, 'cpu': -0.5, 'real_time': 10, 'real_time_other': 5, 'cpu_time': 10, 'cpu_time_other': 5}],
-                'time_unit' : 'ns',
+                'time_unit': 'ns',
                 'utest': {}
             },
             {
                 'name': u'./4',
                 'measurements': [{'time': -0.5, 'cpu': -0.5, 'real_time': 40, 'real_time_other': 20, 'cpu_time': 40, 'cpu_time_other': 20}],
-                'time_unit' : 'ns',
+                'time_unit': 'ns',
                 'utest': {},
             },
             {
                 'name': u'Prefix/.',
                 'measurements': [{'time': -0.5, 'cpu': -0.5, 'real_time': 20, 'real_time_other': 10, 'cpu_time': 20, 'cpu_time_other': 10}],
-                'time_unit' : 'ns',
+                'time_unit': 'ns',
                 'utest': {}
             },
             {
                 'name': u'Prefix/./3',
                 'measurements': [{'time': -0.5, 'cpu': -0.5, 'real_time': 30, 'real_time_other': 15, 'cpu_time': 30, 'cpu_time_other': 15}],
-                'time_unit' : 'ns',
+                'time_unit': 'ns',
                 'utest': {}
             }
         ]
@@ -579,6 +582,7 @@ class TestReportDifferenceBetweenFamilies(unittest.TestCase):
             self.assertEqual(out['time_unit'], expected['time_unit'])
             assert_utest(self, out, expected)
             assert_measurements(self, out, expected)
+
 
 class TestReportDifferenceWithUTest(unittest.TestCase):
     def load_results(self):
@@ -651,18 +655,29 @@ class TestReportDifferenceWithUTest(unittest.TestCase):
             {
                 'name': u'BM_One',
                 'measurements': [
-                    {'time': -0.1, 'cpu': 0.1, 'real_time': 10, 'real_time_other': 9, 'cpu_time': 100, 'cpu_time_other': 110}
+                    {'time': -0.1,
+                     'cpu': 0.1,
+                     'real_time': 10,
+                     'real_time_other': 9,
+                     'cpu_time': 100,
+                     'cpu_time_other': 110}
                 ],
-                'time_unit' : 'ns',
+                'time_unit': 'ns',
                 'utest': {}
             },
             {
                 'name': u'BM_Two',
                 'measurements': [
-                    {'time': 0.1111111111111111, 'cpu': -0.011111111111111112, 'real_time': 9, 'real_time_other': 10, 'cpu_time': 90, 'cpu_time_other': 89},
-                    {'time': -0.125, 'cpu': -0.16279069767441862, 'real_time': 8, 'real_time_other': 7, 'cpu_time': 86, 'cpu_time_other': 72}
+                    {'time': 0.1111111111111111,
+                     'cpu': -0.011111111111111112,
+                     'real_time': 9,
+                     'real_time_other': 10,
+                     'cpu_time': 90,
+                     'cpu_time_other': 89},
+                    {'time': -0.125, 'cpu': -0.16279069767441862, 'real_time': 8,
+                        'real_time_other': 7, 'cpu_time': 86, 'cpu_time_other': 72}
                 ],
-                'time_unit' : 'ns',
+                'time_unit': 'ns',
                 'utest': {
                     'stable': False, 'cpu_pvalue': 0.6985353583033387, 'time_pvalue': 0.6985353583033387
                 }
@@ -670,10 +685,20 @@ class TestReportDifferenceWithUTest(unittest.TestCase):
             {
                 'name': u'short',
                 'measurements': [
-                    {'time': -0.125, 'cpu': -0.0625, 'real_time': 8, 'real_time_other': 7, 'cpu_time': 80, 'cpu_time_other': 75},
-                    {'time': -0.4325, 'cpu': -0.13506493506493514, 'real_time': 8, 'real_time_other': 4.54, 'cpu_time': 77, 'cpu_time_other': 66.6}
+                    {'time': -0.125,
+                     'cpu': -0.0625,
+                     'real_time': 8,
+                     'real_time_other': 7,
+                     'cpu_time': 80,
+                     'cpu_time_other': 75},
+                    {'time': -0.4325,
+                     'cpu': -0.13506493506493514,
+                     'real_time': 8,
+                     'real_time_other': 4.54,
+                     'cpu_time': 77,
+                     'cpu_time_other': 66.6}
                 ],
-                'time_unit' : 'ns',
+                'time_unit': 'ns',
                 'utest': {
                     'stable': False, 'cpu_pvalue': 0.7670968684102772, 'time_pvalue': 0.14891467317876572
                 }
@@ -681,9 +706,14 @@ class TestReportDifferenceWithUTest(unittest.TestCase):
             {
                 'name': u'medium',
                 'measurements': [
-                    {'time': -0.375, 'cpu': -0.3375, 'real_time': 8, 'real_time_other': 5, 'cpu_time': 80, 'cpu_time_other': 53}
+                    {'time': -0.375,
+                     'cpu': -0.3375,
+                     'real_time': 8,
+                     'real_time_other': 5,
+                     'cpu_time': 80,
+                     'cpu_time_other': 53}
                 ],
-                'time_unit' : 'ns',
+                'time_unit': 'ns',
                 'utest': {}
             }
         ]
@@ -697,6 +727,7 @@ class TestReportDifferenceWithUTest(unittest.TestCase):
             self.assertEqual(out['time_unit'], expected['time_unit'])
             assert_utest(self, out, expected)
             assert_measurements(self, out, expected)
+
 
 class TestReportDifferenceWithUTestWhileDisplayingAggregatesOnly(
         unittest.TestCase):
@@ -770,18 +801,29 @@ class TestReportDifferenceWithUTestWhileDisplayingAggregatesOnly(
             {
                 'name': u'BM_One',
                 'measurements': [
-                    {'time': -0.1, 'cpu': 0.1, 'real_time': 10, 'real_time_other': 9, 'cpu_time': 100, 'cpu_time_other': 110}
+                    {'time': -0.1,
+                     'cpu': 0.1,
+                     'real_time': 10,
+                     'real_time_other': 9,
+                     'cpu_time': 100,
+                     'cpu_time_other': 110}
                 ],
-                'time_unit' : 'ns',
+                'time_unit': 'ns',
                 'utest': {}
             },
             {
                 'name': u'BM_Two',
                 'measurements': [
-                    {'time': 0.1111111111111111, 'cpu': -0.011111111111111112, 'real_time': 9, 'real_time_other': 10, 'cpu_time': 90, 'cpu_time_other': 89},
-                    {'time': -0.125, 'cpu': -0.16279069767441862, 'real_time': 8, 'real_time_other': 7, 'cpu_time': 86, 'cpu_time_other': 72}
+                    {'time': 0.1111111111111111,
+                     'cpu': -0.011111111111111112,
+                     'real_time': 9,
+                     'real_time_other': 10,
+                     'cpu_time': 90,
+                     'cpu_time_other': 89},
+                    {'time': -0.125, 'cpu': -0.16279069767441862, 'real_time': 8,
+                        'real_time_other': 7, 'cpu_time': 86, 'cpu_time_other': 72}
                 ],
-                'time_unit' : 'ns',
+                'time_unit': 'ns',
                 'utest': {
                     'stable': False, 'cpu_pvalue': 0.6985353583033387, 'time_pvalue': 0.6985353583033387
                 }
@@ -789,10 +831,20 @@ class TestReportDifferenceWithUTestWhileDisplayingAggregatesOnly(
             {
                 'name': u'short',
                 'measurements': [
-                    {'time': -0.125, 'cpu': -0.0625, 'real_time': 8, 'real_time_other': 7, 'cpu_time': 80, 'cpu_time_other': 75},
-                    {'time': -0.4325, 'cpu': -0.13506493506493514, 'real_time': 8, 'real_time_other': 4.54, 'cpu_time': 77, 'cpu_time_other': 66.6}
+                    {'time': -0.125,
+                     'cpu': -0.0625,
+                     'real_time': 8,
+                     'real_time_other': 7,
+                     'cpu_time': 80,
+                     'cpu_time_other': 75},
+                    {'time': -0.4325,
+                     'cpu': -0.13506493506493514,
+                     'real_time': 8,
+                     'real_time_other': 4.54,
+                     'cpu_time': 77,
+                     'cpu_time_other': 66.6}
                 ],
-                'time_unit' : 'ns',
+                'time_unit': 'ns',
                 'utest': {
                     'stable': False, 'cpu_pvalue': 0.7670968684102772, 'time_pvalue': 0.14891467317876572
                 }
@@ -809,20 +861,32 @@ class TestReportDifferenceWithUTestWhileDisplayingAggregatesOnly(
             assert_utest(self, out, expected)
             assert_measurements(self, out, expected)
 
+
 def assert_utest(unittest_instance, lhs, rhs):
     if lhs['utest']:
-        unittest_instance.assertAlmostEqual(lhs['utest']['cpu_pvalue'], rhs['utest']['cpu_pvalue'])
-        unittest_instance.assertAlmostEqual(lhs['utest']['time_pvalue'], rhs['utest']['time_pvalue'])
-        unittest_instance.assertEqual(lhs['utest']['stable'], rhs['utest']['stable'])
+        unittest_instance.assertAlmostEqual(
+            lhs['utest']['cpu_pvalue'],
+            rhs['utest']['cpu_pvalue'])
+        unittest_instance.assertAlmostEqual(
+            lhs['utest']['time_pvalue'],
+            rhs['utest']['time_pvalue'])
+        unittest_instance.assertEqual(
+            lhs['utest']['stable'],
+            rhs['utest']['stable'])
     else:
-        unittest_instance.assertEqual(lhs['utest'], rhs['utest']) # lhs is empty. assert if rhs is not.
+        # lhs is empty. assert if rhs is not.
+        unittest_instance.assertEqual(lhs['utest'], rhs['utest'])
+
 
 def assert_measurements(unittest_instance, lhs, rhs):
     for m1, m2 in itertools.izip(lhs['measurements'], rhs['measurements']):
         unittest_instance.assertEqual(m1['real_time'], m2['real_time'])
         unittest_instance.assertEqual(m1['cpu_time'], m2['cpu_time'])
-        unittest_instance.assertAlmostEqual(m1['time'], m2['time'], places=4) # m1['time'] and m1['cpu'] hold values which are being calculated,
-        unittest_instance.assertAlmostEqual(m1['cpu'], m2['cpu'], places=4)   # and therefore we must use almost-equal pattern.
+        # m1['time'] and m1['cpu'] hold values which are being calculated,
+        unittest_instance.assertAlmostEqual(m1['time'], m2['time'], places=4)
+        # and therefore we must use almost-equal pattern.
+        unittest_instance.assertAlmostEqual(m1['cpu'], m2['cpu'], places=4)
+
 
 if __name__ == '__main__':
     unittest.main()
