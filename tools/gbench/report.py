@@ -173,46 +173,42 @@ def calc_utest(timings_cpu, timings_time):
 
     return (min_rep_cnt >= UTEST_OPTIMAL_REPETITIONS), cpu_pvalue, time_pvalue
 
-def print_utest(partition, utest_alpha, first_col_width, use_color=True):
+def print_utest(bc_name, n_of_cpu_time_measurements, n_of_cpu_time_other_measurements,
+                utest, utest_alpha, first_col_width, use_color=True):
     def get_utest_color(pval):
         return BC_FAIL if pval >= utest_alpha else BC_OKGREEN
 
-    timings_time = extract_field(partition, 'real_time')
-    timings_cpu = extract_field(partition, 'cpu_time')
-    have_optimal_repetitions, cpu_pvalue, time_pvalue = calc_utest(timings_cpu, timings_time)
-
     # Check if we failed miserably with minimum required repetitions for utest
-    if not have_optimal_repetitions and cpu_pvalue is None and time_pvalue is None:
+    if not utest['stable'] and utest['cpu_pvalue'] is None and utest['time_pvalue'] is None:
         return []
 
     dsc = "U Test, Repetitions: {} vs {}".format(
-        len(timings_cpu[0]), len(timings_cpu[1]))
+        n_of_cpu_time_measurements, n_of_cpu_time_other_measurements)
     dsc_color = BC_OKGREEN
 
     # We still got some results to show but issue a warning about it.
-    if not have_optimal_repetitions:
+    if not utest['stable']:
         dsc_color = BC_WARNING
         dsc += ". WARNING: Results unreliable! {}+ repetitions recommended.".format(
             UTEST_OPTIMAL_REPETITIONS)
 
     special_str = "{}{:<{}s}{endc}{}{:16.4f}{endc}{}{:16.4f}{endc}{}      {}"
 
-    last_name = partition[0][0]['name']
     return [color_format(use_color,
                          special_str,
                          BC_HEADER,
-                         "{}{}".format(last_name, UTEST_COL_NAME),
+                         "{}{}".format(bc_name, UTEST_COL_NAME),
                          first_col_width,
-                         get_utest_color(time_pvalue), time_pvalue,
-                         get_utest_color(cpu_pvalue), cpu_pvalue,
+                         get_utest_color(
+                             utest['time_pvalue']), utest['time_pvalue'],
+                         get_utest_color(
+                             utest['cpu_pvalue']), utest['cpu_pvalue'],
                          dsc_color, dsc,
                          endc=BC_ENDC)]
 
 
 def generate_difference_report(
-        json1,
-        json2,
-        display_aggregates_only=False,
+        json_diff_report,
         utest=False,
         utest_alpha=0.05,
         use_color=True):
@@ -222,7 +218,15 @@ def generate_difference_report(
     """
     assert utest is True or utest is False
 
-    first_col_width = find_longest_name(json1['benchmarks'])
+    def get_color(res):
+        if res > 0.05:
+            return BC_FAIL
+        elif res > -0.07:
+            return BC_WHITE
+        else:
+            return BC_CYAN
+
+    first_col_width = find_longest_name(json_diff_report)
     first_col_width = max(
         first_col_width,
         len('Benchmark'))
@@ -231,50 +235,34 @@ def generate_difference_report(
         'Benchmark', 12 + first_col_width)
     output_strs = [first_line, '-' * len(first_line)]
 
-    partitions = partition_benchmarks(json1, json2)
-    for partition in partitions:
-        # Careful, we may have different repetition count.
-        for i in range(min(len(partition[0]), len(partition[1]))):
-            bn = partition[0][i]
-            other_bench = partition[1][i]
-
-            # *If* we were asked to only display aggregates,
-            # and if it is non-aggregate, then skip it.
-            if display_aggregates_only and 'run_type' in bn and 'run_type' in other_bench:
-                assert bn['run_type'] == other_bench['run_type']
-                if bn['run_type'] != 'aggregate':
-                    continue
-
-            fmt_str = "{}{:<{}s}{endc}{}{:+16.4f}{endc}{}{:+16.4f}{endc}{:14.0f}{:14.0f}{endc}{:14.0f}{:14.0f}"
-
-            def get_color(res):
-                if res > 0.05:
-                    return BC_FAIL
-                elif res > -0.07:
-                    return BC_WHITE
-                else:
-                    return BC_CYAN
-
-            tres = calculate_change(bn['real_time'], other_bench['real_time'])
-            cpures = calculate_change(bn['cpu_time'], other_bench['cpu_time'])
+    fmt_str = "{}{:<{}s}{endc}{}{:+16.4f}{endc}{}{:+16.4f}{endc}{:14.0f}{:14.0f}{endc}{:14.0f}{:14.0f}"
+    for benchmark in json_diff_report:
+        for measurement in benchmark['measurements']:
             output_strs += [color_format(use_color,
                                          fmt_str,
                                          BC_HEADER,
-                                         bn['name'],
+                                         benchmark['name'],
                                          first_col_width,
-                                         get_color(tres),
-                                         tres,
-                                         get_color(cpures),
-                                         cpures,
-                                         bn['real_time'],
-                                         other_bench['real_time'],
-                                         bn['cpu_time'],
-                                         other_bench['cpu_time'],
+                                         get_color(measurement['time']),
+                                         measurement['time'],
+                                         get_color(measurement['cpu']),
+                                         measurement['cpu'],
+                                         measurement['real_time'],
+                                         measurement['real_time_other'],
+                                         measurement['cpu_time'],
+                                         measurement['cpu_time_other'],
                                          endc=BC_ENDC)]
 
-        # After processing the whole partition, if requested, do the U test.
-        if utest:
-            output_strs += print_utest(partition,
+        # After processing the measurements, if requested and
+        # if applicable (e.g. u-test exists for given benchmark),
+        # print the U test.
+        if utest and benchmark['utest']:
+            output_strs += print_utest(benchmark['name'],
+                                       len([m['cpu_time']
+                                            for m in benchmark['measurements']]),
+                                       len([m['cpu_time_other']
+                                            for m in benchmark['measurements']]),
+                                       benchmark['utest'],
                                        utest_alpha=utest_alpha,
                                        first_col_width=first_col_width,
                                        use_color=use_color)
