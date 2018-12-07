@@ -166,10 +166,10 @@ def print_utest(partition, utest_alpha, first_col_width, use_color=True):
 
     timings_time = extract_field(partition, 'real_time')
     timings_cpu = extract_field(partition, 'cpu_time')
-    optimal_repetitions, cpu_pvalue, time_pvalue = calc_utest(timings_cpu, timings_time)
+    have_optimal_repetitions, cpu_pvalue, time_pvalue = calc_utest(timings_cpu, timings_time)
 
     # Check if we failed miserably with minimum required repetitions for utest
-    if not optimal_repetitions and cpu_pvalue is None and time_pvalue is None:
+    if not have_optimal_repetitions and cpu_pvalue is None and time_pvalue is None:
         return []
 
     dsc = "U Test, Repetitions: {} vs {}".format(
@@ -177,7 +177,7 @@ def print_utest(partition, utest_alpha, first_col_width, use_color=True):
     dsc_color = BC_OKGREEN
 
     # We still got some results to show but issue a warning about it.
-    if not optimal_repetitions:
+    if not have_optimal_repetitions:
         dsc_color = BC_WARNING
         dsc += ". WARNING: Results unreliable! {}+ repetitions recommended.".format(
             UTEST_OPTIMAL_REPETITIONS)
