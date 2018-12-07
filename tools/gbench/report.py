@@ -36,7 +36,6 @@ BC_ENDC = BenchmarkColor('ENDC', '\033[0m')
 BC_BOLD = BenchmarkColor('BOLD', '\033[1m')
 BC_UNDERLINE = BenchmarkColor('UNDERLINE', '\033[4m')
 
-UTEST_DEFAULT_ALPHA = 0.05
 UTEST_MIN_REPETITIONS = 2
 UTEST_OPTIMAL_REPETITIONS = 9  # Lowest reasonable number, More is better.
 UTEST_COL_NAME = "_pvalue"
@@ -215,7 +214,7 @@ def generate_difference_report(
         json2,
         display_aggregates_only=False,
         utest=False,
-        utest_alpha=UTEST_DEFAULT_ALPHA,
+        utest_alpha=0.05,
         use_color=True):
     """
     Calculate and report the difference between each test of two benchmarks
@@ -249,7 +248,7 @@ def generate_difference_report(
             fmt_str = "{}{:<{}s}{endc}{}{:+16.4f}{endc}{}{:+16.4f}{endc}{:14.0f}{:14.0f}{endc}{:14.0f}{:14.0f}"
 
             def get_color(res):
-                if res > UTEST_DEFAULT_ALPHA:
+                if res > 0.05:
                     return BC_FAIL
                 elif res > -0.07:
                     return BC_WHITE
@@ -641,7 +640,7 @@ class TestReportDifferenceWithUTest(unittest.TestCase):
         ]
         json1, json2 = self.load_results()
         output_lines_with_header = generate_difference_report(
-            json1, json2, utest=True, utest_alpha=UTEST_DEFAULT_ALPHA, use_color=False)
+            json1, json2, utest=True, utest_alpha=0.05, use_color=False)
         output_lines = output_lines_with_header[2:]
         print("\n")
         print("\n".join(output_lines_with_header))
@@ -787,7 +786,7 @@ class TestReportDifferenceWithUTestWhileDisplayingAggregatesOnly(
         json1, json2 = self.load_results()
         output_lines_with_header = generate_difference_report(
             json1, json2, display_aggregates_only=True,
-            utest=True, utest_alpha=UTEST_DEFAULT_ALPHA, use_color=False)
+            utest=True, utest_alpha=0.05, use_color=False)
         output_lines = output_lines_with_header[2:]
         print("\n")
         print("\n".join(output_lines_with_header))
