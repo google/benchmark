@@ -251,8 +251,10 @@ def main():
             json2_orig, filter_contender, replacement)
 
     # Diff and output to stdout
+    output_json = gbench.report.get_json_difference_report(
+        json1, json2, args.display_aggregates_only, args.utest)
     output_lines = gbench.report.generate_difference_report(
-        json1, json2, args.display_aggregates_only,
+        output_json,
         args.utest, args.utest_alpha, args.color)
     print(description)
     for ln in output_lines:
@@ -261,9 +263,6 @@ def main():
     # Optionally, diff and output to JSON
     if args.dump_to_json is not None:
         import json
-        output_json = gbench.report.get_json_difference_report(
-            json1, json2, args.display_aggregates_only,
-            args.utest)
         with open(args.dump_to_json, 'w') as f_json:
             json.dump(output_json, f_json)
 
