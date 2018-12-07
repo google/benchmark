@@ -324,13 +324,13 @@ def get_json_difference_report(
 
         # After processing the whole partition, if requested, do the U test.
         if utest:
-            stable_results, cpu_pvalue, time_pvalue = calc_utest(
+            have_optimal_repetitions, cpu_pvalue, time_pvalue = calc_utest(
                 extract_field(partition, 'real_time'),
                 extract_field(partition, 'cpu_time')
             )
             if cpu_pvalue and time_pvalue:
                 utest_results = {
-                    'stable': stable_results,
+                    'stable': have_optimal_repetitions,
                     'cpu_pvalue': cpu_pvalue,
                     'time_pvalue': time_pvalue
                 }
