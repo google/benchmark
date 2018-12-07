@@ -220,14 +220,8 @@ def generate_difference_report(
     runs specified as 'json1' and 'json2'.
     """
     assert utest is True or utest is False
+
     first_col_width = find_longest_name(json1['benchmarks'])
-
-    def find_test(name):
-        for b in json2['benchmarks']:
-            if b['name'] == name:
-                return b
-        return None
-
     first_col_width = max(
         first_col_width,
         len('Benchmark'))
