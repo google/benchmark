@@ -491,7 +491,8 @@ class TestReportDifference(unittest.TestCase):
             },
         ]
         self.assertEqual(len(self.json_diff_report), len(expected_output))
-        for out, expected in itertools.izip(self.json_diff_report, expected_output):
+        for out, expected in itertools.izip(
+                self.json_diff_report, expected_output):
             self.assertEqual(out['name'], expected['name'])
             self.assertEqual(out['time_unit'], expected['time_unit'])
             assert_utest(self, out, expected)
@@ -563,7 +564,8 @@ class TestReportDifferenceBetweenFamilies(unittest.TestCase):
             }
         ]
         self.assertEqual(len(self.json_diff_report), len(expected_output))
-        for out, expected in itertools.izip(self.json_diff_report, expected_output):
+        for out, expected in itertools.izip(
+                self.json_diff_report, expected_output):
             self.assertEqual(out['name'], expected['name'])
             self.assertEqual(out['time_unit'], expected['time_unit'])
             assert_utest(self, out, expected)
@@ -588,7 +590,8 @@ class TestReportDifferenceWithUTest(unittest.TestCase):
             return json1, json2
 
         json1, json2 = load_results()
-        cls.json_diff_report = get_json_difference_report(json1, json2, utest=True)
+        cls.json_diff_report = get_json_difference_report(
+            json1, json2, utest=True)
 
     def test_json_diff_report_pretty_printing(self):
         expect_lines = []
@@ -704,7 +707,8 @@ class TestReportDifferenceWithUTest(unittest.TestCase):
             }
         ]
         self.assertEqual(len(self.json_diff_report), len(expected_output))
-        for out, expected in itertools.izip(self.json_diff_report, expected_output):
+        for out, expected in itertools.izip(
+                self.json_diff_report, expected_output):
             self.assertEqual(out['name'], expected['name'])
             self.assertEqual(out['time_unit'], expected['time_unit'])
             assert_utest(self, out, expected)
@@ -730,7 +734,8 @@ class TestReportDifferenceWithUTestWhileDisplayingAggregatesOnly(
             return json1, json2
 
         json1, json2 = load_results()
-        cls.json_diff_report = get_json_difference_report(json1, json2, include_aggregates_only=True, utest=True)
+        cls.json_diff_report = get_json_difference_report(
+            json1, json2, include_aggregates_only=True, utest=True)
 
     def test_json_diff_report_pretty_printing(self):
         expect_lines = []
@@ -833,7 +838,8 @@ class TestReportDifferenceWithUTestWhileDisplayingAggregatesOnly(
             }
         ]
         self.assertEqual(len(self.json_diff_report), len(expected_output))
-        for out, expected in itertools.izip(self.json_diff_report, expected_output):
+        for out, expected in itertools.izip(
+                self.json_diff_report, expected_output):
             self.assertEqual(out['name'], expected['name'])
             self.assertEqual(out['time_unit'], expected['time_unit'])
             assert_utest(self, out, expected)
