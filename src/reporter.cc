@@ -80,7 +80,7 @@ void BenchmarkReporter::PrintBasicContext(std::ostream *out,
 const char *BenchmarkReporter::Context::executable_name;
 
 BenchmarkReporter::Context::Context()
-    : cpu_info(CPUInfo::Get()), sys_info(SystemInformation::Get()) {}
+    : cpu_info(CPUInfo::Get()), sys_info(SystemInfo::Get()) {}
 
 std::string BenchmarkReporter::Run::benchmark_name() const {
   std::string name = run_name;

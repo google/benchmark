@@ -375,7 +375,7 @@ std::string GetSystemName() {
   TCHAR  hostname[COUNT] = {'\0'};
   DWORD DWCOUNT = COUNT;
   if (!GetComputerName(hostname, &DWCOUNT))
-    return std::string("Unable to Get Host Name");
+    return std::string("");
 #ifndef UNICODE
   str = std::string(hostname, DWCOUNT);
 #else
@@ -392,7 +392,7 @@ std::string GetSystemName() {
 #endif
   char hostname[HOST_NAME_MAX];
   int retVal = gethostname(hostname, HOST_NAME_MAX);
-  if (retVal != 0) return std::string("Unable to Get Host Name");
+  if (retVal != 0) return std::string("");
   return std::string(hostname);
 #endif // Catch-all POSIX block.
 }
@@ -641,10 +641,10 @@ CPUInfo::CPUInfo()
       load_avg(GetLoadAvg()) {}
 
 
-const SystemInformation& SystemInformation::Get() {
-  static const SystemInformation* info = new SystemInformation();
+const SystemInfo& SystemInfo::Get() {
+  static const SystemInfo* info = new SystemInfo();
   return *info;
 }
 
-SystemInformation::SystemInformation() : name(GetSystemName()) {}
+SystemInfo::SystemInfo() : name(GetSystemName()) {}
 }  // end namespace benchmark
