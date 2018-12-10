@@ -173,7 +173,7 @@ def calc_utest(timings_cpu, timings_time):
 
     return (min_rep_cnt >= UTEST_OPTIMAL_REPETITIONS), cpu_pvalue, time_pvalue
 
-def print_utest(bc_name, n_of_cpu_time_measurements, n_of_cpu_time_other_measurements,
+def print_utest(bc_name, n_of_measurements,
                 utest, utest_alpha, first_col_width, use_color=True):
     def get_utest_color(pval):
         return BC_FAIL if pval >= utest_alpha else BC_OKGREEN
@@ -182,8 +182,8 @@ def print_utest(bc_name, n_of_cpu_time_measurements, n_of_cpu_time_other_measure
     if not utest['stable'] and utest['cpu_pvalue'] is None and utest['time_pvalue'] is None:
         return []
 
-    dsc = "U Test, Repetitions: {} vs {}".format(
-        n_of_cpu_time_measurements, n_of_cpu_time_other_measurements)
+    dsc = "U Test, Repetitions: {}".format(
+        n_of_measurements)
     dsc_color = BC_OKGREEN
 
     # We still got some results to show but issue a warning about it.
@@ -258,10 +258,7 @@ def generate_difference_report(
         # print the U test.
         if utest and benchmark['utest']:
             output_strs += print_utest(benchmark['name'],
-                                       len([m['cpu_time']
-                                            for m in benchmark['measurements']]),
-                                       len([m['cpu_time_other']
-                                            for m in benchmark['measurements']]),
+                                       len(benchmark['measurements']),
                                        benchmark['utest'],
                                        utest_alpha=utest_alpha,
                                        first_col_width=first_col_width,
@@ -605,8 +602,6 @@ class TestReportDifferenceWithUTest(unittest.TestCase):
              'U',
              'Test,',
              'Repetitions:',
-             '2',
-             'vs',
              '2.',
              'WARNING:',
              'Results',
@@ -622,9 +617,7 @@ class TestReportDifferenceWithUTest(unittest.TestCase):
              'U',
              'Test,',
              'Repetitions:',
-             '2',
-             'vs',
-             '3.',
+             '2.',
              'WARNING:',
              'Results',
              'unreliable!',
@@ -751,8 +744,6 @@ class TestReportDifferenceWithUTestWhileDisplayingAggregatesOnly(
              'U',
              'Test,',
              'Repetitions:',
-             '2',
-             'vs',
              '2.',
              'WARNING:',
              'Results',
@@ -768,9 +759,7 @@ class TestReportDifferenceWithUTestWhileDisplayingAggregatesOnly(
              'U',
              'Test,',
              'Repetitions:',
-             '2',
-             'vs',
-             '3.',
+             '2.',
              'WARNING:',
              'Results',
              'unreliable!',
