@@ -52,6 +52,8 @@
 #include <limits>
 #include <memory>
 #include <sstream>
+#include <locale>
+#include <codecvt>
 
 #include "check.h"
 #include "cycleclock.h"
@@ -370,27 +372,29 @@ std::string GetSystemName() {
 #if defined(BENCHMARK_OS_WINDOWS)
   std::string str;
   const unsigned COUNT = MAX_COMPUTERNAME_LENGTH+1;
-  TCHAR  hostname[COUNT];
+  TCHAR  hostname[COUNT] = {'\0'};
   DWORD DWCOUNT = COUNT;
   if (!GetComputerName(hostname, &DWCOUNT))
     return std::string("Unable to Get Host Name");
 #ifndef UNICODE
-  str = hostname;
+  str = std::string(hostname, DWCOUNT);
 #else
-  std::wstring wStr = hostname;
-  str = std::string(wStr.begin(), wStr.end());
+  //Using wstring_convert, Is deprecated in C++17
+  using convert_type = std::codecvt_utf8<wchar_t>;
+  std::wstring_convert<convert_type, wchar_t> converter;
+  std::wstring wStr(hostname, DWCOUNT);
+  str = converter.to_bytes(wStr);
 #endif
   return str;
-#else
-#ifdef BENCHMARK_OS_MACOSX //Mac Doesnt have a copy for Host Name in it
+#else // defined(BENCHMARK_OS_WINDOWS)
+#ifdef BENCHMARK_OS_MACOSX //Mac Doesnt have HOST_NAME_MAX defined
 #define HOST_NAME_MAX 64
 #endif
-  const unsigned COUNT = HOST_NAME_MAX;
-  char hostname[COUNT];
-  int retVal = gethostname(hostname, COUNT);
+  char hostname[HOST_NAME_MAX];
+  int retVal = gethostname(hostname, HOST_NAME_MAX);
   if (retVal != 0) return std::string("Unable to Get Host Name");
   return std::string(hostname);
-#endif
+#endif // Catch-all POSIX block.
 }
 
 int GetNumCPUs() {
