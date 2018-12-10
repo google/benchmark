@@ -1293,6 +1293,7 @@ struct CPUInfo {
   BENCHMARK_DISALLOW_COPY_AND_ASSIGN(CPUInfo);
 };
 
+//Adding Struct for System Information
 struct SystemInfo {
   std::string name;
   static const SystemInfo& Get();
