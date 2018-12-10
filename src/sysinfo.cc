@@ -19,6 +19,7 @@
 #undef StrCat  // Don't let StrCat in string_util.h be renamed to lstrcatA
 #include <versionhelpers.h>
 #include <windows.h>
+#include <codecvt>
 #else
 #include <fcntl.h>
 #ifndef BENCHMARK_OS_FUCHSIA
@@ -53,7 +54,6 @@
 #include <memory>
 #include <sstream>
 #include <locale>
-#include <codecvt>
 
 #include "check.h"
 #include "cycleclock.h"
