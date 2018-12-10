@@ -313,8 +313,8 @@ def get_json_difference_report(
         # After processing the whole partition, if requested, do the U test.
         if utest:
             have_optimal_repetitions, cpu_pvalue, time_pvalue = calc_utest(
-                extract_field(partition, 'real_time'),
-                extract_field(partition, 'cpu_time')
+                extract_field(partition, 'cpu_time'),
+                extract_field(partition, 'real_time')
             )
             if cpu_pvalue and time_pvalue:
                 utest_results = {
@@ -687,7 +687,7 @@ class TestReportDifferenceWithUTest(unittest.TestCase):
                 ],
                 'time_unit': 'ns',
                 'utest': {
-                    'stable': False, 'cpu_pvalue': 0.7670968684102772, 'time_pvalue': 0.14891467317876572
+                    'stable': False, 'cpu_pvalue': 0.14891467317876572, 'time_pvalue': 0.7670968684102772
                 }
             },
             {
@@ -833,7 +833,7 @@ class TestReportDifferenceWithUTestWhileDisplayingAggregatesOnly(
                 ],
                 'time_unit': 'ns',
                 'utest': {
-                    'stable': False, 'cpu_pvalue': 0.7670968684102772, 'time_pvalue': 0.14891467317876572
+                    'stable': False, 'cpu_pvalue': 0.14891467317876572, 'time_pvalue': 0.7670968684102772
                 }
             }
         ]
