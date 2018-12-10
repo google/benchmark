@@ -389,7 +389,7 @@ class TestReportDifference(unittest.TestCase):
         json1, json2 = load_results()
         cls.json_diff_report = get_json_difference_report(json1, json2)
 
-    def test_basic(self):
+    def test_json_diff_report_pretty_printing(self):
         expect_lines = [
             ['BM_SameTimes', '+0.0000', '+0.0000', '10', '10', '10', '10'],
             ['BM_2xFaster', '-0.5000', '-0.5000', '50', '25', '50', '25'],
@@ -418,7 +418,7 @@ class TestReportDifference(unittest.TestCase):
             self.assertEqual(len(parts), 7)
             self.assertEqual(expect_lines[i], parts)
 
-    def test_json_difference_report_output(self):
+    def test_json_diff_report_output(self):
         expected_output = [
             {
                 'name': 'BM_SameTimes',
@@ -520,7 +520,7 @@ class TestReportDifferenceBetweenFamilies(unittest.TestCase):
         json2 = filter_benchmark(json, "BM_O.e", ".")
         cls.json_diff_report = get_json_difference_report(json1, json2)
 
-    def test_basic(self):
+    def test_json_diff_report_pretty_printing(self):
         expect_lines = [
             ['.', '-0.5000', '-0.5000', '10', '5', '10', '5'],
             ['./4', '-0.5000', '-0.5000', '40', '20', '40', '20'],
@@ -538,7 +538,7 @@ class TestReportDifferenceBetweenFamilies(unittest.TestCase):
             self.assertEqual(len(parts), 7)
             self.assertEqual(expect_lines[i], parts)
 
-    def test_json_difference_report(self):
+    def test_json_diff_report(self):
         expected_output = [
             {
                 'name': u'.',
@@ -593,7 +593,7 @@ class TestReportDifferenceWithUTest(unittest.TestCase):
         json1, json2 = load_results()
         cls.json_diff_report = get_json_difference_report(json1, json2, utest=True)
 
-    def test_utest(self):
+    def test_json_diff_report_pretty_printing(self):
         expect_lines = []
         expect_lines = [
             ['BM_One', '-0.1000', '+0.1000', '10', '9', '100', '110'],
@@ -643,7 +643,7 @@ class TestReportDifferenceWithUTest(unittest.TestCase):
             parts = [x for x in output_lines[i].split(' ') if x]
             self.assertEqual(expect_lines[i], parts)
 
-    def test_utest_json_output(self):
+    def test_json_diff_report(self):
         expected_output = [
             {
                 'name': u'BM_One',
@@ -739,7 +739,7 @@ class TestReportDifferenceWithUTestWhileDisplayingAggregatesOnly(
         json1, json2 = load_results()
         cls.json_diff_report = get_json_difference_report(json1, json2, include_aggregates_only=True, utest=True)
 
-    def test_utest(self):
+    def test_json_diff_report_pretty_printing(self):
         expect_lines = []
         expect_lines = [
             ['BM_One', '-0.1000', '+0.1000', '10', '9', '100', '110'],
@@ -789,7 +789,7 @@ class TestReportDifferenceWithUTestWhileDisplayingAggregatesOnly(
             parts = [x for x in output_lines[i].split(' ') if x]
             self.assertEqual(expect_lines[i], parts)
 
-    def test_utest_json_output(self):
+    def test_json_diff_report(self):
         expected_output = [
             {
                 'name': u'BM_One',
