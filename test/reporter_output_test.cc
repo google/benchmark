@@ -23,6 +23,7 @@ static int AddContextCases() {
            {{"^\\{", MR_Default},
             {"\"context\":", MR_Next},
             {"\"date\": \"", MR_Next},
+            {"\"host_name\":", MR_Next},
             {"\"executable\": \".*(/|\\\\)reporter_output_test(\\.exe)?\",",
              MR_Next},
             {"\"num_cpus\": %int,$", MR_Next},
