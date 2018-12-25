@@ -647,7 +647,8 @@ ADD_CASES(
      {"\"iterations\": 5,$", MR_Next},
      {"\"real_time\": 1\\.5(0)*e\\+(0)*2,$", MR_Next},
      {"\"cpu_time\": %float,$", MR_Next},
-     {"\"time_unit\": \"cycles\"$", MR_Next},
+     {"\"time_unit\": \"cycles\",$", MR_Next},
+     {"\"cpu_time_unit\": \"ns\"$", MR_Next},
      {"\"name\": "
       "\"BM_ManualTimeCycles/iterations:5/repeats:3/manual_time\",$"},
      {"\"run_name\": "
@@ -657,7 +658,8 @@ ADD_CASES(
      {"\"iterations\": 5,$", MR_Next},
      {"\"real_time\": 1\\.5(0)*e\\+(0)*2,$", MR_Next},
      {"\"cpu_time\": %float,$", MR_Next},
-     {"\"time_unit\": \"cycles\"$", MR_Next},
+     {"\"time_unit\": \"cycles\",$", MR_Next},
+     {"\"cpu_time_unit\": \"ns\"$", MR_Next},
      {"\"name\": "
       "\"BM_ManualTimeCycles/iterations:5/repeats:3/manual_time_mean\",$"},
      {"\"run_name\": "
@@ -668,7 +670,8 @@ ADD_CASES(
      {"\"iterations\": 3,$", MR_Next},
      {"\"real_time\": 1\\.5(0)*e\\+(0)*2,$", MR_Next},
      {"\"cpu_time\": %float,$", MR_Next},
-     {"\"time_unit\": \"cycles\"$", MR_Next},
+     {"\"time_unit\": \"cycles\",$", MR_Next},
+     {"\"cpu_time_unit\": \"ns\"$", MR_Next},
      {"\"name\": "
       "\"BM_ManualTimeCycles/iterations:5/repeats:3/"
       "manual_time_median\",$"},
@@ -680,7 +683,8 @@ ADD_CASES(
      {"\"iterations\": 3,$", MR_Next},
      {"\"real_time\": 1\\.5(0)*e\\+(0)*2,$", MR_Next},
      {"\"cpu_time\": %float,$", MR_Next},
-     {"\"time_unit\": \"cycles\"$", MR_Next},
+     {"\"time_unit\": \"cycles\",$", MR_Next},
+     {"\"cpu_time_unit\": \"ns\"$", MR_Next},
      {"\"name\": "
       "\"BM_ManualTimeCycles/iterations:5/repeats:3/"
       "manual_time_stddev\",$"},
@@ -692,7 +696,8 @@ ADD_CASES(
      {"\"iterations\": 3,$", MR_Next},
      {"\"real_time\": %float,$", MR_Next},
      {"\"cpu_time\": %float,$", MR_Next},
-     {"\"time_unit\": \"cycles\"$", MR_Next}});
+     {"\"time_unit\": \"cycles\",$", MR_Next},
+     {"\"cpu_time_unit\": \"ns\"$", MR_Next}});
 ADD_CASES(TC_CSVOut, {{"^\"BM_ManualTimeCycles/iterations:5/repeats:3/"
                        "manual_time\",%csv_report$"},
                       {"^\"BM_ManualTimeCycles/iterations:5/repeats:3/"
