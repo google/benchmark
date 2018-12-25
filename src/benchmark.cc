@@ -231,9 +231,14 @@ void RunBenchmarks(const std::vector<BenchmarkInstance>& benchmarks,
   bool might_have_aggregates = FLAGS_benchmark_repetitions > 1;
   size_t name_field_width = 10;
   size_t stat_field_width = 0;
+  size_t unit_field_width = 4;
   for (const BenchmarkInstance& benchmark : benchmarks) {
     name_field_width =
         std::max<size_t>(name_field_width, benchmark.name.size());
+    if (benchmark.use_manual_time) {
+      unit_field_width = std::max<size_t>(
+          unit_field_width, benchmark.manual_time->abbreviation_.size());
+    }
     might_have_aggregates |= benchmark.repetitions > 1;
 
     for (const auto& Stat : *benchmark.statistics)
@@ -244,6 +249,7 @@ void RunBenchmarks(const std::vector<BenchmarkInstance>& benchmarks,
   // Print header here
   BenchmarkReporter::Context context;
   context.name_field_width = name_field_width;
+  context.unit_field_width = unit_field_width;
 
   // Keep track of running times of all instances of current benchmark
   std::vector<BenchmarkReporter::Run> complexity_reports;

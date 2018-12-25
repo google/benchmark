@@ -429,6 +429,23 @@ struct Statistics {
       : name_(name), compute_(compute) {}
 };
 
+// Converts whatever the stored manual time is to
+// seconds, which is used to estimate iterations
+// and similar
+typedef double(ManualTimeCostFunc)(double);
+
+struct ManualTime {
+  bool customized_units;
+  std::string unit_;
+  std::string abbreviation_;
+  ManualTimeCostFunc* cost_in_seconds_;
+
+  ManualTime() : customized_units(false), unit_(), abbreviation_(), cost_in_seconds_() {}
+
+  ManualTime(const std::string& unit, const std::string& abbreviation, ManualTimeCostFunc* cost_in_seconds)
+      : customized_units(true), unit_(unit), abbreviation_(abbreviation), cost_in_seconds_(cost_in_seconds) {}
+};
+
 namespace internal {
 struct BenchmarkInstance;
 class ThreadTimer;
@@ -888,7 +905,13 @@ class Benchmark {
   // SetIterationTime(seconds) to report the measured time, which will be used
   // to control how many iterations are run, and in the printing of items/second
   // or MB/second values.
+  // The second overload creates a manual time which measures in some arbitrary 
+  // value set by the user. The Cost Function returns the "cost" of a single 
+  // benchmark iteration's in seconds, to be used to determine the cost
+  // of a single run of the benchmark max iteration estimation and so on
   Benchmark* UseManualTime();
+  Benchmark* UseManualTime(std::string units, std::string abbreviation,
+                           ManualTimeCostFunc* cost_function);
 
   // Set the asymptotic computational complexity for the benchmark. If called
   // the asymptotic computational complexity will be shown on the output.
@@ -954,6 +977,7 @@ class Benchmark {
   int repetitions_;
   bool use_real_time_;
   bool use_manual_time_;
+  ManualTime manual_time_;
   BigO complexity_;
   BigOFunc* complexity_lambda_;
   std::vector<Statistics> statistics_;
@@ -1314,6 +1338,7 @@ class BenchmarkReporter {
     SystemInfo const& sys_info;
     // The number of chars in the longest benchmark name.
     size_t name_field_width;
+    size_t unit_field_width;
     static const char* executable_name;
     Context();
   };
@@ -1351,6 +1376,10 @@ class BenchmarkReporter {
     TimeUnit time_unit;
     double real_accumulated_time;
     double cpu_accumulated_time;
+
+    // keep track of manual time reporting if present
+    bool use_manual_time;
+    const ManualTime* manual_time;
 
     // Return a value representing the real time per iteration in the unit
     // specified by 'time_unit'.
@@ -1468,6 +1497,7 @@ class ConsoleReporter : public BenchmarkReporter {
 
   OutputOptions output_options_;
   size_t name_field_width_;
+  size_t unit_field_width_;
   UserCounters prev_counters_;
   bool printed_header_;
 };
@@ -1544,6 +1574,13 @@ inline double GetTimeUnitMultiplier(TimeUnit unit) {
       return 1e9;
   }
   BENCHMARK_UNREACHABLE();
+}
+
+inline const char* GetStringOrTimeUnit(const std::string& str, TimeUnit default_unit) {
+  if (!str.empty()) {
+    return str.c_str();
+  }
+  return GetTimeUnitString(default_unit);
 }
 
 }  // namespace benchmark

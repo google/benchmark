@@ -35,6 +35,7 @@ namespace benchmark {
 
 bool ConsoleReporter::ReportContext(const Context& context) {
   name_field_width_ = context.name_field_width;
+  unit_field_width_ = context.unit_field_width;
   printed_header_ = false;
   prev_counters_.clear();
 
@@ -53,9 +54,12 @@ bool ConsoleReporter::ReportContext(const Context& context) {
 }
 
 void ConsoleReporter::PrintHeader(const Run& run) {
-  std::string str = FormatString("%-*s %13s %15s %12s", static_cast<int>(name_field_width_),
-                                 "Benchmark", "Time", "CPU", "Iterations");
-  if(!run.counters.empty()) {
+  int time_fill_width =
+      static_cast<int>(unit_field_width_);
+  std::string str =
+      FormatString("%-*s %-*s%-*s %15s %12s", static_cast<int>(name_field_width_),
+                   "Benchmark", 9, "", time_fill_width, "Time", "CPU", "Iterations");
+  if (!run.counters.empty()) {
     if(output_options_ & OO_Tabular) {
       for(auto const& c : run.counters) {
         str += FormatString(" %10s", c.first.c_str());
@@ -134,19 +138,23 @@ void ConsoleReporter::PrintRunData(const Run& result) {
   const double cpu_time = result.GetAdjustedCPUTime();
   const std::string real_time_str = FormatTime(real_time);
   const std::string cpu_time_str = FormatTime(cpu_time);
-
+  int time_fill_width = static_cast<int>(unit_field_width_);
 
   if (result.report_big_o) {
     std::string big_o = GetBigOString(result.complexity);
-    printer(Out, COLOR_YELLOW, "%10.2f %-4s %10.2f %-4s ", real_time, big_o.c_str(),
-            cpu_time, big_o.c_str());
+    printer(Out, COLOR_YELLOW, "%10.2f %-*s %10.2f %-4s ", real_time,
+            time_fill_width, big_o.c_str(), cpu_time, big_o.c_str());
   } else if (result.report_rms) {
-    printer(Out, COLOR_YELLOW, "%10.0f %-4s %10.0f %-4s ", real_time * 100, "%",
-            cpu_time * 100, "%");
+    printer(Out, COLOR_YELLOW, "%10.0f %-*s %10.0f %-4s ", real_time * 100,
+            time_fill_width, "%", cpu_time * 100, "%");
   } else {
-    const char* timeLabel = GetTimeUnitString(result.time_unit);
-    printer(Out, COLOR_YELLOW, "%s %-4s %s %-4s ", real_time_str.c_str(), timeLabel,
-            cpu_time_str.c_str(), timeLabel);
+    const char* cputimeLabel = GetTimeUnitString(result.time_unit);
+    const char* realtimeLabel = result.use_manual_time && result.manual_time->customized_units
+                                    ? result.manual_time->abbreviation_.c_str()
+                                    : GetTimeUnitString(result.time_unit);
+    printer(Out, COLOR_YELLOW, "%s %-*s %s %-4s ", real_time_str.c_str(),
+            time_fill_width, realtimeLabel, cpu_time_str.c_str(),
+            cputimeLabel);
   }
 
   if (!result.report_big_o && !result.report_rms) {

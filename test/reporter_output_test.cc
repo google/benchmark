@@ -597,6 +597,115 @@ ADD_CASES(
       "manual_time_stddev\",%csv_report$"},
      {"^\"BM_UserStats/iterations:5/repeats:3/manual_time_\",%csv_report$"}});
 
+static double CostInSeconds(double seconds) {
+  return seconds;
+}
+
+void BM_ManualTimeCycles(benchmark::State& state) {
+  for (auto _ : state) {
+    state.SetIterationTime(150);
+  }
+}
+// clang-format off
+BENCHMARK(BM_ManualTimeCycles)
+  ->Repetitions(3)
+  ->Iterations(5)
+  ->UseManualTime("cycles", "cc", CostInSeconds);
+// clang-format on
+
+// check that user-provided stats is calculated, and is after the default-ones
+// empty string as name is intentional, it would sort before anything else
+ADD_CASES(TC_ConsoleOut,
+          {{"^BM_ManualTimeCycles/iterations:5/repeats:3/manual_time [ "
+            "]* 150 cc %time [ ]*5$"},
+           {"^BM_ManualTimeCycles/iterations:5/repeats:3/manual_time [ "
+            "]* 150 cc %time [ ]*5$"},
+           {"^BM_ManualTimeCycles/iterations:5/repeats:3/manual_time [ "
+            "]* 150 cc %time [ ]*5$"},
+           {"^BM_ManualTimeCycles/iterations:5/repeats:3/"
+            "manual_time_mean [ ]* 150 cc %time [ ]*3$"},
+           {"^BM_ManualTimeCycles/iterations:5/repeats:3/"
+            "manual_time_median [ ]* 150 cc %time [ ]*3$"},
+           {"^BM_ManualTimeCycles/iterations:5/repeats:3/"
+            "manual_time_stddev [ ]* 0.000 cc %time [ ]*3$"}});
+ADD_CASES(
+    TC_JSONOut,
+    {{"\"name\": "
+      "\"BM_ManualTimeCycles/iterations:5/repeats:3/manual_time\",$"},
+     {"\"run_name\": "
+      "\"BM_ManualTimeCycles/iterations:5/repeats:3/manual_time\",$",
+      MR_Next},
+     {"\"run_type\": \"iteration\",$", MR_Next},
+     {"\"iterations\": 5,$", MR_Next},
+     {"\"real_time\": 1\\.5(0)*e\\+(0)*2,$", MR_Next},
+     {"\"name\": "
+      "\"BM_ManualTimeCycles/iterations:5/repeats:3/manual_time\",$"},
+     {"\"run_name\": "
+      "\"BM_ManualTimeCycles/iterations:5/repeats:3/manual_time\",$",
+      MR_Next},
+     {"\"run_type\": \"iteration\",$", MR_Next},
+     {"\"iterations\": 5,$", MR_Next},
+     {"\"real_time\": 1\\.5(0)*e\\+(0)*2,$", MR_Next},
+     {"\"cpu_time\": %float,$", MR_Next},
+     {"\"time_unit\": \"cycles\"$", MR_Next},
+     {"\"name\": "
+      "\"BM_ManualTimeCycles/iterations:5/repeats:3/manual_time\",$"},
+     {"\"run_name\": "
+      "\"BM_ManualTimeCycles/iterations:5/repeats:3/manual_time\",$",
+      MR_Next},
+     {"\"run_type\": \"iteration\",$", MR_Next},
+     {"\"iterations\": 5,$", MR_Next},
+     {"\"real_time\": 1\\.5(0)*e\\+(0)*2,$", MR_Next},
+     {"\"cpu_time\": %float,$", MR_Next},
+     {"\"time_unit\": \"cycles\"$", MR_Next},
+     {"\"name\": "
+      "\"BM_ManualTimeCycles/iterations:5/repeats:3/manual_time_mean\",$"},
+     {"\"run_name\": "
+      "\"BM_ManualTimeCycles/iterations:5/repeats:3/manual_time\",$",
+      MR_Next},
+     {"\"run_type\": \"aggregate\",$", MR_Next},
+     {"\"aggregate_name\": \"mean\",$", MR_Next},
+     {"\"iterations\": 3,$", MR_Next},
+     {"\"real_time\": 1\\.5(0)*e\\+(0)*2,$", MR_Next},
+     {"\"cpu_time\": %float,$", MR_Next},
+     {"\"time_unit\": \"cycles\"$", MR_Next},
+     {"\"name\": "
+      "\"BM_ManualTimeCycles/iterations:5/repeats:3/"
+      "manual_time_median\",$"},
+     {"\"run_name\": "
+      "\"BM_ManualTimeCycles/iterations:5/repeats:3/manual_time\",$",
+      MR_Next},
+     {"\"run_type\": \"aggregate\",$", MR_Next},
+     {"\"aggregate_name\": \"median\",$", MR_Next},
+     {"\"iterations\": 3,$", MR_Next},
+     {"\"real_time\": 1\\.5(0)*e\\+(0)*2,$", MR_Next},
+     {"\"cpu_time\": %float,$", MR_Next},
+     {"\"time_unit\": \"cycles\"$", MR_Next},
+     {"\"name\": "
+      "\"BM_ManualTimeCycles/iterations:5/repeats:3/"
+      "manual_time_stddev\",$"},
+     {"\"run_name\": "
+      "\"BM_ManualTimeCycles/iterations:5/repeats:3/manual_time\",$",
+      MR_Next},
+     {"\"run_type\": \"aggregate\",$", MR_Next},
+     {"\"aggregate_name\": \"stddev\",$", MR_Next},
+     {"\"iterations\": 3,$", MR_Next},
+     {"\"real_time\": %float,$", MR_Next},
+     {"\"cpu_time\": %float,$", MR_Next},
+     {"\"time_unit\": \"cycles\"$", MR_Next}});
+ADD_CASES(TC_CSVOut, {{"^\"BM_ManualTimeCycles/iterations:5/repeats:3/"
+                       "manual_time\",%csv_report$"},
+                      {"^\"BM_ManualTimeCycles/iterations:5/repeats:3/"
+                       "manual_time\",%csv_report$"},
+                      {"^\"BM_ManualTimeCycles/iterations:5/repeats:3/"
+                       "manual_time\",%csv_report$"},
+                      {"^\"BM_ManualTimeCycles/iterations:5/repeats:3/"
+                       "manual_time_mean\",%csv_report$"},
+                      {"^\"BM_ManualTimeCycles/iterations:5/repeats:3/"
+                       "manual_time_median\",%csv_report$"},
+                      {"^\"BM_ManualTimeCycles/iterations:5/repeats:3/"
+                       "manual_time_stddev\",%csv_report$"}});
+
 // ========================================================================= //
 // --------------------------- TEST CASES END ------------------------------ //
 // ========================================================================= //

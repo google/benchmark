@@ -75,6 +75,8 @@ BenchmarkReporter::Run CreateRunReport(
   // This is the total iterations across all threads.
   report.iterations = results.iterations;
   report.time_unit = b.time_unit;
+  report.use_manual_time = b.use_manual_time;
+  report.manual_time = b.manual_time;
 
   if (!report.error_occurred) {
     if (b.use_manual_time) {
@@ -232,7 +234,12 @@ class BenchmarkRunner {
     // Base decisions off of real time if requested by this benchmark.
     i.seconds = i.results.cpu_time_used;
     if (b.use_manual_time) {
-      i.seconds = i.results.manual_time_used;
+      if (b.manual_time->cost_in_seconds_) {
+        i.seconds = b.manual_time->cost_in_seconds_(i.results.manual_time_used);
+      }
+      else {
+        i.seconds = i.results.manual_time_used;
+      }
     } else if (b.use_real_time) {
       i.seconds = i.results.real_time_used;
     }

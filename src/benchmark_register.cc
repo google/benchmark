@@ -164,6 +164,7 @@ bool BenchmarkFamilies::FindBenchmarks(
         instance.repetitions = family->repetitions_;
         instance.use_real_time = family->use_real_time_;
         instance.use_manual_time = family->use_manual_time_;
+        instance.manual_time = &family->manual_time_;
         instance.complexity = family->complexity_;
         instance.complexity_lambda = family->complexity_lambda_;
         instance.statistics = &family->statistics_;
@@ -249,6 +250,7 @@ Benchmark::Benchmark(const char* name)
       repetitions_(0),
       use_real_time_(false),
       use_manual_time_(false),
+      manual_time_("", "", nullptr),
       complexity_(oNone),
       complexity_lambda_(nullptr) {
   ComputeStatistics("mean", StatisticsMean);
@@ -405,6 +407,17 @@ Benchmark* Benchmark::UseManualTime() {
   CHECK(!use_real_time_)
       << "Cannot set UseRealTime and UseManualTime simultaneously.";
   use_manual_time_ = true;
+  manual_time_ = ManualTime();
+  return this;
+}
+
+Benchmark* Benchmark::UseManualTime(std::string units, std::string abbreviation,
+                                    ManualTimeCostFunc* cost_function) {
+  CHECK(!use_real_time_)
+      << "Cannot set UseRealTime and UseManualTime simultaneously.";
+  use_manual_time_ = true;
+  manual_time_ =
+      ManualTime(std::move(units), std::move(abbreviation), cost_function);
   return this;
 }
 

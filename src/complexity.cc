@@ -194,6 +194,8 @@ std::vector<BenchmarkReporter::Run> ComputeBigO(
   big_o.iterations = 0;
   big_o.real_accumulated_time = result_real.coef;
   big_o.cpu_accumulated_time = result_cpu.coef;
+  big_o.manual_time = reports[0].manual_time;
+  big_o.use_manual_time = reports[0].use_manual_time;
   big_o.report_big_o = true;
   big_o.complexity = result_cpu.complexity;
 
@@ -214,6 +216,8 @@ std::vector<BenchmarkReporter::Run> ComputeBigO(
   rms.iterations = 0;
   rms.real_accumulated_time = result_real.rms / multiplier;
   rms.cpu_accumulated_time = result_cpu.rms / multiplier;
+  rms.manual_time = reports[0].manual_time;
+  rms.use_manual_time = reports[0].use_manual_time;
   rms.report_rms = true;
   rms.complexity = result_cpu.complexity;
   // don't forget to keep the time unit, or we won't be able to
