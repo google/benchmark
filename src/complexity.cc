@@ -194,8 +194,7 @@ std::vector<BenchmarkReporter::Run> ComputeBigO(
   big_o.iterations = 0;
   big_o.real_accumulated_time = result_real.coef;
   big_o.cpu_accumulated_time = result_cpu.coef;
-  big_o.manual_time = reports[0].manual_time;
-  big_o.use_manual_time = reports[0].use_manual_time;
+  big_o.time = reports[0].time;
   big_o.report_big_o = true;
   big_o.complexity = result_cpu.complexity;
 
@@ -204,7 +203,7 @@ std::vector<BenchmarkReporter::Run> ComputeBigO(
   // should not be multiplied at all. So, here, we _divide_ it by the
   // multiplier so that when it is multiplied later the result is the
   // correct one.
-  double multiplier = GetTimeUnitMultiplier(reports[0].time_unit);
+  double multiplier = GetTimeUnitMultiplier(reports[0].time->unit_multiplier_);
 
   // Only add label to mean/stddev if it is same for all runs
   Run rms;
@@ -216,13 +215,11 @@ std::vector<BenchmarkReporter::Run> ComputeBigO(
   rms.iterations = 0;
   rms.real_accumulated_time = result_real.rms / multiplier;
   rms.cpu_accumulated_time = result_cpu.rms / multiplier;
-  rms.manual_time = reports[0].manual_time;
-  rms.use_manual_time = reports[0].use_manual_time;
   rms.report_rms = true;
   rms.complexity = result_cpu.complexity;
   // don't forget to keep the time unit, or we won't be able to
   // recover the correct value.
-  rms.time_unit = reports[0].time_unit;
+  rms.time = reports[0].time;
 
   results.push_back(big_o);
   results.push_back(rms);

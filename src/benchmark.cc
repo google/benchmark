@@ -235,10 +235,8 @@ void RunBenchmarks(const std::vector<BenchmarkInstance>& benchmarks,
   for (const BenchmarkInstance& benchmark : benchmarks) {
     name_field_width =
         std::max<size_t>(name_field_width, benchmark.name.size());
-    if (benchmark.use_manual_time) {
-      unit_field_width = std::max<size_t>(
-          unit_field_width, benchmark.manual_time->abbreviation_.size());
-    }
+    unit_field_width = std::max<size_t>(
+        unit_field_width, benchmark.time->GetUnitString().size());
     might_have_aggregates |= benchmark.repetitions > 1;
 
     for (const auto& Stat : *benchmark.statistics)
@@ -341,6 +339,20 @@ ConsoleReporter::OutputOptions GetOutputOptions(bool force_no_color) {
 }
 
 }  // end namespace internal
+
+BenchmarkTime::BenchmarkTime()
+    : cpu_unit_multiplier_(TimeUnit::kNanosecond),
+      unit_multiplier_(TimeUnit::kNanosecond),
+      unit_name_("s"),
+      to_cost_in_seconds_(SecondsCost),
+      unit_(GetTimeUnitPrefix(unit_multiplier_) + unit_name_) {}
+
+void BenchmarkTime::SetUnitString(TimeUnit unit_multiplier,
+                                  std::string unit_name) {
+  unit_multiplier_ = unit_multiplier;
+  unit_name_ = std::move(unit_name);
+  unit_ = GetTimeUnitPrefix(unit_multiplier_) + unit_name_;
+}
 
 size_t RunSpecifiedBenchmarks() {
   return RunSpecifiedBenchmarks(nullptr, nullptr);

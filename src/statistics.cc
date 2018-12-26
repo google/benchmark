@@ -170,9 +170,7 @@ std::vector<BenchmarkReporter::Run> ComputeStats(
     data.real_accumulated_time *= iteration_rescale_factor;
     data.cpu_accumulated_time *= iteration_rescale_factor;
 
-    data.time_unit = reports[0].time_unit;
-    data.use_manual_time = reports[0].use_manual_time;
-    data.manual_time = reports[0].manual_time;
+    data.time = reports[0].time;
 
     // user counters
     for (auto const& kv : counter_stats) {

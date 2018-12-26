@@ -157,14 +157,13 @@ bool BenchmarkFamilies::FindBenchmarks(
         instance.benchmark = family.get();
         instance.aggregation_report_mode = family->aggregation_report_mode_;
         instance.arg = args;
-        instance.time_unit = family->time_unit_;
         instance.range_multiplier = family->range_multiplier_;
         instance.min_time = family->min_time_;
         instance.iterations = family->iterations_;
         instance.repetitions = family->repetitions_;
         instance.use_real_time = family->use_real_time_;
         instance.use_manual_time = family->use_manual_time_;
-        instance.manual_time = &family->manual_time_;
+        instance.time = &family->time_;
         instance.complexity = family->complexity_;
         instance.complexity_lambda = family->complexity_lambda_;
         instance.statistics = &family->statistics_;
@@ -243,14 +242,13 @@ bool FindBenchmarksInternal(const std::string& re,
 Benchmark::Benchmark(const char* name)
     : name_(name),
       aggregation_report_mode_(ARM_Unspecified),
-      time_unit_(kNanosecond),
       range_multiplier_(kRangeMultiplier),
       min_time_(0),
       iterations_(0),
       repetitions_(0),
       use_real_time_(false),
       use_manual_time_(false),
-      manual_time_("", "", nullptr),
+      time_(),
       complexity_(oNone),
       complexity_lambda_(nullptr) {
   ComputeStatistics("mean", StatisticsMean);
@@ -267,7 +265,12 @@ Benchmark* Benchmark::Arg(int64_t x) {
 }
 
 Benchmark* Benchmark::Unit(TimeUnit unit) {
-  time_unit_ = unit;
+  return Unit(unit, unit);
+}
+
+Benchmark* Benchmark::Unit(TimeUnit unit, TimeUnit cpu_unit) {
+  time_.cpu_unit_multiplier_ = cpu_unit;
+  time_.SetUnitString(unit, time_.unit_name_);
   return this;
 }
 
@@ -404,20 +407,17 @@ Benchmark* Benchmark::UseRealTime() {
 }
 
 Benchmark* Benchmark::UseManualTime() {
-  CHECK(!use_real_time_)
-      << "Cannot set UseRealTime and UseManualTime simultaneously.";
-  use_manual_time_ = true;
-  manual_time_ = ManualTime();
-  return this;
+  return UseManualTime("s", TimeUnit::kNanosecond, BenchmarkTime::SecondsCost);
 }
 
-Benchmark* Benchmark::UseManualTime(std::string units, std::string abbreviation,
-                                    ManualTimeCostFunc* cost_function) {
+Benchmark* Benchmark::UseManualTime(
+    std::string name, TimeUnit unit_multiplier,
+    BenchmarkTimeCostFunc* cost_function) {
   CHECK(!use_real_time_)
       << "Cannot set UseRealTime and UseManualTime simultaneously.";
   use_manual_time_ = true;
-  manual_time_ =
-      ManualTime(std::move(units), std::move(abbreviation), cost_function);
+  time_.SetUnitString(unit_multiplier, name);
+  time_.to_cost_in_seconds_ = cost_function ? cost_function : BenchmarkTime::SecondsCost;
   return this;
 }
 

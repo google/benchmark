@@ -405,7 +405,7 @@ typedef std::map<std::string, Counter> UserCounters;
 
 // TimeUnit is passed to a benchmark in order to specify the order of magnitude
 // for the measured time.
-enum TimeUnit { kNanosecond, kMicrosecond, kMillisecond };
+enum TimeUnit { kNanosecond, kMicrosecond, kMillisecond, kSecond };
 
 // BigO is passed to a benchmark in order to specify the asymptotic
 // computational
@@ -432,18 +432,27 @@ struct Statistics {
 // Converts whatever the stored manual time is to
 // seconds, which is used to estimate iterations
 // and similar
-typedef double(ManualTimeCostFunc)(double);
+typedef double(BenchmarkTimeCostFunc)(double);
 
-struct ManualTime {
-  bool customized_units;
+struct BenchmarkTime {
+  TimeUnit cpu_unit_multiplier_;
+  TimeUnit unit_multiplier_;
+  std::string unit_name_;
+  BenchmarkTimeCostFunc* to_cost_in_seconds_;
+
+  static double SecondsCost (double measurement) {
+    return measurement;
+  }
+
+  BenchmarkTime();
+
+  void SetUnitString(TimeUnit unit_multiplier, std::string unit_name);
+
+  const std::string& GetUnitString() const {
+    return unit_;
+  }
+private:
   std::string unit_;
-  std::string abbreviation_;
-  ManualTimeCostFunc* cost_in_seconds_;
-
-  ManualTime() : customized_units(false), unit_(), abbreviation_(), cost_in_seconds_() {}
-
-  ManualTime(const std::string& unit, const std::string& abbreviation, ManualTimeCostFunc* cost_in_seconds)
-      : customized_units(true), unit_(unit), abbreviation_(abbreviation), cost_in_seconds_(cost_in_seconds) {}
 };
 
 namespace internal {
@@ -805,8 +814,11 @@ class Benchmark {
   // REQUIRES: The function passed to the constructor must accept an arg1.
   Benchmark* Arg(int64_t x);
 
-  // Run this benchmark with the given time unit for the generated output report
+  // Run this benchmark with the given time unit for the generated output report,
+  // and the given cpu multiplier for the second overload.
+  // If only one is specified it is used as the time units for both.
   Benchmark* Unit(TimeUnit unit);
+  Benchmark* Unit(TimeUnit unit, TimeUnit cpu_unit);
 
   // Run this benchmark once for a number of values picked from the
   // range [start..limit].  (start and limit are always picked.)
@@ -908,10 +920,12 @@ class Benchmark {
   // The second overload creates a manual time which measures in some arbitrary 
   // value set by the user. The Cost Function returns the "cost" of a single 
   // benchmark iteration's in seconds, to be used to determine the cost
-  // of a single run of the benchmark max iteration estimation and so on
+  // of a single run of the benchmark max iteration estimation and so on.
+  // The unit multiplier changes
   Benchmark* UseManualTime();
-  Benchmark* UseManualTime(std::string units, std::string abbreviation,
-                           ManualTimeCostFunc* cost_function);
+  Benchmark* UseManualTime(
+      std::string units, TimeUnit unit_multiplier = kSecond,
+      BenchmarkTimeCostFunc* cost_function = BenchmarkTime::SecondsCost);
 
   // Set the asymptotic computational complexity for the benchmark. If called
   // the asymptotic computational complexity will be shown on the output.
@@ -970,14 +984,13 @@ class Benchmark {
   AggregationReportMode aggregation_report_mode_;
   std::vector<std::string> arg_names_;       // Args for all benchmark runs
   std::vector<std::vector<int64_t> > args_;  // Args for all benchmark runs
-  TimeUnit time_unit_;
   int range_multiplier_;
   double min_time_;
   size_t iterations_;
   int repetitions_;
   bool use_real_time_;
   bool use_manual_time_;
-  ManualTime manual_time_;
+  BenchmarkTime time_;
   BigO complexity_;
   BigOFunc* complexity_lambda_;
   std::vector<Statistics> statistics_;
@@ -1350,7 +1363,7 @@ class BenchmarkReporter {
         : run_type(RT_Iteration),
           error_occurred(false),
           iterations(1),
-          time_unit(kNanosecond),
+          time(),
           real_accumulated_time(0),
           cpu_accumulated_time(0),
           max_heapbytes_used(0),
@@ -1373,13 +1386,9 @@ class BenchmarkReporter {
     std::string error_message;
 
     int64_t iterations;
-    TimeUnit time_unit;
+    const BenchmarkTime* time;
     double real_accumulated_time;
     double cpu_accumulated_time;
-
-    // keep track of manual time reporting if present
-    bool use_manual_time;
-    const ManualTime* manual_time;
 
     // Return a value representing the real time per iteration in the unit
     // specified by 'time_unit'.
@@ -1554,6 +1563,8 @@ class MemoryManager {
 
 inline const char* GetTimeUnitString(TimeUnit unit) {
   switch (unit) {
+    case kSecond:
+      return "s";
     case kMillisecond:
       return "ms";
     case kMicrosecond:
@@ -1564,8 +1575,24 @@ inline const char* GetTimeUnitString(TimeUnit unit) {
   BENCHMARK_UNREACHABLE();
 }
 
+inline const char* GetTimeUnitPrefix(TimeUnit unit) {
+  switch (unit) {
+    case kSecond:
+      return "";
+    case kMillisecond:
+      return "m";
+    case kMicrosecond:
+      return "u";
+    case kNanosecond:
+      return "n";
+  }
+  BENCHMARK_UNREACHABLE();
+}
+
 inline double GetTimeUnitMultiplier(TimeUnit unit) {
   switch (unit) {
+    case kSecond:
+      return 1;
     case kMillisecond:
       return 1e3;
     case kMicrosecond:
@@ -1574,13 +1601,6 @@ inline double GetTimeUnitMultiplier(TimeUnit unit) {
       return 1e9;
   }
   BENCHMARK_UNREACHABLE();
-}
-
-inline const char* GetStringOrTimeUnit(const std::string& str, TimeUnit default_unit) {
-  if (!str.empty()) {
-    return str.c_str();
-  }
-  return GetTimeUnitString(default_unit);
 }
 
 }  // namespace benchmark

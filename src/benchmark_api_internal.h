@@ -20,11 +20,10 @@ struct BenchmarkInstance {
   Benchmark* benchmark;
   AggregationReportMode aggregation_report_mode;
   std::vector<int64_t> arg;
-  TimeUnit time_unit;
   int range_multiplier;
   bool use_real_time;
   bool use_manual_time;
-  const ManualTime* manual_time;
+  const BenchmarkTime* time;
   BigO complexity;
   BigOFunc* complexity_lambda;
   UserCounters counters;

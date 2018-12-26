@@ -192,30 +192,22 @@ void JSONReporter::PrintRunData(Run const& run) {
     out << ",\n"
         << indent
         << FormatKV("time_unit",
-                    run.use_manual_time && run.manual_time->customized_units
-                        ? run.manual_time->unit_.c_str()
-                        : GetTimeUnitString(run.time_unit));
-    if (run.use_manual_time && run.manual_time->customized_units) {
-      out << ",\n"
-          << indent
-          << FormatKV("cpu_time_unit", GetTimeUnitString(run.time_unit));
-    }
+                    run.time->GetUnitString());
+    out << ",\n"
+        << indent
+        << FormatKV("cpu_time_unit",
+                    GetTimeUnitString(run.time->cpu_unit_multiplier_));
   } else if (run.report_big_o) {
     out << indent << FormatKV("cpu_coefficient", run.GetAdjustedCPUTime())
         << ",\n";
     out << indent << FormatKV("real_coefficient", run.GetAdjustedRealTime())
         << ",\n";
-    out << indent << FormatKV("big_o", GetBigOString(run.complexity)) << ",\n";
-    out << indent
-        << FormatKV("time_unit",
-                    run.use_manual_time && run.manual_time->customized_units
-                        ? run.manual_time->unit_.c_str()
-                        : GetTimeUnitString(run.time_unit));
-    if (run.use_manual_time && run.manual_time->customized_units) {
-      out << ",\n"
-          << indent
-          << FormatKV("cpu_time_unit", GetTimeUnitString(run.time_unit));
-    }
+    out << indent << FormatKV("big_o", GetBigOString(run.complexity));
+    out << ",\n" << indent << FormatKV("time_unit", run.time->GetUnitString());
+    out << ",\n"
+        << indent
+        << FormatKV("cpu_time_unit",
+                    GetTimeUnitString(run.time->cpu_unit_multiplier_));
   } else if (run.report_rms) {
     out << indent << FormatKV("rms", run.GetAdjustedCPUTime());
   }

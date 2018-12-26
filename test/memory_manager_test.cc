@@ -27,6 +27,7 @@ ADD_CASES(TC_JSONOut, {{"\"name\": \"BM_empty\",$"},
                        {"\"real_time\": %float,$", MR_Next},
                        {"\"cpu_time\": %float,$", MR_Next},
                        {"\"time_unit\": \"ns\",$", MR_Next},
+                       {"\"cpu_time_unit\": \"ns\",$", MR_Next},
                        {"\"allocs_per_iter\": %float,$", MR_Next},
                        {"\"max_bytes_used\": 42000$", MR_Next},
                        {"}", MR_Next}});

@@ -117,7 +117,7 @@ void CSVReporter::PrintRunData(const Run& run) {
   if (run.report_big_o) {
     Out << GetBigOString(run.complexity);
   } else if (!run.report_rms) {
-    Out << GetTimeUnitString(run.time_unit);
+    Out << run.time->GetUnitString();
   }
   Out << ",";
 
