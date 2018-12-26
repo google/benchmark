@@ -232,7 +232,7 @@ class BenchmarkRunner {
     // Base decisions off of real time if requested by this benchmark.
     i.seconds = i.results.cpu_time_used;
     if (b.use_manual_time) {
-      i.seconds = b.time->to_cost_in_seconds_(i.results.manual_time_used);
+      i.seconds = b.time->Cost(i.results.manual_time_used);
     } else if (b.use_real_time) {
       i.seconds = i.results.real_time_used;
     }

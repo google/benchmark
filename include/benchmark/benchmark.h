@@ -451,6 +451,10 @@ struct BenchmarkTime {
   const std::string& GetUnitString() const {
     return unit_;
   }
+
+  double Cost(double measurement) const {
+    return to_cost_in_seconds_ ? to_cost_in_seconds_(measurement) : measurement;
+  }
 private:
   std::string unit_;
 };
