@@ -435,28 +435,38 @@ struct Statistics {
 typedef double(BenchmarkTimeCostFunc)(double);
 
 struct BenchmarkTime {
-  TimeUnit cpu_unit_multiplier_;
-  TimeUnit unit_multiplier_;
-  std::string unit_name_;
   BenchmarkTimeCostFunc* to_cost_in_seconds_;
 
-  static double SecondsCost (double measurement) {
-    return measurement;
-  }
+  static double SecondsCost(double measurement) { return measurement; }
 
   BenchmarkTime();
 
+  void SetCpuUnitString(TimeUnit unit_multiplier);
+  void SetUnitString(TimeUnit unit_multiplier);
   void SetUnitString(TimeUnit unit_multiplier, std::string unit_name);
+
+  TimeUnit GetTimeUnit() const { return unit_multiplier_; }
+
+  TimeUnit GetCpuTimeUnit() const { return cpu_unit_multiplier_; }
 
   const std::string& GetUnitString() const {
     return unit_;
+  }
+
+  const std::string& GetCpuUnitString() const {
+    return cpu_unit_;
   }
 
   double Cost(double measurement) const {
     return to_cost_in_seconds_ ? to_cost_in_seconds_(measurement) : measurement;
   }
 private:
+  TimeUnit cpu_unit_multiplier_;
+  TimeUnit unit_multiplier_;
+  std::string unit_name_;
   std::string unit_;
+  std::string cpu_unit_;
+
 };
 
 namespace internal {
@@ -823,6 +833,7 @@ class Benchmark {
   // If only one is specified it is used as the time units for both.
   Benchmark* Unit(TimeUnit unit);
   Benchmark* Unit(TimeUnit unit, TimeUnit cpu_unit);
+  Benchmark* CpuUnit(TimeUnit unit);
 
   // Run this benchmark once for a number of values picked from the
   // range [start..limit].  (start and limit are always picked.)
@@ -1579,7 +1590,7 @@ inline const char* GetTimeUnitString(TimeUnit unit) {
   BENCHMARK_UNREACHABLE();
 }
 
-inline const char* GetTimeUnitPrefix(TimeUnit unit) {
+inline const char* GetTimeUnitPrefixString(TimeUnit unit) {
   switch (unit) {
     case kSecond:
       return "";

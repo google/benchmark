@@ -51,6 +51,7 @@ SubMap& GetSubstitutions() {
       {"%console_time_only_report", "[ ]*" + time_re + "[ ]+ns [ ]*" + time_re + "[ ]+ns"},
       {"%console_us_report", "[ ]*" + time_re + "[ ]+us [ ]*" + time_re + "[ ]+us [ ]*[0-9]+"},
       {"%console_us_time_only_report", "[ ]*" + time_re + "[ ]+us [ ]*" + time_re + "[ ]+us"},
+      {"%console_us_ns_time_only_report", "[ ]*" + time_re + "[ ]+us [ ]*" + time_re + "[ ]+ns"},
       {"%csv_header",
        "name,iterations,real_time,cpu_time,time_unit,bytes_per_second,"
        "items_per_second,label,error_occurred,error_message"},

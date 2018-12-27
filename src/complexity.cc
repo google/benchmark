@@ -203,7 +203,7 @@ std::vector<BenchmarkReporter::Run> ComputeBigO(
   // should not be multiplied at all. So, here, we _divide_ it by the
   // multiplier so that when it is multiplied later the result is the
   // correct one.
-  double multiplier = GetTimeUnitMultiplier(reports[0].time->unit_multiplier_);
+  double multiplier = GetTimeUnitMultiplier(reports[0].time->GetTimeUnit());
 
   // Only add label to mean/stddev if it is same for all runs
   Run rms;

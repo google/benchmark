@@ -268,9 +268,14 @@ Benchmark* Benchmark::Unit(TimeUnit unit) {
   return Unit(unit, unit);
 }
 
+Benchmark* Benchmark::CpuUnit(TimeUnit cpu_unit) {
+  time_.SetCpuUnitString(cpu_unit);
+  return this;
+}
+
 Benchmark* Benchmark::Unit(TimeUnit unit, TimeUnit cpu_unit) {
-  time_.cpu_unit_multiplier_ = cpu_unit;
-  time_.SetUnitString(unit, time_.unit_name_);
+  CpuUnit(cpu_unit);
+  time_.SetUnitString(unit);
   return this;
 }
 

@@ -91,13 +91,16 @@ std::string BenchmarkReporter::Run::benchmark_name() const {
 }
 
 double BenchmarkReporter::Run::GetAdjustedRealTime() const {
-  double new_time = real_accumulated_time * GetTimeUnitMultiplier(time->unit_multiplier_);
+  double new_time =
+      real_accumulated_time *
+      GetTimeUnitMultiplier(time->GetTimeUnit());
   if (iterations != 0) new_time /= static_cast<double>(iterations);
   return new_time;
 }
 
 double BenchmarkReporter::Run::GetAdjustedCPUTime() const {
-  double new_time = cpu_accumulated_time * GetTimeUnitMultiplier(time->cpu_unit_multiplier_);
+  double new_time = cpu_accumulated_time *
+                    GetTimeUnitMultiplier(time->GetCpuTimeUnit());
   if (iterations != 0) new_time /= static_cast<double>(iterations);
   return new_time;
 }

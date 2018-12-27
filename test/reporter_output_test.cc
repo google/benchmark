@@ -508,6 +508,52 @@ ADD_CASES(TC_CSVOut,
            {"^\"BM_RepeatTimeUnit/repeats:3_median\",%csv_us_report$"},
            {"^\"BM_RepeatTimeUnit/repeats:3_stddev\",%csv_us_report$"}});
 
+// Test repeats with custom time unit.
+void BM_RepeatTimeUnitCpu(benchmark::State& state) {
+  for (auto _ : state) {
+  }
+}
+BENCHMARK(BM_RepeatTimeUnitCpu)
+    ->Repetitions(3)
+    ->ReportAggregatesOnly()
+    ->Unit(benchmark::kMicrosecond, benchmark::kNanosecond);
+ADD_CASES(
+    TC_ConsoleOut,
+    {{".*BM_RepeatTimeUnitCpu/repeats:3 ", MR_Not},
+     {"^BM_RepeatTimeUnitCpu/repeats:3_mean %console_us_ns_time_only_report [ ]*3$"},
+     {"^BM_RepeatTimeUnitCpu/repeats:3_median %console_us_ns_time_only_report "
+      "[ ]*3$"},
+     {"^BM_RepeatTimeUnitCpu/repeats:3_stddev %console_us_ns_time_only_report "
+      "[ ]*3$"}});
+ADD_CASES(TC_JSONOut,
+          {{".*BM_RepeatTimeUnitCpu/repeats:3 ", MR_Not},
+           {"\"name\": \"BM_RepeatTimeUnitCpu/repeats:3_mean\",$"},
+           {"\"run_name\": \"BM_RepeatTimeUnitCpu/repeats:3\",$", MR_Next},
+           {"\"run_type\": \"aggregate\",$", MR_Next},
+           {"\"aggregate_name\": \"mean\",$", MR_Next},
+           {"\"iterations\": 3,$", MR_Next},
+           {"\"time_unit\": \"us\",?$"},
+           {"\"cpu_time_unit\": \"ns\"$", MR_Next},
+           {"\"name\": \"BM_RepeatTimeUnitCpu/repeats:3_median\",$"},
+           {"\"run_name\": \"BM_RepeatTimeUnitCpu/repeats:3\",$", MR_Next},
+           {"\"run_type\": \"aggregate\",$", MR_Next},
+           {"\"aggregate_name\": \"median\",$", MR_Next},
+           {"\"iterations\": 3,$", MR_Next},
+           {"\"time_unit\": \"us\",?$"},
+           {"\"cpu_time_unit\": \"ns\"$", MR_Next},
+           {"\"name\": \"BM_RepeatTimeUnitCpu/repeats:3_stddev\",$"},
+           {"\"run_name\": \"BM_RepeatTimeUnitCpu/repeats:3\",$", MR_Next},
+           {"\"run_type\": \"aggregate\",$", MR_Next},
+           {"\"aggregate_name\": \"stddev\",$", MR_Next},
+           {"\"iterations\": 3,$", MR_Next},
+           {"\"time_unit\": \"us\",?$"},
+           {"\"cpu_time_unit\": \"ns\"$", MR_Next}});
+ADD_CASES(TC_CSVOut,
+          {{".*BM_RepeatTimeUnitCpu/repeats:3 ", MR_Not},
+           {"^\"BM_RepeatTimeUnitCpu/repeats:3_mean\",%csv_us_report$"},
+           {"^\"BM_RepeatTimeUnitCpu/repeats:3_median\",%csv_us_report$"},
+           {"^\"BM_RepeatTimeUnitCpu/repeats:3_stddev\",%csv_us_report$"}});
+
 // ========================================================================= //
 // -------------------- Testing user-provided statistics ------------------- //
 // ========================================================================= //

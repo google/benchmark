@@ -341,17 +341,28 @@ ConsoleReporter::OutputOptions GetOutputOptions(bool force_no_color) {
 }  // end namespace internal
 
 BenchmarkTime::BenchmarkTime()
-    : cpu_unit_multiplier_(TimeUnit::kNanosecond),
+    : to_cost_in_seconds_(SecondsCost),
+      cpu_unit_multiplier_(TimeUnit::kNanosecond),
       unit_multiplier_(TimeUnit::kNanosecond),
       unit_name_("s"),
-      to_cost_in_seconds_(SecondsCost),
-      unit_(GetTimeUnitPrefix(unit_multiplier_) + unit_name_) {}
+      unit_(GetTimeUnitPrefixString(unit_multiplier_) + unit_name_),
+      cpu_unit_(GetTimeUnitString(cpu_unit_multiplier_)) {}
+
+void BenchmarkTime::SetUnitString(TimeUnit unit_multiplier) {
+  unit_multiplier_ = unit_multiplier;
+  unit_ = GetTimeUnitPrefixString(unit_multiplier_) + unit_name_;
+}
 
 void BenchmarkTime::SetUnitString(TimeUnit unit_multiplier,
                                   std::string unit_name) {
   unit_multiplier_ = unit_multiplier;
   unit_name_ = std::move(unit_name);
-  unit_ = GetTimeUnitPrefix(unit_multiplier_) + unit_name_;
+  unit_ = GetTimeUnitPrefixString(unit_multiplier_) + unit_name_;
+}
+
+void BenchmarkTime::SetCpuUnitString(TimeUnit unit_multiplier) {
+  cpu_unit_multiplier_ = unit_multiplier;
+  cpu_unit_ = GetTimeUnitString(cpu_unit_multiplier_);
 }
 
 size_t RunSpecifiedBenchmarks() {

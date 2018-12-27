@@ -195,8 +195,7 @@ void JSONReporter::PrintRunData(Run const& run) {
                     run.time->GetUnitString());
     out << ",\n"
         << indent
-        << FormatKV("cpu_time_unit",
-                    GetTimeUnitString(run.time->cpu_unit_multiplier_));
+        << FormatKV("cpu_time_unit", run.time->GetCpuUnitString());
   } else if (run.report_big_o) {
     out << indent << FormatKV("cpu_coefficient", run.GetAdjustedCPUTime())
         << ",\n";
@@ -206,8 +205,7 @@ void JSONReporter::PrintRunData(Run const& run) {
     out << ",\n" << indent << FormatKV("time_unit", run.time->GetUnitString());
     out << ",\n"
         << indent
-        << FormatKV("cpu_time_unit",
-                    GetTimeUnitString(run.time->cpu_unit_multiplier_));
+        << FormatKV("cpu_time_unit", run.time->GetCpuUnitString());
   } else if (run.report_rms) {
     out << indent << FormatKV("rms", run.GetAdjustedCPUTime());
   }

@@ -148,7 +148,7 @@ void ConsoleReporter::PrintRunData(const Run& result) {
     printer(Out, COLOR_YELLOW, "%10.0f %-*s %10.0f %-4s ", real_time * 100,
             time_fill_width, "%", cpu_time * 100, "%");
   } else {
-    const char* cputimeLabel = GetTimeUnitString(result.time->cpu_unit_multiplier_);
+    const char* cputimeLabel = result.time->GetCpuUnitString().c_str();
     const char* realtimeLabel = result.time->GetUnitString().c_str();
     printer(Out, COLOR_YELLOW, "%s %-*s %s %-4s ", real_time_str.c_str(),
             time_fill_width, realtimeLabel, cpu_time_str.c_str(),
