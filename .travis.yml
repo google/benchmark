@@ -5,6 +5,38 @@ language: cpp
 env:
   global:
     - /usr/local/bin:$PATH
+    - CONAN_USERNAME="google"
+    - CONAN_PACKAGE_NAME="benchmark"
+
+conan-buildsteps: &conan-buildsteps
+  before_install:
+    # use this step if you desire to manipulate CONAN variables programmatically
+    # dummy to overwrite default build steps
+    - true
+  install:
+    - chmod +x ./conan/ci/install.sh
+    - ./conan/ci/install.sh
+  script:
+    - chmod +x ./conan/ci/build.sh
+    - ./conan/ci/build.sh
+   # the following are dummies to overwrite default build steps
+  before_script:
+    - true
+  after_success:
+    - true
+  if: tag IS present
+conan-linux: &conan-linux
+  os: linux
+  dist: xenial
+  language: python
+  python: "3.7"
+  services:
+    - docker
+  <<: *conan-buildsteps
+conan-osx: &conan-osx
+  os: osx
+  language: generic
+  <<: *conan-buildsteps
 
 matrix:
   include:
@@ -117,49 +149,6 @@ matrix:
         - LIBCXX_BUILD=1 LIBCXX_SANITIZER=Thread
         - ENABLE_SANITIZER=1
         - EXTRA_FLAGS="-stdlib=libc++ -g -O2 -fno-omit-frame-pointer -fsanitize=thread -fno-sanitize-recover=all"
-    # Conan testing and uploading
-    - compiler: gcc
-      env: CONAN=True
-      language: python
-      python: "3.6"
-      before_script:
-        - pip install -U pip
-      before_install:
-        - pip --version
-      install:
-        - pip install conan
-      script:
-        - conan create . benchmark/master@google/testing --build
-      after_success:
-        # If this build is NOT triggered by a pull request; AND got triggered by either a tag OR push to master
-        # and the following environment variables are set:
-        #   CONAN_UPLOAD - a reference to the Conan repository e.g. https://bintray.com/google/conan
-        #   CONAN_LOGIN_USERNAME - user for the upload e.g. upload_bot_username
-        #   CONAN_PASSWORD - password for the CONAN_LOGIN_USERNAME; for Bintray this is the API key
-        # then upload the new recipe version to the Conan repository.
-        #
-        # For the tag pushes we are using for the
-        #   version the tag name, removing the "v"
-        #   channel "stable"
-        # For master pushes we are using for the
-        #   version simply "master"
-        #   channel "testing"
-        - if [[ "${TRAVIS_PULL_REQUEST}" == "false" && ( -n "${TRAVIS_TAG}" || "${TRAVIS_BRANCH}" == "master" ) && -n "${CONAN_UPLOAD}" && -n "${CONAN_LOGIN_USERNAME}" && -n "${CONAN_PASSWORD}" ]]; then
-            conan remote add benchmark ${CONAN_UPLOAD} --insert;
-            conan remote list;
-
-            if [ -n "${TRAVIS_TAG}" ]; then
-              CONANVERSION=${TRAVIS_TAG//v};
-              CONANREFERENCE=benchmark/${CONANVERSION}@google/stable;
-              conan export . ${CONANREFERENCE};
-            else
-              CONANVERSION="master";
-              CONANREFERENCE=benchmark/${CONANVERSION}@google/testing;
-            fi;
-
-            conan user -p "${CONAN_PASSWORD}" -r benchmark "${CONAN_LOGIN_USERNAME}";
-            conan upload --force -r benchmark --retry 3 --retry-wait 10 --confirm "${CONANREFERENCE}";
-          fi;
     - os: osx
       osx_image: xcode8.3
       compiler: clang
@@ -180,6 +169,80 @@ matrix:
       compiler: gcc
       env:
         - COMPILER=g++-7 C_COMPILER=gcc-7  BUILD_TYPE=Debug
+    # Conan testing and uploading
+    - compiler: gcc
+      env: CONAN=True
+      language: python
+      dist: xenial
+      python: "3.7"
+      before_install:
+        - pip install -U pip
+      install:
+        - pip install conan
+      before_script:
+        - pip --version
+        - conan --version
+      script:
+        - CONAN_FULL_REFERENCE=${CONAN_PACKAGE_NAME}/master@${CONAN_USERNAME}/testing
+        - conan create . ${CONAN_FULL_REFERENCE} --build --test-folder "conan/test_package"
+      after_success:
+        # If this build is NOT triggered by a pull request; AND got triggered by either a tag OR push to master
+        # and the following environment variables are set:
+        #   CONAN_UPLOAD - a reference to the Conan repository e.g. https://api.bintray.com/google/conan
+        #   CONAN_LOGIN_USERNAME - user for the upload e.g. upload_bot_username
+        #   CONAN_PASSWORD - password for the CONAN_LOGIN_USERNAME; for Bintray this is the API key
+        # then upload the new recipe version to the Conan repository.
+        # For tag pushes we are also building and uploading packages for common configurations.
+        #
+        # For the tag pushes we are using for the
+        #   version the tag name, removing the "v"
+        #   channel "stable"
+        # For master pushes we are using for the
+        #   version simply "master"
+        #   channel "testing"
+        - if [[ "${TRAVIS_PULL_REQUEST}" == "false" && "${TRAVIS_BRANCH}" == "master" && -n "${CONAN_UPLOAD}" && -n "${CONAN_LOGIN_USERNAME}" && -n "${CONAN_PASSWORD}" ]]; then
+            conan remote add ${CONAN_PACKAGE_NAME} ${CONAN_UPLOAD} --insert;
+            conan remote list;
+
+            conan user -p "${CONAN_PASSWORD}" -r benchmark "${CONAN_LOGIN_USERNAME}";
+            conan upload --force -r ${CONAN_PACKAGE_NAME} --retry 3 --retry-wait 10 --confirm "${CONAN_FULL_REFERENCE}";
+          fi;
+      if: NOT tag IS present
+    - <<: *conan-linux
+      env: CONAN_GCC_VERSIONS=4.9 CONAN_DOCKER_IMAGE=conanio/gcc49
+    - <<: *conan-linux
+      env: CONAN_GCC_VERSIONS=5 CONAN_DOCKER_IMAGE=conanio/gcc5
+    - <<: *conan-linux
+      env: CONAN_GCC_VERSIONS=6 CONAN_DOCKER_IMAGE=conanio/gcc6
+    - <<: *conan-linux
+      env: CONAN_GCC_VERSIONS=7 CONAN_DOCKER_IMAGE=conanio/gcc7
+    - <<: *conan-linux
+      env: CONAN_GCC_VERSIONS=8 CONAN_DOCKER_IMAGE=conanio/gcc8
+    - <<: *conan-linux
+      env: CONAN_CLANG_VERSIONS=3.9 CONAN_DOCKER_IMAGE=conanio/clang39
+    - <<: *conan-linux
+      env: CONAN_CLANG_VERSIONS=4.0 CONAN_DOCKER_IMAGE=conanio/clang40
+    - <<: *conan-linux
+      env: CONAN_CLANG_VERSIONS=5.0 CONAN_DOCKER_IMAGE=conanio/clang50
+    - <<: *conan-linux
+      env: CONAN_CLANG_VERSIONS=6.0 CONAN_DOCKER_IMAGE=conanio/clang60
+    - <<: *conan-linux
+      env: CONAN_CLANG_VERSIONS=7.0 CONAN_DOCKER_IMAGE=conanio/clang7
+    - <<: *conan-osx
+      osx_image: xcode7.3
+      env: CONAN_APPLE_CLANG_VERSIONS=7.3
+    - <<: *conan-osx
+      osx_image: xcode8.3
+      env: CONAN_APPLE_CLANG_VERSIONS=8.1
+    - <<: *conan-osx
+      osx_image: xcode9
+      env: CONAN_APPLE_CLANG_VERSIONS=9.0
+    - <<: *conan-osx
+      osx_image: xcode9.4
+      env: CONAN_APPLE_CLANG_VERSIONS=9.1
+    - <<: *conan-osx
+      osx_image: xcode10.1
+      env: CONAN_APPLE_CLANG_VERSIONS=10.0
 
 before_script:
   - if [ -n "${LIBCXX_BUILD}" ]; then

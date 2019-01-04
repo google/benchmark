@@ -7,6 +7,10 @@ configuration:
   - Release
 
 environment:
+  global:
+    CONAN_USERNAME: "google"
+    CONAN_PACKAGE_NAME: "benchmark"
+    CONAN_DISABLE_SHARED_BUILD: "True" # Remove this line altogether when shared Win builds are fixed
   matrix:
     - compiler: msvc-15-seh
       generator: "Visual Studio 15 2017"
@@ -25,26 +29,65 @@ environment:
       cxx_path: 'C:\mingw-w64\i686-5.3.0-posix-dwarf-rt_v4-rev0\mingw32\bin'
       APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2015
 
+    - APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2015
+      CONAN_VISUAL_VERSIONS: 14
+      CONAN_BUILD_TYPES: Release
+      CONAN: true
+    - APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2015
+      CONAN_VISUAL_VERSIONS: 14
+      CONAN_BUILD_TYPES: Debug
+      CONAN: true
+    - APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017
+      CONAN_VISUAL_VERSIONS: 15
+      CONAN_BUILD_TYPES: Release
+      CONAN: true
+    - APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017
+      CONAN_VISUAL_VERSIONS: 15
+      CONAN_BUILD_TYPES: Debug
+      CONAN: true
+
 matrix:
+  exclude:
+    # We only need one time all Conan jobs, so exclude all but one configuration from matrix expanding
+    - CONAN: true
+      configuration: Debug
   fast_finish: true
 
-install:
-  # git bash conflicts with MinGW makefiles
-  - if "%generator%"=="MinGW Makefiles" (set "PATH=%PATH:C:\Program Files\Git\usr\bin;=%")
-  - if not "%cxx_path%"=="" (set "PATH=%PATH%;%cxx_path%")
+for:
+-
+  matrix:
+    except:
+      - CONAN: true
 
-build_script:
-  - md _build -Force
-  - cd _build
-  - echo %configuration%
-  - cmake -G "%generator%" "-DCMAKE_BUILD_TYPE=%configuration%" -DBENCHMARK_DOWNLOAD_DEPENDENCIES=ON ..
-  - cmake --build . --config %configuration%
+  install:
+    # git bash conflicts with MinGW makefiles
+    - if "%generator%"=="MinGW Makefiles" (set "PATH=%PATH:C:\Program Files\Git\usr\bin;=%")
+    - if not "%cxx_path%"=="" (set "PATH=%PATH%;%cxx_path%")
 
-test_script:
-  - ctest -c %configuration% --timeout 300 --output-on-failure
+  build_script:
+    - md _build -Force
+    - cd _build
+    - echo %configuration%
+    - cmake -G "%generator%" "-DCMAKE_BUILD_TYPE=%configuration%" -DBENCHMARK_DOWNLOAD_DEPENDENCIES=ON ..
+    - cmake --build . --config %configuration%
 
-artifacts:
-  - path: '_build/CMakeFiles/*.log'
-    name: logs
-  - path: '_build/Testing/**/*.xml'
-    name: test_results
+  test_script:
+    - ctest -c %configuration% --timeout 300 --output-on-failure
+
+  artifacts:
+    - path: '_build/CMakeFiles/*.log'
+      name: logs
+    - path: '_build/Testing/**/*.xml'
+      name: test_results
+
+-
+  matrix:
+    only:
+      - CONAN: true
+  skip_non_tags: true
+
+  install:
+    - python conan/appveyor/install.py
+
+  build_script:
+    - python conan/appveyor/build.py
