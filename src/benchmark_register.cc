@@ -412,17 +412,17 @@ Benchmark* Benchmark::UseRealTime() {
 }
 
 Benchmark* Benchmark::UseManualTime() {
-  return UseManualTime("s", TimeUnit::kNanosecond, BenchmarkTime::SecondsCost);
+  return UseManualTime("s", TimeUnit::kNanosecond, DefaultBenchmarkTimeCostFunc);
 }
 
 Benchmark* Benchmark::UseManualTime(
-    std::string name, TimeUnit unit_multiplier,
-    BenchmarkTimeCostFunc* cost_function) {
+    const std::string& unit_name, TimeUnit unit_multiplier,
+    BenchmarkTimeCostFunc* to_cost_in_seconds_function) {
   CHECK(!use_real_time_)
       << "Cannot set UseRealTime and UseManualTime simultaneously.";
   use_manual_time_ = true;
-  time_.SetUnitString(unit_multiplier, name);
-  time_.to_cost_in_seconds_ = cost_function ? cost_function : BenchmarkTime::SecondsCost;
+  time_.SetUnitString(unit_multiplier, unit_name);
+  time_.SetManualCostFunction(to_cost_in_seconds_function);
   return this;
 }
 

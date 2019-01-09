@@ -433,15 +433,19 @@ struct Statistics {
 // seconds, which is used to estimate iterations
 // and similar
 typedef double(BenchmarkTimeCostFunc)(double);
+// default assumes measurements are done in seconds
+// (as they are currently done in the benchmark runner)
+inline double DefaultBenchmarkTimeCostFunc(double measurement) {
+  return measurement;
+}
 
-struct BenchmarkTime {
-  BenchmarkTimeCostFunc* to_cost_in_seconds_;
-
-  static double SecondsCost(double measurement) { return measurement; }
+class BenchmarkTime {
+public:
 
   BenchmarkTime();
 
-  void SetCpuUnitString(TimeUnit unit_multiplier);
+  void SetManualCostFunction(BenchmarkTimeCostFunc* to_time_cost_in_seconds);
+  void SetCpuUnitString(TimeUnit cpu_unit_multiplier);
   void SetUnitString(TimeUnit unit_multiplier);
   void SetUnitString(TimeUnit unit_multiplier, std::string unit_name);
 
@@ -457,15 +461,16 @@ struct BenchmarkTime {
     return cpu_unit_;
   }
 
-  double Cost(double measurement) const {
-    return to_cost_in_seconds_ ? to_cost_in_seconds_(measurement) : measurement;
+  double ManualCost(double measurement) const {
+    return to_cost_in_seconds_(measurement);
   }
 private:
-  TimeUnit cpu_unit_multiplier_;
-  TimeUnit unit_multiplier_;
-  std::string unit_name_;
-  std::string unit_;
-  std::string cpu_unit_;
+ BenchmarkTimeCostFunc* to_cost_in_seconds_;
+ TimeUnit cpu_unit_multiplier_;
+ TimeUnit unit_multiplier_;
+ std::string unit_name_;
+ std::string unit_;
+ std::string cpu_unit_;
 
 };
 
@@ -833,7 +838,7 @@ class Benchmark {
   // If only one is specified it is used as the time units for both.
   Benchmark* Unit(TimeUnit unit);
   Benchmark* Unit(TimeUnit unit, TimeUnit cpu_unit);
-  Benchmark* CpuUnit(TimeUnit unit);
+  Benchmark* CpuUnit(TimeUnit cpu_unit);
 
   // Run this benchmark once for a number of values picked from the
   // range [start..limit].  (start and limit are always picked.)
@@ -936,11 +941,11 @@ class Benchmark {
   // value set by the user. The Cost Function returns the "cost" of a single 
   // benchmark iteration's in seconds, to be used to determine the cost
   // of a single run of the benchmark max iteration estimation and so on.
-  // The unit multiplier changes
+  // The unit multiplier changes what the printout prints
   Benchmark* UseManualTime();
-  Benchmark* UseManualTime(
-      std::string units, TimeUnit unit_multiplier = kSecond,
-      BenchmarkTimeCostFunc* cost_function = BenchmarkTime::SecondsCost);
+  Benchmark* UseManualTime(const std::string& units, TimeUnit unit_multiplier,
+                           BenchmarkTimeCostFunc* to_cost_in_seconds_function =
+                               DefaultBenchmarkTimeCostFunc);
 
   // Set the asymptotic computational complexity for the benchmark. If called
   // the asymptotic computational complexity will be shown on the output.

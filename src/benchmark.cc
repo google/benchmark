@@ -341,12 +341,21 @@ ConsoleReporter::OutputOptions GetOutputOptions(bool force_no_color) {
 }  // end namespace internal
 
 BenchmarkTime::BenchmarkTime()
-    : to_cost_in_seconds_(SecondsCost),
+    : to_cost_in_seconds_(DefaultBenchmarkTimeCostFunc),
       cpu_unit_multiplier_(TimeUnit::kNanosecond),
       unit_multiplier_(TimeUnit::kNanosecond),
+      // unit name is separate from multiplier,
+      // this plus above makes "ns",
+      // and so on and so forth when using
+      // setters for BenchmarkTime
       unit_name_("s"),
       unit_(GetTimeUnitPrefixString(unit_multiplier_) + unit_name_),
       cpu_unit_(GetTimeUnitString(cpu_unit_multiplier_)) {}
+
+void BenchmarkTime::SetManualCostFunction(BenchmarkTimeCostFunc* to_time_cost_in_seconds) {
+  CHECK(to_time_cost_in_seconds);
+  to_cost_in_seconds_ = to_time_cost_in_seconds;
+}
 
 void BenchmarkTime::SetUnitString(TimeUnit unit_multiplier) {
   unit_multiplier_ = unit_multiplier;
@@ -360,8 +369,8 @@ void BenchmarkTime::SetUnitString(TimeUnit unit_multiplier,
   unit_ = GetTimeUnitPrefixString(unit_multiplier_) + unit_name_;
 }
 
-void BenchmarkTime::SetCpuUnitString(TimeUnit unit_multiplier) {
-  cpu_unit_multiplier_ = unit_multiplier;
+void BenchmarkTime::SetCpuUnitString(TimeUnit cpu_unit_multiplier) {
+  cpu_unit_multiplier_ = cpu_unit_multiplier;
   cpu_unit_ = GetTimeUnitString(cpu_unit_multiplier_);
 }
 
