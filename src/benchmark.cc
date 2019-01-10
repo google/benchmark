@@ -148,7 +148,7 @@ State::State(size_t max_iters, const std::vector<int64_t>& ranges, int thread_i,
   // which must be suppressed.
 #if defined(__INTEL_COMPILER)
 #pragma warning push
-#pragma warning(disable:1875)
+#pragma warning(disable : 1875)
 #elif defined(__GNUC__)
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Winvalid-offsetof"
@@ -235,8 +235,8 @@ void RunBenchmarks(const std::vector<BenchmarkInstance>& benchmarks,
   for (const BenchmarkInstance& benchmark : benchmarks) {
     name_field_width =
         std::max<size_t>(name_field_width, benchmark.name.size());
-    unit_field_width = std::max<size_t>(
-        unit_field_width, benchmark.time->GetUnitString().size());
+    unit_field_width = std::max<size_t>(unit_field_width,
+                                        benchmark.time->GetUnitString().size());
     might_have_aggregates |= benchmark.repetitions > 1;
 
     for (const auto& Stat : *benchmark.statistics)
@@ -316,7 +316,7 @@ bool IsZero(double n) {
 
 ConsoleReporter::OutputOptions GetOutputOptions(bool force_no_color) {
   int output_opts = ConsoleReporter::OO_Defaults;
-  auto is_benchmark_color = [force_no_color] () -> bool {
+  auto is_benchmark_color = [force_no_color]() -> bool {
     if (force_no_color) {
       return false;
     }
@@ -338,8 +338,6 @@ ConsoleReporter::OutputOptions GetOutputOptions(bool force_no_color) {
   return static_cast<ConsoleReporter::OutputOptions>(output_opts);
 }
 
-}  // end namespace internal
-
 BenchmarkTime::BenchmarkTime()
     : to_cost_in_seconds_(DefaultBenchmarkTimeCostFunc),
       cpu_unit_multiplier_(TimeUnit::kNanosecond),
@@ -352,7 +350,8 @@ BenchmarkTime::BenchmarkTime()
       unit_(GetTimeUnitPrefixString(unit_multiplier_) + unit_name_),
       cpu_unit_(GetTimeUnitString(cpu_unit_multiplier_)) {}
 
-void BenchmarkTime::SetManualCostFunction(BenchmarkTimeCostFunc* to_time_cost_in_seconds) {
+void BenchmarkTime::SetManualCostFunction(
+    BenchmarkTimeCostFunc* to_time_cost_in_seconds) {
   CHECK(to_time_cost_in_seconds);
   to_cost_in_seconds_ = to_time_cost_in_seconds;
 }
@@ -373,6 +372,8 @@ void BenchmarkTime::SetCpuUnitString(TimeUnit cpu_unit_multiplier) {
   cpu_unit_multiplier_ = cpu_unit_multiplier;
   cpu_unit_ = GetTimeUnitString(cpu_unit_multiplier_);
 }
+
+}  // end namespace internal
 
 size_t RunSpecifiedBenchmarks() {
   return RunSpecifiedBenchmarks(nullptr, nullptr);

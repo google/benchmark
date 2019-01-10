@@ -246,11 +246,11 @@ BENCHMARK(BM_test)->Unit(benchmark::kMillisecond);
 #endif
 
 #if defined(__GNUC__) || __has_builtin(__builtin_unreachable)
-  #define BENCHMARK_UNREACHABLE() __builtin_unreachable()
+#define BENCHMARK_UNREACHABLE() __builtin_unreachable()
 #elif defined(_MSC_VER)
-  #define BENCHMARK_UNREACHABLE() __assume(false)
+#define BENCHMARK_UNREACHABLE() __assume(false)
 #else
-  #define BENCHMARK_UNREACHABLE() ((void)0)
+#define BENCHMARK_UNREACHABLE() ((void)0)
 #endif
 
 namespace benchmark {
@@ -439,9 +439,13 @@ inline double DefaultBenchmarkTimeCostFunc(double measurement) {
   return measurement;
 }
 
-class BenchmarkTime {
-public:
+namespace internal {
+struct BenchmarkInstance;
+class ThreadTimer;
+class ThreadManager;
 
+class BenchmarkTime {
+ public:
   BenchmarkTime();
 
   void SetManualCostFunction(BenchmarkTimeCostFunc* to_time_cost_in_seconds);
@@ -453,31 +457,22 @@ public:
 
   TimeUnit GetCpuTimeUnit() const { return cpu_unit_multiplier_; }
 
-  const std::string& GetUnitString() const {
-    return unit_;
-  }
+  const std::string& GetUnitString() const { return unit_; }
 
-  const std::string& GetCpuUnitString() const {
-    return cpu_unit_;
-  }
+  const std::string& GetCpuUnitString() const { return cpu_unit_; }
 
   double ManualCost(double measurement) const {
     return to_cost_in_seconds_(measurement);
   }
-private:
- BenchmarkTimeCostFunc* to_cost_in_seconds_;
- TimeUnit cpu_unit_multiplier_;
- TimeUnit unit_multiplier_;
- std::string unit_name_;
- std::string unit_;
- std::string cpu_unit_;
 
+ private:
+  BenchmarkTimeCostFunc* to_cost_in_seconds_;
+  TimeUnit cpu_unit_multiplier_;
+  TimeUnit unit_multiplier_;
+  std::string unit_name_;
+  std::string unit_;
+  std::string cpu_unit_;
 };
-
-namespace internal {
-struct BenchmarkInstance;
-class ThreadTimer;
-class ThreadManager;
 
 enum AggregationReportMode
 #if defined(BENCHMARK_HAS_CXX11)
@@ -833,9 +828,9 @@ class Benchmark {
   // REQUIRES: The function passed to the constructor must accept an arg1.
   Benchmark* Arg(int64_t x);
 
-  // Run this benchmark with the given time unit for the generated output report,
-  // and the given cpu multiplier for the second overload.
-  // If only one is specified it is used as the time units for both.
+  // Run this benchmark with the given time unit for the generated output
+  // report, and the given cpu multiplier for the second overload. If only one
+  // is specified it is used as the time units for both.
   Benchmark* Unit(TimeUnit unit);
   Benchmark* Unit(TimeUnit unit, TimeUnit cpu_unit);
   Benchmark* CpuUnit(TimeUnit cpu_unit);
@@ -937,8 +932,8 @@ class Benchmark {
   // SetIterationTime(seconds) to report the measured time, which will be used
   // to control how many iterations are run, and in the printing of items/second
   // or MB/second values.
-  // The second overload creates a manual time which measures in some arbitrary 
-  // value set by the user. The Cost Function returns the "cost" of a single 
+  // The second overload creates a manual time which measures in some arbitrary
+  // value set by the user. The Cost Function returns the "cost" of a single
   // benchmark iteration's in seconds, to be used to determine the cost
   // of a single run of the benchmark max iteration estimation and so on.
   // The unit multiplier changes what the printout prints
@@ -1350,10 +1345,11 @@ struct CPUInfo {
   BENCHMARK_DISALLOW_COPY_AND_ASSIGN(CPUInfo);
 };
 
-//Adding Struct for System Information
+// Adding Struct for System Information
 struct SystemInfo {
   std::string name;
   static const SystemInfo& Get();
+
  private:
   SystemInfo();
   BENCHMARK_DISALLOW_COPY_AND_ASSIGN(SystemInfo);
@@ -1399,14 +1395,14 @@ class BenchmarkReporter {
 
     std::string benchmark_name() const;
     std::string run_name;
-    RunType run_type;          // is this a measurement, or an aggregate?
+    RunType run_type;  // is this a measurement, or an aggregate?
     std::string aggregate_name;
     std::string report_label;  // Empty if not set by benchmark.
     bool error_occurred;
     std::string error_message;
 
     int64_t iterations;
-    const BenchmarkTime* time;
+    const internal::BenchmarkTime* time;
     double real_accumulated_time;
     double cpu_accumulated_time;
 
@@ -1544,8 +1540,9 @@ class JSONReporter : public BenchmarkReporter {
   bool first_report_;
 };
 
-class BENCHMARK_DEPRECATED_MSG("The CSV Reporter will be removed in a future release")
-      CSVReporter : public BenchmarkReporter {
+class BENCHMARK_DEPRECATED_MSG(
+    "The CSV Reporter will be removed in a future release") CSVReporter
+    : public BenchmarkReporter {
  public:
   CSVReporter() : printed_header_(false) {}
   virtual bool ReportContext(const Context& context);
