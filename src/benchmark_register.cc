@@ -264,9 +264,7 @@ Benchmark* Benchmark::Arg(int64_t x) {
   return this;
 }
 
-Benchmark* Benchmark::Unit(TimeUnit unit) {
-  return Unit(unit, unit);
-}
+Benchmark* Benchmark::Unit(TimeUnit unit) { return Unit(unit, unit); }
 
 Benchmark* Benchmark::CpuUnit(TimeUnit cpu_unit) {
   time_.SetCpuUnitString(cpu_unit);
@@ -274,7 +272,7 @@ Benchmark* Benchmark::CpuUnit(TimeUnit cpu_unit) {
 }
 
 Benchmark* Benchmark::Unit(TimeUnit unit, TimeUnit cpu_unit) {
-  CpuUnit(cpu_unit);
+  time_.SetCpuUnitString(cpu_unit);
   time_.SetUnitString(unit);
   return this;
 }
@@ -412,7 +410,8 @@ Benchmark* Benchmark::UseRealTime() {
 }
 
 Benchmark* Benchmark::UseManualTime() {
-  return UseManualTime("s", TimeUnit::kNanosecond, DefaultBenchmarkTimeCostFunc);
+  return UseManualTime("s", TimeUnit::kNanosecond,
+                       DefaultBenchmarkTimeCostFunc);
 }
 
 Benchmark* Benchmark::UseManualTime(
