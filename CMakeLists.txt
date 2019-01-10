@@ -1,8 +1,7 @@
 cmake_minimum_required (VERSION 2.8.12)
 
-project (benchmark)
-
 foreach(p
+    CMP0048 # OK to clear PROJECT_VERSION on project()
     CMP0054 # CMake 3.1
     CMP0056 # export EXE_LINKER_FLAGS to try_run
     CMP0057 # Support no if() IN_LIST operator
@@ -11,6 +10,8 @@ foreach(p
     cmake_policy(SET ${p} NEW)
   endif()
 endforeach()
+
+project (benchmark)
 
 option(BENCHMARK_ENABLE_TESTING "Enable testing of the benchmark library." ON)
 option(BENCHMARK_ENABLE_EXCEPTIONS "Enable the use of exceptions in the benchmark library." ON)
