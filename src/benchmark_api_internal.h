@@ -23,7 +23,7 @@ struct BenchmarkInstance {
   int range_multiplier;
   bool use_real_time;
   bool use_manual_time;
-  const BenchmarkTime* time;
+  const BenchmarkTimeInfo* time;
   BigO complexity;
   BigOFunc* complexity_lambda;
   UserCounters counters;

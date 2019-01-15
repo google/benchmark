@@ -134,7 +134,7 @@ line parameters if you use that.
 If you're running benchmarks on Windows, the shlwapi library (`-lshlwapi`) is
 also required.
 
-If you're running benchmarks on solaris, you'll want the kstat library linked in
+If you're running benchmarks on Solaris, you'll want the kstat library linked in
 too (`-lkstat`).
 
 ### Passing arguments
@@ -430,9 +430,9 @@ Without `UseRealTime`, CPU time is used by default.
 
 ## Controlling timers
 Normally, the entire duration of the work loop (`for (auto _ : state) {}`)
-is measured. But sometimes, it is nessesary to do some work inside of
+is measured. But sometimes, it is necessary to do some work inside of
 that loop, every iteration, but without counting that time to the benchmark time.
-That is possible, althought it is not recommended, since it has high overhead.
+That is possible, although it is not recommended, since it has high overhead.
 
 ```c++
 static void BM_SetInsert_With_Timer_Control(benchmark::State& state) {
@@ -486,6 +486,48 @@ static void BM_ManualTiming(benchmark::State& state) {
 }
 BENCHMARK(BM_ManualTiming)->Range(1, 1<<17)->UseManualTime();
 ```
+
+There is also a second overload of `UseManualTime`, which allows the user to pass an arbitrary unit name, an optional scaling multiplier for those units, and a way to convert those units to a cost that will be used by Benchmark internally to determine maximum iterations/initial iteration cost and similar:
+
+```c++
+#include <cstddef>
+
+#if _WIN32
+#include <intrin.h>
+#else
+#include <x86intrin.h>
+#endif
+
+int64_t rdtsc() {
+  return static_cast<int64_t>(__rdtsc());
+}
+
+static double compute_cost(double measurement) {
+  // convert to some representative cost
+  return measurement;
+}
+
+static void BM_ManualTimingWithUnits(benchmark::State& state) {
+  int rotations = state.range(0);
+  std::unique_ptr<int32_t[]> data(new int32_t[rotations]]);
+
+  for (auto _ : state) {
+    auto start = rtdsc();
+
+    for (int i = 0; i < rotations; ++i) {
+      data[i] = _rotl(data[i], 16)
+    }
+
+    auto elapsed = rtdsc() - start;
+    state.SetIterationTime(static_cast<double>(elapsed));
+  }
+}
+BENCHMARK(BM_ManualTimingWithUnits)
+  ->Range(1, 1<<9)
+  ->UseManualTime("cycles", benchmark::kSeconds, compute_cost);
+```
+
+Internally, it treats the computed cost as "seconds", but this can be made to specify any arbitrary measurement unit for the benchmark. This will affect things like `MinTime`, so choose your limits carefully when specifying manual units that are not clearly convertible to seconds.
 
 ### Preventing optimisation
 To prevent a value or expression from being optimized away by the compiler

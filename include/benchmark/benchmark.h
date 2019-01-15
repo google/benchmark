@@ -444,11 +444,11 @@ struct BenchmarkInstance;
 class ThreadTimer;
 class ThreadManager;
 
-class BenchmarkTime {
+class BenchmarkTimeInfo {
  public:
-  BenchmarkTime();
+  BenchmarkTimeInfo();
 
-  void SetManualCostFunction(BenchmarkTimeCostFunc* to_time_cost_in_seconds);
+  void SetCostFunction(BenchmarkTimeCostFunc* to_time_cost_in_seconds);
   void SetCpuUnitString(TimeUnit cpu_unit_multiplier);
   void SetUnitString(TimeUnit unit_multiplier);
   void SetUnitString(TimeUnit unit_multiplier, std::string unit_name);
@@ -461,7 +461,7 @@ class BenchmarkTime {
 
   const std::string& GetCpuUnitString() const { return cpu_unit_; }
 
-  double ManualCost(double measurement) const {
+  double GetCost(double measurement) const {
     return to_cost_in_seconds_(measurement);
   }
 
@@ -1005,7 +1005,7 @@ class Benchmark {
   int repetitions_;
   bool use_real_time_;
   bool use_manual_time_;
-  BenchmarkTime time_;
+  BenchmarkTimeInfo time_;
   BigO complexity_;
   BigOFunc* complexity_lambda_;
   std::vector<Statistics> statistics_;
@@ -1379,7 +1379,7 @@ class BenchmarkReporter {
         : run_type(RT_Iteration),
           error_occurred(false),
           iterations(1),
-          time(),
+          time(0),
           real_accumulated_time(0),
           cpu_accumulated_time(0),
           max_heapbytes_used(0),
@@ -1402,7 +1402,7 @@ class BenchmarkReporter {
     std::string error_message;
 
     int64_t iterations;
-    const internal::BenchmarkTime* time;
+    const internal::BenchmarkTimeInfo* time;
     double real_accumulated_time;
     double cpu_accumulated_time;
 

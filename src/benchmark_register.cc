@@ -421,7 +421,7 @@ Benchmark* Benchmark::UseManualTime(
       << "Cannot set UseRealTime and UseManualTime simultaneously.";
   use_manual_time_ = true;
   time_.SetUnitString(unit_multiplier, unit_name);
-  time_.SetManualCostFunction(to_cost_in_seconds_function);
+  time_.SetCostFunction(to_cost_in_seconds_function);
   return this;
 }
 
