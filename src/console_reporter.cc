@@ -68,9 +68,8 @@ void ConsoleReporter::PrintHeader(const Run& run) {
       str += " UserCounters...";
     }
   }
-  str += "\n";
   std::string line = std::string(str.length(), '-');
-  GetOutputStream() << line << "\n" << str << line << "\n";
+  GetOutputStream() << line << "\n" << str << "\n" << line << "\n";
 }
 
 void ConsoleReporter::ReportRuns(const std::vector<Run>& reports) {
