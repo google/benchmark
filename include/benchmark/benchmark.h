@@ -421,6 +421,7 @@ typedef double(BigOFunc)(int64_t);
 // statistics over all the measurements of some type
 typedef double(StatisticsFunc)(const std::vector<double>&);
 
+namespace internal {
 struct Statistics {
   std::string name_;
   StatisticsFunc* compute_;
@@ -429,7 +430,6 @@ struct Statistics {
       : name_(name), compute_(compute) {}
 };
 
-namespace internal {
 struct BenchmarkInstance;
 class ThreadTimer;
 class ThreadManager;
@@ -1373,7 +1373,7 @@ class BenchmarkReporter {
     int64_t complexity_n;
 
     // what statistics to compute from the measurements
-    const std::vector<Statistics>* statistics;
+    const std::vector<internal::Statistics>* statistics;
 
     // Inform print function whether the current run is a complexity report
     bool report_big_o;
