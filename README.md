@@ -487,7 +487,7 @@ static void BM_ManualTiming(benchmark::State& state) {
 BENCHMARK(BM_ManualTiming)->Range(1, 1<<17)->UseManualTime();
 ```
 
-There is also a second overload of `UseManualTime`, which allows the user to pass an arbitrary unit name, an optional scaling multiplier for those units, and a way to convert those units to a cost that will be used by Benchmark internally to determine maximum iterations/initial iteration cost and similar:
+There is also a second overload of `UseManualTime`, which allows the user to pass an arbitrary unit name, an optional scaling multiplier for those units, and (optionally) a way to convert those units to a cost that will be used by Benchmark internally to determine maximum iterations/initial iteration cost and similar:
 
 ```c++
 #include <cstddef>
@@ -502,32 +502,34 @@ int64_t rdtsc() {
   return static_cast<int64_t>(__rdtsc());
 }
 
-static double compute_cost(double measurement) {
-  // convert to some representative cost
-  return measurement;
+static void BM_NuancedManualTiming(benchmark::State& state) {
+	int64_t rotations = state.range(0);
+	// select a good amount of re-runs to batch elements
+	// using the KeepRunningBatch() API
+	// divide by the # of rotations
+	// since larger rotations
+	// mean smaller necessary batch sizes
+	// for good measurements!
+	size_t batch_size = static_cast<size_t>(10000000 / rotations);
+	std::unique_ptr<int32_t[]> data(new int32_t[rotations]);
+	while (state.KeepRunningBatch(batch_size)) {
+		for (size_t i = 0; i < batch_size; ++i) {
+			auto start = rdtsc();
+
+			for (int i = 0; i < rotations; ++i) {
+				data[i] = _rotl(data[i], 16);
+			}
+			auto elapsed = rdtsc() - start;
+			state.SetIterationTime(static_cast<double>(elapsed));
+		}
+	}
 }
-
-static void BM_ManualTimingWithUnits(benchmark::State& state) {
-  int rotations = state.range(0);
-  std::unique_ptr<int32_t[]> data(new int32_t[rotations]]);
-
-  for (auto _ : state) {
-    auto start = rtdsc();
-
-    for (int i = 0; i < rotations; ++i) {
-      data[i] = _rotl(data[i], 16)
-    }
-
-    auto elapsed = rtdsc() - start;
-    state.SetIterationTime(static_cast<double>(elapsed));
-  }
-}
-BENCHMARK(BM_ManualTimingWithUnits)
-  ->Range(1, 1<<9)
-  ->UseManualTime("cycles", benchmark::kSeconds, compute_cost);
+BENCHMARK(BM_NuancedManualTiming)
+	->Range(1, 1 << 16)
+	->UseManualTime("cycles", benchmark::kSecond);
 ```
 
-Internally, it treats the computed cost as "seconds", but this can be made to specify any arbitrary measurement unit for the benchmark. This will affect things like `MinTime`, so choose your limits carefully when specifying manual units that are not clearly convertible to seconds.
+If you do specify a cost function, make sure that your cost function makes sense for your units, and for any application of `MinTime` that you use.
 
 ### Preventing optimisation
 To prevent a value or expression from being optimized away by the compiler

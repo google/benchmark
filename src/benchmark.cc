@@ -338,37 +338,37 @@ ConsoleReporter::OutputOptions GetOutputOptions(bool force_no_color) {
   return static_cast<ConsoleReporter::OutputOptions>(output_opts);
 }
 
-BenchmarkTimeInfo::BenchmarkTimeInfo()
+BenchmarkTimeDescription::BenchmarkTimeDescription()
     : to_cost_in_seconds_(DefaultBenchmarkTimeCostFunc),
       cpu_unit_multiplier_(TimeUnit::kNanosecond),
       unit_multiplier_(TimeUnit::kNanosecond),
       // unit name is separate from multiplier,
       // this plus above makes "ns",
       // and so on and so forth when using
-      // setters for BenchmarkTimeInfo
+      // setters for BenchmarkTimeDescription
       unit_name_("s"),
       unit_(GetTimeUnitPrefixString(unit_multiplier_) + unit_name_),
       cpu_unit_(GetTimeUnitString(cpu_unit_multiplier_)) {}
 
-void BenchmarkTimeInfo::SetCostFunction(
+void BenchmarkTimeDescription::SetCostFunction(
     BenchmarkTimeCostFunc* to_time_cost_in_seconds) {
   CHECK(to_time_cost_in_seconds != nullptr);
   to_cost_in_seconds_ = to_time_cost_in_seconds;
 }
 
-void BenchmarkTimeInfo::SetUnitString(TimeUnit unit_multiplier) {
+void BenchmarkTimeDescription::SetUnitString(TimeUnit unit_multiplier) {
   unit_multiplier_ = unit_multiplier;
   unit_ = GetTimeUnitPrefixString(unit_multiplier_) + unit_name_;
 }
 
-void BenchmarkTimeInfo::SetUnitString(TimeUnit unit_multiplier,
+void BenchmarkTimeDescription::SetUnitString(TimeUnit unit_multiplier,
                                       std::string unit_name) {
   unit_multiplier_ = unit_multiplier;
   unit_name_ = std::move(unit_name);
   unit_ = GetTimeUnitPrefixString(unit_multiplier_) + unit_name_;
 }
 
-void BenchmarkTimeInfo::SetCpuUnitString(TimeUnit cpu_unit_multiplier) {
+void BenchmarkTimeDescription::SetCpuUnitString(TimeUnit cpu_unit_multiplier) {
   cpu_unit_multiplier_ = cpu_unit_multiplier;
   cpu_unit_ = GetTimeUnitString(cpu_unit_multiplier_);
 }
