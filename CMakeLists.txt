@@ -219,6 +219,16 @@ else()
   add_cxx_compiler_flag(--coverage COVERAGE)
 endif()
 
+if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Intel" AND "${CMAKE_BUILD_TYPE}" STREQUAL "Release")
+	# Handle some issues: 
+	# 1. implicit type casting not allowed (sysinfo.cc)
+    add_cxx_compiler_flag(-wd2259)
+    # 2. Function declared but never referenced (sysinfo.cc)
+    add_cxx_compiler_flag(-wd177)    
+    # 3. Unrecognized #pragma (gtest-port.cc)
+    add_cxx_compiler_flag(-wd161)        
+endif()
+
 if (BENCHMARK_USE_LIBCXX)
   if ("${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang")
     add_cxx_compiler_flag(-stdlib=libc++)
