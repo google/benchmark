@@ -13,6 +13,7 @@
 // limitations under the License.
 
 #include "benchmark_register.h"
+#include "performance_events.h"
 
 #ifndef BENCHMARK_OS_WINDOWS
 #ifndef BENCHMARK_OS_FUCHSIA
@@ -82,7 +83,8 @@ class BenchmarkFamilies {
   // regular expression.
   bool FindBenchmarks(std::string re,
                       std::vector<BenchmarkInstance>* benchmarks,
-                      std::ostream* Err);
+                      std::ostream* Err,
+                      const std::string& event_list);
 
  private:
   BenchmarkFamilies() {}
@@ -111,7 +113,8 @@ void BenchmarkFamilies::ClearBenchmarks() {
 
 bool BenchmarkFamilies::FindBenchmarks(
     std::string spec, std::vector<BenchmarkInstance>* benchmarks,
-    std::ostream* ErrStream) {
+    std::ostream* ErrStream,
+    const std::string& event_list) {
   CHECK(ErrStream);
   auto& Err = *ErrStream;
   // Make regular expression out of command-line flag
@@ -129,6 +132,7 @@ bool BenchmarkFamilies::FindBenchmarks(
 
   // Special list of thread counts to use when none are specified
   const std::vector<int> one_thread = {1};
+  const auto& events = PerformanceCounter::ReadEvents(event_list, Err);
 
   MutexLock l(mutex_);
   for (std::unique_ptr<Benchmark>& family : families_) {
@@ -160,6 +164,7 @@ bool BenchmarkFamilies::FindBenchmarks(
         instance.benchmark = family.get();
         instance.aggregation_report_mode = family->aggregation_report_mode_;
         instance.arg = args;
+        instance.events = events;
         instance.time_unit = family->time_unit_;
         instance.range_multiplier = family->range_multiplier_;
         instance.min_time = family->min_time_;
@@ -247,8 +252,9 @@ Benchmark* RegisterBenchmarkInternal(Benchmark* bench) {
 // `BenchmarkFamilies`
 bool FindBenchmarksInternal(const std::string& re,
                             std::vector<BenchmarkInstance>* benchmarks,
-                            std::ostream* Err) {
-  return BenchmarkFamilies::GetInstance()->FindBenchmarks(re, benchmarks, Err);
+                            std::ostream* Err,
+                            const std::string& event_list) {
+  return BenchmarkFamilies::GetInstance()->FindBenchmarks(re, benchmarks, Err, event_list);
 }
 
 //=============================================================================//

@@ -2,6 +2,7 @@
 #define BENCHMARK_API_INTERNAL_H
 
 #include "benchmark/benchmark.h"
+#include "performance_events.h"
 #include "commandlineflags.h"
 
 #include <cmath>
@@ -34,14 +35,16 @@ struct BenchmarkInstance {
   double min_time;
   IterationCount iterations;
   int threads;  // Number of concurrent threads to us
+  PerformanceEvents events;
 
   State Run(IterationCount iters, int thread_id, internal::ThreadTimer* timer,
-            internal::ThreadManager* manager) const;
+  internal::PerformanceCounter* perf_counters, internal::ThreadManager* manager) const;
 };
 
 bool FindBenchmarksInternal(const std::string& re,
                             std::vector<BenchmarkInstance>* benchmarks,
-                            std::ostream* Err);
+                            std::ostream* Err,
+                            const std::string& event_list);
 
 bool IsZero(double n);
 

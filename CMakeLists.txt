@@ -259,6 +259,12 @@ cxx_feature_check(STEADY_CLOCK)
 set(THREADS_PREFER_PTHREAD_FLAG ON)
 find_package(Threads REQUIRED)
 
+# Check if we have libpapi headers
+find_package(Papi)
+if (Papi_FOUND)
+  add_definitions(-DBENCHMARK_HAS_PAPI)
+endif()
+
 # Set up directories
 include_directories(${PROJECT_SOURCE_DIR}/include)
 

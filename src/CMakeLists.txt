@@ -26,6 +26,12 @@ set_target_properties(benchmark PROPERTIES
 target_include_directories(benchmark PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../include>
     )
+if (Papi_FOUND)
+  target_include_directories(benchmark PRIVATE
+      ${Papi_INCLUDE_DIR}
+      )
+  target_link_libraries(benchmark ${Papi_LIBRARIES})
+endif()
 
 # Link threads.
 target_link_libraries(benchmark  ${BENCHMARK_CXX_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
