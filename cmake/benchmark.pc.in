@@ -8,4 +8,5 @@ Description: Google microbenchmark framework
 Version: @VERSION@
 
 Libs: -L${libdir} -lbenchmark
+Libs.private: -lpthread
 Cflags: -I${includedir}
