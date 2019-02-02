@@ -218,6 +218,15 @@ void BM_non_template_args(benchmark::State& state, int, double) {
 }
 BENCHMARK_CAPTURE(BM_non_template_args, basic_test, 0, 0);
 
+void BM_complexity_args(benchmark::State &state, int n) {
+  for (auto _ : state) {}
+  state.SetComplexityN (n);
+}
+
+BENCHMARK_CAPTURE(BM_complexity_args, comp_test, 100)
+  ->Complexity (benchmark::oN)
+  ->Range (1, 2);
+
 #endif  // BENCHMARK_HAS_CXX11
 
 static void BM_DenseThreadRanges(benchmark::State& st) {
