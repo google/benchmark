@@ -27,12 +27,11 @@ namespace benchmark {
 namespace internal {
 
 // Internal function to drop last field after '/'.
-std::string drop_last_field (const std::string &str, const char sep)
-{
+std::string drop_last_field(const std::string& str, const char sep) {
   return str.substr(0, str.find_last_of(sep));
 }
 
-}
+}  // namespace internal
 
 // Internal function to calculate the different scalability forms
 BigOFunc* FittingCurve(BigO complexity) {
@@ -193,8 +192,8 @@ std::vector<BenchmarkReporter::Run> ComputeBigO(
     result_real = MinimalLeastSq(n, real_time, result_cpu.complexity);
   }
 
-  const std::string run_name
-    = internal::drop_last_field (reports[0].benchmark_name (), '/');
+  const std::string run_name =
+      internal::drop_last_field(reports[0].benchmark_name(), '/');
 
   // Get the data from the accumulator to BenchmarkReporter::Run's.
   Run big_o;
