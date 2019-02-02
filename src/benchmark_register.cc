@@ -172,41 +172,45 @@ bool BenchmarkFamilies::FindBenchmarks(
         // Add arguments to instance name
         size_t arg_i = 0;
         for (auto const& arg : args) {
-          instance.name += "/";
+          std::string args_name;
 
           if (arg_i < family->arg_names_.size()) {
             const auto& arg_name = family->arg_names_[arg_i];
             if (!arg_name.empty()) {
-              instance.name +=
-                  StrFormat("%s:", family->arg_names_[arg_i].c_str());
+              args_name += StrFormat("%s:", family->arg_names_[arg_i].c_str());
             }
           }
 
           // we know that the args are always non-negative (see 'AddRange()'),
           // thus print as 'unsigned'. BUT, do a cast due to the 32-bit builds.
-          instance.name += StrFormat("%lu", static_cast<unsigned long>(arg));
+          args_name += StrFormat("%lu", static_cast<unsigned long>(arg));
+          instance.name.append(BenchmarkName::ARGS, args_name);
           ++arg_i;
         }
 
         if (!IsZero(family->min_time_))
-          instance.name += StrFormat("/min_time:%0.3f", family->min_time_);
+          instance.name.append(BenchmarkName::MIN_TIME,
+                               StrFormat("min_time:%0.3f", family->min_time_));
         if (family->iterations_ != 0) {
-          instance.name +=
-              StrFormat("/iterations:%lu",
-                        static_cast<unsigned long>(family->iterations_));
+          instance.name.append(
+              BenchmarkName::ITERATIONS,
+              StrFormat("iterations:%lu",
+                        static_cast<unsigned long>(family->iterations_)));
         }
         if (family->repetitions_ != 0)
-          instance.name += StrFormat("/repeats:%d", family->repetitions_);
+          instance.name.append(BenchmarkName::REPETITIONS,
+                               StrFormat("repeats:%d", family->repetitions_));
 
         if (family->use_manual_time_) {
-          instance.name += "/manual_time";
+          instance.name.append(BenchmarkName::TIME_TYPE, "manual_time");
         } else if (family->use_real_time_) {
-          instance.name += "/real_time";
+          instance.name.append(BenchmarkName::TIME_TYPE, "real_time");
         }
 
         // Add the number of threads used to the name
         if (!family->thread_counts_.empty()) {
-          instance.name += StrFormat("/threads:%d", instance.threads);
+          instance.name.append(BenchmarkName::THREADS,
+                               StrFormat("threads:%d", instance.threads));
         }
 
         if ((re.Match(instance.name) && !isNegativeFilter) ||

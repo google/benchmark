@@ -256,6 +256,7 @@ BENCHMARK(BM_test)->Unit(benchmark::kMillisecond);
 namespace benchmark {
 class BenchmarkReporter;
 class MemoryManager;
+class BenchmarkName;
 
 void Initialize(int* argc, char** argv);
 
@@ -1302,6 +1303,81 @@ struct SystemInfo {
   BENCHMARK_DISALLOW_COPY_AND_ASSIGN(SystemInfo);
 };
 
+// BenchmarkName wraps a std::string containing different fields
+// of a benchmark's name (e.g. the 'root' name, the benchmark's
+// 'args' etc.).
+class BenchmarkName {
+ public:
+  // Different fields of the benchmark's name.
+  enum Field {
+    // The name of the function being invoked in the benchmark.
+    ROOT = 1u,
+    // The arguments supplied to the benchmark, e.g. via Range().
+    ARGS = 1u << 1,
+    // The minimum time specified for a benchmark.
+    MIN_TIME = 1u << 2,
+    // The number of iterations specified for a benchmark.
+    ITERATIONS = 1u << 3,
+    // The number of repetitions specified for a benchmark.
+    REPETITIONS = 1u << 4,
+    // The type of time to measure for a benchmark.
+    TIME_TYPE = 1u << 5,
+    // The number of concurrent threads for a benchmark.
+    THREADS = 1u << 6,
+    // All fields.
+    ALL =
+        ROOT | ARGS | MIN_TIME | ITERATIONS | REPETITIONS | TIME_TYPE | THREADS
+  };
+
+  // Construct BenchmarkName with an 'empty' name.
+  BenchmarkName();
+
+  // Construct BenchmarkName with a given 'root'.
+  BenchmarkName(std::string root);
+
+  // Append a 'field_name' to a given field of the name.
+  // Each appended field_name for a given field will be
+  // separated by a '/', and additionally each field will
+  // be separated by a '/'.
+  BenchmarkName& append(Field field, const std::string& field_name);
+
+  // Get the benchmark's name including all the fields set in 'fields'
+  std::string get(Field fields) const;
+
+  // Conversion to a string, which returns a string equivalent to
+  // get(Field::ALL).
+  operator std::string() const { return name_; }
+
+  // Get the size of the full name of the benchmark.
+  size_t size() const { return name_.size(); }
+
+ private:
+  bool is_set(Field field, std::size_t enumerator_index) const;
+  size_t start_offset(std::size_t enumerator_index) const;
+  size_t end_offset(std::size_t enumerator_index) const;
+
+  static const char separator = '/';
+  static const std::size_t enumerator_count = 7;
+  static const std::size_t offset_count = enumerator_count - 1;
+
+  std::string name_;
+  uint16_t offsets_[offset_count];
+};
+
+// Insert the full name of a BenchmarkName into a stream.
+std::ostream& operator<<(std::ostream& os, const BenchmarkName& bmn);
+
+// Bitwise-or of BenchmarkName::Field bitfield
+BenchmarkName::Field operator|(BenchmarkName::Field lhs,
+                               BenchmarkName::Field rhs);
+
+// Bitwise-and of BenchmarkName::Field bitfield
+BenchmarkName::Field operator&(BenchmarkName::Field lhs,
+                               BenchmarkName::Field rhs);
+
+// Bitwise-not of BenchmarkName::Field bitfield
+BenchmarkName::Field operator~(BenchmarkName::Field bmn);
+
 // Interface for custom benchmark result printers.
 // By default, benchmark reports are printed to stdout. However an application
 // can control the destination of the reports by calling
@@ -1339,8 +1415,9 @@ class BenchmarkReporter {
           allocs_per_iter(0.0),
           max_bytes_used(0) {}
 
-    std::string benchmark_name() const;
-    std::string run_name;
+    std::string benchmark_name(
+        BenchmarkName::Field component = BenchmarkName::ALL) const;
+    BenchmarkName run_name;
     RunType run_type;          // is this a measurement, or an aggregate?
     std::string aggregate_name;
     std::string report_label;  // Empty if not set by benchmark.

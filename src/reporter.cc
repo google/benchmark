@@ -82,8 +82,8 @@ const char *BenchmarkReporter::Context::executable_name;
 BenchmarkReporter::Context::Context()
     : cpu_info(CPUInfo::Get()), sys_info(SystemInfo::Get()) {}
 
-std::string BenchmarkReporter::Run::benchmark_name() const {
-  std::string name = run_name;
+std::string BenchmarkReporter::Run::benchmark_name(BenchmarkName::Field field) const {
+  std::string name = run_name.get(field);
   if (run_type == RT_Aggregate) {
     name += "_" + aggregate_name;
   }

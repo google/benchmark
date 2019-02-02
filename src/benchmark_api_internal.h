@@ -16,7 +16,7 @@ namespace internal {
 
 // Information kept per benchmark we may want to run
 struct BenchmarkInstance {
-  std::string name;
+  BenchmarkName name;
   Benchmark* benchmark;
   AggregationReportMode aggregation_report_mode;
   std::vector<int64_t> arg;

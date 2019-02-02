@@ -183,8 +183,9 @@ std::vector<BenchmarkReporter::Run> ComputeBigO(
     result_real = MinimalLeastSq(n, real_time, result_cpu.complexity);
   }
 
-  std::string run_name = reports[0].benchmark_name().substr(
-      0, reports[0].benchmark_name().find('/'));
+  // Drop the 'args' when reporting complexity.
+  const auto run_name =
+      reports[0].benchmark_name(BenchmarkName::ALL & ~BenchmarkName::ARGS);
 
   // Get the data from the accumulator to BenchmarkReporter::Run's.
   Run big_o;
