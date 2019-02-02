@@ -177,6 +177,30 @@ ADD_COMPLEXITY_CASES(n_lg_n_test_name, big_o_n_lg_n_test_name,
                      rms_o_n_lg_n_test_name, lambda_big_o_n_lg_n);
 
 // ========================================================================= //
+// -------- Testing formatting of Complexity with captured args ------------ //
+// ========================================================================= //
+
+#ifdef BENCHMARK_HAS_CXX11
+
+void BM_ComplexityCaptureArgs(benchmark::State &state, int n) {
+  for (auto _ : state) {
+  }
+  state.SetComplexityN(n);
+}
+
+BENCHMARK_CAPTURE(BM_ComplexityCaptureArgs, capture_test, 100)
+    ->Complexity(benchmark::oN)
+    ->Range(1, 2);
+
+const std::string complexity_capture_name =
+    "BM_ComplexityCaptureArgs/capture_test";
+
+ADD_COMPLEXITY_CASES(complexity_capture_name, complexity_capture_name + "_BigO",
+                     complexity_capture_name + "_RMS", "N");
+
+#endif  // BENCHMARK_HAS_CXX11
+
+// ========================================================================= //
 // --------------------------- TEST CASES END ------------------------------ //
 // ========================================================================= //
 
