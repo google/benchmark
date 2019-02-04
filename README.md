@@ -615,7 +615,14 @@ creating/registering the tests using the following macros:
 For Example:
 
 ```c++
-class MyFixture : public benchmark::Fixture {};
+class MyFixture : public benchmark::Fixture {
+public:
+  void SetUp(const ::benchmark::State& state) {
+  }
+
+  void TearDown(const ::benchmark::State& state) {
+  }
+};
 
 BENCHMARK_F(MyFixture, FooTest)(benchmark::State& st) {
    for (auto _ : st) {
