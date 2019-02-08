@@ -184,32 +184,32 @@ bool BenchmarkFamilies::FindBenchmarks(
           // we know that the args are always non-negative (see 'AddRange()'),
           // thus print as 'unsigned'. BUT, do a cast due to the 32-bit builds.
           args_name += StrFormat("%lu", static_cast<unsigned long>(arg));
-          instance.name.append(BenchmarkName::ARGS, args_name);
+          instance.name.append(BenchmarkName::kArgs, args_name);
           ++arg_i;
         }
 
         if (!IsZero(family->min_time_))
-          instance.name.append(BenchmarkName::MIN_TIME,
+          instance.name.append(BenchmarkName::kMinTime,
                                StrFormat("min_time:%0.3f", family->min_time_));
         if (family->iterations_ != 0) {
           instance.name.append(
-              BenchmarkName::ITERATIONS,
+              BenchmarkName::kIterations,
               StrFormat("iterations:%lu",
                         static_cast<unsigned long>(family->iterations_)));
         }
         if (family->repetitions_ != 0)
-          instance.name.append(BenchmarkName::REPETITIONS,
+          instance.name.append(BenchmarkName::kRepetitions,
                                StrFormat("repeats:%d", family->repetitions_));
 
         if (family->use_manual_time_) {
-          instance.name.append(BenchmarkName::TIME_TYPE, "manual_time");
+          instance.name.append(BenchmarkName::kTimeType, "manual_time");
         } else if (family->use_real_time_) {
-          instance.name.append(BenchmarkName::TIME_TYPE, "real_time");
+          instance.name.append(BenchmarkName::kTimeType, "real_time");
         }
 
         // Add the number of threads used to the name
         if (!family->thread_counts_.empty()) {
-          instance.name.append(BenchmarkName::THREADS,
+          instance.name.append(BenchmarkName::kThreads,
                                StrFormat("threads:%d", instance.threads));
         }
 

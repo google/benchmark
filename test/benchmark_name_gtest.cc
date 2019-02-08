@@ -12,207 +12,207 @@ using namespace benchmark::internal;
 TEST(BenchmarkNameTest, Empty) {
   const auto name = BenchmarkName();
 
-  EXPECT_FIELD(name, ALL, std::string{});
-  EXPECT_FIELD(name, ROOT, std::string{});
-  EXPECT_FIELD(name, ARGS, std::string{});
-  EXPECT_FIELD(name, MIN_TIME, std::string{});
-  EXPECT_FIELD(name, ITERATIONS, std::string{});
-  EXPECT_FIELD(name, REPETITIONS, std::string{});
-  EXPECT_FIELD(name, TIME_TYPE, std::string{});
-  EXPECT_FIELD(name, THREADS, std::string{});
+  EXPECT_FIELD(name, kAll, std::string{});
+  EXPECT_FIELD(name, kRoot, std::string{});
+  EXPECT_FIELD(name, kArgs, std::string{});
+  EXPECT_FIELD(name, kMinTime, std::string{});
+  EXPECT_FIELD(name, kIterations, std::string{});
+  EXPECT_FIELD(name, kRepetitions, std::string{});
+  EXPECT_FIELD(name, kTimeType, std::string{});
+  EXPECT_FIELD(name, kThreads, std::string{});
 }
 
 TEST(BenchmarkNameTest, Root) {
   const auto name = BenchmarkName("root");
 
-  EXPECT_FIELD(name, ALL, "root");
-  EXPECT_FIELD(name, ROOT, "root");
-  EXPECT_FIELD(name, ARGS, std::string{});
-  EXPECT_FIELD(name, MIN_TIME, std::string{});
-  EXPECT_FIELD(name, ITERATIONS, std::string{});
-  EXPECT_FIELD(name, REPETITIONS, std::string{});
-  EXPECT_FIELD(name, TIME_TYPE, std::string{});
-  EXPECT_FIELD(name, THREADS, std::string{});
+  EXPECT_FIELD(name, kAll, "root");
+  EXPECT_FIELD(name, kRoot, "root");
+  EXPECT_FIELD(name, kArgs, std::string{});
+  EXPECT_FIELD(name, kMinTime, std::string{});
+  EXPECT_FIELD(name, kIterations, std::string{});
+  EXPECT_FIELD(name, kRepetitions, std::string{});
+  EXPECT_FIELD(name, kTimeType, std::string{});
+  EXPECT_FIELD(name, kThreads, std::string{});
 }
 
 TEST(BenchmarkNameTest, AppendToRoot) {
   const auto name =
-      BenchmarkName("root").append(BenchmarkName::ROOT, "subroot");
+      BenchmarkName("root").append(BenchmarkName::kRoot, "subroot");
 
-  EXPECT_FIELD(name, ALL, "root/subroot");
-  EXPECT_FIELD(name, ROOT, "root/subroot");
-  EXPECT_FIELD(name, ARGS, std::string{});
-  EXPECT_FIELD(name, MIN_TIME, std::string{});
-  EXPECT_FIELD(name, ITERATIONS, std::string{});
-  EXPECT_FIELD(name, REPETITIONS, std::string{});
-  EXPECT_FIELD(name, TIME_TYPE, std::string{});
-  EXPECT_FIELD(name, THREADS, std::string{});
+  EXPECT_FIELD(name, kAll, "root/subroot");
+  EXPECT_FIELD(name, kRoot, "root/subroot");
+  EXPECT_FIELD(name, kArgs, std::string{});
+  EXPECT_FIELD(name, kMinTime, std::string{});
+  EXPECT_FIELD(name, kIterations, std::string{});
+  EXPECT_FIELD(name, kRepetitions, std::string{});
+  EXPECT_FIELD(name, kTimeType, std::string{});
+  EXPECT_FIELD(name, kThreads, std::string{});
 }
 
 TEST(BenchmarkNameTest, RootAndArgs) {
   const auto name = BenchmarkName("root")
-                        .append(BenchmarkName::ROOT, "subroot")
-                        .append(BenchmarkName::ARGS, "some_args:3/4/5");
+                        .append(BenchmarkName::kRoot, "subroot")
+                        .append(BenchmarkName::kArgs, "some_args:3/4/5");
 
-  EXPECT_FIELD(name, ALL, "root/subroot/some_args:3/4/5");
-  EXPECT_FIELD(name, ROOT, "root/subroot");
-  EXPECT_FIELD(name, ARGS, "some_args:3/4/5");
-  EXPECT_FIELD(name, MIN_TIME, std::string{});
-  EXPECT_FIELD(name, ITERATIONS, std::string{});
-  EXPECT_FIELD(name, REPETITIONS, std::string{});
-  EXPECT_FIELD(name, TIME_TYPE, std::string{});
-  EXPECT_FIELD(name, THREADS, std::string{});
+  EXPECT_FIELD(name, kAll, "root/subroot/some_args:3/4/5");
+  EXPECT_FIELD(name, kRoot, "root/subroot");
+  EXPECT_FIELD(name, kArgs, "some_args:3/4/5");
+  EXPECT_FIELD(name, kMinTime, std::string{});
+  EXPECT_FIELD(name, kIterations, std::string{});
+  EXPECT_FIELD(name, kRepetitions, std::string{});
+  EXPECT_FIELD(name, kTimeType, std::string{});
+  EXPECT_FIELD(name, kThreads, std::string{});
 }
 
 TEST(BenchmarkNameTest, MultipleArgs) {
   const auto name = BenchmarkName("root")
-                        .append(BenchmarkName::ARGS, "some_args:3")
-                        .append(BenchmarkName::ARGS, "4")
-                        .append(BenchmarkName::ARGS, "5");
+                        .append(BenchmarkName::kArgs, "some_args:3")
+                        .append(BenchmarkName::kArgs, "4")
+                        .append(BenchmarkName::kArgs, "5");
 
-  EXPECT_FIELD(name, ALL, "root/some_args:3/4/5");
-  EXPECT_FIELD(name, ROOT, "root");
-  EXPECT_FIELD(name, ARGS, "some_args:3/4/5");
-  EXPECT_FIELD(name, MIN_TIME, std::string{});
-  EXPECT_FIELD(name, ITERATIONS, std::string{});
-  EXPECT_FIELD(name, REPETITIONS, std::string{});
-  EXPECT_FIELD(name, TIME_TYPE, std::string{});
-  EXPECT_FIELD(name, THREADS, std::string{});
+  EXPECT_FIELD(name, kAll, "root/some_args:3/4/5");
+  EXPECT_FIELD(name, kRoot, "root");
+  EXPECT_FIELD(name, kArgs, "some_args:3/4/5");
+  EXPECT_FIELD(name, kMinTime, std::string{});
+  EXPECT_FIELD(name, kIterations, std::string{});
+  EXPECT_FIELD(name, kRepetitions, std::string{});
+  EXPECT_FIELD(name, kTimeType, std::string{});
+  EXPECT_FIELD(name, kThreads, std::string{});
 }
 
 TEST(BenchmarkNameTest, MinTime) {
   const auto name = BenchmarkName("root")
-                        .append(BenchmarkName::ARGS, "some_args:3/4")
-                        .append(BenchmarkName::MIN_TIME, "min_time:3.4s");
+                        .append(BenchmarkName::kArgs, "some_args:3/4")
+                        .append(BenchmarkName::kMinTime, "min_time:3.4s");
 
-  EXPECT_FIELD(name, ALL, "root/some_args:3/4/min_time:3.4s");
-  EXPECT_FIELD(name, ROOT, "root");
-  EXPECT_FIELD(name, ARGS, "some_args:3/4");
-  EXPECT_FIELD(name, MIN_TIME, "min_time:3.4s");
-  EXPECT_FIELD(name, ITERATIONS, std::string{});
-  EXPECT_FIELD(name, REPETITIONS, std::string{});
-  EXPECT_FIELD(name, TIME_TYPE, std::string{});
-  EXPECT_FIELD(name, THREADS, std::string{});
+  EXPECT_FIELD(name, kAll, "root/some_args:3/4/min_time:3.4s");
+  EXPECT_FIELD(name, kRoot, "root");
+  EXPECT_FIELD(name, kArgs, "some_args:3/4");
+  EXPECT_FIELD(name, kMinTime, "min_time:3.4s");
+  EXPECT_FIELD(name, kIterations, std::string{});
+  EXPECT_FIELD(name, kRepetitions, std::string{});
+  EXPECT_FIELD(name, kTimeType, std::string{});
+  EXPECT_FIELD(name, kThreads, std::string{});
 }
 
 TEST(BenchmarkNameTest, Iterations) {
   const auto name = BenchmarkName("root")
-                        .append(BenchmarkName::MIN_TIME, "min_time:3.4s")
-                        .append(BenchmarkName::ITERATIONS, "iterations:42");
+                        .append(BenchmarkName::kMinTime, "min_time:3.4s")
+                        .append(BenchmarkName::kIterations, "iterations:42");
 
-  EXPECT_FIELD(name, ALL, "root/min_time:3.4s/iterations:42");
-  EXPECT_FIELD(name, ROOT, "root");
-  EXPECT_FIELD(name, ARGS, std::string{});
-  EXPECT_FIELD(name, MIN_TIME, "min_time:3.4s");
-  EXPECT_FIELD(name, ITERATIONS, "iterations:42");
-  EXPECT_FIELD(name, REPETITIONS, std::string{});
-  EXPECT_FIELD(name, TIME_TYPE, std::string{});
-  EXPECT_FIELD(name, THREADS, std::string{});
+  EXPECT_FIELD(name, kAll, "root/min_time:3.4s/iterations:42");
+  EXPECT_FIELD(name, kRoot, "root");
+  EXPECT_FIELD(name, kArgs, std::string{});
+  EXPECT_FIELD(name, kMinTime, "min_time:3.4s");
+  EXPECT_FIELD(name, kIterations, "iterations:42");
+  EXPECT_FIELD(name, kRepetitions, std::string{});
+  EXPECT_FIELD(name, kTimeType, std::string{});
+  EXPECT_FIELD(name, kThreads, std::string{});
 }
 
 TEST(BenchmarkNameTest, Repetitions) {
   const auto name = BenchmarkName("root")
-                        .append(BenchmarkName::ITERATIONS, "iterations:42")
-                        .append(BenchmarkName::REPETITIONS, "repetitions:24");
+                        .append(BenchmarkName::kIterations, "iterations:42")
+                        .append(BenchmarkName::kRepetitions, "repetitions:24");
 
-  EXPECT_FIELD(name, ALL, "root/iterations:42/repetitions:24");
-  EXPECT_FIELD(name, ROOT, "root");
-  EXPECT_FIELD(name, ARGS, std::string{});
-  EXPECT_FIELD(name, MIN_TIME, std::string{});
-  EXPECT_FIELD(name, ITERATIONS, "iterations:42");
-  EXPECT_FIELD(name, REPETITIONS, "repetitions:24");
-  EXPECT_FIELD(name, TIME_TYPE, std::string{});
-  EXPECT_FIELD(name, THREADS, std::string{});
+  EXPECT_FIELD(name, kAll, "root/iterations:42/repetitions:24");
+  EXPECT_FIELD(name, kRoot, "root");
+  EXPECT_FIELD(name, kArgs, std::string{});
+  EXPECT_FIELD(name, kMinTime, std::string{});
+  EXPECT_FIELD(name, kIterations, "iterations:42");
+  EXPECT_FIELD(name, kRepetitions, "repetitions:24");
+  EXPECT_FIELD(name, kTimeType, std::string{});
+  EXPECT_FIELD(name, kThreads, std::string{});
 }
 
 TEST(BenchmarkNameTest, TimeType) {
   const auto name = BenchmarkName("root")
-                        .append(BenchmarkName::REPETITIONS, "repetitions:24")
-                        .append(BenchmarkName::TIME_TYPE, "hammer_time");
+                        .append(BenchmarkName::kRepetitions, "repetitions:24")
+                        .append(BenchmarkName::kTimeType, "hammer_time");
 
-  EXPECT_FIELD(name, ALL, "root/repetitions:24/hammer_time");
-  EXPECT_FIELD(name, ROOT, "root");
-  EXPECT_FIELD(name, ARGS, std::string{});
-  EXPECT_FIELD(name, MIN_TIME, std::string{});
-  EXPECT_FIELD(name, ITERATIONS, std::string{});
-  EXPECT_FIELD(name, REPETITIONS, "repetitions:24");
-  EXPECT_FIELD(name, TIME_TYPE, "hammer_time");
-  EXPECT_FIELD(name, THREADS, std::string{});
+  EXPECT_FIELD(name, kAll, "root/repetitions:24/hammer_time");
+  EXPECT_FIELD(name, kRoot, "root");
+  EXPECT_FIELD(name, kArgs, std::string{});
+  EXPECT_FIELD(name, kMinTime, std::string{});
+  EXPECT_FIELD(name, kIterations, std::string{});
+  EXPECT_FIELD(name, kRepetitions, "repetitions:24");
+  EXPECT_FIELD(name, kTimeType, "hammer_time");
+  EXPECT_FIELD(name, kThreads, std::string{});
 }
 
 TEST(BenchmarkNameTest, Threads) {
   const auto name = BenchmarkName("root")
-                        .append(BenchmarkName::TIME_TYPE, "hammer_time")
-                        .append(BenchmarkName::THREADS, "threads:256");
+                        .append(BenchmarkName::kTimeType, "hammer_time")
+                        .append(BenchmarkName::kThreads, "threads:256");
 
-  EXPECT_FIELD(name, ALL, "root/hammer_time/threads:256");
-  EXPECT_FIELD(name, ROOT, "root");
-  EXPECT_FIELD(name, ARGS, std::string{});
-  EXPECT_FIELD(name, MIN_TIME, std::string{});
-  EXPECT_FIELD(name, ITERATIONS, std::string{});
-  EXPECT_FIELD(name, REPETITIONS, std::string{});
-  EXPECT_FIELD(name, TIME_TYPE, "hammer_time");
-  EXPECT_FIELD(name, THREADS, "threads:256");
+  EXPECT_FIELD(name, kAll, "root/hammer_time/threads:256");
+  EXPECT_FIELD(name, kRoot, "root");
+  EXPECT_FIELD(name, kArgs, std::string{});
+  EXPECT_FIELD(name, kMinTime, std::string{});
+  EXPECT_FIELD(name, kIterations, std::string{});
+  EXPECT_FIELD(name, kRepetitions, std::string{});
+  EXPECT_FIELD(name, kTimeType, "hammer_time");
+  EXPECT_FIELD(name, kThreads, "threads:256");
 }
 
 TEST(BenchmarkNameTest, TestReadMultipleFields) {
   const auto name = BenchmarkName("root")
-                        .append(BenchmarkName::ARGS, "first:3")
-                        .append(BenchmarkName::ARGS, "second:2")
-                        .append(BenchmarkName::MIN_TIME, "min_time:2")
-                        .append(BenchmarkName::ITERATIONS, "iterations:3")
-                        .append(BenchmarkName::REPETITIONS, "repetitions:4")
-                        .append(BenchmarkName::TIME_TYPE, "hammer_time")
-                        .append(BenchmarkName::THREADS, "threads:6");
+                        .append(BenchmarkName::kArgs, "first:3")
+                        .append(BenchmarkName::kArgs, "second:2")
+                        .append(BenchmarkName::kMinTime, "min_time:2")
+                        .append(BenchmarkName::kIterations, "iterations:3")
+                        .append(BenchmarkName::kRepetitions, "repetitions:4")
+                        .append(BenchmarkName::kTimeType, "hammer_time")
+                        .append(BenchmarkName::kThreads, "threads:6");
 
-  EXPECT_FIELD(name, ALL,
+  EXPECT_FIELD(name, kAll,
                "root/first:3/second:2/min_time:2/iterations:3/repetitions:4/"
                "hammer_time/threads:6");
 
-  EXPECT_EQ(name.get(BenchmarkName::ALL & ~BenchmarkName::ROOT),
+  EXPECT_EQ(name.get(BenchmarkName::kAll & ~BenchmarkName::kRoot),
             "first:3/second:2/min_time:2/iterations:3/repetitions:4/"
             "hammer_time/threads:6");
 
-  EXPECT_EQ(name.get(BenchmarkName::ALL & ~BenchmarkName::ARGS),
+  EXPECT_EQ(name.get(BenchmarkName::kAll & ~BenchmarkName::kArgs),
             "root/min_time:2/iterations:3/repetitions:4/hammer_time/threads:6");
 
   EXPECT_EQ(
-      name.get(BenchmarkName::ALL & ~BenchmarkName::MIN_TIME),
+      name.get(BenchmarkName::kAll & ~BenchmarkName::kMinTime),
       "root/first:3/second:2/iterations:3/repetitions:4/hammer_time/threads:6");
 
   EXPECT_EQ(
-      name.get(BenchmarkName::ALL & ~BenchmarkName::ITERATIONS),
+      name.get(BenchmarkName::kAll & ~BenchmarkName::kIterations),
       "root/first:3/second:2/min_time:2/repetitions:4/hammer_time/threads:6");
 
   EXPECT_EQ(
-      name.get(BenchmarkName::ALL & ~BenchmarkName::REPETITIONS),
+      name.get(BenchmarkName::kAll & ~BenchmarkName::kRepetitions),
       "root/first:3/second:2/min_time:2/iterations:3/hammer_time/threads:6");
 
   EXPECT_EQ(
-      name.get(BenchmarkName::ALL & ~BenchmarkName::TIME_TYPE),
+      name.get(BenchmarkName::kAll & ~BenchmarkName::kTimeType),
       "root/first:3/second:2/min_time:2/iterations:3/repetitions:4/threads:6");
 
-  EXPECT_EQ(name.get(BenchmarkName::ALL & ~BenchmarkName::THREADS),
+  EXPECT_EQ(name.get(BenchmarkName::kAll & ~BenchmarkName::kThreads),
             "root/first:3/second:2/min_time:2/iterations:3/repetitions:4/"
             "hammer_time");
 
-  EXPECT_EQ(name.get(BenchmarkName::ALL &
-                     ~(BenchmarkName::THREADS | BenchmarkName::ARGS)),
+  EXPECT_EQ(name.get(BenchmarkName::kAll &
+                     ~(BenchmarkName::kThreads | BenchmarkName::kArgs)),
             "root/min_time:2/iterations:3/repetitions:4/hammer_time");
 
-  EXPECT_EQ(name.get(BenchmarkName::ROOT | BenchmarkName::THREADS),
+  EXPECT_EQ(name.get(BenchmarkName::kRoot | BenchmarkName::kThreads),
             "root/threads:6");
 }
 
 TEST(BenchmarkNameTest, TestEmptyRoot) {
   const auto name = BenchmarkName(std::string{})
-                        .append(BenchmarkName::ARGS, "first:3")
-                        .append(BenchmarkName::ARGS, "second:4")
-                        .append(BenchmarkName::THREADS, "threads:22");
+                        .append(BenchmarkName::kArgs, "first:3")
+                        .append(BenchmarkName::kArgs, "second:4")
+                        .append(BenchmarkName::kThreads, "threads:22");
 
-  EXPECT_FIELD(name, ALL, "first:3/second:4/threads:22");
-  EXPECT_FIELD(name, ARGS, "first:3/second:4");
-  EXPECT_FIELD(name, THREADS, "threads:22");
+  EXPECT_FIELD(name, kAll, "first:3/second:4/threads:22");
+  EXPECT_FIELD(name, kArgs, "first:3/second:4");
+  EXPECT_FIELD(name, kThreads, "threads:22");
 }
 
 #undef EXPECT_FIELD

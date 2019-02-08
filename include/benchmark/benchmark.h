@@ -1311,22 +1311,22 @@ class BenchmarkName {
   // Different fields of the benchmark's name.
   enum Field {
     // The name of the function being invoked in the benchmark.
-    ROOT = 1u,
+    kRoot = 1U,
     // The arguments supplied to the benchmark, e.g. via Range().
-    ARGS = 1u << 1,
+    kArgs = 1U << 1U,
     // The minimum time specified for a benchmark.
-    MIN_TIME = 1u << 2,
+    kMinTime = 1U << 2U,
     // The number of iterations specified for a benchmark.
-    ITERATIONS = 1u << 3,
+    kIterations = 1U << 3U,
     // The number of repetitions specified for a benchmark.
-    REPETITIONS = 1u << 4,
+    kRepetitions = 1U << 4U,
     // The type of time to measure for a benchmark.
-    TIME_TYPE = 1u << 5,
+    kTimeType = 1U << 5U,
     // The number of concurrent threads for a benchmark.
-    THREADS = 1u << 6,
+    kThreads = 1U << 6U,
     // All fields.
-    ALL =
-        ROOT | ARGS | MIN_TIME | ITERATIONS | REPETITIONS | TIME_TYPE | THREADS
+    kAll =
+        kRoot | kArgs | kMinTime | kIterations | kRepetitions | kTimeType | kThreads
   };
 
   // Construct BenchmarkName with an 'empty' name.
@@ -1345,7 +1345,7 @@ class BenchmarkName {
   std::string get(Field fields) const;
 
   // Conversion to a string, which returns a string equivalent to
-  // get(Field::ALL).
+  // get(Field::kAll).
   operator std::string() const { return name_; }
 
   // Get the size of the full name of the benchmark.
@@ -1416,7 +1416,7 @@ class BenchmarkReporter {
           max_bytes_used(0) {}
 
     std::string benchmark_name(
-        BenchmarkName::Field component = BenchmarkName::ALL) const;
+        BenchmarkName::Field component = BenchmarkName::kAll) const;
     BenchmarkName run_name;
     RunType run_type;          // is this a measurement, or an aggregate?
     std::string aggregate_name;

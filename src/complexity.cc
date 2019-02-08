@@ -185,7 +185,7 @@ std::vector<BenchmarkReporter::Run> ComputeBigO(
 
   // Drop the 'args' when reporting complexity.
   const auto run_name =
-      reports[0].benchmark_name(BenchmarkName::ALL & ~BenchmarkName::ARGS);
+      reports[0].benchmark_name(BenchmarkName::kAll & ~BenchmarkName::kArgs);
 
   // Get the data from the accumulator to BenchmarkReporter::Run's.
   Run big_o;
