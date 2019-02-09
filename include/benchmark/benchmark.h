@@ -1335,8 +1335,8 @@ class BenchmarkName {
   // Construct BenchmarkName with a given 'root'.
   BenchmarkName(std::string root);
 
-  // Append a 'field_content' to a given field of the name.
-  // Each appended field_content for a given field will be
+  // Append 'field_content' to a given field of the name.
+  // Each appended element of content for a given field will be
   // separated by a '/', and additionally each field will
   // be separated by a '/'.
   BenchmarkName& append(Field field, const std::string& field_content);
@@ -1344,9 +1344,8 @@ class BenchmarkName {
   // Get the benchmark's name including all the fields set in 'fields'
   std::string get(Field fields) const;
 
-  // Conversion to a string, which returns a string equivalent to
-  // get(Field::kAll).
-  operator std::string() const { return name_; }
+  // Get the full name of the benchmark including all fields.
+  const std::string& str() const { return name_; }
 
   // Get the size of the full name of the benchmark.
   size_t size() const { return name_.size(); }
@@ -1363,9 +1362,6 @@ class BenchmarkName {
   std::string name_;
   uint16_t offsets_[offset_count];
 };
-
-// Insert the full name of a BenchmarkName into a stream.
-std::ostream& operator<<(std::ostream& os, const BenchmarkName& bmn);
 
 // Bitwise-or of BenchmarkName::Field bitfield
 BenchmarkName::Field operator|(BenchmarkName::Field lhs,

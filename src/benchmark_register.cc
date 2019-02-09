@@ -213,8 +213,8 @@ bool BenchmarkFamilies::FindBenchmarks(
                                StrFormat("threads:%d", instance.threads));
         }
 
-        if ((re.Match(instance.name) && !isNegativeFilter) ||
-            (!re.Match(instance.name) && isNegativeFilter)) {
+        if ((re.Match(instance.name.str()) && !isNegativeFilter) ||
+            (!re.Match(instance.name.str()) && isNegativeFilter)) {
           instance.last_benchmark_instance = (&args == &family->args_.back());
           benchmarks->push_back(std::move(instance));
         }

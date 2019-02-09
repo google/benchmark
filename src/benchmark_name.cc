@@ -88,10 +88,6 @@ size_t BenchmarkName::end_offset(size_t enumerator_index) const {
                                                   : offsets_[enumerator_index];
 }
 
-std::ostream &operator<<(std::ostream &os, const BenchmarkName &bmn) {
-  return os << static_cast<std::string>(bmn);
-}
-
 BenchmarkName::Field operator|(BenchmarkName::Field lhs,
                                BenchmarkName::Field rhs) {
   using underlying_type =
