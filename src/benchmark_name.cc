@@ -24,12 +24,12 @@ BenchmarkName::BenchmarkName(std::string root)
 }
 
 BenchmarkName &BenchmarkName::append(Field field,
-                                     const std::string &field_name) {
+                                     const std::string &field_content) {
   for (auto e = 0u; e < enumerator_count; ++e) {
     if (is_set(field, e)) {
       // Insert the new name at the end of this field.
       auto offset = end_offset(e);
-      auto inserted_characters_count = field_name.size();
+      auto inserted_characters_count = field_content.size();
 
       // Insert a leading separator unless we are right
       // at the beginning of the name.
@@ -38,7 +38,7 @@ BenchmarkName &BenchmarkName::append(Field field,
         ++inserted_characters_count;
       }
 
-      name_.insert(offset, field_name);
+      name_.insert(offset, field_content);
 
       // Update all following offsets to account for the inserted characters.
       for (auto o = e; o < offset_count; ++o) {

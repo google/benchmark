@@ -1335,11 +1335,11 @@ class BenchmarkName {
   // Construct BenchmarkName with a given 'root'.
   BenchmarkName(std::string root);
 
-  // Append a 'field_name' to a given field of the name.
-  // Each appended field_name for a given field will be
+  // Append a 'field_content' to a given field of the name.
+  // Each appended field_content for a given field will be
   // separated by a '/', and additionally each field will
   // be separated by a '/'.
-  BenchmarkName& append(Field field, const std::string& field_name);
+  BenchmarkName& append(Field field, const std::string& field_content);
 
   // Get the benchmark's name including all the fields set in 'fields'
   std::string get(Field fields) const;
