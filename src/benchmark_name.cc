@@ -114,7 +114,11 @@ BenchmarkName::Field operator~(BenchmarkName::Field component) {
   using underlying_type =
       typename std::underlying_type<BenchmarkName::Field>::type;
 
+  // '&' with kAll to ensure the result is within the enumeration's
+  // range before casting back to the underlying type
+  // [expr.static.cast]p10
   return static_cast<BenchmarkName::Field>(
+      static_cast<underlying_type>(BenchmarkName::Field::kAll) &
       ~static_cast<underlying_type>(component));
 }
 
