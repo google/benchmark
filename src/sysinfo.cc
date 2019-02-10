@@ -389,6 +389,8 @@ std::string GetSystemName() {
 #else // defined(BENCHMARK_OS_WINDOWS)
 #ifdef BENCHMARK_OS_MACOSX //Mac Doesnt have HOST_NAME_MAX defined
 #define HOST_NAME_MAX 64
+#elif defined(BENCHMARK_OS_QNX)
+#define HOST_NAME_MAX 154
 #endif
   char hostname[HOST_NAME_MAX];
   int retVal = gethostname(hostname, HOST_NAME_MAX);
