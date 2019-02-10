@@ -140,24 +140,24 @@ add_test(user_counters_thousands_test user_counters_thousands_test --benchmark_m
 compile_output_test(memory_manager_test)
 add_test(memory_manager_test memory_manager_test --benchmark_min_time=0.01)
 
-check_cxx_compiler_flag(-std=c++03 BENCHMARK_HAS_CXX03_FLAG)
-if (BENCHMARK_HAS_CXX03_FLAG)
-  compile_benchmark_test(cxx03_test)
-  set_target_properties(cxx03_test
-      PROPERTIES
-      COMPILE_FLAGS "-std=c++03")
-  # libstdc++ provides different definitions within <map> between dialects. When
-  # LTO is enabled and -Werror is specified GCC diagnoses this ODR violation
-  # causing the test to fail to compile. To prevent this we explicitly disable
-  # the warning.
-  check_cxx_compiler_flag(-Wno-odr BENCHMARK_HAS_WNO_ODR)
-  if (BENCHMARK_ENABLE_LTO AND BENCHMARK_HAS_WNO_ODR)
-    set_target_properties(cxx03_test
-        PROPERTIES
-        LINK_FLAGS "-Wno-odr")
-  endif()
-  add_test(cxx03 cxx03_test --benchmark_min_time=0.01)
-endif()
+#check_cxx_compiler_flag(-std=c++03 BENCHMARK_HAS_CXX03_FLAG)
+#if (BENCHMARK_HAS_CXX03_FLAG)
+#  compile_benchmark_test(cxx03_test)
+#  set_target_properties(cxx03_test
+#      PROPERTIES
+#      COMPILE_FLAGS "-std=c++03")
+#  # libstdc++ provides different definitions within <map> between dialects. When
+#  # LTO is enabled and -Werror is specified GCC diagnoses this ODR violation
+#  # causing the test to fail to compile. To prevent this we explicitly disable
+#  # the warning.
+#  check_cxx_compiler_flag(-Wno-odr BENCHMARK_HAS_WNO_ODR)
+#  if (BENCHMARK_ENABLE_LTO AND BENCHMARK_HAS_WNO_ODR)
+#    set_target_properties(cxx03_test
+#        PROPERTIES
+#        LINK_FLAGS "-Wno-odr")
+#  endif()
+#  add_test(cxx03 cxx03_test --benchmark_min_time=0.01)
+#endif()
 
 # Attempt to work around flaky test failures when running on Appveyor servers.
 if (DEFINED ENV{APPVEYOR})
