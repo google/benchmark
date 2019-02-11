@@ -4,6 +4,8 @@
 #include "check.h"
 #include "timers.h"
 
+#include <iostream>
+
 namespace benchmark {
 namespace internal {
 
@@ -13,9 +15,11 @@ class ThreadTimer {
 
   // Called by each thread
   void StartTimer() {
+ std::cerr << "Timer start" << std::endl;
     running_ = true;
     start_real_time_ = ChronoClockNow();
-    start_cpu_time_ = ThreadCPUUsage();
+    //start_cpu_time_ = ThreadCPUUsage();
+	start_cpu_time_ = ProcessCPUUsage();
   }
 
   // Called by each thread
@@ -25,7 +29,9 @@ class ThreadTimer {
     real_time_used_ += ChronoClockNow() - start_real_time_;
     // Floating point error can result in the subtraction producing a negative
     // time. Guard against that.
-    cpu_time_used_ += std::max<double>(ThreadCPUUsage() - start_cpu_time_, 0);
+    //cpu_time_used_ += std::max<double>(ThreadCPUUsage() - start_cpu_time_, 0);
+	cpu_time_used_ += std::max<double>(ProcessCPUUsage() - start_cpu_time_, 0);
+	std::cerr << "Timer stop" << std::endl;
   }
 
   // Called by each thread
