@@ -15,11 +15,10 @@ class ThreadTimer {
 
   // Called by each thread
   void StartTimer() {
- std::cerr << "Timer start" << std::endl;
     running_ = true;
     start_real_time_ = ChronoClockNow();
-    //start_cpu_time_ = ThreadCPUUsage();
-	start_cpu_time_ = ProcessCPUUsage();
+    start_thread_cpu_time_ = ThreadCPUUsage();
+    start_cpu_time_ = ProcessCPUUsage();
   }
 
   // Called by each thread
@@ -29,9 +28,8 @@ class ThreadTimer {
     real_time_used_ += ChronoClockNow() - start_real_time_;
     // Floating point error can result in the subtraction producing a negative
     // time. Guard against that.
-    //cpu_time_used_ += std::max<double>(ThreadCPUUsage() - start_cpu_time_, 0);
-	cpu_time_used_ += std::max<double>(ProcessCPUUsage() - start_cpu_time_, 0);
-	std::cerr << "Timer stop" << std::endl;
+    thread_cpu_time_used_ += std::max<double>(ThreadCPUUsage() - start_thread_cpu_time_, 0);
+    cpu_time_used_ += std::max<double>(ProcessCPUUsage() - start_cpu_time_, 0);
   }
 
   // Called by each thread
@@ -51,6 +49,11 @@ class ThreadTimer {
     return cpu_time_used_;
   }
 
+  double thread_cpu_time_used() {
+    CHECK(!running_);
+    return thread_cpu_time_used_;
+  }
+
   // REQUIRES: timer is not running
   double manual_time_used() {
     CHECK(!running_);
@@ -61,10 +64,12 @@ class ThreadTimer {
   bool running_ = false;        // Is the timer running
   double start_real_time_ = 0;  // If running_
   double start_cpu_time_ = 0;   // If running_
+  double start_thread_cpu_time_ = 0;   // If running_
 
   // Accumulated time so far (does not contain current slice if running_)
   double real_time_used_ = 0;
   double cpu_time_used_ = 0;
+  double thread_cpu_time_used_ = 0;
   // Manually set iteration time. User sets this with SetIterationTime(seconds).
   double manual_time_used_ = 0;
 };

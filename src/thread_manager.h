@@ -40,6 +40,7 @@ class ThreadManager {
   struct Result {
     int64_t iterations = 0;
     double real_time_used = 0;
+	double thread_cpu_time_used = 0;
     double cpu_time_used = 0;
     double manual_time_used = 0;
     int64_t complexity_n = 0;
