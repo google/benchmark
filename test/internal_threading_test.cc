@@ -50,9 +50,8 @@ void BM_MainThread(benchmark::State& state) {
 }
 
 BENCHMARK(BM_MainThread)->Iterations(1);
-ADD_CASES(
-    TC_ConsoleOut,
-    {{"^BM_MainThread/iterations:1 %console_report invtime=%hrfloat/s$"}});
+ADD_CASES(TC_ConsoleOut,
+          {{"^BM_MainThread/iterations:1 %console_report invtime=[^/]+/s$"}});
 ADD_CASES(TC_JSONOut,
           {{"\"name\": \"BM_MainThread/iterations:1\",$"},
            {"\"run_name\": \"BM_MainThread/iterations:1\",$", MR_Next},
@@ -61,7 +60,7 @@ ADD_CASES(TC_JSONOut,
            {"\"real_time\": %float,$", MR_Next},
            {"\"cpu_time\": %float,$", MR_Next},
            {"\"time_unit\": \"ns\",$", MR_Next},
-           {"\"invtime\": %float$", MR_Next},
+           {"\"invtime\":", MR_Next},
            {"}", MR_Next}});
 ADD_CASES(TC_CSVOut, {{"^\"BM_MainThread/iterations:1\",%csv_report,%float$"}});
 void CheckTestVariantZero(Results const& e) {
@@ -74,7 +73,7 @@ CHECK_BENCHMARK_RESULTS("BM_MainThread/iterations:1$", &CheckTestVariantZero);
 
 BENCHMARK(BM_MainThread)->Iterations(1)->UseRealTime();
 ADD_CASES(TC_ConsoleOut, {{"^BM_MainThread/iterations:1/real_time "
-                           "%console_report invtime=%hrfloat/s$"}});
+                           "%console_report invtime=[^/]+/s$"}});
 ADD_CASES(TC_JSONOut,
           {{"\"name\": \"BM_MainThread/iterations:1/real_time\",$"},
            {"\"run_name\": \"BM_MainThread/iterations:1/real_time\",$",
@@ -84,7 +83,7 @@ ADD_CASES(TC_JSONOut,
            {"\"real_time\": %float,$", MR_Next},
            {"\"cpu_time\": %float,$", MR_Next},
            {"\"time_unit\": \"ns\",$", MR_Next},
-           {"\"invtime\": %float$", MR_Next},
+           {"\"invtime\":", MR_Next},
            {"}", MR_Next}});
 ADD_CASES(TC_CSVOut,
           {{"^\"BM_MainThread/iterations:1/real_time\",%csv_report,%float$"}});
@@ -93,7 +92,7 @@ CHECK_BENCHMARK_RESULTS("BM_MainThread/iterations:1/real_time",
 
 BENCHMARK(BM_MainThread)->Iterations(1)->MeasureProcessCPUTime();
 ADD_CASES(TC_ConsoleOut, {{"^BM_MainThread/iterations:1/process_time "
-                           "%console_report invtime=%hrfloat/s$"}});
+                           "%console_report invtime=[^/]+/s$"}});
 ADD_CASES(TC_JSONOut,
           {{"\"name\": \"BM_MainThread/iterations:1/process_time\",$"},
            {"\"run_name\": \"BM_MainThread/iterations:1/process_time\",$",
@@ -103,7 +102,7 @@ ADD_CASES(TC_JSONOut,
            {"\"real_time\": %float,$", MR_Next},
            {"\"cpu_time\": %float,$", MR_Next},
            {"\"time_unit\": \"ns\",$", MR_Next},
-           {"\"invtime\": %float$", MR_Next},
+           {"\"invtime\":", MR_Next},
            {"}", MR_Next}});
 ADD_CASES(
     TC_CSVOut,
@@ -113,7 +112,7 @@ CHECK_BENCHMARK_RESULTS("BM_MainThread/iterations:1/process_time",
 
 BENCHMARK(BM_MainThread)->Iterations(1)->MeasureProcessCPUTime()->UseRealTime();
 ADD_CASES(TC_ConsoleOut, {{"^BM_MainThread/iterations:1/process_time/real_time "
-                           "%console_report invtime=%hrfloat/s$"}});
+                           "%console_report invtime=[^/]+/s$"}});
 ADD_CASES(
     TC_JSONOut,
     {{"\"name\": \"BM_MainThread/iterations:1/process_time/real_time\",$"},
@@ -124,7 +123,7 @@ ADD_CASES(
      {"\"real_time\": %float,$", MR_Next},
      {"\"cpu_time\": %float,$", MR_Next},
      {"\"time_unit\": \"ns\",$", MR_Next},
-     {"\"invtime\": %float$", MR_Next},
+     {"\"invtime\":", MR_Next},
      {"}", MR_Next}});
 ADD_CASES(TC_CSVOut, {{"^\"BM_MainThread/iterations:1/process_time/"
                        "real_time\",%csv_report,%float$"}});
@@ -143,9 +142,8 @@ void BM_WorkerThread(benchmark::State& state) {
       benchmark::Counter{1, benchmark::Counter::kIsRate};
 }
 BENCHMARK(BM_WorkerThread)->Iterations(1);
-ADD_CASES(
-    TC_ConsoleOut,
-    {{"^BM_WorkerThread/iterations:1 %console_report invtime=%hrfloat/s$"}});
+ADD_CASES(TC_ConsoleOut,
+          {{"^BM_WorkerThread/iterations:1 %console_report invtime=[^/]+/s$"}});
 ADD_CASES(TC_JSONOut,
           {{"\"name\": \"BM_WorkerThread/iterations:1\",$"},
            {"\"run_name\": \"BM_WorkerThread/iterations:1\",$", MR_Next},
@@ -154,7 +152,7 @@ ADD_CASES(TC_JSONOut,
            {"\"real_time\": %float,$", MR_Next},
            {"\"cpu_time\": %float,$", MR_Next},
            {"\"time_unit\": \"ns\",$", MR_Next},
-           {"\"invtime\": %float$", MR_Next},
+           {"\"invtime\":", MR_Next},
            {"}", MR_Next}});
 ADD_CASES(TC_CSVOut,
           {{"^\"BM_WorkerThread/iterations:1\",%csv_report,%float$"}});
@@ -170,7 +168,7 @@ CHECK_BENCHMARK_RESULTS("BM_WorkerThread/iterations:1$", &CheckTestVariantOne);
 
 BENCHMARK(BM_WorkerThread)->Iterations(1)->UseRealTime();
 ADD_CASES(TC_ConsoleOut, {{"^BM_WorkerThread/iterations:1/real_time "
-                           "%console_report invtime=%hrfloat/s$"}});
+                           "%console_report invtime=[^/]+/s$"}});
 ADD_CASES(TC_JSONOut,
           {{"\"name\": \"BM_WorkerThread/iterations:1/real_time\",$"},
            {"\"run_name\": \"BM_WorkerThread/iterations:1/real_time\",$",
@@ -180,7 +178,7 @@ ADD_CASES(TC_JSONOut,
            {"\"real_time\": %float,$", MR_Next},
            {"\"cpu_time\": %float,$", MR_Next},
            {"\"time_unit\": \"ns\",$", MR_Next},
-           {"\"invtime\": %float$", MR_Next},
+           {"\"invtime\":", MR_Next},
            {"}", MR_Next}});
 ADD_CASES(
     TC_CSVOut,
@@ -190,7 +188,7 @@ CHECK_BENCHMARK_RESULTS("BM_WorkerThread/iterations:1/real_time$",
 
 BENCHMARK(BM_WorkerThread)->Iterations(1)->MeasureProcessCPUTime();
 ADD_CASES(TC_ConsoleOut, {{"^BM_WorkerThread/iterations:1/process_time "
-                           "%console_report invtime=%hrfloat/s$"}});
+                           "%console_report invtime=[^/]+/s$"}});
 ADD_CASES(TC_JSONOut,
           {{"\"name\": \"BM_WorkerThread/iterations:1/process_time\",$"},
            {"\"run_name\": \"BM_WorkerThread/iterations:1/process_time\",$",
@@ -200,7 +198,7 @@ ADD_CASES(TC_JSONOut,
            {"\"real_time\": %float,$", MR_Next},
            {"\"cpu_time\": %float,$", MR_Next},
            {"\"time_unit\": \"ns\",$", MR_Next},
-           {"\"invtime\": %float$", MR_Next},
+           {"\"invtime\":", MR_Next},
            {"}", MR_Next}});
 ADD_CASES(
     TC_CSVOut,
@@ -219,7 +217,7 @@ BENCHMARK(BM_WorkerThread)
     ->MeasureProcessCPUTime()
     ->UseRealTime();
 ADD_CASES(TC_ConsoleOut, {{"^BM_WorkerThread/iterations:1/process_time/"
-                           "real_time %console_report invtime=%hrfloat/s$"}});
+                           "real_time %console_report invtime=[^/]+/s$"}});
 ADD_CASES(
     TC_JSONOut,
     {{"\"name\": \"BM_WorkerThread/iterations:1/process_time/real_time\",$"},
@@ -230,7 +228,7 @@ ADD_CASES(
      {"\"real_time\": %float,$", MR_Next},
      {"\"cpu_time\": %float,$", MR_Next},
      {"\"time_unit\": \"ns\",$", MR_Next},
-     {"\"invtime\": %float$", MR_Next},
+     {"\"invtime\":", MR_Next},
      {"}", MR_Next}});
 ADD_CASES(TC_CSVOut, {{"^\"BM_WorkerThread/iterations:1/process_time/"
                        "real_time\",%csv_report,%float$"}});
@@ -251,7 +249,7 @@ void BM_MainThreadAndWorkerThread(benchmark::State& state) {
 }
 BENCHMARK(BM_MainThreadAndWorkerThread)->Iterations(1);
 ADD_CASES(TC_ConsoleOut, {{"^BM_MainThreadAndWorkerThread/iterations:1 "
-                           "%console_report invtime=%hrfloat/s$"}});
+                           "%console_report invtime=[^/]+/s$"}});
 ADD_CASES(TC_JSONOut,
           {{"\"name\": \"BM_MainThreadAndWorkerThread/iterations:1\",$"},
            {"\"run_name\": \"BM_MainThreadAndWorkerThread/iterations:1\",$",
@@ -261,7 +259,7 @@ ADD_CASES(TC_JSONOut,
            {"\"real_time\": %float,$", MR_Next},
            {"\"cpu_time\": %float,$", MR_Next},
            {"\"time_unit\": \"ns\",$", MR_Next},
-           {"\"invtime\": %float$", MR_Next},
+           {"\"invtime\":", MR_Next},
            {"}", MR_Next}});
 ADD_CASES(
     TC_CSVOut,
@@ -271,7 +269,7 @@ CHECK_BENCHMARK_RESULTS("BM_MainThreadAndWorkerThread/iterations:1$",
 
 BENCHMARK(BM_MainThreadAndWorkerThread)->Iterations(1)->UseRealTime();
 ADD_CASES(TC_ConsoleOut, {{"^BM_MainThreadAndWorkerThread/iterations:1/"
-                           "real_time %console_report invtime=%hrfloat/s$"}});
+                           "real_time %console_report invtime=[^/]+/s$"}});
 ADD_CASES(
     TC_JSONOut,
     {{"\"name\": \"BM_MainThreadAndWorkerThread/iterations:1/real_time\",$"},
@@ -282,7 +280,7 @@ ADD_CASES(
      {"\"real_time\": %float,$", MR_Next},
      {"\"cpu_time\": %float,$", MR_Next},
      {"\"time_unit\": \"ns\",$", MR_Next},
-     {"\"invtime\": %float$", MR_Next},
+     {"\"invtime\":", MR_Next},
      {"}", MR_Next}});
 ADD_CASES(TC_CSVOut, {{"^\"BM_MainThreadAndWorkerThread/iterations:1/"
                        "real_time\",%csv_report,%float$"}});
@@ -290,9 +288,8 @@ CHECK_BENCHMARK_RESULTS("BM_MainThreadAndWorkerThread/iterations:1/real_time$",
                         &CheckTestVariantTwo);
 
 BENCHMARK(BM_MainThreadAndWorkerThread)->Iterations(1)->MeasureProcessCPUTime();
-ADD_CASES(TC_ConsoleOut,
-          {{"^BM_MainThreadAndWorkerThread/iterations:1/"
-            "process_time %console_report invtime=%hrfloat/s$"}});
+ADD_CASES(TC_ConsoleOut, {{"^BM_MainThreadAndWorkerThread/iterations:1/"
+                           "process_time %console_report invtime=[^/]+/s$"}});
 ADD_CASES(
     TC_JSONOut,
     {{"\"name\": \"BM_MainThreadAndWorkerThread/iterations:1/process_time\",$"},
@@ -304,7 +301,7 @@ ADD_CASES(
      {"\"real_time\": %float,$", MR_Next},
      {"\"cpu_time\": %float,$", MR_Next},
      {"\"time_unit\": \"ns\",$", MR_Next},
-     {"\"invtime\": %float$", MR_Next},
+     {"\"invtime\":", MR_Next},
      {"}", MR_Next}});
 ADD_CASES(TC_CSVOut, {{"^\"BM_MainThreadAndWorkerThread/iterations:1/"
                        "process_time\",%csv_report,%float$"}});
@@ -325,7 +322,7 @@ BENCHMARK(BM_MainThreadAndWorkerThread)
     ->UseRealTime();
 ADD_CASES(TC_ConsoleOut,
           {{"^BM_MainThreadAndWorkerThread/iterations:1/"
-            "process_time/real_time %console_report invtime=%hrfloat/s$"}});
+            "process_time/real_time %console_report invtime=[^/]+/s$"}});
 ADD_CASES(
     TC_JSONOut,
     {{"\"name\": "
@@ -338,7 +335,7 @@ ADD_CASES(
      {"\"real_time\": %float,$", MR_Next},
      {"\"cpu_time\": %float,$", MR_Next},
      {"\"time_unit\": \"ns\",$", MR_Next},
-     {"\"invtime\": %float$", MR_Next},
+     {"\"invtime\":", MR_Next},
      {"}", MR_Next}});
 ADD_CASES(TC_CSVOut, {{"^\"BM_MainThreadAndWorkerThread/iterations:1/"
                        "process_time/real_time\",%csv_report,%float$"}});
