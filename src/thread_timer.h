@@ -4,21 +4,19 @@
 #include "check.h"
 #include "timers.h"
 
-#include <iostream>
-
 namespace benchmark {
 namespace internal {
 
 class ThreadTimer {
  public:
-  ThreadTimer() = default;
+  ThreadTimer(bool measure_process_cpu_time_)
+      : measure_process_cpu_time(measure_process_cpu_time_) {}
 
   // Called by each thread
   void StartTimer() {
     running_ = true;
     start_real_time_ = ChronoClockNow();
-    start_thread_cpu_time_ = ThreadCPUUsage();
-    start_cpu_time_ = ProcessCPUUsage();
+    start_cpu_time_ = ReadCpuTimerOfChoice();
   }
 
   // Called by each thread
@@ -28,9 +26,8 @@ class ThreadTimer {
     real_time_used_ += ChronoClockNow() - start_real_time_;
     // Floating point error can result in the subtraction producing a negative
     // time. Guard against that.
-    thread_cpu_time_used_ +=
-        std::max<double>(ThreadCPUUsage() - start_thread_cpu_time_, 0);
-    cpu_time_used_ += std::max<double>(ProcessCPUUsage() - start_cpu_time_, 0);
+    cpu_time_used_ +=
+        std::max<double>(ReadCpuTimerOfChoice() - start_cpu_time_, 0);
   }
 
   // Called by each thread
@@ -50,11 +47,6 @@ class ThreadTimer {
     return cpu_time_used_;
   }
 
-  double thread_cpu_time_used() {
-    CHECK(!running_);
-    return thread_cpu_time_used_;
-  }
-
   // REQUIRES: timer is not running
   double manual_time_used() {
     CHECK(!running_);
@@ -62,15 +54,21 @@ class ThreadTimer {
   }
 
  private:
+  double ReadCpuTimerOfChoice() const {
+    if (measure_process_cpu_time) return ProcessCPUUsage();
+    return ThreadCPUUsage();
+  }
+
+  // should the thread, or the process, time be measured?
+  const bool measure_process_cpu_time;
+
   bool running_ = false;        // Is the timer running
   double start_real_time_ = 0;  // If running_
   double start_cpu_time_ = 0;   // If running_
-  double start_thread_cpu_time_ = 0;  // If running_
 
   // Accumulated time so far (does not contain current slice if running_)
   double real_time_used_ = 0;
   double cpu_time_used_ = 0;
-  double thread_cpu_time_used_ = 0;
   // Manually set iteration time. User sets this with SetIterationTime(seconds).
   double manual_time_used_ = 0;
 };

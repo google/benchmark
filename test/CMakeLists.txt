@@ -125,6 +125,9 @@ add_test(templated_fixture_test templated_fixture_test --benchmark_min_time=0.01
 compile_output_test(user_counters_test)
 add_test(user_counters_test user_counters_test --benchmark_min_time=0.01)
 
+compile_output_test(internal_threading_test)
+add_test(internal_threading_test internal_threading_test --benchmark_min_time=0.01)
+
 compile_output_test(report_aggregates_only_test)
 add_test(report_aggregates_only_test report_aggregates_only_test --benchmark_min_time=0.01)
 

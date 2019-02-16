@@ -86,11 +86,7 @@ BenchmarkReporter::Run CreateRunReport(
     } else {
       report.real_accumulated_time = results.real_time_used;
     }
-    if (b.threads <= 1) {
-      report.cpu_accumulated_time = results.cpu_time_used;
-    } else {
-      report.cpu_accumulated_time = results.thread_cpu_time_used;
-    }
+    report.cpu_accumulated_time = results.cpu_time_used;
     report.complexity_n = results.complexity_n;
     report.complexity = b.complexity;
     report.complexity_lambda = b.complexity_lambda;
@@ -115,7 +111,7 @@ BenchmarkReporter::Run CreateRunReport(
 // Adds the stats collected for the thread into *total.
 void RunInThread(const BenchmarkInstance* b, size_t iters, int thread_id,
                  ThreadManager* manager) {
-  internal::ThreadTimer timer;
+  internal::ThreadTimer timer(b->measure_process_cpu_time);
   State st = b->Run(iters, thread_id, &timer, manager);
   CHECK(st.iterations() >= st.max_iterations)
       << "Benchmark returned before State::KeepRunning() returned false!";
@@ -123,7 +119,6 @@ void RunInThread(const BenchmarkInstance* b, size_t iters, int thread_id,
     MutexLock l(manager->GetBenchmarkMutex());
     internal::ThreadManager::Result& results = manager->results;
     results.iterations += st.iterations();
-    results.thread_cpu_time_used += timer.thread_cpu_time_used();
     results.cpu_time_used += timer.cpu_time_used();
     results.real_time_used += timer.real_time_used();
     results.manual_time_used += timer.manual_time_used();

@@ -874,11 +874,18 @@ class Benchmark {
   // Same as ReportAggregatesOnly(), but applies to display reporter only.
   Benchmark* DisplayAggregatesOnly(bool value = true);
 
-  // If a particular benchmark is I/O bound, runs multiple threads internally or
-  // if for some reason CPU timings are not representative, call this method. If
-  // called, the elapsed time will be used to control how many iterations are
-  // run, and in the printing of items/second or MB/seconds values.  If not
-  // called, the cpu time used by the benchmark will be used.
+  // By default, the CPU time is measured only for the main thread, which may
+  // be unrepresentable if the benchmark uses threads internally. If called,
+  // the total CPU time spent by all the threads will be measured instead.
+  // By default, the only the main thread CPU time will be measured.
+  Benchmark* MeasureProcessCPUTime();
+
+  // If a particular benchmark should use the Wall clock instead of the CPU time
+  // (be it either the CPU time of the main thread only (default), or the
+  // total CPU usage of the benchmark), call this method. If called, the elapsed
+  // (wall) time will be used to control how many iterations are run, and in the
+  // printing of items/second or MB/seconds values.
+  // If not called, the CPU time used by the benchmark will be used.
   Benchmark* UseRealTime();
 
   // If a benchmark must measure time manually (e.g. if GPU execution time is
@@ -952,6 +959,7 @@ class Benchmark {
   double min_time_;
   size_t iterations_;
   int repetitions_;
+  bool measure_process_cpu_time_;
   bool use_real_time_;
   bool use_manual_time_;
   BigO complexity_;

@@ -22,6 +22,7 @@ struct BenchmarkInstance {
   std::vector<int64_t> arg;
   TimeUnit time_unit;
   int range_multiplier;
+  bool measure_process_cpu_time;
   bool use_real_time;
   bool use_manual_time;
   BigO complexity;
