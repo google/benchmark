@@ -310,7 +310,7 @@ ADD_CASES(TC_CSVOut, {{"^\"BM_MainThreadAndWorkerThread/iterations:1/"
                        "process_time\",%csv_report,%float$"}});
 void CheckTestVariantThree(Results const& e) {
   // check that the values are within 10% of the expected values
-  CHECK_FLOAT_RESULT_VALUE(e, "real_time", EQ, time_frame_in_ns, 0.1);
+  CHECK_FLOAT_RESULT_VALUE(e, "real_time", EQ, time_frame_in_ns, 0.33);
   CHECK_FLOAT_RESULT_VALUE(e, "cpu_time", EQ, 2.0 * time_frame_in_ns, 0.1);
   CHECK_FLOAT_COUNTER_VALUE(e, "invtime", EQ, 1. / (2. * time_frame_in_sec),
                             0.1);
@@ -344,7 +344,7 @@ ADD_CASES(TC_CSVOut, {{"^\"BM_MainThreadAndWorkerThread/iterations:1/"
                        "process_time/real_time\",%csv_report,%float$"}});
 void CheckTestVariantFour(Results const& e) {
   // check that the values are within 10% of the expected values
-  CHECK_FLOAT_RESULT_VALUE(e, "real_time", EQ, time_frame_in_ns, 0.1);
+  CHECK_FLOAT_RESULT_VALUE(e, "real_time", EQ, time_frame_in_ns, 0.33);
   CHECK_FLOAT_RESULT_VALUE(e, "cpu_time", EQ, 2.0 * time_frame_in_ns, 0.1);
   CHECK_FLOAT_COUNTER_VALUE(e, "invtime", EQ, 1. / time_frame_in_sec, 0.1);
 }
