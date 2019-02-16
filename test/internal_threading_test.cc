@@ -62,7 +62,7 @@ ADD_CASES(TC_JSONOut,
            {"\"time_unit\": \"ns\",$", MR_Next},
            {"\"invtime\":", MR_Next},
            {"}", MR_Next}});
-ADD_CASES(TC_CSVOut, {{"^\"BM_MainThread/iterations:1\",%csv_report,%float$"}});
+ADD_CASES(TC_CSVOut, {{"^\"BM_MainThread/iterations:1\",%csv_report,[^,]+"}});
 void CheckTestVariantZero(Results const& e) {
   // check that the values are within 10% of the expected values
   CHECK_FLOAT_RESULT_VALUE(e, "real_time", EQ, time_frame_in_ns, 0.1);
@@ -86,7 +86,7 @@ ADD_CASES(TC_JSONOut,
            {"\"invtime\":", MR_Next},
            {"}", MR_Next}});
 ADD_CASES(TC_CSVOut,
-          {{"^\"BM_MainThread/iterations:1/real_time\",%csv_report,%float$"}});
+          {{"^\"BM_MainThread/iterations:1/real_time\",%csv_report,[^,]+"}});
 CHECK_BENCHMARK_RESULTS("BM_MainThread/iterations:1/real_time",
                         &CheckTestVariantZero);
 
@@ -104,9 +104,8 @@ ADD_CASES(TC_JSONOut,
            {"\"time_unit\": \"ns\",$", MR_Next},
            {"\"invtime\":", MR_Next},
            {"}", MR_Next}});
-ADD_CASES(
-    TC_CSVOut,
-    {{"^\"BM_MainThread/iterations:1/process_time\",%csv_report,%float$"}});
+ADD_CASES(TC_CSVOut,
+          {{"^\"BM_MainThread/iterations:1/process_time\",%csv_report,[^,]+"}});
 CHECK_BENCHMARK_RESULTS("BM_MainThread/iterations:1/process_time",
                         &CheckTestVariantZero);
 
@@ -126,7 +125,7 @@ ADD_CASES(
      {"\"invtime\":", MR_Next},
      {"}", MR_Next}});
 ADD_CASES(TC_CSVOut, {{"^\"BM_MainThread/iterations:1/process_time/"
-                       "real_time\",%csv_report,%float$"}});
+                       "real_time\",%csv_report,[^,]+"}});
 CHECK_BENCHMARK_RESULTS("BM_MainThread/iterations:1/process_time/real_time",
                         &CheckTestVariantZero);
 
@@ -154,8 +153,7 @@ ADD_CASES(TC_JSONOut,
            {"\"time_unit\": \"ns\",$", MR_Next},
            {"\"invtime\":", MR_Next},
            {"}", MR_Next}});
-ADD_CASES(TC_CSVOut,
-          {{"^\"BM_WorkerThread/iterations:1\",%csv_report,%float$"}});
+ADD_CASES(TC_CSVOut, {{"^\"BM_WorkerThread/iterations:1\",%csv_report,[^,]+"}});
 void CheckTestVariantOne(Results const& e) {
   // check that the value is within 10% of the expected
   CHECK_FLOAT_RESULT_VALUE(e, "real_time", EQ, time_frame_in_ns, 0.1);
@@ -180,9 +178,8 @@ ADD_CASES(TC_JSONOut,
            {"\"time_unit\": \"ns\",$", MR_Next},
            {"\"invtime\":", MR_Next},
            {"}", MR_Next}});
-ADD_CASES(
-    TC_CSVOut,
-    {{"^\"BM_WorkerThread/iterations:1/real_time\",%csv_report,%float$"}});
+ADD_CASES(TC_CSVOut,
+          {{"^\"BM_WorkerThread/iterations:1/real_time\",%csv_report,[^,]+"}});
 CHECK_BENCHMARK_RESULTS("BM_WorkerThread/iterations:1/real_time$",
                         &CheckTestVariantOne);
 
@@ -202,7 +199,7 @@ ADD_CASES(TC_JSONOut,
            {"}", MR_Next}});
 ADD_CASES(
     TC_CSVOut,
-    {{"^\"BM_WorkerThread/iterations:1/process_time\",%csv_report,%float$"}});
+    {{"^\"BM_WorkerThread/iterations:1/process_time\",%csv_report,[^,]+"}});
 void CheckTestVariantTwo(Results const& e) {
   // check that the values are within 10% of the expected values
   CHECK_FLOAT_RESULT_VALUE(e, "real_time", EQ, time_frame_in_ns, 0.33);
@@ -231,7 +228,7 @@ ADD_CASES(
      {"\"invtime\":", MR_Next},
      {"}", MR_Next}});
 ADD_CASES(TC_CSVOut, {{"^\"BM_WorkerThread/iterations:1/process_time/"
-                       "real_time\",%csv_report,%float$"}});
+                       "real_time\",%csv_report,[^,]+"}});
 CHECK_BENCHMARK_RESULTS("BM_WorkerThread/iterations:1/process_time/real_time$",
                         &CheckTestVariantTwo);
 
@@ -263,7 +260,7 @@ ADD_CASES(TC_JSONOut,
            {"}", MR_Next}});
 ADD_CASES(
     TC_CSVOut,
-    {{"^\"BM_MainThreadAndWorkerThread/iterations:1\",%csv_report,%float$"}});
+    {{"^\"BM_MainThreadAndWorkerThread/iterations:1\",%csv_report,[^,]+"}});
 CHECK_BENCHMARK_RESULTS("BM_MainThreadAndWorkerThread/iterations:1$",
                         &CheckTestVariantTwo);
 
@@ -283,7 +280,7 @@ ADD_CASES(
      {"\"invtime\":", MR_Next},
      {"}", MR_Next}});
 ADD_CASES(TC_CSVOut, {{"^\"BM_MainThreadAndWorkerThread/iterations:1/"
-                       "real_time\",%csv_report,%float$"}});
+                       "real_time\",%csv_report,[^,]+"}});
 CHECK_BENCHMARK_RESULTS("BM_MainThreadAndWorkerThread/iterations:1/real_time$",
                         &CheckTestVariantTwo);
 
@@ -304,7 +301,7 @@ ADD_CASES(
      {"\"invtime\":", MR_Next},
      {"}", MR_Next}});
 ADD_CASES(TC_CSVOut, {{"^\"BM_MainThreadAndWorkerThread/iterations:1/"
-                       "process_time\",%csv_report,%float$"}});
+                       "process_time\",%csv_report,[^,]+"}});
 void CheckTestVariantThree(Results const& e) {
   // check that the values are within 10% of the expected values
   CHECK_FLOAT_RESULT_VALUE(e, "real_time", EQ, time_frame_in_ns, 0.33);
@@ -338,7 +335,7 @@ ADD_CASES(
      {"\"invtime\":", MR_Next},
      {"}", MR_Next}});
 ADD_CASES(TC_CSVOut, {{"^\"BM_MainThreadAndWorkerThread/iterations:1/"
-                       "process_time/real_time\",%csv_report,%float$"}});
+                       "process_time/real_time\",%csv_report,[^,]+"}});
 void CheckTestVariantFour(Results const& e) {
   // check that the values are within 10% of the expected values
   CHECK_FLOAT_RESULT_VALUE(e, "real_time", EQ, time_frame_in_ns, 0.33);
