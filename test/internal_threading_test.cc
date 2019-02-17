@@ -64,10 +64,10 @@ ADD_CASES(TC_JSONOut,
            {"}", MR_Next}});
 ADD_CASES(TC_CSVOut, {{"^\"BM_MainThread/iterations:1\",%csv_report,[^,]+"}});
 void CheckTestVariantZero(Results const& e) {
-  // check that the values are within 10% of the expected values
-  CHECK_FLOAT_RESULT_VALUE(e, "real_time", EQ, time_frame_in_ns, 0.33);
-  CHECK_FLOAT_RESULT_VALUE(e, "cpu_time", EQ, time_frame_in_ns, 0.33);
-  CHECK_FLOAT_COUNTER_VALUE(e, "invtime", EQ, 1. / time_frame_in_sec, 0.33);
+  // check that the values are within 50% of the expected values
+  CHECK_FLOAT_RESULT_VALUE(e, "real_time", EQ, time_frame_in_ns, 0.5);
+  CHECK_FLOAT_RESULT_VALUE(e, "cpu_time", EQ, time_frame_in_ns, 0.5);
+  CHECK_FLOAT_COUNTER_VALUE(e, "invtime", EQ, 1. / time_frame_in_sec, 0.5);
 }
 CHECK_BENCHMARK_RESULTS("BM_MainThread/iterations:1$", &CheckTestVariantZero);
 
@@ -155,8 +155,8 @@ ADD_CASES(TC_JSONOut,
            {"}", MR_Next}});
 ADD_CASES(TC_CSVOut, {{"^\"BM_WorkerThread/iterations:1\",%csv_report,[^,]+"}});
 void CheckTestVariantOne(Results const& e) {
-  // check that the value is within 10% of the expected
-  CHECK_FLOAT_RESULT_VALUE(e, "real_time", EQ, time_frame_in_ns, 0.33);
+  // check that the value is within 50% of the expected
+  CHECK_FLOAT_RESULT_VALUE(e, "real_time", EQ, time_frame_in_ns, 0.5);
   // check that the cpu time is between 0 and (wall time / 100)
   CHECK_FLOAT_RESULT_VALUE(e, "cpu_time", EQ, (time_frame_in_ns / 25.), 1.0);
   CHECK_FLOAT_COUNTER_VALUE(e, "invtime", EQ, 1. / (time_frame_in_sec / 500.0),
@@ -201,10 +201,10 @@ ADD_CASES(
     TC_CSVOut,
     {{"^\"BM_WorkerThread/iterations:1/process_time\",%csv_report,[^,]+"}});
 void CheckTestVariantTwo(Results const& e) {
-  // check that the values are within 10% of the expected values
-  CHECK_FLOAT_RESULT_VALUE(e, "real_time", EQ, time_frame_in_ns, 0.33);
-  CHECK_FLOAT_RESULT_VALUE(e, "cpu_time", EQ, time_frame_in_ns, 0.33);
-  CHECK_FLOAT_COUNTER_VALUE(e, "invtime", EQ, 1. / time_frame_in_sec, 0.33);
+  // check that the values are within 50% of the expected values
+  CHECK_FLOAT_RESULT_VALUE(e, "real_time", EQ, time_frame_in_ns, 0.5);
+  CHECK_FLOAT_RESULT_VALUE(e, "cpu_time", EQ, time_frame_in_ns, 0.5);
+  CHECK_FLOAT_COUNTER_VALUE(e, "invtime", EQ, 1. / time_frame_in_sec, 0.5);
 }
 CHECK_BENCHMARK_RESULTS("BM_WorkerThread/iterations:1/process_time$",
                         &CheckTestVariantTwo);
@@ -303,11 +303,11 @@ ADD_CASES(
 ADD_CASES(TC_CSVOut, {{"^\"BM_MainThreadAndWorkerThread/iterations:1/"
                        "process_time\",%csv_report,[^,]+"}});
 void CheckTestVariantThree(Results const& e) {
-  // check that the values are within 10% of the expected values
-  CHECK_FLOAT_RESULT_VALUE(e, "real_time", EQ, time_frame_in_ns, 0.33);
-  CHECK_FLOAT_RESULT_VALUE(e, "cpu_time", EQ, 2.0 * time_frame_in_ns, 0.33);
+  // check that the values are within 50% of the expected values
+  CHECK_FLOAT_RESULT_VALUE(e, "real_time", EQ, time_frame_in_ns, 0.5);
+  CHECK_FLOAT_RESULT_VALUE(e, "cpu_time", EQ, 2.0 * time_frame_in_ns, 0.5);
   CHECK_FLOAT_COUNTER_VALUE(e, "invtime", EQ, 1. / (2. * time_frame_in_sec),
-                            0.33);
+                            0.5);
 }
 CHECK_BENCHMARK_RESULTS(
     "BM_MainThreadAndWorkerThread/iterations:1/process_time$",
@@ -337,10 +337,10 @@ ADD_CASES(
 ADD_CASES(TC_CSVOut, {{"^\"BM_MainThreadAndWorkerThread/iterations:1/"
                        "process_time/real_time\",%csv_report,[^,]+"}});
 void CheckTestVariantFour(Results const& e) {
-  // check that the values are within 10% of the expected values
-  CHECK_FLOAT_RESULT_VALUE(e, "real_time", EQ, time_frame_in_ns, 0.33);
-  CHECK_FLOAT_RESULT_VALUE(e, "cpu_time", EQ, 2.0 * time_frame_in_ns, 0.33);
-  CHECK_FLOAT_COUNTER_VALUE(e, "invtime", EQ, 1. / time_frame_in_sec, 0.33);
+  // check that the values are within 50% of the expected values
+  CHECK_FLOAT_RESULT_VALUE(e, "real_time", EQ, time_frame_in_ns, 0.5);
+  CHECK_FLOAT_RESULT_VALUE(e, "cpu_time", EQ, 2.0 * time_frame_in_ns, 0.5);
+  CHECK_FLOAT_COUNTER_VALUE(e, "invtime", EQ, 1. / time_frame_in_sec, 0.5);
 }
 CHECK_BENCHMARK_RESULTS(
     "BM_MainThreadAndWorkerThread/iterations:1/process_time/real_time$",
