@@ -3,6 +3,7 @@
 
 #include <chrono>
 #include <thread>
+#include "../src/timers.h"
 #include "benchmark/benchmark.h"
 #include "output_test.h"
 
@@ -17,14 +18,14 @@ static const double time_frame_in_sec(
         .count());
 
 void MyBusySpinwait() {
-  const auto start = std::chrono::high_resolution_clock::now();
+  const auto start = benchmark::ChronoClockNow();
 
   while (true) {
-    const auto now = std::chrono::high_resolution_clock::now();
+    const auto now = benchmark::ChronoClockNow();
     const auto elapsed = now - start;
 
-    if (std::chrono::duration_cast<std::chrono::milliseconds>(elapsed) >=
-        std::chrono::duration<double, std::milli>(50))
+    if (std::chrono::duration<double, std::chrono::seconds::period>(elapsed) >=
+        time_frame)
       return;
   }
 }
@@ -204,7 +205,7 @@ void CheckTestVariantTwo(Results const& e) {
   // check that the values are within 50% of the expected values
   CHECK_FLOAT_RESULT_VALUE(e, "real_time", EQ, time_frame_in_ns, 0.5);
   CHECK_FLOAT_RESULT_VALUE(e, "cpu_time", EQ, time_frame_in_ns, 0.5);
-  CHECK_FLOAT_COUNTER_VALUE(e, "invtime", EQ, 1. / time_frame_in_sec, 0.5);
+  CHECK_FLOAT_COUNTER_VALUE(e, "invtime", EQ, 1. / time_frame_in_sec, 1.0);
 }
 CHECK_BENCHMARK_RESULTS("BM_WorkerThread/iterations:1/process_time$",
                         &CheckTestVariantTwo);
