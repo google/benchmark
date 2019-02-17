@@ -158,8 +158,8 @@ void CheckTestVariantOne(Results const& e) {
   // check that the value is within 10% of the expected
   CHECK_FLOAT_RESULT_VALUE(e, "real_time", EQ, time_frame_in_ns, 0.33);
   // check that the cpu time is between 0 and (wall time / 100)
-  CHECK_FLOAT_RESULT_VALUE(e, "cpu_time", EQ, (time_frame_in_ns / 50.), 1.0);
-  CHECK_FLOAT_COUNTER_VALUE(e, "invtime", EQ, 1. / (time_frame_in_sec / 200.0),
+  CHECK_FLOAT_RESULT_VALUE(e, "cpu_time", EQ, (time_frame_in_ns / 25.), 1.0);
+  CHECK_FLOAT_COUNTER_VALUE(e, "invtime", EQ, 1. / (time_frame_in_sec / 500.0),
                             1.0);
 }
 CHECK_BENCHMARK_RESULTS("BM_WorkerThread/iterations:1$", &CheckTestVariantOne);
