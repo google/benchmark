@@ -251,6 +251,7 @@ if (NOT BENCHMARK_ENABLE_EXCEPTIONS AND HAVE_STD_REGEX
 endif()
 cxx_feature_check(STEADY_CLOCK)
 # Ensure we have pthreads
+set(THREADS_PREFER_PTHREAD_FLAG ON)
 find_package(Threads REQUIRED)
 
 # Set up directories
