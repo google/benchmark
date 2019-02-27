@@ -37,6 +37,9 @@
 #if defined(BENCHMARK_OS_SOLARIS)
 #include <kstat.h>
 #endif
+#if defined(BENCHMARK_OS_QNX)
+#include <sys/syspage.h>
+#endif
 
 #include <algorithm>
 #include <array>
@@ -209,6 +212,9 @@ bool ReadFromFile(std::string const& fname, ArgT* arg) {
 bool CpuScalingEnabled(int num_cpus) {
   // We don't have a valid CPU count, so don't even bother.
   if (num_cpus <= 0) return false;
+#ifdef BENCHMARK_OS_QNX
+  return false;
+#endif
 #ifndef BENCHMARK_OS_WINDOWS
   // On Linux, the CPUfreq subsystem exposes CPU information as files on the
   // local file system. If reading the exported files fails, then we may not be
@@ -356,6 +362,40 @@ std::vector<CPUInfo::CacheInfo> GetCacheSizesWindows() {
   }
   return res;
 }
+#elif BENCHMARK_OS_QNX
+std::vector<CPUInfo::CacheInfo> GetCacheSizesQNX() {
+  std::vector<CPUInfo::CacheInfo> res;
+  struct cacheattr_entry *cache = SYSPAGE_ENTRY(cacheattr);
+  uint32_t const elsize = SYSPAGE_ELEMENT_SIZE(cacheattr);
+  int num = SYSPAGE_ENTRY_SIZE(cacheattr) / elsize ;
+  for(int i = 0; i < num; ++i ) {
+    CPUInfo::CacheInfo info;
+    switch (cache->flags){
+      case CACHE_FLAG_INSTR :
+        info.type = "Instruction";
+        info.level = 1;
+        break;
+      case CACHE_FLAG_DATA :
+        info.type = "Data";
+        info.level = 1;
+        break;
+      case CACHE_FLAG_UNIFIED :
+        info.type = "Unified";
+        info.level = 2;
+      case CACHE_FLAG_SHARED :
+        info.type = "Shared";
+        info.level = 3;
+      default :
+        continue;
+        break;
+    }
+    info.size = cache->line_size * cache->num_lines;
+    info.num_sharing = 0;
+    res.push_back(std::move(info));
+    cache = SYSPAGE_ARRAY_ADJ_OFFSET(cacheattr, cache, elsize);
+  }
+  return res;
+}
 #endif
 
 std::vector<CPUInfo::CacheInfo> GetCacheSizes() {
@@ -363,6 +403,8 @@ std::vector<CPUInfo::CacheInfo> GetCacheSizes() {
   return GetCacheSizesMacOSX();
 #elif defined(BENCHMARK_OS_WINDOWS)
   return GetCacheSizesWindows();
+#elif defined(BENCHMARK_OS_QNX)
+  return GetCacheSizesQNX();
 #else
   return GetCacheSizesFromKVFS();
 #endif
@@ -423,6 +465,8 @@ int GetNumCPUs() {
             strerror(errno));
   }
   return NumCPU;
+#elif defined(BENCHMARK_OS_QNX)
+  return static_cast<int>(_syspage_ptr->num_cpu);
 #else
   int NumCPUs = 0;
   int MaxID = -1;
@@ -602,6 +646,9 @@ double GetCPUCyclesPerSecond() {
   double clock_hz = knp->value.ui64;
   kstat_close(kc);
   return clock_hz;
+#elif defined (BENCHMARK_OS_QNX)
+  return static_cast<double>((int64_t)(SYSPAGE_ENTRY(cpuinfo)->speed) *
+                             (int64_t)(1000 * 1000));
 #endif
   // If we've fallen through, attempt to roughly estimate the CPU clock rate.
   const int estimate_time_ms = 1000;
