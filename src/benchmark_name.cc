@@ -16,106 +16,42 @@
 
 namespace benchmark {
 
-BenchmarkName::BenchmarkName() : offsets_{} {}
+namespace {
 
-BenchmarkName::BenchmarkName(std::string root)
-    : name_(std::move(root)), offsets_{} {
-  std::fill_n(offsets_, offset_count, name_.size());
+// Compute the total size of a pack of std::strings
+size_t size_impl() { return 0; }
+
+template <typename Head, typename... Tail>
+size_t size_impl(const Head& head, const Tail&... tail) {
+  return head.size() + size_impl(tail...);
 }
 
-BenchmarkName &BenchmarkName::append(Field field,
-                                     const std::string &field_content) {
-  for (auto e = 0u; e < enumerator_count; ++e) {
-    if (is_set(field, e)) {
-      // Insert the new name at the end of this field.
-      auto offset = end_offset(e);
-      auto inserted_characters_count = field_content.size();
+// Join a pack of std::strings using a delimiter
+void join_impl(std::string&, char) {}
 
-      // Insert a leading separator unless we are right
-      // at the beginning of the name.
-      if (offset != 0) {
-        name_.insert(offset++, 1, separator);
-        ++inserted_characters_count;
-      }
-
-      name_.insert(offset, field_content);
-
-      // Update all following offsets to account for the inserted characters.
-      for (auto o = e; o < offset_count; ++o) {
-        offsets_[o] += inserted_characters_count;
-      }
-    }
+template <typename Head, typename... Tail>
+void join_impl(std::string& s, const char delimiter, const Head& head,
+               const Tail&... tail) {
+  if (!s.empty() && !head.empty()) {
+    s += delimiter;
   }
-  return *this;
+
+  s += head;
+
+  join_impl(s, delimiter, tail...);
 }
 
-std::string BenchmarkName::get(Field fields) const {
-  std::string n;
-  for (auto e = 0u; e < enumerator_count; ++e) {
-    if (is_set(fields, e)) {
-      auto begin = start_offset(e);
-      const auto end = end_offset(e);
-
-      if (begin == end) {
-        continue;
-      }
-
-      // If we're about to start the string, drop the leading '/'.
-      // Note we're iterating the fields in order, so the first
-      // insert will always be at the front of 'n'.
-      if (n.empty() && (name_.at(begin) == separator)) {
-        ++begin;
-      }
-
-      assert(begin <= end);
-
-      n += name_.substr(begin, end - begin);
-    }
-  }
-  return n;
+template <typename... Ts>
+std::string join(char delimiter, const Ts&... ts) {
+  std::string s;
+  s.reserve(sizeof...(Ts) + size_impl(ts...));
+  join_impl(s, delimiter, ts...);
+  return s;
 }
+}  // namespace
 
-bool BenchmarkName::is_set(Field field, size_t enumerator_index) const {
-  return field & (1u << enumerator_index);
+std::string BenchmarkName::str() const {
+  return join('/', function_name, args, min_time, iterations, repetitions,
+              time_type, threads);
 }
-
-size_t BenchmarkName::start_offset(size_t enumerator_index) const {
-  return enumerator_index == 0 ? 0 : offsets_[enumerator_index - 1];
-}
-
-size_t BenchmarkName::end_offset(size_t enumerator_index) const {
-  return enumerator_index + 1 == enumerator_count ? name_.size()
-                                                  : offsets_[enumerator_index];
-}
-
-BenchmarkName::Field operator|(BenchmarkName::Field lhs,
-                               BenchmarkName::Field rhs) {
-  using underlying_type =
-      typename std::underlying_type<BenchmarkName::Field>::type;
-
-  return static_cast<BenchmarkName::Field>(static_cast<underlying_type>(lhs) |
-                                           static_cast<underlying_type>(rhs));
-}
-
-BenchmarkName::Field operator&(BenchmarkName::Field lhs,
-                               BenchmarkName::Field rhs) {
-  using underlying_type =
-      typename std::underlying_type<BenchmarkName::Field>::type;
-
-  return static_cast<BenchmarkName::Field>(static_cast<underlying_type>(lhs) &
-                                           static_cast<underlying_type>(rhs));
-}
-
-BenchmarkName::Field operator~(BenchmarkName::Field component) {
-  using underlying_type =
-      typename std::underlying_type<BenchmarkName::Field>::type;
-
-  // '&' with kAll to ensure the result is within the enumeration's
-  // range before casting back to the underlying type
-  // [expr.static.cast]p10
-  return static_cast<BenchmarkName::Field>(
-      static_cast<underlying_type>(BenchmarkName::Field::kAll) &
-      ~static_cast<underlying_type>(component));
-}
-
 }  // namespace benchmark
