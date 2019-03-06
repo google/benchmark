@@ -114,6 +114,10 @@ def intersect(list1, list2):
     return [x for x in list1 if x in list2]
 
 
+def is_potentially_comparable_benchmark(x):
+    return ('time_unit' in x and 'real_time' in x and 'cpu_time' in x)
+
+
 def partition_benchmarks(json1, json2):
     """
     While preserving the ordering, find benchmarks with the same names in
@@ -125,10 +129,17 @@ def partition_benchmarks(json1, json2):
     names = intersect(json1_unique_names, json2_unique_names)
     partitions = []
     for name in names:
+        time_unit = None
         # Pick the time unit from the first entry of the lhs benchmark.
-        time_unit = (x['time_unit']
-                     for x in json1['benchmarks'] if x['name'] == name).next()
+        # We should be careful not to crash with unexpected input.
+        for x in json1['benchmarks']:
+            if (x['name'] == name and is_potentially_comparable_benchmark(x)):
+                time_unit = x['time_unit']
+                break
+        if time_unit is None:
+            break
         # Filter by name and time unit.
+        # All the repetitions are assumed to be comparable.
         lhs = [x for x in json1['benchmarks'] if x['name'] == name and
                x['time_unit'] == time_unit]
         rhs = [x for x in json2['benchmarks'] if x['name'] == name and
