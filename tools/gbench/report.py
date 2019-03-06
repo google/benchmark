@@ -137,7 +137,7 @@ def partition_benchmarks(json1, json2):
                 time_unit = x['time_unit']
                 break
         if time_unit is None:
-            break
+            continue
         # Filter by name and time unit.
         # All the repetitions are assumed to be comparable.
         lhs = [x for x in json1['benchmarks'] if x['name'] == name and
@@ -341,7 +341,7 @@ class TestReportDifference(unittest.TestCase):
             ['BM_10PercentCPUToTime', '+0.1000',
                 '-0.1000', '100', '110', '100', '90'],
             ['BM_ThirdFaster', '-0.3333', '-0.3334', '100', '67', '100', '67'],
-            ['BM_BadTimeUnit', '-0.9000', '+0.2000', '0', '0', '0', '1'],
+            ['BM_NotBadTimeUnit', '-0.9000', '+0.2000', '0', '0', '0', '1'],
         ]
         json1, json2 = self.load_results()
         output_lines_with_header = generate_difference_report(

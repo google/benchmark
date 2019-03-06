@@ -85,20 +85,6 @@
       "time_unit": "ns"
     },
     {
-      "name": "BM_BadTimeUnit",
-      "iterations": 1000,
-      "real_time": 0.4,
-      "cpu_time": 0.5,
-      "time_unit": "s"
-    },
-    {
-      "name": "BM_DifferentTimeUnit",
-      "iterations": 1,
-      "real_time": 1,
-      "cpu_time": 1,
-      "time_unit": "s"
-    },
-    {
       "name": "MyComplexityTest_BigO",
       "run_name": "MyComplexityTest",
       "run_type": "aggregate",
@@ -114,6 +100,20 @@
       "run_type": "aggregate",
       "aggregate_name": "RMS",
       "rms": 4.5097802512472874e-03
+    },
+    {
+      "name": "BM_NotBadTimeUnit",
+      "iterations": 1000,
+      "real_time": 0.4,
+      "cpu_time": 0.5,
+      "time_unit": "s"
+    },
+    {
+      "name": "BM_DifferentTimeUnit",
+      "iterations": 1,
+      "real_time": 1,
+      "cpu_time": 1,
+      "time_unit": "s"
     }
   ]
 }
