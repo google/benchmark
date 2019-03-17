@@ -42,54 +42,64 @@ matrix:
       env: COMPILER=clang++ C_COMPILER=clang BUILD_TYPE=Release
     # Clang w/ libc++
     - compiler: clang
+      dist: xenial
       addons:
         apt:
           packages:
             clang-3.8
       env:
+        - INSTALL_GCC6_FROM_PPA=1
         - COMPILER=clang++-3.8 C_COMPILER=clang-3.8 BUILD_TYPE=Debug
         - LIBCXX_BUILD=1
         - EXTRA_FLAGS="-stdlib=libc++"
     - compiler: clang
+      dist: xenial
       addons:
         apt:
           packages:
             clang-3.8
       env:
+        - INSTALL_GCC6_FROM_PPA=1
         - COMPILER=clang++-3.8 C_COMPILER=clang-3.8 BUILD_TYPE=Release
         - LIBCXX_BUILD=1
         - EXTRA_FLAGS="-stdlib=libc++"
     # Clang w/ 32bit libc++
     - compiler: clang
+      dist: xenial
       addons:
         apt:
           packages:
             - clang-3.8
             - g++-multilib
       env:
+        - INSTALL_GCC6_FROM_PPA=1
         - COMPILER=clang++-3.8 C_COMPILER=clang-3.8 BUILD_TYPE=Debug
         - LIBCXX_BUILD=1
         - BUILD_32_BITS=ON
         - EXTRA_FLAGS="-stdlib=libc++ -m32"
     # Clang w/ 32bit libc++
     - compiler: clang
+      dist: xenial
       addons:
         apt:
           packages:
             - clang-3.8
             - g++-multilib
       env:
+        - INSTALL_GCC6_FROM_PPA=1
         - COMPILER=clang++-3.8 C_COMPILER=clang-3.8 BUILD_TYPE=Release
         - LIBCXX_BUILD=1
         - BUILD_32_BITS=ON
         - EXTRA_FLAGS="-stdlib=libc++ -m32"
     # Clang w/ libc++, ASAN, UBSAN
     - compiler: clang
+      dist: xenial
       addons:
         apt:
           packages:
             clang-3.8
       env:
+        - INSTALL_GCC6_FROM_PPA=1
         - COMPILER=clang++-3.8 C_COMPILER=clang-3.8 BUILD_TYPE=Debug
         - LIBCXX_BUILD=1 LIBCXX_SANITIZER="Undefined;Address"
         - ENABLE_SANITIZER=1
@@ -97,22 +107,26 @@ matrix:
         - UBSAN_OPTIONS=print_stacktrace=1
     # Clang w/ libc++ and MSAN
     - compiler: clang
+      dist: xenial
       addons:
         apt:
           packages:
             clang-3.8
       env:
+        - INSTALL_GCC6_FROM_PPA=1
         - COMPILER=clang++-3.8 C_COMPILER=clang-3.8 BUILD_TYPE=Debug
         - LIBCXX_BUILD=1 LIBCXX_SANITIZER=MemoryWithOrigins
         - ENABLE_SANITIZER=1
         - EXTRA_FLAGS="-stdlib=libc++ -g -O2 -fno-omit-frame-pointer -fsanitize=memory -fsanitize-memory-track-origins"
     # Clang w/ libc++ and MSAN
     - compiler: clang
+      dist: xenial
       addons:
         apt:
           packages:
             clang-3.8
       env:
+        - INSTALL_GCC6_FROM_PPA=1
         - COMPILER=clang++-3.8 C_COMPILER=clang-3.8 BUILD_TYPE=RelWithDebInfo
         - LIBCXX_BUILD=1 LIBCXX_SANITIZER=Thread
         - ENABLE_SANITIZER=1
