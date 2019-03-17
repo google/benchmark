@@ -191,7 +191,7 @@ class BenchmarkRunner {
     double seconds;
   };
   IterationResults DoNIterations() {
-    VLOG(2) << "Running " << b.name << " for " << iters << "\n";
+    VLOG(2) << "Running " << b.name.str() << " for " << iters << "\n";
 
     std::unique_ptr<internal::ThreadManager> manager;
     manager.reset(new internal::ThreadManager(b.threads));

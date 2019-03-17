@@ -1302,6 +1302,23 @@ struct SystemInfo {
   BENCHMARK_DISALLOW_COPY_AND_ASSIGN(SystemInfo);
 };
 
+// BenchmarkName contains the components of the Benchmark's name
+// which allows individual fields to be modified or cleared before
+// building the final name using 'str()'.
+struct BenchmarkName {
+  std::string function_name;
+  std::string args;
+  std::string min_time;
+  std::string iterations;
+  std::string repetitions;
+  std::string time_type;
+  std::string threads;
+
+  // Return the full name of the benchmark with each non-empty
+  // field separated by a '/'
+  std::string str() const;
+};
+
 // Interface for custom benchmark result printers.
 // By default, benchmark reports are printed to stdout. However an application
 // can control the destination of the reports by calling
@@ -1340,7 +1357,7 @@ class BenchmarkReporter {
           max_bytes_used(0) {}
 
     std::string benchmark_name() const;
-    std::string run_name;
+    BenchmarkName run_name;
     RunType run_type;          // is this a measurement, or an aggregate?
     std::string aggregate_name;
     std::string report_label;  // Empty if not set by benchmark.

@@ -191,6 +191,7 @@ if (BENCHMARK_ENABLE_GTEST_TESTS)
   endmacro()
 
   add_gtest(benchmark_gtest)
+  add_gtest(benchmark_name_gtest)
   add_gtest(statistics_gtest)
   add_gtest(string_util_gtest)
 endif(BENCHMARK_ENABLE_GTEST_TESTS)

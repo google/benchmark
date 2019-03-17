@@ -153,7 +153,7 @@ bool BenchmarkFamilies::FindBenchmarks(
     for (auto const& args : family->args_) {
       for (int num_threads : *thread_counts) {
         BenchmarkInstance instance;
-        instance.name = family->name_;
+        instance.name.function_name = family->name_;
         instance.benchmark = family.get();
         instance.aggregation_report_mode = family->aggregation_report_mode_;
         instance.arg = args;
@@ -172,45 +172,51 @@ bool BenchmarkFamilies::FindBenchmarks(
         // Add arguments to instance name
         size_t arg_i = 0;
         for (auto const& arg : args) {
-          instance.name += "/";
+          if (!instance.name.args.empty()) {
+            instance.name.args += '/';
+          }
 
           if (arg_i < family->arg_names_.size()) {
             const auto& arg_name = family->arg_names_[arg_i];
             if (!arg_name.empty()) {
-              instance.name +=
-                  StrFormat("%s:", family->arg_names_[arg_i].c_str());
+              instance.name.args += StrFormat("%s:", arg_name.c_str());
             }
           }
 
           // we know that the args are always non-negative (see 'AddRange()'),
           // thus print as 'unsigned'. BUT, do a cast due to the 32-bit builds.
-          instance.name += StrFormat("%lu", static_cast<unsigned long>(arg));
+          instance.name.args +=
+              StrFormat("%lu", static_cast<unsigned long>(arg));
+
           ++arg_i;
         }
 
         if (!IsZero(family->min_time_))
-          instance.name += StrFormat("/min_time:%0.3f", family->min_time_);
+          instance.name.min_time =
+              StrFormat("min_time:%0.3f", family->min_time_);
         if (family->iterations_ != 0) {
-          instance.name +=
-              StrFormat("/iterations:%lu",
+          instance.name.iterations =
+              StrFormat("iterations:%lu",
                         static_cast<unsigned long>(family->iterations_));
         }
         if (family->repetitions_ != 0)
-          instance.name += StrFormat("/repeats:%d", family->repetitions_);
+          instance.name.repetitions =
+              StrFormat("repeats:%d", family->repetitions_);
 
         if (family->use_manual_time_) {
-          instance.name += "/manual_time";
+          instance.name.time_type = "manual_time";
         } else if (family->use_real_time_) {
-          instance.name += "/real_time";
+          instance.name.time_type = "real_time";
         }
 
         // Add the number of threads used to the name
         if (!family->thread_counts_.empty()) {
-          instance.name += StrFormat("/threads:%d", instance.threads);
+          instance.name.threads = StrFormat("threads:%d", instance.threads);
         }
 
-        if ((re.Match(instance.name) && !isNegativeFilter) ||
-            (!re.Match(instance.name) && isNegativeFilter)) {
+        const auto full_name = instance.name.str();
+        if ((re.Match(full_name) && !isNegativeFilter) ||
+            (!re.Match(full_name) && isNegativeFilter)) {
           instance.last_benchmark_instance = (&args == &family->args_.back());
           benchmarks->push_back(std::move(instance));
         }
