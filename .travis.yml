@@ -47,6 +47,7 @@ matrix:
           packages:
             clang-3.8
       env:
+        - INSTALL_GCC6_FROM_PPA=1
         - COMPILER=clang++-3.8 C_COMPILER=clang-3.8 BUILD_TYPE=Debug
         - LIBCXX_BUILD=1
         - EXTRA_FLAGS="-stdlib=libc++"
@@ -56,6 +57,7 @@ matrix:
           packages:
             clang-3.8
       env:
+        - INSTALL_GCC6_FROM_PPA=1
         - COMPILER=clang++-3.8 C_COMPILER=clang-3.8 BUILD_TYPE=Release
         - LIBCXX_BUILD=1
         - EXTRA_FLAGS="-stdlib=libc++"
@@ -67,6 +69,7 @@ matrix:
             - clang-3.8
             - g++-multilib
       env:
+        - INSTALL_GCC6_FROM_PPA=1
         - COMPILER=clang++-3.8 C_COMPILER=clang-3.8 BUILD_TYPE=Debug
         - LIBCXX_BUILD=1
         - BUILD_32_BITS=ON
@@ -79,6 +82,7 @@ matrix:
             - clang-3.8
             - g++-multilib
       env:
+        - INSTALL_GCC6_FROM_PPA=1
         - COMPILER=clang++-3.8 C_COMPILER=clang-3.8 BUILD_TYPE=Release
         - LIBCXX_BUILD=1
         - BUILD_32_BITS=ON
@@ -90,6 +94,7 @@ matrix:
           packages:
             clang-3.8
       env:
+        - INSTALL_GCC6_FROM_PPA=1
         - COMPILER=clang++-3.8 C_COMPILER=clang-3.8 BUILD_TYPE=Debug
         - LIBCXX_BUILD=1 LIBCXX_SANITIZER="Undefined;Address"
         - ENABLE_SANITIZER=1
@@ -102,6 +107,7 @@ matrix:
           packages:
             clang-3.8
       env:
+        - INSTALL_GCC6_FROM_PPA=1
         - COMPILER=clang++-3.8 C_COMPILER=clang-3.8 BUILD_TYPE=Debug
         - LIBCXX_BUILD=1 LIBCXX_SANITIZER=MemoryWithOrigins
         - ENABLE_SANITIZER=1
@@ -113,6 +119,7 @@ matrix:
           packages:
             clang-3.8
       env:
+        - INSTALL_GCC6_FROM_PPA=1
         - COMPILER=clang++-3.8 C_COMPILER=clang-3.8 BUILD_TYPE=RelWithDebInfo
         - LIBCXX_BUILD=1 LIBCXX_SANITIZER=Thread
         - ENABLE_SANITIZER=1
