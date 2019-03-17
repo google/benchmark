@@ -42,6 +42,7 @@ matrix:
       env: COMPILER=clang++ C_COMPILER=clang BUILD_TYPE=Release
     # Clang w/ libc++
     - compiler: clang
+      dist: xenial
       addons:
         apt:
           packages:
@@ -52,6 +53,7 @@ matrix:
         - LIBCXX_BUILD=1
         - EXTRA_FLAGS="-stdlib=libc++"
     - compiler: clang
+      dist: xenial
       addons:
         apt:
           packages:
@@ -63,6 +65,7 @@ matrix:
         - EXTRA_FLAGS="-stdlib=libc++"
     # Clang w/ 32bit libc++
     - compiler: clang
+      dist: xenial
       addons:
         apt:
           packages:
@@ -76,6 +79,7 @@ matrix:
         - EXTRA_FLAGS="-stdlib=libc++ -m32"
     # Clang w/ 32bit libc++
     - compiler: clang
+      dist: xenial
       addons:
         apt:
           packages:
@@ -89,6 +93,7 @@ matrix:
         - EXTRA_FLAGS="-stdlib=libc++ -m32"
     # Clang w/ libc++, ASAN, UBSAN
     - compiler: clang
+      dist: xenial
       addons:
         apt:
           packages:
@@ -102,6 +107,7 @@ matrix:
         - UBSAN_OPTIONS=print_stacktrace=1
     # Clang w/ libc++ and MSAN
     - compiler: clang
+      dist: xenial
       addons:
         apt:
           packages:
@@ -114,6 +120,7 @@ matrix:
         - EXTRA_FLAGS="-stdlib=libc++ -g -O2 -fno-omit-frame-pointer -fsanitize=memory -fsanitize-memory-track-origins"
     # Clang w/ libc++ and MSAN
     - compiler: clang
+      dist: xenial
       addons:
         apt:
           packages:
