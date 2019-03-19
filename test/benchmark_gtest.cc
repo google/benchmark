@@ -30,4 +30,19 @@ TEST(AddRangeTest, Advanced64) {
   EXPECT_THAT(dst, testing::ElementsAre(5, 8, 15));
 }
 
+TEST(AddRangeTest, FullRange8) {
+  std::vector<int8_t> dst;
+  AddRange(&dst, int8_t{1}, std::numeric_limits<int8_t>::max(), 8);
+  EXPECT_THAT(dst, testing::ElementsAre(1, 8, 64, 127));
+}
+
+TEST(AddRangeTest, FullRange64) {
+  std::vector<int64_t> dst;
+  AddRange(&dst, int64_t{1}, std::numeric_limits<int64_t>::max(), 1024);
+  EXPECT_THAT(
+      dst, testing::ElementsAre(1LL, 1024LL, 1048576LL, 1073741824LL,
+                                1099511627776LL, 1125899906842624LL,
+                                1152921504606846976LL, 9223372036854775807LL));
+}
+
 }  // end namespace

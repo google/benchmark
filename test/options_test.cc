@@ -35,6 +35,9 @@ BENCHMARK(BM_basic)->UseRealTime();
 BENCHMARK(BM_basic)->ThreadRange(2, 4);
 BENCHMARK(BM_basic)->ThreadPerCpu();
 BENCHMARK(BM_basic)->Repetitions(3);
+BENCHMARK(BM_basic)
+    ->RangeMultiplier(std::numeric_limits<int>::max())
+    ->Range(0, std::numeric_limits<int64_t>::max());
 
 void CustomArgs(benchmark::internal::Benchmark* b) {
   for (int i = 0; i < 10; ++i) {

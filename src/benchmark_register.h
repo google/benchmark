@@ -17,11 +17,13 @@ void AddRange(std::vector<T>* dst, T lo, T hi, int mult) {
   static const T kmax = std::numeric_limits<T>::max();
 
   // Now space out the benchmarks in multiples of "mult"
-  for (T i = 1; i < kmax / mult; i *= mult) {
-    if (i >= hi) break;
+  for (T i = 1; i < hi; i *= mult) {
     if (i > lo) {
       dst->push_back(i);
     }
+    // Break the loop here since multiplying by
+    // 'mult' would move outside of the range of T
+    if (i > kmax / mult) break;
   }
 
   // Add "hi" (if different from "lo")
