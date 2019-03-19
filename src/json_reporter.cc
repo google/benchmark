@@ -23,6 +23,7 @@
 #include <string>
 #include <tuple>
 #include <vector>
+#include <cmath>
 
 #include "string_util.h"
 #include "timers.h"
@@ -53,10 +54,15 @@ std::string FormatKV(std::string const& key, double value) {
   std::stringstream ss;
   ss << '"' << key << "\": ";
 
-  const auto max_digits10 = std::numeric_limits<decltype(value)>::max_digits10;
-  const auto max_fractional_digits10 = max_digits10 - 1;
-
-  ss << std::scientific << std::setprecision(max_fractional_digits10) << value;
+  if (std::isnan(value))
+    ss << "NaN";
+  else if (std::isinf(value))
+    ss << (value < 0 ? "-" : "") << "Infinity";
+  else {
+    const auto max_digits10 = std::numeric_limits<decltype(value)>::max_digits10;
+    const auto max_fractional_digits10 = max_digits10 - 1;
+    ss << std::scientific << std::setprecision(max_fractional_digits10) << value;
+  }
   return ss.str();
 }
 
