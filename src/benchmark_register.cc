@@ -34,6 +34,8 @@
 #include <sstream>
 #include <thread>
 
+#include <inttypes.h>
+
 #include "benchmark/benchmark.h"
 #include "benchmark_api_internal.h"
 #include "check.h"
@@ -183,11 +185,7 @@ bool BenchmarkFamilies::FindBenchmarks(
             }
           }
 
-          // we know that the args are always non-negative (see 'AddRange()'),
-          // thus print as 'unsigned'. BUT, do a cast due to the 32-bit builds.
-          instance.name.args +=
-              StrFormat("%lu", static_cast<unsigned long>(arg));
-
+          instance.name.args += StrFormat("%" PRId64, arg);
           ++arg_i;
         }
 
@@ -334,7 +332,6 @@ Benchmark* Benchmark::ArgNames(const std::vector<std::string>& names) {
 
 Benchmark* Benchmark::DenseRange(int64_t start, int64_t limit, int step) {
   CHECK(ArgsCnt() == -1 || ArgsCnt() == 1);
-  CHECK_GE(start, 0);
   CHECK_LE(start, limit);
   for (int64_t arg = start; arg <= limit; arg += step) {
     args_.push_back({arg});
