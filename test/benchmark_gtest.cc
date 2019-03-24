@@ -110,11 +110,11 @@ TEST(AddRangeTest, FullNegativeRange64) {
   const auto max = std::numeric_limits<int64_t>::max();
   AddRange(&dst, min, max, 1024);
   EXPECT_THAT(
-      dst, testing::ElementsAre(
+      dst, testing::ElementsAreArray({
                min, -1152921504606846976LL, -1125899906842624LL,
                -1099511627776LL, -1073741824LL, -1048576LL, -1024LL, -1LL, 0LL,
                1LL, 1024LL, 1048576LL, 1073741824LL, 1099511627776LL,
-               1125899906842624LL, 1152921504606846976LL, max));
+               1125899906842624LL, 1152921504606846976LL, max}));
 }
 
 TEST(AddRangeTest, Simple8) {
