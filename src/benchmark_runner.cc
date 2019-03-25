@@ -64,7 +64,8 @@ static const size_t kMaxIterations = 1000000000;
 BenchmarkReporter::Run CreateRunReport(
     const benchmark::internal::BenchmarkInstance& b,
     const internal::ThreadManager::Result& results, size_t memory_iterations,
-    const MemoryManager::Result& memory_result, double seconds) {
+    const MemoryManager::Result& memory_result, double seconds,
+    int64_t repetition_index) {
   // Create report about this benchmark run.
   BenchmarkReporter::Run report;
 
@@ -75,6 +76,9 @@ BenchmarkReporter::Run CreateRunReport(
   // This is the total iterations across all threads.
   report.iterations = results.iterations;
   report.time_unit = b.time_unit;
+  report.threads = b.threads;
+  report.repetition_index = repetition_index;
+  report.repetitions = b.repetitions;
 
   if (!report.error_occurred) {
     if (b.use_manual_time) {
@@ -151,7 +155,7 @@ class BenchmarkRunner {
 
     for (int repetition_num = 0; repetition_num < repeats; repetition_num++) {
       const bool is_the_first_repetition = repetition_num == 0;
-      DoOneRepetition(is_the_first_repetition);
+      DoOneRepetition(is_the_first_repetition, repetition_num);
     }
 
     // Calculate additional statistics
@@ -276,7 +280,7 @@ class BenchmarkRunner {
            ((i.results.real_time_used >= 5 * min_time) && !b.use_manual_time);
   }
 
-  void DoOneRepetition(bool is_the_first_repetition) {
+  void DoOneRepetition(bool is_the_first_repetition, int64_t repetition_index) {
     IterationResults i;
 
     // We *may* be gradually increasing the length (iteration count)
@@ -326,8 +330,9 @@ class BenchmarkRunner {
     }
 
     // Ok, now actualy report.
-    BenchmarkReporter::Run report = CreateRunReport(
-        b, i.results, memory_iterations, memory_result, i.seconds);
+    BenchmarkReporter::Run report =
+        CreateRunReport(b, i.results, memory_iterations, memory_result,
+                        i.seconds, repetition_index);
 
     if (!report.error_occurred && b.complexity != oNone)
       complexity_reports.push_back(report);

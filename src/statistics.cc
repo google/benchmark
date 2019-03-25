@@ -149,6 +149,9 @@ std::vector<BenchmarkReporter::Run> ComputeStats(
     Run data;
     data.run_name = reports[0].run_name;
     data.run_type = BenchmarkReporter::Run::RT_Aggregate;
+    data.threads = reports[0].threads;
+    data.repetitions = reports[0].repetitions;
+    data.repetition_index = -1;
     data.aggregate_name = Stat.name_;
     data.report_label = report_label;
 
