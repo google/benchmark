@@ -4,9 +4,9 @@
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
 
+namespace benchmark {
+namespace internal {
 namespace {
-
-using namespace benchmark::internal;
 
 TEST(AddRangeTest, Simple) {
   std::vector<int> dst;
@@ -123,4 +123,6 @@ TEST(AddRangeTest, Simple8) {
   EXPECT_THAT(dst, testing::ElementsAre(1, 2, 4, 8));
 }
 
-}  // end namespace
+}  // namespace
+}  // namespace internal
+}  // namespace benchmark
