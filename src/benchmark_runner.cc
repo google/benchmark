@@ -154,8 +154,7 @@ class BenchmarkRunner {
     }
 
     for (int repetition_num = 0; repetition_num < repeats; repetition_num++) {
-      const bool is_the_first_repetition = repetition_num == 0;
-      DoOneRepetition(is_the_first_repetition, repetition_num);
+      DoOneRepetition(repetition_num);
     }
 
     // Calculate additional statistics
@@ -281,7 +280,7 @@ class BenchmarkRunner {
   }
 
   void DoOneRepetition(int64_t repetition_index) {
-    bool is_the_first_repetition = repetition_index == 0;
+    const bool is_the_first_repetition = repetition_index == 0;
     IterationResults i;
 
     // We *may* be gradually increasing the length (iteration count)
