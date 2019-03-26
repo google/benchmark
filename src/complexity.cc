@@ -192,7 +192,7 @@ std::vector<BenchmarkReporter::Run> ComputeBigO(
   big_o.run_name = run_name;
   big_o.run_type = BenchmarkReporter::Run::RT_Aggregate;
   big_o.repetitions = reports[0].repetitions;
-  big_o.repetition_index = -1;
+  big_o.repetition_index = Run::no_repetition_index;
   big_o.threads = reports[0].threads;
   big_o.aggregate_name = "BigO";
   big_o.report_label = reports[0].report_label;
@@ -216,7 +216,7 @@ std::vector<BenchmarkReporter::Run> ComputeBigO(
   rms.aggregate_name = "RMS";
   rms.report_label = big_o.report_label;
   rms.iterations = 0;
-  rms.repetition_index = -1;
+  rms.repetition_index = Run::no_repetition_index;
   rms.repetitions = reports[0].repetitions;
   rms.threads = reports[0].threads;
   rms.real_accumulated_time = result_real.rms / multiplier;

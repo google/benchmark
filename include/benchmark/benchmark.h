@@ -1337,6 +1337,7 @@ class BenchmarkReporter {
   };
 
   struct Run {
+    static const int64_t no_repetition_index = -1;
     enum RunType { RT_Iteration, RT_Aggregate };
 
     Run()
@@ -1360,7 +1361,7 @@ class BenchmarkReporter {
 
     std::string benchmark_name() const;
     BenchmarkName run_name;
-    RunType run_type;  // is this a measurement, or an aggregate?
+    RunType run_type;
     std::string aggregate_name;
     std::string report_label;  // Empty if not set by benchmark.
     bool error_occurred;

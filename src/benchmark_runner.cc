@@ -280,7 +280,8 @@ class BenchmarkRunner {
            ((i.results.real_time_used >= 5 * min_time) && !b.use_manual_time);
   }
 
-  void DoOneRepetition(bool is_the_first_repetition, int64_t repetition_index) {
+  void DoOneRepetition(int64_t repetition_index) {
+    bool is_the_first_repetition = repetition_index == 0;
     IterationResults i;
 
     // We *may* be gradually increasing the length (iteration count)

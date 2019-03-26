@@ -56,7 +56,7 @@ int AddComplexityTest(std::string test_name, std::string big_o_test_name,
 // --------------------------- Testing BigO O(1) --------------------------- //
 // ========================================================================= //
 
-void BM_Complexity_O1(benchmark::State &state) {
+void BM_Complexity_O1(benchmark::State& state) {
   for (auto _ : state) {
     for (int i = 0; i < 1024; ++i) {
       benchmark::DoNotOptimize(&i);
@@ -105,7 +105,7 @@ std::vector<int> ConstructRandomVector(int64_t size) {
   return v;
 }
 
-void BM_Complexity_O_N(benchmark::State &state) {
+void BM_Complexity_O_N(benchmark::State& state) {
   auto v = ConstructRandomVector(state.range(0));
   // Test worst case scenario (item not in vector)
   const int64_t item_not_in_vector = state.range(0) * 2;
@@ -145,7 +145,7 @@ ADD_COMPLEXITY_CASES(n_test_name, big_o_n_test_name, rms_o_n_test_name,
 // ------------------------- Testing BigO O(N*lgN) ------------------------- //
 // ========================================================================= //
 
-static void BM_Complexity_O_N_log_N(benchmark::State &state) {
+static void BM_Complexity_O_N_log_N(benchmark::State& state) {
   auto v = ConstructRandomVector(state.range(0));
   for (auto _ : state) {
     std::sort(v.begin(), v.end());
@@ -186,7 +186,7 @@ ADD_COMPLEXITY_CASES(n_lg_n_test_name, big_o_n_lg_n_test_name,
 // -------- Testing formatting of Complexity with captured args ------------ //
 // ========================================================================= //
 
-void BM_ComplexityCaptureArgs(benchmark::State &state, int n) {
+void BM_ComplexityCaptureArgs(benchmark::State& state, int n) {
   for (auto _ : state) {
   }
   state.SetComplexityN(n);
