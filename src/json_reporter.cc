@@ -16,6 +16,7 @@
 #include "complexity.h"
 
 #include <algorithm>
+#include <cmath>
 #include <cstdint>
 #include <iomanip>  // for setprecision
 #include <iostream>
@@ -23,7 +24,6 @@
 #include <string>
 #include <tuple>
 #include <vector>
-#include <cmath>
 
 #include "string_util.h"
 #include "timers.h"
@@ -59,9 +59,11 @@ std::string FormatKV(std::string const& key, double value) {
   else if (std::isinf(value))
     ss << (value < 0 ? "-" : "") << "Infinity";
   else {
-    const auto max_digits10 = std::numeric_limits<decltype(value)>::max_digits10;
+    const auto max_digits10 =
+        std::numeric_limits<decltype(value)>::max_digits10;
     const auto max_fractional_digits10 = max_digits10 - 1;
-    ss << std::scientific << std::setprecision(max_fractional_digits10) << value;
+    ss << std::scientific << std::setprecision(max_fractional_digits10)
+       << value;
   }
   return ss.str();
 }
@@ -184,6 +186,12 @@ void JSONReporter::PrintRunData(Run const& run) {
     }
     BENCHMARK_UNREACHABLE();
   }()) << ",\n";
+  out << indent << FormatKV("repetitions", run.repetitions) << ",\n";
+  if (run.run_type != BenchmarkReporter::Run::RT_Aggregate) {
+    out << indent << FormatKV("repetition_index", run.repetition_index)
+        << ",\n";
+  }
+  out << indent << FormatKV("threads", run.threads) << ",\n";
   if (run.run_type == BenchmarkReporter::Run::RT_Aggregate) {
     out << indent << FormatKV("aggregate_name", run.aggregate_name) << ",\n";
   }
