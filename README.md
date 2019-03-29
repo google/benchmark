@@ -40,6 +40,7 @@ dependency can be provided two ways:
 If you do not wish to build and run the tests, add `-DBENCHMARK_ENABLE_GTEST_TESTS=OFF`
 to `CMAKE_ARGS`.
 
+For a more detailed documentation of building benchmark checkout [Additional Build Documentation](docs/Additional_Build_Documentation.md)
 
 ## Installation Guide
 
