@@ -29,6 +29,11 @@ $ cmake -G <generator> [options] ../benchmark
 $ make
 ```
 
+Similarly for the Visual Studio 15 2017 generator we can use
+```bash
+> msbuild benchmark.sln /p:Configuration=Release /p:Platform=Win32
+```
+
 Note that Google Benchmark requires Google Test to build and run the tests. This
 dependency can be provided two ways:
 
@@ -40,7 +45,6 @@ dependency can be provided two ways:
 If you do not wish to build and run the tests, add `-DBENCHMARK_ENABLE_GTEST_TESTS=OFF`
 to `CMAKE_ARGS`.
 
-For a more detailed documentation of building benchmark checkout [Additional Build Documentation](docs/Additional_Build_Documentation.md)
 
 ## Installation Guide
 
@@ -70,6 +74,26 @@ If you need to install the library globally
 ```
 sudo make install
 ```
+
+We could also use Microsoft's C++ Library Manager 
+[`vcpkg`](https://github.com/Microsoft/vcpkg) to install Benchmark in our systems. 
+This manager works in Windows, Linux and Mac OS and it is very easy to manage 
+libraries with it. To install Benchmark we simply need to run the following command, 
+provided we already have `vcpkg` installed in our system with user-wide integration. 
+(NOTE: documentation for installation of `vcpkg` can be found 
+[here](https://github.com/Microsoft/vcpkg))
+
+For Windows
+```bash
+PS> .\vcpkg install benchmark
+```
+For Linux
+```bash
+$ ./vcpkg install benchmark
+```
+
+For a detailed documentation on how to use and embed Benchmark in your project checkout 
+[Using Benchmark](docs/Using_Benchmark.md).
 
 ## Stable and Experimental Library Versions
 
