@@ -5,6 +5,7 @@ foreach(p
     CMP0054 # CMake 3.1
     CMP0056 # export EXE_LINKER_FLAGS to try_run
     CMP0057 # Support no if() IN_LIST operator
+    CMP0063 # Honor visibility properties for all targets
     )
   if(POLICY ${p})
     cmake_policy(SET ${p} NEW)
