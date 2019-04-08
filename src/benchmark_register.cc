@@ -204,13 +204,19 @@ bool BenchmarkFamilies::FindBenchmarks(
               StrFormat("repeats:%d", family->repetitions_);
 
         if (family->measure_process_cpu_time_) {
-          instance.name += "/process_time";
+          instance.name.time_type = "process_time";
         }
 
         if (family->use_manual_time_) {
-          instance.name.time_type = "manual_time";
+          if (!instance.name.time_type.empty()) {
+            instance.name.time_type += '/';
+          }
+          instance.name.time_type += "manual_time";
         } else if (family->use_real_time_) {
-          instance.name.time_type = "real_time";
+          if (!instance.name.time_type.empty()) {
+            instance.name.time_type += '/';
+          }
+          instance.name.time_type += "real_time";
         }
 
         // Add the number of threads used to the name
