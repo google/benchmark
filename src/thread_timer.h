@@ -8,9 +8,16 @@ namespace benchmark {
 namespace internal {
 
 class ThreadTimer {
- public:
-  ThreadTimer(bool measure_process_cpu_time_)
+  explicit ThreadTimer(bool measure_process_cpu_time_)
       : measure_process_cpu_time(measure_process_cpu_time_) {}
+
+ public:
+  static ThreadTimer Create() {
+    return ThreadTimer(/*measure_process_cpu_time_=*/false);
+  }
+  static ThreadTimer CreateProcessCpuTime() {
+    return ThreadTimer(/*measure_process_cpu_time_=*/true);
+  }
 
   // Called by each thread
   void StartTimer() {

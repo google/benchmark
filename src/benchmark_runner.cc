@@ -111,7 +111,10 @@ BenchmarkReporter::Run CreateRunReport(
 // Adds the stats collected for the thread into *total.
 void RunInThread(const BenchmarkInstance* b, size_t iters, int thread_id,
                  ThreadManager* manager) {
-  internal::ThreadTimer timer(b->measure_process_cpu_time);
+  internal::ThreadTimer timer(
+      b->measure_process_cpu_time
+          ? internal::ThreadTimer::CreateProcessCpuTime()
+          : internal::ThreadTimer::Create());
   State st = b->Run(iters, thread_id, &timer, manager);
   CHECK(st.iterations() >= st.max_iterations)
       << "Benchmark returned before State::KeepRunning() returned false!";

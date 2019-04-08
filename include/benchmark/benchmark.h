@@ -875,7 +875,7 @@ class Benchmark {
   Benchmark* DisplayAggregatesOnly(bool value = true);
 
   // By default, the CPU time is measured only for the main thread, which may
-  // be unrepresentable if the benchmark uses threads internally. If called,
+  // be unrepresentative if the benchmark uses threads internally. If called,
   // the total CPU time spent by all the threads will be measured instead.
   // By default, the only the main thread CPU time will be measured.
   Benchmark* MeasureProcessCPUTime();
