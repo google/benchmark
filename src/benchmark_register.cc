@@ -165,6 +165,7 @@ bool BenchmarkFamilies::FindBenchmarks(
         instance.min_time = family->min_time_;
         instance.iterations = family->iterations_;
         instance.repetitions = family->repetitions_;
+        instance.measure_process_cpu_time = family->measure_process_cpu_time_;
         instance.use_real_time = family->use_real_time_;
         instance.use_manual_time = family->use_manual_time_;
         instance.complexity = family->complexity_;
@@ -202,10 +203,20 @@ bool BenchmarkFamilies::FindBenchmarks(
           instance.name.repetitions =
               StrFormat("repeats:%d", family->repetitions_);
 
+        if (family->measure_process_cpu_time_) {
+          instance.name.time_type = "process_time";
+        }
+
         if (family->use_manual_time_) {
-          instance.name.time_type = "manual_time";
+          if (!instance.name.time_type.empty()) {
+            instance.name.time_type += '/';
+          }
+          instance.name.time_type += "manual_time";
         } else if (family->use_real_time_) {
-          instance.name.time_type = "real_time";
+          if (!instance.name.time_type.empty()) {
+            instance.name.time_type += '/';
+          }
+          instance.name.time_type += "real_time";
         }
 
         // Add the number of threads used to the name
@@ -252,6 +263,7 @@ Benchmark::Benchmark(const char* name)
       min_time_(0),
       iterations_(0),
       repetitions_(0),
+      measure_process_cpu_time_(false),
       use_real_time_(false),
       use_manual_time_(false),
       complexity_(oNone),
@@ -395,6 +407,12 @@ Benchmark* Benchmark::DisplayAggregatesOnly(bool value) {
         aggregation_report_mode_ & ~ARM_DisplayReportAggregatesOnly);
   }
 
+  return this;
+}
+
+Benchmark* Benchmark::MeasureProcessCPUTime() {
+  // Can be used together with UseRealTime() / UseManualTime().
+  measure_process_cpu_time_ = true;
   return this;
 }
 
