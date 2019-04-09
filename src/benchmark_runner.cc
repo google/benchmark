@@ -111,7 +111,10 @@ BenchmarkReporter::Run CreateRunReport(
 // Adds the stats collected for the thread into *total.
 void RunInThread(const BenchmarkInstance* b, size_t iters, int thread_id,
                  ThreadManager* manager) {
-  internal::ThreadTimer timer;
+  internal::ThreadTimer timer(
+      b->measure_process_cpu_time
+          ? internal::ThreadTimer::CreateProcessCpuTime()
+          : internal::ThreadTimer::Create());
   State st = b->Run(iters, thread_id, &timer, manager);
   CHECK(st.iterations() >= st.max_iterations)
       << "Benchmark returned before State::KeepRunning() returned false!";
@@ -226,6 +229,8 @@ class BenchmarkRunner {
     // Adjust real/manual time stats since they were reported per thread.
     i.results.real_time_used /= b.threads;
     i.results.manual_time_used /= b.threads;
+    // If we were measuring whole-process CPU usage, adjust the CPU time too.
+    if (b.measure_process_cpu_time) i.results.cpu_time_used /= b.threads;
 
     VLOG(2) << "Ran in " << i.results.cpu_time_used << "/"
             << i.results.real_time_used << "\n";
