@@ -1,8 +1,29 @@
+#include <cstdlib>
+
 #include "../src/commandlineflags.h"
 #include "gtest/gtest.h"
 
 namespace benchmark {
 namespace {
+
+#if defined(BENCHMARK_OS_WINDOWS)
+int setenv(const char* name, const char* value, int overwrite) {
+  int errcode = 0;
+  if (!overwrite) {
+    size_t envsize = 0;
+    errcod = getenv_s(&envsize, nullptr, 0, name);
+    if (errcode || envsize) {
+      return errcode;
+    }
+  }
+  return _putenv_s(name, value);
+}
+
+int unsetenv(const char* name) {
+  return _putenv_s(name, "");
+}
+
+#endif  // BENCHMARK_OS_WINDOWS
 
 TEST(BoolFromEnv, Default) {
   ASSERT_EQ(unsetenv("BENCHMARK_NOT_IN_ENV"), 0);
