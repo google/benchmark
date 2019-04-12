@@ -1,6 +1,7 @@
 #include <cstdlib>
 
 #include "../src/commandlineflags.h"
+#include "../src/internal_macros.h"
 #include "gtest/gtest.h"
 
 namespace benchmark {
