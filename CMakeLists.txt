@@ -272,3 +272,12 @@ if (BENCHMARK_ENABLE_TESTING)
   endif()
   add_subdirectory(test)
 endif()
+
+set(CPACK_GENERATOR "DEB")
+set(CPACK_DEBIAN_PACKAGE_MAINTAINER "Google Inc.")
+set(CPACK_PACKAGE_VERSION ${VERSION})
+set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "Google Benchmark library.")
+set(CPACK_PACKAGE_DESCRIPTION "A library to support the benchmarking of functions, similar to unit-tests.")
+set(CPACK_DEBIAN_PACKAGE_SECTION "Development")
+
+include(CPack)
