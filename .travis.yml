@@ -23,13 +23,25 @@ matrix:
         apt:
           packages:
             - g++-multilib
-      env: COMPILER=g++ C_COMPILER=gcc BUILD_TYPE=Debug BUILD_32_BITS=ON
+            - libc6:i386
+      env:
+        - COMPILER=g++
+        - C_COMPILER=gcc
+        - BUILD_TYPE=Debug
+        - BUILD_32_BITS=ON
+        - EXTRA_FLAGS="-m32"
     - compiler: gcc
       addons:
         apt:
           packages:
             - g++-multilib
-      env: COMPILER=g++ C_COMPILER=gcc BUILD_TYPE=Release BUILD_32_BITS=ON
+            - libc6:i386
+      env:
+        - COMPILER=g++
+        - C_COMPILER=gcc
+        - BUILD_TYPE=Release
+        - BUILD_32_BITS=ON
+        - EXTRA_FLAGS="-m32"
     - compiler: gcc
       env:
         - INSTALL_GCC6_FROM_PPA=1
@@ -51,7 +63,7 @@ matrix:
         - INSTALL_GCC6_FROM_PPA=1
         - COMPILER=clang++-3.8 C_COMPILER=clang-3.8 BUILD_TYPE=Debug
         - LIBCXX_BUILD=1
-        - EXTRA_FLAGS="-stdlib=libc++"
+        - EXTRA_CXX_FLAGS="-stdlib=libc++"
     - compiler: clang
       dist: xenial
       addons:
@@ -62,7 +74,7 @@ matrix:
         - INSTALL_GCC6_FROM_PPA=1
         - COMPILER=clang++-3.8 C_COMPILER=clang-3.8 BUILD_TYPE=Release
         - LIBCXX_BUILD=1
-        - EXTRA_FLAGS="-stdlib=libc++"
+        - EXTRA_CXX_FLAGS="-stdlib=libc++"
     # Clang w/ 32bit libc++
     - compiler: clang
       dist: xenial
@@ -71,12 +83,14 @@ matrix:
           packages:
             - clang-3.8
             - g++-multilib
+            - libc6:i386
       env:
         - INSTALL_GCC6_FROM_PPA=1
         - COMPILER=clang++-3.8 C_COMPILER=clang-3.8 BUILD_TYPE=Debug
         - LIBCXX_BUILD=1
         - BUILD_32_BITS=ON
-        - EXTRA_FLAGS="-stdlib=libc++ -m32"
+        - EXTRA_FLAGS="-m32"
+        - EXTRA_CXX_FLAGS="-stdlib=libc++"
     # Clang w/ 32bit libc++
     - compiler: clang
       dist: xenial
@@ -85,12 +99,14 @@ matrix:
           packages:
             - clang-3.8
             - g++-multilib
+            - libc6:i386
       env:
         - INSTALL_GCC6_FROM_PPA=1
         - COMPILER=clang++-3.8 C_COMPILER=clang-3.8 BUILD_TYPE=Release
         - LIBCXX_BUILD=1
         - BUILD_32_BITS=ON
-        - EXTRA_FLAGS="-stdlib=libc++ -m32"
+        - EXTRA_FLAGS="-m32"
+        - EXTRA_CXX_FLAGS="-stdlib=libc++"
     # Clang w/ libc++, ASAN, UBSAN
     - compiler: clang
       dist: xenial
@@ -103,7 +119,8 @@ matrix:
         - COMPILER=clang++-3.8 C_COMPILER=clang-3.8 BUILD_TYPE=Debug
         - LIBCXX_BUILD=1 LIBCXX_SANITIZER="Undefined;Address"
         - ENABLE_SANITIZER=1
-        - EXTRA_FLAGS="-stdlib=libc++ -g -O2 -fno-omit-frame-pointer -fsanitize=undefined,address -fno-sanitize-recover=all"
+        - EXTRA_FLAGS="-g -O2 -fno-omit-frame-pointer -fsanitize=undefined,address -fno-sanitize-recover=all"
+        - EXTRA_CXX_FLAGS="-stdlib=libc++"
         - UBSAN_OPTIONS=print_stacktrace=1
     # Clang w/ libc++ and MSAN
     - compiler: clang
@@ -117,7 +134,8 @@ matrix:
         - COMPILER=clang++-3.8 C_COMPILER=clang-3.8 BUILD_TYPE=Debug
         - LIBCXX_BUILD=1 LIBCXX_SANITIZER=MemoryWithOrigins
         - ENABLE_SANITIZER=1
-        - EXTRA_FLAGS="-stdlib=libc++ -g -O2 -fno-omit-frame-pointer -fsanitize=memory -fsanitize-memory-track-origins"
+        - EXTRA_FLAGS="-g -O2 -fno-omit-frame-pointer -fsanitize=memory -fsanitize-memory-track-origins"
+        - EXTRA_CXX_FLAGS="-stdlib=libc++"
     # Clang w/ libc++ and MSAN
     - compiler: clang
       dist: xenial
@@ -130,7 +148,8 @@ matrix:
         - COMPILER=clang++-3.8 C_COMPILER=clang-3.8 BUILD_TYPE=RelWithDebInfo
         - LIBCXX_BUILD=1 LIBCXX_SANITIZER=Thread
         - ENABLE_SANITIZER=1
-        - EXTRA_FLAGS="-stdlib=libc++ -g -O2 -fno-omit-frame-pointer -fsanitize=thread -fno-sanitize-recover=all"
+        - EXTRA_FLAGS="-g -O2 -fno-omit-frame-pointer -fsanitize=thread -fno-sanitize-recover=all"
+        - EXTRA_CXX_FLAGS="-stdlib=libc++"
     - os: osx
       osx_image: xcode8.3
       compiler: clang
@@ -145,7 +164,10 @@ matrix:
       osx_image: xcode8.3
       compiler: clang
       env:
-        - COMPILER=clang++ BUILD_TYPE=Release BUILD_32_BITS=ON
+        - COMPILER=clang++
+        - BUILD_TYPE=Release
+        - BUILD_32_BITS=ON
+        - EXTRA_FLAGS="-m32"
     - os: osx
       osx_image: xcode8.3
       compiler: gcc
@@ -202,7 +224,7 @@ install:
     fi
 
 script:
-  - cmake -DCMAKE_C_COMPILER=${C_COMPILER} -DCMAKE_CXX_COMPILER=${COMPILER} -DCMAKE_BUILD_TYPE=${BUILD_TYPE} -DCMAKE_CXX_FLAGS="${EXTRA_FLAGS}" -DBENCHMARK_DOWNLOAD_DEPENDENCIES=ON -DBENCHMARK_BUILD_32_BITS=${BUILD_32_BITS} ${EXTRA_OPTIONS} ..
+  - cmake -DCMAKE_C_COMPILER=${C_COMPILER} -DCMAKE_CXX_COMPILER=${COMPILER} -DCMAKE_BUILD_TYPE=${BUILD_TYPE} -DCMAKE_C_FLAGS="${EXTRA_FLAGS}" -DCMAKE_CXX_FLAGS="${EXTRA_FLAGS} ${EXTRA_CXX_FLAGS}" -DBENCHMARK_DOWNLOAD_DEPENDENCIES=ON -DBENCHMARK_BUILD_32_BITS=${BUILD_32_BITS} ${EXTRA_OPTIONS} ..
   - make
   - ctest -C ${BUILD_TYPE} --output-on-failure
   - bazel test -c dbg --define google_benchmark.have_regex=posix --announce_rc --verbose_failures --test_output=errors --keep_going //test/...
