@@ -11,10 +11,10 @@ namespace {
 int setenv(const char* name, const char* value, int overwrite) {
   int errcode = 0;
   if (!overwrite) {
-    size_t envsize = 0;
-    errcode = getenv_s(&envsize, nullptr, 0, name);
-    if (errcode || envsize) {
-      return errcode;
+    // NOTE: getenv_s is far superior but not available under mingw.
+    char* value = getenv(name);
+    if (value == nullptr) {
+      return -1;
     }
   }
   return _putenv_s(name, value);
