@@ -37,8 +37,9 @@ inline std::string StrCat(Args&&... args) {
   return ss.str();
 }
 
-void ReplaceAll(std::string* str, const std::string& from,
-                const std::string& to);
+struct StrEscape : std::string {
+  StrEscape(const std::string & s);
+};
 
 #ifdef BENCHMARK_STL_ANDROID_GNUSTL
 /*

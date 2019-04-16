@@ -160,13 +160,17 @@ std::string StrFormat(const char* format, ...) {
   return tmp;
 }
 
-void ReplaceAll(std::string* str, const std::string& from,
-                const std::string& to) {
-  std::size_t start = 0;
-  while ((start = str->find(from, start)) != std::string::npos) {
-    str->replace(start, from.length(), to);
-    start += to.length();
-  }
+StrEscape::StrEscape(const std::string & s) {
+  std::for_each(s.begin(), s.end(), [this](char c) {
+      switch (c) {
+      case '\b': (*this) += "\\b"; break;
+      case '\f': (*this) += "\\f"; break;
+      case '\n': (*this) += "\\n"; break;
+      case '\r': (*this) += "\\r"; break;
+      case '\t': (*this) += "\\t"; break;
+      case '\\': (*this) += "\\\\"; break;
+      case '"' : (*this) += "\\\""; break;
+      default  : (*this) += c;      break; } } );
 }
 
 #ifdef BENCHMARK_STL_ANDROID_GNUSTL

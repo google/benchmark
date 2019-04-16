@@ -705,6 +705,26 @@ ADD_CASES(
      {"^\"BM_UserStats/iterations:5/repeats:3/manual_time_\",%csv_report$"}});
 
 // ========================================================================= //
+// ------------------------- Testing StrEscape ----------------------------- //
+// ========================================================================= //
+
+void BM_JSON_Format(benchmark::State& state) {
+  state.SkipWithError("val\b\f\n\r\t\\\"with\"escapes");
+  for (auto _ : state) {
+  }
+}
+BENCHMARK(BM_JSON_Format);
+ADD_CASES(TC_JSONOut, {{"\"name\": \"BM_JSON_Format\",$"},
+                       {"\"run_name\": \"BM_JSON_Format\",$", MR_Next},
+                       {"\"run_type\": \"iteration\",$", MR_Next},
+                       {"\"repetitions\": 0,$", MR_Next},
+                       {"\"repetition_index\": 0,$", MR_Next},
+                       {"\"threads\": 1,$", MR_Next},
+                       {"\"error_occurred\": true,$", MR_Next},
+                       {R"("error_message": "val\\b\\f\\n\\r\\t\\\\\\"with\\"escapes",$)", MR_Next}});
+ADD_CASES(TC_CSVOut, {{R"(^"BM_JSON_Format",,,,,,,,true,"val\\b\\f\\n\\r\\t\\\\\\"with\\"escapes"$)"}});
+
+// ========================================================================= //
 // --------------------------- TEST CASES END ------------------------------ //
 // ========================================================================= //
 

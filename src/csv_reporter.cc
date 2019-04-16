@@ -89,18 +89,11 @@ void CSVReporter::ReportRuns(const std::vector<Run>& reports) {
 
 void CSVReporter::PrintRunData(const Run& run) {
   std::ostream& Out = GetOutputStream();
-
-  // Field with embedded double-quote characters must be doubled and the field
-  // delimited with double-quotes.
-  std::string name = run.benchmark_name();
-  ReplaceAll(&name, "\"", "\"\"");
-  Out << '"' << name << "\",";
+  Out << '"' << StrEscape(run.benchmark_name()) << "\",";
   if (run.error_occurred) {
     Out << std::string(elements.size() - 3, ',');
     Out << "true,";
-    std::string msg = run.error_message;
-    ReplaceAll(&msg, "\"", "\"\"");
-    Out << '"' << msg << "\"\n";
+    Out << '"' << StrEscape(run.error_message) << "\"\n";
     return;
   }
 
@@ -130,11 +123,7 @@ void CSVReporter::PrintRunData(const Run& run) {
   }
   Out << ",";
   if (!run.report_label.empty()) {
-    // Field with embedded double-quote characters must be doubled and the field
-    // delimited with double-quotes.
-    std::string label = run.report_label;
-    ReplaceAll(&label, "\"", "\"\"");
-    Out << "\"" << label << "\"";
+    Out << "\"" << StrEscape(run.report_label) << "\"";
   }
   Out << ",,";  // for error_occurred and error_message
 
