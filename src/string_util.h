@@ -37,9 +37,7 @@ inline std::string StrCat(Args&&... args) {
   return ss.str();
 }
 
-struct StrEscape : std::string {
-  StrEscape(const std::string & s);
-};
+std::string StrEscape(const std::string & s);
 
 #ifdef BENCHMARK_STL_ANDROID_GNUSTL
 /*
