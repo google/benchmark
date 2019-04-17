@@ -9,11 +9,10 @@ namespace {
 
 #if defined(BENCHMARK_OS_WINDOWS)
 int setenv(const char* name, const char* value, int overwrite) {
-  int errcode = 0;
   if (!overwrite) {
     // NOTE: getenv_s is far superior but not available under mingw.
-    char* value = getenv(name);
-    if (value == nullptr) {
+    char* env_value = getenv(name);
+    if (env_value == nullptr) {
       return -1;
     }
   }
