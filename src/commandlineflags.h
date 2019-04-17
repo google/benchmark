@@ -23,16 +23,10 @@
   std::string FLAG(name) = (default_val)
 
 namespace benchmark {
-// Parses 'str' for a 32-bit signed integer.  If successful, writes the result
-// to *value and returns true; otherwise leaves *value unchanged and returns
-// false.
-bool ParseInt32(const std::string& src_text, const char* str, int32_t* value);
-
 // Parses a bool/Int32/string from the environment variable
 // corresponding to the given Google Test flag.
 bool BoolFromEnv(const char* flag, bool default_val);
 int32_t Int32FromEnv(const char* flag, int32_t default_val);
-double DoubleFromEnv(const char* flag, double default_val);
 const char* StringFromEnv(const char* flag, const char* default_val);
 
 // Parses a string for a bool flag, in the form of either

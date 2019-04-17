@@ -21,6 +21,8 @@
 #include <limits>
 
 namespace benchmark {
+namespace {
+
 // Parses 'str' for a 32-bit signed integer.  If successful, writes
 // the result to *value and returns true; otherwise leaves *value
 // unchanged and returns false.
@@ -87,6 +89,8 @@ static std::string FlagToEnvVar(const char* flag) {
 
   return "BENCHMARK_" + env_var;
 }
+
+}  // namespace
 
 // Reads and returns the Boolean environment variable corresponding to
 // the given flag; if it's not set, returns default_value.
