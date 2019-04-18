@@ -34,6 +34,7 @@ namespace {
 
 std::string StrEscape(const std::string & s) {
   std::string tmp;
+  tmp.reserve(s.size());
   for (char c : s) {
     switch (c) {
     case '\b': tmp += "\\b"; break;
