@@ -39,6 +39,7 @@ std::vector<std::string> elements = {
 
 std::string CsvEscape(const std::string & s) {
   std::string tmp;
+  tmp.reserve(s.size() + 2);
   for (char c : s) {
     switch (c) {
     case '"' : tmp += "\"\""; break;
