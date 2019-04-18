@@ -37,6 +37,17 @@ std::vector<std::string> elements = {
     "error_occurred", "error_message"};
 }  // namespace
 
+std::string CsvEscape(const std::string & s) {
+  std::string tmp;
+  for (char c : s) {
+    switch (c) {
+    case '"' : tmp += "\"\""; break;
+    default  : tmp += c; break;
+    }
+  }
+  return '"' + tmp + '"';
+}
+
 bool CSVReporter::ReportContext(const Context& context) {
   PrintBasicContext(&GetErrorStream(), context);
   return true;
@@ -89,11 +100,11 @@ void CSVReporter::ReportRuns(const std::vector<Run>& reports) {
 
 void CSVReporter::PrintRunData(const Run& run) {
   std::ostream& Out = GetOutputStream();
-  Out << '"' << StrEscape(run.benchmark_name()) << "\",";
+  Out << CsvEscape(run.benchmark_name()) << ",";
   if (run.error_occurred) {
     Out << std::string(elements.size() - 3, ',');
     Out << "true,";
-    Out << '"' << StrEscape(run.error_message) << "\"\n";
+    Out << CsvEscape(run.error_message) << "\n";
     return;
   }
 
@@ -123,7 +134,7 @@ void CSVReporter::PrintRunData(const Run& run) {
   }
   Out << ",";
   if (!run.report_label.empty()) {
-    Out << "\"" << StrEscape(run.report_label) << "\"";
+    Out << CsvEscape(run.report_label);
   }
   Out << ",,";  // for error_occurred and error_message
 

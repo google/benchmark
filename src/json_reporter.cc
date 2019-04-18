@@ -32,6 +32,23 @@ namespace benchmark {
 
 namespace {
 
+std::string StrEscape(const std::string & s) {
+  std::string tmp;
+  for (char c : s) {
+    switch (c) {
+    case '\b': tmp += "\\b"; break;
+    case '\f': tmp += "\\f"; break;
+    case '\n': tmp += "\\n"; break;
+    case '\r': tmp += "\\r"; break;
+    case '\t': tmp += "\\t"; break;
+    case '\\': tmp += "\\\\"; break;
+    case '"' : tmp += "\\\""; break;
+    default  : tmp += c; break;
+    }
+  }
+  return tmp;
+}
+
 std::string FormatKV(std::string const& key, std::string const& value) {
   return StrFormat("\"%s\": \"%s\"", StrEscape(key).c_str(), StrEscape(value).c_str());
 }
