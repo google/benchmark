@@ -705,6 +705,37 @@ ADD_CASES(
      {"^\"BM_UserStats/iterations:5/repeats:3/manual_time_\",%csv_report$"}});
 
 // ========================================================================= //
+// ------------------------- Testing StrEscape JSON ------------------------ //
+// ========================================================================= //
+#if 0 // enable when csv testing code correctly handles multi-line fields
+void BM_JSON_Format(benchmark::State& state) {
+  state.SkipWithError("val\b\f\n\r\t\\\"with\"es,capes");
+  for (auto _ : state) {
+  }
+}
+BENCHMARK(BM_JSON_Format);
+ADD_CASES(TC_JSONOut, {{"\"name\": \"BM_JSON_Format\",$"},
+                       {"\"run_name\": \"BM_JSON_Format\",$", MR_Next},
+                       {"\"run_type\": \"iteration\",$", MR_Next},
+                       {"\"repetitions\": 0,$", MR_Next},
+                       {"\"repetition_index\": 0,$", MR_Next},
+                       {"\"threads\": 1,$", MR_Next},
+                       {"\"error_occurred\": true,$", MR_Next},
+                       {R"("error_message": "val\\b\\f\\n\\r\\t\\\\\\"with\\"es,capes",$)", MR_Next}});
+#endif
+// ========================================================================= //
+// -------------------------- Testing CsvEscape ---------------------------- //
+// ========================================================================= //
+
+void BM_CSV_Format(benchmark::State& state) {
+  state.SkipWithError("\"freedom\"");
+  for (auto _ : state) {
+  }
+}
+BENCHMARK(BM_CSV_Format);
+ADD_CASES(TC_CSVOut, {{"^\"BM_CSV_Format\",,,,,,,,true,\"\"\"freedom\"\"\"$"}});
+
+// ========================================================================= //
 // --------------------------- TEST CASES END ------------------------------ //
 // ========================================================================= //
 
