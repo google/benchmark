@@ -37,9 +37,6 @@ inline std::string StrCat(Args&&... args) {
   return ss.str();
 }
 
-void ReplaceAll(std::string* str, const std::string& from,
-                const std::string& to);
-
 #ifdef BENCHMARK_STL_ANDROID_GNUSTL
 /*
  * GNU STL in Android NDK lacks support for some C++11 functions, including
