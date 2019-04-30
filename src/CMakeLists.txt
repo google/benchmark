@@ -56,9 +56,9 @@ target_include_directories(benchmark PUBLIC
     )
 target_link_libraries(benchmark_main benchmark)
 
-set(include_install_dir "${CMAKE_INSTALL_INCLUDEDIR}")
-set(lib_install_dir "${CMAKE_INSTALL_LIBDIR}")
-set(bin_install_dir "${CMAKE_INSTALL_BINDIR}")
+#set(include_install_dir "${CMAKE_INSTALL_INCLUDEDIR}")
+#set(lib_install_dir "${CMAKE_INSTALL_LIBDIR}")
+#set(bin_install_dir "${CMAKE_INSTALL_BINDIR}")
 set(config_install_dir "${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME}")
 set(pkgconfig_install_dir "${CMAKE_INSTALL_LIBDIR}/pkgconfig")
 
@@ -85,14 +85,14 @@ if (BENCHMARK_ENABLE_INSTALL)
   install(
     TARGETS benchmark benchmark_main
     EXPORT ${targets_export_name}
-    ARCHIVE DESTINATION ${lib_install_dir}
-    LIBRARY DESTINATION ${lib_install_dir}
-    RUNTIME DESTINATION ${bin_install_dir}
-    INCLUDES DESTINATION ${include_install_dir})
+    ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+    INCLUDES DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
 
   install(
     DIRECTORY "${PROJECT_SOURCE_DIR}/include/benchmark"
-    DESTINATION ${include_install_dir}
+    DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
     FILES_MATCHING PATTERN "*.*h")
 
   install(
