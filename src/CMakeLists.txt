@@ -1,4 +1,5 @@
 # Allow the source files to find headers in src/
+include(GNUInstallDirs)
 include_directories(${PROJECT_SOURCE_DIR}/src)
 
 if (DEFINED BENCHMARK_CXX_LINKER_FLAGS)
@@ -61,11 +62,6 @@ target_include_directories(benchmark PUBLIC
     )
 target_link_libraries(benchmark_main benchmark)
 
-set(include_install_dir "include")
-set(lib_install_dir "lib/")
-set(bin_install_dir "bin/")
-set(config_install_dir "lib/cmake/${PROJECT_NAME}")
-set(pkgconfig_install_dir "lib/pkgconfig")
 
 set(generated_dir "${CMAKE_CURRENT_BINARY_DIR}/generated")
 
@@ -89,26 +85,26 @@ if (BENCHMARK_ENABLE_INSTALL)
   install(
     TARGETS benchmark benchmark_main
     EXPORT ${targets_export_name}
-    ARCHIVE DESTINATION ${lib_install_dir}
-    LIBRARY DESTINATION ${lib_install_dir}
-    RUNTIME DESTINATION ${bin_install_dir}
-    INCLUDES DESTINATION ${include_install_dir})
+    ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+    INCLUDES DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
 
   install(
     DIRECTORY "${PROJECT_SOURCE_DIR}/include/benchmark"
-    DESTINATION ${include_install_dir}
+    DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
     FILES_MATCHING PATTERN "*.*h")
 
   install(
       FILES "${project_config}" "${version_config}"
-      DESTINATION "${config_install_dir}")
+      DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME}")
 
   install(
       FILES "${pkg_config}"
-      DESTINATION "${pkgconfig_install_dir}")
+      DESTINATION "${CMAKE_INSTALL_LIBDIR}/pkgconfig")
 
   install(
       EXPORT "${targets_export_name}"
       NAMESPACE "${namespace}"
-      DESTINATION "${config_install_dir}")
+      DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME}")
 endif()
