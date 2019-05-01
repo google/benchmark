@@ -57,6 +57,9 @@ The following minimum versions are required to build the library:
 This describes the installation process using cmake. As pre-requisites, you'll
 need git and cmake installed.
 
+_See [dependencies.md](dependencies.md) for more details regarding supported
+versions of build tools._
+
 ```bash
 # Check out the library.
 $ git clone https://github.com/google/benchmark.git
