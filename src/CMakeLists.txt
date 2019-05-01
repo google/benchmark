@@ -56,12 +56,6 @@ target_include_directories(benchmark PUBLIC
     )
 target_link_libraries(benchmark_main benchmark)
 
-#set(include_install_dir "${CMAKE_INSTALL_INCLUDEDIR}")
-#set(lib_install_dir "${CMAKE_INSTALL_LIBDIR}")
-#set(bin_install_dir "${CMAKE_INSTALL_BINDIR}")
-set(config_install_dir "${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME}")
-set(pkgconfig_install_dir "${CMAKE_INSTALL_LIBDIR}/pkgconfig")
-
 
 set(generated_dir "${CMAKE_CURRENT_BINARY_DIR}/generated")
 
@@ -97,14 +91,14 @@ if (BENCHMARK_ENABLE_INSTALL)
 
   install(
       FILES "${project_config}" "${version_config}"
-      DESTINATION "${config_install_dir}")
+      DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME}")
 
   install(
       FILES "${pkg_config}"
-      DESTINATION "${pkgconfig_install_dir}")
+      DESTINATION "${CMAKE_INSTALL_LIBDIR}/pkgconfig")
 
   install(
       EXPORT "${targets_export_name}"
       NAMESPACE "${namespace}"
-      DESTINATION "${config_install_dir}")
+      DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME}")
 endif()
