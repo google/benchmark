@@ -658,9 +658,9 @@ double GetCPUCyclesPerSecond() {
 }
 
 std::vector<double> GetLoadAvg() {
-#if defined BENCHMARK_OS_FREEBSD || defined(BENCHMARK_OS_LINUX) || \
+#if (defined BENCHMARK_OS_FREEBSD || defined(BENCHMARK_OS_LINUX) || \
     defined BENCHMARK_OS_MACOSX || defined BENCHMARK_OS_NETBSD ||  \
-    defined BENCHMARK_OS_OPENBSD
+    defined BENCHMARK_OS_OPENBSD) && !defined(__ANDROID__)
   constexpr int kMaxSamples = 3;
   std::vector<double> res(kMaxSamples, 0.0);
   const int nelem = getloadavg(res.data(), kMaxSamples);
