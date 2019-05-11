@@ -1375,7 +1375,7 @@ class BenchmarkReporter {
     bool error_occurred;
     std::string error_message;
 
-    int64_t iterations;
+    IterationT iterations;
     int64_t threads;
     int64_t repetition_index;
     int64_t repetitions;

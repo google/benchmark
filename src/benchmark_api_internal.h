@@ -32,10 +32,10 @@ struct BenchmarkInstance {
   bool last_benchmark_instance;
   int repetitions;
   double min_time;
-  size_t iterations;
+  IterationT iterations;
   int threads;  // Number of concurrent threads to us
 
-  State Run(size_t iters, int thread_id, internal::ThreadTimer* timer,
+  State Run(IterationT iters, int thread_id, internal::ThreadTimer* timer,
             internal::ThreadManager* manager) const;
 };
 
