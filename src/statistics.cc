@@ -97,7 +97,7 @@ std::vector<BenchmarkReporter::Run> ComputeStats(
 
   // All repetitions should be run with the same number of iterations so we
   // can take this information from the first benchmark.
-  int64_t const run_iterations = reports.front().iterations;
+  const IterationCount run_iterations = reports.front().iterations;
   // create stats for user counters
   struct CounterStat {
     Counter c;
