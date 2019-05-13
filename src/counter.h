@@ -18,7 +18,7 @@ namespace benchmark {
 
 // these counter-related functions are hidden to reduce API surface.
 namespace internal {
-void Finish(UserCounters* l, IterationT iterations, double time,
+void Finish(UserCounters* l, IterationCount iterations, double time,
             double num_threads);
 void Increment(UserCounters* l, UserCounters const& r);
 bool SameNames(UserCounters const& l, UserCounters const& r);

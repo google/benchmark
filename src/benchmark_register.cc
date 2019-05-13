@@ -376,7 +376,7 @@ Benchmark* Benchmark::MinTime(double t) {
   return this;
 }
 
-Benchmark* Benchmark::Iterations(IterationT n) {
+Benchmark* Benchmark::Iterations(IterationCount n) {
   CHECK(n > 0);
   CHECK(IsZero(min_time_));
   iterations_ = n;

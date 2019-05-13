@@ -3,7 +3,7 @@
 namespace benchmark {
 namespace internal {
 
-State BenchmarkInstance::Run(IterationT iters, int thread_id,
+State BenchmarkInstance::Run(IterationCount iters, int thread_id,
                              internal::ThreadTimer* timer,
                              internal::ThreadManager* manager) const {
   State st(iters, arg, thread_id, threads, timer, manager);

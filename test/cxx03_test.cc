@@ -14,7 +14,7 @@
 
 void BM_empty(benchmark::State& state) {
   while (state.KeepRunning()) {
-    volatile benchmark::IterationT x = state.iterations();
+    volatile benchmark::IterationCount x = state.iterations();
     ((void)x);
   }
 }
