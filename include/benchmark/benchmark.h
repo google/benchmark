@@ -56,8 +56,7 @@ static void BM_memcpy(benchmark::State& state) {
   memset(src, 'x', state.range(0));
   for (auto _ : state)
     memcpy(dst, src, state.range(0));
-  state.SetBytesProcessed(int64_t(state.iterations()) *
-                          int64_t(state.range(0)));
+  state.SetBytesProcessed(state.iterations() * state.range(0));
   delete[] src; delete[] dst;
 }
 BENCHMARK(BM_memcpy)->Arg(8)->Arg(64)->Arg(512)->Arg(1<<10)->Arg(8<<10);
@@ -122,8 +121,7 @@ template <class Q> int BM_Sequential(benchmark::State& state) {
       q.Wait(&v);
   }
   // actually messages, not bytes:
-  state.SetBytesProcessed(
-      static_cast<int64_t>(state.iterations())*state.range(0));
+  state.SetBytesProcessed(state.iterations() * state.range(0));
 }
 BENCHMARK_TEMPLATE(BM_Sequential, WaitQueue<int>)->Range(1<<0, 1<<10);
 
@@ -413,9 +411,11 @@ enum TimeUnit { kNanosecond, kMicrosecond, kMillisecond };
 // calculated automatically to the best fit.
 enum BigO { oNone, o1, oN, oNSquared, oNCubed, oLogN, oNLogN, oAuto, oLambda };
 
+typedef uint64_t IterationCount;
+
 // BigOFunc is passed to a benchmark in order to specify the asymptotic
 // computational complexity for the benchmark.
-typedef double(BigOFunc)(int64_t);
+typedef double(BigOFunc)(IterationCount);
 
 // StatisticsFunc is passed to a benchmark in order to compute some descriptive
 // statistics over all the measurements of some type
@@ -488,7 +488,7 @@ class State {
   //   while (state.KeepRunningBatch(1000)) {
   //     // process 1000 elements
   //   }
-  bool KeepRunningBatch(size_t n);
+  bool KeepRunningBatch(IterationCount n);
 
   // REQUIRES: timer is running and 'SkipWithError(...)' has not been called
   //           by the current thread.
@@ -627,7 +627,7 @@ class State {
   int64_t range_y() const { return range(1); }
 
   BENCHMARK_ALWAYS_INLINE
-  size_t iterations() const {
+  IterationCount iterations() const {
     if (BENCHMARK_BUILTIN_EXPECT(!started_, false)) {
       return 0;
     }
@@ -638,15 +638,15 @@ class State {
      :  // items we expect on the first cache line (ie 64 bytes of the struct)
   // When total_iterations_ is 0, KeepRunning() and friends will return false.
   // May be larger than max_iterations.
-  size_t total_iterations_;
+  IterationCount total_iterations_;
 
   // When using KeepRunningBatch(), batch_leftover_ holds the number of
   // iterations beyond max_iters that were run. Used to track
   // completed_iterations_ accurately.
-  size_t batch_leftover_;
+  IterationCount batch_leftover_;
 
  public:
-  const size_t max_iterations;
+  const IterationCount max_iterations;
 
  private:
   bool started_;
@@ -667,14 +667,14 @@ class State {
   const int threads;
 
  private:
-  State(size_t max_iters, const std::vector<int64_t>& ranges, int thread_i,
-        int n_threads, internal::ThreadTimer* timer,
+  State(IterationCount max_iters, const std::vector<int64_t>& ranges,
+        int thread_i, int n_threads, internal::ThreadTimer* timer,
         internal::ThreadManager* manager);
 
   void StartKeepRunning();
   // Implementation of KeepRunning() and KeepRunningBatch().
   // is_batch must be true unless n is 1.
-  bool KeepRunningInternal(size_t n, bool is_batch);
+  bool KeepRunningInternal(IterationCount n, bool is_batch);
   void FinishKeepRunning();
   internal::ThreadTimer* timer_;
   internal::ThreadManager* manager_;
@@ -686,11 +686,11 @@ inline BENCHMARK_ALWAYS_INLINE bool State::KeepRunning() {
   return KeepRunningInternal(1, /*is_batch=*/false);
 }
 
-inline BENCHMARK_ALWAYS_INLINE bool State::KeepRunningBatch(size_t n) {
+inline BENCHMARK_ALWAYS_INLINE bool State::KeepRunningBatch(IterationCount n) {
   return KeepRunningInternal(n, /*is_batch=*/true);
 }
 
-inline BENCHMARK_ALWAYS_INLINE bool State::KeepRunningInternal(size_t n,
+inline BENCHMARK_ALWAYS_INLINE bool State::KeepRunningInternal(IterationCount n,
                                                                bool is_batch) {
   // total_iterations_ is set to 0 by the constructor, and always set to a
   // nonzero value by StartKepRunning().
@@ -754,7 +754,7 @@ struct State::StateIterator {
   }
 
  private:
-  size_t cached_;
+  IterationCount cached_;
   State* const parent_;
 };
 
@@ -858,7 +858,7 @@ class Benchmark {
   // NOTE: This function should only be used when *exact* iteration control is
   //   needed and never to control or limit how long a benchmark runs, where
   // `--benchmark_min_time=N` or `MinTime(...)` should be used instead.
-  Benchmark* Iterations(size_t n);
+  Benchmark* Iterations(IterationCount n);
 
   // Specify the amount of times to repeat this benchmark. This option overrides
   // the `benchmark_repetitions` flag.
@@ -957,7 +957,7 @@ class Benchmark {
   TimeUnit time_unit_;
   int range_multiplier_;
   double min_time_;
-  size_t iterations_;
+  IterationCount iterations_;
   int repetitions_;
   bool measure_process_cpu_time_;
   bool use_real_time_;
@@ -1375,7 +1375,7 @@ class BenchmarkReporter {
     bool error_occurred;
     std::string error_message;
 
-    int64_t iterations;
+    IterationCount iterations;
     int64_t threads;
     int64_t repetition_index;
     int64_t repetitions;
