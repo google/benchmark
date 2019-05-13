@@ -98,7 +98,7 @@ BENCHMARK(BM_empty_stop_start)->ThreadPerCpu();
 
 
 void BM_KeepRunning(benchmark::State& state) {
-  size_t iter_count = 0;
+  benchmark::IterationCount iter_count = 0;
   assert(iter_count == state.iterations());
   while (state.KeepRunning()) {
     ++iter_count;
@@ -109,8 +109,8 @@ BENCHMARK(BM_KeepRunning);
 
 void BM_KeepRunningBatch(benchmark::State& state) {
   // Choose a prime batch size to avoid evenly dividing max_iterations.
-  const size_t batch_size = 101;
-  size_t iter_count = 0;
+  const benchmark::IterationCount batch_size = 101;
+  benchmark::IterationCount iter_count = 0;
   while (state.KeepRunningBatch(batch_size)) {
     iter_count += batch_size;
   }
@@ -119,7 +119,7 @@ void BM_KeepRunningBatch(benchmark::State& state) {
 BENCHMARK(BM_KeepRunningBatch);
 
 void BM_RangedFor(benchmark::State& state) {
-  size_t iter_count = 0;
+  benchmark::IterationCount iter_count = 0;
   for (auto _ : state) {
     ++iter_count;
   }

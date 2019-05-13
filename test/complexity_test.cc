@@ -66,9 +66,9 @@ void BM_Complexity_O1(benchmark::State& state) {
 }
 BENCHMARK(BM_Complexity_O1)->Range(1, 1 << 18)->Complexity(benchmark::o1);
 BENCHMARK(BM_Complexity_O1)->Range(1, 1 << 18)->Complexity();
-BENCHMARK(BM_Complexity_O1)->Range(1, 1 << 18)->Complexity([](int64_t) {
-  return 1.0;
-});
+BENCHMARK(BM_Complexity_O1)
+    ->Range(1, 1 << 18)
+    ->Complexity([](benchmark::IterationCount) { return 1.0; });
 
 const char *one_test_name = "BM_Complexity_O1";
 const char *big_o_1_test_name = "BM_Complexity_O1_BigO";
@@ -121,7 +121,9 @@ BENCHMARK(BM_Complexity_O_N)
 BENCHMARK(BM_Complexity_O_N)
     ->RangeMultiplier(2)
     ->Range(1 << 10, 1 << 16)
-    ->Complexity([](int64_t n) -> double { return static_cast<double>(n); });
+    ->Complexity([](benchmark::IterationCount n) -> double {
+      return static_cast<double>(n);
+    });
 BENCHMARK(BM_Complexity_O_N)
     ->RangeMultiplier(2)
     ->Range(1 << 10, 1 << 16)
@@ -160,7 +162,7 @@ BENCHMARK(BM_Complexity_O_N_log_N)
 BENCHMARK(BM_Complexity_O_N_log_N)
     ->RangeMultiplier(2)
     ->Range(1 << 10, 1 << 16)
-    ->Complexity([](int64_t n) {
+    ->Complexity([](benchmark::IterationCount n) {
       return kLog2E * n * log(static_cast<double>(n));
     });
 BENCHMARK(BM_Complexity_O_N_log_N)
