@@ -66,6 +66,14 @@ namespace widths {
   static constexpr uint Padding = 1U;
 }
 
+static uint ColumnWidth(const std::pair <std::string, Counter>& pair) {
+  const Counter& c = pair.second;
+  const std::string& name = pair.first;
+
+  uint width = (c.format == Counter::kSI_BaseUnit) ? widths::SI : widths::SN;
+  return widths::Padding + std::max(width, (uint) name.length());
+}
+
 void ConsoleReporter::PrintHeader(const Run& run) {
   std::string str = FormatString("%-*s %13s %15s %12s", static_cast<int>(name_field_width_),
                                  "Benchmark", "Time", "CPU", "Iterations");
