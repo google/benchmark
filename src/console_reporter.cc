@@ -52,6 +52,18 @@ bool ConsoleReporter::ReportContext(const Context& context) {
   return true;
 }
 
+// Namespace containing constants related to counter values formatting.
+namespace widths {
+  // Base amount of chars occupied by a float in SN, excluding decimals.
+  static constexpr uint BaseFloat = 8U;
+  // Amount of desired decimal digits for floats in SN.
+  static constexpr uint DecimalPrecision = 5U;
+  // Total amount of chars occupied by a float printed in ScientificNotation.
+  static constexpr uint SN = BaseFloat + DecimalPrecision;
+  // Total amount of chars occupied by a float printed in SI base units.
+  static constexpr uint SI = 9U;
+}
+
 void ConsoleReporter::PrintHeader(const Run& run) {
   std::string str = FormatString("%-*s %13s %15s %12s", static_cast<int>(name_field_width_),
                                  "Benchmark", "Time", "CPU", "Iterations");
