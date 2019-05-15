@@ -71,7 +71,7 @@ static uint ColumnWidth(const std::pair <std::string, Counter>& pair) {
   const std::string& name = pair.first;
 
   uint width = (c.format == Counter::kSIUnits) ? widths::SI : widths::SN;
-  width += (c.oneK == Counter::kIs1024) ? 1U : 0U;
+  width += (c.oneK == Counter::kIs1024) ? 2U : 0U;
   width += (c.flags & Counter::kIsRate) ? 2U : 0U;
   return widths::Padding + std::max(width, (uint) name.length());
 }
@@ -182,7 +182,7 @@ void ConsoleReporter::PrintRunData(const Run& result) {
                         HumanReadableNumber(c.second.value, c.second.oneK) :
                         FormatString("%.*E", widths::DecimalPrecision, c.second.value);
     if (c.second.oneK == Counter::kIs1024) 
-      value.append("i");
+      value.append("iB");
     if (c.second.flags & Counter::kIsRate) 
       value.append("/s");
 
