@@ -380,7 +380,7 @@ class Counter {
 
   enum Format {
     // 123.456M
-    kSI_BaseUnit = 0,
+    kSIUnits = 0,
     // 1.23456E+05
     kScientificNotation = 1
   };
@@ -392,7 +392,7 @@ class Counter {
 
   BENCHMARK_ALWAYS_INLINE
   Counter(double v = 0., Flags f = kDefaults, 
-          OneK k = kIs1000, Format form = kSI_BaseUnit)
+          OneK k = kIs1000, Format form = kSIUnits)
           : value(v), flags(f), oneK(k), format (form) {}
   
   BENCHMARK_ALWAYS_INLINE

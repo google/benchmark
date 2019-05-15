@@ -70,7 +70,7 @@ static uint ColumnWidth(const std::pair <std::string, Counter>& pair) {
   const Counter& c = pair.second;
   const std::string& name = pair.first;
 
-  uint width = (c.format == Counter::kSI_BaseUnit) ? widths::SI : widths::SN;
+  uint width = (c.format == Counter::kSIUnits) ? widths::SI : widths::SN;
   width += (c.oneK == Counter::kIs1024) ? 1U : 0U;
   width += (c.flags & Counter::kIsRate) ? 2U : 0U;
   return widths::Padding + std::max(width, (uint) name.length());
@@ -178,7 +178,7 @@ void ConsoleReporter::PrintRunData(const Run& result) {
   const bool tabular = (output_options_ & OO_Tabular);
   const char* fmt = tabular ? " %*s" : " %3$s=%2$*1$s";
   for (auto const& c : result.counters) { 
-    std::string value = (c.second.format == Counter::kSI_BaseUnit) ?
+    std::string value = (c.second.format == Counter::kSIUnits) ?
                         HumanReadableNumber(c.second.value, c.second.oneK) :
                         FormatString("%.*E", widths::DecimalPrecision, c.second.value);
     if (c.second.oneK == Counter::kIs1024) 
