@@ -681,6 +681,9 @@ and a flag specifying the 'unit' - i.e. is 1k a 1000 (default,
 
   // This says that we process with the rate of state.range(0) bytes every iteration:
   state.counters["BytesProcessed"] = Counter(state.range(0), benchmark::Counter::kIsIterationInvariantRate, benchmark::Counter::OneK::kIs1024);
+
+  // Set the numeric output according to scientific notation (e.g. 1.23456E+05) 
+  state.counters["FooVal"] = Counter(numFoos).setFormat(benchmark::Counter::kScientificNotation);
 ```
 
 When you're compiling in C++11 mode or later you can use `insert()` with
