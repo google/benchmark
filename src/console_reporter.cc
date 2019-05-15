@@ -79,9 +79,8 @@ void ConsoleReporter::PrintHeader(const Run& run) {
                                  "Benchmark", "Time", "CPU", "Iterations");
   if(!run.counters.empty()) {
     if(output_options_ & OO_Tabular) {
-      for(auto const& c : run.counters) {
-        str += FormatString(" %10s", c.first.c_str());
-      }
+      for(auto const& c : run.counters)
+        str += FormatString(" %1$*2$s", c.first.c_str(), ColumnWidth(c));
     } else {
       str += " UserCounters...";
     }
