@@ -62,6 +62,8 @@ namespace widths {
   static constexpr uint SN = BaseFloat + DecimalPrecision;
   // Total amount of chars occupied by a float printed in SI base units.
   static constexpr uint SI = 9U;
+  // Additional desired whitespace padding, useful to separate counters. 
+  static constexpr uint Padding = 1U;
 }
 
 void ConsoleReporter::PrintHeader(const Run& run) {
