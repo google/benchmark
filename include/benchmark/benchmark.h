@@ -396,6 +396,10 @@ class Counter {
           : value(v), flags(f), oneK(k), format (form) {}
   
   BENCHMARK_ALWAYS_INLINE
+  Counter setFlags (Flags f) { flags = f; return *this; }
+  BENCHMARK_ALWAYS_INLINE
+  Counter setOneK (OneK k) { oneK = k; return *this; }
+  BENCHMARK_ALWAYS_INLINE
   Counter setFormat (Format form) { format = form; return *this; }
 
   BENCHMARK_ALWAYS_INLINE operator double const&() const { return value; }
