@@ -378,13 +378,22 @@ class Counter {
     kIs1024 = 1024
   };
 
+  enum Format {
+    // 123.456M
+    kSI_BaseUnit = 0,
+    // 1.23456E+05
+    kScientificNotation = 1
+  };
+
   double value;
   Flags flags;
   OneK oneK;
+  Format format;
 
   BENCHMARK_ALWAYS_INLINE
-  Counter(double v = 0., Flags f = kDefaults, OneK k = kIs1000)
-      : value(v), flags(f), oneK(k) {}
+  Counter(double v = 0., Flags f = kDefaults, 
+          OneK k = kIs1000, Format form = kSI_BaseUnit)
+          : value(v), flags(f), oneK(k), format (form) {}
 
   BENCHMARK_ALWAYS_INLINE operator double const&() const { return value; }
   BENCHMARK_ALWAYS_INLINE operator double&() { return value; }
