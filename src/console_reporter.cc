@@ -173,21 +173,15 @@ void ConsoleReporter::PrintRunData(const Run& result) {
     printer(Out, COLOR_CYAN, "%10lld", result.iterations);
   }
 
-  for (auto& c : result.counters) {
-    const std::size_t cNameLen = std::max(std::string::size_type(10),
-                                          c.first.length());
-    auto const& s = HumanReadableNumber(c.second.value, c.second.oneK);
-    if (output_options_ & OO_Tabular) {
-      if (c.second.flags & Counter::kIsRate) {
-        printer(Out, COLOR_DEFAULT, " %*s/s", cNameLen - 2, s.c_str());
-      } else {
-        printer(Out, COLOR_DEFAULT, " %*s", cNameLen, s.c_str());
-      }
-    } else {
-      const char* unit = (c.second.flags & Counter::kIsRate) ? "/s" : "";
-      printer(Out, COLOR_DEFAULT, " %s=%s%s", c.first.c_str(), s.c_str(),
-              unit);
-    }
+  const bool tabular = (output_options_ & OO_Tabular);
+  const char* fmt = tabular ? " %*s" : " %3$s=%2$*1$s";
+  for (auto const& c : result.counters) { 
+    std::string value = (c.second.format == Counter::kSI_BaseUnit) ?
+                        HumanReadableNumber(c.second.value, c.second.oneK) :
+                        FormatString("%.*E", widths::DecimalPrecision, c.second.value);
+
+    int minColWidth = tabular ? ColumnWidth(c) : 0U;
+    printer(Out, COLOR_DEFAULT, fmt, minColWidth, value.c_str(), c.first.c_str());
   }
 
   if (!result.report_label.empty()) {
