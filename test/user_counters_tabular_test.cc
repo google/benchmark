@@ -107,6 +107,8 @@ CHECK_BENCHMARK_RESULTS("BM_Counters_Tabular/threads:%int", &CheckTabular);
 
 void BM_CounterRates_Tabular(benchmark::State& state) {
   for (auto _ : state) {
+    // This test requires a non-zero CPU time to avoid divide-by-zero
+    benchmark::DoNotOptimize(state.iterations());
   }
   namespace bm = benchmark;
   state.counters.insert({
