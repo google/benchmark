@@ -190,6 +190,8 @@ ADD_COMPLEXITY_CASES(n_lg_n_test_name, big_o_n_lg_n_test_name,
 
 void BM_ComplexityCaptureArgs(benchmark::State& state, int n) {
   for (auto _ : state) {
+    // This test requires a non-zero CPU time to avoid divide-by-zero
+    benchmark::DoNotOptimize(state.iterations());
   }
   state.SetComplexityN(n);
 }
