@@ -697,7 +697,7 @@ When you're compiling in C++11 mode or later you can use `insert()` with
 
 #### Counter Reporting
 
-When using the console reporter, by default, user counters are are printed at
+When using the console reporter, by default, user counters are printed at
 the end after the table, the same way as ``bytes_processed`` and
 ``items_processed``. This is best for cases in which there are few counters,
 or where there are only a couple of lines per benchmark. Here's an example of
