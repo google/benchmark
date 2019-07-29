@@ -69,7 +69,7 @@ $ git clone https://github.com/google/googletest.git benchmark/googletest
 $ mkdir build && cd build
 # Generate a Makefile with cmake.
 # Use cmake -G <generator> to generate a different file type.
-$ cmake ../benchmark
+$ cmake ../
 # Build the library.
 $ make
 ```
