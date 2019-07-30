@@ -1088,7 +1088,7 @@ static void BM_test(benchmark::State& state) {
       state.SkipWithError("Resource is not good!");
       // KeepRunning() loop will not be entered.
   }
-  for (state.KeepRunning()) {
+  while (state.KeepRunning()) {
       auto data = resource.read_data();
       if (!resource.good()) {
         state.SkipWithError("Failed to read data!");
