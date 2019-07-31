@@ -274,3 +274,8 @@ if (BENCHMARK_ENABLE_TESTING)
   endif()
   add_subdirectory(test)
 endif()
+
+include( "cmake/cpack.cmake" )
+
+# This must always be last!
+include(CPack)
