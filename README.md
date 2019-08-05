@@ -81,12 +81,12 @@ On a unix system, the build directory should now look something like this:
 
 ```
 /benchmark
-/build
-  /src
-    /libbenchmark.a
-    /libbenchmark_main.a
-  /test
-    ...
+  /build
+    /src
+      /libbenchmark.a
+      /libbenchmark_main.a
+    /test
+      ...
 ```
 
 Next, you can run the tests to check the build.
