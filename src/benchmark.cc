@@ -289,6 +289,13 @@ void RunBenchmarks(const std::vector<BenchmarkInstance>& benchmarks,
   flushStreams(file_reporter);
 }
 
+// Disable deprecated warnings temporarily because we need to reference
+// CSVReporter but don't want to trigger -Werror=-Wdeprecated
+#ifdef __GNUC__
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated"
+#endif
+
 std::unique_ptr<BenchmarkReporter> CreateReporter(
     std::string const& name, ConsoleReporter::OutputOptions output_opts) {
   typedef std::unique_ptr<BenchmarkReporter> PtrType;
@@ -303,6 +310,11 @@ std::unique_ptr<BenchmarkReporter> CreateReporter(
     std::exit(1);
   }
 }
+
+#ifdef __GNUC__
+#pragma GCC diagnostic pop
+#endif
+
 
 }  // end namespace
 
