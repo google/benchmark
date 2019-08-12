@@ -368,7 +368,10 @@ class Counter {
     // It will be presented divided by the number of iterations.
     kAvgIterations = 1U << 3U,
     // Mark the counter as a iteration-average rate. See above.
-    kAvgIterationsRate = kIsRate | kAvgIterations
+    kAvgIterationsRate = kIsRate | kAvgIterations,
+
+    // In the end, invert the result. This is always done last!
+    kInvert = 1U << 31U
   };
 
   enum OneK {
