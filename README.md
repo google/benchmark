@@ -662,9 +662,9 @@ the resulting sum is the value which will be shown for the benchmark.
 
 The `Counter` constructor accepts three parameters: the value as a `double`
 ; a bit flag which allows you to show counters as rates, and/or as per-thread
-iteration, and/or as per-thread averages, and/or iteration invariants;
-and a flag specifying the 'unit' - i.e. is 1k a 1000 (default,
-`benchmark::Counter::OneK::kIs1000`), or 1024
+iteration, and/or as per-thread averages, and/or iteration invariants,
+and/or finally inverting the result; and a flag specifying the 'unit' - i.e.
+is 1k a 1000 (default, `benchmark::Counter::OneK::kIs1000`), or 1024
 (`benchmark::Counter::OneK::kIs1024`)?
 
 ```c++
@@ -673,7 +673,13 @@ and a flag specifying the 'unit' - i.e. is 1k a 1000 (default,
 
   // Set the counter as a rate. It will be presented divided
   // by the duration of the benchmark.
+  // Meaning: per one second, how many 'foo's are processed?
   state.counters["FooRate"] = Counter(numFoos, benchmark::Counter::kIsRate);
+
+  // Set the counter as a rate. It will be presented divided
+  // by the duration of the benchmark, and the result inverted.
+  // Meaning: how many seconds it takes to process one 'foo'?
+  state.counters["FooInvRate"] = Counter(numFoos, benchmark::Counter::kIsRate | benchmark::Counter::kInvert);
 
   // Set the counter as a thread-average quantity. It will
   // be presented divided by the number of threads.
