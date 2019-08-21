@@ -59,7 +59,7 @@ MemoryManager* memory_manager = nullptr;
 
 namespace {
 
-static constexpr IterationCount kMaxIterations = 1000000000;
+static const IterationCount kMaxIterations = 1000000000;
 
 BenchmarkReporter::Run CreateRunReport(
     const benchmark::internal::BenchmarkInstance& b,
