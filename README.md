@@ -49,7 +49,7 @@ The following minimum versions are required to build the library:
 
 * GCC 4.8
 * Clang 3.4
-* Visual Studio 2013
+* Visual Studio 14 2015
 * Intel 2015 Update 1
 
 ## Installation
