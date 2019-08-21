@@ -471,6 +471,22 @@ static void CustomArguments(benchmark::internal::Benchmark* b) {
 BENCHMARK(BM_SetInsert)->Apply(CustomArguments);
 ```
 
+The preceding code shows a complicated but flexible method of enumerating a
+dense range. The following example shows a much simpler method of defining a
+dense range. It is used to benchmark the performance of `std::vector`
+initialization for uniformly increasing sizes.
+
+```c++
+static void BM_DenseRange(benchmark::State& state) {
+  for(auto _ : state) {
+    std::vector<int> v(state.range(0), state.range(0));
+    benchmark::DoNotOptimize(v.data());
+    benchmark::ClobberMemory();
+  }
+}
+BENCHMARK(BM_DenseRange)->DenseRange(0, 1024, 128);
+```
+
 #### Passing Arbitrary Arguments to a Benchmark
 
 In C++11 it is possible to define a benchmark that takes an arbitrary number
