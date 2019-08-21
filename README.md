@@ -422,6 +422,22 @@ BENCHMARK(BM_memcpy)->RangeMultiplier(2)->Range(8, 8<<10);
 ```
 Now arguments generated are [ 8, 16, 32, 64, 128, 256, 512, 1024, 2k, 4k, 8k ].
 
+The preceding code shows a method of defining a sparse range.  The following
+example shows a method of defining a dense range. It is then used to benchmark
+the performance of `std::vector` initialization for uniformly increasing sizes.
+
+```c++
+static void BM_DenseRange(benchmark::State& state) {
+  for(auto _ : state) {
+    std::vector<int> v(state.range(0), state.range(0));
+    benchmark::DoNotOptimize(v.data());
+    benchmark::ClobberMemory();
+  }
+}
+BENCHMARK(BM_DenseRange)->DenseRange(0, 1024, 128);
+```
+Now arguments generated are [ 0, 128, 256, 384, 512, 640, 768, 896, 1024 ].
+
 You might have a benchmark that depends on two or more inputs. For example, the
 following code defines a family of benchmarks for measuring the speed of set
 insertion.
@@ -469,22 +485,6 @@ static void CustomArguments(benchmark::internal::Benchmark* b) {
       b->Args({i, j});
 }
 BENCHMARK(BM_SetInsert)->Apply(CustomArguments);
-```
-
-The preceding code shows a complicated but flexible method of enumerating a
-dense range. The following example shows a much simpler method of defining a
-dense range. It is used to benchmark the performance of `std::vector`
-initialization for uniformly increasing sizes.
-
-```c++
-static void BM_DenseRange(benchmark::State& state) {
-  for(auto _ : state) {
-    std::vector<int> v(state.range(0), state.range(0));
-    benchmark::DoNotOptimize(v.data());
-    benchmark::ClobberMemory();
-  }
-}
-BENCHMARK(BM_DenseRange)->DenseRange(0, 1024, 128);
 ```
 
 #### Passing Arbitrary Arguments to a Benchmark
