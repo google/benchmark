@@ -4,7 +4,9 @@
 #include <sstream>
 #include <string>
 #include <utility>
-#include "internal_macros.h"
+
+#include "benchmark/benchmark.h"
+#include "internal_macros.h"  // IWYU pragma: keep
 
 namespace benchmark {
 

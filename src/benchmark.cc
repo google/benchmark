@@ -13,41 +13,26 @@
 // limitations under the License.
 
 #include "benchmark/benchmark.h"
-#include "benchmark_api_internal.h"
-#include "benchmark_runner.h"
-#include "internal_macros.h"
-
-#ifndef BENCHMARK_OS_WINDOWS
-#ifndef BENCHMARK_OS_FUCHSIA
-#include <sys/resource.h>
-#endif
-#include <sys/time.h>
-#include <unistd.h>
-#endif
 
 #include <algorithm>
-#include <atomic>
-#include <condition_variable>
+#include <cstdint>
 #include <cstdio>
 #include <cstdlib>
-#include <fstream>
+#include <fstream>  // IWYU pragma: keep
+#include <initializer_list>
 #include <iostream>
+#include <limits>
 #include <memory>
 #include <string>
-#include <thread>
-#include <utility>
+// IWYU pragma: no_include <stdint.h>
 
+#include "benchmark_api_internal.h"
+#include "benchmark_runner.h"
 #include "check.h"
 #include "colorprint.h"
 #include "commandlineflags.h"
-#include "complexity.h"
-#include "counter.h"
-#include "internal_macros.h"
 #include "log.h"
 #include "mutex.h"
-#include "re.h"
-#include "statistics.h"
-#include "string_util.h"
 #include "thread_manager.h"
 #include "thread_timer.h"
 

@@ -1,15 +1,15 @@
 #ifndef BENCHMARK_API_INTERNAL_H
 #define BENCHMARK_API_INTERNAL_H
 
-#include "benchmark/benchmark.h"
-#include "commandlineflags.h"
+#include <stdint.h>
 
-#include <cmath>
 #include <iosfwd>
-#include <limits>
-#include <memory>
 #include <string>
 #include <vector>
+
+#include "benchmark/benchmark.h"
+#include "thread_manager.h"  // IWYU pragma: keep
+#include "thread_timer.h"    // IWYU pragma: keep
 
 namespace benchmark {
 namespace internal {

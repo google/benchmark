@@ -14,41 +14,23 @@
 
 #include "benchmark_register.h"
 
-#ifndef BENCHMARK_OS_WINDOWS
-#ifndef BENCHMARK_OS_FUCHSIA
-#include <sys/resource.h>
-#endif
-#include <sys/time.h>
-#include <unistd.h>
-#endif
-
 #include <algorithm>
-#include <atomic>
-#include <condition_variable>
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
+#include <cinttypes>
+#include <cstdint>
 #include <fstream>
-#include <iostream>
 #include <memory>
-#include <sstream>
-#include <thread>
-
-#define __STDC_FORMAT_MACROS
-#include <inttypes.h>
+#include <string>
+#include <utility>
+// IWYU pragma: no_include <ext/new_allocator.h>
 
 #include "benchmark/benchmark.h"
 #include "benchmark_api_internal.h"
 #include "check.h"
-#include "commandlineflags.h"
-#include "complexity.h"
-#include "internal_macros.h"
 #include "log.h"
 #include "mutex.h"
 #include "re.h"
 #include "statistics.h"
 #include "string_util.h"
-#include "timers.h"
 
 namespace benchmark {
 

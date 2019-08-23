@@ -14,6 +14,9 @@
 
 #include "counter.h"
 
+#include <map>
+#include <utility>
+
 namespace benchmark {
 namespace internal {
 

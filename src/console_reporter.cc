@@ -12,24 +12,21 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#include <stdarg.h>
+
 #include <algorithm>
-#include <cstdint>
-#include <cstdio>
 #include <cstring>
 #include <iostream>
 #include <string>
-#include <tuple>
+#include <utility>
 #include <vector>
 
 #include "benchmark/benchmark.h"
-#include "check.h"
 #include "colorprint.h"
-#include "commandlineflags.h"
 #include "complexity.h"
 #include "counter.h"
-#include "internal_macros.h"
+#include "internal_macros.h"  // IWYU pragma: keep
 #include "string_util.h"
-#include "timers.h"
 
 namespace benchmark {
 

@@ -22,14 +22,14 @@
 #include <string>
 
 #include "check.h"
-#include "internal_macros.h"
+#include "internal_macros.h"  // IWYU pragma: keep
 
 #ifdef BENCHMARK_OS_WINDOWS
 #include <windows.h>
 #include <io.h>
-#else
+#else  // ifdef BENCHMARK_OS_WINDOWS
 #include <unistd.h>
-#endif  // BENCHMARK_OS_WINDOWS
+#endif  // ifndef BENCHMARK_OS_WINDOWS
 
 namespace benchmark {
 namespace {

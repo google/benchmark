@@ -1,13 +1,16 @@
 #include "string_util.h"
 
+#include <algorithm>
 #include <array>
-#include <cmath>
+#include <cmath>  // IWYU pragma: keep
 #include <cstdarg>
+#include <cstdint>
 #include <cstdio>
 #include <memory>
 #include <sstream>
 
 #include "arraysize.h"
+#include "internal_macros.h"  // IWYU pragma: keep
 
 namespace benchmark {
 namespace {

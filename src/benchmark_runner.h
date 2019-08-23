@@ -15,8 +15,11 @@
 #ifndef BENCHMARK_RUNNER_H_
 #define BENCHMARK_RUNNER_H_
 
-#include "benchmark_api_internal.h"
-#include "internal_macros.h"
+#include <vector>
+
+#include "benchmark/benchmark.h"
+#include "benchmark_api_internal.h"  // IWYU pragma: keep
+#include "commandlineflags.h"
 
 DECLARE_double(benchmark_min_time);
 

@@ -12,7 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <benchmark/benchmark.h>
+#include <stddef.h>
+
+#include <string>
+
+#include "benchmark/benchmark.h"
 
 namespace benchmark {
 

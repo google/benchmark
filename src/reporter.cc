@@ -12,17 +12,15 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "benchmark/benchmark.h"
-#include "timers.h"
-
-#include <cstdlib>
-
 #include <iostream>
-#include <tuple>
+#include <string>
 #include <vector>
 
+#include "benchmark/benchmark.h"
 #include "check.h"
+#include "log.h"
 #include "string_util.h"
+#include "timers.h"
 
 namespace benchmark {
 

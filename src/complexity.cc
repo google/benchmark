@@ -15,12 +15,16 @@
 // Source project : https://github.com/ismaelJimenez/cpp.leastsq
 // Adapted to be used with google benchmark
 
-#include "benchmark/benchmark.h"
-
-#include <algorithm>
-#include <cmath>
-#include "check.h"
 #include "complexity.h"
+
+#include <cmath>
+#include <cstddef>
+#include <cstdint>
+// IWYU pragma: no_include <memory>
+
+#include "benchmark/benchmark.h"
+#include "check.h"
+#include "log.h"
 
 namespace benchmark {
 

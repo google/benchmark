@@ -12,58 +12,64 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "internal_macros.h"
+#include "benchmark/benchmark.h"
+#include "internal_macros.h"  // IWYU pragma: keep
 
 #ifdef BENCHMARK_OS_WINDOWS
 #include <shlwapi.h>
 #undef StrCat  // Don't let StrCat in string_util.h be renamed to lstrcatA
 #include <versionhelpers.h>
 #include <windows.h>
+
 #include <codecvt>
-#else
-#include <fcntl.h>
-#ifndef BENCHMARK_OS_FUCHSIA
-#include <sys/resource.h>
-#endif
-#include <sys/time.h>
-#include <sys/types.h>  // this header must be included before 'sys/sysctl.h' to avoid compilation error on FreeBSD
+#include <memory>
+#else  // ifdef BENCHMARK_OS_WINDOWS
 #include <unistd.h>
+// IWYU pragma: no_include <bits/local_lim.h>
+#endif  // ifndef BENCHMARK_OS_WINDOWS
+
 #if defined BENCHMARK_OS_FREEBSD || defined BENCHMARK_OS_MACOSX || \
     defined BENCHMARK_OS_NETBSD || defined BENCHMARK_OS_OPENBSD
+#include <sys/types.h>  // this header must be included before 'sys/sysctl.h' to avoid compilation error on FreeBSD
 #define BENCHMARK_HAS_SYSCTL
 #include <sys/sysctl.h>
-#endif
-#endif
+#endif  //  defined BENCHMARK_OS_FREEBSD || defined BENCHMARK_OS_MACOSX ||
+        //  defined BENCHMARK_OS_NETBSD || defined BENCHMARK_OS_OPENBSD
+
 #if defined(BENCHMARK_OS_SOLARIS)
 #include <kstat.h>
-#endif
+#endif  //  defined(BENCHMARK_OS_SOLARIS)
+
 #if defined(BENCHMARK_OS_QNX)
 #include <sys/syspage.h>
-#endif
+#endif  // defined(BENCHMARK_OS_QNX)
 
 #include <algorithm>
 #include <array>
 #include <bitset>
-#include <cerrno>
+#include <cctype>
 #include <climits>
 #include <cstdint>
 #include <cstdio>
 #include <cstdlib>
-#include <cstring>
-#include <fstream>
+#include <cstring>  // IWYU pragma: keep
+#include <fstream>  // IWYU pragma: keep
 #include <iostream>
-#include <iterator>
-#include <limits>
-#include <memory>
-#include <sstream>
-#include <locale>
+#include <string>
+#include <utility>
+#include <vector>
 
-#include "check.h"
+#ifdef BENCHMARK_HAS_SYSCTL
+#include <memory>
+#endif  // ifdef BENCHMARK_HAS_SYSCTL
+
 #include "cycleclock.h"
-#include "internal_macros.h"
-#include "log.h"
 #include "sleep.h"
 #include "string_util.h"
+
+#ifdef BENCHMARK_HAS_SYSCTL
+#include "check.h"
+#endif  // ifdef BENCHMARK_HAS_SYSCTL
 
 namespace benchmark {
 namespace {
@@ -434,10 +440,10 @@ std::string GetSystemName() {
 #elif defined(BENCHMARK_OS_QNX)
 #define HOST_NAME_MAX 154
 #endif
-  char hostname[HOST_NAME_MAX];
-  int retVal = gethostname(hostname, HOST_NAME_MAX);
+  std::array<char, HOST_NAME_MAX> hostname;
+  int retVal = gethostname(hostname.data(), HOST_NAME_MAX);
   if (retVal != 0) return std::string("");
-  return std::string(hostname);
+  return std::string(hostname.data());
 #endif // Catch-all POSIX block.
 }
 

@@ -12,19 +12,19 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "benchmark/benchmark.h"
-#include "complexity.h"
+#include <stddef.h>
 
-#include <algorithm>
 #include <cmath>
 #include <cstdint>
-#include <iomanip>  // for setprecision
+#include <iomanip>
 #include <iostream>
 #include <limits>
 #include <string>
-#include <tuple>
+#include <utility>
 #include <vector>
 
+#include "benchmark/benchmark.h"
+#include "complexity.h"
 #include "string_util.h"
 #include "timers.h"
 

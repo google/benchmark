@@ -15,10 +15,9 @@
 #include "sleep.h"
 
 #include <cerrno>
-#include <cstdlib>
 #include <ctime>
 
-#include "internal_macros.h"
+#include "internal_macros.h"  // IWYU pragma: keep
 
 #ifdef BENCHMARK_OS_WINDOWS
 #include <windows.h>

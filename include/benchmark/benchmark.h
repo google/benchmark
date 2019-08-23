@@ -167,21 +167,23 @@ BENCHMARK(BM_test)->Unit(benchmark::kMillisecond);
 #define BENCHMARK_HAS_CXX11
 #endif
 
-#include <stdint.h>
+#include <stdint.h>  // IWYU pragma: keep
 
-#include <algorithm>
-#include <cassert>
-#include <cstddef>
-#include <iosfwd>
-#include <map>
-#include <set>
-#include <string>
-#include <vector>
+#include <algorithm>  // for max
+#include <cassert>    // for assert
+#include <cstddef>    // for size_t, ptrdiff_t
+#include <iosfwd>     // for ostream
+#include <iterator>   // for forward_iterator_tag
+#include <map>        // for map
+#include <set>        // for set
+#include <string>     // for string
+#include <vector>     // for vector
+// IWYU pragma: no_include <cstdint>
 
 #if defined(BENCHMARK_HAS_CXX11)
-#include <initializer_list>
-#include <type_traits>
-#include <utility>
+#include <initializer_list>  // IWYU pragma: keep
+#include <type_traits>       // for decay
+#include <utility>           // for pair, make_pair, forward
 #endif
 
 #if defined(_MSC_VER)
@@ -284,8 +286,6 @@ void RegisterMemoryManager(MemoryManager* memory_manager);
 
 namespace internal {
 class Benchmark;
-class BenchmarkImp;
-class BenchmarkFamilies;
 
 void UseCharPointer(char const volatile*);
 

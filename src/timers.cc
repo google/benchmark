@@ -13,49 +13,45 @@
 // limitations under the License.
 
 #include "timers.h"
-#include "internal_macros.h"
+
+#include <cstdlib>
+#include <ctime>
+#include <iostream>
+
+#include "internal_macros.h"  // IWYU pragma: keep
 
 #ifdef BENCHMARK_OS_WINDOWS
 #include <shlwapi.h>
 #undef StrCat  // Don't let StrCat in string_util.h be renamed to lstrcatA
 #include <versionhelpers.h>
 #include <windows.h>
-#else
-#include <fcntl.h>
+#endif  // ifdef BENCHMARK_OS_WINDOWS
+
+#ifndef BENCHMARK_OS_WINDOWS
 #ifndef BENCHMARK_OS_FUCHSIA
-#include <sys/resource.h>
+#include <sys/resource.h>  // IWYU pragma: keep
 #endif
 #include <sys/time.h>
-#include <sys/types.h>  // this header must be included before 'sys/sysctl.h' to avoid compilation error on FreeBSD
-#include <unistd.h>
+// IWYU pragma: no_include <bits/types/struct_rusage.h>
+// IWYU pragma: no_include <bits/types/struct_tm.h>
+#endif  // ifndef BENCHMARK_OS_WINDOWS
+
 #if defined BENCHMARK_OS_FREEBSD || defined BENCHMARK_OS_MACOSX
 #include <sys/sysctl.h>
-#endif
+#include <sys/types.h>  // this header must be included before 'sys/sysctl.h' to avoid compilation error on FreeBSD
+#endif  // defined BENCHMARK_OS_FREEBSD || defined BENCHMARK_OS_MACOSX
+
 #if defined(BENCHMARK_OS_MACOSX)
 #include <mach/mach_init.h>
 #include <mach/mach_port.h>
 #include <mach/thread_act.h>
-#endif
-#endif
+#endif  // defined(BENCHMARK_OS_MACOSX)
 
 #ifdef BENCHMARK_OS_EMSCRIPTEN
 #include <emscripten.h>
-#endif
-
-#include <cerrno>
-#include <cstdint>
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
-#include <ctime>
-#include <iostream>
-#include <limits>
-#include <mutex>
+#endif  // ifdef BENCHMARK_OS_EMSCRIPTEN
 
 #include "check.h"
-#include "log.h"
-#include "sleep.h"
-#include "string_util.h"
 
 namespace benchmark {
 

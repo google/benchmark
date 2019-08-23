@@ -12,19 +12,17 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "benchmark/benchmark.h"
-#include "complexity.h"
-
-#include <algorithm>
-#include <cstdint>
 #include <iostream>
+#include <map>
+#include <set>
 #include <string>
-#include <tuple>
+#include <utility>
 #include <vector>
 
+#include "benchmark/benchmark.h"
 #include "check.h"
-#include "string_util.h"
-#include "timers.h"
+#include "complexity.h"
+#include "log.h"
 
 // File format reference: http://edoceo.com/utilitas/csv-file-format.
 

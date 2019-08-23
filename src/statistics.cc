@@ -13,15 +13,20 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "benchmark/benchmark.h"
+#include "statistics.h"
 
 #include <algorithm>
 #include <cmath>
+#include <iosfwd>
+#include <map>
 #include <numeric>
 #include <string>
+#include <utility>
 #include <vector>
+// IWYU pragma: no_include <memory>
+
+#include "benchmark/benchmark.h"
 #include "check.h"
-#include "statistics.h"
 
 namespace benchmark {
 

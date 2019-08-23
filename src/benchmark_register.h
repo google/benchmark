@@ -1,6 +1,11 @@
 #ifndef BENCHMARK_REGISTER_H
 #define BENCHMARK_REGISTER_H
 
+#include <stddef.h>
+
+#include <algorithm>
+#include <limits>
+#include <type_traits>
 #include <vector>
 
 #include "check.h"
