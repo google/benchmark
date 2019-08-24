@@ -21,6 +21,7 @@ __pycache__
 CMakeCache.txt
 CMakeFiles/
 cmake_install.cmake
+CMakeLists.txt.user
 
 # makefiles.
 Makefile
