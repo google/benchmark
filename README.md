@@ -192,9 +192,9 @@ Alternatively, link against the `benchmark_main` library and remove
 The compiled executable will run all benchmarks by default. Pass the `--help`
 flag for option information or see the guide below.
 
-### Platform Specific Build Instructions
+## Platform Specific Build Instructions
 
-#### Building with GCC
+### Building with GCC
 
 When the library is built using GCC it is necessary to link with the pthread
 library due to how GCC implements `std::thread`. Failing to link to pthread will
@@ -204,12 +204,12 @@ can link to pthread by adding `-pthread` to your linker command. Note, you can
 also use `-lpthread`, but there are potential issues with ordering of command
 line parameters if you use that.
 
-#### Building with Visual Studio 2015 or 2017
+### Building with Visual Studio 2015 or 2017
 
 The `shlwapi` library (`-lshlwapi`) is required to support a call to `CPUInfo` which reads the registry. Either add `shlwapi.lib` under `[ Configuration Properties > Linker > Input ]`, or use the following:
 
 ```
-// Alternatively, can add these libraries under [ Configuration Properties > Linker > Input ].
+// Alternatively, can add libraries using linker options.
 #ifdef _WIN32
 #pragma comment ( lib, "Shlwapi.lib" )
 #ifdef _DEBUG
@@ -227,7 +227,7 @@ Can also use the graphical version of CMake:
 * Click `Configure`, `Generate`, `Open Project`.
 * If build fails, try deleting entire directory and starting again, or unticking options to build less.
 
-#### Building with Intel 2015 Update 1 or Intel System Studio Update 4
+### Building with Intel 2015 Update 1 or Intel System Studio Update 4
 
 See instructions for building with Visual Studio. Once built, right click on the solution and change the build to Intel.
 
