@@ -2,7 +2,7 @@
 set(GOOGLETEST_PREFIX "${benchmark_BINARY_DIR}/third_party/googletest")
 configure_file(${benchmark_SOURCE_DIR}/cmake/GoogleTest.cmake.in ${GOOGLETEST_PREFIX}/CMakeLists.txt @ONLY)
 
-set(GOOGLETEST_PATH "${CMAKE_CURRENT_SOURCE_DIR}/googletest") # Mind the quotes
+set(GOOGLETEST_PATH "${CMAKE_CURRENT_SOURCE_DIR}/googletest" CACHE PATH "") # Mind the quotes
 execute_process(COMMAND ${CMAKE_COMMAND} -G "${CMAKE_GENERATOR}"
   -DALLOW_DOWNLOADING_GOOGLETEST=${BENCHMARK_DOWNLOAD_DEPENDENCIES} -DGOOGLETEST_PATH:PATH=${GOOGLETEST_PATH} .
   RESULT_VARIABLE result
