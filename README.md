@@ -873,7 +873,7 @@ static void MyMain(int size) {
 
 static void BM_OpenMP(benchmark::State& state) {
   for (auto _ : state)
-    MyMain(state.range(0);
+    MyMain(state.range(0));
 }
 
 // Measure the time spent by the main thread, use it to decide for how long to
@@ -950,7 +950,7 @@ static void BM_ManualTiming(benchmark::State& state) {
     auto start = std::chrono::high_resolution_clock::now();
     // Simulate some useful workload with a sleep
     std::this_thread::sleep_for(sleep_duration);
-    auto end   = std::chrono::high_resolution_clock::now();
+    auto end = std::chrono::high_resolution_clock::now();
 
     auto elapsed_seconds =
       std::chrono::duration_cast<std::chrono::duration<double>>(
