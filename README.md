@@ -182,8 +182,8 @@ library will be under the build directory you created.
 ```bash
 # Example on linux after running the build steps above. Assumes the
 # `benchmark` and `build` directories are under the current directory.
-$ g++ -std=c++11 -isystem benchmark/include -Lbuild/src -lpthread \
-  -lbenchmark mybenchmark.cc -o mybenchmark
+$ g++ mybenchmark.cc -std=c++11 -isystem benchmark/include \
+  -Lbenchmark/build/src -lbenchmark -lpthread -o mybenchmark
 ```
 
 Alternatively, link against the `benchmark_main` library and remove
