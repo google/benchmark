@@ -1,9 +1,9 @@
 # Benchmark
+
 [![Build Status](https://travis-ci.org/google/benchmark.svg?branch=master)](https://travis-ci.org/google/benchmark)
 [![Build status](https://ci.appveyor.com/api/projects/status/u0qsyp7t1tk7cpxs/branch/master?svg=true)](https://ci.appveyor.com/project/google/benchmark/branch/master)
 [![Coverage Status](https://coveralls.io/repos/google/benchmark/badge.svg)](https://coveralls.io/r/google/benchmark)
 [![slackin](https://slackin-iqtfqnpzxd.now.sh/badge.svg)](https://slackin-iqtfqnpzxd.now.sh/)
-
 
 A library to benchmark code snippets, similar to unit tests. Example:
 
@@ -149,7 +149,9 @@ this branch. However, this branch provides no stability guarantees and reserves
 the right to change and break the API at any time.
 
 ## Usage
+
 ### Basic usage
+
 Define a function that executes the code to measure, register it as a benchmark
 function using the `BENCHMARK` macro, and ensure an appropriate `main` function
 is available:
@@ -239,15 +241,19 @@ too (`-lkstat`).
 ## User Guide
 
 ### Command Line
+
 [Output Formats](#output-formats)
 
 [Output Files](#output-files)
+
+[Running Benchmarks](#running-benchmarks)
 
 [Running a Subset of Benchmarks](#running-a-subset-of-benchmarks)
 
 [Result Comparison](#result-comparison)
 
 ### Library
+
 [Runtime and Reporting Considerations](#runtime-and-reporting-considerations)
 
 [Passing Arguments](#passing-arguments)
@@ -282,17 +288,20 @@ too (`-lkstat`).
 
 [Disabling CPU Frequency Scaling](#disabling-cpu-frequency-scaling)
 
+
 <a name="output-formats" />
 
 ### Output Formats
 
 The library supports multiple output formats. Use the
-`--benchmark_format=<console|json|csv>` flag to set the format type. `console`
-is the default format.
+`--benchmark_format=<console|json|csv>` (or set the
+`BENCHMARK_FORMAT=<console|json|csv>` environment variable) flag to set
+the format type. `console` is the default format.
 
 The Console format is intended to be a human readable format. By default
 the format generates color output. Context is output on stderr and the
 tabular data on stdout. Example tabular output looks like:
+
 ```
 Benchmark                               Time(ns)    CPU(ns) Iterations
 ----------------------------------------------------------------------
@@ -306,6 +315,7 @@ The `context` attribute contains information about the run in general, including
 information about the CPU and the date.
 The `benchmarks` attribute contains a list of every benchmark run. Example json
 output looks like:
+
 ```json
 {
   "context": {
@@ -346,6 +356,7 @@ output looks like:
 
 The CSV format outputs comma-separated values. The `context` is output on stderr
 and the CSV itself on stdout. Example CSV output looks like:
+
 ```
 name,iterations,real_time,cpu_time,bytes_per_second,items_per_second,label
 "BM_SetInsert/1024/1",65465,17890.7,8407.45,475768,118942,
@@ -357,16 +368,31 @@ name,iterations,real_time,cpu_time,bytes_per_second,items_per_second,label
 
 ### Output Files
 
-Write benchmark results to a file with the `--benchmark_out=<filename>` option.
-Specify the output format with `--benchmark_out_format={json|console|csv}`. Note that Specifying
+Write benchmark results to a file with the `--benchmark_out=<filename>` option
+(or set `BENCHMARK_OUT`). Specify the output format with
+`--benchmark_out_format={json|console|csv}` (or set
+`BENCHMARK_OUT_FORMAT={json|console|csv}`). Note that specifying
 `--benchmark_out` does not suppress the console output.
+
+<a name="running-benchmarks" />
+
+### Running Benchmarks
+
+Benchmarks are executed by running the produced binaries. Benchmarks binaries,
+by default, accept options that may be specified either through their command
+line interface or by setting environment variables before execution. For every
+`--option_flag=<value>` CLI swich, a corresponding environment variable
+`OPTION_FLAG=<value>` exist and is used as default if set (CLI switches always
+ prevails). A complete list of CLI options is available running benchmarks
+ with the `--help` switch.
 
 <a name="running-a-subset-of-benchmarks" />
 
 ### Running a Subset of Benchmarks
 
-The `--benchmark_filter=<regex>` option can be used to only run the benchmarks
-which match the specified `<regex>`. For example:
+The `--benchmark_filter=<regex>` option (or `BENCHMARK_FILTER=<regex>`
+environment variable) can be used to only run the benchmarks that match
+the specified `<regex>`. For example:
 
 ```bash
 $ ./run_benchmarks.x --benchmark_filter=BM_memcpy/32
@@ -384,7 +410,8 @@ BM_memcpy/32k       1834 ns       1837 ns     357143
 
 ### Result comparison
 
-It is possible to compare the benchmarking results. See [Additional Tooling Documentation](docs/tools.md)
+It is possible to compare the benchmarking results.
+See [Additional Tooling Documentation](docs/tools.md)
 
 <a name="runtime-and-reporting-considerations" />
 
@@ -450,6 +477,7 @@ range multiplier is changed to multiples of two.
 ```c++
 BENCHMARK(BM_memcpy)->RangeMultiplier(2)->Range(8, 8<<10);
 ```
+
 Now arguments generated are [ 8, 16, 32, 64, 128, 256, 512, 1024, 2k, 4k, 8k ].
 
 The preceding code shows a method of defining a sparse range.  The following
@@ -466,6 +494,7 @@ static void BM_DenseRange(benchmark::State& state) {
 }
 BENCHMARK(BM_DenseRange)->DenseRange(0, 1024, 128);
 ```
+
 Now arguments generated are [ 0, 128, 256, 384, 512, 640, 768, 896, 1024 ].
 
 You might have a benchmark that depends on two or more inputs. For example, the
@@ -535,6 +564,7 @@ void BM_takes_args(benchmark::State& state, ExtraArgs&&... extra_args) {
 // the specified values to `extra_args`.
 BENCHMARK_CAPTURE(BM_takes_args, int_string_test, 42, std::string("abc"));
 ```
+
 Note that elements of `...args` may refer to global variables. Users should
 avoid modifying global state inside of a benchmark.
 
@@ -659,6 +689,7 @@ Also you can create templated fixture by using the following macros:
 * `BENCHMARK_TEMPLATE_DEFINE_F(ClassName, Method, ...)`
 
 For example:
+
 ```c++
 template<typename T>
 class MyFixture : public benchmark::Fixture {};
@@ -813,6 +844,7 @@ BM_CalculatePiRange/256k   2434095 ns    2434186 ns        288 3.1416
 BM_CalculatePiRange/1024k  9721140 ns    9721413 ns         71 3.14159
 BM_CalculatePi/threads:8      2255 ns       9943 ns      70936
 ```
+
 Note above the additional header printed when the benchmark changes from
 ``BM_UserCounter`` to ``BM_Factorial``. This is because ``BM_Factorial`` does
 not have the same counter set as ``BM_UserCounter``.
@@ -1222,11 +1254,15 @@ the benchmark loop should be preferred.
 <a name="disabling-cpu-frequency-scaling" />
 
 ### Disabling CPU Frequency Scaling
+
 If you see this error:
+
 ```
 ***WARNING*** CPU scaling is enabled, the benchmark real time measurements may be noisy and will incur extra overhead.
 ```
+
 you might want to disable the CPU frequency scaling while running the benchmark:
+
 ```bash
 sudo cpupower frequency-set --governor performance
 ./mybench
