@@ -135,7 +135,7 @@ bool JSONReporter::ReportContext(const Context& context) {
     out << cache_indent << FormatKV("level", static_cast<int64_t>(CI.level))
         << ",\n";
     out << cache_indent
-        << FormatKV("size", static_cast<int64_t>(CI.size) * 1000u) << ",\n";
+        << FormatKV("size", static_cast<int64_t>(CI.size)) << ",\n";
     out << cache_indent
         << FormatKV("num_sharing", static_cast<int64_t>(CI.num_sharing))
         << "\n";
