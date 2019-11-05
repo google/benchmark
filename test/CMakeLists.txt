@@ -54,12 +54,12 @@ endmacro(compile_output_test)
 
 # Demonstration executable
 compile_benchmark_test(benchmark_test)
-add_test(benchmark benchmark_test --benchmark_min_time=0.01)
+add_test(NAME benchmark COMMAND benchmark_test --benchmark_min_time=0.01)
 
 compile_benchmark_test(filter_test)
 macro(add_filter_test name filter expect)
-  add_test(${name} filter_test --benchmark_min_time=0.01 --benchmark_filter=${filter} ${expect})
-  add_test(${name}_list_only filter_test --benchmark_list_tests --benchmark_filter=${filter} ${expect})
+  add_test(NAME ${name} COMMAND filter_test --benchmark_min_time=0.01 --benchmark_filter=${filter} ${expect})
+  add_test(NAME ${name}_list_only COMMAND filter_test --benchmark_list_tests --benchmark_filter=${filter} ${expect})
 endmacro(add_filter_test)
 
 add_filter_test(filter_simple "Foo" 3)
@@ -82,16 +82,16 @@ add_filter_test(filter_regex_end ".*Ba$" 1)
 add_filter_test(filter_regex_end_negative "-.*Ba$" 4)
 
 compile_benchmark_test(options_test)
-add_test(options_benchmarks options_test --benchmark_min_time=0.01)
+add_test(NAME options_benchmarks COMMAND options_test --benchmark_min_time=0.01)
 
 compile_benchmark_test(basic_test)
-add_test(basic_benchmark basic_test --benchmark_min_time=0.01)
+add_test(NAME basic_benchmark COMMAND basic_test --benchmark_min_time=0.01)
 
 compile_benchmark_test(diagnostics_test)
-add_test(diagnostics_test diagnostics_test --benchmark_min_time=0.01)
+add_test(NAME diagnostics_test COMMAND diagnostics_test --benchmark_min_time=0.01)
 
 compile_benchmark_test(skip_with_error_test)
-add_test(skip_with_error_test skip_with_error_test --benchmark_min_time=0.01)
+add_test(NAME skip_with_error_test COMMAND skip_with_error_test --benchmark_min_time=0.01)
 
 compile_benchmark_test(donotoptimize_test)
 # Some of the issues with DoNotOptimize only occur when optimization is enabled
@@ -99,49 +99,49 @@ check_cxx_compiler_flag(-O3 BENCHMARK_HAS_O3_FLAG)
 if (BENCHMARK_HAS_O3_FLAG)
   set_target_properties(donotoptimize_test PROPERTIES COMPILE_FLAGS "-O3")
 endif()
-add_test(donotoptimize_test donotoptimize_test --benchmark_min_time=0.01)
+add_test(NAME donotoptimize_test COMMAND donotoptimize_test --benchmark_min_time=0.01)
 
 compile_benchmark_test(fixture_test)
-add_test(fixture_test fixture_test --benchmark_min_time=0.01)
+add_test(NAME fixture_test COMMAND fixture_test --benchmark_min_time=0.01)
 
 compile_benchmark_test(register_benchmark_test)
-add_test(register_benchmark_test register_benchmark_test --benchmark_min_time=0.01)
+add_test(NAME register_benchmark_test COMMAND register_benchmark_test --benchmark_min_time=0.01)
 
 compile_benchmark_test(map_test)
-add_test(map_test map_test --benchmark_min_time=0.01)
+add_test(NAME map_test COMMAND map_test --benchmark_min_time=0.01)
 
 compile_benchmark_test(multiple_ranges_test)
-add_test(multiple_ranges_test multiple_ranges_test --benchmark_min_time=0.01)
+add_test(NAME multiple_ranges_test COMMAND multiple_ranges_test --benchmark_min_time=0.01)
 
 compile_benchmark_test_with_main(link_main_test)
-add_test(link_main_test link_main_test --benchmark_min_time=0.01)
+add_test(NAME link_main_test COMMAND link_main_test --benchmark_min_time=0.01)
 
 compile_output_test(reporter_output_test)
-add_test(reporter_output_test reporter_output_test --benchmark_min_time=0.01)
+add_test(NAME reporter_output_test COMMAND reporter_output_test --benchmark_min_time=0.01)
 
 compile_output_test(templated_fixture_test)
-add_test(templated_fixture_test templated_fixture_test --benchmark_min_time=0.01)
+add_test(NAME templated_fixture_test COMMAND templated_fixture_test --benchmark_min_time=0.01)
 
 compile_output_test(user_counters_test)
-add_test(user_counters_test user_counters_test --benchmark_min_time=0.01)
+add_test(NAME user_counters_test COMMAND user_counters_test --benchmark_min_time=0.01)
 
 compile_output_test(internal_threading_test)
-add_test(internal_threading_test internal_threading_test --benchmark_min_time=0.01)
+add_test(NAME internal_threading_test COMMAND internal_threading_test --benchmark_min_time=0.01)
 
 compile_output_test(report_aggregates_only_test)
-add_test(report_aggregates_only_test report_aggregates_only_test --benchmark_min_time=0.01)
+add_test(NAME report_aggregates_only_test COMMAND report_aggregates_only_test --benchmark_min_time=0.01)
 
 compile_output_test(display_aggregates_only_test)
-add_test(display_aggregates_only_test display_aggregates_only_test --benchmark_min_time=0.01)
+add_test(NAME display_aggregates_only_test COMMAND display_aggregates_only_test --benchmark_min_time=0.01)
 
 compile_output_test(user_counters_tabular_test)
-add_test(user_counters_tabular_test user_counters_tabular_test --benchmark_counters_tabular=true --benchmark_min_time=0.01)
+add_test(NAME user_counters_tabular_test COMMAND user_counters_tabular_test --benchmark_counters_tabular=true --benchmark_min_time=0.01)
 
 compile_output_test(user_counters_thousands_test)
-add_test(user_counters_thousands_test user_counters_thousands_test --benchmark_min_time=0.01)
+add_test(NAME user_counters_thousands_test COMMAND user_counters_thousands_test --benchmark_min_time=0.01)
 
 compile_output_test(memory_manager_test)
-add_test(memory_manager_test memory_manager_test --benchmark_min_time=0.01)
+add_test(NAME memory_manager_test COMMAND memory_manager_test --benchmark_min_time=0.01)
 
 check_cxx_compiler_flag(-std=c++03 BENCHMARK_HAS_CXX03_FLAG)
 if (BENCHMARK_HAS_CXX03_FLAG)
@@ -159,7 +159,7 @@ if (BENCHMARK_HAS_CXX03_FLAG)
         PROPERTIES
         LINK_FLAGS "-Wno-odr")
   endif()
-  add_test(cxx03 cxx03_test --benchmark_min_time=0.01)
+  add_test(NAME cxx03 COMMAND cxx03_test --benchmark_min_time=0.01)
 endif()
 
 # Attempt to work around flaky test failures when running on Appveyor servers.
@@ -169,7 +169,7 @@ else()
   set(COMPLEXITY_MIN_TIME "0.01")
 endif()
 compile_output_test(complexity_test)
-add_test(complexity_benchmark complexity_test --benchmark_min_time=${COMPLEXITY_MIN_TIME})
+add_test(NAME complexity_benchmark COMMAND complexity_test --benchmark_min_time=${COMPLEXITY_MIN_TIME})
 
 ###############################################################################
 # GoogleTest Unit Tests
@@ -184,7 +184,7 @@ if (BENCHMARK_ENABLE_GTEST_TESTS)
 
   macro(add_gtest name)
     compile_gtest(${name})
-    add_test(${name} ${name})
+    add_test(NAME ${name} COMMAND ${name})
   endmacro()
 
   add_gtest(benchmark_gtest)
