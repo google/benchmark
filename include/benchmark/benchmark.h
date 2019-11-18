@@ -804,6 +804,10 @@ class Benchmark {
   // REQUIRES: The function passed to the constructor must accept an arg1.
   Benchmark* DenseRange(int64_t start, int64_t limit, int step = 1);
 
+  // Run this benchmark once for every value in list.
+  // REQUIRES: The function passed to the constructor must accept an arg1.
+  Benchmark* Explicit(std::initializer_list<int64_t> list);
+
   // Run this benchmark once with "args" as the extra arguments passed
   // to the function.
   // REQUIRES: The function passed to the constructor must accept arg1, arg2 ...

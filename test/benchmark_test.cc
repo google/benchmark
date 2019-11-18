@@ -176,7 +176,7 @@ static void BM_ParallelMemset(benchmark::State& state) {
     delete test_vector;
   }
 }
-BENCHMARK(BM_ParallelMemset)->Arg(10 << 20)->ThreadRange(1, 4);
+BENCHMARK(BM_ParallelMemset)->Explicit({10 << 20})->ThreadRange(1, 4);
 
 static void BM_ManualTiming(benchmark::State& state) {
   int64_t slept_for = 0;

@@ -283,6 +283,14 @@ Benchmark* Benchmark::Arg(int64_t x) {
   return this;
 }
 
+Benchmark* Benchmark::Explicit(std::initializer_list<int64_t> arglist) {
+  CHECK(ArgsCnt() == -1 || ArgsCnt() == 1);
+  for (int64_t i : arglist) {
+    args_.push_back({i});
+  }
+  return this;
+}
+
 Benchmark* Benchmark::Unit(TimeUnit unit) {
   time_unit_ = unit;
   return this;
