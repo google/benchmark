@@ -323,6 +323,21 @@ inline BENCHMARK_ALWAYS_INLINE void DoNotOptimize(Tp& value) {
 #endif
 }
 
+#ifdef __GNUC__
+/*special overload for gcc. Issue with double and long double encounterd
+https://gcc.gnu.org/bugzilla/show_bug.cgi?id=92597
+"+g" is internally turned into "=g" and "0" and so ends up matching too, but "+m,r" is internally turned into "=m,r" "m,0" rather than
+"=m,r" "0,0" and so the memory can be different and is in this case, the input (i.e. %1) is .rodata memory with the constant and output (i.e. %0) is some stack slot.*/
+inline void DoNotOptimize(long double& value) {
+	asm volatile("" : "+g,r"(value) : : "memory");
+}
+inline void DoNotOptimize(double& value) {
+	asm volatile("" : "+g,r"(value) : : "memory");
+}
+
+#endif	//__GNUC__
+
+
 // Force the compiler to flush pending writes to global memory. Acts as an
 // effective read/write barrier
 inline BENCHMARK_ALWAYS_INLINE void ClobberMemory() {
