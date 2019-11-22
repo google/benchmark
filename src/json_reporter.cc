@@ -92,7 +92,7 @@ std::string FormatKV(std::string const& key, double value) {
   return ss.str();
 }
 
-int64_t RoundDouble(double v) { return static_cast<int64_t>(v + 0.5); }
+int64_t RoundDouble(double v) { return std::lround(v); }
 
 }  // end namespace
 
