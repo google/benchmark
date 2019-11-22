@@ -162,12 +162,6 @@ extern "C" void test_pointer_lvalue() {
   benchmark::DoNotOptimize(xp);
 }
 
-/*test_double_lvalue:
-	movq	.LC0(%rip), %rax
-	movq	%rax, -8(%rsp)
-	leaq	-8(%rsp), %rax
-	ret*/
-
 // CHECK-LABEL: test_double_lvalue
 extern "C" void test_double_lvalue() {
   // CHECK: movq [[SRC:.*]], %rax
@@ -179,14 +173,6 @@ extern "C" void test_double_lvalue() {
   double *xp = &x;
   benchmark::DoNotOptimize(xp);
 }
-
-/*
-test_long_double_lvalue:
-	flds	.LC1(%rip)
-	leaq	-24(%rsp), %rax
-	fstpt	-24(%rsp)
-	ret
-*/
 
 // CHECK-LABEL: test_long_double_lvalue
 extern "C" void test_long_double_lvalue() {
