@@ -12,6 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#ifndef COUNTER_H_
+#define COUNTER_H_
+
 #include "benchmark/benchmark.h"
 
 namespace benchmark {
@@ -25,3 +28,5 @@ bool SameNames(UserCounters const& l, UserCounters const& r);
 }  // end namespace internal
 
 }  // end namespace benchmark
+
+#endif  // COUNTER_H_

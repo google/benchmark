@@ -204,7 +204,7 @@ def root(location = None, arch = None, version = None, threading = None,
             exceptions = 'sjlj'
         else:
             exceptions = keys[0]
-    if revision == None:
+    if revision is None:
         revision = max(versions[version][arch][threading][exceptions].keys())
     if not location:
         location = os.path.join(tempfile.gettempdir(), 'mingw-builds')

@@ -264,7 +264,7 @@ class BenchmarkRunner {
 
     // So what seems to be the sufficiently-large iteration count? Round up.
     const IterationCount max_next_iters =
-        0.5 + std::max(multiplier * i.iters, i.iters + 1.0);
+        std::lround(std::max(multiplier * i.iters, i.iters + 1.0));
     // But we do have *some* sanity limits though..
     const IterationCount next_iters = std::min(max_next_iters, kMaxIterations);
 
