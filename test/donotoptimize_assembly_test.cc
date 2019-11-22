@@ -161,3 +161,44 @@ extern "C" void test_pointer_lvalue() {
   int *xp = &x;
   benchmark::DoNotOptimize(xp);
 }
+
+/*test_double_lvalue:
+	movq	.LC0(%rip), %rax
+	movq	%rax, -8(%rsp)
+	leaq	-8(%rsp), %rax
+	ret*/
+
+// CHECK-LABEL: test_double_lvalue
+extern "C" void test_double_lvalue() {
+  // CHECK: movq [[SRC:.*]], %rax
+  // CHECK: movq %rax,  [[DEST:.*]]
+  // CHECK: leaq [[DEST]], %rax
+  // CHECK-CLANG: movq %rax, -{{[0-9]+}}(%[[REG:[a-z+]+]])
+  // CHECKX: ret
+  double x = 42.0;
+  double *xp = &x;
+  benchmark::DoNotOptimize(xp);
+}
+
+/*
+test_long_double_lvalue:
+	flds	.LC1(%rip)
+	leaq	-24(%rsp), %rax
+	fstpt	-24(%rsp)
+	ret
+*/
+
+// CHECK-LABEL: test_long_double_lvalue
+extern "C" void test_long_double_lvalue() {
+  // CHECK: flds [[SRC:.*]]
+  // CHECK: leaq -{{[0-9]+}}(%[[REG:[a-z+]+]]), %rax
+  // CHECK: fstpt -{{[0-9]+}}(%[[REG:[a-z+]+]])
+  // CHECK-CLANG: movq %rax, -{{[0-9]+}}(%[[REG:[a-z+]+]])
+  // CHECKX: ret
+  long double x = 42.0l;
+  long double *xp = &x;
+  benchmark::DoNotOptimize(xp);
+}
+
+
+
