@@ -311,15 +311,15 @@ BENCHMARK_UNUSED static int stream_init_anchor = InitializeStreams();
 #ifndef BENCHMARK_HAS_NO_INLINE_ASSEMBLY
 template <class Tp>
 inline BENCHMARK_ALWAYS_INLINE void DoNotOptimize(Tp const& value) {
-  asm volatile("" : : "r,m"(value) : "memory");
+  asm volatile("" : : "r,g"(value) : "memory");
 }
 
 template <class Tp>
 inline BENCHMARK_ALWAYS_INLINE void DoNotOptimize(Tp& value) {
 #if defined(__clang__)
-  asm volatile("" : "+r,m"(value) : : "memory");
+  asm volatile("" : "+r,g"(value) : : "memory");
 #else
-  asm volatile("" : "+m,r"(value) : : "memory");
+  asm volatile("" : "+g,r"(value) : : "memory");
 #endif
 }
 
