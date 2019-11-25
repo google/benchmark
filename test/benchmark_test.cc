@@ -176,7 +176,7 @@ static void BM_ParallelMemset(benchmark::State& state) {
     delete test_vector;
   }
 }
-BENCHMARK(BM_ParallelMemset)->Explicit({10 << 20})->ThreadRange(1, 4);
+BENCHMARK(BM_ParallelMemset)->Arg(10 << 20)->ThreadRange(1, 4);
 
 static void BM_ManualTiming(benchmark::State& state) {
   int64_t slept_for = 0;
@@ -217,6 +217,36 @@ void BM_non_template_args(benchmark::State& state, int, double) {
   while(state.KeepRunning()) {}
 }
 BENCHMARK_CAPTURE(BM_non_template_args, basic_test, 0, 0);
+
+static void BM_ExplicitlySpecifiedArgs(benchmark::State& state) {
+  // The only purpose of this benchmark is to verify that the incoming
+  // Arg values (aka state.range(0)) are the ones we expect, in the
+  // order we expect them in.
+  static int last_arg = 0;
+  if (last_arg != state.range(0)) {
+    switch (state.range(0)) {
+      case 6:
+        assert(last_arg == 0);
+        break;
+      case 9:
+        assert(last_arg == 6);
+        break;
+      case 4:
+        assert(last_arg == 9);
+        break;
+      case 2:
+        assert(last_arg == 4);
+        break;
+      default:
+        assert(false);  // unexpected arg
+        break;
+    }
+  }
+  for (auto _ : state) {
+    last_arg = state.range(0);
+  }
+}
+BENCHMARK(BM_ExplicitlySpecifiedArgs)->Explicit({6, 9, 4, 2});
 
 #endif  // BENCHMARK_HAS_CXX11
 

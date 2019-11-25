@@ -788,6 +788,7 @@ class Benchmark {
 
   // Run this benchmark once with "x" as the extra argument passed
   // to the function.
+  // Note: Rather than call Arg() repeatedly, use Explicit() below.
   // REQUIRES: The function passed to the constructor must accept an arg1.
   Benchmark* Arg(int64_t x);
 
@@ -804,9 +805,11 @@ class Benchmark {
   // REQUIRES: The function passed to the constructor must accept an arg1.
   Benchmark* DenseRange(int64_t start, int64_t limit, int step = 1);
 
+#if defined(BENCHMARK_HAS_CXX11)
   // Run this benchmark once for every value in list.
   // REQUIRES: The function passed to the constructor must accept an arg1.
   Benchmark* Explicit(std::initializer_list<int64_t> list);
+#endif
 
   // Run this benchmark once with "args" as the extra arguments passed
   // to the function.

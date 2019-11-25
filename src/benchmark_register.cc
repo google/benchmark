@@ -283,6 +283,7 @@ Benchmark* Benchmark::Arg(int64_t x) {
   return this;
 }
 
+#if defined(BENCHMARK_HAS_CXX11)
 Benchmark* Benchmark::Explicit(std::initializer_list<int64_t> arglist) {
   CHECK(ArgsCnt() == -1 || ArgsCnt() == 1);
   for (int64_t i : arglist) {
@@ -290,6 +291,7 @@ Benchmark* Benchmark::Explicit(std::initializer_list<int64_t> arglist) {
   }
   return this;
 }
+#endif
 
 Benchmark* Benchmark::Unit(TimeUnit unit) {
   time_unit_ = unit;
