@@ -270,7 +270,7 @@ std::vector<CPUInfo::CacheInfo> GetCacheSizesFromKVFS() {
       else if (f && suffix != "K")
         PrintErrorAndDie("Invalid cache size format: Expected bytes ", suffix);
       else if (suffix == "K")
-        info.size *= 1000;
+        info.size *= 1024;
     }
     if (!ReadFromFile(StrCat(FPath, "type"), &info.type))
       PrintErrorAndDie("Failed to read from file ", FPath, "type");
