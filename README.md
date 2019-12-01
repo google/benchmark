@@ -294,8 +294,8 @@ too (`-lkstat`).
 ### Output Formats
 
 The library supports multiple output formats. Use the
-`--benchmark_format=<console|json|csv>` (or set the
-`BENCHMARK_FORMAT=<console|json|csv>` environment variable) flag to set
+`--benchmark_format=<console|json|csv>` flag (or set the
+`BENCHMARK_FORMAT=<console|json|csv>` environment variable) to set
 the format type. `console` is the default format.
 
 The Console format is intended to be a human readable format. By default
@@ -381,7 +381,7 @@ Write benchmark results to a file with the `--benchmark_out=<filename>` option
 Benchmarks are executed by running the produced binaries. Benchmarks binaries,
 by default, accept options that may be specified either through their command
 line interface or by setting environment variables before execution. For every
-`--option_flag=<value>` CLI swich, a corresponding environment variable
+`--option_flag=<value>` CLI switch, a corresponding environment variable
 `OPTION_FLAG=<value>` exist and is used as default if set (CLI switches always
  prevails). A complete list of CLI options is available running benchmarks
  with the `--help` switch.
