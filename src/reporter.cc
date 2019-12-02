@@ -49,7 +49,7 @@ void BenchmarkReporter::PrintBasicContext(std::ostream *out,
     Out << "CPU Caches:\n";
     for (auto &CInfo : info.caches) {
       Out << "  L" << CInfo.level << " " << CInfo.type << " "
-          << (CInfo.size / 1000) << "K";
+          << (CInfo.size / 1024) << " KiB";
       if (CInfo.num_sharing != 0)
         Out << " (x" << (info.num_cpus / CInfo.num_sharing) << ")";
       Out << "\n";

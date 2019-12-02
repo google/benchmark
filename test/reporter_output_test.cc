@@ -38,9 +38,9 @@ static int AddContextCases() {
   for (size_t I = 0; I < Caches.size(); ++I) {
     std::string num_caches_str =
         Caches[I].num_sharing != 0 ? " \\(x%int\\)$" : "$";
-    AddCases(
-        TC_ConsoleErr,
-        {{"L%int (Data|Instruction|Unified) %intK" + num_caches_str, MR_Next}});
+    AddCases(TC_ConsoleErr,
+             {{"L%int (Data|Instruction|Unified) %int KiB" + num_caches_str,
+               MR_Next}});
     AddCases(TC_JSONOut, {{"\\{$", MR_Next},
                           {"\"type\": \"", MR_Next},
                           {"\"level\": %int,$", MR_Next},
