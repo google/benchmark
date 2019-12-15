@@ -151,17 +151,17 @@ matrix:
         - EXTRA_FLAGS="-g -O2 -fno-omit-frame-pointer -fsanitize=thread -fno-sanitize-recover=all"
         - EXTRA_CXX_FLAGS="-stdlib=libc++"
     - os: osx
-      osx_image: xcode8.3
+      osx_image: xcode9.4
       compiler: clang
       env:
         - COMPILER=clang++ BUILD_TYPE=Debug
     - os: osx
-      osx_image: xcode8.3
+      osx_image: xcode9.4
       compiler: clang
       env:
         - COMPILER=clang++ BUILD_TYPE=Release
     - os: osx
-      osx_image: xcode8.3
+      osx_image: xcode9.4
       compiler: clang
       env:
         - COMPILER=clang++
@@ -169,10 +169,10 @@ matrix:
         - BUILD_32_BITS=ON
         - EXTRA_FLAGS="-m32"
     - os: osx
-      osx_image: xcode8.3
+      osx_image: xcode9.4
       compiler: gcc
       env:
-        - COMPILER=g++-7 C_COMPILER=gcc-7  BUILD_TYPE=Debug
+        - COMPILER=g++-9 C_COMPILER=gcc-9  BUILD_TYPE=Debug
 
 before_script:
   - if [ -n "${LIBCXX_BUILD}" ]; then
@@ -207,10 +207,9 @@ install:
       pip install --user --upgrade pip;
       travis_wait pip install --user cpp-coveralls;
     fi
-  - if [ "${C_COMPILER}" == "gcc-7" -a "${TRAVIS_OS_NAME}" == "osx" ]; then
-      rm -f /usr/local/include/c++;
+  - if [ "${C_COMPILER}" == "gcc-9" -a "${TRAVIS_OS_NAME}" == "osx" ]; then
       brew update;
-      travis_wait brew install gcc@7;
+      travis_wait brew install gcc@9;
     fi
   - if [ "${TRAVIS_OS_NAME}" == "linux" ]; then
       sudo apt-get update -qq;
