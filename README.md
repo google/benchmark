@@ -177,8 +177,9 @@ BENCHMARK(BM_StringCopy);
 BENCHMARK_MAIN();
 ```
 
-To run the benchmark, compile and link against the `benchmark` library (libbenchmark.a/.so).
-If you followed the build steps above, this library will be under the build directory you created.
+To run the benchmark, compile and link against the `benchmark` library
+(libbenchmark.a/.so). If you followed the build steps above, this library will 
+be under the build directory you created.
 
 ```bash
 # Example on linux after running the build steps above. Assumes the
@@ -193,13 +194,18 @@ Alternatively, link against the `benchmark_main` library and remove
 The compiled executable will run all benchmarks by default. Pass the `--help`
 flag for option information or see the guide below.
 
-#### Usage with CMake
-If using CMake, it is recommended to link against the project-provided `benchmark::benchmark` and `benchmark::benchmark_main` targets using `target_link_libraries`.
-It is possible to use ```find_package``` to import an installed version of the library.
+### Usage with CMake
+
+If using CMake, it is recommended to link against the project-provided
+`benchmark::benchmark` and `benchmark::benchmark_main` targets using
+`target_link_libraries`.
+It is possible to use ```find_package``` to import an installed version of the
+library.
 ```cmake
 find_package(benchmark REQUIRED)
 ```
-Alternatively, ```add_subdirectory``` will incorporate the library directly in to one's CMake project.
+Alternatively, ```add_subdirectory``` will incorporate the library directly in
+to one's CMake project.
 ```cmake
 add_subdirectory(benchmark)
 ```
