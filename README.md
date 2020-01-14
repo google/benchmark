@@ -177,9 +177,9 @@ BENCHMARK(BM_StringCopy);
 BENCHMARK_MAIN();
 ```
 
-To run the benchmark, compile and link against the `benchmark` library
-(libbenchmark.a/.so). If you followed the build steps above, this
-library will be under the build directory you created.
+To run the benchmark, compile and link against the `benchmark` library (libbenchmark.a/.so).
+When using CMake, it is recommended to link against the provided `benchmark::benchmark` target.
+If you followed the build steps above, this library will be under the build directory you created.
 
 ```bash
 # Example on linux after running the build steps above. Assumes the
@@ -190,6 +190,7 @@ $ g++ mybenchmark.cc -std=c++11 -isystem benchmark/include \
 
 Alternatively, link against the `benchmark_main` library and remove
 `BENCHMARK_MAIN();` above to get the same behavior.
+As with the `benchmark` library, a `benchmark::benchmark_main` CMake target is provided.
 
 The compiled executable will run all benchmarks by default. Pass the `--help`
 flag for option information or see the guide below.
