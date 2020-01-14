@@ -38,17 +38,17 @@ add_library(output_test_helper STATIC output_test_helper.cc output_test.h)
 
 macro(compile_benchmark_test name)
   add_executable(${name} "${name}.cc")
-  target_link_libraries(${name} benchmark ${CMAKE_THREAD_LIBS_INIT})
+  target_link_libraries(${name} benchmark::benchmark ${CMAKE_THREAD_LIBS_INIT})
 endmacro(compile_benchmark_test)
 
 macro(compile_benchmark_test_with_main name)
   add_executable(${name} "${name}.cc")
-  target_link_libraries(${name} benchmark_main)
+  target_link_libraries(${name} benchmark::benchmark_main)
 endmacro(compile_benchmark_test_with_main)
 
 macro(compile_output_test name)
   add_executable(${name} "${name}.cc" output_test.h)
-  target_link_libraries(${name} output_test_helper benchmark
+  target_link_libraries(${name} output_test_helper benchmark::benchmark
           ${BENCHMARK_CXX_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
 endmacro(compile_output_test)
 
@@ -178,7 +178,7 @@ add_test(NAME complexity_benchmark COMMAND complexity_test --benchmark_min_time=
 if (BENCHMARK_ENABLE_GTEST_TESTS)
   macro(compile_gtest name)
     add_executable(${name} "${name}.cc")
-    target_link_libraries(${name} benchmark
+    target_link_libraries(${name} benchmark::benchmark
         gmock_main ${CMAKE_THREAD_LIBS_INIT})
   endmacro(compile_gtest)
 
