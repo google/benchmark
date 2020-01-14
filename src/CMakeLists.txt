@@ -66,7 +66,7 @@ set_target_properties(benchmark_main PROPERTIES
 target_include_directories(benchmark PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../include>
     )
-target_link_libraries(benchmark_main benchmark)
+target_link_libraries(benchmark_main benchmark::benchmark)
 
 
 set(generated_dir "${CMAKE_CURRENT_BINARY_DIR}/generated")
