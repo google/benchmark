@@ -18,6 +18,7 @@ foreach(item ${BENCHMARK_MAIN})
 endforeach()
 
 add_library(benchmark ${SOURCE_FILES})
+add_library(benchmark::benchmark ALIAS benchmark)
 set_target_properties(benchmark PROPERTIES
   OUTPUT_NAME "benchmark"
   VERSION ${GENERIC_LIB_VERSION}
@@ -55,6 +56,7 @@ endif()
 
 # Benchmark main library
 add_library(benchmark_main "benchmark_main.cc")
+add_library(benchmark::benchmark_main ALIAS benchmark_main)
 set_target_properties(benchmark_main PROPERTIES
   OUTPUT_NAME "benchmark_main"
   VERSION ${GENERIC_LIB_VERSION}
@@ -64,7 +66,7 @@ set_target_properties(benchmark_main PROPERTIES
 target_include_directories(benchmark PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../include>
     )
-target_link_libraries(benchmark_main benchmark)
+target_link_libraries(benchmark_main benchmark::benchmark)
 
 
 set(generated_dir "${CMAKE_CURRENT_BINARY_DIR}/generated")
