@@ -7,6 +7,6 @@ Name: @PROJECT_NAME@
 Description: Google microbenchmark framework
 Version: @VERSION@
 
-Libs: -L${libdir} -lbenchmark
+Libs: -L${libdir} -l@BENCHMARK_LIB_NAME@
 Libs.private: -lpthread
 Cflags: -I${includedir}

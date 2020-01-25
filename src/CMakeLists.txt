@@ -30,7 +30,7 @@ target_include_directories(benchmark PUBLIC
     )
 
 # Link threads.
-target_link_libraries(benchmark  ${BENCHMARK_CXX_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
+target_link_libraries(benchmark ${BENCHMARK_CXX_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
 find_library(LIBRT rt)
 if(LIBRT)
   target_link_libraries(benchmark ${LIBRT})
@@ -68,6 +68,14 @@ target_include_directories(benchmark PUBLIC
     )
 target_link_libraries(benchmark_main benchmark::benchmark)
 
+# For configuring pkg-config benchmark.pc library name
+string(TOLOWER ${PROJECT_NAME} PROJECT_NAME_LOWER)
+if(CMAKE_BUILD_TYPE STREQUAL "Debug")
+  get_target_property(_BENCHMARK_LIB_POSTFIX ${PROJECT_NAME} DEBUG_POSTFIX)
+  set(BENCHMARK_LIB_NAME ${PROJECT_NAME_LOWER}${_BENCHMARK_LIB_POSTFIX})
+else()
+  set(BENCHMARK_LIB_NAME ${PROJECT_NAME_LOWER})
+endif()
 
 set(generated_dir "${CMAKE_CURRENT_BINARY_DIR}/generated")
 
