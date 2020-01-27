@@ -17,13 +17,15 @@ foreach(item ${BENCHMARK_MAIN})
   list(REMOVE_ITEM SOURCE_FILES "${item}")
 endforeach()
 
+set(BENCHMARK_DEBUG_POSTFIX d)
+
 add_library(benchmark ${SOURCE_FILES})
 add_library(benchmark::benchmark ALIAS benchmark)
 set_target_properties(benchmark PROPERTIES
   OUTPUT_NAME "benchmark"
   VERSION ${GENERIC_LIB_VERSION}
   SOVERSION ${GENERIC_LIB_SOVERSION}
-  DEBUG_POSTFIX "d"
+  DEBUG_POSTFIX ${BENCHMARK_DEBUG_POSTFIX}
 )
 target_include_directories(benchmark PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../include>
@@ -53,8 +55,6 @@ endif()
 if(${CMAKE_SYSTEM_NAME} MATCHES "SunOS")
   target_link_libraries(benchmark kstat)
 endif()
-
-set(BENCHMARK_DEBUG_POSTFIX d)
 
 # Benchmark main library
 add_library(benchmark_main "benchmark_main.cc")
