@@ -54,6 +54,8 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "SunOS")
   target_link_libraries(benchmark kstat)
 endif()
 
+set(BENCHMARK_DEBUG_POSTFIX d)
+
 # Benchmark main library
 add_library(benchmark_main "benchmark_main.cc")
 add_library(benchmark::benchmark_main ALIAS benchmark_main)
@@ -61,20 +63,17 @@ set_target_properties(benchmark_main PROPERTIES
   OUTPUT_NAME "benchmark_main"
   VERSION ${GENERIC_LIB_VERSION}
   SOVERSION ${GENERIC_LIB_SOVERSION}
-  DEBUG_POSTFIX "d"
+  DEBUG_POSTFIX ${BENCHMARK_DEBUG_POSTFIX}
 )
 target_include_directories(benchmark PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../include>
     )
 target_link_libraries(benchmark_main benchmark::benchmark)
 
-# For configuring pkg-config benchmark.pc library name
-string(TOLOWER ${PROJECT_NAME} PROJECT_NAME_LOWER)
+# Configure pkg-config benchmark.pc properly
+get_target_property(BENCHMARK_LIB_NAME benchmark OUTPUT_NAME)
 if(CMAKE_BUILD_TYPE STREQUAL "Debug")
-  get_target_property(_BENCHMARK_LIB_POSTFIX ${PROJECT_NAME} DEBUG_POSTFIX)
-  set(BENCHMARK_LIB_NAME ${PROJECT_NAME_LOWER}${_BENCHMARK_LIB_POSTFIX})
-else()
-  set(BENCHMARK_LIB_NAME ${PROJECT_NAME_LOWER})
+  set(BENCHMARK_LIB_NAME ${BENCHMARK_LIB_NAME}${BENCHMARK_DEBUG_POSTFIX})
 endif()
 
 set(generated_dir "${CMAKE_CURRENT_BINARY_DIR}/generated")
