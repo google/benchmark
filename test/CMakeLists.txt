@@ -148,7 +148,8 @@ if (BENCHMARK_HAS_CXX03_FLAG)
   compile_benchmark_test(cxx03_test)
   set_target_properties(cxx03_test
       PROPERTIES
-      COMPILE_FLAGS "-std=c++03")
+      CXX_STANDARD 98
+      CXX_STANDARD_REQUIRED YES)
   # libstdc++ provides different definitions within <map> between dialects. When
   # LTO is enabled and -Werror is specified GCC diagnoses this ODR violation
   # causing the test to fail to compile. To prevent this we explicitly disable
