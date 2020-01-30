@@ -144,8 +144,9 @@ else()
   add_cxx_compiler_flag(-Werror RELEASE)
   add_cxx_compiler_flag(-Werror RELWITHDEBINFO)
   add_cxx_compiler_flag(-Werror MINSIZEREL)
-  add_cxx_compiler_flag(-pedantic)
-  add_cxx_compiler_flag(-pedantic-errors)
+  # Disabled until googletest (gmock) stops emitting variadic macro warnings
+  #add_cxx_compiler_flag(-pedantic)
+  #add_cxx_compiler_flag(-pedantic-errors)
   add_cxx_compiler_flag(-Wshorten-64-to-32)
   add_cxx_compiler_flag(-fstrict-aliasing)
   # Disable warnings regarding deprecated parts of the library while building
