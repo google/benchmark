@@ -76,6 +76,11 @@ if(CMAKE_BUILD_TYPE STREQUAL "Debug")
   set(BENCHMARK_LIB_NAME ${BENCHMARK_LIB_NAME}${BENCHMARK_DEBUG_POSTFIX})
 endif()
 
+get_target_property(BENCHMARK_MAIN_LIB_NAME benchmark_main OUTPUT_NAME)
+if(CMAKE_BUILD_TYPE STREQUAL "Debug")
+  set(BENCHMARK_MAIN_LIB_NAME ${BENCHMARK_MAIN_LIB_NAME}${BENCHMARK_DEBUG_POSTFIX})
+endif()
+
 set(generated_dir "${CMAKE_CURRENT_BINARY_DIR}/generated")
 
 set(version_config "${generated_dir}/${PROJECT_NAME}ConfigVersion.cmake")
