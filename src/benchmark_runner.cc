@@ -117,7 +117,7 @@ void RunInThread(const BenchmarkInstance* b, IterationCount iters,
           ? internal::ThreadTimer::CreateProcessCpuTime()
           : internal::ThreadTimer::Create());
   State st = b->Run(iters, thread_id, &timer, manager);
-  CHECK(st.iterations() >= st.max_iterations)
+  CHECK(st.error_occurred() || st.iterations() >= st.max_iterations)
       << "Benchmark returned before State::KeepRunning() returned false!";
   {
     MutexLock l(manager->GetBenchmarkMutex());
