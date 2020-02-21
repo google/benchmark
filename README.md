@@ -1184,7 +1184,9 @@ Users must explicitly exit the loop, otherwise all iterations will be performed.
 Users may explicitly return to exit the benchmark immediately.
 
 The `SkipWithError(...)` function may be used at any point within the benchmark,
-including before and after the benchmark loop.
+including before and after the benchmark loop. Moreover, if `SkipWithError(...)`
+has been used, it is not required to reach the benchmark loop and one may return
+from the benchmark function early.
 
 For example:
 
@@ -1192,24 +1194,32 @@ For example:
 static void BM_test(benchmark::State& state) {
   auto resource = GetResource();
   if (!resource.good()) {
-      state.SkipWithError("Resource is not good!");
-      // KeepRunning() loop will not be entered.
+    state.SkipWithError("Resource is not good!");
+    // KeepRunning() loop will not be entered.
   }
   while (state.KeepRunning()) {
-      auto data = resource.read_data();
-      if (!resource.good()) {
-        state.SkipWithError("Failed to read data!");
-        break; // Needed to skip the rest of the iteration.
-     }
-     do_stuff(data);
+    auto data = resource.read_data();
+    if (!resource.good()) {
+      state.SkipWithError("Failed to read data!");
+      break; // Needed to skip the rest of the iteration.
+    }
+    do_stuff(data);
   }
 }
 
 static void BM_test_ranged_fo(benchmark::State & state) {
-  state.SkipWithError("test will not be entered");
+  auto resource = GetResource();
+  if (!resource.good()) {
+    state.SkipWithError("Resource is not good!");
+    return; // Early return is allowed when SkipWithError() has been used.
+  }
   for (auto _ : state) {
-    state.SkipWithError("Failed!");
-    break; // REQUIRED to prevent all further iterations.
+    auto data = resource.read_data();
+    if (!resource.good()) {
+      state.SkipWithError("Failed to read data!");
+      break; // REQUIRED to prevent all further iterations.
+    }
+    do_stuff(data);
   }
 }
 ```
