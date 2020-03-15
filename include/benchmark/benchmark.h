@@ -1381,11 +1381,15 @@ class BenchmarkReporter {
     bool error_occurred;
     std::string error_message;
 
+    // Total iterations across all threads.
     IterationCount iterations;
+
     int64_t threads;
     int64_t repetition_index;
     int64_t repetitions;
     TimeUnit time_unit;
+
+    // Total time across all threads.
     double real_accumulated_time;
     double cpu_accumulated_time;
 

@@ -910,9 +910,12 @@ Without `UseRealTime`, CPU time is used by default.
 ### CPU Timers
 
 By default, the CPU timer only measures the time spent by the main thread.
+For multithreaded benchmarks timer measures average among working threads.
+
 If the benchmark itself uses threads internally, this measurement may not
 be what you are looking for. Instead, there is a way to measure the total
-CPU usage of the process, by all the threads.
+CPU usage of the process, by all the threads. Resulting total CPU time
+also will be divided among working threads.
 
 ```c++
 void callee(int i);

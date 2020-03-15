@@ -110,11 +110,11 @@ struct Results {
   // it is better to use fuzzy float checks for this, as the float
   // ASCII formatting is lossy.
   double DurationRealTime() const {
-    return NumIterations() * GetTime(kRealTime);
+    return GetTime(kRealTime) * NumIterations() / NumThreads();
   }
   // get the cpu_time duration of the benchmark in seconds
   double DurationCPUTime() const {
-    return NumIterations() * GetTime(kCpuTime);
+    return GetTime(kCpuTime) * NumIterations() / NumThreads();
   }
 
   // get the string for a result by name, or nullptr if the name

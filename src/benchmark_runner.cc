@@ -82,6 +82,7 @@ BenchmarkReporter::Run CreateRunReport(
   report.repetitions = b.repetitions;
 
   if (!report.error_occurred) {
+    // This is the total time across all threads.
     if (b.use_manual_time) {
       report.real_accumulated_time = results.manual_time_used;
     } else {
@@ -227,10 +228,8 @@ class BenchmarkRunner {
     // And get rid of the manager.
     manager.reset();
 
-    // Adjust real/manual time stats since they were reported per thread.
-    i.results.real_time_used /= b.threads;
-    i.results.manual_time_used /= b.threads;
-    // If we were measuring whole-process CPU usage, adjust the CPU time too.
+    // If we were measuring whole-process CPU usage then each thread reports
+    // total CPU time of all threads. Divide by threads to get real value.
     if (b.measure_process_cpu_time) i.results.cpu_time_used /= b.threads;
 
     VLOG(2) << "Ran in " << i.results.cpu_time_used << "/"
@@ -245,6 +244,9 @@ class BenchmarkRunner {
     } else if (b.use_real_time) {
       i.seconds = i.results.real_time_used;
     }
+
+    // Adjust time stats to average since they were reported by all threads.
+    i.seconds /= b.threads;
 
     return i;
   }
