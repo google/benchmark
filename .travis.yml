@@ -2,10 +2,6 @@ sudo: required
 dist: trusty
 language: cpp
 
-env:
-  global:
-    - /usr/local/bin:$PATH
-
 matrix:
   include:
     - compiler: gcc
