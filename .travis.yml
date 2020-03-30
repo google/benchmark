@@ -2,10 +2,6 @@ sudo: required
 dist: trusty
 language: cpp
 
-env:
-  global:
-    - /usr/local/bin:$PATH
-
 matrix:
   include:
     - compiler: gcc
@@ -169,7 +165,7 @@ matrix:
         - BUILD_32_BITS=ON
         - EXTRA_FLAGS="-m32"
     - os: osx
-      osx_image: xcode8.3
+      osx_image: xcode9.4
       compiler: gcc
       env:
         - COMPILER=g++-7 C_COMPILER=gcc-7  BUILD_TYPE=Debug
