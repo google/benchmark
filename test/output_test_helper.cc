@@ -374,10 +374,10 @@ int SetSubstitutions(
 }
 
 // Disable deprecated warnings temporarily because we need to reference
-// CSVReporter but don't want to trigger -Werror=-Wdeprecated
+// CSVReporter but don't want to trigger -Werror=-Wdeprecated-declarations
 #ifdef __GNUC__
 #pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdeprecated"
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 #endif
 void RunOutputTests(int argc, char* argv[]) {
   using internal::GetTestCaseList;
