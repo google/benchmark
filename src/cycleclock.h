@@ -86,15 +86,15 @@ inline BENCHMARK_ALWAYS_INLINE int64_t Now() {
   // This returns a time-base, which is not always precisely a cycle-count.
 #if defined(__powerpc64__) || defined(__ppc64__)
   int64_t tb;
-  asm volatile("mfspr %0, 268" : "=r" (tb));
+  asm volatile("mfspr %0, 268" : "=r"(tb));
   return tb;
 #else
   uint32_t tbl, tbu0, tbu1;
   asm volatile(
-    "mftbu %0\n"
-    "mftbl %1\n"
-    "mftbu %2"
-    : "=r"(tbu0), "=r"(tbl), "=r"(tbu1));
+      "mftbu %0\n"
+      "mftbl %1\n"
+      "mftbu %2"
+      : "=r"(tbu0), "=r"(tbl), "=r"(tbu1));
   tbl &= -static_cast<int32_t>(tbu0 == tbu1);
   // high 32 bits in tbu1; low 32 bits in tbl  (tbu0 is no longer needed)
   return (static_cast<uint64_t>(tbu1) << 32) | tbl;
@@ -179,14 +179,14 @@ inline BENCHMARK_ALWAYS_INLINE int64_t Now() {
   // This asm also includes the PowerPC overflow handling strategy, as above.
   // Implemented in assembly because Clang insisted on branching.
   asm volatile(
-    "rdcycleh %0\n"
-    "rdcycle %1\n"
-    "rdcycleh %2\n"
-    "sub %0, %0, %2\n"
-    "seqz %0, %0\n"
-    "sub %0, zero, %0\n"
-    "and %1, %1, %0\n"
-    : "=r"(cycles_hi0), "=r"(cycles_lo), "=r"(cycles_hi1));
+      "rdcycleh %0\n"
+      "rdcycle %1\n"
+      "rdcycleh %2\n"
+      "sub %0, %0, %2\n"
+      "seqz %0, %0\n"
+      "sub %0, zero, %0\n"
+      "and %1, %1, %0\n"
+      : "=r"(cycles_hi0), "=r"(cycles_lo), "=r"(cycles_hi1));
   return (static_cast<uint64_t>(cycles_hi1) << 32) | cycles_lo;
 #else
   uint64_t cycles;
