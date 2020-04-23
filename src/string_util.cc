@@ -1,6 +1,7 @@
 #include "string_util.h"
 
 #include <array>
+#include <cerrno>
 #include <cmath>
 #include <cstdarg>
 #include <cstdio>
