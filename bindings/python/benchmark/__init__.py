@@ -11,7 +11,21 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""Python benchmarking utilities."""
+"""Python benchmarking utilities.
+
+Example usage:
+  import benchmark
+
+  @benchmark.register
+  def my_benchmark(state):
+      ...  # Code executed outside `while` loop is not timed.
+
+      while state:
+        ...  # Code executed within `while` loop is timed.
+
+  if __name__ == '__main__':
+    benchmark.main()
+"""
 
 from absl import app
 from benchmark import _benchmark
