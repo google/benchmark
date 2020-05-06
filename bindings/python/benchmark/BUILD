@@ -25,7 +25,7 @@ py_extension(
     ],
 )
 
-py_binary(
+py_test(
     name = "example",
     srcs = ["example.py"],
     python_version = "PY3",
