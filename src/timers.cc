@@ -188,22 +188,9 @@ std::string DateTimeString(bool local) {
   std::size_t written;
 
   if (local) {
-#if defined(BENCHMARK_OS_WINDOWS)
-    written =
-        std::strftime(storage, sizeof(storage), "%x %X", ::localtime(&now));
-#else
-    std::tm timeinfo;
-    ::localtime_r(&now, &timeinfo);
-    written = std::strftime(storage, sizeof(storage), "%F %T", &timeinfo);
-#endif
+    written = std::strftime(storage, sizeof(storage), "%FT%T%z", ::localtime(&now));
   } else {
-#if defined(BENCHMARK_OS_WINDOWS)
-    written = std::strftime(storage, sizeof(storage), "%x %X", ::gmtime(&now));
-#else
-    std::tm timeinfo;
-    ::gmtime_r(&now, &timeinfo);
-    written = std::strftime(storage, sizeof(storage), "%F %T", &timeinfo);
-#endif
+    written = std::strftime(storage, sizeof(storage), "%FT%TZ", ::gmtime(&now));
   }
   CHECK(written < kStorageSize);
   ((void)written);  // prevent unused variable in optimized mode.
