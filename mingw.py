@@ -251,7 +251,7 @@ def str2ver(string):
     '''
     try:
         version = tuple(int(v) for v in string.split('.'))
-        if len(version) is not 3:
+        if len(version) != 3:
             raise ValueError()
     except ValueError:
         raise argparse.ArgumentTypeError(
