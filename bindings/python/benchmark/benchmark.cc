@@ -42,6 +42,7 @@ PYBIND11_MODULE(_benchmark, m) {
 
   py::class_<benchmark::State>(m, "State")
       .def("__bool__", &benchmark::State::KeepRunning)
-      .def_property_readonly("keep_running", &benchmark::State::KeepRunning);
+      .def_property_readonly("keep_running", &benchmark::State::KeepRunning)
+      .def("skip_with_error", &benchmark::State::SkipWithError);
 };
 }  // namespace
