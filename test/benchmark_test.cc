@@ -222,7 +222,8 @@ static void BM_ExplicitlySpecifiedArgs(benchmark::State& state) {
   // The only purpose of this benchmark is to verify that the incoming
   // Arg values (aka state.range(0)) are the ones we expect, in the
   // order we expect them in.
-  static int last_arg = 0;
+- static int last_arg = 0;
++ static int64_t last_arg = 0;
   if (last_arg != state.range(0)) {
     switch (state.range(0)) {
       case 6:
