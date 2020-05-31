@@ -178,27 +178,18 @@ double ThreadCPUUsage() {
 #endif
 }
 
-namespace {
-
-std::string DateTimeString(bool local) {
+std::string LocalDateTimeString() {
   typedef std::chrono::system_clock Clock;
   std::time_t now = Clock::to_time_t(Clock::now());
   const std::size_t kStorageSize = 128;
   char storage[kStorageSize];
   std::size_t written;
 
-  if (local) {
-    written = std::strftime(storage, sizeof(storage), "%FT%T%z", ::localtime(&now));
-  } else {
-    written = std::strftime(storage, sizeof(storage), "%FT%TZ", ::gmtime(&now));
-  }
+  written = std::strftime(storage, sizeof(storage), "%FT%T%z", ::localtime(&now));
+
   CHECK(written < kStorageSize);
   ((void)written);  // prevent unused variable in optimized mode.
   return std::string(storage);
 }
-
-}  // end namespace
-
-std::string LocalDateTimeString() { return DateTimeString(true); }
 
 }  // end namespace benchmark
