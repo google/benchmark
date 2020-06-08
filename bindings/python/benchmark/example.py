@@ -11,7 +11,14 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""Example of Python using C++ benchmark framework."""
+"""Example of Python using C++ benchmark framework.
+
+To run this example, you must first install the `benchmark` Python package.
+
+To install using `setup.py`, download and extract the `benchmark` source.
+In the extracted directory, execute:
+  python setup.py install
+"""
 
 import benchmark
 
