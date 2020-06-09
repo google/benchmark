@@ -211,11 +211,11 @@ install:
   - if [ "${TRAVIS_OS_NAME}" == "linux" ]; then
       sudo apt-get update -qq;
       sudo apt-get install -qq unzip cmake3;
-      wget https://github.com/bazelbuild/bazel/releases/download/0.10.1/bazel-0.10.1-installer-linux-x86_64.sh --output-document bazel-installer.sh;
+      wget https://github.com/bazelbuild/bazel/releases/download/3.2.0/bazel-3.2.0-installer-linux-x86_64.sh --output-document bazel-installer.sh;
       travis_wait sudo bash bazel-installer.sh;
     fi
   - if [ "${TRAVIS_OS_NAME}" == "osx" ]; then
-      curl -L -o bazel-installer.sh https://github.com/bazelbuild/bazel/releases/download/0.10.1/bazel-0.10.1-installer-darwin-x86_64.sh;
+      curl -L -o bazel-installer.sh https://github.com/bazelbuild/bazel/releases/download/3.2.0/bazel-3.2.0-installer-darwin-x86_64.sh;
       travis_wait sudo bash bazel-installer.sh;
     fi
 
