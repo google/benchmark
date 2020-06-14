@@ -179,15 +179,38 @@ double ThreadCPUUsage() {
 }
 
 std::string LocalDateTimeString() {
+  // Write the local time in RFC3339 format yyyy-mm-ddTHH:MM:SS+/-HH:MM.
   typedef std::chrono::system_clock Clock;
   std::time_t now = Clock::to_time_t(Clock::now());
+  const std::size_t kFormatOffsetSize = 6;
+  const std::size_t kOffsetSize = 7;
   const std::size_t kStorageSize = 128;
   char storage[kStorageSize];
   std::size_t written;
 
-  written = std::strftime(storage, sizeof(storage), "%FT%T%z", ::localtime(&now));
+  char tzOffset[kStorageSize];
 
+  written = std::strftime(tzOffset, sizeof(tzOffset), "%z", ::localtime(&now));
   CHECK(written < kStorageSize);
+  if (written == kFormatOffsetSize) {
+    // strftime writes offset as +HHMM or -HHMM, RFC3339 specifies an offset
+    // as +HH:MM or -HH:MM. Here, we insert a : into the string & null
+    // terminate.
+    tzOffset[5] = tzOffset[4];
+    tzOffset[4] = tzOffset[3];
+    tzOffset[3] = ':';
+    tzOffset[6] = '\0';
+    written = std::strftime(storage, sizeof(storage), "%Y-%m-%dT%H:%M:%S", ::localtime(&now));
+  } else {
+    // Unknown offset, write -00:00. RFC3339 specifies that unknown local
+    // offsets should be written as UTC time with -00:00 timezone.
+    strncpy(tzOffset, "-00:00", kOffsetSize);
+    written = std::strftime(storage, sizeof(storage), "%Y-%m-%dT%H:%M:%S", ::gmtime(&now));
+  }
+
+  CHECK(written + kOffsetSize < kStorageSize);
+
+  std::strncat(storage, tzOffset, kOffsetSize);
   ((void)written);  // prevent unused variable in optimized mode.
   return std::string(storage);
 }
