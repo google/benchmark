@@ -182,49 +182,59 @@ std::string LocalDateTimeString() {
   // Write the local time in RFC3339 format yyyy-mm-ddTHH:MM:SS+/-HH:MM.
   typedef std::chrono::system_clock Clock;
   std::time_t now = Clock::to_time_t(Clock::now());
-  const std::size_t kFormatOffsetSize = 6;
   const std::size_t kOffsetSize = 7;
   const std::size_t kStorageSize = 128;
-  char storage[kStorageSize];
   std::size_t written;
-
+  long int offsetMinutes;
+  char sign = '+';
+  char storage[kStorageSize];
   char tzOffset[kStorageSize];
 
 #if defined(BENCHMARK_OS_WINDOWS)
   written = std::strftime(tzOffset, sizeof(tzOffset), "%z", ::localtime(&now));
 #else
+  written = std::strftime(storage, sizeof(tzOffset), "%Y-%m-%dT%H:%M:%S%z", ::localtime(&now));
+
   std::tm timeinfo;
   ::localtime_r(&now, &timeinfo);
   written = std::strftime(tzOffset, sizeof(tzOffset), "%z", &timeinfo);
 #endif
   CHECK(written < kStorageSize);
 
-  if (written == kFormatOffsetSize) {
+  if (written < kOffsetSize && written >= 2) {
+    // Valid offset was written.
     // strftime writes offset as +HHMM or -HHMM, RFC3339 specifies an offset
     // as +HH:MM or -HH:MM. Here, we insert a : into the string & null
     // terminate.
-    tzOffset[5] = tzOffset[4];
-    tzOffset[4] = tzOffset[3];
-    tzOffset[3] = ':';
-    tzOffset[kOffsetSize - 1] = '\0';
+
 #if defined(BENCHMARK_OS_WINDOWS)
     written = std::strftime(storage, sizeof(storage), "%Y-%m-%dT%H:%M:%S", ::localtime(&now));
 #else
     written = std::strftime(storage, sizeof(storage), "%Y-%m-%dT%H:%M:%S", &timeinfo);
 #endif
+
+    offsetMinutes = ::strtol(tzOffset, NULL, 10);
+    if (offsetMinutes < 0) {
+      offsetMinutes *= -1;
+      sign = '-';
+    }
+    written += ::sprintf(tzOffset, "%c%02li:%02li", sign, offsetMinutes / 100, offsetMinutes % 100);
   } else {
     // Unknown offset, write -00:00. RFC3339 specifies that unknown local
     // offsets should be written as UTC time with -00:00 timezone.
-    strncpy(tzOffset, "-00:00", kOffsetSize);
 #if defined(BENCHMARK_OS_WINDOWS)
     written = std::strftime(storage, sizeof(storage), "%Y-%m-%dT%H:%M:%S", ::gmtime(&now));
 #else
     ::gmtime_r(&now, &timeinfo);
     written = std::strftime(storage, sizeof(storage), "%Y-%m-%dT%H:%M:%S", &timeinfo);
 #endif
+
+    strncpy(tzOffset, "-00:00", kOffsetSize);
+    written += 6;
   }
 
-  CHECK(written + kOffsetSize < kStorageSize);
+  // len(date) == 19 + len(tzOffset) == 6
+  CHECK(written == 25);
 
   std::strncat(storage, tzOffset, kOffsetSize);
   return std::string(storage);
