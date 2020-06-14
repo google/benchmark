@@ -190,8 +190,15 @@ std::string LocalDateTimeString() {
 
   char tzOffset[kStorageSize];
 
+#if defined(BENCHMARK_OS_WINDOWS)
   written = std::strftime(tzOffset, sizeof(tzOffset), "%z", ::localtime(&now));
+#else
+  std::tm timeinfo;
+  ::localtime_r(&now, &timeinfo);
+  written = std::strftime(tzOffset, sizeof(tzOffset), "%z", &timeinfo);
+#endif
   CHECK(written < kStorageSize);
+
   if (written == kFormatOffsetSize) {
     // strftime writes offset as +HHMM or -HHMM, RFC3339 specifies an offset
     // as +HH:MM or -HH:MM. Here, we insert a : into the string & null
@@ -199,19 +206,27 @@ std::string LocalDateTimeString() {
     tzOffset[5] = tzOffset[4];
     tzOffset[4] = tzOffset[3];
     tzOffset[3] = ':';
-    tzOffset[6] = '\0';
+    tzOffset[kOffsetSize - 1] = '\0';
+#if defined(BENCHMARK_OS_WINDOWS)
     written = std::strftime(storage, sizeof(storage), "%Y-%m-%dT%H:%M:%S", ::localtime(&now));
+#else
+    written = std::strftime(storage, sizeof(storage), "%Y-%m-%dT%H:%M:%S", &timeinfo);
+#endif
   } else {
     // Unknown offset, write -00:00. RFC3339 specifies that unknown local
     // offsets should be written as UTC time with -00:00 timezone.
     strncpy(tzOffset, "-00:00", kOffsetSize);
+#if defined(BENCHMARK_OS_WINDOWS)
     written = std::strftime(storage, sizeof(storage), "%Y-%m-%dT%H:%M:%S", ::gmtime(&now));
+#else
+    ::gmtime_r(&now, &timeinfo);
+    written = std::strftime(storage, sizeof(storage), "%Y-%m-%dT%H:%M:%S", &timeinfo);
+#endif
   }
 
   CHECK(written + kOffsetSize < kStorageSize);
 
   std::strncat(storage, tzOffset, kOffsetSize);
-  ((void)written);  // prevent unused variable in optimized mode.
   return std::string(storage);
 }
 
