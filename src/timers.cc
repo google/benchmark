@@ -189,8 +189,9 @@ std::string LocalDateTimeString() {
   std::size_t timestamp_len;
   long int offset_minutes;
   char tz_offset_sign = '+';
-  char tz_offset[kTzOffsetLen + 1];
-  char storage[kTimestampLen + kTzOffsetLen + 1];
+  // Long enough buffers to avoid format-overflow warnings
+  char tz_offset[128];
+  char storage[128];
 
 #if defined(BENCHMARK_OS_WINDOWS)
   std::tm *timeinfo_p = ::localtime(&now);
@@ -214,8 +215,8 @@ std::string LocalDateTimeString() {
     }
 
     tz_len = ::snprintf(tz_offset, sizeof(tz_offset), "%c%02li:%02li",
-        tz_offset_sign, (offset_minutes / 100), offset_minutes % 100);
-    CHECK(tz_len == 6);
+        tz_offset_sign, offset_minutes / 100, offset_minutes % 100);
+    CHECK(tz_len == kTzOffsetLen);
     ((void)tz_len); // Prevent unused variable warning in optimized build.
   } else {
     // Unknown offset. RFC3339 specifies that unknown local offsets should be
@@ -233,7 +234,9 @@ std::string LocalDateTimeString() {
   timestamp_len = std::strftime(storage, sizeof(storage), "%Y-%m-%dT%H:%M:%S",
       timeinfo_p);
   CHECK(timestamp_len == kTimestampLen);
-  ((void)timestamp_len); // Prevent unused variable warning in optimized build.
+  // Prevent unused variable warning in optimized build.
+  ((void)timestamp_len);
+  ((void)kTimestampLen);
 
   std::strncat(storage, tz_offset, kTzOffsetLen + 1);
   return std::string(storage);
