@@ -215,11 +215,12 @@ std::string LocalDateTimeString() {
     tz_len = ::sprintf(tz_offset, "%c%02li:%02li", tz_offset_sign,
         offset_minutes / 100, offset_minutes % 100);
     CHECK(tz_len == 6);
+    ((void)tz_len); // Prevent unused variable warning in optimized build.
   } else {
     // Unknown offset. RFC3339 specifies that unknown local offsets should be
     // written as UTC time with -00:00 timezone.
 #if defined(BENCHMARK_OS_WINDOWS)
-    // potential race condition if another thread calls localtime or gmtime
+    // Potential race condition if another thread calls localtime or gmtime.
     timeinfo_p = ::gmtime(&now);
 #else
     ::gmtime_r(&now, &timeinfo);
@@ -231,6 +232,7 @@ std::string LocalDateTimeString() {
   timestamp_len = std::strftime(storage, sizeof(storage), "%Y-%m-%dT%H:%M:%S",
       timeinfo_p);
   CHECK(timestamp_len == kTimestampLen);
+  ((void)timestamp_len); // Prevent unused variable warning in optimized build.
 
   std::strncat(storage, tz_offset, kTzOffsetLen + 1);
   return std::string(storage);
