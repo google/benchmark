@@ -182,61 +182,57 @@ std::string LocalDateTimeString() {
   // Write the local time in RFC3339 format yyyy-mm-ddTHH:MM:SS+/-HH:MM.
   typedef std::chrono::system_clock Clock;
   std::time_t now = Clock::to_time_t(Clock::now());
-  const std::size_t kOffsetSize = 7;
-  const std::size_t kStorageSize = 128;
-  std::size_t written;
-  long int offsetMinutes;
-  char sign = '+';
-  char storage[kStorageSize];
-  char tzOffset[kStorageSize];
+  const std::size_t kTzOffsetLen = 6;
+  const std::size_t kTimestampLen = 19;
+
+  std::size_t tz_len;
+  std::size_t timestamp_len;
+  long int offset_minutes;
+  char tz_offset_sign = '+';
+  char tz_offset[kTzOffsetLen + 1];
+  char storage[kTimestampLen + kTzOffsetLen + 1];
 
 #if defined(BENCHMARK_OS_WINDOWS)
-  written = std::strftime(tzOffset, sizeof(tzOffset), "%z", ::localtime(&now));
+  std::tm *timeinfo_p = ::localtime(&now);
 #else
-  written = std::strftime(storage, sizeof(tzOffset), "%Y-%m-%dT%H:%M:%S%z", ::localtime(&now));
-
   std::tm timeinfo;
+  std::tm *timeinfo_p = &timeinfo;
   ::localtime_r(&now, &timeinfo);
-  written = std::strftime(tzOffset, sizeof(tzOffset), "%z", &timeinfo);
-#endif
-  CHECK(written < kStorageSize);
-
-  if (written < kOffsetSize && written >= 2) {
-    // Valid offset was written.
-    // strftime writes offset as +HHMM or -HHMM, RFC3339 specifies an offset
-    // as +HH:MM or -HH:MM. Here, we insert a : into the string & null
-    // terminate.
-
-#if defined(BENCHMARK_OS_WINDOWS)
-    written = std::strftime(storage, sizeof(storage), "%Y-%m-%dT%H:%M:%S", ::localtime(&now));
-#else
-    written = std::strftime(storage, sizeof(storage), "%Y-%m-%dT%H:%M:%S", &timeinfo);
 #endif
 
-    offsetMinutes = ::strtol(tzOffset, NULL, 10);
-    if (offsetMinutes < 0) {
-      offsetMinutes *= -1;
-      sign = '-';
+  tz_len = std::strftime(tz_offset, sizeof(tz_offset), "%z", timeinfo_p);
+
+  if (tz_len < kTzOffsetLen && tz_len > 1) {
+    // Timezone offset was written. strftime writes offset as +HHMM or -HHMM,
+    // RFC3339 specifies an offset as +HH:MM or -HH:MM. To convert, we parse
+    // the offset as an integer, then reprint it to a string.
+
+    offset_minutes = ::strtol(tz_offset, NULL, 10);
+    if (offset_minutes < 0) {
+      offset_minutes *= -1;
+      tz_offset_sign = '-';
     }
-    written += ::sprintf(tzOffset, "%c%02li:%02li", sign, offsetMinutes / 100, offsetMinutes % 100);
+    tz_len = ::sprintf(tz_offset, "%c%02li:%02li", tz_offset_sign,
+        offset_minutes / 100, offset_minutes % 100);
+    CHECK(tz_len == 6);
   } else {
-    // Unknown offset, write -00:00. RFC3339 specifies that unknown local
-    // offsets should be written as UTC time with -00:00 timezone.
+    // Unknown offset. RFC3339 specifies that unknown local offsets should be
+    // written as UTC time with -00:00 timezone.
 #if defined(BENCHMARK_OS_WINDOWS)
-    written = std::strftime(storage, sizeof(storage), "%Y-%m-%dT%H:%M:%S", ::gmtime(&now));
+    // potential race condition if another thread calls localtime or gmtime
+    timeinfo_p = ::gmtime(&now);
 #else
     ::gmtime_r(&now, &timeinfo);
-    written = std::strftime(storage, sizeof(storage), "%Y-%m-%dT%H:%M:%S", &timeinfo);
 #endif
 
-    strncpy(tzOffset, "-00:00", kOffsetSize);
-    written += 6;
+    strncpy(tz_offset, "-00:00", kTzOffsetLen + 1);
   }
 
-  // len(date) == 19 + len(tzOffset) == 6
-  CHECK(written == 25);
+  timestamp_len = std::strftime(storage, sizeof(storage), "%Y-%m-%dT%H:%M:%S",
+      timeinfo_p);
+  CHECK(timestamp_len == kTimestampLen);
 
-  std::strncat(storage, tzOffset, kOffsetSize);
+  std::strncat(storage, tz_offset, kTzOffsetLen + 1);
   return std::string(storage);
 }
 
