@@ -213,9 +213,8 @@ std::string LocalDateTimeString() {
       tz_offset_sign = '-';
     }
 
-    // Apply % 100 to hour to guarantee range [0, 99].
-    tz_len = ::sprintf(tz_offset, "%c%02li:%02li", tz_offset_sign,
-        (offset_minutes / 100) % 100, offset_minutes % 100);
+    tz_len = ::snprintf(tz_offset, sizeof(tz_offset), "%c%02li:%02li",
+        tz_offset_sign, (offset_minutes / 100), offset_minutes % 100);
     CHECK(tz_len == 6);
     ((void)tz_len); // Prevent unused variable warning in optimized build.
   } else {
