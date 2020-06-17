@@ -235,10 +235,9 @@ std::string LocalDateTimeString() {
       timeinfo_p);
   CHECK(timestamp_len == kTimestampLen);
   // Prevent unused variable warning in optimized build.
-  ((void)timestamp_len);
   ((void)kTimestampLen);
 
-  std::strncat(storage, tz_offset, kTzOffsetLen + 1);
+  std::strncat(storage, tz_offset, sizeof(storage) - timestamp_len - 1);
   return std::string(storage);
 }
 
