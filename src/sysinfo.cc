@@ -686,6 +686,69 @@ std::vector<double> GetLoadAvg() {
 
 }  // end namespace
 
+namespace internal {
+
+std::vector<int> GetThreadAffinity() {
+  std::vector<int> cpus;
+
+#ifdef BENCHMARK_OS_WINDOWS
+  DWORD_PTR procmask, sysmask;
+￼￼
+  // Get process cpu mask because actual thread cpu mask is hard to get.
+  // This is used only at start to get initial cpu affinity mask.
+ ￼if (!GetProcessAffinityMask(GetCurrentProcess(), &procmask, &sysmask))
+    PrintErrorAndDie("Failed during call to GetProcessAffinityMask: ",
+                     GetLastError());
+
+  cpus.resize(0);
+  for (unsigned int cpu = 0; cpu < sizeof(procmask) * 8; cpu++)
+    if ((procmask >> cpu) & 1)
+      cpus.push_bash(cpu);
+￼
+#else  // BENCHMARK_OS_WINDOWS
+  cpu_set_t cpuset;
+  CPU_ZERO(&cpuset);
+
+  int err = pthread_getaffinity_np(pthread_self(), sizeof(cpuset), &cpuset);
+  if (err)
+    PrintErrorAndDie("Failed during call to pthread_getaffinity_np: ",
+                     strerror(err));
+
+  cpus.resize(CPU_COUNT(&cpuset));
+  for (unsigned int cpu = 0, i = 0; i < cpus.size(); cpu++)
+    if (CPU_ISSET(cpu, &cpuset))
+      cpus[i++] = cpu;
+#endif
+
+  return cpus;
+}
+
+void SetThreadAffinity(const std::vector<int> &cpus) {
+#ifdef BENCHMARK_OS_WINDOWS
+  DWORD_PTR threadmask = 0;
+
+  for (int cpu: cpus)
+    threadmask |= 1ull << cpu;
+
+￼  if (!SetThreadAffinityMask(GetCurrentThread(), threadmask))
+    PrintErrorAndDie("Failed during call to SetThreadAffinityMask: ",
+                     GetLastError());
+#else // BENCHMARK_OS_WINDOWS
+  cpu_set_t cpuset;
+
+  CPU_ZERO(&cpuset);
+  for (int cpu: cpus)
+    CPU_SET(cpu, &cpuset);
+
+  int err = pthread_setaffinity_np(pthread_self(), sizeof(cpuset), &cpuset);
+  if (err)
+    PrintErrorAndDie("Failed during call to pthread_setaffinity_np: ",
+                     strerror(err));
+#endif
+}
+
+} // end namespace internal
+
 const CPUInfo& CPUInfo::Get() {
   static const CPUInfo* info = new CPUInfo();
   return *info;
@@ -693,6 +756,7 @@ const CPUInfo& CPUInfo::Get() {
 
 CPUInfo::CPUInfo()
     : num_cpus(GetNumCPUs()),
+      available_cpus(internal::GetThreadAffinity()),
       cycles_per_second(GetCPUCyclesPerSecond()),
       caches(GetCacheSizes()),
       scaling_enabled(CpuScalingEnabled(num_cpus)),

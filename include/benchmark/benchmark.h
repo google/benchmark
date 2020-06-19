@@ -944,6 +944,22 @@ class Benchmark {
   // Equivalent to ThreadRange(NumCPUs(), NumCPUs())
   Benchmark* ThreadPerCpu();
 
+  // Limit count of processors availbale for execution.
+  Benchmark* Processors(int num_processors);
+
+  // Pick a count of processors from range [min_processors, max_processors],
+  // min_processors and max_processors are always included.
+  Benchmark* ProcessorRange(int min_processors, int max_processors);
+
+  // Pick a count of processors from range [min_processors, max_processors],
+  // min_processors and max_processors are always included.
+  // Stride specifies the increment.
+  Benchmark* DenseProcessorRange(int min_processors, int max_processors, int stride = 1);
+
+  // Pin each thread to exactly one processor.
+  // Processors are distributed in round-robin order.
+  Benchmark* BindThreadsToProcessors();
+
   virtual void Run(State& state) = 0;
 
  protected:
@@ -972,6 +988,8 @@ class Benchmark {
   BigOFunc* complexity_lambda_;
   std::vector<Statistics> statistics_;
   std::vector<int> thread_counts_;
+  std::vector<int> processor_counts_;
+  bool bind_threads_to_processors_;
 
   Benchmark& operator=(Benchmark const&);
 };
@@ -1295,6 +1313,7 @@ struct CPUInfo {
   };
 
   int num_cpus;
+  std::vector<int> available_cpus;
   double cycles_per_second;
   std::vector<CacheInfo> caches;
   bool scaling_enabled;

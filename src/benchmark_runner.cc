@@ -112,6 +112,22 @@ BenchmarkReporter::Run CreateRunReport(
 // Adds the stats collected for the thread into *total.
 void RunInThread(const BenchmarkInstance* b, IterationCount iters,
                  int thread_id, ThreadManager* manager) {
+  if (b->processors || b->bind_threads_to_processors) {
+    auto cpus = CPUInfo::Get().available_cpus;
+
+    if (b->processors && b->processors < (int)cpus.size()) {
+      // Pick first processors if limit is lower than available cpus.
+      cpus.resize(b->processors);
+    }
+
+    if (b->bind_threads_to_processors) {
+      // Distribute processors for pinning in round-robin order.
+      internal::SetThreadAffinity({cpus[thread_id % cpus.size()]});
+    } else {
+      internal::SetThreadAffinity(cpus);
+    }
+  }
+
   internal::ThreadTimer timer(
       b->measure_process_cpu_time
           ? internal::ThreadTimer::CreateProcessCpuTime()
@@ -130,6 +146,11 @@ void RunInThread(const BenchmarkInstance* b, IterationCount iters,
     internal::Increment(&results.counters, st.counters);
   }
   manager->NotifyThreadComplete();
+
+  // Restore cpu affinity mask for main thread
+  if (thread_id == 0 && (b->processors || b->bind_threads_to_processors)) {
+    internal::SetThreadAffinity(CPUInfo::Get().available_cpus);
+  }
 }
 
 class BenchmarkRunner {

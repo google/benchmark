@@ -132,6 +132,8 @@ bool BenchmarkFamilies::FindBenchmarks(
   // Special list of thread counts to use when none are specified
   const std::vector<int> one_thread = {1};
 
+  const std::vector<int> all_processors = {0};
+
   MutexLock l(mutex_);
   for (std::unique_ptr<Benchmark>& family : families_) {
     // Family was deleted or benchmark doesn't match
@@ -144,7 +146,12 @@ bool BenchmarkFamilies::FindBenchmarks(
         (family->thread_counts_.empty()
              ? &one_thread
              : &static_cast<const std::vector<int>&>(family->thread_counts_));
-    const size_t family_size = family->args_.size() * thread_counts->size();
+    const std::vector<int>* processor_counts =
+        (family->processor_counts_.empty()
+             ? &all_processors
+             : &static_cast<const std::vector<int>&>(family->processor_counts_));
+    const size_t family_size = family->args_.size() * processor_counts->size() *
+                               thread_counts->size();
     // The benchmark will be run at least 'family_size' different inputs.
     // If 'family_size' is very large warn the user.
     if (family_size > kMaxFamilySize) {
@@ -156,6 +163,7 @@ bool BenchmarkFamilies::FindBenchmarks(
     if (spec == ".") benchmarks->reserve(family_size);
 
     for (auto const& args : family->args_) {
+     for (int num_processors : *processor_counts) {
       for (int num_threads : *thread_counts) {
         BenchmarkInstance instance;
         instance.name.function_name = family->name_;
@@ -174,6 +182,8 @@ bool BenchmarkFamilies::FindBenchmarks(
         instance.complexity_lambda = family->complexity_lambda_;
         instance.statistics = &family->statistics_;
         instance.threads = num_threads;
+        instance.processors = num_processors;
+        instance.bind_threads_to_processors = family->bind_threads_to_processors_;
 
         // Add arguments to instance name
         size_t arg_i = 0;
@@ -226,6 +236,13 @@ bool BenchmarkFamilies::FindBenchmarks(
           instance.name.threads = StrFormat("threads:%d", instance.threads);
         }
 
+        if (instance.processors) {
+          if (!instance.name.threads.empty()) {
+            instance.name.threads += '/';
+          }
+          instance.name.threads += StrFormat("processors:%d", instance.processors);
+        }
+
         const auto full_name = instance.name.str();
         if ((re.Match(full_name) && !isNegativeFilter) ||
             (!re.Match(full_name) && isNegativeFilter)) {
@@ -233,6 +250,7 @@ bool BenchmarkFamilies::FindBenchmarks(
           benchmarks->push_back(std::move(instance));
         }
       }
+     }
     }
   }
   return true;
@@ -269,7 +287,8 @@ Benchmark::Benchmark(const char* name)
       use_real_time_(false),
       use_manual_time_(false),
       complexity_(oNone),
-      complexity_lambda_(nullptr) {
+      complexity_lambda_(nullptr),
+      bind_threads_to_processors_(false) {
   ComputeStatistics("mean", StatisticsMean);
   ComputeStatistics("median", StatisticsMedian);
   ComputeStatistics("stddev", StatisticsStdDev);
@@ -478,6 +497,38 @@ Benchmark* Benchmark::DenseThreadRange(int min_threads, int max_threads,
 
 Benchmark* Benchmark::ThreadPerCpu() {
   thread_counts_.push_back(CPUInfo::Get().num_cpus);
+  return this;
+}
+
+Benchmark* Benchmark::Processors(int num_processors) {
+  CHECK_GT(num_processors, 0);
+  processor_counts_.push_back(num_processors);
+  return this;
+}
+
+Benchmark* Benchmark::ProcessorRange(int min_processors, int max_processors) {
+  CHECK_GT(min_processors, 0);
+  CHECK_GE(max_processors, min_processors);
+  AddRange(&processor_counts_, min_processors, max_processors, 2);
+  return this;
+}
+
+Benchmark* Benchmark::DenseProcessorRange(int min_processors,
+                                          int max_processors,
+                                          int stride) {
+  CHECK_GT(min_processors, 0);
+  CHECK_GE(max_processors, min_processors);
+  CHECK_GE(stride, 1);
+
+  for (auto i = min_processors; i < max_processors; i += stride) {
+    processor_counts_.push_back(i);
+  }
+  processor_counts_.push_back(max_processors);
+  return this;
+}
+
+Benchmark* Benchmark::BindThreadsToProcessors() {
+  bind_threads_to_processors_ = true;
   return this;
 }
 

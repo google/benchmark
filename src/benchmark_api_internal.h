@@ -34,6 +34,8 @@ struct BenchmarkInstance {
   double min_time;
   IterationCount iterations;
   int threads;  // Number of concurrent threads to us
+  int processors; // Number of processors to use
+  bool bind_threads_to_processors;
 
   State Run(IterationCount iters, int thread_id, internal::ThreadTimer* timer,
             internal::ThreadManager* manager) const;
@@ -46,6 +48,8 @@ bool FindBenchmarksInternal(const std::string& re,
 bool IsZero(double n);
 
 ConsoleReporter::OutputOptions GetOutputOptions(bool force_no_color = false);
+
+void SetThreadAffinity(const std::vector<int> &cpus);
 
 }  // end namespace internal
 }  // end namespace benchmark
