@@ -42,6 +42,7 @@ class ThreadManager {
     double real_time_used = 0;
     double cpu_time_used = 0;
     double manual_time_used = 0;
+    int64_t cycles_used = 0;
     int64_t complexity_n = 0;
     std::string report_label_;
     std::string error_message_;

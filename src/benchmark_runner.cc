@@ -88,6 +88,7 @@ BenchmarkReporter::Run CreateRunReport(
       report.real_accumulated_time = results.real_time_used;
     }
     report.cpu_accumulated_time = results.cpu_time_used;
+    report.cycles_accumulated = results.cycles_used;
     report.complexity_n = results.complexity_n;
     report.complexity = b.complexity;
     report.complexity_lambda = b.complexity_lambda;
@@ -124,6 +125,7 @@ void RunInThread(const BenchmarkInstance* b, IterationCount iters,
     internal::ThreadManager::Result& results = manager->results;
     results.iterations += st.iterations();
     results.cpu_time_used += timer.cpu_time_used();
+    results.cycles_used += timer.cycles_used();
     results.real_time_used += timer.real_time_used();
     results.manual_time_used += timer.manual_time_used();
     results.complexity_n += st.complexity_length_n();
@@ -234,7 +236,8 @@ class BenchmarkRunner {
     if (b.measure_process_cpu_time) i.results.cpu_time_used /= b.threads;
 
     VLOG(2) << "Ran in " << i.results.cpu_time_used << "/"
-            << i.results.real_time_used << "\n";
+            << i.results.real_time_used << " (" << i.results.cycles_used
+            << ")\n";
 
     // So for how long were we running?
     i.iters = iters;
