@@ -1388,6 +1388,7 @@ class BenchmarkReporter {
     TimeUnit time_unit;
     double real_accumulated_time;
     double cpu_accumulated_time;
+    int64_t cycles_accumulated;
 
     // Return a value representing the real time per iteration in the unit
     // specified by 'time_unit'.

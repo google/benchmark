@@ -2,6 +2,7 @@
 #define BENCHMARK_THREAD_TIMER_H
 
 #include "check.h"
+#include "cycleclock.h"
 #include "timers.h"
 
 namespace benchmark {
@@ -24,6 +25,7 @@ class ThreadTimer {
     running_ = true;
     start_real_time_ = ChronoClockNow();
     start_cpu_time_ = ReadCpuTimerOfChoice();
+    start_cycles_ = cycleclock::Now();
   }
 
   // Called by each thread
@@ -35,6 +37,7 @@ class ThreadTimer {
     // time. Guard against that.
     cpu_time_used_ +=
         std::max<double>(ReadCpuTimerOfChoice() - start_cpu_time_, 0);
+    cycles_used_ += cycleclock::Now() - start_cycles_;
   }
 
   // Called by each thread
@@ -60,6 +63,12 @@ class ThreadTimer {
     return manual_time_used_;
   }
 
+  // REQUIRES: timer is not running
+  int64_t cycles_used() const {
+    CHECK(!running_);
+    return cycles_used_;
+  }
+
  private:
   double ReadCpuTimerOfChoice() const {
     if (measure_process_cpu_time) return ProcessCPUUsage();
@@ -73,11 +82,15 @@ class ThreadTimer {
   double start_real_time_ = 0;  // If running_
   double start_cpu_time_ = 0;   // If running_
 
+  int64_t start_cycles_ = 0;
+
   // Accumulated time so far (does not contain current slice if running_)
   double real_time_used_ = 0;
   double cpu_time_used_ = 0;
   // Manually set iteration time. User sets this with SetIterationTime(seconds).
   double manual_time_used_ = 0;
+
+  int64_t cycles_used_ = 0;
 };
 
 }  // namespace internal
