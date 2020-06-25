@@ -48,6 +48,14 @@ def create_parser():
              "of repetitions. Do note that only the display is affected. "
              "Internally, all the actual runs are still used, e.g. for U test.")
 
+    parser.add_argument(
+        '--no-color',
+        dest='color',
+        default=True,
+        action="store_false",
+        help="Do not use colors in the terminal output"
+    )
+
     utest = parser.add_argument_group()
     utest.add_argument(
         '--no-utest',
@@ -239,7 +247,7 @@ def main():
     # Diff and output
     output_lines = gbench.report.generate_difference_report(
         json1, json2, args.display_aggregates_only,
-        args.utest, args.utest_alpha)
+        args.utest, args.utest_alpha, args.color)
     print(description)
     for ln in output_lines:
         print(ln)
