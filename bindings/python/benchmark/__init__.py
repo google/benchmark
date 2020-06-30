@@ -60,3 +60,8 @@ def _run_benchmarks(argv):
 
 def main(argv=None):
   return app.run(_run_benchmarks, argv=argv, flags_parser=_flags_parser)
+
+
+# Methods for use with custom main function.
+initialize = _benchmark.Initialize
+run_benchmarks = _benchmark.RunSpecifiedBenchmarks
