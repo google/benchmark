@@ -13,14 +13,14 @@
 # limitations under the License.
 """Example of Python using C++ benchmark framework.
 
-To run this example, you must first install the `benchmark` Python package.
+To run this example, you must first install the `google_benchmark` Python package.
 
-To install using `setup.py`, download and extract the `benchmark` source.
+To install using `setup.py`, download and extract the `google_benchmark` source.
 In the extracted directory, execute:
   python setup.py install
 """
 
-import benchmark
+import google_benchmark as benchmark
 
 
 @benchmark.register
