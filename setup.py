@@ -17,7 +17,7 @@ IS_WINDOWS = sys.platform.startswith('win')
 
 def _get_version():
   """Parse the version string from __init__.py."""
-  with open(os.path.join(here, 'bindings', 'python', 'benchmark', '__init__.py')) as f:
+  with open(os.path.join(here, 'bindings', 'python', 'google_benchmark', '__init__.py')) as f:
     try:
       version_line = next(
           line for line in f if line.startswith('__version__'))
@@ -95,7 +95,7 @@ class BuildBazelExtension(build_ext.build_ext):
 
 
 setuptools.setup(
-    name='google-benchmark',
+    name='google_benchmark',
     version=_get_version(),
     url='https://github.com/google/benchmark',
     description='A library to benchmark code snippets.',
@@ -106,7 +106,7 @@ setuptools.setup(
     packages=setuptools.find_packages('bindings/python'),
     install_requires=_parse_requirements('bindings/python/requirements.txt'),
     cmdclass=dict(build_ext=BuildBazelExtension),
-    ext_modules=[BazelExtension('benchmark._benchmark', '//bindings/python/benchmark:_benchmark')],
+    ext_modules=[BazelExtension('google_benchmark._benchmark', '//bindings/python/google_benchmark:_benchmark')],
     zip_safe=False,
     # PyPI package information.
     classifiers=[
@@ -116,6 +116,7 @@ setuptools.setup(
         'License :: OSI Approved :: Apache Software License',
         'Programming Language :: Python :: 3.6',
         'Programming Language :: Python :: 3.7',
+        'Programming Language :: Python :: 3.8',
         'Topic :: Software Development :: Testing',
         'Topic :: System :: Benchmark',
     ],
