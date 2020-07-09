@@ -1,7 +1,7 @@
 load("//bindings/python:build_defs.bzl", "py_extension")
 
 py_library(
-    name = "benchmark",
+    name = "google_benchmark",
     srcs = ["__init__.py"],
     visibility = ["//visibility:public"],
     deps = [
@@ -32,7 +32,7 @@ py_test(
     srcs_version = "PY3",
     visibility = ["//visibility:public"],
     deps = [
-        ":benchmark",
+        ":google_benchmark",
     ],
 )
 
