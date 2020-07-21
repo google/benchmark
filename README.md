@@ -1167,7 +1167,7 @@ int main(int argc, char** argv) {
   for (auto& test_input : { /* ... */ })
       benchmark::RegisterBenchmark(test_input.name(), BM_test, test_input);
   benchmark::Initialize(&argc, argv);
-  benchmark::RunSpecifiedBenchmarks();
+  return benchmark::RunSpecifiedBenchmarks();
 }
 ```
 
