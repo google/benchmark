@@ -1295,7 +1295,7 @@ struct CPUInfo {
     int num_sharing;
   };
 
-  enum class Scaling {
+  enum Scaling {
     UNKNOWN,
     ENABLED,
     DISABLED
