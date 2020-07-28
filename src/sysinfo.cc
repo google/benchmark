@@ -214,7 +214,7 @@ CPUInfo::Scaling CpuScaling(int num_cpus) {
   // We don't have a valid CPU count, so don't even bother.
   if (num_cpus <= 0) return CPUInfo::Scaling::UNKNOWN;
 #ifdef BENCHMARK_OS_QNX
-  return CPUInfo::Scaling::DISABLED;
+  return CPUInfo::Scaling::UNKNOWN;
 #endif
 #ifndef BENCHMARK_OS_WINDOWS
   // On Linux, the CPUfreq subsystem exposes CPU information as files on the
@@ -226,8 +226,9 @@ CPUInfo::Scaling CpuScaling(int num_cpus) {
         StrCat("/sys/devices/system/cpu/cpu", cpu, "/cpufreq/scaling_governor");
     if (ReadFromFile(governor_file, &res) && res != "performance") return CPUInfo::Scaling::ENABLED;
   }
-#endif
   return CPUInfo::Scaling::DISABLED;
+#endif
+  return CPUInfo::Scaling::UNKNOWN;
 }
 
 int CountSetBitsInCPUMap(std::string Val) {
