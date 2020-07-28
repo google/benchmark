@@ -176,6 +176,7 @@ BENCHMARK(BM_test)->Unit(benchmark::kMillisecond);
 #include <map>
 #include <set>
 #include <string>
+#include <utility>
 #include <vector>
 
 #if defined(BENCHMARK_HAS_CXX11)
@@ -1294,10 +1295,16 @@ struct CPUInfo {
     int num_sharing;
   };
 
+  enum Scaling {
+    UNKNOWN,
+    ENABLED,
+    DISABLED
+  };
+
   int num_cpus;
   double cycles_per_second;
   std::vector<CacheInfo> caches;
-  bool scaling_enabled;
+  Scaling scaling;
   std::vector<double> load_avg;
 
   static const CPUInfo& Get();

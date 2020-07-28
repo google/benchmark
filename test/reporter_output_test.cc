@@ -28,8 +28,7 @@ static int AddContextCases() {
              MR_Next},
             {"\"num_cpus\": %int,$", MR_Next},
             {"\"mhz_per_cpu\": %float,$", MR_Next},
-            {"\"cpu_scaling_enabled\": ", MR_Next},
-            {"\"caches\": \\[$", MR_Next}});
+            {"\"caches\": \\[$", MR_Default}});
   auto const& Info = benchmark::CPUInfo::Get();
   auto const& Caches = Info.caches;
   if (!Caches.empty()) {
