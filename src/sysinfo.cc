@@ -384,6 +384,7 @@ std::vector<CPUInfo::CacheInfo> GetCacheSizesQNX() {
       case CACHE_FLAG_UNIFIED :
         info.type = "Unified";
         info.level = 2;
+        break;
       case CACHE_FLAG_SHARED :
         info.type = "Shared";
         info.level = 3;
