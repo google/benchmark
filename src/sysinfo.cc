@@ -57,6 +57,7 @@
 #include <memory>
 #include <sstream>
 #include <locale>
+#include <utility>
 
 #include "check.h"
 #include "cycleclock.h"
@@ -209,11 +210,11 @@ bool ReadFromFile(std::string const& fname, ArgT* arg) {
   return f.good();
 }
 
-bool CpuScalingEnabled(int num_cpus) {
+std::pair<bool /*validity*/, bool /*value*/> CpuScalingEnabled(int num_cpus) {
   // We don't have a valid CPU count, so don't even bother.
-  if (num_cpus <= 0) return false;
+  if (num_cpus <= 0) return std::make_pair(false, false);
 #ifdef BENCHMARK_OS_QNX
-  return false;
+  return std::make_pair(true, false);
 #endif
 #ifndef BENCHMARK_OS_WINDOWS
   // On Linux, the CPUfreq subsystem exposes CPU information as files on the
@@ -223,10 +224,10 @@ bool CpuScalingEnabled(int num_cpus) {
   for (int cpu = 0; cpu < num_cpus; ++cpu) {
     std::string governor_file =
         StrCat("/sys/devices/system/cpu/cpu", cpu, "/cpufreq/scaling_governor");
-    if (ReadFromFile(governor_file, &res) && res != "performance") return true;
+    if (ReadFromFile(governor_file, &res) && res != "performance") return make_pair(true, true);
   }
 #endif
-  return false;
+  return std::make_pair(true, false);
 }
 
 int CountSetBitsInCPUMap(std::string Val) {
