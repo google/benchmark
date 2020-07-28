@@ -122,8 +122,10 @@ bool JSONReporter::ReportContext(const Context& context) {
       << FormatKV("mhz_per_cpu",
                   RoundDouble(info.cycles_per_second / 1000000.0))
       << ",\n";
-  out << indent << FormatKV("cpu_scaling_enabled", info.scaling_enabled)
-      << ",\n";
+  if (CPUInfo::Scaling::UNKNOWN != info.scaling) {
+    out << indent << FormatKV("cpu_scaling_enabled", info.scaling == CPUInfo::Scaling::ENABLED ? true : false)
+        << ",\n";
+  }
 
   out << indent << "\"caches\": [\n";
   indent = std::string(6, ' ');
