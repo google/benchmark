@@ -122,8 +122,8 @@ bool JSONReporter::ReportContext(const Context& context) {
       << FormatKV("mhz_per_cpu",
                   RoundDouble(info.cycles_per_second / 1000000.0))
       << ",\n";
-  if (info.scaling_enabled.first) {
-    out << indent << FormatKV("cpu_scaling_enabled", info.scaling_enabled.second)
+  if (CPUInfo::Scaling::UNKNOWN != info.scaling) {
+    out << indent << FormatKV("cpu_scaling_enabled", info.scaling == CPUInfo::Scaling::ENABLED ? true : false)
         << ",\n";
   }
 

@@ -1295,10 +1295,16 @@ struct CPUInfo {
     int num_sharing;
   };
 
+  enum class Scaling {
+    UNKNOWN,
+    ENABLED,
+    DISABLED
+  };
+
   int num_cpus;
   double cycles_per_second;
   std::vector<CacheInfo> caches;
-  std::pair<bool /*validity*/, bool /*value*/> scaling_enabled;
+  Scaling scaling;
   std::vector<double> load_avg;
 
   static const CPUInfo& Get();
