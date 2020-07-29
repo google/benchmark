@@ -388,6 +388,7 @@ std::vector<CPUInfo::CacheInfo> GetCacheSizesQNX() {
       case CACHE_FLAG_SHARED :
         info.type = "Shared";
         info.level = 3;
+        break;
       default :
         continue;
         break;
