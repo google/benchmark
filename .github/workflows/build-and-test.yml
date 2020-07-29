@@ -24,7 +24,7 @@ jobs:
     - name: configure cmake
       shell: bash
       working-directory: ${{ runner.workspace }}/_build
-      run: cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=${{ matrix.build_type }}
+      run: cmake -DBENCHMARK_DOWNLOAD_DEPENDENCIES=ON $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=${{ matrix.build_type }}
       
     - name: build
       shell: bash
