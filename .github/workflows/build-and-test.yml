@@ -8,12 +8,13 @@ on:
 
 jobs:
   job:
+    # TODO(dominic): Extend this to include compiler and set through env: CC/CXX.
     name: ${{ matrix.os }}.${{ matrix.build_type }}
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, macos-latest, windows-latest]
+        os: [ubuntu-latest, ubuntu-16.04, ubuntu-20.04, macos-latest, windows-latest]
         build_type: ['Release', 'Debug']
     steps:
     - uses: actions/checkout@v2
