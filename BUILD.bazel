@@ -1,3 +1,5 @@
+load("@rules_cc//cc:defs.bzl", "cc_library")
+
 licenses(["notice"])
 
 config_setting(
@@ -7,8 +9,6 @@ config_setting(
     },
     visibility = [":__subpackages__"],
 )
-
-load("@rules_cc//cc:defs.bzl", "cc_library")
 
 cc_library(
     name = "benchmark",
@@ -26,6 +26,9 @@ cc_library(
     }),
     strip_include_prefix = "include",
     visibility = ["//visibility:public"],
+    deps = [
+        "@com_github_gflags_gflags//:gflags",
+    ],
 )
 
 cc_library(

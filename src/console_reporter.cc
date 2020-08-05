@@ -24,7 +24,6 @@
 #include "benchmark/benchmark.h"
 #include "check.h"
 #include "colorprint.h"
-#include "commandlineflags.h"
 #include "complexity.h"
 #include "counter.h"
 #include "internal_macros.h"

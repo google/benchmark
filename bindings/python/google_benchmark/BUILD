@@ -35,4 +35,3 @@ py_test(
         ":google_benchmark",
     ],
 )
-
