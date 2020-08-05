@@ -138,7 +138,7 @@ DEFINE_bool(
     "Valid values: 'true'/'yes'/1, 'false'/'no'/0.  Defaults to false.");
 
 // The level of verbose logging to output
-DEFINE_int32(v, 0, "The level of verbose logging to output");
+DEFINE_int32(benchmark_log_v, 0, "The level of verbose logging to output");
 
 namespace benchmark {
 
@@ -473,7 +473,7 @@ void Initialize(int* argc, char** argv) {
   google::ParseCommandLineFlags(argc, &argv, true);
   BenchmarkReporter::Context::executable_name =
       (argc && *argc > 0) ? argv[0] : "unknown";
-  internal::LogLevel() = FLAGS_v;
+  internal::LogLevel() = FLAGS_benchmark_log_v;
 }
 
 bool ReportUnrecognizedArguments(int argc, char** argv) {
