@@ -51,6 +51,10 @@
 #include "thread_manager.h"
 #include "thread_timer.h"
 
+#ifdef _OPENMP
+#include <omp.h>
+#endif
+
 namespace benchmark {
 
 namespace internal {
@@ -203,6 +207,17 @@ class BenchmarkRunner {
     std::unique_ptr<internal::ThreadManager> manager;
     manager.reset(new internal::ThreadManager(b.threads));
 
+#ifdef _OPENMP
+    if (b.threads == OmpNoParallelRegion) {
+      RunInThread(&b, iters, 0, manager.get());
+    }
+    else {
+    #pragma omp parallel num_threads(b.threads)
+      {
+        RunInThread(&b, iters, omp_get_thread_num(), manager.get());
+      }
+    }
+#else
     // Run all but one thread in separate threads
     for (std::size_t ti = 0; ti < pool.size(); ++ti) {
       pool[ti] = std::thread(&RunInThread, &b, iters, static_cast<int>(ti + 1),
@@ -216,6 +231,7 @@ class BenchmarkRunner {
     // The main thread has finished. Now let's wait for the other threads.
     manager->WaitForAllThreads();
     for (std::thread& thread : pool) thread.join();
+#endif
 
     IterationResults i;
     // Acquire the measurements/counters from the manager, UNDER THE LOCK!

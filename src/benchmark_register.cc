@@ -51,6 +51,10 @@
 #include "statistics.h"
 #include "string_util.h"
 #include "timers.h"
+		
+#ifdef _OPENMP
+#include <omp.h>
+#endif
 
 namespace benchmark {
 
@@ -173,6 +177,11 @@ bool BenchmarkFamilies::FindBenchmarks(
         instance.complexity = family->complexity_;
         instance.complexity_lambda = family->complexity_lambda_;
         instance.statistics = &family->statistics_;
+#ifdef _OPENMP
+        if (num_threads == OmpDefaultNumThreads) {
+          num_threads = ::omp_get_max_threads();
+        }
+#endif
         instance.threads = num_threads;
 
         // Add arguments to instance name

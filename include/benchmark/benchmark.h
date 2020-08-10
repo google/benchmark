@@ -415,6 +415,13 @@ enum TimeUnit { kNanosecond, kMicrosecond, kMillisecond };
 // calculated automatically to the best fit.
 enum BigO { oNone, o1, oN, oNSquared, oNCubed, oLogN, oNLogN, oAuto, oLambda };
 
+// If OpenMP threading is used, two special values can be passed to Threads():
+// OmpDefaultNumThreads: use omp_get_max_threads().
+// OmpNoParallelRegion==1: don't open a parellel region. A parallel region with one thread is not possible.
+#ifdef _OPENMP
+  enum { OmpDefaultNumThreads = -1, OmpNoParallelRegion = 1 };
+#endif
+
 typedef uint64_t IterationCount;
 
 // BigOFunc is passed to a benchmark in order to specify the asymptotic
