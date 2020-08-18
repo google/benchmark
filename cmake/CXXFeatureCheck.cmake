@@ -27,6 +27,11 @@ function(cxx_feature_check FILE)
     return()
   endif()
 
+  if (ARGC GREATER 1)
+    message(STATUS "Enabling additional flags: ${ARGV1}")
+    list(APPEND BENCHMARK_CXX_LINKER_FLAGS ${ARGV1})
+  endif()
+
   if (NOT DEFINED COMPILE_${FEATURE})
     message(STATUS "Performing Test ${FEATURE}")
     if(CMAKE_CROSSCOMPILING)
