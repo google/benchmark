@@ -94,7 +94,7 @@ On a unix system, the build directory should now look something like this:
 Next, you can run the tests to check the build.
 
 ```bash
-$ cmake --build "build" --config Release --target test
+$ cmake -E chdir "build" ctest ../
 ```
 
 If you want to install the library globally, also run:
