@@ -15,7 +15,9 @@ endforeach()
 
 project (benchmark CXX)
 
-option(BENCHMARK_ENABLE_TESTING "Enable testing of the benchmark library." ON)
+include(CTest)
+
+#option(BENCHMARK_ENABLE_TESTING "Enable testing of the benchmark library." ON)
 option(BENCHMARK_ENABLE_EXCEPTIONS "Enable the use of exceptions in the benchmark library." ON)
 option(BENCHMARK_ENABLE_LTO "Enable link time optimisation of the benchmark library." OFF)
 option(BENCHMARK_USE_LIBCXX "Build and test using libc++ as the standard library." OFF)
@@ -268,8 +270,8 @@ include_directories(${PROJECT_SOURCE_DIR}/include)
 # Build the targets
 add_subdirectory(src)
 
-if (BENCHMARK_ENABLE_TESTING)
-  enable_testing()
+if (BUILD_TESTING)
+  #enable_testing()
   if (BENCHMARK_ENABLE_GTEST_TESTS AND
       NOT (TARGET gtest AND TARGET gtest_main AND
            TARGET gmock AND TARGET gmock_main))
