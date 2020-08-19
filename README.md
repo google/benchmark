@@ -70,13 +70,13 @@ $ git clone https://github.com/google/googletest.git benchmark/googletest
 # Go to the library root directory
 $ cd benchmark
 # Make a build directory to place the build output.
-$ mkdir build && cd build
-# Generate a Makefile with cmake.
-# Use cmake -G <generator> to generate a different file type.
-$ cmake ../
+$ cmake -E make_directory "build"
+# Generate build system files with cmake.
+$ cmake -E chdir "build" cmake -DCMAKE_BUILD_TYPE=Release ../
+# or, starting with CMake 3.13, use a simpler form:
+# cmake -DCMAKE_BUILD_TYPE=Release -S . -B "build"
 # Build the library.
-# Use make -j<number_of_parallel_jobs> to speed up the build process, e.g. make -j8 .
-$ make
+$ cmake --build "build" --config Release --parallel
 ```
 This builds the `benchmark` and `benchmark_main` libraries and tests.
 On a unix system, the build directory should now look something like this:
@@ -94,13 +94,13 @@ On a unix system, the build directory should now look something like this:
 Next, you can run the tests to check the build.
 
 ```bash
-$ make test
+$ cmake --build "build" --config Release --target test
 ```
 
 If you want to install the library globally, also run:
 
 ```
-sudo make install
+sudo cmake --build "build" --config Release --target install
 ```
 
 Note that Google Benchmark requires Google Test to build and run the tests. This
@@ -117,17 +117,14 @@ to `CMAKE_ARGS`.
 ### Debug vs Release
 
 By default, benchmark builds as a debug library. You will see a warning in the
-output when this is the case. To build it as a release library instead, use:
+output when this is the case. To build it as a release library instead, add
+`-DCMAKE_BUILD_TYPE=Release` when generating the build system files, as shown
+above. The use of `--config Release` in build commands is needed to properly
+support multi-configuration tools (like Visual Studio for example) and can be
+skipped for other build systems (like Makefile).
 
-```
-cmake -DCMAKE_BUILD_TYPE=Release
-```
-
-To enable link-time optimisation, use
-
-```
-cmake -DCMAKE_BUILD_TYPE=Release -DBENCHMARK_ENABLE_LTO=true
-```
+To enable link-time optimisation, also add `-DBENCHMARK_ENABLE_LTO=true` when
+generating the build system files.
 
 If you are using gcc, you might need to set `GCC_AR` and `GCC_RANLIB` cmake
 cache variables, if autodetection fails.
