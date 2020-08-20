@@ -94,7 +94,7 @@ On a unix system, the build directory should now look something like this:
 Next, you can run the tests to check the build.
 
 ```bash
-$ cmake -E chdir "build" ctest ../
+$ cmake -E chdir "build" ctest --build-config Release ../
 ```
 
 If you want to install the library globally, also run:
@@ -114,14 +114,19 @@ dependency can be provided two ways:
 If you do not wish to build and run the tests, add `-DBENCHMARK_ENABLE_GTEST_TESTS=OFF`
 to `CMAKE_ARGS`.
 
+### Speeding up the build
+
+If you find the build or test runs to be slow, you can pass `--parallel` to the
+`cmake` and `ctest` commands as per the cmake documentation.
+
 ### Debug vs Release
 
 By default, benchmark builds as a debug library. You will see a warning in the
-output when this is the case. To build it as a release library instead, add
-`-DCMAKE_BUILD_TYPE=Release` when generating the build system files, as shown
-above. The use of `--config Release` in build commands is needed to properly
-support multi-configuration tools (like Visual Studio for example) and can be
-skipped for other build systems (like Makefile).
+output when this is the case. To build it as a release library instead, as in
+the above instructions, add `--config Release` to the cmake commands. The use
+of `--config Release` in build commands is needed to properly support
+multi-configuration tools (like Visual Studio for example) and can be skipped
+for other build systems (like Makefile).
 
 To enable link-time optimisation, also add `-DBENCHMARK_ENABLE_LTO=true` when
 generating the build system files.
@@ -131,7 +136,6 @@ cache variables, if autodetection fails.
 
 If you are using clang, you may need to set `LLVMAR_EXECUTABLE`,
 `LLVMNM_EXECUTABLE` and `LLVMRANLIB_EXECUTABLE` cmake cache variables.
-
 
 ### Stable and Experimental Library Versions
 
