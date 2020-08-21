@@ -31,7 +31,7 @@ if(EXISTS "${GOOGLETEST_PATH}"            AND IS_DIRECTORY "${GOOGLETEST_PATH}" 
   )
 else()
   if(NOT ALLOW_DOWNLOADING_GOOGLETEST)
-    message(SEND_ERROR "Did not find Google Test sources! Either pass correct path in GOOGLETEST_PATH, or enable ALLOW_DOWNLOADING_GOOGLETEST, or disable BENCHMARK_ENABLE_GTEST_TESTS / BENCHMARK_ENABLE_TESTING.")
+    message(SEND_ERROR "Did not find Google Test sources! Either pass correct path in GOOGLETEST_PATH, or enable BENCHMARK_DOWNLOAD_DEPENDENCIES, or disable BENCHMARK_ENABLE_GTEST_TESTS / BENCHMARK_ENABLE_TESTING.")
   else()
     message(WARNING "Did not find Google Test sources! Fetching from web...")
     ExternalProject_Add(
