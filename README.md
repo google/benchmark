@@ -76,7 +76,7 @@ $ cmake -E chdir "build" cmake -DCMAKE_BUILD_TYPE=Release ../
 # or, starting with CMake 3.13, use a simpler form:
 # cmake -DCMAKE_BUILD_TYPE=Release -S . -B "build"
 # Build the library.
-$ cmake --build "build" --config Release --parallel
+$ cmake --build "build" --config Release
 ```
 This builds the `benchmark` and `benchmark_main` libraries and tests.
 On a unix system, the build directory should now look something like this:
