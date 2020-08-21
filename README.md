@@ -76,7 +76,7 @@ $ cmake -E chdir "build" cmake -DCMAKE_BUILD_TYPE=Release ../
 # or, starting with CMake 3.13, use a simpler form:
 # cmake -DCMAKE_BUILD_TYPE=Release -S . -B "build"
 # Build the library.
-$ cmake --build "build" --config Release --parallel
+$ cmake --build "build" --config Release
 ```
 This builds the `benchmark` and `benchmark_main` libraries and tests.
 On a unix system, the build directory should now look something like this:
@@ -94,7 +94,7 @@ On a unix system, the build directory should now look something like this:
 Next, you can run the tests to check the build.
 
 ```bash
-$ cmake --build "build" --config Release --target test
+$ cmake -E chdir "build" ctest --build-config Release
 ```
 
 If you want to install the library globally, also run:
@@ -131,7 +131,6 @@ cache variables, if autodetection fails.
 
 If you are using clang, you may need to set `LLVMAR_EXECUTABLE`,
 `LLVMNM_EXECUTABLE` and `LLVMRANLIB_EXECUTABLE` cmake cache variables.
-
 
 ### Stable and Experimental Library Versions
 
