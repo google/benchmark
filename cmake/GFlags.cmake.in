@@ -7,15 +7,13 @@ include(ExternalProject)
 
 option(ALLOW_DOWNLOADING_GFLAGS "If gflags src tree is not found in location specified by GFLAGS_PATH, do fetch the archive from internet" OFF)
 set(GFLAGS_PATH "/usr/src/gflags" CACHE PATH
-                    "Path to the gflags root tree. Should contain gflags and googlemock subdirs. And CMakeLists.txt in root, and in both of these subdirs")
+                    "Path to the gflags root tree. Should contain CMakeLists.txt in root.")
 
 # Download and install GFlags
 
 message(STATUS "Looking for GFlags sources")
 message(STATUS "Looking for GFlags sources in ${GFLAGS_PATH}")
-if(EXISTS "${GFLAGS_PATH}"            AND IS_DIRECTORY "${GFLAGS_PATH}"            AND EXISTS "${GFLAGS_PATH}/CMakeLists.txt" AND
-   EXISTS "${GFLAGS_PATH}/gflags" AND IS_DIRECTORY "${GFLAGS_PATH}/gflags" AND EXISTS "${GFLAGS_PATH}/gflags/CMakeLists.txt" AND
-   EXISTS "${GFLAGS_PATH}/googlemock" AND IS_DIRECTORY "${GFLAGS_PATH}/googlemock" AND EXISTS "${GFLAGS_PATH}/googlemock/CMakeLists.txt")
+if(EXISTS "${GFLAGS_PATH}"            AND IS_DIRECTORY "${GFLAGS_PATH}"            AND EXISTS "${GFLAGS_PATH}/CMakeLists.txt")
   message(STATUS "Found GFlags in ${GFLAGS_PATH}")
 
   ExternalProject_Add(
