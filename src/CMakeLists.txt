@@ -53,6 +53,9 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "SunOS")
   target_link_libraries(benchmark kstat)
 endif()
 
+# Link gflags
+target_link_libraries(benchmark gflags_static)
+
 # Benchmark main library
 add_library(benchmark_main "benchmark_main.cc")
 add_library(benchmark::benchmark_main ALIAS benchmark_main)

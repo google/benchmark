@@ -27,6 +27,9 @@ endif()
 # settings on Windows
 set(gflags_force_shared_crt ON CACHE BOOL "" FORCE)
 
+# Enable gflags multithreaded library
+set(BUILD_gflags_LIB ON CACHE BOOL "" FORCE)
+
 include(${GFLAGS_PREFIX}/gflags-paths.cmake)
 
 # Add gflags directly to our build. This defines
@@ -35,4 +38,4 @@ add_subdirectory(${GFLAGS_SOURCE_DIR}
                  ${GFLAGS_BINARY_DIR}
                  EXCLUDE_FROM_ALL)
 
-set_target_properties(gflags PROPERTIES INTERFACE_SYSTEM_INCLUDE_DIRECTORIES $<TARGET_PROPERTY:gflags,INTERFACE_INCLUDE_DIRECTORIES>)
+set_target_properties(gflags_static PROPERTIES INTERFACE_SYSTEM_INCLUDE_DIRECTORIES $<TARGET_PROPERTY:gflags_static,INTERFACE_INCLUDE_DIRECTORIES>)
