@@ -262,6 +262,9 @@ cxx_feature_check(STEADY_CLOCK)
 set(THREADS_PREFER_PTHREAD_FLAG ON)
 find_package(Threads REQUIRED)
 
+# Include 3rd party module gflags
+include(GFlags)
+
 # Set up directories
 include_directories(${PROJECT_SOURCE_DIR}/include)
 

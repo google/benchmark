@@ -1,0 +1,58 @@
+cmake_minimum_required(VERSION 2.8.12)
+
+project(gflags-download NONE)
+
+# Enable ExternalProject CMake module
+include(ExternalProject)
+
+option(ALLOW_DOWNLOADING_GFLAGS "If gflags src tree is not found in location specified by GFLAGS_PATH, do fetch the archive from internet" OFF)
+set(GFLAGS_PATH "/usr/src/gflags" CACHE PATH
+                    "Path to the gflags root tree. Should contain gflags and googlemock subdirs. And CMakeLists.txt in root, and in both of these subdirs")
+
+# Download and install GFlags
+
+message(STATUS "Looking for GFlags sources")
+message(STATUS "Looking for GFlags sources in ${GFLAGS_PATH}")
+if(EXISTS "${GFLAGS_PATH}"            AND IS_DIRECTORY "${GFLAGS_PATH}"            AND EXISTS "${GFLAGS_PATH}/CMakeLists.txt" AND
+   EXISTS "${GFLAGS_PATH}/gflags" AND IS_DIRECTORY "${GFLAGS_PATH}/gflags" AND EXISTS "${GFLAGS_PATH}/gflags/CMakeLists.txt" AND
+   EXISTS "${GFLAGS_PATH}/googlemock" AND IS_DIRECTORY "${GFLAGS_PATH}/googlemock" AND EXISTS "${GFLAGS_PATH}/googlemock/CMakeLists.txt")
+  message(STATUS "Found GFlags in ${GFLAGS_PATH}")
+
+  ExternalProject_Add(
+    gflags
+    PREFIX            "${CMAKE_BINARY_DIR}"
+    DOWNLOAD_DIR      "${CMAKE_BINARY_DIR}/download"
+    SOURCE_DIR        "${GFLAGS_PATH}" # use existing src dir.
+    BINARY_DIR        "${CMAKE_BINARY_DIR}/build"
+    CONFIGURE_COMMAND ""
+    BUILD_COMMAND     ""
+    INSTALL_COMMAND   ""
+    TEST_COMMAND      ""
+  )
+else()
+  if(NOT ALLOW_DOWNLOADING_GFLAGS)
+    message(SEND_ERROR "Did not find GFlags sources! Either pass correct path in GFLAGS_PATH, or enable BENCHMARK_DOWNLOAD_DEPENDENCIES, or disable BENCHMARK_ENABLE_GTEST_TESTS / BENCHMARK_ENABLE_TESTING.")
+  else()
+    message(WARNING "Did not find GFlags sources! Fetching from web...")
+    ExternalProject_Add(
+      gflags
+      GIT_REPOSITORY    https://github.com/gflags/gflags.git
+      GIT_TAG           master
+      PREFIX            "${CMAKE_BINARY_DIR}"
+      STAMP_DIR         "${CMAKE_BINARY_DIR}/stamp"
+      DOWNLOAD_DIR      "${CMAKE_BINARY_DIR}/download"
+      SOURCE_DIR        "${CMAKE_BINARY_DIR}/src"
+      BINARY_DIR        "${CMAKE_BINARY_DIR}/build"
+      CONFIGURE_COMMAND ""
+      BUILD_COMMAND     ""
+      INSTALL_COMMAND   ""
+      TEST_COMMAND      ""
+    )
+  endif()
+endif()
+
+ExternalProject_Get_Property(gflags SOURCE_DIR BINARY_DIR)
+file(WRITE gflags-paths.cmake
+"set(GFLAGS_SOURCE_DIR \"${SOURCE_DIR}\")
+set(GFLAGS_BINARY_DIR \"${BINARY_DIR}\")
+")
