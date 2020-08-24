@@ -641,6 +641,9 @@ class State {
     return max_iterations - total_iterations_ + batch_leftover_;
   }
 
+  BENCHMARK_ALWAYS_INLINE
+  int GetNumThreadStates() const { return num_thread_states_; }
+
  private
      :  // items we expect on the first cache line (ie 64 bytes of the struct)
   // When total_iterations_ is 0, KeepRunning() and friends will return false.
@@ -685,8 +688,21 @@ class State {
   void FinishKeepRunning();
   internal::ThreadTimer* timer_;
   internal::ThreadManager* manager_;
+  int num_thread_states_;
 
   friend struct internal::BenchmarkInstance;
+  friend class ThreadState;
+};
+
+class ThreadState : public State
+{
+ public:
+  explicit ThreadState(State& s);
+  ~ThreadState();
+ private:
+  State* parent_;
+
+  ThreadState(const ThreadState&);
 };
 
 inline BENCHMARK_ALWAYS_INLINE bool State::KeepRunning() {
@@ -945,6 +961,9 @@ class Benchmark {
   // Equivalent to ThreadRange(NumCPUs(), NumCPUs())
   Benchmark* ThreadPerCpu();
 
+  // Don't create threads. Let the user evaluate state.threads and/or use ThreadState.
+  Benchmark* ManualThreading() { manual_threading_ = true; return this; }
+
   virtual void Run(State& state) = 0;
 
  protected:
@@ -969,6 +988,7 @@ class Benchmark {
   bool measure_process_cpu_time_;
   bool use_real_time_;
   bool use_manual_time_;
+  bool manual_threading_;
   BigO complexity_;
   BigOFunc* complexity_lambda_;
   std::vector<Statistics> statistics_;

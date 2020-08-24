@@ -77,7 +77,7 @@ BenchmarkReporter::Run CreateRunReport(
   // This is the total iterations across all threads.
   report.iterations = results.iterations;
   report.time_unit = b.time_unit;
-  report.threads = b.threads;
+  report.threads = results.thread_count;
   report.repetition_index = repetition_index;
   report.repetitions = b.repetitions;
 
@@ -117,17 +117,36 @@ void RunInThread(const BenchmarkInstance* b, IterationCount iters,
           ? internal::ThreadTimer::CreateProcessCpuTime()
           : internal::ThreadTimer::Create());
   State st = b->Run(iters, thread_id, &timer, manager);
-  CHECK(st.error_occurred() || st.iterations() >= st.max_iterations)
-      << "Benchmark returned before State::KeepRunning() returned false!";
+  assert(b->explicit_threading || b->threads == 1);
+  if (st.GetNumThreadStates() > 0)
+  {
+    CHECK((!b->explicit_threading) || b->manual_threading)
+        << "Benchmark " << b->name.str() << " run with managed threading. It must not create ThreadStates!";
+    CHECK((!b->explicit_threading) || st.GetNumThreadStates() == b->threads)
+        << "The number of ThreadStates created by Benchmark " << b->name.str()
+        << " doesn't match the number of threads!";
+  }
+  else
+  {
+    CHECK(st.error_occurred() || st.iterations() >= st.max_iterations)
+        << "Benchmark returned before State::KeepRunning() returned false!";
+  }
   {
     MutexLock l(manager->GetBenchmarkMutex());
     internal::ThreadManager::Result& results = manager->results;
     results.iterations += st.iterations();
-    results.cpu_time_used += timer.cpu_time_used();
-    results.real_time_used += timer.real_time_used();
-    results.manual_time_used += timer.manual_time_used();
-    results.complexity_n += st.complexity_length_n();
-    internal::Increment(&results.counters, st.counters);
+    if (st.GetNumThreadStates() > 0)
+    {
+      // State values as well as thread state values are summed up for complexity_n and user counters:
+      results.complexity_n += st.complexity_length_n();
+      internal::Increment(&results.counters, st.counters);
+      results.thread_count = b->explicit_threading ? b->threads : st.GetNumThreadStates();
+    }
+    else
+    {
+      internal::MergeResults(st, &timer, manager);
+      results.thread_count = b->threads;
+    }
   }
   manager->NotifyThreadComplete();
 }
@@ -142,7 +161,8 @@ class BenchmarkRunner {
         repeats(b.repetitions != 0 ? b.repetitions
                                    : FLAGS_benchmark_repetitions),
         has_explicit_iteration_count(b.iterations != 0),
-        pool(b.threads - 1),
+        num_managed_threads(b.manual_threading ? 1 : b.threads),
+        pool(num_managed_threads - 1),
         iters(has_explicit_iteration_count ? b.iterations : 1) {
     run_results.display_report_aggregates_only =
         (FLAGS_benchmark_report_aggregates_only ||
@@ -186,6 +206,7 @@ class BenchmarkRunner {
   const int repeats;
   const bool has_explicit_iteration_count;
 
+  const int num_managed_threads;  // number of managed threads, must be before pool
   std::vector<std::thread> pool;
 
   IterationCount iters;  // preserved between repetitions!
@@ -201,7 +222,7 @@ class BenchmarkRunner {
     VLOG(2) << "Running " << b.name.str() << " for " << iters << "\n";
 
     std::unique_ptr<internal::ThreadManager> manager;
-    manager.reset(new internal::ThreadManager(b.threads));
+    manager.reset(new internal::ThreadManager(num_managed_threads));
 
     // Run all but one thread in separate threads
     for (std::size_t ti = 0; ti < pool.size(); ++ti) {
@@ -228,10 +249,10 @@ class BenchmarkRunner {
     manager.reset();
 
     // Adjust real/manual time stats since they were reported per thread.
-    i.results.real_time_used /= b.threads;
-    i.results.manual_time_used /= b.threads;
+    i.results.real_time_used /= i.results.thread_count;
+    i.results.manual_time_used /= i.results.thread_count;
     // If we were measuring whole-process CPU usage, adjust the CPU time too.
-    if (b.measure_process_cpu_time) i.results.cpu_time_used /= b.threads;
+    if (b.measure_process_cpu_time) i.results.cpu_time_used /= i.results.thread_count;
 
     VLOG(2) << "Ran in " << i.results.cpu_time_used << "/"
             << i.results.real_time_used << "\n";

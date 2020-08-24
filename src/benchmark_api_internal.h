@@ -34,6 +34,8 @@ struct BenchmarkInstance {
   double min_time;
   IterationCount iterations;
   int threads;  // Number of concurrent threads to us
+  bool explicit_threading;  // true: Number of threads come from a Threads() call
+  bool manual_threading;
 
   State Run(IterationCount iters, int thread_id, internal::ThreadTimer* timer,
             internal::ThreadManager* manager) const;
@@ -44,6 +46,8 @@ bool FindBenchmarksInternal(const std::string& re,
                             std::ostream* Err);
 
 bool IsZero(double n);
+
+void MergeResults(State& st, ThreadTimer* timer, ThreadManager* manager);
 
 ConsoleReporter::OutputOptions GetOutputOptions(bool force_no_color = false);
 

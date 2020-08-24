@@ -130,7 +130,8 @@ State::State(IterationCount max_iters, const std::vector<int64_t>& ranges,
       thread_index(thread_i),
       threads(n_threads),
       timer_(timer),
-      manager_(manager) {
+      manager_(manager), 
+      num_thread_states_(0) {
   CHECK(max_iterations != 0) << "At least one iteration must be run";
   CHECK_LT(thread_index, threads) << "thread_index must be less than threads";
 
@@ -210,6 +211,33 @@ void State::FinishKeepRunning() {
   total_iterations_ = 0;
   finished_ = true;
   manager_->StartStopBarrier();
+}
+
+ThreadState::ThreadState(State& s) :
+  State(s),
+  parent_(&s)
+{
+  CHECK(!s.started_) << "Don't create a ThreadState object after measurement has started";
+  timer_ = new internal::ThreadTimer(*timer_);
+}
+
+ThreadState::~ThreadState()
+{
+  CHECK(error_occurred() || iterations() >= max_iterations)
+      << "Benchmark returned before ThreadState::KeepRunning() returned false!";
+  {
+    MutexLock l(manager_->GetBenchmarkMutex());
+    internal::MergeResults(*this, timer_, manager_);
+    assert(parent_->total_iterations_ == 0 || parent_->total_iterations_ == total_iterations_);
+    assert(parent_->batch_leftover_ == 0 || parent_->batch_leftover_ == batch_leftover_);
+    parent_->total_iterations_ = total_iterations_;
+    parent_->batch_leftover_ = batch_leftover_;
+    parent_->started_ = parent_->started_ || started_;
+    parent_->finished_ = parent_->finished_ || finished_;
+    parent_->error_occurred_ = parent_->error_occurred_ || error_occurred_;
+    parent_->num_thread_states_++;
+  }
+  delete timer_;
 }
 
 namespace internal {
@@ -313,6 +341,16 @@ std::unique_ptr<BenchmarkReporter> CreateReporter(
 
 bool IsZero(double n) {
   return std::abs(n) < std::numeric_limits<double>::epsilon();
+}
+
+void MergeResults(State& st, ThreadTimer* timer, ThreadManager* manager)
+{
+  ThreadManager::Result& results = manager->results;
+  results.cpu_time_used += timer->cpu_time_used();
+  results.real_time_used = std::max(results.real_time_used, timer->real_time_used());
+  results.manual_time_used += timer->manual_time_used();
+  results.complexity_n += st.complexity_length_n();
+  Increment(&results.counters, st.counters);
 }
 
 ConsoleReporter::OutputOptions GetOutputOptions(bool force_no_color) {

@@ -174,6 +174,8 @@ bool BenchmarkFamilies::FindBenchmarks(
         instance.complexity_lambda = family->complexity_lambda_;
         instance.statistics = &family->statistics_;
         instance.threads = num_threads;
+        instance.manual_threading = family->manual_threading_;
+        instance.explicit_threading = !family->thread_counts_.empty();
 
         // Add arguments to instance name
         size_t arg_i = 0;
@@ -268,6 +270,7 @@ Benchmark::Benchmark(const char* name)
       measure_process_cpu_time_(false),
       use_real_time_(false),
       use_manual_time_(false),
+      manual_threading_(false),
       complexity_(oNone),
       complexity_lambda_(nullptr) {
   ComputeStatistics("mean", StatisticsMean);

@@ -46,6 +46,7 @@ class ThreadManager {
     std::string report_label_;
     std::string error_message_;
     bool has_error_ = false;
+    int thread_count = 0;
     UserCounters counters;
   };
   GUARDED_BY(GetBenchmarkMutex()) Result results;
