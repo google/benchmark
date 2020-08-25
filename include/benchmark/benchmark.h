@@ -828,6 +828,11 @@ class Benchmark {
   // REQUIRES: The function passed to the constructor must accept arg1, arg2 ...
   Benchmark* Ranges(const std::vector<std::pair<int64_t, int64_t> >& ranges);
 
+  // Run this benchmark once for each combination of values in the (cartesian)
+  // product of the supplied argument lists.
+  // REQUIRES: The function passed to the constructor must accept arg1, arg2 ...
+  Benchmark* ArgsProduct(const std::vector<std::vector<int64_t> >& arglists);
+
   // Equivalent to ArgNames({name})
   Benchmark* ArgName(const std::string& name);
 

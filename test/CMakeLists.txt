@@ -113,6 +113,9 @@ add_test(NAME map_test COMMAND map_test --benchmark_min_time=0.01)
 compile_benchmark_test(multiple_ranges_test)
 add_test(NAME multiple_ranges_test COMMAND multiple_ranges_test --benchmark_min_time=0.01)
 
+compile_benchmark_test(args_product_test)
+add_test(NAME args_product_test COMMAND args_product_test --benchmark_min_time=0.01)
+
 compile_benchmark_test_with_main(link_main_test)
 add_test(NAME link_main_test COMMAND link_main_test --benchmark_min_time=0.01)
 
