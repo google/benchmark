@@ -548,6 +548,29 @@ pair.
 BENCHMARK(BM_SetInsert)->Ranges({{1<<10, 8<<10}, {128, 512}});
 ```
 
+Some benchmarks may require specific argument values that cannot be expressed
+with `Ranges`. In this case, `ArgsProduct` offers the ability to generate a
+benchmark input for each combination in the product of the supplied vectors.
+
+```c++
+BENCHMARK(BM_SetInsert)
+    ->ArgsProduct({{1<<10, 3<<10, 8<<10}, {20, 40, 60, 80}})
+// would generate the same benchmark arguments as
+BENCHMARK(BM_SetInsert)
+    ->Args({1<<10, 20})
+    ->Args({3<<10, 20})
+    ->Args({8<<10, 20})
+    ->Args({3<<10, 40})
+    ->Args({8<<10, 40})
+    ->Args({1<<10, 40})
+    ->Args({1<<10, 60})
+    ->Args({3<<10, 60})
+    ->Args({8<<10, 60})
+    ->Args({1<<10, 80})
+    ->Args({3<<10, 80})
+    ->Args({8<<10, 80});
+```
+
 For more complex patterns of inputs, passing a custom function to `Apply` allows
 programmatic specification of an arbitrary set of arguments on which to run the
 benchmark. The following example enumerates a dense range on one parameter,

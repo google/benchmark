@@ -5,9 +5,9 @@
 #include <set>
 #include <vector>
 
-class CartesianProductFixture : public ::benchmark::Fixture {
+class ArgsProductFixture : public ::benchmark::Fixture {
  public:
-  CartesianProductFixture()
+  ArgsProductFixture()
       : expectedValues({{0, 100, 2000, 30000},
                         {1, 15, 3, 8},
                         {1, 15, 3, 9},
@@ -34,7 +34,7 @@ class CartesianProductFixture : public ::benchmark::Fixture {
 
   // NOTE: This is not TearDown as we want to check after _all_ runs are
   // complete.
-  virtual ~CartesianProductFixture() {
+  virtual ~ArgsProductFixture() {
     if (actualValues != expectedValues) {
       std::cout << "EXPECTED\n";
       for (auto v : expectedValues) {
@@ -59,7 +59,7 @@ class CartesianProductFixture : public ::benchmark::Fixture {
   std::set<std::vector<int64_t>> actualValues;
 };
 
-BENCHMARK_DEFINE_F(CartesianProductFixture, Empty)(benchmark::State& state) {
+BENCHMARK_DEFINE_F(ArgsProductFixture, Empty)(benchmark::State& state) {
   for (auto _ : state) {
     int64_t product =
         state.range(0) * state.range(1) * state.range(2) * state.range(3);
@@ -69,9 +69,9 @@ BENCHMARK_DEFINE_F(CartesianProductFixture, Empty)(benchmark::State& state) {
   }
 }
 
-BENCHMARK_REGISTER_F(CartesianProductFixture, Empty)
+BENCHMARK_REGISTER_F(ArgsProductFixture, Empty)
     ->Args({0, 100, 2000, 30000})
-    ->CartesianProduct({{1, 2}, {15}, {3, 7, 10}, {8, 9}})
+    ->ArgsProduct({{1, 2}, {15}, {3, 7, 10}, {8, 9}})
     ->Args({4, 5, 6, 11});
 
 BENCHMARK_MAIN();

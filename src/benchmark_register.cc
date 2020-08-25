@@ -309,12 +309,12 @@ Benchmark* Benchmark::Ranges(
              range_multiplier_);
   }
 
-  CartesianProduct(arglists);
+  ArgsProduct(arglists);
 
   return this;
 }
 
-Benchmark* Benchmark::CartesianProduct(
+Benchmark* Benchmark::ArgsProduct(
     const std::vector<std::vector<int64_t>>& arglists) {
   CHECK(ArgsCnt() == -1 || ArgsCnt() == static_cast<int>(arglists.size()));
 
