@@ -3,28 +3,9 @@
 
 #include <chrono>
 #include <thread>
-#include "../src/timers.h"
 #include "benchmark/benchmark.h"
 #include "output_test.h"
-
-static const std::chrono::duration<double, std::milli> time_frame(50);
-static const double time_frame_in_sec(
-    std::chrono::duration_cast<std::chrono::duration<double, std::ratio<1, 1>>>(
-        time_frame)
-        .count());
-
-void MyBusySpinwait() {
-  const auto start = benchmark::ChronoClockNow();
-
-  while (true) {
-    const auto now = benchmark::ChronoClockNow();
-    const auto elapsed = now - start;
-
-    if (std::chrono::duration<double, std::chrono::seconds::period>(elapsed) >=
-        time_frame)
-      return;
-  }
-}
+#include "spinning.h"
 
 // ========================================================================= //
 // --------------------------- TEST CASES BEGIN ---------------------------- //

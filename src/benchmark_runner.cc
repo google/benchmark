@@ -122,9 +122,9 @@ void RunInThread(const BenchmarkInstance* b, IterationCount iters,
   {
     MutexLock l(manager->GetBenchmarkMutex());
     internal::ThreadManager::Result& results = manager->results;
-    results.iterations += st.iterations();
+    results.iterations = st.iterations();
     results.cpu_time_used += timer.cpu_time_used();
-    results.real_time_used += timer.real_time_used();
+    results.real_time_used = std::max(results.real_time_used, timer.real_time_used());
     results.manual_time_used += timer.manual_time_used();
     results.complexity_n += st.complexity_length_n();
     internal::Increment(&results.counters, st.counters);
@@ -227,8 +227,7 @@ class BenchmarkRunner {
     // And get rid of the manager.
     manager.reset();
 
-    // Adjust real/manual time stats since they were reported per thread.
-    i.results.real_time_used /= b.threads;
+    // Adjust manual time stats since they were reported per thread.
     i.results.manual_time_used /= b.threads;
     // If we were measuring whole-process CPU usage, adjust the CPU time too.
     if (b.measure_process_cpu_time) i.results.cpu_time_used /= b.threads;

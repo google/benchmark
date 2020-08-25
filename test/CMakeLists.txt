@@ -128,6 +128,9 @@ add_test(NAME user_counters_test COMMAND user_counters_test --benchmark_min_time
 compile_output_test(internal_threading_test)
 add_test(NAME internal_threading_test COMMAND internal_threading_test --benchmark_min_time=0.01)
 
+compile_output_test(threaded_timer_test)
+add_test(NAME threaded_timer_test COMMAND threaded_timer_test --benchmark_min_time=0.01)
+
 compile_output_test(report_aggregates_only_test)
 add_test(NAME report_aggregates_only_test COMMAND report_aggregates_only_test --benchmark_min_time=0.01)
 
