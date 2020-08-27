@@ -1,14 +1,30 @@
+load("@rules_cc//cc:defs.bzl", "cc_library")
+
 licenses(["notice"])
 
 config_setting(
-    name = "windows",
-    values = {
-        "cpu": "x64_windows",
-    },
+    name = "freebsd",
+    constraint_values = [
+        "@platforms//os:freebsd",
+    ],
     visibility = [":__subpackages__"],
 )
 
-load("@rules_cc//cc:defs.bzl", "cc_library")
+config_setting(
+    name = "openbsd",
+    constraint_values = [
+        "@platforms//os:openbsd",
+    ],
+    visibility = [":__subpackages__"],
+)
+
+config_setting(
+    name = "windows",
+    constraint_values = [
+        "@platforms//os:windows",
+    ],
+    visibility = [":__subpackages__"],
+)
 
 cc_library(
     name = "benchmark",
@@ -22,6 +38,14 @@ cc_library(
     hdrs = ["include/benchmark/benchmark.h"],
     linkopts = select({
         ":windows": ["-DEFAULTLIB:shlwapi.lib"],
+        ":freebsd": [
+            "-pthread",
+            "-lm",
+        ],
+        ":openbsd": [
+            "-pthread",
+            "-lm",
+        ],
         "//conditions:default": ["-pthread"],
     }),
     strip_include_prefix = "include",
