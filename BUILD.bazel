@@ -1,5 +1,4 @@
 load("@rules_cc//cc:defs.bzl", "cc_library")
-load("@bazel_skylib//lib:selects.bzl", "selects")
 
 licenses(["notice"])
 
@@ -27,6 +26,11 @@ config_setting(
     visibility = [":__subpackages__"],
 )
 
+BSD_LINKOPTS = [
+    "-pthread",
+    "-lm",
+]
+
 cc_library(
     name = "benchmark",
     srcs = glob(
@@ -37,12 +41,10 @@ cc_library(
         exclude = ["src/benchmark_main.cc"],
     ),
     hdrs = ["include/benchmark/benchmark.h"],
-    linkopts = selects.with_or({
+    linkopts = select({
         ":windows": ["-DEFAULTLIB:shlwapi.lib"],
-        (":freebsd", ":openbsd"): [
-            "-pthread",
-            "-lm",
-        ],
+        ":freebsd": BSD_LINKOPTS,
+        ":openbsd": BSD_LINKOPTS,
         "//conditions:default": ["-pthread"],
     }),
     strip_include_prefix = "include",
