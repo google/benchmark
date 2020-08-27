@@ -40,3 +40,9 @@ http_archive(
     strip_prefix = "platforms-master",
     urls = ["https://github.com/bazelbuild/platforms/archive/master.zip"],
 )
+
+http_archive(
+    name = "bazel_skylib",
+    strip_prefix = "bazel-skylib-master",
+    urls = ["https://github.com/bazelbuild/bazel-skylib/archive/master.zip"],
+)
