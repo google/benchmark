@@ -22,7 +22,7 @@ class GoogleBenchmarkConan(ConanFile):
         "enable_lto": [True, False],
         "enable_exceptions": [True, False]
     }
-    default_options = {"shared": False, "fPIC": True, "enable_lto": False, "enable_exceptions": True}
+    default_options = {"shared": False, "fPIC": True, "enable_lto": True, "enable_exceptions": True}
 
     _build_subfolder = "."
 

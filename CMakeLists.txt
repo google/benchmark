@@ -17,7 +17,7 @@ project (benchmark CXX)
 
 option(BENCHMARK_ENABLE_TESTING "Enable testing of the benchmark library." ON)
 option(BENCHMARK_ENABLE_EXCEPTIONS "Enable the use of exceptions in the benchmark library." ON)
-option(BENCHMARK_ENABLE_LTO "Enable link time optimisation of the benchmark library." OFF)
+option(BENCHMARK_ENABLE_LTO "Enable link time optimisation of the benchmark library." ON)
 option(BENCHMARK_USE_LIBCXX "Build and test using libc++ as the standard library." OFF)
 if(NOT MSVC)
   option(BENCHMARK_BUILD_32_BITS "Build a 32 bit version of the library." OFF)
