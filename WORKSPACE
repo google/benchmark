@@ -34,9 +34,3 @@ new_local_repository(
     build_file = "@//bindings/python:python_headers.BUILD",
     path = "/usr/include/python3.6",  # May be overwritten by setup.py.
 )
-
-http_archive(
-    name = "platforms",
-    strip_prefix = "platforms-master",
-    urls = ["https://github.com/bazelbuild/platforms/archive/master.zip"],
-)
