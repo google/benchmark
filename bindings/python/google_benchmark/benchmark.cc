@@ -1,6 +1,7 @@
 // Benchmark for Python.
 
 #include "benchmark/benchmark.h"
+
 #include "pybind11/pybind11.h"
 #include "pybind11/stl.h"
 
@@ -29,9 +30,8 @@ std::vector<std::string> Initialize(const std::vector<std::string>& argv) {
 }
 
 void RegisterBenchmark(const char* name, py::function f) {
-  benchmark::RegisterBenchmark(name, [f](benchmark::State& state) {
-    f(&state);
-  });
+  benchmark::RegisterBenchmark(name,
+                               [f](benchmark::State& state) { f(&state); });
 }
 
 PYBIND11_MODULE(_benchmark, m) {
