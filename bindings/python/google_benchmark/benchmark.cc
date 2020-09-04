@@ -2,12 +2,16 @@
 
 #include "benchmark/benchmark.h"
 
+#include <map>
 #include <string>
 #include <vector>
 
 #include "pybind11/operators.h"
 #include "pybind11/pybind11.h"
 #include "pybind11/stl.h"
+#include "pybind11/stl_bind.h"
+
+PYBIND11_MAKE_OPAQUE(benchmark::UserCounters);
 
 namespace {
 namespace py = ::pybind11;
@@ -66,13 +70,18 @@ PYBIND11_MODULE(_benchmark, m) {
       .value("kIs1024", Counter::OneK::kIs1024)
       .export_values();
 
-  py_counter  //
+  py_counter
       .def(py::init<double, Counter::Flags, Counter::OneK>(),
            py::arg("value") = 0., py::arg("flags") = Counter::kDefaults,
            py::arg("k") = Counter::kIs1000)
+      .def(py::init([](double value) { return Counter(value); }))
       .def_readwrite("value", &Counter::value)
       .def_readwrite("flags", &Counter::flags)
       .def_readwrite("oneK", &Counter::oneK);
+  py::implicitly_convertible<py::float_, Counter>();
+  py::implicitly_convertible<py::int_, Counter>();
+
+  py::bind_map<benchmark::UserCounters>(m, "UserCounters");
 
   using benchmark::State;
   py::class_<State>(m, "State")
@@ -92,6 +101,7 @@ PYBIND11_MODULE(_benchmark, m) {
       .def("set_label", (void (State::*)(const char*)) & State::SetLabel)
       .def("range", &State::range, py::arg("pos") = 0)
       .def_property_readonly("iterations", &State::iterations)
+      .def_readwrite("counters", &State::counters)
       .def_readonly("thread_index", &State::thread_index)
       .def_readonly("threads", &State::threads);
 };
