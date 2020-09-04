@@ -1,5 +1,8 @@
 // Benchmark for Python.
 
+#include <vector>
+#include <string>
+
 #include "benchmark/benchmark.h"
 
 #include "pybind11/pybind11.h"
