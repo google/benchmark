@@ -1,9 +1,9 @@
 // Benchmark for Python.
 
-#include <vector>
-#include <string>
-
 #include "benchmark/benchmark.h"
+
+#include <string>
+#include <vector>
 
 #include "pybind11/operators.h"
 #include "pybind11/pybind11.h"
@@ -74,9 +74,25 @@ PYBIND11_MODULE(_benchmark, m) {
       .def_readwrite("flags", &Counter::flags)
       .def_readwrite("oneK", &Counter::oneK);
 
-  py::class_<benchmark::State>(m, "State")
-      .def("__bool__", &benchmark::State::KeepRunning)
-      .def_property_readonly("keep_running", &benchmark::State::KeepRunning)
-      .def("skip_with_error", &benchmark::State::SkipWithError);
+  using benchmark::State;
+  py::class_<State>(m, "State")
+      .def("__bool__", &State::KeepRunning)
+      .def_property_readonly("keep_running", &State::KeepRunning)
+      .def("pause_timing", &State::PauseTiming)
+      .def("resume_timing", &State::ResumeTiming)
+      .def("skip_with_error", &State::SkipWithError)
+      .def_property_readonly("error_occured", &State::error_occurred)
+      .def("set_iteration_time", &State::SetIterationTime)
+      .def_property("bytes_processed", &State::bytes_processed,
+                    &State::SetBytesProcessed)
+      .def_property("complexity_n", &State::complexity_length_n,
+                    &State::SetComplexityN)
+      .def_property("items_processed", &State::items_processed,
+                    &State::SetItemsProcessed)
+      .def("set_label", (void (State::*)(const char*)) & State::SetLabel)
+      .def("range", &State::range, py::arg("pos") = 0)
+      .def_property_readonly("iterations", &State::iterations)
+      .def_readonly("thread_index", &State::thread_index)
+      .def_readonly("threads", &State::threads);
 };
 }  // namespace
