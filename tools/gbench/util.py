@@ -158,7 +158,6 @@ def run_or_load_benchmark(filename, benchmark_flags):
     ftype = check_input_file(filename)
     if ftype == IT_JSON:
         return load_benchmark_results(filename)
-    elif ftype == IT_Executable:
+    if ftype == IT_Executable:
         return run_benchmark(filename, benchmark_flags)
-    else:
-        assert False  # This branch is unreachable
+    raise ValueError('Unknown file type %s' % ftype)
