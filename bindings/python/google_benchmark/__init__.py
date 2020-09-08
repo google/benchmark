@@ -29,10 +29,12 @@ Example usage:
 
 from absl import app
 from google_benchmark import _benchmark
+from google_benchmark._benchmark import Counter
 
 __all__ = [
     "register",
     "main",
+    "Counter",
 ]
 
 __version__ = "0.1.0"
