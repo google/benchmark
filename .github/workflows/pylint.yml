@@ -20,7 +20,7 @@ jobs:
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install pylint pylint-exit
+        pip install pylint pylint-exit conan
     - name: Run pylint
       run: |
         pylint `find . -name '*.py'|xargs` || pylint-exit $?
