@@ -107,5 +107,47 @@ def with_options(state):
         sum(range(1_000_000))
 
 
+@benchmark.register
+@benchmark.option.arg(100)
+@benchmark.option.arg(1000)
+def passing_argument(state):
+    while state:
+        sum(range(state.range(0)))
+
+
+@benchmark.register
+@benchmark.option.range(8, limit=8 << 10)
+def using_range(state):
+    while state:
+        sum(range(state.range(0)))
+
+
+@benchmark.register
+@benchmark.option.range_multiplier(2)
+@benchmark.option.range(1 << 10, 1 << 18)
+@benchmark.option.complexity(benchmark.oN)
+def computing_complexity(state):
+    while state:
+        sum(range(state.range(0)))
+    state.complexity_n = state.range(0)
+
+
+@benchmark.register
+@benchmark.option.threads(2)
+def multi_threaded(state):
+    # Threaded benchmark are intresting because CPython uses a Global Interpreter Lock (GIL) that
+    # only let one thread execute Python code.
+    # However, the GIL can be released during IO and compiled (e.g. C) extensions so it can be
+    # intresting to measure the parallelisation level.
+    if state.thread_index == 0:
+        # Setup code here.
+        pass
+    while state:
+        sum(range(1000))
+    if state.thread_index == 0:
+        # Teardown code here.
+        pass
+
+
 if __name__ == "__main__":
     benchmark.main()
