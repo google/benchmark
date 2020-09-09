@@ -112,16 +112,7 @@ PYBIND11_MODULE(_benchmark, m) {
           "complexity",
           (Benchmark * (Benchmark::*)(benchmark::BigO)) & Benchmark::Complexity,
           py::return_value_policy::reference,
-          py::arg("complexity") = benchmark::oAuto)
-      .def("threads", &Benchmark::Threads, py::return_value_policy::reference)
-      .def("thread_range", &Benchmark::ThreadRange,
-           py::return_value_policy::reference, py::arg("min_threads"),
-           py::arg("max_threads"))
-      .def("dense_thread_range", &Benchmark::DenseThreadRange,
-           py::return_value_policy::reference, py::arg("min_threads"),
-           py::arg("max_threads"), py::arg("stride") = 1)
-      .def("thread_per_cpu", &Benchmark::ThreadPerCpu,
-           py::return_value_policy::reference);
+          py::arg("complexity") = benchmark::oAuto);
 
   using benchmark::Counter;
   py::class_<Counter> py_counter(m, "Counter");
