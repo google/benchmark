@@ -64,7 +64,7 @@ def manual_timing(state):
     while state:
         # Manually count Python CPU time
         start = time.perf_counter()  # perf_counter_ns() in Python 3.7+
-        # Somehting to benchmark
+        # Something to benchmark
         time.sleep(0.01)
         end = time.perf_counter()
         state.set_iteration_time(end - start)
@@ -90,6 +90,21 @@ def custom_counters(state):
     state.counters["foo_avg"] = Counter(num_foo, Counter.kAvgThreads)
     # There's also a combined flag:
     state.counters["foo_avg_rate"] = Counter(num_foo, Counter.kAvgThreadsRate)
+
+
+@benchmark.register
+@benchmark.option.measure_process_cpu_time()
+@benchmark.option.use_real_time()
+def with_options(state):
+    while state:
+        sum(range(1_000_000))
+
+
+@benchmark.register(name="sum_million_microseconds")
+@benchmark.option.unit(benchmark.kMicrosecond)
+def with_options(state):
+    while state:
+        sum(range(1_000_000))
 
 
 if __name__ == "__main__":
