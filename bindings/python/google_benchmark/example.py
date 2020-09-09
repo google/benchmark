@@ -25,24 +25,24 @@ import google_benchmark as benchmark
 
 @benchmark.register
 def empty(state):
-  while state:
-    pass
+    while state:
+        pass
 
 
 @benchmark.register
 def sum_million(state):
-  while state:
-    sum(range(1_000_000))
+    while state:
+        sum(range(1_000_000))
 
 
 @benchmark.register
 def skipped(state):
-  if True:  # Test some predicate here.
-    state.skip_with_error('some error')
-    return  # NOTE: You must explicitly return, or benchmark will continue.
+    if True:  # Test some predicate here.
+        state.skip_with_error('some error')
+        return  # NOTE: You must explicitly return, or benchmark will continue.
 
-  ...  # Benchmark code would be here.
+    # Benchmark code would be here.
 
 
 if __name__ == '__main__':
-  benchmark.main()
+    benchmark.main()
