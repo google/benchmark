@@ -17,9 +17,8 @@ jobs:
         with:
           python-version: 3.8
       - name: Install benchmark
-        run: |
+        run:
           python setup.py install
-          ls $pythonlocation/lib/
       - name: Run example bindings
-        run: |
+        run:
           python bindings/python/google_benchmark/example.py
