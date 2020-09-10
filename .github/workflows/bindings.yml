@@ -19,6 +19,7 @@ jobs:
       - name: Install benchmark
         run: |
           python setup.py install
+          ls $pythonlocation/lib/
       - name: Run example bindings
         run: |
           python bindings/python/google_benchmark/example.py
