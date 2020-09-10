@@ -1,4 +1,4 @@
-name: bindings
+name: test-bindings
 
 on:
   push:
@@ -7,7 +7,7 @@ on:
     branches: [master]
 
 jobs:
-  bindings:
+  python_bindings:
     runs-on: ubuntu-latest
 
     steps:
