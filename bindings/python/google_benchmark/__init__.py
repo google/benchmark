@@ -29,10 +29,12 @@ Example usage:
 
 from absl import app
 from google_benchmark import _benchmark
+from google_benchmark._benchmark import Counter
 
 __all__ = [
     "register",
     "main",
+    "Counter",
 ]
 
 __version__ = "0.1.0"
@@ -54,7 +56,7 @@ def _flags_parser(argv):
 
 def _run_benchmarks(argv):
     if len(argv) > 1:
-        raise app.UsageError('Too many command-line arguments.')
+        raise app.UsageError("Too many command-line arguments.")
     return _benchmark.RunSpecifiedBenchmarks()
 
 
