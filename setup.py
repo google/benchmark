@@ -92,13 +92,11 @@ class BuildBazelExtension(build_ext.build_ext):
 
         self.spawn(bazel_argv)
 
-        shared_lib_suffix = ".dll" if IS_WINDOWS else ".so"
+        shared_lib_suffix = '.dll' if IS_WINDOWS else '.so'
         ext_bazel_bin_path = os.path.join(
-            self.build_temp,
-            "bazel-bin",
-            ext.relpath,
-            ext.target_name + shared_lib_suffix,
-        )
+            self.build_temp, 'bazel-bin',
+            ext.relpath, ext.target_name + shared_lib_suffix)
+
         ext_dest_path = self.get_ext_fullpath(ext.name)
         ext_dest_dir = os.path.dirname(ext_dest_path)
         if not os.path.exists(ext_dest_dir):
