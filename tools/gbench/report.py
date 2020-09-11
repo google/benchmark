@@ -209,6 +209,7 @@ def print_utest(bc_name, n_of_measurements,
 
 def generate_difference_report(
         json_diff_report,
+        include_aggregates_only=False,
         utest=False,
         utest_alpha=0.05,
         use_color=True):
@@ -237,6 +238,12 @@ def generate_difference_report(
 
     fmt_str = "{}{:<{}s}{endc}{}{:+16.4f}{endc}{}{:+16.4f}{endc}{:14.0f}{:14.0f}{endc}{:14.0f}{:14.0f}"
     for benchmark in json_diff_report:
+        # *If* we were asked to only include aggregates,
+        # and if it is non-aggregate, then skip it.
+        if include_aggregates_only and 'run_type' in benchmark:
+            if benchmark['run_type'] != 'aggregate':
+                continue
+
         for measurement in benchmark['measurements']:
             output_strs += [color_format(use_color,
                                          fmt_str,
@@ -270,7 +277,6 @@ def generate_difference_report(
 def get_json_difference_report(
         json1,
         json2,
-        include_aggregates_only=False,
         utest=False):
     """
     Calculate and report the difference between each test of two benchmarks
@@ -290,14 +296,6 @@ def get_json_difference_report(
         for i in range(min(len(partition[0]), len(partition[1]))):
             bn = partition[0][i]
             other_bench = partition[1][i]
-
-            # *If* we were asked to only include aggregates,
-            # and if it is non-aggregate, then skip it.
-            if include_aggregates_only and 'run_type' in bn and 'run_type' in other_bench:
-                assert bn['run_type'] == other_bench['run_type']
-                if bn['run_type'] != 'aggregate':
-                    continue
-
             measurements.append({
                 'real_time': bn['real_time'],
                 'cpu_time': bn['cpu_time'],
