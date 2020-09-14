@@ -250,11 +250,11 @@ def main():
         json2 = gbench.report.filter_benchmark(
             json2_orig, filter_contender, replacement)
 
-    output_json = gbench.report.get_difference_report(
     # Optionally, output the diff as JSON
+    diff_report = gbench.report.get_difference_report(
         json1, json2, args.utest)
     output_lines = gbench.report.print_difference_report(
-        output_json,
+        diff_report,
         args.display_aggregates_only,
         args.utest, args.utest_alpha, args.color)
     print(description)
@@ -265,7 +265,7 @@ def main():
     if args.dump_to_json is not None:
         import json
         with open(args.dump_to_json, 'w') as f_json:
-            json.dump(output_json, f_json)
+            json.dump(diff_report, f_json)
 
 class TestParser(unittest.TestCase):
     def setUp(self):
