@@ -60,7 +60,7 @@ def create_parser():
         '-d',
         '--dump_to_json',
         dest='dump_to_json',
-        help="Dump benchmark comparison output to this file in JSON format.")
+        help="Additionally, dump benchmark comparison output to this file in JSON format.")
 
     utest = parser.add_argument_group()
     utest.add_argument(
