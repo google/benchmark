@@ -274,7 +274,7 @@ def generate_difference_report(
     return output_strs
 
 
-def get_json_difference_report(
+def get_difference_report(
         json1,
         json2,
         utest=False):
@@ -386,7 +386,7 @@ class TestReportDifference(unittest.TestCase):
             return json1, json2
 
         json1, json2 = load_results()
-        cls.json_diff_report = get_json_difference_report(json1, json2)
+        cls.json_diff_report = get_difference_report(json1, json2)
 
     def test_json_diff_report_pretty_printing(self):
         expect_lines = [
@@ -518,7 +518,7 @@ class TestReportDifferenceBetweenFamilies(unittest.TestCase):
         json = load_result()
         json1 = filter_benchmark(json, "BM_Z.ro", ".")
         json2 = filter_benchmark(json, "BM_O.e", ".")
-        cls.json_diff_report = get_json_difference_report(json1, json2)
+        cls.json_diff_report = get_difference_report(json1, json2)
 
     def test_json_diff_report_pretty_printing(self):
         expect_lines = [
@@ -592,7 +592,7 @@ class TestReportDifferenceWithUTest(unittest.TestCase):
             return json1, json2
 
         json1, json2 = load_results()
-        cls.json_diff_report = get_json_difference_report(
+        cls.json_diff_report = get_difference_report(
             json1, json2, utest=True)
 
     def test_json_diff_report_pretty_printing(self):
@@ -736,7 +736,7 @@ class TestReportDifferenceWithUTestWhileDisplayingAggregatesOnly(
             return json1, json2
 
         json1, json2 = load_results()
-        cls.json_diff_report = get_json_difference_report(
+        cls.json_diff_report = get_difference_report(
             json1, json2, include_aggregates_only=True, utest=True)
 
     def test_json_diff_report_pretty_printing(self):
