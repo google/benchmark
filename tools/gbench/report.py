@@ -307,15 +307,16 @@ def get_difference_report(
 
         # After processing the whole partition, if requested, do the U test.
         if utest:
-            have_optimal_repetitions, cpu_pvalue, time_pvalue = calc_utest(
-                extract_field(partition, 'cpu_time'),
-                extract_field(partition, 'real_time')
-            )
+            timings_cpu = extract_field(partition, 'cpu_time')
+            timings_time = extract_field(partition, 'real_time')
+            have_optimal_repetitions, cpu_pvalue, time_pvalue = calc_utest(timings_cpu, timings_time)
             if cpu_pvalue and time_pvalue:
                 utest_results = {
                     'have_optimal_repetitions': have_optimal_repetitions,
                     'cpu_pvalue': cpu_pvalue,
-                    'time_pvalue': time_pvalue
+                    'time_pvalue': time_pvalue,
+                    'nr_of_repetitions': len(timings_cpu[0]),
+                    'nr_of_repetitions_other': len(timings_cpu[1])
                 }
 
         # Store only if we had any measurements for given benchmark.
