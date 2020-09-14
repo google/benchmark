@@ -173,8 +173,7 @@ def calc_utest(timings_cpu, timings_time):
 
     return (min_rep_cnt >= UTEST_OPTIMAL_REPETITIONS), cpu_pvalue, time_pvalue
 
-def print_utest(bc_name, n_of_measurements,
-                utest, utest_alpha, first_col_width, use_color=True):
+def print_utest(bc_name, utest, utest_alpha, first_col_width, use_color=True):
     def get_utest_color(pval):
         return BC_FAIL if pval >= utest_alpha else BC_OKGREEN
 
@@ -182,8 +181,8 @@ def print_utest(bc_name, n_of_measurements,
     if not utest['have_optimal_repetitions'] and utest['cpu_pvalue'] is None and utest['time_pvalue'] is None:
         return []
 
-    dsc = "U Test, Repetitions: {}".format(
-        n_of_measurements)
+    dsc = "U Test, Repetitions: {} vs {}".format(
+        utest['nr_of_repetitions'], utest['nr_of_repetitions_other'])
     dsc_color = BC_OKGREEN
 
     # We still got some results to show but issue a warning about it.
@@ -265,7 +264,6 @@ def print_difference_report(
         # print the U test.
         if utest and benchmark['utest']:
             output_strs += print_utest(benchmark['name'],
-                                       len(benchmark['measurements']),
                                        benchmark['utest'],
                                        utest_alpha=utest_alpha,
                                        first_col_width=first_col_width,
