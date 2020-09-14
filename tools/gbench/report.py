@@ -207,7 +207,7 @@ def print_utest(bc_name, n_of_measurements,
                          endc=BC_ENDC)]
 
 
-def generate_difference_report(
+def print_difference_report(
         json_diff_report,
         include_aggregates_only=False,
         utest=False,
@@ -406,7 +406,7 @@ class TestReportDifference(unittest.TestCase):
             ['BM_ThirdFaster', '-0.3333', '-0.3334', '100', '67', '100', '67'],
             ['BM_NotBadTimeUnit', '-0.9000', '+0.2000', '0', '0', '0', '1'],
         ]
-        output_lines_with_header = generate_difference_report(
+        output_lines_with_header = print_difference_report(
             self.json_diff_report, use_color=False)
         output_lines = output_lines_with_header[2:]
         print("\n")
@@ -527,7 +527,7 @@ class TestReportDifferenceBetweenFamilies(unittest.TestCase):
             ['Prefix/.', '-0.5000', '-0.5000', '20', '10', '20', '10'],
             ['Prefix/./3', '-0.5000', '-0.5000', '30', '15', '30', '15'],
         ]
-        output_lines_with_header = generate_difference_report(
+        output_lines_with_header = print_difference_report(
             self.json_diff_report, use_color=False)
         output_lines = output_lines_with_header[2:]
         print("\n")
@@ -631,7 +631,7 @@ class TestReportDifferenceWithUTest(unittest.TestCase):
              'recommended.'],
             ['medium', '-0.3750', '-0.3375', '8', '5', '80', '53'],
         ]
-        output_lines_with_header = generate_difference_report(
+        output_lines_with_header = print_difference_report(
             self.json_diff_report, utest=True, utest_alpha=0.05, use_color=False)
         output_lines = output_lines_with_header[2:]
         print("\n")
@@ -774,7 +774,7 @@ class TestReportDifferenceWithUTestWhileDisplayingAggregatesOnly(
              'repetitions',
              'recommended.'],
         ]
-        output_lines_with_header = generate_difference_report(
+        output_lines_with_header = print_difference_report(
             self.json_diff_report,
             utest=True, utest_alpha=0.05, use_color=False)
         output_lines = output_lines_with_header[2:]
