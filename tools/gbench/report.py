@@ -179,7 +179,7 @@ def print_utest(bc_name, n_of_measurements,
         return BC_FAIL if pval >= utest_alpha else BC_OKGREEN
 
     # Check if we failed miserably with minimum required repetitions for utest
-    if not utest['stable'] and utest['cpu_pvalue'] is None and utest['time_pvalue'] is None:
+    if not utest['have_optimal_repetitions'] and utest['cpu_pvalue'] is None and utest['time_pvalue'] is None:
         return []
 
     dsc = "U Test, Repetitions: {}".format(
@@ -187,7 +187,7 @@ def print_utest(bc_name, n_of_measurements,
     dsc_color = BC_OKGREEN
 
     # We still got some results to show but issue a warning about it.
-    if not utest['stable']:
+    if not utest['have_optimal_repetitions']:
         dsc_color = BC_WARNING
         dsc += ". WARNING: Results unreliable! {}+ repetitions recommended.".format(
             UTEST_OPTIMAL_REPETITIONS)
@@ -313,7 +313,7 @@ def get_difference_report(
             )
             if cpu_pvalue and time_pvalue:
                 utest_results = {
-                    'stable': have_optimal_repetitions,
+                    'have_optimal_repetitions': have_optimal_repetitions,
                     'cpu_pvalue': cpu_pvalue,
                     'time_pvalue': time_pvalue
                 }
@@ -670,7 +670,7 @@ class TestReportDifferenceWithUTest(unittest.TestCase):
                 ],
                 'time_unit': 'ns',
                 'utest': {
-                    'stable': False, 'cpu_pvalue': 0.6985353583033387, 'time_pvalue': 0.6985353583033387
+                    'have_optimal_repetitions': False, 'cpu_pvalue': 0.6985353583033387, 'time_pvalue': 0.6985353583033387
                 }
             },
             {
@@ -691,7 +691,7 @@ class TestReportDifferenceWithUTest(unittest.TestCase):
                 ],
                 'time_unit': 'ns',
                 'utest': {
-                    'stable': False, 'cpu_pvalue': 0.14891467317876572, 'time_pvalue': 0.7670968684102772
+                    'have_optimal_repetitions': False, 'cpu_pvalue': 0.14891467317876572, 'time_pvalue': 0.7670968684102772
                 }
             },
             {
@@ -814,7 +814,7 @@ class TestReportDifferenceWithUTestWhileDisplayingAggregatesOnly(
                 ],
                 'time_unit': 'ns',
                 'utest': {
-                    'stable': False, 'cpu_pvalue': 0.6985353583033387, 'time_pvalue': 0.6985353583033387
+                    'have_optimal_repetitions': False, 'cpu_pvalue': 0.6985353583033387, 'time_pvalue': 0.6985353583033387
                 }
             },
             {
@@ -835,7 +835,7 @@ class TestReportDifferenceWithUTestWhileDisplayingAggregatesOnly(
                 ],
                 'time_unit': 'ns',
                 'utest': {
-                    'stable': False, 'cpu_pvalue': 0.14891467317876572, 'time_pvalue': 0.7670968684102772
+                    'have_optimal_repetitions': False, 'cpu_pvalue': 0.14891467317876572, 'time_pvalue': 0.7670968684102772
                 }
             }
         ]
@@ -857,8 +857,8 @@ def assert_utest(unittest_instance, lhs, rhs):
             lhs['utest']['time_pvalue'],
             rhs['utest']['time_pvalue'])
         unittest_instance.assertEqual(
-            lhs['utest']['stable'],
-            rhs['utest']['stable'])
+            lhs['utest']['have_optimal_repetitions'],
+            rhs['utest']['have_optimal_repetitions'])
     else:
         # lhs is empty. assert if rhs is not.
         unittest_instance.assertEqual(lhs['utest'], rhs['utest'])
