@@ -206,6 +206,70 @@ def print_utest(bc_name, utest, utest_alpha, first_col_width, use_color=True):
                          endc=BC_ENDC)]
 
 
+def get_difference_report(
+        json1,
+        json2,
+        utest=False):
+    """
+    Calculate and report the difference between each test of two benchmarks
+    runs specified as 'json1' and 'json2'. Output is another json containing
+    relevant details for each test run.
+    """
+    assert utest is True or utest is False
+
+    diff_report = []
+    partitions = partition_benchmarks(json1, json2)
+    for partition in partitions:
+        benchmark_name = partition[0][0]['name']
+        time_unit = partition[0][0]['time_unit']
+        measurements = []
+        utest_results = {}
+        # Careful, we may have different repetition count.
+        for i in range(min(len(partition[0]), len(partition[1]))):
+            bn = partition[0][i]
+            other_bench = partition[1][i]
+            measurements.append({
+                'real_time': bn['real_time'],
+                'cpu_time': bn['cpu_time'],
+                'real_time_other': other_bench['real_time'],
+                'cpu_time_other': other_bench['cpu_time'],
+                'time': calculate_change(bn['real_time'], other_bench['real_time']),
+                'cpu': calculate_change(bn['cpu_time'], other_bench['cpu_time'])
+            })
+
+        # After processing the whole partition, if requested, do the U test.
+        if utest:
+            timings_cpu = extract_field(partition, 'cpu_time')
+            timings_time = extract_field(partition, 'real_time')
+            have_optimal_repetitions, cpu_pvalue, time_pvalue = calc_utest(timings_cpu, timings_time)
+            if cpu_pvalue and time_pvalue:
+                utest_results = {
+                    'have_optimal_repetitions': have_optimal_repetitions,
+                    'cpu_pvalue': cpu_pvalue,
+                    'time_pvalue': time_pvalue,
+                    'nr_of_repetitions': len(timings_cpu[0]),
+                    'nr_of_repetitions_other': len(timings_cpu[1])
+                }
+
+        # Store only if we had any measurements for given benchmark.
+        # E.g. partition_benchmarks will filter out the benchmarks having
+        # time units which are not compatible with other time units in the
+        # benchmark suite.
+        if measurements:
+            run_type = partition[0][0]['run_type']
+            aggregate_name = partition[0][0]['aggregate_name'] if run_type == 'aggregate' else ''
+            diff_report.append({
+                'name': benchmark_name,
+                'measurements': measurements,
+                'time_unit': time_unit,
+                'run_type': run_type,
+                'aggregate_name': aggregate_name,
+                'utest': utest_results
+            })
+
+    return diff_report
+
+
 def print_difference_report(
         json_diff_report,
         include_aggregates_only=False,
@@ -271,69 +335,6 @@ def print_difference_report(
 
     return output_strs
 
-
-def get_difference_report(
-        json1,
-        json2,
-        utest=False):
-    """
-    Calculate and report the difference between each test of two benchmarks
-    runs specified as 'json1' and 'json2'. Output is another json containing
-    relevant details for each test run.
-    """
-    assert utest is True or utest is False
-
-    diff_report = []
-    partitions = partition_benchmarks(json1, json2)
-    for partition in partitions:
-        benchmark_name = partition[0][0]['name']
-        time_unit = partition[0][0]['time_unit']
-        measurements = []
-        utest_results = {}
-        # Careful, we may have different repetition count.
-        for i in range(min(len(partition[0]), len(partition[1]))):
-            bn = partition[0][i]
-            other_bench = partition[1][i]
-            measurements.append({
-                'real_time': bn['real_time'],
-                'cpu_time': bn['cpu_time'],
-                'real_time_other': other_bench['real_time'],
-                'cpu_time_other': other_bench['cpu_time'],
-                'time': calculate_change(bn['real_time'], other_bench['real_time']),
-                'cpu': calculate_change(bn['cpu_time'], other_bench['cpu_time'])
-            })
-
-        # After processing the whole partition, if requested, do the U test.
-        if utest:
-            timings_cpu = extract_field(partition, 'cpu_time')
-            timings_time = extract_field(partition, 'real_time')
-            have_optimal_repetitions, cpu_pvalue, time_pvalue = calc_utest(timings_cpu, timings_time)
-            if cpu_pvalue and time_pvalue:
-                utest_results = {
-                    'have_optimal_repetitions': have_optimal_repetitions,
-                    'cpu_pvalue': cpu_pvalue,
-                    'time_pvalue': time_pvalue,
-                    'nr_of_repetitions': len(timings_cpu[0]),
-                    'nr_of_repetitions_other': len(timings_cpu[1])
-                }
-
-        # Store only if we had any measurements for given benchmark.
-        # E.g. partition_benchmarks will filter out the benchmarks having
-        # time units which are not compatible with other time units in the
-        # benchmark suite.
-        if measurements:
-            run_type = partition[0][0]['run_type']
-            aggregate_name = partition[0][0]['aggregate_name'] if run_type == 'aggregate' else ''
-            diff_report.append({
-                'name': benchmark_name,
-                'measurements': measurements,
-                'time_unit': time_unit,
-                'run_type': run_type,
-                'aggregate_name': aggregate_name,
-                'utest': utest_results
-            })
-
-    return diff_report
 
 ###############################################################################
 # Unit tests
