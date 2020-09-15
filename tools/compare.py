@@ -7,6 +7,7 @@ compare.py - versatile benchmark output compare tool
 
 import argparse
 from argparse import ArgumentParser
+import json
 import sys
 import gbench
 from gbench import util, report
@@ -263,7 +264,6 @@ def main():
 
     # Optionally, diff and output to JSON
     if args.dump_to_json is not None:
-        import json
         with open(args.dump_to_json, 'w') as f_json:
             json.dump(diff_report, f_json)
 
