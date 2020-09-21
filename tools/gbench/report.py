@@ -1,5 +1,4 @@
 import unittest
-import itertools
 """report.py - Utilities for reporting statistics about benchmark results
 """
 import os
@@ -493,7 +492,7 @@ class TestReportDifference(unittest.TestCase):
             },
         ]
         self.assertEqual(len(self.json_diff_report), len(expected_output))
-        for out, expected in itertools.izip(
+        for out, expected in zip(
                 self.json_diff_report, expected_output):
             self.assertEqual(out['name'], expected['name'])
             self.assertEqual(out['time_unit'], expected['time_unit'])
@@ -566,7 +565,7 @@ class TestReportDifferenceBetweenFamilies(unittest.TestCase):
             }
         ]
         self.assertEqual(len(self.json_diff_report), len(expected_output))
-        for out, expected in itertools.izip(
+        for out, expected in zip(
                 self.json_diff_report, expected_output):
             self.assertEqual(out['name'], expected['name'])
             self.assertEqual(out['time_unit'], expected['time_unit'])
@@ -709,7 +708,7 @@ class TestReportDifferenceWithUTest(unittest.TestCase):
             }
         ]
         self.assertEqual(len(self.json_diff_report), len(expected_output))
-        for out, expected in itertools.izip(
+        for out, expected in zip(
                 self.json_diff_report, expected_output):
             self.assertEqual(out['name'], expected['name'])
             self.assertEqual(out['time_unit'], expected['time_unit'])
@@ -840,7 +839,7 @@ class TestReportDifferenceWithUTestWhileDisplayingAggregatesOnly(
             }
         ]
         self.assertEqual(len(self.json_diff_report), len(expected_output))
-        for out, expected in itertools.izip(
+        for out, expected in zip(
                 self.json_diff_report, expected_output):
             self.assertEqual(out['name'], expected['name'])
             self.assertEqual(out['time_unit'], expected['time_unit'])
@@ -865,7 +864,7 @@ def assert_utest(unittest_instance, lhs, rhs):
 
 
 def assert_measurements(unittest_instance, lhs, rhs):
-    for m1, m2 in itertools.izip(lhs['measurements'], rhs['measurements']):
+    for m1, m2 in zip(lhs['measurements'], rhs['measurements']):
         unittest_instance.assertEqual(m1['real_time'], m2['real_time'])
         unittest_instance.assertEqual(m1['cpu_time'], m2['cpu_time'])
         # m1['time'] and m1['cpu'] hold values which are being calculated,
