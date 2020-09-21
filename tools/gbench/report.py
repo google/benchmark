@@ -740,7 +740,7 @@ class TestReportDifferenceWithUTestWhileDisplayingAggregatesOnly(
 
         json1, json2 = load_results()
         cls.json_diff_report = get_difference_report(
-            json1, json2, include_aggregates_only=True, utest=True)
+            json1, json2, utest=True)
 
     def test_json_diff_report_pretty_printing(self):
         expect_lines = []
