@@ -595,7 +595,6 @@ class TestReportDifferenceWithUTest(unittest.TestCase):
             json1, json2, utest=True)
 
     def test_json_diff_report_pretty_printing(self):
-        expect_lines = []
         expect_lines = [
             ['BM_One', '-0.1000', '+0.1000', '10', '9', '100', '110'],
             ['BM_Two', '+0.1111', '-0.0111', '9', '10', '90', '89'],
@@ -743,7 +742,6 @@ class TestReportDifferenceWithUTestWhileDisplayingAggregatesOnly(
             json1, json2, utest=True)
 
     def test_json_diff_report_pretty_printing(self):
-        expect_lines = []
         expect_lines = [
             ['BM_One', '-0.1000', '+0.1000', '10', '9', '100', '110'],
             ['BM_Two', '+0.1111', '-0.0111', '9', '10', '90', '89'],
@@ -876,8 +874,8 @@ def assert_measurements(unittest_instance, lhs, rhs):
         unittest_instance.assertEqual(m1['real_time'], m2['real_time'])
         unittest_instance.assertEqual(m1['cpu_time'], m2['cpu_time'])
         # m1['time'] and m1['cpu'] hold values which are being calculated,
-        unittest_instance.assertAlmostEqual(m1['time'], m2['time'], places=4)
         # and therefore we must use almost-equal pattern.
+        unittest_instance.assertAlmostEqual(m1['time'], m2['time'], places=4)
         unittest_instance.assertAlmostEqual(m1['cpu'], m2['cpu'], places=4)
 
 
