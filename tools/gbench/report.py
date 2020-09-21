@@ -778,6 +778,7 @@ class TestReportDifferenceWithUTestWhileDisplayingAggregatesOnly(
              '9+',
              'repetitions',
              'recommended.'],
+             ['medium', '-0.3750', '-0.3375', '8', '5', '80', '53']
         ]
         output_lines_with_header = print_difference_report(
             self.json_diff_report,
@@ -842,6 +843,21 @@ class TestReportDifferenceWithUTestWhileDisplayingAggregatesOnly(
                 'utest': {
                     'have_optimal_repetitions': False, 'cpu_pvalue': 0.14891467317876572, 'time_pvalue': 0.7670968684102772
                 }
+            },
+            {
+                'name': u'medium',
+                'measurements': [
+                    {'real_time_other': 5,
+                     'cpu_time': 80,
+                     'time': -0.375,
+                     'real_time': 8,
+                     'cpu_time_other': 53,
+                     'cpu': -0.3375
+                    }
+                ],
+                'utest': {},
+                'time_unit': u'ns',
+                'aggregate_name': ''
             }
         ]
         self.assertEqual(len(self.json_diff_report), len(expected_output))
