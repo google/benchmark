@@ -251,7 +251,6 @@ def main():
         json2 = gbench.report.filter_benchmark(
             json2_orig, filter_contender, replacement)
 
-    # Optionally, output the diff as JSON
     diff_report = gbench.report.get_difference_report(
         json1, json2, args.utest)
     output_lines = gbench.report.print_difference_report(
