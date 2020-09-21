@@ -255,7 +255,7 @@ def get_difference_report(
         # time units which are not compatible with other time units in the
         # benchmark suite.
         if measurements:
-            run_type = partition[0][0]['run_type']
+            run_type = partition[0][0]['run_type'] if 'run_type' in partition[0][0] else ''
             aggregate_name = partition[0][0]['aggregate_name'] if run_type == 'aggregate' else ''
             diff_report.append({
                 'name': benchmark_name,
