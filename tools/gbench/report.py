@@ -485,7 +485,7 @@ class TestReportDifference(unittest.TestCase):
                 'utest': {}
             },
             {
-                'name': 'BM_BadTimeUnit',
+                'name': 'BM_NotBadTimeUnit',
                 'measurements': [{'time': -0.9000, 'cpu': 0.2000, 'real_time': 0.4, 'real_time_other': 0.04, 'cpu_time': 0.5, 'cpu_time_other': 0.6}],
                 'time_unit': 's',
                 'utest': {}
