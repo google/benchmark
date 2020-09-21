@@ -256,7 +256,7 @@ def get_difference_report(
         # benchmark suite.
         if measurements:
             run_type = partition[0][0]['run_type'] if 'run_type' in partition[0][0] else ''
-            aggregate_name = partition[0][0]['aggregate_name'] if run_type == 'aggregate' else ''
+            aggregate_name = partition[0][0]['aggregate_name'] if run_type == 'aggregate' and 'aggregate_name' in partition[0][0] else ''
             diff_report.append({
                 'name': benchmark_name,
                 'measurements': measurements,
