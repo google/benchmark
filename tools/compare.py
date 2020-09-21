@@ -7,6 +7,7 @@ compare.py - versatile benchmark output compare tool
 
 import argparse
 from argparse import ArgumentParser
+import json
 import sys
 import gbench
 from gbench import util, report
@@ -55,6 +56,12 @@ def create_parser():
         action="store_false",
         help="Do not use colors in the terminal output"
     )
+
+    parser.add_argument(
+        '-d',
+        '--dump_to_json',
+        dest='dump_to_json',
+        help="Additionally, dump benchmark comparison output to this file in JSON format.")
 
     utest = parser.add_argument_group()
     utest.add_argument(
@@ -244,14 +251,20 @@ def main():
         json2 = gbench.report.filter_benchmark(
             json2_orig, filter_contender, replacement)
 
-    # Diff and output
-    output_lines = gbench.report.generate_difference_report(
-        json1, json2, args.display_aggregates_only,
+    diff_report = gbench.report.get_difference_report(
+        json1, json2, args.utest)
+    output_lines = gbench.report.print_difference_report(
+        diff_report,
+        args.display_aggregates_only,
         args.utest, args.utest_alpha, args.color)
     print(description)
     for ln in output_lines:
         print(ln)
 
+    # Optionally, diff and output to JSON
+    if args.dump_to_json is not None:
+        with open(args.dump_to_json, 'w') as f_json:
+            json.dump(diff_report, f_json)
 
 class TestParser(unittest.TestCase):
     def setUp(self):

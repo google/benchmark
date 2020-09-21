@@ -154,6 +154,7 @@ def extract_field(partition, field_name):
     rhs = [x[field_name] for x in partition[1]]
     return [lhs, rhs]
 
+
 def calc_utest(timings_cpu, timings_time):
     min_rep_cnt = min(len(timings_time[0]),
                       len(timings_time[1]),
@@ -171,46 +172,106 @@ def calc_utest(timings_cpu, timings_time):
 
     return (min_rep_cnt >= UTEST_OPTIMAL_REPETITIONS), cpu_pvalue, time_pvalue
 
-def print_utest(partition, utest_alpha, first_col_width, use_color=True):
+def print_utest(bc_name, utest, utest_alpha, first_col_width, use_color=True):
     def get_utest_color(pval):
         return BC_FAIL if pval >= utest_alpha else BC_OKGREEN
 
-    timings_time = extract_field(partition, 'real_time')
-    timings_cpu = extract_field(partition, 'cpu_time')
-    have_optimal_repetitions, cpu_pvalue, time_pvalue = calc_utest(timings_cpu, timings_time)
-
     # Check if we failed miserably with minimum required repetitions for utest
-    if not have_optimal_repetitions and cpu_pvalue is None and time_pvalue is None:
+    if not utest['have_optimal_repetitions'] and utest['cpu_pvalue'] is None and utest['time_pvalue'] is None:
         return []
 
     dsc = "U Test, Repetitions: {} vs {}".format(
-        len(timings_cpu[0]), len(timings_cpu[1]))
+        utest['nr_of_repetitions'], utest['nr_of_repetitions_other'])
     dsc_color = BC_OKGREEN
 
     # We still got some results to show but issue a warning about it.
-    if not have_optimal_repetitions:
+    if not utest['have_optimal_repetitions']:
         dsc_color = BC_WARNING
         dsc += ". WARNING: Results unreliable! {}+ repetitions recommended.".format(
             UTEST_OPTIMAL_REPETITIONS)
 
     special_str = "{}{:<{}s}{endc}{}{:16.4f}{endc}{}{:16.4f}{endc}{}      {}"
 
-    last_name = partition[0][0]['name']
     return [color_format(use_color,
                          special_str,
                          BC_HEADER,
-                         "{}{}".format(last_name, UTEST_COL_NAME),
+                         "{}{}".format(bc_name, UTEST_COL_NAME),
                          first_col_width,
-                         get_utest_color(time_pvalue), time_pvalue,
-                         get_utest_color(cpu_pvalue), cpu_pvalue,
+                         get_utest_color(
+                             utest['time_pvalue']), utest['time_pvalue'],
+                         get_utest_color(
+                             utest['cpu_pvalue']), utest['cpu_pvalue'],
                          dsc_color, dsc,
                          endc=BC_ENDC)]
 
 
-def generate_difference_report(
+def get_difference_report(
         json1,
         json2,
-        display_aggregates_only=False,
+        utest=False):
+    """
+    Calculate and report the difference between each test of two benchmarks
+    runs specified as 'json1' and 'json2'. Output is another json containing
+    relevant details for each test run.
+    """
+    assert utest is True or utest is False
+
+    diff_report = []
+    partitions = partition_benchmarks(json1, json2)
+    for partition in partitions:
+        benchmark_name = partition[0][0]['name']
+        time_unit = partition[0][0]['time_unit']
+        measurements = []
+        utest_results = {}
+        # Careful, we may have different repetition count.
+        for i in range(min(len(partition[0]), len(partition[1]))):
+            bn = partition[0][i]
+            other_bench = partition[1][i]
+            measurements.append({
+                'real_time': bn['real_time'],
+                'cpu_time': bn['cpu_time'],
+                'real_time_other': other_bench['real_time'],
+                'cpu_time_other': other_bench['cpu_time'],
+                'time': calculate_change(bn['real_time'], other_bench['real_time']),
+                'cpu': calculate_change(bn['cpu_time'], other_bench['cpu_time'])
+            })
+
+        # After processing the whole partition, if requested, do the U test.
+        if utest:
+            timings_cpu = extract_field(partition, 'cpu_time')
+            timings_time = extract_field(partition, 'real_time')
+            have_optimal_repetitions, cpu_pvalue, time_pvalue = calc_utest(timings_cpu, timings_time)
+            if cpu_pvalue and time_pvalue:
+                utest_results = {
+                    'have_optimal_repetitions': have_optimal_repetitions,
+                    'cpu_pvalue': cpu_pvalue,
+                    'time_pvalue': time_pvalue,
+                    'nr_of_repetitions': len(timings_cpu[0]),
+                    'nr_of_repetitions_other': len(timings_cpu[1])
+                }
+
+        # Store only if we had any measurements for given benchmark.
+        # E.g. partition_benchmarks will filter out the benchmarks having
+        # time units which are not compatible with other time units in the
+        # benchmark suite.
+        if measurements:
+            run_type = partition[0][0]['run_type'] if 'run_type' in partition[0][0] else ''
+            aggregate_name = partition[0][0]['aggregate_name'] if run_type == 'aggregate' and 'aggregate_name' in partition[0][0] else ''
+            diff_report.append({
+                'name': benchmark_name,
+                'measurements': measurements,
+                'time_unit': time_unit,
+                'run_type': run_type,
+                'aggregate_name': aggregate_name,
+                'utest': utest_results
+            })
+
+    return diff_report
+
+
+def print_difference_report(
+        json_diff_report,
+        include_aggregates_only=False,
         utest=False,
         utest_alpha=0.05,
         use_color=True):
@@ -219,14 +280,16 @@ def generate_difference_report(
     runs specified as 'json1' and 'json2'.
     """
     assert utest is True or utest is False
-    first_col_width = find_longest_name(json1['benchmarks'])
 
-    def find_test(name):
-        for b in json2['benchmarks']:
-            if b['name'] == name:
-                return b
-        return None
+    def get_color(res):
+        if res > 0.05:
+            return BC_FAIL
+        elif res > -0.07:
+            return BC_WHITE
+        else:
+            return BC_CYAN
 
+    first_col_width = find_longest_name(json_diff_report)
     first_col_width = max(
         first_col_width,
         len('Benchmark'))
@@ -235,50 +298,36 @@ def generate_difference_report(
         'Benchmark', 12 + first_col_width)
     output_strs = [first_line, '-' * len(first_line)]
 
-    partitions = partition_benchmarks(json1, json2)
-    for partition in partitions:
-        # Careful, we may have different repetition count.
-        for i in range(min(len(partition[0]), len(partition[1]))):
-            bn = partition[0][i]
-            other_bench = partition[1][i]
+    fmt_str = "{}{:<{}s}{endc}{}{:+16.4f}{endc}{}{:+16.4f}{endc}{:14.0f}{:14.0f}{endc}{:14.0f}{:14.0f}"
+    for benchmark in json_diff_report:
+        # *If* we were asked to only include aggregates,
+        # and if it is non-aggregate, then skip it.
+        if include_aggregates_only and 'run_type' in benchmark:
+            if benchmark['run_type'] != 'aggregate':
+                continue
 
-            # *If* we were asked to only display aggregates,
-            # and if it is non-aggregate, then skip it.
-            if display_aggregates_only and 'run_type' in bn and 'run_type' in other_bench:
-                assert bn['run_type'] == other_bench['run_type']
-                if bn['run_type'] != 'aggregate':
-                    continue
-
-            fmt_str = "{}{:<{}s}{endc}{}{:+16.4f}{endc}{}{:+16.4f}{endc}{:14.0f}{:14.0f}{endc}{:14.0f}{:14.0f}"
-
-            def get_color(res):
-                if res > 0.05:
-                    return BC_FAIL
-                elif res > -0.07:
-                    return BC_WHITE
-                else:
-                    return BC_CYAN
-
-            tres = calculate_change(bn['real_time'], other_bench['real_time'])
-            cpures = calculate_change(bn['cpu_time'], other_bench['cpu_time'])
+        for measurement in benchmark['measurements']:
             output_strs += [color_format(use_color,
                                          fmt_str,
                                          BC_HEADER,
-                                         bn['name'],
+                                         benchmark['name'],
                                          first_col_width,
-                                         get_color(tres),
-                                         tres,
-                                         get_color(cpures),
-                                         cpures,
-                                         bn['real_time'],
-                                         other_bench['real_time'],
-                                         bn['cpu_time'],
-                                         other_bench['cpu_time'],
+                                         get_color(measurement['time']),
+                                         measurement['time'],
+                                         get_color(measurement['cpu']),
+                                         measurement['cpu'],
+                                         measurement['real_time'],
+                                         measurement['real_time_other'],
+                                         measurement['cpu_time'],
+                                         measurement['cpu_time_other'],
                                          endc=BC_ENDC)]
 
-        # After processing the whole partition, if requested, do the U test.
-        if utest:
-            output_strs += print_utest(partition,
+        # After processing the measurements, if requested and
+        # if applicable (e.g. u-test exists for given benchmark),
+        # print the U test.
+        if utest and benchmark['utest']:
+            output_strs += print_utest(benchmark['name'],
+                                       benchmark['utest'],
                                        utest_alpha=utest_alpha,
                                        first_col_width=first_col_width,
                                        use_color=use_color)
@@ -319,21 +368,26 @@ class TestGetUniqueBenchmarkNames(unittest.TestCase):
 
 
 class TestReportDifference(unittest.TestCase):
-    def load_results(self):
-        import json
-        testInputs = os.path.join(
-            os.path.dirname(
-                os.path.realpath(__file__)),
-            'Inputs')
-        testOutput1 = os.path.join(testInputs, 'test1_run1.json')
-        testOutput2 = os.path.join(testInputs, 'test1_run2.json')
-        with open(testOutput1, 'r') as f:
-            json1 = json.load(f)
-        with open(testOutput2, 'r') as f:
-            json2 = json.load(f)
-        return json1, json2
+    @classmethod
+    def setUpClass(cls):
+        def load_results():
+            import json
+            testInputs = os.path.join(
+                os.path.dirname(
+                    os.path.realpath(__file__)),
+                'Inputs')
+            testOutput1 = os.path.join(testInputs, 'test1_run1.json')
+            testOutput2 = os.path.join(testInputs, 'test1_run2.json')
+            with open(testOutput1, 'r') as f:
+                json1 = json.load(f)
+            with open(testOutput2, 'r') as f:
+                json2 = json.load(f)
+            return json1, json2
 
-    def test_basic(self):
+        json1, json2 = load_results()
+        cls.json_diff_report = get_difference_report(json1, json2)
+
+    def test_json_diff_report_pretty_printing(self):
         expect_lines = [
             ['BM_SameTimes', '+0.0000', '+0.0000', '10', '10', '10', '10'],
             ['BM_2xFaster', '-0.5000', '-0.5000', '50', '25', '50', '25'],
@@ -351,9 +405,8 @@ class TestReportDifference(unittest.TestCase):
             ['BM_ThirdFaster', '-0.3333', '-0.3334', '100', '67', '100', '67'],
             ['BM_NotBadTimeUnit', '-0.9000', '+0.2000', '0', '0', '0', '1'],
         ]
-        json1, json2 = self.load_results()
-        output_lines_with_header = generate_difference_report(
-            json1, json2, use_color=False)
+        output_lines_with_header = print_difference_report(
+            self.json_diff_report, use_color=False)
         output_lines = output_lines_with_header[2:]
         print("\n")
         print("\n".join(output_lines_with_header))
@@ -363,31 +416,118 @@ class TestReportDifference(unittest.TestCase):
             self.assertEqual(len(parts), 7)
             self.assertEqual(expect_lines[i], parts)
 
+    def test_json_diff_report_output(self):
+        expected_output = [
+            {
+                'name': 'BM_SameTimes',
+                'measurements': [{'time': 0.0000, 'cpu': 0.0000, 'real_time': 10, 'real_time_other': 10, 'cpu_time': 10, 'cpu_time_other': 10}],
+                'time_unit': 'ns',
+                'utest': {}
+            },
+            {
+                'name': 'BM_2xFaster',
+                'measurements': [{'time': -0.5000, 'cpu': -0.5000, 'real_time': 50, 'real_time_other': 25, 'cpu_time': 50, 'cpu_time_other': 25}],
+                'time_unit': 'ns',
+                'utest': {}
+            },
+            {
+                'name': 'BM_2xSlower',
+                'measurements': [{'time': 1.0000, 'cpu': 1.0000, 'real_time': 50, 'real_time_other': 100, 'cpu_time': 50, 'cpu_time_other': 100}],
+                'time_unit': 'ns',
+                'utest': {}
+            },
+            {
+                'name': 'BM_1PercentFaster',
+                'measurements': [{'time': -0.0100, 'cpu': -0.0100, 'real_time': 100, 'real_time_other': 98.9999999, 'cpu_time': 100, 'cpu_time_other': 98.9999999}],
+                'time_unit': 'ns',
+                'utest': {}
+            },
+            {
+                'name': 'BM_1PercentSlower',
+                'measurements': [{'time': 0.0100, 'cpu': 0.0100, 'real_time': 100, 'real_time_other': 101, 'cpu_time': 100, 'cpu_time_other': 101}],
+                'time_unit': 'ns',
+                'utest': {}
+            },
+            {
+                'name': 'BM_10PercentFaster',
+                'measurements': [{'time': -0.1000, 'cpu': -0.1000, 'real_time': 100, 'real_time_other': 90, 'cpu_time': 100, 'cpu_time_other': 90}],
+                'time_unit': 'ns',
+                'utest': {}
+            },
+            {
+                'name': 'BM_10PercentSlower',
+                'measurements': [{'time': 0.1000, 'cpu': 0.1000, 'real_time': 100, 'real_time_other': 110, 'cpu_time': 100, 'cpu_time_other': 110}],
+                'time_unit': 'ns',
+                'utest': {}
+            },
+            {
+                'name': 'BM_100xSlower',
+                'measurements': [{'time': 99.0000, 'cpu': 99.0000, 'real_time': 100, 'real_time_other': 10000, 'cpu_time': 100, 'cpu_time_other': 10000}],
+                'time_unit': 'ns',
+                'utest': {}
+            },
+            {
+                'name': 'BM_100xFaster',
+                'measurements': [{'time': -0.9900, 'cpu': -0.9900, 'real_time': 10000, 'real_time_other': 100, 'cpu_time': 10000, 'cpu_time_other': 100}],
+                'time_unit': 'ns',
+                'utest': {}
+            },
+            {
+                'name': 'BM_10PercentCPUToTime',
+                'measurements': [{'time': 0.1000, 'cpu': -0.1000, 'real_time': 100, 'real_time_other': 110, 'cpu_time': 100, 'cpu_time_other': 90}],
+                'time_unit': 'ns',
+                'utest': {}
+            },
+            {
+                'name': 'BM_ThirdFaster',
+                'measurements': [{'time': -0.3333, 'cpu': -0.3334, 'real_time': 100, 'real_time_other': 67, 'cpu_time': 100, 'cpu_time_other': 67}],
+                'time_unit': 'ns',
+                'utest': {}
+            },
+            {
+                'name': 'BM_NotBadTimeUnit',
+                'measurements': [{'time': -0.9000, 'cpu': 0.2000, 'real_time': 0.4, 'real_time_other': 0.04, 'cpu_time': 0.5, 'cpu_time_other': 0.6}],
+                'time_unit': 's',
+                'utest': {}
+            },
+        ]
+        self.assertEqual(len(self.json_diff_report), len(expected_output))
+        for out, expected in zip(
+                self.json_diff_report, expected_output):
+            self.assertEqual(out['name'], expected['name'])
+            self.assertEqual(out['time_unit'], expected['time_unit'])
+            assert_utest(self, out, expected)
+            assert_measurements(self, out, expected)
+
 
 class TestReportDifferenceBetweenFamilies(unittest.TestCase):
-    def load_result(self):
-        import json
-        testInputs = os.path.join(
-            os.path.dirname(
-                os.path.realpath(__file__)),
-            'Inputs')
-        testOutput = os.path.join(testInputs, 'test2_run.json')
-        with open(testOutput, 'r') as f:
-            json = json.load(f)
-        return json
+    @classmethod
+    def setUpClass(cls):
+        def load_result():
+            import json
+            testInputs = os.path.join(
+                os.path.dirname(
+                    os.path.realpath(__file__)),
+                'Inputs')
+            testOutput = os.path.join(testInputs, 'test2_run.json')
+            with open(testOutput, 'r') as f:
+                json = json.load(f)
+            return json
 
-    def test_basic(self):
+        json = load_result()
+        json1 = filter_benchmark(json, "BM_Z.ro", ".")
+        json2 = filter_benchmark(json, "BM_O.e", ".")
+        cls.json_diff_report = get_difference_report(json1, json2)
+
+    def test_json_diff_report_pretty_printing(self):
         expect_lines = [
             ['.', '-0.5000', '-0.5000', '10', '5', '10', '5'],
             ['./4', '-0.5000', '-0.5000', '40', '20', '40', '20'],
             ['Prefix/.', '-0.5000', '-0.5000', '20', '10', '20', '10'],
             ['Prefix/./3', '-0.5000', '-0.5000', '30', '15', '30', '15'],
         ]
-        json = self.load_result()
-        json1 = filter_benchmark(json, "BM_Z.ro", ".")
-        json2 = filter_benchmark(json, "BM_O.e", ".")
-        output_lines_with_header = generate_difference_report(
-            json1, json2, use_color=False)
+        output_lines_with_header = print_difference_report(
+            self.json_diff_report, use_color=False)
         output_lines = output_lines_with_header[2:]
         print("\n")
         print("\n".join(output_lines_with_header))
@@ -397,24 +537,64 @@ class TestReportDifferenceBetweenFamilies(unittest.TestCase):
             self.assertEqual(len(parts), 7)
             self.assertEqual(expect_lines[i], parts)
 
+    def test_json_diff_report(self):
+        expected_output = [
+            {
+                'name': u'.',
+                'measurements': [{'time': -0.5, 'cpu': -0.5, 'real_time': 10, 'real_time_other': 5, 'cpu_time': 10, 'cpu_time_other': 5}],
+                'time_unit': 'ns',
+                'utest': {}
+            },
+            {
+                'name': u'./4',
+                'measurements': [{'time': -0.5, 'cpu': -0.5, 'real_time': 40, 'real_time_other': 20, 'cpu_time': 40, 'cpu_time_other': 20}],
+                'time_unit': 'ns',
+                'utest': {},
+            },
+            {
+                'name': u'Prefix/.',
+                'measurements': [{'time': -0.5, 'cpu': -0.5, 'real_time': 20, 'real_time_other': 10, 'cpu_time': 20, 'cpu_time_other': 10}],
+                'time_unit': 'ns',
+                'utest': {}
+            },
+            {
+                'name': u'Prefix/./3',
+                'measurements': [{'time': -0.5, 'cpu': -0.5, 'real_time': 30, 'real_time_other': 15, 'cpu_time': 30, 'cpu_time_other': 15}],
+                'time_unit': 'ns',
+                'utest': {}
+            }
+        ]
+        self.assertEqual(len(self.json_diff_report), len(expected_output))
+        for out, expected in zip(
+                self.json_diff_report, expected_output):
+            self.assertEqual(out['name'], expected['name'])
+            self.assertEqual(out['time_unit'], expected['time_unit'])
+            assert_utest(self, out, expected)
+            assert_measurements(self, out, expected)
+
 
 class TestReportDifferenceWithUTest(unittest.TestCase):
-    def load_results(self):
-        import json
-        testInputs = os.path.join(
-            os.path.dirname(
-                os.path.realpath(__file__)),
-            'Inputs')
-        testOutput1 = os.path.join(testInputs, 'test3_run0.json')
-        testOutput2 = os.path.join(testInputs, 'test3_run1.json')
-        with open(testOutput1, 'r') as f:
-            json1 = json.load(f)
-        with open(testOutput2, 'r') as f:
-            json2 = json.load(f)
-        return json1, json2
+    @classmethod
+    def setUpClass(cls):
+        def load_results():
+            import json
+            testInputs = os.path.join(
+                os.path.dirname(
+                    os.path.realpath(__file__)),
+                'Inputs')
+            testOutput1 = os.path.join(testInputs, 'test3_run0.json')
+            testOutput2 = os.path.join(testInputs, 'test3_run1.json')
+            with open(testOutput1, 'r') as f:
+                json1 = json.load(f)
+            with open(testOutput2, 'r') as f:
+                json2 = json.load(f)
+            return json1, json2
 
-    def test_utest(self):
-        expect_lines = []
+        json1, json2 = load_results()
+        cls.json_diff_report = get_difference_report(
+            json1, json2, utest=True)
+
+    def test_json_diff_report_pretty_printing(self):
         expect_lines = [
             ['BM_One', '-0.1000', '+0.1000', '10', '9', '100', '110'],
             ['BM_Two', '+0.1111', '-0.0111', '9', '10', '90', '89'],
@@ -453,9 +633,8 @@ class TestReportDifferenceWithUTest(unittest.TestCase):
              'recommended.'],
             ['medium', '-0.3750', '-0.3375', '8', '5', '80', '53'],
         ]
-        json1, json2 = self.load_results()
-        output_lines_with_header = generate_difference_report(
-            json1, json2, utest=True, utest_alpha=0.05, use_color=False)
+        output_lines_with_header = print_difference_report(
+            self.json_diff_report, utest=True, utest_alpha=0.05, use_color=False)
         output_lines = output_lines_with_header[2:]
         print("\n")
         print("\n".join(output_lines_with_header))
@@ -464,25 +643,105 @@ class TestReportDifferenceWithUTest(unittest.TestCase):
             parts = [x for x in output_lines[i].split(' ') if x]
             self.assertEqual(expect_lines[i], parts)
 
+    def test_json_diff_report(self):
+        expected_output = [
+            {
+                'name': u'BM_One',
+                'measurements': [
+                    {'time': -0.1,
+                     'cpu': 0.1,
+                     'real_time': 10,
+                     'real_time_other': 9,
+                     'cpu_time': 100,
+                     'cpu_time_other': 110}
+                ],
+                'time_unit': 'ns',
+                'utest': {}
+            },
+            {
+                'name': u'BM_Two',
+                'measurements': [
+                    {'time': 0.1111111111111111,
+                     'cpu': -0.011111111111111112,
+                     'real_time': 9,
+                     'real_time_other': 10,
+                     'cpu_time': 90,
+                     'cpu_time_other': 89},
+                    {'time': -0.125, 'cpu': -0.16279069767441862, 'real_time': 8,
+                        'real_time_other': 7, 'cpu_time': 86, 'cpu_time_other': 72}
+                ],
+                'time_unit': 'ns',
+                'utest': {
+                    'have_optimal_repetitions': False, 'cpu_pvalue': 0.6985353583033387, 'time_pvalue': 0.6985353583033387
+                }
+            },
+            {
+                'name': u'short',
+                'measurements': [
+                    {'time': -0.125,
+                     'cpu': -0.0625,
+                     'real_time': 8,
+                     'real_time_other': 7,
+                     'cpu_time': 80,
+                     'cpu_time_other': 75},
+                    {'time': -0.4325,
+                     'cpu': -0.13506493506493514,
+                     'real_time': 8,
+                     'real_time_other': 4.54,
+                     'cpu_time': 77,
+                     'cpu_time_other': 66.6}
+                ],
+                'time_unit': 'ns',
+                'utest': {
+                    'have_optimal_repetitions': False, 'cpu_pvalue': 0.14891467317876572, 'time_pvalue': 0.7670968684102772
+                }
+            },
+            {
+                'name': u'medium',
+                'measurements': [
+                    {'time': -0.375,
+                     'cpu': -0.3375,
+                     'real_time': 8,
+                     'real_time_other': 5,
+                     'cpu_time': 80,
+                     'cpu_time_other': 53}
+                ],
+                'time_unit': 'ns',
+                'utest': {}
+            }
+        ]
+        self.assertEqual(len(self.json_diff_report), len(expected_output))
+        for out, expected in zip(
+                self.json_diff_report, expected_output):
+            self.assertEqual(out['name'], expected['name'])
+            self.assertEqual(out['time_unit'], expected['time_unit'])
+            assert_utest(self, out, expected)
+            assert_measurements(self, out, expected)
+
 
 class TestReportDifferenceWithUTestWhileDisplayingAggregatesOnly(
         unittest.TestCase):
-    def load_results(self):
-        import json
-        testInputs = os.path.join(
-            os.path.dirname(
-                os.path.realpath(__file__)),
-            'Inputs')
-        testOutput1 = os.path.join(testInputs, 'test3_run0.json')
-        testOutput2 = os.path.join(testInputs, 'test3_run1.json')
-        with open(testOutput1, 'r') as f:
-            json1 = json.load(f)
-        with open(testOutput2, 'r') as f:
-            json2 = json.load(f)
-        return json1, json2
+    @classmethod
+    def setUpClass(cls):
+        def load_results():
+            import json
+            testInputs = os.path.join(
+                os.path.dirname(
+                    os.path.realpath(__file__)),
+                'Inputs')
+            testOutput1 = os.path.join(testInputs, 'test3_run0.json')
+            testOutput2 = os.path.join(testInputs, 'test3_run1.json')
+            with open(testOutput1, 'r') as f:
+                json1 = json.load(f)
+            with open(testOutput2, 'r') as f:
+                json2 = json.load(f)
+            return json1, json2
 
-    def test_utest(self):
-        expect_lines = []
+        json1, json2 = load_results()
+        cls.json_diff_report = get_difference_report(
+            json1, json2, utest=True)
+
+    def test_json_diff_report_pretty_printing(self):
         expect_lines = [
             ['BM_One', '-0.1000', '+0.1000', '10', '9', '100', '110'],
             ['BM_Two', '+0.1111', '-0.0111', '9', '10', '90', '89'],
@@ -519,10 +778,10 @@ class TestReportDifferenceWithUTestWhileDisplayingAggregatesOnly(
              '9+',
              'repetitions',
              'recommended.'],
+             ['medium', '-0.3750', '-0.3375', '8', '5', '80', '53']
         ]
-        json1, json2 = self.load_results()
-        output_lines_with_header = generate_difference_report(
-            json1, json2, display_aggregates_only=True,
+        output_lines_with_header = print_difference_report(
+            self.json_diff_report,
             utest=True, utest_alpha=0.05, use_color=False)
         output_lines = output_lines_with_header[2:]
         print("\n")
@@ -531,6 +790,109 @@ class TestReportDifferenceWithUTestWhileDisplayingAggregatesOnly(
         for i in range(0, len(output_lines)):
             parts = [x for x in output_lines[i].split(' ') if x]
             self.assertEqual(expect_lines[i], parts)
+
+    def test_json_diff_report(self):
+        expected_output = [
+            {
+                'name': u'BM_One',
+                'measurements': [
+                    {'time': -0.1,
+                     'cpu': 0.1,
+                     'real_time': 10,
+                     'real_time_other': 9,
+                     'cpu_time': 100,
+                     'cpu_time_other': 110}
+                ],
+                'time_unit': 'ns',
+                'utest': {}
+            },
+            {
+                'name': u'BM_Two',
+                'measurements': [
+                    {'time': 0.1111111111111111,
+                     'cpu': -0.011111111111111112,
+                     'real_time': 9,
+                     'real_time_other': 10,
+                     'cpu_time': 90,
+                     'cpu_time_other': 89},
+                    {'time': -0.125, 'cpu': -0.16279069767441862, 'real_time': 8,
+                        'real_time_other': 7, 'cpu_time': 86, 'cpu_time_other': 72}
+                ],
+                'time_unit': 'ns',
+                'utest': {
+                    'have_optimal_repetitions': False, 'cpu_pvalue': 0.6985353583033387, 'time_pvalue': 0.6985353583033387
+                }
+            },
+            {
+                'name': u'short',
+                'measurements': [
+                    {'time': -0.125,
+                     'cpu': -0.0625,
+                     'real_time': 8,
+                     'real_time_other': 7,
+                     'cpu_time': 80,
+                     'cpu_time_other': 75},
+                    {'time': -0.4325,
+                     'cpu': -0.13506493506493514,
+                     'real_time': 8,
+                     'real_time_other': 4.54,
+                     'cpu_time': 77,
+                     'cpu_time_other': 66.6}
+                ],
+                'time_unit': 'ns',
+                'utest': {
+                    'have_optimal_repetitions': False, 'cpu_pvalue': 0.14891467317876572, 'time_pvalue': 0.7670968684102772
+                }
+            },
+            {
+                'name': u'medium',
+                'measurements': [
+                    {'real_time_other': 5,
+                     'cpu_time': 80,
+                     'time': -0.375,
+                     'real_time': 8,
+                     'cpu_time_other': 53,
+                     'cpu': -0.3375
+                    }
+                ],
+                'utest': {},
+                'time_unit': u'ns',
+                'aggregate_name': ''
+            }
+        ]
+        self.assertEqual(len(self.json_diff_report), len(expected_output))
+        for out, expected in zip(
+                self.json_diff_report, expected_output):
+            self.assertEqual(out['name'], expected['name'])
+            self.assertEqual(out['time_unit'], expected['time_unit'])
+            assert_utest(self, out, expected)
+            assert_measurements(self, out, expected)
+
+
+def assert_utest(unittest_instance, lhs, rhs):
+    if lhs['utest']:
+        unittest_instance.assertAlmostEqual(
+            lhs['utest']['cpu_pvalue'],
+            rhs['utest']['cpu_pvalue'])
+        unittest_instance.assertAlmostEqual(
+            lhs['utest']['time_pvalue'],
+            rhs['utest']['time_pvalue'])
+        unittest_instance.assertEqual(
+            lhs['utest']['have_optimal_repetitions'],
+            rhs['utest']['have_optimal_repetitions'])
+    else:
+        # lhs is empty. assert if rhs is not.
+        unittest_instance.assertEqual(lhs['utest'], rhs['utest'])
+
+
+def assert_measurements(unittest_instance, lhs, rhs):
+    for m1, m2 in zip(lhs['measurements'], rhs['measurements']):
+        unittest_instance.assertEqual(m1['real_time'], m2['real_time'])
+        unittest_instance.assertEqual(m1['cpu_time'], m2['cpu_time'])
+        # m1['time'] and m1['cpu'] hold values which are being calculated,
+        # and therefore we must use almost-equal pattern.
+        unittest_instance.assertAlmostEqual(m1['time'], m2['time'], places=4)
+        unittest_instance.assertAlmostEqual(m1['cpu'], m2['cpu'], places=4)
 
 
 if __name__ == '__main__':
