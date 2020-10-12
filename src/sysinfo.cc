@@ -29,7 +29,8 @@
 #include <sys/types.h>  // this header must be included before 'sys/sysctl.h' to avoid compilation error on FreeBSD
 #include <unistd.h>
 #if defined BENCHMARK_OS_FREEBSD || defined BENCHMARK_OS_MACOSX || \
-    defined BENCHMARK_OS_NETBSD || defined BENCHMARK_OS_OPENBSD
+    defined BENCHMARK_OS_NETBSD || defined BENCHMARK_OS_OPENBSD || \
+    defined BENCHMARK_OS_DRAGONFLY
 #define BENCHMARK_HAS_SYSCTL
 #include <sys/sysctl.h>
 #endif
@@ -607,6 +608,8 @@ double GetCPUCyclesPerSecond() {
       "machdep.tsc_freq";
 #elif defined BENCHMARK_OS_OPENBSD
       "hw.cpuspeed";
+#elif defined BENCHMARK_OS_DRAGONFLY
+      "hw.tsc_frequency";
 #else
       "hw.cpufrequency";
 #endif
@@ -671,9 +674,10 @@ double GetCPUCyclesPerSecond() {
 }
 
 std::vector<double> GetLoadAvg() {
-#if (defined BENCHMARK_OS_FREEBSD || defined(BENCHMARK_OS_LINUX) || \
-    defined BENCHMARK_OS_MACOSX || defined BENCHMARK_OS_NETBSD ||  \
-    defined BENCHMARK_OS_OPENBSD) && !defined(__ANDROID__)
+#if (defined BENCHMARK_OS_FREEBSD || defined(BENCHMARK_OS_LINUX) ||     \
+     defined BENCHMARK_OS_MACOSX || defined BENCHMARK_OS_NETBSD ||      \
+     defined BENCHMARK_OS_OPENBSD || defined BENCHMARK_OS_DRAGONFLY) && \
+    !defined(__ANDROID__)
   constexpr int kMaxSamples = 3;
   std::vector<double> res(kMaxSamples, 0.0);
   const int nelem = getloadavg(res.data(), kMaxSamples);

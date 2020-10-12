@@ -28,7 +28,8 @@
 #include <sys/time.h>
 #include <sys/types.h>  // this header must be included before 'sys/sysctl.h' to avoid compilation error on FreeBSD
 #include <unistd.h>
-#if defined BENCHMARK_OS_FREEBSD || defined BENCHMARK_OS_MACOSX
+#if defined BENCHMARK_OS_FREEBSD || defined BENCHMARK_OS_DRAGONFLY || \
+    defined BENCHMARK_OS_MACOSX
 #include <sys/sysctl.h>
 #endif
 #if defined(BENCHMARK_OS_MACOSX)
