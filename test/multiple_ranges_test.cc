@@ -1,9 +1,9 @@
-#include "benchmark/benchmark.h"
-
 #include <cassert>
 #include <iostream>
 #include <set>
 #include <vector>
+
+#include "benchmark/benchmark.h"
 
 class MultipleRangesFixture : public ::benchmark::Fixture {
  public:
@@ -28,7 +28,7 @@ class MultipleRangesFixture : public ::benchmark::Fixture {
                         {2, 7, 15},
                         {7, 6, 3}}) {}
 
-  void SetUp(const ::benchmark::State& state) {
+  void SetUp(const ::benchmark::State& state) BENCHMARK_OVERRIDE {
     std::vector<int64_t> ranges = {state.range(0), state.range(1),
                                    state.range(2)};
 

@@ -1,19 +1,19 @@
 
-#include "benchmark/benchmark.h"
-
 #include <cassert>
 #include <memory>
 
+#include "benchmark/benchmark.h"
+
 class MyFixture : public ::benchmark::Fixture {
  public:
-  void SetUp(const ::benchmark::State& state) {
+  void SetUp(const ::benchmark::State& state) BENCHMARK_OVERRIDE {
     if (state.thread_index == 0) {
       assert(data.get() == nullptr);
       data.reset(new int(42));
     }
   }
 
-  void TearDown(const ::benchmark::State& state) {
+  void TearDown(const ::benchmark::State& state) BENCHMARK_OVERRIDE {
     if (state.thread_index == 0) {
       assert(data.get() != nullptr);
       data.reset();
@@ -25,7 +25,7 @@ class MyFixture : public ::benchmark::Fixture {
   std::unique_ptr<int> data;
 };
 
-BENCHMARK_F(MyFixture, Foo)(benchmark::State &st) {
+BENCHMARK_F(MyFixture, Foo)(benchmark::State& st) {
   assert(data.get() != nullptr);
   assert(*data == 42);
   for (auto _ : st) {

@@ -1,24 +1,23 @@
-#include "benchmark/benchmark.h"
-
 #include <cassert>
 #include <cmath>
 #include <cstdint>
 #include <cstdlib>
-
 #include <iostream>
 #include <limits>
 #include <sstream>
 #include <string>
 
+#include "benchmark/benchmark.h"
+
 namespace {
 
 class TestReporter : public benchmark::ConsoleReporter {
  public:
-  virtual bool ReportContext(const Context& context) {
+  virtual bool ReportContext(const Context& context) BENCHMARK_OVERRIDE {
     return ConsoleReporter::ReportContext(context);
   };
 
-  virtual void ReportRuns(const std::vector<Run>& report) {
+  virtual void ReportRuns(const std::vector<Run>& report) BENCHMARK_OVERRIDE {
     ++count_;
     ConsoleReporter::ReportRuns(report);
   };
@@ -65,7 +64,7 @@ static void BM_FooBa(benchmark::State& state) {
 }
 BENCHMARK(BM_FooBa);
 
-int main(int argc, char **argv) {
+int main(int argc, char** argv) {
   bool list_only = false;
   for (int i = 0; i < argc; ++i)
     list_only |= std::string(argv[i]).find("--benchmark_list_tests") !=

@@ -5,8 +5,8 @@
 #include "output_test.h"
 
 class TestMemoryManager : public benchmark::MemoryManager {
-  void Start() {}
-  void Stop(Result* result) {
+  void Start() BENCHMARK_OVERRIDE {}
+  void Stop(Result* result) BENCHMARK_OVERRIDE {
     result->num_allocs = 42;
     result->max_bytes_used = 42000;
   }
