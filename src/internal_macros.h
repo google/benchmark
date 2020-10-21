@@ -13,7 +13,11 @@
 #endif
 
 #if defined(__clang__)
-  #if !defined(COMPILER_CLANG)
+  #if defined(__ibmxl__)
+    #if !defined(COMPILER_IBMXL)
+      #define COMPILER_IBMXL
+    #endif
+  #elif !defined(COMPILER_CLANG)
     #define COMPILER_CLANG
   #endif
 #elif defined(_MSC_VER)
@@ -74,6 +78,8 @@
 #define BENCHMARK_OS_SOLARIS 1
 #elif defined(__QNX__)
 #define BENCHMARK_OS_QNX 1
+#elif defined(__MVS__)
+#define BENCHMARK_OS_ZOS 1
 #endif
 
 #if defined(__ANDROID__) && defined(__GLIBCXX__)
