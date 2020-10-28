@@ -42,8 +42,8 @@ void SleepForMicroseconds(int microseconds) {
   // sleep for the remaining microseconds because usleep() will fail if its
   // argument is greater than 1000000.
   div_t sleepTime = div(microseconds, kNumMicrosPerSecond);
-  unsigned int seconds = sleepTime.quot;
-  while (seconds > 0)
+  int seconds = sleepTime.quot;
+  while (seconds != 0)
     seconds = sleep(seconds);
   while (usleep(sleepTime.rem) == -1 && errno == EINTR)
     ;
