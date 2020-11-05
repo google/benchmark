@@ -44,7 +44,7 @@ load("@rules_python//python:repositories.bzl", "py_repositories")
 py_repositories()
 
 load("@rule_python//python:pip.bzl", "pip_install")
-load("@py_deps//:requirements.bzl", "requirement")
+#load("@py_deps//:requirements.bzl", "requirement")
 
 # dependencies
 pip3_install(   # or pip3_import
