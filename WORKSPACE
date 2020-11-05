@@ -43,11 +43,11 @@ http_archive(
 #load("@rules_python//python:pip.bzl", "pip_repositories")
 #pip_repositories()
 
-load("@rule_python//python:pip.bzl", "pip_install")
+load("@rules_python//python:pip.bzl", "pip_install")
 #load("@py_deps//:requirements.bzl", "requirement")
 
 # dependencies
-pip3_install(   # or pip3_import
+pip3_install(
    name = "py_deps",
    requirements = "//:requirements.txt",
 )
