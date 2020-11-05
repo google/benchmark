@@ -43,7 +43,7 @@ http_archive(
 #load("@rules_python//python:pip.bzl", "pip_repositories")
 #pip_repositories()
 
-load("@rules_python//python:pip.bzl", "pip_install")
+load("@rules_python//python:pip.bzl", "pip3_install")
 #load("@py_deps//:requirements.bzl", "requirement")
 
 # dependencies
