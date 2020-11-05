@@ -40,8 +40,8 @@ http_archive(
     url = "https://github.com/bazelbuild/rules_python/releases/download/0.1.0/rules_python-0.1.0.tar.gz",
     sha256 = "b6d46438523a3ec0f3cead544190ee13223a52f6a6765a29eae7b7cc24cc83a0",
 )
-load("@rules_python//python:repositories.bzl", "py_repositories")
-py_repositories()
+load("@rules_python//python:pip.bzl", "pip_repositories")
+pip_repositories()
 
 load("@rule_python//python:pip.bzl", "pip_install")
 #load("@py_deps//:requirements.bzl", "requirement")
