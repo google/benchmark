@@ -43,17 +43,18 @@ http_archive(
 load("@rules_python//python:repositories.bzl", "py_repositories")
 py_repositories()
 
-load("@rules_python//python:pip.bzl", "pip_import")
+load("@rule_python//python:pip.bzl", "pip_install")
+load("@py_deps//:requirements.bzl", "requirement")
 
 # dependencies
-pip3_import(   # or pip3_import
+pip3_install(   # or pip3_import
    name = "py_deps",
    requirements = "//:requirements.txt",
 )
 
 # Load the central repo's install function from its `//:requirements.bzl` file,
 # and call it.
-load("@py_deps//:requirements.bzl", "pip_install")
-pip_install()
+#load("@py_deps//:requirements.bzl", "pip_install")
+#pip_install()
 
-load("@py_deps//:requirements.bzl", "requirement")
+
