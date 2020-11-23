@@ -194,6 +194,7 @@ else()
   # Link time optimisation
   if (BENCHMARK_ENABLE_LTO)
     add_cxx_compiler_flag(-flto)
+    add_cxx_compiler_flag(-Wno-lto-type-mismatch)
     if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
       find_program(GCC_AR gcc-ar)
       if (GCC_AR)
