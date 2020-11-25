@@ -87,7 +87,7 @@ void AddRange(std::vector<T>* dst, T lo, T hi, int mult) {
   }
 
   // Treat 0 as a special case (see discussion on #762).
-  if (lo <= 0 && hi >= 0) {
+  if (lo < 0 && hi >= 0) {
     dst->push_back(0);
   }
 
