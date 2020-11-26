@@ -90,6 +90,12 @@ TEST(AddRangeTest, ZeroOnlyRange) {
   EXPECT_THAT(dst, testing::ElementsAre(0));
 }
 
+TEST(AddRangeTest, ZeroStartingRange) {
+  std::vector<int> dst;
+  AddRange(&dst, 0, 2, 2);
+  EXPECT_THAT(dst, testing::ElementsAre(0, 1, 2));
+}
+
 TEST(AddRangeTest, NegativeRange64) {
   std::vector<int64_t> dst;
   AddRange<int64_t>(&dst, -4, 4, 2);
