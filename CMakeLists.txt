@@ -1,4 +1,5 @@
-cmake_minimum_required (VERSION 3.5.1)
+# Required for download the dependencies
+cmake_minimum_required (VERSION 3.14)
 
 foreach(p
     CMP0048 # OK to clear PROJECT_VERSION on project()
@@ -28,11 +29,11 @@ option(BENCHMARK_ENABLE_INSTALL "Enable installation of benchmark. (Projects emb
 
 # Allow unmet dependencies to be met using CMake's ExternalProject mechanics, which
 # may require downloading the source code.
-option(BENCHMARK_DOWNLOAD_DEPENDENCIES "Allow the downloading and in-tree building of unmet dependencies" OFF)
+option(BENCHMARK_DOWNLOAD_DEPENDENCIES "Allow the downloading and in-tree building of unmet dependencies" ON)
 
 # This option can be used to disable building and running unit tests which depend on gtest
 # in cases where it is not possible to build or find a valid version of gtest.
-option(BENCHMARK_ENABLE_GTEST_TESTS "Enable building the unit tests which depend on gtest" ON)
+option(BENCHMARK_ENABLE_GTEST_TESTS "Enable building the unit tests which depend on gtest" OFF)
 
 set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
 set(ENABLE_ASSEMBLY_TESTS_DEFAULT OFF)
@@ -277,6 +278,19 @@ include_directories(${PROJECT_SOURCE_DIR}/include)
 add_subdirectory(src)
 
 if (BENCHMARK_ENABLE_TESTING)
+
+  include(cmake/CPM.cmake)
+
+  CPMAddPackage(
+          NAME googletest
+          GITHUB_REPOSITORY google/googletest
+          GIT_TAG release-1.10.0
+          VERSION 1.10.0
+          OPTIONS
+          "INSTALL_GTEST OFF"
+          "gtest_force_shared_crt ON"
+  )
+
   enable_testing()
   if (BENCHMARK_ENABLE_GTEST_TESTS AND
       NOT (TARGET gtest AND TARGET gtest_main AND

@@ -20,6 +20,7 @@ __pycache__
 /Testing
 CMakeCache.txt
 CMakeFiles/
+cmake-build-*/
 cmake_install.cmake
 
 # makefiles.
@@ -64,3 +65,6 @@ CMakeSettings.json
 # Python build stuff
 dist/
 *.egg-info*
+
+# JetBrains CLion
+.idea/
