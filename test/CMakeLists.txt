@@ -7,10 +7,10 @@ enable_testing()
 
     Check for the existence of Google Test libraries, if not exist
     notify to user. ]]#
-if (TARGET gtest AND TARGET gtest_main AND TARGET gmock AND TARGET gmock_main)
-  MESSAGE(FATAL_ERROR "Not is possible found Google Test libraries in the
-    system, please specify BENCHMARK_DOWNLOAD_DEPENDENCIES=ON to CMake for
-     automatic download.")
+if (NOT (TARGET gtest AND TARGET gtest_main AND TARGET gmock AND TARGET gmock_main))
+  MESSAGE(FATAL_ERROR "Not is possible found Google Test libraries in the \
+    system, please specify BENCHMARK_DOWNLOAD_DEPENDENCIES=ON to CMake for \
+    automatic download.")
 endif()
 
 find_package(Threads REQUIRED)
