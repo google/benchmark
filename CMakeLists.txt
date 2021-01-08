@@ -29,11 +29,11 @@ option(BENCHMARK_ENABLE_INSTALL "Enable installation of benchmark. (Projects emb
 
 # Allow unmet dependencies to be met using CMake's ExternalProject mechanics, which
 # may require downloading the source code.
-option(BENCHMARK_DOWNLOAD_DEPENDENCIES "Allow the downloading and in-tree building of unmet dependencies" ON)
+option(BENCHMARK_DOWNLOAD_DEPENDENCIES "Allow the downloading and in-tree building of unmet dependencies" OFF)
 
 # This option can be used to disable building and running unit tests which depend on gtest
 # in cases where it is not possible to build or find a valid version of gtest.
-option(BENCHMARK_ENABLE_GTEST_TESTS "Enable building the unit tests which depend on gtest" OFF)
+option(BENCHMARK_ENABLE_GTEST_TESTS "Enable building the unit tests which depend on gtest" ON)
 
 set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
 set(ENABLE_ASSEMBLY_TESTS_DEFAULT OFF)
@@ -279,17 +279,25 @@ add_subdirectory(src)
 
 if (BENCHMARK_ENABLE_TESTING)
 
-  include(cmake/CPM.cmake)
+  if (BENCHMARK_DOWNLOAD_DEPENDENCIES)
 
-  CPMAddPackage(
-          NAME googletest
-          GITHUB_REPOSITORY google/googletest
-          GIT_TAG release-1.10.0
-          VERSION 1.10.0
-          OPTIONS
-          "INSTALL_GTEST OFF"
-          "gtest_force_shared_crt ON"
-  )
+    # Include CPM (Content Package Manager) for download Google Test dependency
+    include(cmake/CPM.cmake)
+
+    #[[ CPM.cmake is a CMake script that adds dependency management capabilities
+        to CMake. It's built as a thin wrapper around CMake's FetchContent module
+        that adds version control, caching, a simple API and more. ]]#
+    CPMAddPackage(
+            NAME googletest
+            GITHUB_REPOSITORY google/googletest
+            GIT_TAG release-1.10.0
+            VERSION 1.10.0
+            OPTIONS
+            "INSTALL_GTEST OFF"
+            "gtest_force_shared_crt ON"
+    )
+
+  endif()
 
   enable_testing()
   if (BENCHMARK_ENABLE_GTEST_TESTS AND
