@@ -1,4 +1,5 @@
 # Enable the tests
+enable_testing()
 
 find_package(Threads REQUIRED)
 include(CheckCXXCompilerFlag)
