@@ -49,6 +49,7 @@ PYBIND11_MODULE(_benchmark, m) {
       .value("kNanosecond", TimeUnit::kNanosecond)
       .value("kMicrosecond", TimeUnit::kMicrosecond)
       .value("kMillisecond", TimeUnit::kMillisecond)
+      .value("kSecond", TimeUnit::kSecond)
       .export_values();
 
   using benchmark::BigO;

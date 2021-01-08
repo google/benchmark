@@ -1,0 +1,33 @@
+name: bazel
+
+on:
+  push: {}
+  pull_request: {}
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v1
+
+    - name: mount bazel cache
+      uses: actions/cache@v1
+      with:
+        path: "/home/runner/.cache/bazel"
+        key: bazel
+
+    - name: install bazelisk
+      run: |
+        curl -LO "https://github.com/bazelbuild/bazelisk/releases/download/v1.1.0/bazelisk-linux-amd64"
+        mkdir -p "${GITHUB_WORKSPACE}/bin/"
+        mv bazelisk-linux-amd64 "${GITHUB_WORKSPACE}/bin/bazel"
+        chmod +x "${GITHUB_WORKSPACE}/bin/bazel"
+
+    - name: build
+      run: |
+        "${GITHUB_WORKSPACE}/bin/bazel" build //...
+        
+    - name: test
+      run: |
+        "${GITHUB_WORKSPACE}/bin/bazel" test //test/...
