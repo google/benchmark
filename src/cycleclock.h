@@ -36,7 +36,7 @@
 // declarations of some other intrinsics, breaking compilation.
 // Therefore, we simply declare __rdtsc ourselves. See also
 // http://connect.microsoft.com/VisualStudio/feedback/details/262047
-#if defined(COMPILER_MSVC) && !defined(_M_IX86)
+#if defined(COMPILER_MSVC) && defined(_M_X64)
 extern "C" uint64_t __rdtsc();
 #pragma intrinsic(__rdtsc)
 #endif
@@ -114,8 +114,10 @@ inline BENCHMARK_ALWAYS_INLINE int64_t Now() {
   // when I know it will work.  Otherwise, I'll use __rdtsc and hope
   // the code is being compiled with a non-ancient compiler.
   _asm rdtsc
-#elif defined(COMPILER_MSVC)
+#elif defined(COMPILER_MSVC) && defined(_M_X64)
   return __rdtsc();
+#elif defined(_M_ARM64)
+  return _ReadStatusReg(ARM64_CNTVCT);
 #elif defined(BENCHMARK_OS_NACL)
   // Native Client validator on x86/x86-64 allows RDTSC instructions,
   // and this case is handled above. Native Client validator on ARM
