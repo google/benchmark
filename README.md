@@ -391,8 +391,12 @@ name,iterations,real_time,cpu_time,bytes_per_second,items_per_second,label
 Write benchmark results to a file with the `--benchmark_out=<filename>` option
 (or set `BENCHMARK_OUT`). Specify the output format with
 `--benchmark_out_format={json|console|csv}` (or set
-`BENCHMARK_OUT_FORMAT={json|console|csv}`). Note that specifying
-`--benchmark_out` does not suppress the console output.
+`BENCHMARK_OUT_FORMAT={json|console|csv}`). Note that the 'csv' reporter is
+deperecated and the saved `.csv` file 
+[is not parsable](https://github.com/google/benchmark/issues/794) by csv 
+parsers.
+
+Specifying `--benchmark_out` does not suppress the console output.
 
 <a name="running-benchmarks" />
 
