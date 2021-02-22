@@ -377,7 +377,7 @@ size_t RunSpecifiedBenchmarks(BenchmarkReporter* display_reporter,
   if (!fname.empty()) {
     output_file.open(fname);
     if (!output_file.is_open()) {
-      Err << "invalid file name: '" << fname << std::endl;
+      Err << "invalid file name: '" << fname << "'" << std::endl;
       std::exit(1);
     }
     if (!file_reporter) {
