@@ -31,7 +31,7 @@ To get started, see [Requirements](#requirements) and
 [Installation](#installation). See [Usage](#usage) for a full example and the
 [User Guide](#user-guide) for a more comprehensive feature overview.
 
-It may also help to read the [Google Test documentation](https://github.com/google/googletest/blob/master/googletest/docs/primer.md)
+It may also help to read the [Google Test documentation](https://github.com/google/googletest/blob/master/docs/primer.md)
 as some of the structural aspects of the APIs are similar.
 
 ### Resources
