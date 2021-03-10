@@ -1417,6 +1417,8 @@ class BenchmarkReporter {
     // accumulated time.
     double GetAdjustedCPUTime() const;
 
+    double GetAdjustedCycles() const;
+
     // This is set to 0.0 if memory tracing is not enabled.
     double max_heapbytes_used;
 

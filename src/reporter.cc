@@ -102,4 +102,10 @@ double BenchmarkReporter::Run::GetAdjustedCPUTime() const {
   return new_time;
 }
 
+double BenchmarkReporter::Run::GetAdjustedCycles() const {
+  auto new_cycles = static_cast<double>(cycles_accumulated);
+  if (iterations != 0) new_cycles /= static_cast<double>(iterations);
+  return new_cycles;
+}
+
 }  // end namespace benchmark

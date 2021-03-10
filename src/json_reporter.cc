@@ -224,7 +224,7 @@ void JSONReporter::PrintRunData(Run const& run) {
     out << indent << FormatKV("iterations", run.iterations) << ",\n";
     out << indent << FormatKV("real_time", run.GetAdjustedRealTime()) << ",\n";
     out << indent << FormatKV("cpu_time", run.GetAdjustedCPUTime()) << ",\n";
-    out << indent << FormatKV("cycles", run.cycles_accumulated) << ",\n";
+    out << indent << FormatKV("cycles", run.GetAdjustedCycles()) << ",\n";
     out << indent << FormatKV("time_unit", GetTimeUnitString(run.time_unit));
   } else if (run.report_big_o) {
     out << indent << FormatKV("cpu_coefficient", run.GetAdjustedCPUTime())
