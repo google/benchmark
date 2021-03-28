@@ -32,7 +32,9 @@
 #include <cstdlib>
 #include <fstream>
 #include <iostream>
+#include <limits>
 #include <memory>
+#include <random>
 #include <string>
 #include <thread>
 #include <utility>
@@ -51,6 +53,18 @@
 #include "thread_manager.h"
 #include "thread_timer.h"
 
+// Each benchmark can be repeated a number of times, and within each
+// *repetition*, we run the user-defined benchmark function a number of
+// *iterations*. The number of repetitions is determined based on flags
+// (--benchmark_repetitions).
+namespace {
+
+// Attempt to make each repetition run for at least this much of time.
+constexpr double kDefaultMinTimeTotal = 0.5;
+constexpr size_t kDefaultRepetitions = 12;
+
+}  // namespace
+
 // Print a list of benchmarks. This option overrides all other options.
 DEFINE_bool(benchmark_list_tests, false);
 
@@ -59,16 +73,32 @@ DEFINE_bool(benchmark_list_tests, false);
 // linked into the binary are run.
 DEFINE_string(benchmark_filter, ".");
 
-// Minimum number of seconds we should run benchmark before results are
-// considered significant.  For cpu-time based tests, this is the lower bound
-// on the total cpu time used by all threads that make up the test.  For
-// real-time based tests, this is the lower bound on the elapsed time of the
-// benchmark execution, regardless of number of threads.
-DEFINE_double(benchmark_min_time, 0.5);
+// Minimum number of seconds we should run benchmark per repetition before
+// results are considered significant. For cpu-time based tests, this is the
+// lower bound on the total cpu time used by all threads that make up the test.
+// For real-time based tests, this is the lower bound on the elapsed time of the
+// benchmark execution, regardless of number of threads. If left unset, will use
+// 0.5 / 12 if random interleaving is enabled. Otherwise, will use 0.5.
+// Do NOT read this flag directly. Use GetMinTime() to read this flag.
+DEFINE_double(benchmark_min_time, -1.0);
 
 // The number of runs of each benchmark. If greater than 1, the mean and
-// standard deviation of the runs will be reported.
-DEFINE_int32(benchmark_repetitions, 1);
+// standard deviation of the runs will be reported. By default, the number of
+// repetitions is 1 if random interleaving is disabled, and up to 12 if random
+// interleaving is enabled. (Read the documentation for random interleaving to
+// see why it might be less than 12.)
+// Do NOT read this flag directly, Use GetRepetitions() to access this flag.
+DEFINE_int32(benchmark_repetitions, -1);
+
+// The maximum overhead allowed for random interleaving. A value X means total
+// execution time under random interleaving is limited by
+// (1 + X) * original total execution time. Set to 'inf' to allow infinite
+// overhead.
+DEFINE_double(benchmark_random_interleaving_max_overhead, 0.4);
+
+// If set, enable random interleaving. See
+// http://github.com/google/benchmark/issues/1051 for details.
+DEFINE_bool(benchmark_enable_random_interleaving, false);
 
 // Report the result of each benchmark repetitions. When 'true' is specified
 // only the mean, standard deviation, and other statistics are reported for
@@ -109,6 +139,37 @@ DEFINE_int32(v, 0);
 namespace benchmark {
 
 namespace internal {
+
+// Performance measurements always come with random variances. Defines a
+// factor by which the required number of iterations is overestimated in order
+// to reduce the probability that the minimum time requirement will not be met.
+const double kSafetyMultiplier = 1.4;
+
+// Wraps --benchmark_min_time and returns valid default values if not supplied.
+double GetMinTime() {
+  const double min_time = FLAGS_benchmark_min_time;
+  if (min_time >= 0.0) {
+    return min_time;
+  }
+
+  if (FLAGS_benchmark_enable_random_interleaving) {
+    return kDefaultMinTimeTotal / kDefaultRepetitions;
+  }
+  return kDefaultMinTimeTotal;
+}
+
+// Wraps --benchmark_repetitions and return valid default value if not supplied.
+size_t GetRepetitions() {
+  const int repetitions = FLAGS_benchmark_repetitions;
+  if (repetitions >= 0) {
+    return static_cast<size_t>(repetitions);
+  }
+
+  if (FLAGS_benchmark_enable_random_interleaving) {
+    return kDefaultRepetitions;
+  }
+  return 1;
+}
 
 // FIXME: wouldn't LTO mess this up?
 void UseCharPointer(char const volatile*) {}
@@ -222,15 +283,15 @@ void RunBenchmarks(const std::vector<BenchmarkInstance>& benchmarks,
   CHECK(display_reporter != nullptr);
 
   // Determine the width of the name field using a minimum width of 10.
-  bool might_have_aggregates = FLAGS_benchmark_repetitions > 1;
+  bool might_have_aggregates = GetRepetitions() > 1;
   size_t name_field_width = 10;
   size_t stat_field_width = 0;
   for (const BenchmarkInstance& benchmark : benchmarks) {
     name_field_width =
-        std::max<size_t>(name_field_width, benchmark.name.str().size());
-    might_have_aggregates |= benchmark.repetitions > 1;
+        std::max<size_t>(name_field_width, benchmark.name().str().size());
+    might_have_aggregates |= benchmark.repetitions() > 1;
 
-    for (const auto& Stat : *benchmark.statistics)
+    for (const auto& Stat : *benchmark.statistics())
       stat_field_width = std::max<size_t>(stat_field_width, Stat.name_.size());
   }
   if (might_have_aggregates) name_field_width += 1 + stat_field_width;
@@ -255,23 +316,56 @@ void RunBenchmarks(const std::vector<BenchmarkInstance>& benchmarks,
     flushStreams(display_reporter);
     flushStreams(file_reporter);
 
-    for (const auto& benchmark : benchmarks) {
-      RunResults run_results = RunBenchmark(benchmark, &complexity_reports);
+    // Without random interleaving, benchmarks are executed in the order of:
+    //   A, A, ..., A, B, B, ..., B, C, C, ..., C, ...
+    // That is, repetition is within RunBenchmark(), hence the name
+    // inner_repetitions.
+    // With random interleaving, benchmarks are executed in the order of:
+    //  {Random order of A, B, C, ...}, {Random order of A, B, C, ...}, ...
+    // That is, repetitions is outside of RunBenchmark(), hence the name
+    // outer_repetitions.
+    size_t inner_repetitions =
+        FLAGS_benchmark_enable_random_interleaving ? 1 : GetRepetitions();
+    size_t outer_repetitions =
+        FLAGS_benchmark_enable_random_interleaving ? GetRepetitions() : 1;
+    std::vector<int> benchmark_indices(benchmarks.size());
+    for (size_t i = 0; i < benchmarks.size(); ++i) {
+      benchmark_indices[i] = i;
+    }
 
-      auto report = [&run_results](BenchmarkReporter* reporter,
-                                   bool report_aggregates_only) {
-        assert(reporter);
-        // If there are no aggregates, do output non-aggregates.
-        report_aggregates_only &= !run_results.aggregates_only.empty();
-        if (!report_aggregates_only)
-          reporter->ReportRuns(run_results.non_aggregates);
-        if (!run_results.aggregates_only.empty())
-          reporter->ReportRuns(run_results.aggregates_only);
-      };
+    // 'run_results_vector' and 'benchmarks' are parallel arrays.
+    std::vector<RunResults> run_results_vector(benchmarks.size());
+    for (size_t i = 0; i < outer_repetitions; i++) {
+      if (FLAGS_benchmark_enable_random_interleaving) {
+        std::random_shuffle(benchmark_indices.begin(), benchmark_indices.end());
+      }
+      for (size_t j : benchmark_indices) {
+        // Repetitions will be automatically adjusted under random interleaving.
+        if (!FLAGS_benchmark_enable_random_interleaving ||
+            i < benchmarks[j].random_interleaving_repetitions()) {
+          RunBenchmark(benchmarks[j], outer_repetitions, inner_repetitions,
+                       &complexity_reports, &run_results_vector[j]);
+        }
+      }
+    }
 
-      report(display_reporter, run_results.display_report_aggregates_only);
+    auto report = [](BenchmarkReporter* reporter, bool report_aggregates_only,
+                     const RunResults& run_results) {
+      assert(reporter);
+      // If there are no aggregates, do output non-aggregates.
+      report_aggregates_only &= !run_results.aggregates_only.empty();
+      if (!report_aggregates_only)
+        reporter->ReportRuns(run_results.non_aggregates);
+      if (!run_results.aggregates_only.empty())
+        reporter->ReportRuns(run_results.aggregates_only);
+    };
+
+    for (const RunResults& run_results : run_results_vector) {
+      report(display_reporter, run_results.display_report_aggregates_only,
+             run_results);
       if (file_reporter)
-        report(file_reporter, run_results.file_report_aggregates_only);
+        report(file_reporter, run_results.file_report_aggregates_only,
+               run_results);
 
       flushStreams(display_reporter);
       flushStreams(file_reporter);
@@ -399,7 +493,7 @@ size_t RunSpecifiedBenchmarks(BenchmarkReporter* display_reporter,
 
   if (FLAGS_benchmark_list_tests) {
     for (auto const& benchmark : benchmarks)
-      Out << benchmark.name.str() << "\n";
+      Out << benchmark.name().str() << "\n";
   } else {
     internal::RunBenchmarks(benchmarks, display_reporter, file_reporter);
   }
@@ -443,6 +537,10 @@ void ParseCommandLineFlags(int* argc, char** argv) {
                         &FLAGS_benchmark_min_time) ||
         ParseInt32Flag(argv[i], "benchmark_repetitions",
                        &FLAGS_benchmark_repetitions) ||
+        ParseBoolFlag(argv[i], "benchmark_enable_random_interleaving",
+                      &FLAGS_benchmark_enable_random_interleaving) ||
+        ParseDoubleFlag(argv[i], "benchmark_random_interleaving_max_overhead",
+                        &FLAGS_benchmark_random_interleaving_max_overhead) ||
         ParseBoolFlag(argv[i], "benchmark_report_aggregates_only",
                       &FLAGS_benchmark_report_aggregates_only) ||
         ParseBoolFlag(argv[i], "benchmark_display_aggregates_only",

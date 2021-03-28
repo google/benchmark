@@ -40,9 +40,10 @@ struct RunResults {
   bool file_report_aggregates_only = false;
 };
 
-RunResults RunBenchmark(
-    const benchmark::internal::BenchmarkInstance& b,
-    std::vector<BenchmarkReporter::Run>* complexity_reports);
+void RunBenchmark(const benchmark::internal::BenchmarkInstance& b,
+                  const size_t outer_repetitions, const size_t inner_repetitions,
+                  std::vector<BenchmarkReporter::Run>* complexity_reports,
+                  RunResults* run_results);
 
 }  // namespace internal
 
