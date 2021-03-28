@@ -148,7 +148,7 @@ class BenchmarkRunner {
         run_results(run_results_),
         outer_repetitions(outer_repetitions_),
         inner_repetitions(inner_repetitions_),
-        min_time(!IsZero(b.min_time()) ? b.min_time() : GetMinTime()),
+        // min_time(!IsZero(b.min_time()) ? b.min_time() : GetMinTime()),
         repeats(b.repetitions() != 0 ? b.repetitions() : inner_repetitions_),
         has_explicit_iteration_count(b.iterations() != 0),
         pool(b.threads() - 1),
@@ -192,7 +192,7 @@ class BenchmarkRunner {
 
   const size_t outer_repetitions;
   const size_t inner_repetitions;
-  const double min_time;
+  // const double min_time;
   const int repeats;
   const bool has_explicit_iteration_count;
 
@@ -263,13 +263,13 @@ class BenchmarkRunner {
     // See how much iterations should be increased by.
     // Note: Avoid division by zero with max(seconds, 1ns).
     double multiplier =
-        min_time * kSafetyMultiplier / std::max(i.seconds, 1e-9);
+        b.min_time() * kSafetyMultiplier / std::max(i.seconds, 1e-9);
     // If our last run was at least 10% of FLAGS_benchmark_min_time then we
     // use the multiplier directly.
     // Otherwise we use at most 10 times expansion.
     // NOTE: When the last run was at least 10% of the min time the max
     // expansion should be 14x.
-    bool is_significant = (i.seconds / min_time) > 0.1;
+    bool is_significant = (i.seconds / b.min_time()) > 0.1;
     multiplier = is_significant ? multiplier : std::min(10.0, multiplier);
     if (multiplier <= 1.0) multiplier = 2.0;
 
@@ -290,11 +290,14 @@ class BenchmarkRunner {
     // or because an error was reported.
     return i.results.has_error_ ||
            i.iters >= kMaxIterations ||  // Too many iterations already.
-           i.seconds >= min_time ||      // The elapsed time is large enough.
-           // CPU time is specified but the elapsed real time greatly exceeds
-           // the minimum time.
-           // Note that user provided timers are except from this sanity check.
-           ((i.results.real_time_used >= 5 * min_time) && !b.use_manual_time());
+           i.seconds >= b.min_time() ||  // The elapsed time is large enough.
+                                         // CPU time is specified but the
+                                         // elapsed real time greatly exceeds
+                                         // the minimum time. Note that user
+                                         // provided timers are except from this
+                                         // sanity check.
+           ((i.results.real_time_used >= 5 * b.min_time()) &&
+            !b.use_manual_time());
   }
 
   void DoOneRepetition(int64_t repetition_index) {
@@ -348,7 +351,7 @@ class BenchmarkRunner {
           // Otherwise, we will still skip the rerun.
           rerun_trial =
               b.random_interleaving_repetitions() < GetRepetitions() &&
-              i.seconds < min_time;
+              i.seconds < b.min_time();
         }
 
         if (!rerun_trial) break;  // Good, let's report them!

@@ -67,7 +67,7 @@ class BenchmarkTest : public testing::Test {
 static void BM_Match1(benchmark::State& state) {
   const int arg = state.range(0);
 
-  ASSERT_EQ(100, state.max_iterations );
+  for (auto _ : state) {}
   queue->Put(StrFormat("BM_Match1/%d", arg));
 }
 BENCHMARK(BM_Match1)
@@ -82,6 +82,7 @@ BENCHMARK(BM_Match1)
 static void BM_MatchOverhead(benchmark::State& state) {
   const int arg = state.range(0);
 
+  for (auto _ : state) {}
   queue->Put(StrFormat("BM_MatchOverhead/%d", arg));
 }
 BENCHMARK(BM_MatchOverhead)
@@ -141,8 +142,8 @@ TEST_F(BenchmarkTest, Match1WithRandomInterleavingAndZeroOverhead) {
 
   // ComputeRandomInterleavingRepetitions() will kick in and rerun each
   // benchmark once with increased iterations. Then number of repetitions will
-  // be reduced to 1. Thus altogether 4 executions, 2 x BM_MatchOverhead/64,
-  // and 2 x BM_MatchOverhead/80.
+  // be reduced to < 100. The first 4 executions should be
+  // 2 x BM_MatchOverhead/64 and 2 x BM_MatchOverhead/80.
   std::vector<std::string> expected(
       {"BM_MatchOverhead/64", "BM_MatchOverhead/80", "BM_MatchOverhead/64",
        "BM_MatchOverhead/80"});
@@ -154,7 +155,7 @@ TEST_F(BenchmarkTest, Match1WithRandomInterleavingAndZeroOverhead) {
   interleaving.push_back(queue->Get());
   interleaving.push_back(queue->Get());
   EXPECT_THAT(interleaving, testing::UnorderedElementsAreArray(expected));
-  ASSERT_EQ("DONE", queue->Get()) << "# Repetitions was not reduced to 1.";
+  ASSERT_LT(queue->size(), 100) << "# Repetitions was not reduced to < 100.";
 }
 
 TEST(Benchmark, ComputeRandomInterleavingRepetitions) {

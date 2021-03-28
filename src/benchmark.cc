@@ -328,7 +328,7 @@ void RunBenchmarks(const std::vector<BenchmarkInstance>& benchmarks,
         FLAGS_benchmark_enable_random_interleaving ? 1 : GetRepetitions();
     size_t outer_repetitions =
         FLAGS_benchmark_enable_random_interleaving ? GetRepetitions() : 1;
-    std::vector<int> benchmark_indices(benchmarks.size());
+    std::vector<size_t> benchmark_indices(benchmarks.size());
     for (size_t i = 0; i < benchmarks.size(); ++i) {
       benchmark_indices[i] = i;
     }
