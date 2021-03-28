@@ -26,7 +26,7 @@ class BenchmarkInstance {
   // Const accessors.
 
   const BenchmarkName& name() const;
-  int repetitions() const;
+  size_t repetitions() const;
   const std::vector<Statistics>* statistics() const;
   AggregationReportMode aggregation_report_mode() const;
   TimeUnit time_unit() const;
@@ -80,7 +80,7 @@ class BenchmarkInstance {
   UserCounters counters_;
   const std::vector<Statistics>* statistics_;
   bool last_benchmark_instance_;
-  int repetitions_;
+  size_t repetitions_;
   double min_time_;
   IterationCount iterations_;
   int threads_;  // Number of concurrent threads to use

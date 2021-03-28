@@ -148,7 +148,6 @@ class BenchmarkRunner {
         run_results(run_results_),
         outer_repetitions(outer_repetitions_),
         inner_repetitions(inner_repetitions_),
-        // min_time(!IsZero(b.min_time()) ? b.min_time() : GetMinTime()),
         repeats(b.repetitions() != 0 ? b.repetitions() : inner_repetitions_),
         has_explicit_iteration_count(b.iterations() != 0),
         pool(b.threads() - 1),
@@ -167,7 +166,8 @@ class BenchmarkRunner {
            internal::ARM_FileReportAggregatesOnly);
     }
 
-    for (int repetition_num = 0; repetition_num < repeats; repetition_num++) {
+    for (size_t repetition_num = 0; repetition_num < repeats;
+         repetition_num++) {
       DoOneRepetition(repetition_num);
     }
 
@@ -192,8 +192,7 @@ class BenchmarkRunner {
 
   const size_t outer_repetitions;
   const size_t inner_repetitions;
-  // const double min_time;
-  const int repeats;
+  const size_t repeats;
   const bool has_explicit_iteration_count;
 
   std::vector<std::thread> pool;

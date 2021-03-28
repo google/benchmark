@@ -121,7 +121,7 @@ IterationCount BenchmarkInstance::iterations() const {
   return iterations_;
 }
 
-int BenchmarkInstance::repetitions() const {
+size_t BenchmarkInstance::repetitions() const {
   return repetitions_;
 }
 
