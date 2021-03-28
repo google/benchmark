@@ -68,7 +68,7 @@ static void BM_Match1(benchmark::State& state) {
   const int64_t arg = state.range(0);
 
   for (auto _ : state) {}
-  queue->Put(StrFormat("BM_Match1/%ld", arg));
+  queue->Put(StrFormat("BM_Match1/%d", static_cast<int>(arg)));
 }
 BENCHMARK(BM_Match1)
     ->Iterations(100)
@@ -83,7 +83,7 @@ static void BM_MatchOverhead(benchmark::State& state) {
   const int64_t arg = state.range(0);
 
   for (auto _ : state) {}
-  queue->Put(StrFormat("BM_MatchOverhead/%ld", arg));
+  queue->Put(StrFormat("BM_MatchOverhead/%d", static_cast<int>(arg)));
 }
 BENCHMARK(BM_MatchOverhead)
     ->Iterations(100)
