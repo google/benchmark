@@ -65,10 +65,10 @@ class BenchmarkTest : public testing::Test {
 };
 
 static void BM_Match1(benchmark::State& state) {
-  const int arg = state.range(0);
+  const int64_t arg = state.range(0);
 
   for (auto _ : state) {}
-  queue->Put(StrFormat("BM_Match1/%d", arg));
+  queue->Put(StrFormat("BM_Match1/%ld", arg));
 }
 BENCHMARK(BM_Match1)
     ->Iterations(100)
@@ -80,10 +80,10 @@ BENCHMARK(BM_Match1)
     ->Args({100});
 
 static void BM_MatchOverhead(benchmark::State& state) {
-  const int arg = state.range(0);
+  const int64_t arg = state.range(0);
 
   for (auto _ : state) {}
-  queue->Put(StrFormat("BM_MatchOverhead/%d", arg));
+  queue->Put(StrFormat("BM_MatchOverhead/%ld", arg));
 }
 BENCHMARK(BM_MatchOverhead)
     ->Iterations(100)
@@ -158,235 +158,108 @@ TEST_F(BenchmarkTest, Match1WithRandomInterleavingAndZeroOverhead) {
   ASSERT_LT(queue->size(), 100) << "# Repetitions was not reduced to < 100.";
 }
 
+InternalRandomInterleavingRepetitionsInput CreateInput(
+    double total, double time, double real_time, double min_time,
+    double overhead, size_t repetitions) {
+  InternalRandomInterleavingRepetitionsInput input;
+  input.total_execution_time_per_repetition = total;
+  input.time_used_per_repetition = time;
+  input.real_time_used_per_repetition = real_time;
+  input.min_time_per_repetition = min_time;
+  input.max_overhead = overhead;
+  input.max_repetitions = repetitions;
+  return input;
+}
+
 TEST(Benchmark, ComputeRandomInterleavingRepetitions) {
   // On wall clock time.
   EXPECT_EQ(ComputeRandomInterleavingRepetitions(
-                {.total_execution_time_per_repetition = 0.05,
-                 .time_used_per_repetition = 0.05,
-                 .real_time_used_per_repetition = 0.05,
-                 .min_time_per_repetition = 0.05,
-                 .max_overhead = 0.0,
-                 .max_repetitions = 10}),
+                CreateInput(0.05, 0.05, 0.05, 0.05, 0.0, 10)),
             10);
   EXPECT_EQ(ComputeRandomInterleavingRepetitions(
-                {.total_execution_time_per_repetition = 0.05,
-                 .time_used_per_repetition = 0.05,
-                 .real_time_used_per_repetition = 0.05,
-                 .min_time_per_repetition = 0.05,
-                 .max_overhead = 0.4,
-                 .max_repetitions = 10}),
+                CreateInput(0.05, 0.05, 0.05, 0.05, 0.4, 10)),
             10);
   EXPECT_EQ(ComputeRandomInterleavingRepetitions(
-                {.total_execution_time_per_repetition = 0.06,
-                 .time_used_per_repetition = 0.05,
-                 .real_time_used_per_repetition = 0.05,
-                 .min_time_per_repetition = 0.05,
-                 .max_overhead = 0.0,
-                 .max_repetitions = 10}),
+                CreateInput(0.06, 0.05, 0.05, 0.05, 0.0, 10)),
             8);
   EXPECT_EQ(ComputeRandomInterleavingRepetitions(
-                {.total_execution_time_per_repetition = 0.06,
-                 .time_used_per_repetition = 0.05,
-                 .real_time_used_per_repetition = 0.05,
-                 .min_time_per_repetition = 0.05,
-                 .max_overhead = 0.4,
-                 .max_repetitions = 10}),
+                CreateInput(0.06, 0.05, 0.05, 0.05, 0.4, 10)),
             10);
   EXPECT_EQ(ComputeRandomInterleavingRepetitions(
-                {.total_execution_time_per_repetition = 0.08,
-                 .time_used_per_repetition = 0.05,
-                 .real_time_used_per_repetition = 0.05,
-                 .min_time_per_repetition = 0.05,
-                 .max_overhead = 0.0,
-                 .max_repetitions = 10}),
+                CreateInput(0.08, 0.05, 0.05, 0.05, 0.0, 10)),
             6);
   EXPECT_EQ(ComputeRandomInterleavingRepetitions(
-                {.total_execution_time_per_repetition = 0.08,
-                 .time_used_per_repetition = 0.05,
-                 .real_time_used_per_repetition = 0.05,
-                 .min_time_per_repetition = 0.05,
-                 .max_overhead = 0.4,
-                 .max_repetitions = 10}),
+                CreateInput(0.08, 0.05, 0.05, 0.05, 0.4, 10)),
             9);
   EXPECT_EQ(ComputeRandomInterleavingRepetitions(
-                {.total_execution_time_per_repetition = 0.25,
-                 .time_used_per_repetition = 0.25,
-                 .real_time_used_per_repetition = 0.25,
-                 .min_time_per_repetition = 0.05,
-                 .max_overhead = 0.0,
-                 .max_repetitions = 10}),
+                CreateInput(0.26, 0.25, 0.25, 0.05, 0.0, 10)),
             2);
   EXPECT_EQ(ComputeRandomInterleavingRepetitions(
-                {.total_execution_time_per_repetition = 0.25,
-                 .time_used_per_repetition = 0.25,
-                 .real_time_used_per_repetition = 0.25,
-                 .min_time_per_repetition = 0.05,
-                 .max_overhead = 0.4,
-                 .max_repetitions = 10}),
+                CreateInput(0.25, 0.25, 0.25, 0.05, 0.4, 10)),
             3);
   EXPECT_EQ(ComputeRandomInterleavingRepetitions(
-                {.total_execution_time_per_repetition = 0.26,
-                 .time_used_per_repetition = 0.25,
-                 .real_time_used_per_repetition = 0.25,
-                 .min_time_per_repetition = 0.05,
-                 .max_overhead = 0.0,
-                 .max_repetitions = 10}),
+                CreateInput(0.26, 0.25, 0.25, 0.05, 0.0, 10)),
             2);
   EXPECT_EQ(ComputeRandomInterleavingRepetitions(
-                {.total_execution_time_per_repetition = 0.26,
-                 .time_used_per_repetition = 0.25,
-                 .real_time_used_per_repetition = 0.25,
-                 .min_time_per_repetition = 0.05,
-                 .max_overhead = 0.4,
-                 .max_repetitions = 10}),
+                CreateInput(0.26, 0.25, 0.25, 0.05, 0.4, 10)),
             3);
   EXPECT_EQ(ComputeRandomInterleavingRepetitions(
-                {.total_execution_time_per_repetition = 0.38,
-                 .time_used_per_repetition = 0.25,
-                 .real_time_used_per_repetition = 0.25,
-                 .min_time_per_repetition = 0.05,
-                 .max_overhead = 0.0,
-                 .max_repetitions = 10}),
+                CreateInput(0.38, 0.25, 0.25, 0.05, 0.0, 10)),
             2);
   EXPECT_EQ(ComputeRandomInterleavingRepetitions(
-                {.total_execution_time_per_repetition = 0.38,
-                 .time_used_per_repetition = 0.25,
-                 .real_time_used_per_repetition = 0.25,
-                 .min_time_per_repetition = 0.05,
-                 .max_overhead = 0.4,
-                 .max_repetitions = 10}),
+                CreateInput(0.38, 0.25, 0.25, 0.05, 0.4, 10)),
             3);
 
   // On CPU time.
   EXPECT_EQ(ComputeRandomInterleavingRepetitions(
-                {.total_execution_time_per_repetition = 0.1,
-                 .time_used_per_repetition = 0.05,
-                 .real_time_used_per_repetition = 0.1,
-                 .min_time_per_repetition = 0.05,
-                 .max_overhead = 0.0,
-                 .max_repetitions = 10}),
+                CreateInput(0.1, 0.05, 0.1, 0.05, 0.0, 10)),
             10);
   EXPECT_EQ(ComputeRandomInterleavingRepetitions(
-                {.total_execution_time_per_repetition = 0.1,
-                 .time_used_per_repetition = 0.05,
-                 .real_time_used_per_repetition = 0.1,
-                 .min_time_per_repetition = 0.05,
-                 .max_overhead = 0.4,
-                 .max_repetitions = 10}),
+                CreateInput(0.1, 0.05, 0.1, 0.05, 0.4, 10)),
             10);
   EXPECT_EQ(ComputeRandomInterleavingRepetitions(
-                {.total_execution_time_per_repetition = 0.11,
-                 .time_used_per_repetition = 0.05,
-                 .real_time_used_per_repetition = 0.1,
-                 .min_time_per_repetition = 0.05,
-                 .max_overhead = 0.0,
-                 .max_repetitions = 10}),
+                CreateInput(0.11, 0.05, 0.1, 0.05, 0.0, 10)),
             9);
   EXPECT_EQ(ComputeRandomInterleavingRepetitions(
-                {.total_execution_time_per_repetition = 0.11,
-                 .time_used_per_repetition = 0.05,
-                 .real_time_used_per_repetition = 0.1,
-                 .min_time_per_repetition = 0.05,
-                 .max_overhead = 0.4,
-                 .max_repetitions = 10}),
+                CreateInput(0.11, 0.05, 0.1, 0.05, 0.4, 10)),
             10);
   EXPECT_EQ(ComputeRandomInterleavingRepetitions(
-                {.total_execution_time_per_repetition = 0.15,
-                 .time_used_per_repetition = 0.05,
-                 .real_time_used_per_repetition = 0.1,
-                 .min_time_per_repetition = 0.05,
-                 .max_overhead = 0.0,
-                 .max_repetitions = 10}),
+                CreateInput(0.15, 0.05, 0.1, 0.05, 0.0, 10)),
             7);
   EXPECT_EQ(ComputeRandomInterleavingRepetitions(
-                {.total_execution_time_per_repetition = 0.15,
-                 .time_used_per_repetition = 0.05,
-                 .real_time_used_per_repetition = 0.1,
-                 .min_time_per_repetition = 0.05,
-                 .max_overhead = 0.4,
-                 .max_repetitions = 10}),
+                CreateInput(0.15, 0.05, 0.1, 0.05, 0.4, 10)),
             9);
   EXPECT_EQ(ComputeRandomInterleavingRepetitions(
-                {.total_execution_time_per_repetition = 0.5,
-                 .time_used_per_repetition = 0.25,
-                 .real_time_used_per_repetition = 0.5,
-                 .min_time_per_repetition = 0.05,
-                 .max_overhead = 0.0,
-                 .max_repetitions = 10}),
+                CreateInput(0.5, 0.25, 0.5, 0.05, 0.0, 10)),
             2);
   EXPECT_EQ(ComputeRandomInterleavingRepetitions(
-                {.total_execution_time_per_repetition = 0.5,
-                 .time_used_per_repetition = 0.25,
-                 .real_time_used_per_repetition = 0.5,
-                 .min_time_per_repetition = 0.05,
-                 .max_overhead = 0.4,
-                 .max_repetitions = 10}),
+                CreateInput(0.5, 0.25, 0.5, 0.05, 0.4, 10)),
             3);
   EXPECT_EQ(ComputeRandomInterleavingRepetitions(
-                {.total_execution_time_per_repetition = 0.51,
-                 .time_used_per_repetition = 0.25,
-                 .real_time_used_per_repetition = 0.5,
-                 .min_time_per_repetition = 0.05,
-                 .max_overhead = 0.0,
-                 .max_repetitions = 10}),
+                CreateInput(0.51, 0.25, 0.5, 0.05, 0.0, 10)),
             2);
   EXPECT_EQ(ComputeRandomInterleavingRepetitions(
-                {.total_execution_time_per_repetition = 0.51,
-                 .time_used_per_repetition = 0.25,
-                 .real_time_used_per_repetition = 0.5,
-                 .min_time_per_repetition = 0.05,
-                 .max_overhead = 0.4,
-                 .max_repetitions = 10}),
+                CreateInput(0.51, 0.25, 0.5, 0.05, 0.4, 10)),
             3);
   EXPECT_EQ(ComputeRandomInterleavingRepetitions(
-                {.total_execution_time_per_repetition = 0.8,
-                 .time_used_per_repetition = 0.25,
-                 .real_time_used_per_repetition = 0.5,
-                 .min_time_per_repetition = 0.05,
-                 .max_overhead = 0.0,
-                 .max_repetitions = 10}),
+                CreateInput(0.8, 0.25, 0.5, 0.05, 0.0, 10)),
             2);
   EXPECT_EQ(ComputeRandomInterleavingRepetitions(
-                {.total_execution_time_per_repetition = 0.8,
-                 .time_used_per_repetition = 0.25,
-                 .real_time_used_per_repetition = 0.5,
-                 .min_time_per_repetition = 0.05,
-                 .max_overhead = 0.4,
-                 .max_repetitions = 10}),
+                CreateInput(0.8, 0.25, 0.5, 0.05, 0.4, 10)),
             2);
 
   // Corner cases.
   EXPECT_EQ(ComputeRandomInterleavingRepetitions(
-                {.total_execution_time_per_repetition = 0.0,
-                 .time_used_per_repetition = 0.25,
-                 .real_time_used_per_repetition = 0.5,
-                 .min_time_per_repetition = 0.05,
-                 .max_overhead = 0.4,
-                 .max_repetitions = 10}),
+                CreateInput(0.0, 0.25, 0.5, 0.05, 0.4, 10)),
             3);
   EXPECT_EQ(ComputeRandomInterleavingRepetitions(
-                {.total_execution_time_per_repetition = 0.8,
-                 .time_used_per_repetition = 0.0,
-                 .real_time_used_per_repetition = 0.5,
-                 .min_time_per_repetition = 0.05,
-                 .max_overhead = 0.4,
-                 .max_repetitions = 10}),
+                CreateInput(0.8, 0.0, 0.5, 0.05, 0.4, 10)),
             9);
   EXPECT_EQ(ComputeRandomInterleavingRepetitions(
-                {.total_execution_time_per_repetition = 0.8,
-                 .time_used_per_repetition = 0.25,
-                 .real_time_used_per_repetition = 0.0,
-                 .min_time_per_repetition = 0.05,
-                 .max_overhead = 0.4,
-                 .max_repetitions = 10}),
+                CreateInput(0.8, 0.25, 0.0, 0.05, 0.4, 10)),
             1);
   EXPECT_EQ(ComputeRandomInterleavingRepetitions(
-                {.total_execution_time_per_repetition = 0.8,
-                 .time_used_per_repetition = 0.25,
-                 .real_time_used_per_repetition = 0.5,
-                 .min_time_per_repetition = 0.0,
-                 .max_overhead = 0.4,
-                 .max_repetitions = 10}),
+                CreateInput(0.8, 0.25, 0.5, 0.0, 0.4, 10)),
             1);
 }
 
