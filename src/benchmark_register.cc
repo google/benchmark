@@ -278,6 +278,11 @@ Benchmark::Benchmark(const char* name)
 
 Benchmark::~Benchmark() {}
 
+Benchmark* Benchmark::Name(const std::string& name) {
+  SetName(name.c_str());
+  return this;
+}
+
 Benchmark* Benchmark::Arg(int64_t x) {
   CHECK(ArgsCnt() == -1 || ArgsCnt() == 1);
   args_.push_back({x});
@@ -487,11 +492,6 @@ Benchmark* Benchmark::DenseThreadRange(int min_threads, int max_threads,
 
 Benchmark* Benchmark::ThreadPerCpu() {
   thread_counts_.push_back(CPUInfo::Get().num_cpus);
-  return this;
-}
-
-Benchmark* Benchmark::Name(const std::string& name) {
-  SetName(name.c_str());
   return this;
 }
 
