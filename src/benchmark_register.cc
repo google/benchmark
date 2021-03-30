@@ -490,6 +490,11 @@ Benchmark* Benchmark::ThreadPerCpu() {
   return this;
 }
 
+Benchmark* Benchmark::Name(const std::string& name) {
+  SetName(name.c_str());
+  return this;
+}
+
 void Benchmark::SetName(const char* name) { name_ = name; }
 
 int Benchmark::ArgsCnt() const {

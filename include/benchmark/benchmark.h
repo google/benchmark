@@ -950,6 +950,9 @@ class Benchmark {
   // Equivalent to ThreadRange(NumCPUs(), NumCPUs())
   Benchmark* ThreadPerCpu();
 
+  // Specify the name of the benchmark
+  Benchmark* Name(const std::string& name);
+
   virtual void Run(State& state) = 0;
 
  protected:

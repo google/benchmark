@@ -335,6 +335,30 @@ ADD_CASES(TC_JSONOut,
 ADD_CASES(TC_CSVOut, {{"^\"BM_arg_names/first:2/5/third:4\",%csv_report$"}});
 
 // ========================================================================= //
+// ------------------------ Testing Name Output ---------------------------- //
+// ========================================================================= //
+
+void BM_name(benchmark::State& state) {
+  for (auto _ : state) {
+  }
+}
+BENCHMARK(BM_name)->Name("BM_custom_name");
+
+ADD_CASES(TC_ConsoleOut, {{"^BM_custom_name %console_report$"}});
+ADD_CASES(TC_JSONOut, {{"\"name\": \"BM_custom_name\",$"},
+                       {"\"run_name\": \"BM_custom_name\",$", MR_Next},
+                       {"\"run_type\": \"iteration\",$", MR_Next},
+                       {"\"repetitions\": 0,$", MR_Next},
+                       {"\"repetition_index\": 0,$", MR_Next},
+                       {"\"threads\": 1,$", MR_Next},
+                       {"\"iterations\": %int,$", MR_Next},
+                       {"\"real_time\": %float,$", MR_Next},
+                       {"\"cpu_time\": %float,$", MR_Next},
+                       {"\"time_unit\": \"ns\"$", MR_Next},
+                       {"}", MR_Next}});
+ADD_CASES(TC_CSVOut, {{"^\"BM_custom_name\",%csv_report$"}});
+
+// ========================================================================= //
 // ------------------------ Testing Big Args Output ------------------------ //
 // ========================================================================= //
 
