@@ -278,6 +278,11 @@ Benchmark::Benchmark(const char* name)
 
 Benchmark::~Benchmark() {}
 
+Benchmark* Benchmark::Name(const std::string& name) {
+  SetName(name.c_str());
+  return this;
+}
+
 Benchmark* Benchmark::Arg(int64_t x) {
   CHECK(ArgsCnt() == -1 || ArgsCnt() == 1);
   args_.push_back({x});

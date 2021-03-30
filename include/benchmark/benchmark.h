@@ -790,6 +790,9 @@ class Benchmark {
   // Note: the following methods all return "this" so that multiple
   // method calls can be chained together in one expression.
 
+  // Specify the name of the benchmark
+  Benchmark* Name(const std::string& name);
+
   // Run this benchmark once with "x" as the extra argument passed
   // to the function.
   // REQUIRES: The function passed to the constructor must accept an arg1.

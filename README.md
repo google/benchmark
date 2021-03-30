@@ -278,6 +278,8 @@ too (`-lkstat`).
 
 [Passing Arguments](#passing-arguments)
 
+[Custom Benchmark Name](#custom-benchmark-name)
+
 [Calculating Asymptotic Complexity](#asymptotic-complexity)
 
 [Templated Benchmarks](#templated-benchmarks)
@@ -651,6 +653,19 @@ that might be used to customize high-order term calculation.
 BENCHMARK(BM_StringCompare)->RangeMultiplier(2)
     ->Range(1<<10, 1<<18)->Complexity([](benchmark::IterationCount n)->double{return n; });
 ```
+
+<a name="custom-benchmark-name" />
+
+### Custom Benchmark Name
+
+You can change the benchmark's name as follows:
+
+```c++
+BENCHMARK(BM_memcpy)->Name("memcpy")->RangeMultiplier(2)->Range(8, 8<<10);
+```
+
+The invocation will execute the benchmark as before using `BM_memcpy` but changes
+the prefix in the report to `memcpy`.
 
 <a name="templated-benchmarks" />
 
