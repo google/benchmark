@@ -26,7 +26,7 @@ class BenchmarkInstance {
   // Const accessors.
 
   const BenchmarkName& name() const;
-  size_t repetitions() const;
+  int64_t repetitions() const;
   const std::vector<Statistics>* statistics() const;
   AggregationReportMode aggregation_report_mode() const;
   TimeUnit time_unit() const;
@@ -45,13 +45,13 @@ class BenchmarkInstance {
   // Returns number of repetitions for Random Interleaving. This will be
   // initialized later once we finish the first repetition, if Random
   // Interleaving is enabled. See also ComputeRandominterleavingrepetitions().
-  size_t random_interleaving_repetitions() const;
+  int64_t random_interleaving_repetitions() const;
 
   // Returns true if repetitions for Random Interleaving is initialized.
   bool random_interleaving_repetitions_initialized() const;
 
   // Initializes number of repetitions for random interleaving.
-  void init_random_interleaving_repetitions(size_t repetitions) const;
+  void init_random_interleaving_repetitions(int64_t repetitions) const;
 
   // Setters.
 
@@ -80,14 +80,14 @@ class BenchmarkInstance {
   UserCounters counters_;
   const std::vector<Statistics>* statistics_;
   bool last_benchmark_instance_;
-  size_t repetitions_;
+  int64_t repetitions_;
   double min_time_;
   IterationCount iterations_;
   int threads_;  // Number of concurrent threads to use
   // Make it mutable so it can be initialized (mutated) later on a const
   // instance.
-  mutable size_t random_interleaving_repetitions_ =
-      std::numeric_limits<size_t>::max();
+  mutable int64_t random_interleaving_repetitions_ =
+      std::numeric_limits<int64_t>::max();
 };
 
 bool FindBenchmarksInternal(const std::string& re,
@@ -100,7 +100,7 @@ ConsoleReporter::OutputOptions GetOutputOptions(bool force_no_color = false);
 
 double GetMinTime();
 
-size_t GetRepetitions();
+int64_t GetRepetitions();
 
 }  // end namespace internal
 }  // end namespace benchmark

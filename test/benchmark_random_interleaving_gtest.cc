@@ -11,7 +11,10 @@
 DECLARE_bool(benchmark_enable_random_interleaving);
 DECLARE_string(benchmark_filter);
 DECLARE_double(benchmark_random_interleaving_max_overhead);
+
+namespace do_not_read_flag_directly {
 DECLARE_int32(benchmark_repetitions);
+}  // namespace do_not_read_flag_directly
 
 namespace benchmark {
 namespace internal {
@@ -104,7 +107,7 @@ TEST_F(BenchmarkTest, Match1) {
 }
 
 TEST_F(BenchmarkTest, Match1WithRepetition) {
-  FLAGS_benchmark_repetitions = 2;
+  do_not_read_flag_directly::FLAGS_benchmark_repetitions = 2;
 
   Execute("BM_Match1/(64|80)");
   ASSERT_EQ("BM_Match1/64", queue->Get());
@@ -116,7 +119,7 @@ TEST_F(BenchmarkTest, Match1WithRepetition) {
 
 TEST_F(BenchmarkTest, Match1WithRandomInterleaving) {
   FLAGS_benchmark_enable_random_interleaving = true;
-  FLAGS_benchmark_repetitions = 100;
+  do_not_read_flag_directly::FLAGS_benchmark_repetitions = 100;
   FLAGS_benchmark_random_interleaving_max_overhead =
       std::numeric_limits<double>::infinity();
 
@@ -137,7 +140,7 @@ TEST_F(BenchmarkTest, Match1WithRandomInterleaving) {
 
 TEST_F(BenchmarkTest, Match1WithRandomInterleavingAndZeroOverhead) {
   FLAGS_benchmark_enable_random_interleaving = true;
-  FLAGS_benchmark_repetitions = 100;
+  do_not_read_flag_directly::FLAGS_benchmark_repetitions = 100;
   FLAGS_benchmark_random_interleaving_max_overhead = 0;
 
   // ComputeRandomInterleavingRepetitions() will kick in and rerun each

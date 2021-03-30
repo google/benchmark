@@ -121,7 +121,7 @@ IterationCount BenchmarkInstance::iterations() const {
   return iterations_;
 }
 
-size_t BenchmarkInstance::repetitions() const {
+int64_t BenchmarkInstance::repetitions() const {
   return repetitions_;
 }
 
@@ -140,18 +140,18 @@ double BenchmarkInstance::min_time() const {
   return min_time_;
 }
 
-size_t BenchmarkInstance::random_interleaving_repetitions() const {
-  return random_interleaving_repetitions_ == std::numeric_limits<size_t>::max()
+int64_t BenchmarkInstance::random_interleaving_repetitions() const {
+  return random_interleaving_repetitions_ == std::numeric_limits<int64_t>::max()
              ? GetRepetitions()
              : random_interleaving_repetitions_;
 }
 
 bool BenchmarkInstance::random_interleaving_repetitions_initialized() const {
-  return random_interleaving_repetitions_ != std::numeric_limits<size_t>::max();
+  return random_interleaving_repetitions_ != std::numeric_limits<int64_t>::max();
 }
 
 void BenchmarkInstance::init_random_interleaving_repetitions(
-    size_t repetitions) const {
+    int64_t repetitions) const {
   random_interleaving_repetitions_ = repetitions;
 }
 
