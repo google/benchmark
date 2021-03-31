@@ -86,8 +86,7 @@ class BenchmarkInstance {
   int threads_;  // Number of concurrent threads to use
   // Make it mutable so it can be initialized (mutated) later on a const
   // instance.
-  mutable int64_t random_interleaving_repetitions_ =
-      std::numeric_limits<int64_t>::max();
+  mutable int64_t random_interleaving_repetitions_ = -1;
 };
 
 bool FindBenchmarksInternal(const std::string& re,

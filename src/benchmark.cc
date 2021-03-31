@@ -61,7 +61,7 @@ namespace {
 
 // Attempt to make each repetition run for at least this much of time.
 constexpr double kDefaultMinTimeTotalSecs = 0.5;
-constexpr int64_t kDefaultRepetitions = 12;
+constexpr int64_t kRandomInterleavingDefaultRepetitions = 12;
 
 }  // namespace
 
@@ -154,29 +154,21 @@ const double kSafetyMultiplier = 1.4;
 
 // Wraps --benchmark_min_time and returns valid default values if not supplied.
 double GetMinTime() {
-  const double min_time = do_not_read_flag_directly::FLAGS_benchmark_min_time;
-  if (min_time >= 0.0) {
-    return min_time;
-  }
-
-  if (FLAGS_benchmark_enable_random_interleaving) {
-    return kDefaultMinTimeTotalSecs / GetRepetitions();
-  }
-  return kDefaultMinTimeTotalSecs;
+  const double default_min_time = kDefaultMinTimeTotalSecs / GetRepetitions();
+  const double flag_min_time =
+      do_not_read_flag_directly::FLAGS_benchmark_min_time;
+  return flag_min_time >= 0.0 ? flag_min_time : default_min_time;
 }
 
 // Wraps --benchmark_repetitions and return valid default value if not supplied.
 int64_t GetRepetitions() {
-  const int64_t repetitions =
+  const int64_t default_repetitions =
+      FLAGS_benchmark_enable_random_interleaving
+          ? kRandomInterleavingDefaultRepetitions
+          : 1;
+  const int64_t flag_repetitions =
       do_not_read_flag_directly::FLAGS_benchmark_repetitions;
-  if (repetitions >= 0) {
-    return repetitions;
-  }
-
-  if (FLAGS_benchmark_enable_random_interleaving) {
-    return kDefaultRepetitions;
-  }
-  return 1;
+  return flag_repetitions >= 0 ? flag_repetitions : default_repetitions;
 }
 
 // FIXME: wouldn't LTO mess this up?

@@ -141,13 +141,13 @@ double BenchmarkInstance::min_time() const {
 }
 
 int64_t BenchmarkInstance::random_interleaving_repetitions() const {
-  return random_interleaving_repetitions_ == std::numeric_limits<int64_t>::max()
+  return random_interleaving_repetitions_ < 0
              ? GetRepetitions()
              : random_interleaving_repetitions_;
 }
 
 bool BenchmarkInstance::random_interleaving_repetitions_initialized() const {
-  return random_interleaving_repetitions_ != std::numeric_limits<int64_t>::max();
+  return random_interleaving_repetitions_ >= 0;
 }
 
 void BenchmarkInstance::init_random_interleaving_repetitions(
