@@ -350,7 +350,7 @@ class BenchmarkRunner {
           // Otherwise, we will still skip the rerun.
           rerun_trial =
               b.random_interleaving_repetitions() < GetRepetitions() &&
-              i.seconds < b.min_time();
+              i.seconds < b.min_time() && !has_explicit_iteration_count;
         }
 
         if (!rerun_trial) break;  // Good, let's report them!

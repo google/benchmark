@@ -66,7 +66,8 @@ BenchmarkInstance::BenchmarkInstance(Benchmark* benchmark,
   aggregation_report_mode_ = benchmark->aggregation_report_mode_;
   time_unit_ = benchmark->time_unit_;
   range_multiplier_ = benchmark->range_multiplier_;
-  min_time_ = benchmark->min_time_;
+  min_time_ =
+      !IsZero(benchmark->min_time_) ? benchmark->min_time_ : GetMinTime();
   iterations_ = benchmark->iterations_;
   repetitions_ = benchmark->repetitions_;
   measure_process_cpu_time_ = benchmark->measure_process_cpu_time_;
