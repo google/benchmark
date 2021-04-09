@@ -394,7 +394,7 @@ Write benchmark results to a file with the `--benchmark_out=<filename>` option
 (or set `BENCHMARK_OUT`). Specify the output format with
 `--benchmark_out_format={json|console|csv}` (or set
 `BENCHMARK_OUT_FORMAT={json|console|csv}`). Note that the 'csv' reporter is
-deperecated and the saved `.csv` file 
+deprecated and the saved `.csv` file 
 [is not parsable](https://github.com/google/benchmark/issues/794) by csv 
 parsers.
 
