@@ -157,7 +157,7 @@ PYBIND11_MODULE(_benchmark, m) {
       .def("pause_timing", &State::PauseTiming)
       .def("resume_timing", &State::ResumeTiming)
       .def("skip_with_error", &State::SkipWithError)
-      .def_property_readonly("error_occured", &State::error_occurred)
+      .def_property_readonly("error_occurred", &State::error_occurred)
       .def("set_iteration_time", &State::SetIterationTime)
       .def_property("bytes_processed", &State::bytes_processed,
                     &State::SetBytesProcessed)
