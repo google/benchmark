@@ -24,10 +24,10 @@ jobs:
 #        mv bazelisk-linux-amd64 "${GITHUB_WORKSPACE}/bin/bazel"
 #        chmod +x "${GITHUB_WORKSPACE}/bin/bazel"
 
-#    - name: build
-#      run: |
-#        "${GITHUB_WORKSPACE}/bin/bazel" build //...
+    - name: build
+      run: |
+        bazel build //...
         
-#    - name: test
-#      run: |
-#        "${GITHUB_WORKSPACE}/bin/bazel" test //test/...
+    - name: test
+      run: |
+        bazel test //test/...
