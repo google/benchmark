@@ -167,6 +167,12 @@ BENCHMARK(BM_test)->Unit(benchmark::kMillisecond);
 #define BENCHMARK_HAS_CXX11
 #endif
 
+// This _MSC_VER check should detect VS 2017 v15.3 and newer.
+#if __cplusplus >= 201703L || \
+    (defined(_MSC_VER) && _MSC_VER >= 1911 && _MSVC_LANG >= 201703L)
+#define BENCHMARK_HAS_CXX17
+#endif
+
 #include <stdint.h>
 
 #include <algorithm>
@@ -199,13 +205,19 @@ BENCHMARK(BM_test)->Unit(benchmark::kMillisecond);
   TypeName& operator=(const TypeName&) = delete
 #endif
 
-#if defined(__GNUC__)
+#ifdef BENCHMARK_HAS_CXX17
+#define BENCHMARK_UNUSED [[maybe_unused]]
+#elif defined(__GNUC__) || defined(__clang__)
 #define BENCHMARK_UNUSED __attribute__((unused))
+#else
+#define BENCHMARK_UNUSED
+#endif
+
+#if defined(__GNUC__) || defined(__clang__)
 #define BENCHMARK_ALWAYS_INLINE __attribute__((always_inline))
 #define BENCHMARK_NOEXCEPT noexcept
 #define BENCHMARK_NOEXCEPT_OP(x) noexcept(x)
 #elif defined(_MSC_VER) && !defined(__clang__)
-#define BENCHMARK_UNUSED
 #define BENCHMARK_ALWAYS_INLINE __forceinline
 #if _MSC_VER >= 1900
 #define BENCHMARK_NOEXCEPT noexcept
@@ -216,7 +228,6 @@ BENCHMARK(BM_test)->Unit(benchmark::kMillisecond);
 #endif
 #define __func__ __FUNCTION__
 #else
-#define BENCHMARK_UNUSED
 #define BENCHMARK_ALWAYS_INLINE
 #define BENCHMARK_NOEXCEPT
 #define BENCHMARK_NOEXCEPT_OP(x)
