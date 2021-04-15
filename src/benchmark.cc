@@ -45,6 +45,7 @@
 #include "internal_macros.h"
 #include "log.h"
 #include "mutex.h"
+#include "perf_counters.h"
 #include "re.h"
 #include "statistics.h"
 #include "string_util.h"
@@ -106,6 +107,10 @@ DEFINE_bool(benchmark_counters_tabular, false);
 // The level of verbose logging to output
 DEFINE_int32(v, 0);
 
+// List of additional perf counters to collect, in libpfm format. For more
+// information about libpfm: https://man7.org/linux/man-pages/man3/libpfm.3.html
+DEFINE_string(benchmark_perf_counters, "");
+
 namespace benchmark {
 
 namespace internal {
@@ -117,7 +122,8 @@ void UseCharPointer(char const volatile*) {}
 
 State::State(IterationCount max_iters, const std::vector<int64_t>& ranges,
              int thread_i, int n_threads, internal::ThreadTimer* timer,
-             internal::ThreadManager* manager)
+             internal::ThreadManager* manager,
+             internal::PerfCountersMeasurement* perf_counters_measurement)
     : total_iterations_(0),
       batch_leftover_(0),
       max_iterations(max_iters),
@@ -130,7 +136,8 @@ State::State(IterationCount max_iters, const std::vector<int64_t>& ranges,
       thread_index(thread_i),
       threads(n_threads),
       timer_(timer),
-      manager_(manager) {
+      manager_(manager),
+      perf_counters_measurement_(perf_counters_measurement) {
   CHECK(max_iterations != 0) << "At least one iteration must be run";
   CHECK_LT(thread_index, threads) << "thread_index must be less than threads";
 
@@ -163,11 +170,23 @@ void State::PauseTiming() {
   // Add in time accumulated so far
   CHECK(started_ && !finished_ && !error_occurred_);
   timer_->StopTimer();
+  if (perf_counters_measurement_) {
+    auto measurements = perf_counters_measurement_->StopAndGetMeasurements();
+    for (const auto& name_and_measurement : measurements) {
+      auto name = name_and_measurement.first;
+      auto measurement = name_and_measurement.second;
+      CHECK_EQ(counters[name], 0.0);
+      counters[name] = Counter(measurement, Counter::kAvgIterations);
+    }
+  }
 }
 
 void State::ResumeTiming() {
   CHECK(started_ && !finished_ && !error_occurred_);
   timer_->StartTimer();
+  if (perf_counters_measurement_) {
+    perf_counters_measurement_->Start();
+  }
 }
 
 void State::SkipWithError(const char* msg) {
@@ -457,7 +476,9 @@ void ParseCommandLineFlags(int* argc, char** argv) {
         ParseStringFlag(argv[i], "color_print", &FLAGS_benchmark_color) ||
         ParseBoolFlag(argv[i], "benchmark_counters_tabular",
                       &FLAGS_benchmark_counters_tabular) ||
-        ParseInt32Flag(argv[i], "v", &FLAGS_v)) {
+        ParseInt32Flag(argv[i], "v", &FLAGS_v) ||
+        ParseStringFlag(argv[i], "benchmark_perf_counters",
+                        &FLAGS_benchmark_perf_counters)) {
       for (int j = i; j != *argc - 1; ++j) argv[j] = argv[j + 1];
 
       --(*argc);

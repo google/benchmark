@@ -270,6 +270,10 @@ cxx_feature_check(STEADY_CLOCK)
 set(THREADS_PREFER_PTHREAD_FLAG ON)
 find_package(Threads REQUIRED)
 
+if (BENCHMARK_ENABLE_LIBPFM)
+  find_package(PFM)  
+endif()
+
 # Set up directories
 include_directories(${PROJECT_SOURCE_DIR}/include)
 

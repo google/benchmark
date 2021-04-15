@@ -128,6 +128,9 @@ add_test(NAME templated_fixture_test COMMAND templated_fixture_test --benchmark_
 compile_output_test(user_counters_test)
 add_test(NAME user_counters_test COMMAND user_counters_test --benchmark_min_time=0.01)
 
+compile_output_test(perf_counters_test)
+add_test(NAME perf_counters_test COMMAND perf_counters_test --benchmark_min_time=0.01 --benchmark_perf_counters=CYCLES,BRANCHES)
+
 compile_output_test(internal_threading_test)
 add_test(NAME internal_threading_test COMMAND internal_threading_test --benchmark_min_time=0.01)
 
@@ -196,6 +199,7 @@ if (BENCHMARK_ENABLE_GTEST_TESTS)
   add_gtest(commandlineflags_gtest)
   add_gtest(statistics_gtest)
   add_gtest(string_util_gtest)
+  add_gtest(perf_counters_gtest)
 endif(BENCHMARK_ENABLE_GTEST_TESTS)
 
 ###############################################################################
