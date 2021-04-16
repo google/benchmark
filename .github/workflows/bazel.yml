@@ -23,7 +23,7 @@ jobs:
 
     - name: build
       run: |
-        bazel build //src/... //test/...
+        bazel build //:benchmark //:benchmark_main //test/...
         
     - name: test
       run: |
