@@ -109,7 +109,7 @@ BenchmarkReporter::Run CreateRunReport(
 }
 
 // Execute one thread of benchmark b for the specified number of iterations.
-// Adds the stats collected for the thread into *total.
+// Adds the stats collected for the thread into manager->results.
 void RunInThread(const BenchmarkInstance* b, IterationCount iters,
                  int thread_id, ThreadManager* manager) {
   internal::ThreadTimer timer(
@@ -236,8 +236,10 @@ class BenchmarkRunner {
     VLOG(2) << "Ran in " << i.results.cpu_time_used << "/"
             << i.results.real_time_used << "\n";
 
-    // So for how long were we running?
-    i.iters = iters;
+    // By using KeepRunningBatch a benchmark can iterate more times than
+    // requested, so take the iteration count from i.results.
+    i.iters = i.results.iterations / b.threads;
+
     // Base decisions off of real time if requested by this benchmark.
     i.seconds = i.results.cpu_time_used;
     if (b.use_manual_time) {
