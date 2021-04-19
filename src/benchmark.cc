@@ -333,11 +333,13 @@ void RunBenchmarks(const std::vector<BenchmarkInstance>& benchmarks,
       benchmark_indices[i] = i;
     }
 
+    std::random_device rd;
+    std::mt19937 g(rd());
     // 'run_results_vector' and 'benchmarks' are parallel arrays.
     std::vector<RunResults> run_results_vector(benchmarks.size());
     for (int64_t i = 0; i < outer_repetitions; i++) {
       if (FLAGS_benchmark_enable_random_interleaving) {
-        std::random_shuffle(benchmark_indices.begin(), benchmark_indices.end());
+        std::shuffle(benchmark_indices.begin(), benchmark_indices.end(), g);
       }
       for (size_t j : benchmark_indices) {
         // Repetitions will be automatically adjusted under random interleaving.
