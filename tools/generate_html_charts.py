@@ -138,7 +138,7 @@ def main():
     htmloutput += '\n<ul class="collapsible">'
 
     # html template for chart, width/height aspect ratio is preserved
-    htmlcharttemplate = '<canvas width="18" height="8"></canvas><script>allcharts.push(new Chart([...document.getElementsByTagName("canvas")].slice(-1)[0].getContext("2d"), %CHARTDATA%))</script>'
+    htmlcharttemplate = '<canvas width="18" height="8"></canvas><script>allcharts.push(new Chart([...document.getElementsByTagName("canvas")].slice(-1)[0].getContext("2d"), %CHARTDATA%));</script>'
 
     # create collapsible html groups
     for group in chartgroups:
