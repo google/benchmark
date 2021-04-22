@@ -1,0 +1,39 @@
+<script>// https://www.chartjs.org/docs/3.1.1/configuration/
+
+Chart.defaults.scale.title.display = true;
+Chart.defaults.plugins.title.display = true;
+
+Chart.defaults.scales.linear.ticks.callback = function(value, index, values) {
+    
+    if(value >= 1000000000){
+        return (value / 1000000000) + " s"
+    }
+    if(value >= 1000000){
+        return (value / 1000000) + " ms"
+    }
+    if(value >= 1000){
+        return (value / 1000) + " μs"
+    }
+
+    return value + " ns";
+}
+
+Chart.defaults.elements.point.backgroundColor = function(context) {
+    colors = ['tomato','limegreen','deepskyblue','orchid','gold','slategrey'];
+    return colors[context.datasetIndex % colors.length];
+}
+
+Chart.defaults.elements.line.borderColor = function(context) {
+    return Chart.helpers.color(Chart.defaults.elements.point.backgroundColor(context)).alpha(0.5).rgbString();
+}
+Chart.defaults.elements.line.backgroundColor = function(context) {
+    return Chart.helpers.color(Chart.defaults.elements.point.backgroundColor(context)).alpha(0.15).rgbString();
+}
+
+// Example for making data points link to a github commit (if json files are named with commit ID)
+// Chart.defaults.onClick = function(event,chartElements) {
+//     if(chartElements.length > 0) {
+//         window.open(this.data.files[chartElements[0].index].replace(/.*[\/|\\](.*)\..*/g, "https://github.com/user/repo/commit/$1"));
+//     }
+// }
+</script>
