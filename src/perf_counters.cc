@@ -2,6 +2,7 @@
 
 #if defined HAVE_LIBPFM
 #include <cstring>
+#include <vector>
 
 #include "perfmon/pfmlib.h"
 #include "perfmon/pfmlib_perf_event.h"
