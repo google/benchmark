@@ -86,6 +86,7 @@ class PerfCounters final {
     auto read_bytes = ::read(counter_ids_[0], buffer.first, buffer.second);
     return static_cast<size_t>(read_bytes) == buffer.second;
 #else
+    (void)values;
     return false;
 #endif
   }
