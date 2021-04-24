@@ -302,7 +302,7 @@ def print_difference_report(
     for benchmark in json_diff_report:
         # *If* we were asked to only include aggregates,
         # and if it is non-aggregate, then don't print it.
-        if not include_aggregates_only or not 'run_type' in benchmark or benchmark['run_type'] != 'aggregate':
+        if not include_aggregates_only or not 'run_type' in benchmark or benchmark['run_type'] == 'aggregate':
             for measurement in benchmark['measurements']:
                 output_strs += [color_format(use_color,
                                             fmt_str,
@@ -642,8 +642,7 @@ class TestReportDifferenceWithUTest(unittest.TestCase):
 
     def test_json_diff_report_pretty_printing_aggregates_only(self):
         expect_lines = [
-            ['BM_Two', '+0.1111', '-0.0111', '9', '10', '90', '89'],
-            ['BM_Two', '-0.1250', '-0.1628', '8', '7', '86', '72'],
+            ['BM_One', '-0.1000', '+0.1000', '10', '9', '100', '110'],
             ['BM_Two_pvalue',
              '0.6985',
              '0.6985',
@@ -659,6 +658,8 @@ class TestReportDifferenceWithUTest(unittest.TestCase):
              '9+',
              'repetitions',
              'recommended.'],
+            ['short', '-0.1250', '-0.0625', '8', '7', '80', '75'],
+            ['short', '-0.4325', '-0.1351', '8', '5', '77', '67'],
             ['short_pvalue',
              '0.7671',
              '0.1489',
@@ -674,7 +675,6 @@ class TestReportDifferenceWithUTest(unittest.TestCase):
              '9+',
              'repetitions',
              'recommended.'],
-            ['medium', '-0.3750', '-0.3375', '8', '5', '80', '53'],
         ]
         output_lines_with_header = print_difference_report(
             self.json_diff_report, include_aggregates_only=True, utest=True, utest_alpha=0.05, use_color=False)
