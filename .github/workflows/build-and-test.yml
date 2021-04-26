@@ -35,4 +35,4 @@ jobs:
     - name: test
       shell: bash
       working-directory: ${{ runner.workspace }}/_build
-      run: ctest -C ${{ matrix.build_type }}
+      run: ctest -C ${{ matrix.build_type }} -VV

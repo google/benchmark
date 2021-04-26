@@ -24,7 +24,7 @@ jobs:
     - name: build
       run: |
         bazel build //:benchmark //:benchmark_main //test/...
-        
+
     - name: test
       run: |
-        bazel test --test_output=errors //test/...
+        bazel test --test_output=all //test/...
