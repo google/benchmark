@@ -25,7 +25,7 @@ function(get_git_version var)
           RESULT_VARIABLE status
           OUTPUT_VARIABLE GIT_VERSION
           ERROR_QUIET)
-      if(${status})
+      if(status)
           set(GIT_VERSION "v0.0.0")
       else()
           string(STRIP ${GIT_VERSION} GIT_VERSION)
