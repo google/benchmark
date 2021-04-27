@@ -1,9 +1,9 @@
 #include "perf_counters.h"
 
-#if defined HAVE_LIBPFM
 #include <cstring>
 #include <vector>
 
+#if defined HAVE_LIBPFM
 #include "perfmon/pfmlib.h"
 #include "perfmon/pfmlib_perf_event.h"
 #endif
