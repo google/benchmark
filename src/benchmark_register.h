@@ -23,7 +23,7 @@ AddPowers(std::vector<T>* dst, T lo, T hi, int mult) {
   static const T kmax = std::numeric_limits<T>::max();
 
   // Space out the values in multiples of "mult"
-  for (T i = 1; i <= hi; i *= mult) {
+  for (T i = static_cast<T>(1); i <= hi; i *= mult) {
     if (i >= lo) {
       dst->push_back(i);
     }
