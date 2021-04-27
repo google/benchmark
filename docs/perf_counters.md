@@ -25,7 +25,7 @@ To opt-in:
 *  Enable the cmake flag BENCHMARK_ENABLE_LIBPFM.
 
 To use, pass a comma-separated list of counter names through the
-`-benchmark_perf_counters` flag. The names are decoded through libpfm - meaning,
+`--benchmark_perf_counters` flag. The names are decoded through libpfm - meaning,
 they are platform specific, but some (e.g. `CYCLES` or `INSTRUCTIONS`) are
 mapped by libpfm to platform-specifics - see libpfm
 [documentation](http://perfmon2.sourceforge.net/docs.html) for more details.
