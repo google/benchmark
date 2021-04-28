@@ -34,11 +34,11 @@ jobs:
       working-directory: ${{ runner.workspace }}/_build
       run: >
         cmake $GITHUB_WORKSPACE 
-              -DBENCHMARK_DOWNLOAD_DEPENDENCIES=ON
-              -DBENCHMARK_BUILD_32_BITS=${{ matrix.build_32_bits }}
-              -DCMAKE_BUILD_TYPE=${{ matrix.build_type }}
-              -DCMAKE_C_FLAGS="${{ matrix.extra_flags }}"
-              -DCMAKE_CXX_FLAGS="{{ matrix.extra_flags }} ${{ matrix.extra_cxx_flags }}"
+        -DBENCHMARK_DOWNLOAD_DEPENDENCIES=ON
+        -DBENCHMARK_BUILD_32_BITS=${{ matrix.build_32_bits }}
+        -DCMAKE_BUILD_TYPE=${{ matrix.build_type }}
+        -DCMAKE_C_FLAGS="${{ matrix.extra_flags }}"
+        -DCMAKE_CXX_FLAGS="{{ matrix.extra_flags }} ${{ matrix.extra_cxx_flags }}"
 
     - name: build
       shell: bash
