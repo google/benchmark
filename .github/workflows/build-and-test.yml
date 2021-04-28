@@ -16,6 +16,9 @@ jobs:
       matrix:
         os: [ubuntu-latest, ubuntu-16.04, ubuntu-20.04, macos-latest, windows-latest]
         build_type: ['Release', 'Debug']
+        include:
+          - extra_flags: "-m32"
+            build_32_bits: true
     steps:
     - uses: actions/checkout@v2
 
@@ -23,9 +26,19 @@ jobs:
       run: cmake -E make_directory ${{ runner.workspace }}/_build
 
     - name: configure cmake
+      #env:
+        #EXTRA_FLAGS: ${{ matrix.extra_flags }}
+        #EXTRA_CXX_FLAGS: ${{ matrix.extra_cxx_flags }}
+        #BUILD_32_BITS: ${{ matrix.build_32_bits }}
       shell: bash
       working-directory: ${{ runner.workspace }}/_build
-      run: cmake -DBENCHMARK_DOWNLOAD_DEPENDENCIES=ON $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=${{ matrix.build_type }}
+      run: >
+        cmake $GITHUB_WORKSPACE 
+              -DBENCHMARK_DOWNLOAD_DEPENDENCIES=ON
+              -DBENCHMARK_BUILD_32_BITS=${{ matrix.build_32_bits }}
+              -DCMAKE_BUILD_TYPE=${{ matrix.build_type }}
+              -DCMAKE_C_FLAGS="${{ matrix.extra_flags }}"
+              -DCMAKE_CXX_FLAGS="{{ matrix.extra_flags }} ${{ matrix.extra_cxx_flags }}"
 
     - name: build
       shell: bash
