@@ -18,7 +18,8 @@ jobs:
         build_type: ['Release', 'Debug']
         include:
           - extra_flags: "-m32"
-            build_32_bits: true
+            build_32_bits: on
+          - build_32_bits: off
     steps:
     - uses: actions/checkout@v2
 
@@ -38,7 +39,7 @@ jobs:
         -DBENCHMARK_BUILD_32_BITS=${{ matrix.build_32_bits }}
         -DCMAKE_BUILD_TYPE=${{ matrix.build_type }}
         -DCMAKE_C_FLAGS="${{ matrix.extra_flags }}"
-        -DCMAKE_CXX_FLAGS="{{ matrix.extra_flags }} ${{ matrix.extra_cxx_flags }}"
+        -DCMAKE_CXX_FLAGS="${{ matrix.extra_flags }} ${{ matrix.extra_cxx_flags }}"
 
     - name: build
       shell: bash
