@@ -297,6 +297,8 @@ too (`-lkstat`).
 
 [Setting the Time Unit](#setting-the-time-unit)
 
+[User-Requested Performance Counters](docs/perf_counters.md)
+
 [Preventing Optimization](#preventing-optimization)
 
 [Reporting Statistics](#reporting-statistics)

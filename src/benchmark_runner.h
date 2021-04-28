@@ -26,6 +26,8 @@ DECLARE_bool(benchmark_report_aggregates_only);
 
 DECLARE_bool(benchmark_display_aggregates_only);
 
+DECLARE_string(benchmark_perf_counters);
+
 namespace benchmark {
 
 namespace internal {
