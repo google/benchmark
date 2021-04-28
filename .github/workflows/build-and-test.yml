@@ -13,9 +13,16 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, ubuntu-16.04, ubuntu-20.04, macos-latest, windows-latest]
+        os: [ubuntu-latest, ubuntu-16.04, ubuntu-20.04, macos-latest]
         build_type: ['Release', 'Debug']
         compiler: [g++, clang++]
+        include:
+          - displayTargetName: windows-latest-release
+            os: windows-latest
+            build_type: 'Release'
+          - displayTargetName: windows-latest-debug
+            os: windows-latest
+            build_type: 'Debug'
     steps:
     - uses: actions/checkout@v2
 
