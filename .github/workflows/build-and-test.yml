@@ -38,7 +38,6 @@ jobs:
         cmake $GITHUB_WORKSPACE 
         -DBENCHMARK_DOWNLOAD_DEPENDENCIES=ON
         -DCMAKE_BUILD_TYPE=${{ matrix.build_type }}
-        -DCMAKE_CXX_COMPILER=`which ${{ matrix.compiler }}`
 
     - name: build
       shell: bash
@@ -48,4 +47,4 @@ jobs:
     - name: test
       shell: bash
       working-directory: ${{ runner.workspace }}/_build
-      run: ctest --config ${{ matrix.build_type }} -VV
+      run: ctest -C ${{ matrix.build_type }} -VV
