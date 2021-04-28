@@ -20,6 +20,10 @@
 #include <cstring>
 #include <iostream>
 #include <limits>
+#include <map>
+#include <utility>
+
+#include "../src/string_util.h"
 
 namespace benchmark {
 namespace {
@@ -78,6 +82,30 @@ bool ParseDouble(const std::string& src_text, const char* str, double* value) {
   return true;
 }
 
+// Parses 'str' into KV pairs. If successful, writes the result to *value and
+// returns true; otherwise leaves *value unchanged and returns false.
+bool ParseKvPairs(const std::string& src_text, const char* str,
+                  std::map<std::string, std::string>* value) {
+  std::map<std::string, std::string> kvs;
+  for (const auto& kvpair : StrSplit(str, ',')) {
+    const auto kv = StrSplit(kvpair, '=');
+    if (kv.size() != 2) {
+      std::cerr << src_text << " is expected to be a comma-separated list of "
+                << "<key>=<value> strings, but actually has value \"" << str
+                << "\".\n";
+      return false;
+    }
+    if (!kvs.emplace(kv[0], kv[1]).second) {
+      std::cerr << src_text << " is expected to contain unique keys but key \""
+                << kv[0] << "\" was repeated.\n";
+      return false;
+    }
+  }
+
+  *value = kvs;
+  return true;
+}
+
 // Returns the name of the environment variable corresponding to the
 // given flag.  For example, FlagToEnvVar("foo") will return
 // "BENCHMARK_FOO" in the open-source version.
@@ -127,6 +155,20 @@ const char* StringFromEnv(const char* flag, const char* default_val) {
   const std::string env_var = FlagToEnvVar(flag);
   const char* const value = getenv(env_var.c_str());
   return value == nullptr ? default_val : value;
+}
+
+std::map<std::string, std::string> KvPairsFromEnv(
+    const char* flag, std::map<std::string, std::string> default_val) {
+  const std::string env_var = FlagToEnvVar(flag);
+  const char* const value_str = getenv(env_var.c_str());
+
+  if (value_str == nullptr) return default_val;
+
+  std::map<std::string, std::string> value;
+  if (!ParseKvPairs("Environment variable " + env_var, value_str, &value)) {
+    return default_val;
+  }
+  return value;
 }
 
 // Parses a string as a command line flag.  The string should have
@@ -203,6 +245,22 @@ bool ParseStringFlag(const char* str, const char* flag, std::string* value) {
   if (value_str == nullptr) return false;
 
   *value = value_str;
+  return true;
+}
+
+bool ParseKeyValueFlag(
+    const char* str, const char* flag,
+    std::map<std::string, std::string>* value) {
+  const char* const value_str = ParseFlagValue(str, flag, false);
+
+  if (value_str == nullptr) return false;
+
+  for (const auto& kvpair : StrSplit(value_str, ',')) {
+    const auto kv = StrSplit(kvpair, '=');
+    if (kv.size() != 2) return false;
+    value->emplace(kv[0], kv[1]);
+  }
+
   return true;
 }
 
