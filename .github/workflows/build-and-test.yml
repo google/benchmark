@@ -9,17 +9,14 @@ on:
 jobs:
   job:
     # TODO(dominic): Extend this to include compiler and set through env: CC/CXX.
-    name: ${{ matrix.os }}.${{ matrix.build_type }}
+    name: ${{ matrix.os }}.${{ matrix.build_type }}.${{ matrix.compiler }}
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
         os: [ubuntu-latest, ubuntu-16.04, ubuntu-20.04, macos-latest, windows-latest]
         build_type: ['Release', 'Debug']
-        include:
-          - extra_flags: "-m32"
-            build_32_bits: on
-          - build_32_bits: off
+        compiler: [g++, clang++]
     steps:
     - uses: actions/checkout@v2
 
@@ -27,19 +24,15 @@ jobs:
       run: cmake -E make_directory ${{ runner.workspace }}/_build
 
     - name: configure cmake
-      #env:
-        #EXTRA_FLAGS: ${{ matrix.extra_flags }}
-        #EXTRA_CXX_FLAGS: ${{ matrix.extra_cxx_flags }}
-        #BUILD_32_BITS: ${{ matrix.build_32_bits }}
+      env:
+        CXX: ${{ matrix.compiler }}
       shell: bash
       working-directory: ${{ runner.workspace }}/_build
       run: >
         cmake $GITHUB_WORKSPACE 
         -DBENCHMARK_DOWNLOAD_DEPENDENCIES=ON
-        -DBENCHMARK_BUILD_32_BITS=${{ matrix.build_32_bits }}
         -DCMAKE_BUILD_TYPE=${{ matrix.build_type }}
-        -DCMAKE_C_FLAGS="${{ matrix.extra_flags }}"
-        -DCMAKE_CXX_FLAGS="${{ matrix.extra_flags }} ${{ matrix.extra_cxx_flags }}"
+        -DCMAKE_CXX_COMPILER=`which ${{ matrix.compiler }}`
 
     - name: build
       shell: bash
@@ -49,4 +42,4 @@ jobs:
     - name: test
       shell: bash
       working-directory: ${{ runner.workspace }}/_build
-      run: ctest -C ${{ matrix.build_type }} -VV
+      run: ctest --config ${{ matrix.build_type }} -VV
