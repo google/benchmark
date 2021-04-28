@@ -8,7 +8,6 @@ on:
 
 jobs:
   job:
-    # TODO(dominic): Extend this to include compiler and set through env: CC/CXX.
     name: ${{ matrix.os }}.${{ matrix.build_type }}.${{ matrix.compiler }}
     runs-on: ${{ matrix.os }}
     strategy:
