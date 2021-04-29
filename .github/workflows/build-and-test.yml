@@ -7,6 +7,11 @@ on:
     branches: [ master ]
 
 jobs:
+  # TODO: add job using container ubuntu:14.04 with and without g++-6
+  # TODO: add 32-bit builds (g++ and clang++) for ubuntu (requires g++-multilib and libc6:i386)
+  # TODO: add coverage build (requires lcov)
+  # TODO: add clang + libc++ builds for ubuntu
+  # TODO: add clang + ubsan/asan/msan + libc++ builds for ubuntu
   job:
     name: ${{ matrix.os }}.${{ matrix.build_type }}.${{ matrix.compiler }}
     runs-on: ${{ matrix.os }}
