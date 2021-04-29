@@ -22,7 +22,7 @@ namespace internal {
 
 namespace {
 
-constexpr double kNanosecondInSecond = 0.000000001;
+constexpr double kNanosecondInSecond = 1e-9;
 
 }  // namespace
 
