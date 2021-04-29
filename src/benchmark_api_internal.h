@@ -2,7 +2,6 @@
 #define BENCHMARK_API_INTERNAL_H
 
 #include "benchmark/benchmark.h"
-#include "commandlineflags.h"
 
 #include <cmath>
 #include <iosfwd>
@@ -10,6 +9,9 @@
 #include <memory>
 #include <string>
 #include <vector>
+
+#include "commandlineflags.h"
+#include "console_reporter.h"
 
 namespace benchmark {
 namespace internal {

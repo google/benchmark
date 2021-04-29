@@ -4,6 +4,7 @@
 #include <vector>
 
 #include "../src/check.h"  // NOTE: check.h is for internal use only!
+#include "../src/console_reporter.h"
 #include "benchmark/benchmark.h"
 
 namespace {

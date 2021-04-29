@@ -25,6 +25,7 @@
 #include "check.h"
 #include "colorprint.h"
 #include "commandlineflags.h"
+#include "console_reporter.h"
 #include "complexity.h"
 #include "counter.h"
 #include "internal_macros.h"

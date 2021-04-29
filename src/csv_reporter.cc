@@ -23,6 +23,7 @@
 #include <vector>
 
 #include "check.h"
+#include "csv_reporter.h"
 #include "string_util.h"
 #include "timers.h"
 

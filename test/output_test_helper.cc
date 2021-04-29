@@ -10,6 +10,8 @@
 
 #include "../src/benchmark_api_internal.h"
 #include "../src/check.h"  // NOTE: check.h is for internal use only!
+#include "../src/csv_reporter.h"
+#include "../src/json_reporter.h"
 #include "../src/re.h"     // NOTE: re.h is for internal use only
 #include "output_test.h"
 

@@ -25,6 +25,7 @@
 #include <tuple>
 #include <vector>
 
+#include "json_reporter.h"
 #include "string_util.h"
 #include "timers.h"
 

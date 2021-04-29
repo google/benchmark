@@ -10,6 +10,8 @@
 #include <sstream>
 #include <string>
 
+#include "../src/console_reporter.h"
+
 namespace {
 
 class TestReporter : public benchmark::ConsoleReporter {
