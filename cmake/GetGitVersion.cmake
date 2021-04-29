@@ -20,7 +20,7 @@ set(__get_git_version INCLUDED)
 
 function(get_git_version var)
   if(GIT_EXECUTABLE)
-      execute_process(COMMAND ${GIT_EXECUTABLE} describe --match "v[0-9]*.[0-9]*.[0-9]*" --abbrev=8
+      execute_process(COMMAND ${GIT_EXECUTABLE} describe --tags --match "v[0-9]*.[0-9]*.[0-9]*" --abbrev=8
           WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
           RESULT_VARIABLE status
           OUTPUT_VARIABLE GIT_DESCRIBE_VERSION
