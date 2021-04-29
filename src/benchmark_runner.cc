@@ -170,7 +170,7 @@ class BenchmarkRunner {
           (b.aggregation_report_mode() &
            internal::ARM_DisplayReportAggregatesOnly);
       run_results->file_report_aggregates_only =
-          (b.aggregation_report_mode() & 
+          (b.aggregation_report_mode() &
            internal::ARM_FileReportAggregatesOnly);
       CHECK(b.threads() == 1 || !perf_counters_measurement.IsValid())
           << "Perf counters are not supported in multi-threaded cases.\n";
@@ -263,7 +263,7 @@ class BenchmarkRunner {
 
     // By using KeepRunningBatch a benchmark can iterate more times than
     // requested, so take the iteration count from i.results.
-    i.iters = i.results.iterations / b.threads;
+    i.iters = i.results.iterations / b.threads();
 
     // Base decisions off of real time if requested by this benchmark.
     i.seconds = i.results.cpu_time_used;

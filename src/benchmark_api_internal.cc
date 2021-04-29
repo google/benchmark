@@ -160,9 +160,9 @@ State BenchmarkInstance::Run(
     IterationCount iters, int thread_id, internal::ThreadTimer* timer,
     internal::ThreadManager* manager,
     internal::PerfCountersMeasurement* perf_counters_measurement) const {
-  State st(iters, arg, thread_id, threads, timer, manager,
+  State st(iters, args_, thread_id, threads_, timer, manager,
            perf_counters_measurement);
-  benchmark->Run(st);
+  benchmark_->Run(st);
   return st;
 }
 
