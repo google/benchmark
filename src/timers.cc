@@ -190,8 +190,16 @@ std::string LocalDateTimeString() {
   std::size_t timestamp_len;
   long int offset_minutes;
   char tz_offset_sign = '+';
-  // Long enough buffers to avoid format-overflow warnings
-  char tz_offset[128];
+  // tz_offset is set in one of three ways:
+  // * strftime with %z - This either returns empty or the ISO 8601 time.  The maximum length an
+  //   ISO 8601 string can be is 7 (e.g. -03:30, plus trailing zero).
+  // * snprintf with %c%02li:%02li - The maximum length is 41 (one for %c, up to 19 for %02li,
+  //   one for :, up to 19 %02li, plus trailing zero).
+  // * A fixed string of "-00:00".  The maximum length is 7 (-00:00, plus trailing zero).
+  //
+  // Thus, the maximum size this needs to be is 41.
+  char tz_offset[41];
+  // Long enough buffer to avoid format-overflow warnings
   char storage[128];
 
 #if defined(BENCHMARK_OS_WINDOWS)

@@ -1,4 +1,4 @@
-name: build-and-test
+name: build-and-test-perfcounters
 
 on:
   push:
@@ -14,10 +14,13 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, ubuntu-16.04, ubuntu-20.04, macos-latest, windows-latest]
+        os: [ubuntu-latest, ubuntu-16.04, ubuntu-20.04]
         build_type: ['Release', 'Debug']
     steps:
     - uses: actions/checkout@v2
+
+    - name: install libpfm
+      run: sudo apt install libpfm4-dev
 
     - name: create build environment
       run: cmake -E make_directory ${{ runner.workspace }}/_build
@@ -25,14 +28,17 @@ jobs:
     - name: configure cmake
       shell: bash
       working-directory: ${{ runner.workspace }}/_build
-      run: cmake -DBENCHMARK_DOWNLOAD_DEPENDENCIES=ON $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=${{ matrix.build_type }}
+      run: cmake  -DBENCHMARK_ENABLE_LIBPFM=1 -DBENCHMARK_DOWNLOAD_DEPENDENCIES=ON $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=${{ matrix.build_type }}
 
     - name: build
       shell: bash
       working-directory: ${{ runner.workspace }}/_build
       run: cmake --build . --config ${{ matrix.build_type }}
 
-    - name: test
-      shell: bash
-      working-directory: ${{ runner.workspace }}/_build
-      run: ctest -C ${{ matrix.build_type }} -VV
+    # Skip testing, for now. It seems perf_event_open does not succeed on the
+    # hosting machine, very likely a permissions issue.
+    # TODO(mtrofin): Enable test.
+    # - name: test
+    #   shell: bash
+    #   working-directory: ${{ runner.workspace }}/_build
+    #   run: sudo ctest -C ${{ matrix.build_type }} --rerun-failed --output-on-failure

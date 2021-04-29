@@ -530,7 +530,11 @@ int GetNumCPUs() {
   BENCHMARK_UNREACHABLE();
 }
 
-double GetCPUCyclesPerSecond() {
+double GetCPUCyclesPerSecond(CPUInfo::Scaling scaling) {
+  // Currently, scaling is only used on linux path here,
+  // suppress diagnostics about it being unused on other paths.
+  (void)scaling;
+
 #if defined BENCHMARK_OS_LINUX || defined BENCHMARK_OS_CYGWIN
   long freq;
 
@@ -541,8 +545,15 @@ double GetCPUCyclesPerSecond() {
   // cannot always be relied upon. The same reasons apply to /proc/cpuinfo as
   // well.
   if (ReadFromFile("/sys/devices/system/cpu/cpu0/tsc_freq_khz", &freq)
-      // If CPU scaling is in effect, we want to use the *maximum* frequency,
-      // not whatever CPU speed some random processor happens to be using now.
+      // If CPU scaling is disabled, use the the *current* frequency.
+      // Note that we specifically don't want to read cpuinfo_cur_freq,
+      // because it is only readable by root.
+      || (scaling == CPUInfo::Scaling::DISABLED &&
+          ReadFromFile("/sys/devices/system/cpu/cpu0/cpufreq/scaling_cur_freq",
+                       &freq))
+      // Otherwise, if CPU scaling may be in effect, we want to use
+      // the *maximum* frequency, not whatever CPU speed some random processor
+      // happens to be using now.
       || ReadFromFile("/sys/devices/system/cpu/cpu0/cpufreq/cpuinfo_max_freq",
                       &freq)) {
     // The value is in kHz (as the file name suggests).  For example, on a
@@ -701,11 +712,10 @@ const CPUInfo& CPUInfo::Get() {
 
 CPUInfo::CPUInfo()
     : num_cpus(GetNumCPUs()),
-      cycles_per_second(GetCPUCyclesPerSecond()),
-      caches(GetCacheSizes()),
       scaling(CpuScaling(num_cpus)),
+      cycles_per_second(GetCPUCyclesPerSecond(scaling)),
+      caches(GetCacheSizes()),
       load_avg(GetLoadAvg()) {}
-
 
 const SystemInfo& SystemInfo::Get() {
   static const SystemInfo* info = new SystemInfo();

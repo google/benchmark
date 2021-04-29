@@ -156,11 +156,13 @@ void BenchmarkInstance::init_random_interleaving_repetitions(
   random_interleaving_repetitions_ = repetitions;
 }
 
-State BenchmarkInstance::Run(IterationCount iters, int thread_id,
-                             internal::ThreadTimer* timer,
-                             internal::ThreadManager* manager) const {
-  State st(iters, args_, thread_id, threads_, timer, manager);
-  benchmark_->Run(st);
+State BenchmarkInstance::Run(
+    IterationCount iters, int thread_id, internal::ThreadTimer* timer,
+    internal::ThreadManager* manager,
+    internal::PerfCountersMeasurement* perf_counters_measurement) const {
+  State st(iters, arg, thread_id, threads, timer, manager,
+           perf_counters_measurement);
+  benchmark->Run(st);
   return st;
 }
 

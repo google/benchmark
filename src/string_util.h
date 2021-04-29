@@ -37,6 +37,8 @@ inline std::string StrCat(Args&&... args) {
   return ss.str();
 }
 
+std::vector<std::string> StrSplit(const std::string& str, char delim);
+
 #ifdef BENCHMARK_STL_ANDROID_GNUSTL
 /*
  * GNU STL in Android NDK lacks support for some C++11 functions, including
