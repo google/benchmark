@@ -58,9 +58,8 @@ jobs:
     name: ubuntu-14.04.${{ matrix.build_type }}.${{ matrix.compiler }}
     runs-on: ${{ ubuntu-latest }}
     strategy:
-      fail-fast: true
+      fail-fast: false
       matrix:
-        os: [linux]
         build_type: ['Release', 'Debug']
         compiler: [g++, clang++]
     container: ubuntu:14.04
