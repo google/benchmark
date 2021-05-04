@@ -67,7 +67,7 @@ jobs:
     - uses: actions/checkout@v2
 
     - name: install required bits
-      run: sudo apt install cmake g++-4.8 clang-3.6
+      run: sudo apt update && sudo apt install cmake g++-4.8 clang-3.6
 
     - name: create build environment
       run: cmake -E make_directory ${{ runner.workspace }}/_build
