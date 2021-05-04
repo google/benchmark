@@ -38,7 +38,7 @@ PerfCounters PerfCounters::Create(
     return NoCounters();
   }
   if (counter_names.size() > PerfCounterValues::kMaxCounters) {
-    GetErrorLogInstance()
+    VLOG(2)
         << counter_names.size()
         << " counters were requested. The minimum is 1, the maximum is "
         << PerfCounterValues::kMaxCounters << "\n";
@@ -54,7 +54,7 @@ PerfCounters PerfCounters::Create(
     const int group_id = !is_first ? counter_ids[0] : -1;
     const auto& name = counter_names[i];
     if (name.empty()) {
-      GetErrorLogInstance() << "A counter name was the empty string\n";
+      VLOG(2) << "A counter name was the empty string\n";
       return NoCounters();
     }
     pfm_perf_encode_arg_t arg{};
@@ -63,7 +63,7 @@ PerfCounters PerfCounters::Create(
     const int pfm_get =
         pfm_get_os_event_encoding(name.c_str(), mode, PFM_OS_PERF_EVENT, &arg);
     if (pfm_get != PFM_SUCCESS) {
-      GetErrorLogInstance() << "Unknown counter name: " << name << "\n";
+      VLOG(2) << "Unknown counter name: " << name << "\n";
       return NoCounters();
     }
     attr.disabled = is_first;
@@ -85,7 +85,7 @@ PerfCounters PerfCounters::Create(
       }
     }
     if (id < 0) {
-      GetErrorLogInstance()
+      VLOG(2)
           << "Failed to get a file descriptor for " << name << "\n";
       return NoCounters();
     }
@@ -93,7 +93,7 @@ PerfCounters PerfCounters::Create(
     counter_ids[i] = id;
   }
   if (ioctl(counter_ids[0], PERF_EVENT_IOC_ENABLE) != 0) {
-    GetErrorLogInstance() << "Failed to start counters\n";
+    VLOG(2) << "Failed to start counters\n";
     return NoCounters();
   }
 
@@ -117,7 +117,7 @@ bool PerfCounters::Initialize() { return false; }
 PerfCounters PerfCounters::Create(
     const std::vector<std::string>& counter_names) {
   if (!counter_names.empty()) {
-    GetErrorLogInstance() << "Performance counters not supported.";
+    VLOG(3) << "Performance counters not supported.\n";
   }
   return NoCounters();
 }
