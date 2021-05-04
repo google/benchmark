@@ -434,7 +434,7 @@ namespace internal {
 
 void PrintUsageAndExit() {
   fprintf(stdout,
-          "benchmark"
+          "%s"
           " [--benchmark_list_tests={true|false}]\n"
           "          [--benchmark_filter=<regex>]\n"
           "          [--benchmark_min_time=<min_time>]\n"
@@ -446,7 +446,11 @@ void PrintUsageAndExit() {
           "          [--benchmark_out_format=<json|console|csv>]\n"
           "          [--benchmark_color={auto|true|false}]\n"
           "          [--benchmark_counters_tabular={true|false}]\n"
-          "          [--v=<verbosity>]\n");
+#if defined HAVE_LIBPFM
+          "          [--benchmark_perf_counters=<counter1[,counter2...]>]\n"
+#endif
+          "          [--v=<verbosity>]\n",
+          BenchmarkReporter::Context::executable_name);
   exit(0);
 }
 
