@@ -66,6 +66,9 @@ jobs:
     steps:
     - uses: actions/checkout@v2
 
+    - name: install required bits
+      run: sudo apt install cmake g++ clang
+
     - name: create build environment
       run: cmake -E make_directory ${{ runner.workspace }}/_build
 
