@@ -70,7 +70,7 @@ jobs:
       run: sudo apt update && sudo apt -y install cmake g++-4.8 clang-3.6
 
     - name: create build environment
-      run: cmake -E make_directory ${{ github.workspace }}/_build
+      run: ls -l $GITHUB_WORKSPACE && cmake -E make_directory $GITHUB_WORKSPACE/_build
 
     - name: configure cmake
       env:
@@ -78,7 +78,7 @@ jobs:
       shell: bash
       working-directory: ${{ github.workspace }}/_build
       run: >
-        cmake $GITHUB_WORKSPACE
+        ls -l $GITHUB_WORKSPACE && cmake $GITHUB_WORKSPACE
         -DBENCHMARK_DOWNLOAD_DEPENDENCIES=ON
         -DCMAKE_BUILD_TYPE=${{ matrix.build_type }}
 
