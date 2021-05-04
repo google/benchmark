@@ -29,6 +29,9 @@
 #include "timers.h"
 
 namespace benchmark {
+namespace internal {
+extern std::map<std::string, std::string>* global_context;
+}
 
 namespace {
 
@@ -160,6 +163,13 @@ bool JSONReporter::ReportContext(const Context& context) {
   const char build_type[] = "debug";
 #endif
   out << indent << FormatKV("library_build_type", build_type) << "\n";
+
+  if (internal::global_context != nullptr) {
+    for (const auto& kv: *internal::global_context) {
+      out << indent << FormatKV(kv.first, kv.second) << "\n";
+    }
+  }
+
   // Close context block and open the list of benchmarks.
   out << inner_indent << "},\n";
   out << inner_indent << "\"benchmarks\": [\n";

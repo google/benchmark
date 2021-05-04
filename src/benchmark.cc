@@ -33,6 +33,7 @@
 #include <cstdlib>
 #include <fstream>
 #include <iostream>
+#include <map>
 #include <memory>
 #include <string>
 #include <thread>
@@ -117,8 +118,9 @@ DEFINE_int32(v, 0);
 DEFINE_string(benchmark_perf_counters, "");
 
 namespace benchmark {
-
 namespace internal {
+
+std::map<std::string, std::string>* global_context = nullptr;
 
 // FIXME: wouldn't LTO mess this up?
 void UseCharPointer(char const volatile*) {}
@@ -433,6 +435,13 @@ size_t RunSpecifiedBenchmarks(BenchmarkReporter* display_reporter,
 
 void RegisterMemoryManager(MemoryManager* manager) {
   internal::memory_manager = manager;
+}
+
+void AddCustomContext(const std::string& key, const std::string& value) {
+  if (internal::global_context == nullptr) {
+    internal::global_context = new std::map<std::string, std::string>();
+  }
+  internal::global_context->emplace(key, value);
 }
 
 namespace internal {
