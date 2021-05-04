@@ -94,15 +94,15 @@ class PerfCounters final {
   // names()[i]'s value is (*values)[i]
   BENCHMARK_ALWAYS_INLINE bool Snapshot(PerfCounterValues* values) {
 #ifndef BENCHMARK_OS_WINDOWS
-    assert(values != nullptr);
-    assert(IsValid());
-    auto buffer = values->get_data_buffer();
-    auto read_bytes = ::read(counter_ids_[0], buffer.first, buffer.second);
-    return static_cast<size_t>(read_bytes) == buffer.second;
+    if (values != nullptr && IsValid()) {
+      auto buffer = values->get_data_buffer();
+      auto read_bytes = ::read(counter_ids_[0], buffer.first, buffer.second);
+      return static_cast<size_t>(read_bytes) == buffer.second;
+    }
 #else
     (void)values;
-    return false;
 #endif
+    return false;
   }
 
   const std::vector<std::string>& names() const { return counter_names_; }
