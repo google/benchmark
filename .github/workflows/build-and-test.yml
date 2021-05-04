@@ -55,8 +55,8 @@ jobs:
 
   # TODO: add compiler g++-6 to ubuntu-14.04 job
   ubuntu-14_04:
-    name: ubuntu-14.04.${{ matrix.build_type }}.${{ matrix.compiler }}
-    runs-on: ${{ ubuntu-latest }}
+    name: ubuntu-14_04.${{ matrix.build_type }}.${{ matrix.compiler }}
+    runs-on: [ubuntu-latest]
     strategy:
       fail-fast: false
       matrix:
@@ -75,7 +75,7 @@ jobs:
       shell: bash
       working-directory: ${{ runner.workspace }}/_build
       run: >
-        cmake $GITHUB_WORKSPACE 
+        cmake $GITHUB_WORKSPACE
         -DBENCHMARK_DOWNLOAD_DEPENDENCIES=ON
         -DCMAKE_BUILD_TYPE=${{ matrix.build_type }}
 
@@ -88,3 +88,4 @@ jobs:
       shell: bash
       working-directory: ${{ runner.workspace }}/_build
       run: ctest -C ${{ matrix.build_type }} -VV
+
