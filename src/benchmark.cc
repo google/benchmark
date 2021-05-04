@@ -451,7 +451,7 @@ void PrintUsageAndExit() {
           "          [--benchmark_out_format=<json|console|csv>]\n"
           "          [--benchmark_color={auto|true|false}]\n"
           "          [--benchmark_counters_tabular={true|false}]\n"
-          "          [--benchmark_context=<extra_context>]\n"
+          "          [--benchmark_context=<key>=<value>,...]\n"
           "          [--v=<verbosity>]\n");
   exit(0);
 }

@@ -273,6 +273,8 @@ too (`-lkstat`).
 
 [Result Comparison](#result-comparison)
 
+[Extra Context](#extra-context)
+
 ### Library
 
 [Runtime and Reporting Considerations](#runtime-and-reporting-considerations)
@@ -441,6 +443,25 @@ BM_memcpy/32k       1834 ns       1837 ns     357143
 
 It is possible to compare the benchmarking results.
 See [Additional Tooling Documentation](docs/tools.md)
+
+<a name="extra-context" />
+
+### Extra Context
+
+Sometimes it's useful to add extra context to the content printed before the
+results. By default this section includes information about the CPU on which
+the benchmarks are running. If you do want to add more context, you can use
+the `benchmark_context` command line flag:
+
+```bash
+$ ./run_benchmarks --benchmark_context=pwd=`pwd`
+Run on (1 x 2300 MHz CPU)
+pwd: /home/user/benchmark/
+Benchmark              Time           CPU Iterations
+----------------------------------------------------
+BM_memcpy/32          11 ns         11 ns   79545455
+BM_memcpy/32k       2181 ns       2185 ns     324074
+```
 
 <a name="runtime-and-reporting-considerations" />
 
