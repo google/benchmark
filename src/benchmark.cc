@@ -13,6 +13,7 @@
 // limitations under the License.
 
 #include "benchmark/benchmark.h"
+
 #include "benchmark_api_internal.h"
 #include "benchmark_runner.h"
 #include "internal_macros.h"
@@ -103,6 +104,10 @@ DEFINE_string(benchmark_color, "auto");
 // Whether to use tabular format when printing user counters to the console.
 // Valid values: 'true'/'yes'/1, 'false'/'no'/0.  Defaults to false.
 DEFINE_bool(benchmark_counters_tabular, false);
+
+// Extra context to include in the output formatted as comma-separated key-value
+// pairs.
+DEFINE_kvpairs(benchmark_context, {});
 
 // The level of verbose logging to output
 DEFINE_int32(v, 0);
@@ -446,6 +451,7 @@ void PrintUsageAndExit() {
           "          [--benchmark_out_format=<json|console|csv>]\n"
           "          [--benchmark_color={auto|true|false}]\n"
           "          [--benchmark_counters_tabular={true|false}]\n"
+          "          [--benchmark_context=<key>=<value>,...]\n"
           "          [--v=<verbosity>]\n");
   exit(0);
 }
@@ -476,9 +482,11 @@ void ParseCommandLineFlags(int* argc, char** argv) {
         ParseStringFlag(argv[i], "color_print", &FLAGS_benchmark_color) ||
         ParseBoolFlag(argv[i], "benchmark_counters_tabular",
                       &FLAGS_benchmark_counters_tabular) ||
-        ParseInt32Flag(argv[i], "v", &FLAGS_v) ||
         ParseStringFlag(argv[i], "benchmark_perf_counters",
-                        &FLAGS_benchmark_perf_counters)) {
+                        &FLAGS_benchmark_perf_counters) ||
+        ParseKeyValueFlag(argv[i], "benchmark_context",
+                          &FLAGS_benchmark_context) ||
+        ParseInt32Flag(argv[i], "v", &FLAGS_v)) {
       for (int j = i; j != *argc - 1; ++j) argv[j] = argv[j + 1];
 
       --(*argc);
