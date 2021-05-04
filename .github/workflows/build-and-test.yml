@@ -61,7 +61,7 @@ jobs:
       fail-fast: false
       matrix:
         build_type: ['Release', 'Debug']
-        compiler: [g++, clang++]
+        compiler: [g++-4.8, clang++-3.6]
     container: ubuntu:14.04
     steps:
     - uses: actions/checkout@v2
