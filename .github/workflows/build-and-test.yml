@@ -79,7 +79,8 @@ jobs:
       working-directory: ${{ github.workspace }}/_build
       run: >
         ls -l $GITHUB_WORKSPACE && cmake $GITHUB_WORKSPACE
-        -DBENCHMARK_DOWNLOAD_DEPENDENCIES=ON
+        #-DBENCHMARK_DOWNLOAD_DEPENDENCIES=ON
+        -DBENCHMARK_ENABLE_TESTING=off  # Disabled testing on compilers that don't support googletest
         -DCMAKE_BUILD_TYPE=${{ matrix.build_type }}
 
     - name: build
@@ -87,8 +88,8 @@ jobs:
       working-directory: ${{ github.workspace }}/_build
       run: cmake --build . --config ${{ matrix.build_type }}
 
-    - name: test
-      shell: bash
-      working-directory: ${{ github.workspace }}/_build
-      run: ctest -C ${{ matrix.build_type }} -VV
+      # - name: test
+      #   shell: bash
+      #   working-directory: ${{ github.workspace }}/_build
+      #   run: ctest -C ${{ matrix.build_type }} -VV
 
