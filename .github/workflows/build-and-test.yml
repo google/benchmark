@@ -54,6 +54,7 @@ jobs:
       run: ctest -C ${{ matrix.build_type }} -VV
 
   # TODO: add compiler g++-6 to ubuntu-14.04 job
+  # TODO: enable testing for g++-6 compiler
   ubuntu-14_04:
     name: ubuntu-14.04.${{ matrix.build_type }}.${{ matrix.compiler }}
     runs-on: [ubuntu-latest]
@@ -70,7 +71,7 @@ jobs:
       run: sudo apt update && sudo apt -y install clang-3.6 cmake3 g++-4.8 git
 
     - name: create build environment
-      run: ls -l $GITHUB_WORKSPACE && cmake -E make_directory $GITHUB_WORKSPACE/_build
+      run: cmake -E make_directory $GITHUB_WORKSPACE/_build
 
     - name: configure cmake
       env:
@@ -78,10 +79,10 @@ jobs:
       shell: bash
       working-directory: ${{ github.workspace }}/_build
       run: >
-        ls -l $GITHUB_WORKSPACE && cmake $GITHUB_WORKSPACE
-        #-DBENCHMARK_DOWNLOAD_DEPENDENCIES=ON
-        -DBENCHMARK_ENABLE_TESTING=off  # Disabled testing on compilers that don't support googletest
+        cmake $GITHUB_WORKSPACE
+        -DBENCHMARK_ENABLE_TESTING=off
         -DCMAKE_BUILD_TYPE=${{ matrix.build_type }}
+        #-DBENCHMARK_DOWNLOAD_DEPENDENCIES=ON
 
     - name: build
       shell: bash
