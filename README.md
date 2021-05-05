@@ -469,6 +469,9 @@ You can get the same effect with the API:
   benchmark::AddCustomContext("foo", "bar");
 ```
 
+Note that attempts to add a second value with the same key will fail with an
+error message.
+
 <a name="runtime-and-reporting-considerations" />
 
 ### Runtime and Reporting Considerations
