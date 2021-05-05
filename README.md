@@ -463,6 +463,15 @@ BM_memcpy/32          11 ns         11 ns   79545455
 BM_memcpy/32k       2181 ns       2185 ns     324074
 ```
 
+You can get the same effect with the API:
+
+```c++
+  benchmark::AddCustomContext("foo", "bar");
+```
+
+Note that attempts to add a second value with the same key will fail with an
+error message.
+
 <a name="runtime-and-reporting-considerations" />
 
 ### Runtime and Reporting Considerations

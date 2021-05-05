@@ -1,3 +1,5 @@
+#include <map>
+#include <string>
 #include <vector>
 
 #include "../src/benchmark_register.h"
@@ -6,6 +8,8 @@
 
 namespace benchmark {
 namespace internal {
+extern std::map<std::string, std::string>* global_context;
+
 namespace {
 
 TEST(AddRangeTest, Simple) {
@@ -127,6 +131,31 @@ TEST(AddRangeTest, Simple8) {
   std::vector<int8_t> dst;
   AddRange<int8_t>(&dst, 1, 8, 2);
   EXPECT_THAT(dst, testing::ElementsAre(1, 2, 4, 8));
+}
+
+TEST(AddCustomContext, Simple) {
+  EXPECT_THAT(global_context, nullptr);
+
+  AddCustomContext("foo", "bar");
+  AddCustomContext("baz", "qux");
+
+  EXPECT_THAT(*global_context,
+              testing::UnorderedElementsAre(testing::Pair("foo", "bar"),
+                                            testing::Pair("baz", "qux")));
+
+  global_context = nullptr;
+}
+
+TEST(AddCustomContext, DuplicateKey) {
+  EXPECT_THAT(global_context, nullptr);
+
+  AddCustomContext("foo", "bar");
+  AddCustomContext("foo", "qux");
+
+  EXPECT_THAT(*global_context,
+              testing::UnorderedElementsAre(testing::Pair("foo", "bar")));
+
+  global_context = nullptr;
 }
 
 }  // namespace
