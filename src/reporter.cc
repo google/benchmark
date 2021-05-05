@@ -24,10 +24,7 @@
 #include <vector>
 
 #include "check.h"
-#include "commandlineflags.h"
 #include "string_util.h"
-
-DECLARE_kvpairs(benchmark_context);
 
 namespace benchmark {
 namespace internal {
@@ -70,10 +67,6 @@ void BenchmarkReporter::PrintBasicContext(std::ostream *out,
       if (It != info.load_avg.end()) Out << ", ";
     }
     Out << "\n";
-  }
-
-  for (const auto& kv: FLAGS_benchmark_context) {
-    Out << kv.first << ": " << kv.second << "\n";
   }
 
   if (internal::global_context != nullptr) {

@@ -13,7 +13,6 @@
 // limitations under the License.
 
 #include "benchmark/benchmark.h"
-#include "commandlineflags.h"
 #include "complexity.h"
 
 #include <algorithm>
@@ -28,8 +27,6 @@
 
 #include "string_util.h"
 #include "timers.h"
-
-DECLARE_kvpairs(benchmark_context);
 
 namespace benchmark {
 namespace internal {
@@ -166,10 +163,6 @@ bool JSONReporter::ReportContext(const Context& context) {
   const char build_type[] = "debug";
 #endif
   out << indent << FormatKV("library_build_type", build_type) << "\n";
-
-  for (const auto& kv: FLAGS_benchmark_context) {
-    out << indent << FormatKV(kv.first, kv.second) << "\n";
-  }
 
   if (internal::global_context != nullptr) {
     for (const auto& kv: *internal::global_context) {
