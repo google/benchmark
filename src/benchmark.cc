@@ -441,7 +441,10 @@ void AddCustomContext(const std::string& key, const std::string& value) {
   if (internal::global_context == nullptr) {
     internal::global_context = new std::map<std::string, std::string>();
   }
-  internal::global_context->emplace(key, value);
+  if (!internal::global_context->emplace(key, value).second) {
+    std::cerr << "Failed to add custom context \"" << key << "\" as it already "
+              << "exists with value \"" << value << "\"\n";
+  }
 }
 
 namespace internal {
