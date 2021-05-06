@@ -13,6 +13,7 @@
 // limitations under the License.
 
 #include "benchmark/benchmark.h"
+
 #include "benchmark_api_internal.h"
 #include "benchmark_runner.h"
 #include "internal_macros.h"
@@ -33,6 +34,7 @@
 #include <fstream>
 #include <iostream>
 #include <limits>
+#include <map>
 #include <memory>
 #include <random>
 #include <string>
@@ -149,9 +151,14 @@ DEFINE_int32(v, 0);
 DEFINE_string(benchmark_perf_counters, "");
 
 namespace benchmark {
-
 namespace internal {
 
+// Extra context to include in the output formatted as comma-separated key-value
+// pairs. Kept internal as it's only used for parsing from env/command line.
+DEFINE_kvpairs(benchmark_context, {});
+
+std::map<std::string, std::string>* global_context = nullptr;
+  
 // Performance measurements always come with random variances. Defines a
 // factor by which the required number of iterations is overestimated in order
 // to reduce the probability that the minimum time requirement will not be met.
@@ -526,6 +533,16 @@ void RegisterMemoryManager(MemoryManager* manager) {
   internal::memory_manager = manager;
 }
 
+void AddCustomContext(const std::string& key, const std::string& value) {
+  if (internal::global_context == nullptr) {
+    internal::global_context = new std::map<std::string, std::string>();
+  }
+  if (!internal::global_context->emplace(key, value).second) {
+    std::cerr << "Failed to add custom context \"" << key << "\" as it already "
+              << "exists with value \"" << value << "\"\n";
+  }
+}
+
 namespace internal {
 
 void PrintUsageAndExit() {
@@ -542,6 +559,7 @@ void PrintUsageAndExit() {
           "          [--benchmark_out_format=<json|console|csv>]\n"
           "          [--benchmark_color={auto|true|false}]\n"
           "          [--benchmark_counters_tabular={true|false}]\n"
+          "          [--benchmark_context=<key>=<value>,...]\n"
           "          [--v=<verbosity>]\n");
   exit(0);
 }
@@ -578,9 +596,11 @@ void ParseCommandLineFlags(int* argc, char** argv) {
         ParseStringFlag(argv[i], "color_print", &FLAGS_benchmark_color) ||
         ParseBoolFlag(argv[i], "benchmark_counters_tabular",
                       &FLAGS_benchmark_counters_tabular) ||
-        ParseInt32Flag(argv[i], "v", &FLAGS_v) ||
         ParseStringFlag(argv[i], "benchmark_perf_counters",
-                        &FLAGS_benchmark_perf_counters)) {
+                        &FLAGS_benchmark_perf_counters) ||
+        ParseKeyValueFlag(argv[i], "benchmark_context",
+                          &FLAGS_benchmark_context) ||
+        ParseInt32Flag(argv[i], "v", &FLAGS_v)) {
       for (int j = i; j != *argc - 1; ++j) argv[j] = argv[j + 1];
 
       --(*argc);
@@ -590,12 +610,16 @@ void ParseCommandLineFlags(int* argc, char** argv) {
     }
   }
   for (auto const* flag :
-       {&FLAGS_benchmark_format, &FLAGS_benchmark_out_format})
+       {&FLAGS_benchmark_format, &FLAGS_benchmark_out_format}) {
     if (*flag != "console" && *flag != "json" && *flag != "csv") {
       PrintUsageAndExit();
     }
+  }
   if (FLAGS_benchmark_color.empty()) {
     PrintUsageAndExit();
+  }
+  for (const auto& kv : FLAGS_benchmark_context) {
+    AddCustomContext(kv.first, kv.second);
   }
 }
 

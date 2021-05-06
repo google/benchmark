@@ -294,6 +294,9 @@ size_t RunSpecifiedBenchmarks(BenchmarkReporter* display_reporter,
 // allocation measurements for benchmark runs.
 void RegisterMemoryManager(MemoryManager* memory_manager);
 
+// Add a key-value pair to output as part of the context stanza in the report.
+void AddCustomContext(const std::string& key, const std::string& value);
+
 namespace internal {
 class Benchmark;
 class BenchmarkImp;
