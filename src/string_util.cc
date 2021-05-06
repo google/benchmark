@@ -164,6 +164,7 @@ std::string StrFormat(const char* format, ...) {
 }
 
 std::vector<std::string> StrSplit(const std::string& str, char delim) {
+  if (str.empty()) return {};
   std::vector<std::string> ret;
   size_t first = 0;
   size_t next = str.find(delim);
