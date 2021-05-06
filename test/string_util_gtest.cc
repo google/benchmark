@@ -151,7 +151,7 @@ TEST(StringUtilTest, stod) {
 }
 
 TEST(StringUtilTest, StrSplit) {
-  EXPECT_EQ(benchmark::StrSplit("", ','), std::vector<std::string>{""});
+  EXPECT_EQ(benchmark::StrSplit("", ','), std::vector<std::string>{});
   EXPECT_EQ(benchmark::StrSplit("hello", ','),
             std::vector<std::string>({"hello"}));
   EXPECT_EQ(benchmark::StrSplit("hello,there", ','),
