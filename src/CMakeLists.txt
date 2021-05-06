@@ -28,6 +28,12 @@ target_include_directories(benchmark PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../include>
     )
 
+# libpfm, if available
+if (HAVE_LIBPFM)
+  target_link_libraries(benchmark libpfm.a)
+  add_definitions(-DHAVE_LIBPFM)
+endif()
+
 # Link threads.
 target_link_libraries(benchmark  ${BENCHMARK_CXX_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
 find_library(LIBRT rt)

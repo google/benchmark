@@ -194,6 +194,7 @@ else()
   # Link time optimisation
   if (BENCHMARK_ENABLE_LTO)
     add_cxx_compiler_flag(-flto)
+    add_cxx_compiler_flag(-Wno-lto-type-mismatch)
     if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
       find_program(GCC_AR gcc-ar)
       if (GCC_AR)
@@ -268,6 +269,10 @@ cxx_feature_check(STEADY_CLOCK)
 # Ensure we have pthreads
 set(THREADS_PREFER_PTHREAD_FLAG ON)
 find_package(Threads REQUIRED)
+
+if (BENCHMARK_ENABLE_LIBPFM)
+  find_package(PFM)  
+endif()
 
 # Set up directories
 include_directories(${PROJECT_SOURCE_DIR}/include)

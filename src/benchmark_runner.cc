@@ -45,6 +45,7 @@
 #include "internal_macros.h"
 #include "log.h"
 #include "mutex.h"
+#include "perf_counters.h"
 #include "re.h"
 #include "statistics.h"
 #include "string_util.h"
@@ -109,14 +110,16 @@ BenchmarkReporter::Run CreateRunReport(
 }
 
 // Execute one thread of benchmark b for the specified number of iterations.
-// Adds the stats collected for the thread into *total.
+// Adds the stats collected for the thread into manager->results.
 void RunInThread(const BenchmarkInstance* b, IterationCount iters,
-                 int thread_id, ThreadManager* manager) {
+                 int thread_id, ThreadManager* manager,
+                 PerfCountersMeasurement* perf_counters_measurement) {
   internal::ThreadTimer timer(
       b->measure_process_cpu_time
           ? internal::ThreadTimer::CreateProcessCpuTime()
           : internal::ThreadTimer::Create());
-  State st = b->Run(iters, thread_id, &timer, manager);
+  State st =
+      b->Run(iters, thread_id, &timer, manager, perf_counters_measurement);
   CHECK(st.error_occurred() || st.iterations() >= st.max_iterations)
       << "Benchmark returned before State::KeepRunning() returned false!";
   {
@@ -143,7 +146,12 @@ class BenchmarkRunner {
                                    : FLAGS_benchmark_repetitions),
         has_explicit_iteration_count(b.iterations != 0),
         pool(b.threads - 1),
-        iters(has_explicit_iteration_count ? b.iterations : 1) {
+        iters(has_explicit_iteration_count ? b.iterations : 1),
+        perf_counters_measurement(
+            PerfCounters::Create(StrSplit(FLAGS_benchmark_perf_counters, ','))),
+        perf_counters_measurement_ptr(perf_counters_measurement.IsValid()
+                                          ? &perf_counters_measurement
+                                          : nullptr) {
     run_results.display_report_aggregates_only =
         (FLAGS_benchmark_report_aggregates_only ||
          FLAGS_benchmark_display_aggregates_only);
@@ -155,6 +163,11 @@ class BenchmarkRunner {
            internal::ARM_DisplayReportAggregatesOnly);
       run_results.file_report_aggregates_only =
           (b.aggregation_report_mode & internal::ARM_FileReportAggregatesOnly);
+      CHECK(b.threads == 1 || !perf_counters_measurement.IsValid())
+          << "Perf counters are not supported in multi-threaded cases.\n";
+      CHECK(FLAGS_benchmark_perf_counters.empty() ||
+            perf_counters_measurement.IsValid())
+          << "Perf counters were requested but could not be set up.";
     }
 
     for (int repetition_num = 0; repetition_num < repeats; repetition_num++) {
@@ -192,6 +205,9 @@ class BenchmarkRunner {
   // So only the first repetition has to find/calculate it,
   // the other repetitions will just use that precomputed iteration count.
 
+  PerfCountersMeasurement perf_counters_measurement;
+  PerfCountersMeasurement* const perf_counters_measurement_ptr;
+
   struct IterationResults {
     internal::ThreadManager::Result results;
     IterationCount iters;
@@ -206,12 +222,12 @@ class BenchmarkRunner {
     // Run all but one thread in separate threads
     for (std::size_t ti = 0; ti < pool.size(); ++ti) {
       pool[ti] = std::thread(&RunInThread, &b, iters, static_cast<int>(ti + 1),
-                             manager.get());
+                             manager.get(), perf_counters_measurement_ptr);
     }
     // And run one thread here directly.
     // (If we were asked to run just one thread, we don't create new threads.)
     // Yes, we need to do this here *after* we start the separate threads.
-    RunInThread(&b, iters, 0, manager.get());
+    RunInThread(&b, iters, 0, manager.get(), perf_counters_measurement_ptr);
 
     // The main thread has finished. Now let's wait for the other threads.
     manager->WaitForAllThreads();
@@ -236,8 +252,10 @@ class BenchmarkRunner {
     VLOG(2) << "Ran in " << i.results.cpu_time_used << "/"
             << i.results.real_time_used << "\n";
 
-    // So for how long were we running?
-    i.iters = iters;
+    // By using KeepRunningBatch a benchmark can iterate more times than
+    // requested, so take the iteration count from i.results.
+    i.iters = i.results.iterations / b.threads;
+
     // Base decisions off of real time if requested by this benchmark.
     i.seconds = i.results.cpu_time_used;
     if (b.use_manual_time) {
@@ -329,7 +347,8 @@ class BenchmarkRunner {
       memory_manager->Start();
       std::unique_ptr<internal::ThreadManager> manager;
       manager.reset(new internal::ThreadManager(1));
-      RunInThread(&b, memory_iterations, 0, manager.get());
+      RunInThread(&b, memory_iterations, 0, manager.get(),
+                  perf_counters_measurement_ptr);
       manager->WaitForAllThreads();
       manager.reset();
 

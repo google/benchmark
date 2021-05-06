@@ -163,6 +163,18 @@ std::string StrFormat(const char* format, ...) {
   return tmp;
 }
 
+std::vector<std::string> StrSplit(const std::string& str, char delim) {
+  std::vector<std::string> ret;
+  size_t first = 0;
+  size_t next = str.find(delim);
+  for (; next != std::string::npos;
+       first = next + 1, next = str.find(first, delim)) {
+    ret.push_back(str.substr(first, next - first));
+  }
+  ret.push_back(str.substr(first));
+  return ret;
+}
+
 #ifdef BENCHMARK_STL_ANDROID_GNUSTL
 /*
  * GNU STL in Android NDK lacks support for some C++11 functions, including

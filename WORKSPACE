@@ -6,6 +6,7 @@ http_archive(
     name = "rules_cc",
     strip_prefix = "rules_cc-a508235df92e71d537fcbae0c7c952ea6957a912",
     urls = ["https://github.com/bazelbuild/rules_cc/archive/a508235df92e71d537fcbae0c7c952ea6957a912.zip"],
+    sha256 = "d7dc12c1d5bc1a87474de8e3d17b7731a4dcebcfb8aa3990fe8ac7734ef12f2f",
 )
 
 http_archive(
@@ -19,6 +20,7 @@ http_archive(
     name = "com_google_googletest",
     strip_prefix = "googletest-3f0cf6b62ad1eb50d8736538363d3580dd640c3e",
     urls = ["https://github.com/google/googletest/archive/3f0cf6b62ad1eb50d8736538363d3580dd640c3e.zip"],
+    sha256 = "8f827dd550db8b4fdf73904690df0be9fccc161017c9038a724bc9a0617a1bc8",
 )
 
 http_archive(
@@ -33,4 +35,17 @@ new_local_repository(
     name = "python_headers",
     build_file = "@//bindings/python:python_headers.BUILD",
     path = "/usr/include/python3.6",  # May be overwritten by setup.py.
+)
+
+http_archive(
+    name = "rules_python",
+    url = "https://github.com/bazelbuild/rules_python/releases/download/0.1.0/rules_python-0.1.0.tar.gz",
+    sha256 = "b6d46438523a3ec0f3cead544190ee13223a52f6a6765a29eae7b7cc24cc83a0",
+)
+
+load("@rules_python//python:pip.bzl", pip3_install="pip_install")
+
+pip3_install(
+   name = "py_deps",
+   requirements = "//:requirements.txt",
 )

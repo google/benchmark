@@ -1,6 +1,7 @@
 #ifndef BENCHMARK_REGISTER_H
 #define BENCHMARK_REGISTER_H
 
+#include <limits>
 #include <vector>
 
 #include "check.h"
@@ -22,7 +23,7 @@ AddPowers(std::vector<T>* dst, T lo, T hi, int mult) {
   static const T kmax = std::numeric_limits<T>::max();
 
   // Space out the values in multiples of "mult"
-  for (T i = 1; i <= hi; i *= mult) {
+  for (T i = static_cast<T>(1); i <= hi; i *= mult) {
     if (i >= lo) {
       dst->push_back(i);
     }
@@ -86,7 +87,7 @@ void AddRange(std::vector<T>* dst, T lo, T hi, int mult) {
   }
 
   // Treat 0 as a special case (see discussion on #762).
-  if (lo <= 0 && hi >= 0) {
+  if (lo < 0 && hi >= 0) {
     dst->push_back(0);
   }
 

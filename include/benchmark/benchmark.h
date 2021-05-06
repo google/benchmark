@@ -167,6 +167,12 @@ BENCHMARK(BM_test)->Unit(benchmark::kMillisecond);
 #define BENCHMARK_HAS_CXX11
 #endif
 
+// This _MSC_VER check should detect VS 2017 v15.3 and newer.
+#if __cplusplus >= 201703L || \
+    (defined(_MSC_VER) && _MSC_VER >= 1911 && _MSVC_LANG >= 201703L)
+#define BENCHMARK_HAS_CXX17
+#endif
+
 #include <stdint.h>
 
 #include <algorithm>
@@ -199,13 +205,19 @@ BENCHMARK(BM_test)->Unit(benchmark::kMillisecond);
   TypeName& operator=(const TypeName&) = delete
 #endif
 
-#if defined(__GNUC__)
+#ifdef BENCHMARK_HAS_CXX17
+#define BENCHMARK_UNUSED [[maybe_unused]]
+#elif defined(__GNUC__) || defined(__clang__)
 #define BENCHMARK_UNUSED __attribute__((unused))
+#else
+#define BENCHMARK_UNUSED
+#endif
+
+#if defined(__GNUC__) || defined(__clang__)
 #define BENCHMARK_ALWAYS_INLINE __attribute__((always_inline))
 #define BENCHMARK_NOEXCEPT noexcept
 #define BENCHMARK_NOEXCEPT_OP(x) noexcept(x)
 #elif defined(_MSC_VER) && !defined(__clang__)
-#define BENCHMARK_UNUSED
 #define BENCHMARK_ALWAYS_INLINE __forceinline
 #if _MSC_VER >= 1900
 #define BENCHMARK_NOEXCEPT noexcept
@@ -216,7 +228,6 @@ BENCHMARK(BM_test)->Unit(benchmark::kMillisecond);
 #endif
 #define __func__ __FUNCTION__
 #else
-#define BENCHMARK_UNUSED
 #define BENCHMARK_ALWAYS_INLINE
 #define BENCHMARK_NOEXCEPT
 #define BENCHMARK_NOEXCEPT_OP(x)
@@ -288,6 +299,9 @@ size_t RunSpecifiedBenchmarks(BenchmarkReporter* display_reporter,
 // Register a MemoryManager instance that will be used to collect and report
 // allocation measurements for benchmark runs.
 void RegisterMemoryManager(MemoryManager* memory_manager);
+
+// Add a key-value pair to output as part of the context stanza in the report.
+void AddCustomContext(const std::string& key, const std::string& value);
 
 namespace internal {
 class Benchmark;
@@ -413,7 +427,7 @@ typedef std::map<std::string, Counter> UserCounters;
 
 // TimeUnit is passed to a benchmark in order to specify the order of magnitude
 // for the measured time.
-enum TimeUnit { kNanosecond, kMicrosecond, kMillisecond };
+enum TimeUnit { kNanosecond, kMicrosecond, kMillisecond, kSecond };
 
 // BigO is passed to a benchmark in order to specify the asymptotic
 // computational
@@ -443,6 +457,7 @@ struct Statistics {
 struct BenchmarkInstance;
 class ThreadTimer;
 class ThreadManager;
+class PerfCountersMeasurement;
 
 enum AggregationReportMode
 #if defined(BENCHMARK_HAS_CXX11)
@@ -682,15 +697,17 @@ class State {
  private:
   State(IterationCount max_iters, const std::vector<int64_t>& ranges,
         int thread_i, int n_threads, internal::ThreadTimer* timer,
-        internal::ThreadManager* manager);
+        internal::ThreadManager* manager,
+        internal::PerfCountersMeasurement* perf_counters_measurement);
 
   void StartKeepRunning();
   // Implementation of KeepRunning() and KeepRunningBatch().
   // is_batch must be true unless n is 1.
   bool KeepRunningInternal(IterationCount n, bool is_batch);
   void FinishKeepRunning();
-  internal::ThreadTimer* timer_;
-  internal::ThreadManager* manager_;
+  internal::ThreadTimer* const timer_;
+  internal::ThreadManager* const manager_;
+  internal::PerfCountersMeasurement* const perf_counters_measurement_;
 
   friend struct internal::BenchmarkInstance;
 };
@@ -795,6 +812,9 @@ class Benchmark {
 
   // Note: the following methods all return "this" so that multiple
   // method calls can be chained together in one expression.
+
+  // Specify the name of the benchmark
+  Benchmark* Name(const std::string& name);
 
   // Run this benchmark once with "x" as the extra argument passed
   // to the function.
@@ -1112,6 +1132,9 @@ class Fixture : public internal::Benchmark {
   BENCHMARK_PRIVATE_CONCAT(_benchmark_, BENCHMARK_PRIVATE_UNIQUE_ID, n)
 #define BENCHMARK_PRIVATE_CONCAT(a, b, c) BENCHMARK_PRIVATE_CONCAT2(a, b, c)
 #define BENCHMARK_PRIVATE_CONCAT2(a, b, c) a##b##c
+// Helper for concatenation with macro name expansion
+#define BENCHMARK_PRIVATE_CONCAT_NAME(BaseClass, Method) \
+    BaseClass##_##Method##_Benchmark
 
 #define BENCHMARK_PRIVATE_DECLARE(n)                                 \
   static ::benchmark::internal::Benchmark* BENCHMARK_PRIVATE_NAME(n) \
@@ -1232,27 +1255,27 @@ class Fixture : public internal::Benchmark {
 
 #define BENCHMARK_DEFINE_F(BaseClass, Method)    \
   BENCHMARK_PRIVATE_DECLARE_F(BaseClass, Method) \
-  void BaseClass##_##Method##_Benchmark::BenchmarkCase
+  void BENCHMARK_PRIVATE_CONCAT_NAME(BaseClass, Method)::BenchmarkCase
 
 #define BENCHMARK_TEMPLATE1_DEFINE_F(BaseClass, Method, a)    \
   BENCHMARK_TEMPLATE1_PRIVATE_DECLARE_F(BaseClass, Method, a) \
-  void BaseClass##_##Method##_Benchmark::BenchmarkCase
+  void BENCHMARK_PRIVATE_CONCAT_NAME(BaseClass, Method)::BenchmarkCase
 
 #define BENCHMARK_TEMPLATE2_DEFINE_F(BaseClass, Method, a, b)    \
   BENCHMARK_TEMPLATE2_PRIVATE_DECLARE_F(BaseClass, Method, a, b) \
-  void BaseClass##_##Method##_Benchmark::BenchmarkCase
+  void BENCHMARK_PRIVATE_CONCAT_NAME(BaseClass, Method)::BenchmarkCase
 
 #ifdef BENCHMARK_HAS_CXX11
 #define BENCHMARK_TEMPLATE_DEFINE_F(BaseClass, Method, ...)            \
   BENCHMARK_TEMPLATE_PRIVATE_DECLARE_F(BaseClass, Method, __VA_ARGS__) \
-  void BaseClass##_##Method##_Benchmark::BenchmarkCase
+  void BENCHMARK_PRIVATE_CONCAT_NAME(BaseClass, Method)::BenchmarkCase
 #else
 #define BENCHMARK_TEMPLATE_DEFINE_F(BaseClass, Method, a) \
   BENCHMARK_TEMPLATE1_DEFINE_F(BaseClass, Method, a)
 #endif
 
 #define BENCHMARK_REGISTER_F(BaseClass, Method) \
-  BENCHMARK_PRIVATE_REGISTER_F(BaseClass##_##Method##_Benchmark)
+  BENCHMARK_PRIVATE_REGISTER_F(BENCHMARK_PRIVATE_CONCAT_NAME(BaseClass, Method))
 
 #define BENCHMARK_PRIVATE_REGISTER_F(TestName) \
   BENCHMARK_PRIVATE_DECLARE(TestName) =        \
@@ -1262,23 +1285,23 @@ class Fixture : public internal::Benchmark {
 #define BENCHMARK_F(BaseClass, Method)           \
   BENCHMARK_PRIVATE_DECLARE_F(BaseClass, Method) \
   BENCHMARK_REGISTER_F(BaseClass, Method);       \
-  void BaseClass##_##Method##_Benchmark::BenchmarkCase
+  void BENCHMARK_PRIVATE_CONCAT_NAME(BaseClass, Method)::BenchmarkCase
 
 #define BENCHMARK_TEMPLATE1_F(BaseClass, Method, a)           \
   BENCHMARK_TEMPLATE1_PRIVATE_DECLARE_F(BaseClass, Method, a) \
   BENCHMARK_REGISTER_F(BaseClass, Method);                    \
-  void BaseClass##_##Method##_Benchmark::BenchmarkCase
+  void BENCHMARK_PRIVATE_CONCAT_NAME(BaseClass, Method)::BenchmarkCase
 
 #define BENCHMARK_TEMPLATE2_F(BaseClass, Method, a, b)           \
   BENCHMARK_TEMPLATE2_PRIVATE_DECLARE_F(BaseClass, Method, a, b) \
   BENCHMARK_REGISTER_F(BaseClass, Method);                       \
-  void BaseClass##_##Method##_Benchmark::BenchmarkCase
+  void BENCHMARK_PRIVATE_CONCAT_NAME(BaseClass, Method)::BenchmarkCase
 
 #ifdef BENCHMARK_HAS_CXX11
 #define BENCHMARK_TEMPLATE_F(BaseClass, Method, ...)                   \
   BENCHMARK_TEMPLATE_PRIVATE_DECLARE_F(BaseClass, Method, __VA_ARGS__) \
   BENCHMARK_REGISTER_F(BaseClass, Method);                             \
-  void BaseClass##_##Method##_Benchmark::BenchmarkCase
+  void BENCHMARK_PRIVATE_CONCAT_NAME(BaseClass, Method)::BenchmarkCase
 #else
 #define BENCHMARK_TEMPLATE_F(BaseClass, Method, a) \
   BENCHMARK_TEMPLATE1_F(BaseClass, Method, a)
@@ -1290,6 +1313,7 @@ class Fixture : public internal::Benchmark {
     ::benchmark::Initialize(&argc, argv);                               \
     if (::benchmark::ReportUnrecognizedArguments(argc, argv)) return 1; \
     ::benchmark::RunSpecifiedBenchmarks();                              \
+    return 0;                                                           \
   }                                                                     \
   int main(int, char**)
 
@@ -1309,9 +1333,9 @@ struct CPUInfo {
   enum Scaling { UNKNOWN, ENABLED, DISABLED };
 
   int num_cpus;
+  Scaling scaling;
   double cycles_per_second;
   std::vector<CacheInfo> caches;
-  Scaling scaling;
   std::vector<double> load_avg;
 
   static const CPUInfo& Get();
@@ -1576,6 +1600,8 @@ class MemoryManager {
 
 inline const char* GetTimeUnitString(TimeUnit unit) {
   switch (unit) {
+    case kSecond:
+      return "s";
     case kMillisecond:
       return "ms";
     case kMicrosecond:
@@ -1588,6 +1614,8 @@ inline const char* GetTimeUnitString(TimeUnit unit) {
 
 inline double GetTimeUnitMultiplier(TimeUnit unit) {
   switch (unit) {
+    case kSecond:
+      return 1;
     case kMillisecond:
       return 1e3;
     case kMicrosecond:

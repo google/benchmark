@@ -13,6 +13,7 @@
 // limitations under the License.
 
 #include "benchmark/benchmark.h"
+
 #include "benchmark_api_internal.h"
 #include "benchmark_runner.h"
 #include "internal_macros.h"
@@ -32,6 +33,7 @@
 #include <cstdlib>
 #include <fstream>
 #include <iostream>
+#include <map>
 #include <memory>
 #include <string>
 #include <thread>
@@ -45,6 +47,7 @@
 #include "internal_macros.h"
 #include "log.h"
 #include "mutex.h"
+#include "perf_counters.h"
 #include "re.h"
 #include "statistics.h"
 #include "string_util.h"
@@ -106,9 +109,18 @@ DEFINE_bool(benchmark_counters_tabular, false);
 // The level of verbose logging to output
 DEFINE_int32(v, 0);
 
-namespace benchmark {
+// List of additional perf counters to collect, in libpfm format. For more
+// information about libpfm: https://man7.org/linux/man-pages/man3/libpfm.3.html
+DEFINE_string(benchmark_perf_counters, "");
 
+namespace benchmark {
 namespace internal {
+
+// Extra context to include in the output formatted as comma-separated key-value
+// pairs. Kept internal as it's only used for parsing from env/command line.
+DEFINE_kvpairs(benchmark_context, {});
+
+std::map<std::string, std::string>* global_context = nullptr;
 
 // FIXME: wouldn't LTO mess this up?
 void UseCharPointer(char const volatile*) {}
@@ -117,7 +129,8 @@ void UseCharPointer(char const volatile*) {}
 
 State::State(IterationCount max_iters, const std::vector<int64_t>& ranges,
              int thread_i, int n_threads, internal::ThreadTimer* timer,
-             internal::ThreadManager* manager)
+             internal::ThreadManager* manager,
+             internal::PerfCountersMeasurement* perf_counters_measurement)
     : total_iterations_(0),
       batch_leftover_(0),
       max_iterations(max_iters),
@@ -130,7 +143,8 @@ State::State(IterationCount max_iters, const std::vector<int64_t>& ranges,
       thread_index(thread_i),
       threads(n_threads),
       timer_(timer),
-      manager_(manager) {
+      manager_(manager),
+      perf_counters_measurement_(perf_counters_measurement) {
   CHECK(max_iterations != 0) << "At least one iteration must be run";
   CHECK_LT(thread_index, threads) << "thread_index must be less than threads";
 
@@ -163,11 +177,23 @@ void State::PauseTiming() {
   // Add in time accumulated so far
   CHECK(started_ && !finished_ && !error_occurred_);
   timer_->StopTimer();
+  if (perf_counters_measurement_) {
+    auto measurements = perf_counters_measurement_->StopAndGetMeasurements();
+    for (const auto& name_and_measurement : measurements) {
+      auto name = name_and_measurement.first;
+      auto measurement = name_and_measurement.second;
+      CHECK_EQ(counters[name], 0.0);
+      counters[name] = Counter(measurement, Counter::kAvgIterations);
+    }
+  }
 }
 
 void State::ResumeTiming() {
   CHECK(started_ && !finished_ && !error_occurred_);
   timer_->StartTimer();
+  if (perf_counters_measurement_) {
+    perf_counters_measurement_->Start();
+  }
 }
 
 void State::SkipWithError(const char* msg) {
@@ -377,7 +403,7 @@ size_t RunSpecifiedBenchmarks(BenchmarkReporter* display_reporter,
   if (!fname.empty()) {
     output_file.open(fname);
     if (!output_file.is_open()) {
-      Err << "invalid file name: '" << fname << std::endl;
+      Err << "invalid file name: '" << fname << "'" << std::endl;
       std::exit(1);
     }
     if (!file_reporter) {
@@ -411,6 +437,16 @@ void RegisterMemoryManager(MemoryManager* manager) {
   internal::memory_manager = manager;
 }
 
+void AddCustomContext(const std::string& key, const std::string& value) {
+  if (internal::global_context == nullptr) {
+    internal::global_context = new std::map<std::string, std::string>();
+  }
+  if (!internal::global_context->emplace(key, value).second) {
+    std::cerr << "Failed to add custom context \"" << key << "\" as it already "
+              << "exists with value \"" << value << "\"\n";
+  }
+}
+
 namespace internal {
 
 void PrintUsageAndExit() {
@@ -427,6 +463,7 @@ void PrintUsageAndExit() {
           "          [--benchmark_out_format=<json|console|csv>]\n"
           "          [--benchmark_color={auto|true|false}]\n"
           "          [--benchmark_counters_tabular={true|false}]\n"
+          "          [--benchmark_context=<key>=<value>,...]\n"
           "          [--v=<verbosity>]\n");
   exit(0);
 }
@@ -457,6 +494,10 @@ void ParseCommandLineFlags(int* argc, char** argv) {
         ParseStringFlag(argv[i], "color_print", &FLAGS_benchmark_color) ||
         ParseBoolFlag(argv[i], "benchmark_counters_tabular",
                       &FLAGS_benchmark_counters_tabular) ||
+        ParseStringFlag(argv[i], "benchmark_perf_counters",
+                        &FLAGS_benchmark_perf_counters) ||
+        ParseKeyValueFlag(argv[i], "benchmark_context",
+                          &FLAGS_benchmark_context) ||
         ParseInt32Flag(argv[i], "v", &FLAGS_v)) {
       for (int j = i; j != *argc - 1; ++j) argv[j] = argv[j + 1];
 
@@ -467,12 +508,16 @@ void ParseCommandLineFlags(int* argc, char** argv) {
     }
   }
   for (auto const* flag :
-       {&FLAGS_benchmark_format, &FLAGS_benchmark_out_format})
+       {&FLAGS_benchmark_format, &FLAGS_benchmark_out_format}) {
     if (*flag != "console" && *flag != "json" && *flag != "csv") {
       PrintUsageAndExit();
     }
+  }
   if (FLAGS_benchmark_color.empty()) {
     PrintUsageAndExit();
+  }
+  for (const auto& kv : FLAGS_benchmark_context) {
+    AddCustomContext(kv.first, kv.second);
   }
 }
 

@@ -18,6 +18,8 @@
 #include <cstdlib>
 
 #include <iostream>
+#include <map>
+#include <string>
 #include <tuple>
 #include <vector>
 
@@ -25,6 +27,9 @@
 #include "string_util.h"
 
 namespace benchmark {
+namespace internal {
+extern std::map<std::string, std::string>* global_context;
+}
 
 BenchmarkReporter::BenchmarkReporter()
     : output_stream_(&std::cout), error_stream_(&std::cerr) {}
@@ -62,6 +67,12 @@ void BenchmarkReporter::PrintBasicContext(std::ostream *out,
       if (It != info.load_avg.end()) Out << ", ";
     }
     Out << "\n";
+  }
+
+  if (internal::global_context != nullptr) {
+    for (const auto& kv: *internal::global_context) {
+      Out << kv.first << ": " << kv.second << "\n";
+    }
   }
 
   if (CPUInfo::Scaling::ENABLED == info.scaling) {

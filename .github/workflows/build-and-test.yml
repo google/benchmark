@@ -7,15 +7,27 @@ on:
     branches: [ master ]
 
 jobs:
+  # TODO: add job using container ubuntu:14.04 with and without g++-6
+  # TODO: add 32-bit builds (g++ and clang++) for ubuntu (requires g++-multilib and libc6:i386)
+  # TODO: add coverage build (requires lcov)
+  # TODO: add clang + libc++ builds for ubuntu
+  # TODO: add clang + ubsan/asan/msan + libc++ builds for ubuntu
   job:
-    # TODO(dominic): Extend this to include compiler and set through env: CC/CXX.
-    name: ${{ matrix.os }}.${{ matrix.build_type }}
+    name: ${{ matrix.os }}.${{ matrix.build_type }}.${{ matrix.compiler }}
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, ubuntu-16.04, ubuntu-20.04, macos-latest, windows-latest]
+        os: [ubuntu-latest, ubuntu-16.04, ubuntu-20.04, macos-latest]
         build_type: ['Release', 'Debug']
+        compiler: [g++, clang++]
+        include:
+          - displayTargetName: windows-latest-release
+            os: windows-latest
+            build_type: 'Release'
+          - displayTargetName: windows-latest-debug
+            os: windows-latest
+            build_type: 'Debug'
     steps:
     - uses: actions/checkout@v2
 
@@ -23,9 +35,14 @@ jobs:
       run: cmake -E make_directory ${{ runner.workspace }}/_build
 
     - name: configure cmake
+      env:
+        CXX: ${{ matrix.compiler }}
       shell: bash
       working-directory: ${{ runner.workspace }}/_build
-      run: cmake -DBENCHMARK_DOWNLOAD_DEPENDENCIES=ON $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=${{ matrix.build_type }}
+      run: >
+        cmake $GITHUB_WORKSPACE 
+        -DBENCHMARK_DOWNLOAD_DEPENDENCIES=ON
+        -DCMAKE_BUILD_TYPE=${{ matrix.build_type }}
 
     - name: build
       shell: bash
@@ -35,4 +52,4 @@ jobs:
     - name: test
       shell: bash
       working-directory: ${{ runner.workspace }}/_build
-      run: ctest -C ${{ matrix.build_type }}
+      run: ctest -C ${{ matrix.build_type }} -VV

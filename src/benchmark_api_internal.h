@@ -36,7 +36,8 @@ struct BenchmarkInstance {
   int threads;  // Number of concurrent threads to us
 
   State Run(IterationCount iters, int thread_id, internal::ThreadTimer* timer,
-            internal::ThreadManager* manager) const;
+            internal::ThreadManager* manager,
+            internal::PerfCountersMeasurement* perf_counters_measurement) const;
 };
 
 bool FindBenchmarksInternal(const std::string& re,

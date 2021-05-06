@@ -34,6 +34,7 @@ from google_benchmark._benchmark import (
     kNanosecond,
     kMicrosecond,
     kMillisecond,
+    kSecond,
     oNone,
     o1,
     oN,
@@ -53,6 +54,7 @@ __all__ = [
     "kNanosecond",
     "kMicrosecond",
     "kMillisecond",
+    "kSecond",
     "oNone",
     "o1",
     "oN",
@@ -108,7 +110,7 @@ class __OptionMaker:
 
 
 # Alias for nicer API.
-# We have to instanciate an object, even if stateless, to be able to use __getattr__
+# We have to instantiate an object, even if stateless, to be able to use __getattr__
 # on option.range
 option = __OptionMaker()
 
