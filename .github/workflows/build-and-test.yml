@@ -63,7 +63,10 @@ jobs:
       fail-fast: false
       matrix:
         build_type: ['Release', 'Debug']
-        compiler: [g++-4.8, clang++-3.6, g++-6]
+        compiler: [g++-4.8, clang++-3.6]
+        include:
+          - compiler: g++-6
+            run_tests: true
     container: ubuntu:14.04
     steps:
       - uses: actions/checkout@v2
@@ -87,14 +90,13 @@ jobs:
       - name: configure cmake
         env:
           CXX: ${{ matrix.compiler }}
-          DOWNLOAD_DEPENDENCIES: ${{ matrix.compiler }} == g++-6
         shell: bash
         working-directory: ${{ github.workspace }}/_build
         run: >
           cmake $GITHUB_WORKSPACE
           -DBENCHMARK_ENABLE_TESTING=off
           -DCMAKE_BUILD_TYPE=${{ matrix.build_type }}
-          -DBENCHMARK_DOWNLOAD_DEPENDENCIES=$DOWNLOAD_DEPENDENCIES
+          -DBENCHMARK_DOWNLOAD_DEPENDENCIES=${{ matrix.run_tests }}
 
       - name: build
         shell: bash
@@ -102,7 +104,7 @@ jobs:
         run: cmake --build . --config ${{ matrix.build_type }}
 
       - name: test
-        if: ${{ matrix.compiler }} == g++-6
+        if: ${{ matrix.run_tests }}
         shell: bash
         working-directory: ${{ github.workspace }}/_build
         run: ctest -C ${{ matrix.build_type }} -VV
