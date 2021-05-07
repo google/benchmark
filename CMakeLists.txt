@@ -37,6 +37,17 @@ option(BENCHMARK_ENABLE_GTEST_TESTS "Enable building the unit tests which depend
 option(BENCHMARK_ENABLE_LIBPFM "Enable performance counters provided by libpfm" OFF)
 
 set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
+if(MSVC)
+    # As of CMake 3.18, CMAKE_SYSTEM_PROCESSOR is not set properly for MSVC and
+    # cross-compilation (e.g. Host=x86_64, target=aarch64) requires using the
+    # undocumented, but working variable.
+    # See https://gitlab.kitware.com/cmake/cmake/-/issues/15170
+    set(CMAKE_SYSTEM_PROCESSOR ${MSVC_CXX_ARCHITECTURE_ID})
+    if(${CMAKE_SYSTEM_PROCESSOR} MATCHES "ARM")
+      set(CMAKE_CROSSCOMPILING TRUE)
+    endif()
+endif()
+
 set(ENABLE_ASSEMBLY_TESTS_DEFAULT OFF)
 function(should_enable_assembly_tests)
   if(CMAKE_BUILD_TYPE)
