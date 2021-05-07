@@ -66,6 +66,10 @@ jobs:
         compiler: [g++-4.8, clang++-3.6]
         include:
           - compiler: g++-6
+            build_type: ['Debug']
+            run_tests: true
+          - compiler: g++-6
+            build_type: ['Release']
             run_tests: true
     container: ubuntu:14.04
     steps:
@@ -94,7 +98,7 @@ jobs:
         working-directory: ${{ github.workspace }}/_build
         run: >
           cmake $GITHUB_WORKSPACE
-          -DBENCHMARK_ENABLE_TESTING=off
+          -DBENCHMARK_ENABLE_TESTING=${{ matrix.run_tests }}
           -DCMAKE_BUILD_TYPE=${{ matrix.build_type }}
           -DBENCHMARK_DOWNLOAD_DEPENDENCIES=${{ matrix.run_tests }}
 
