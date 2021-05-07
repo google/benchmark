@@ -62,13 +62,22 @@ jobs:
       fail-fast: false
       matrix:
         build_type: ['Release', 'Debug']
-        compiler: [g++-4.8, clang++-3.6]
+        compiler: [g++-4.8, clang++-3.6, g++-6]
     container: ubuntu:14.04
     steps:
     - uses: actions/checkout@v2
 
     - name: install required bits
-      run: sudo apt update && sudo apt -y install clang-3.6 cmake3 g++-4.8 git
+      run: |
+        sudo apt update
+        sudo apt -y install clang-3.6 cmake3 g++-4.8 git
+
+    - name: install other bits
+      if: ${{ matrix.compiler == 'g++-6' }}
+      run: |
+        sudo add-apt-repository -y "ppa:ubuntu-toolchain-r/test"
+        sudo apt update
+        sudo apt -y install g++-6
 
     - name: create build environment
       run: cmake -E make_directory $GITHUB_WORKSPACE/_build
@@ -76,21 +85,23 @@ jobs:
     - name: configure cmake
       env:
         CXX: ${{ matrix.compiler }}
+        DOWNLOAD_DEPENDENCIES: ${{ matrix.compiler == 'g++-6' }}
       shell: bash
       working-directory: ${{ github.workspace }}/_build
       run: >
         cmake $GITHUB_WORKSPACE
         -DBENCHMARK_ENABLE_TESTING=off
         -DCMAKE_BUILD_TYPE=${{ matrix.build_type }}
-        #-DBENCHMARK_DOWNLOAD_DEPENDENCIES=ON
+        -DBENCHMARK_DOWNLOAD_DEPENDENCIES=$DOWNLOAD_DEPENDENCIES
 
     - name: build
       shell: bash
       working-directory: ${{ github.workspace }}/_build
       run: cmake --build . --config ${{ matrix.build_type }}
 
-      # - name: test
-      #   shell: bash
-      #   working-directory: ${{ github.workspace }}/_build
-      #   run: ctest -C ${{ matrix.build_type }} -VV
+      - name: test
+        if: ${{ matrix.compiler == 'g++-6' }}
+        shell: bash
+        working-directory: ${{ github.workspace }}/_build
+        run: ctest -C ${{ matrix.build_type }} -VV
 
