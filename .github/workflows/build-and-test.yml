@@ -54,8 +54,6 @@ jobs:
         working-directory: ${{ runner.workspace }}/_build
         run: ctest -C ${{ matrix.build_type }} -VV
 
-  # TODO: add compiler g++-6 to ubuntu-14.04 job
-  # TODO: enable testing for g++-6 compiler
   ubuntu-14_04:
     name: ubuntu-14.04.${{ matrix.build_type }}.${{ matrix.compiler }}
     runs-on: [ubuntu-latest]
