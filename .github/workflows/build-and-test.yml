@@ -7,7 +7,6 @@ on:
     branches: [ master ]
 
 jobs:
-  # TODO: add job using container ubuntu:14.04 with and without g++-6
   # TODO: add 32-bit builds (g++ and clang++) for ubuntu (requires g++-multilib and libc6:i386)
   # TODO: add coverage build (requires lcov)
   # TODO: add clang + libc++ builds for ubuntu
@@ -40,7 +39,7 @@ jobs:
       shell: bash
       working-directory: ${{ runner.workspace }}/_build
       run: >
-        cmake $GITHUB_WORKSPACE 
+        cmake $GITHUB_WORKSPACE
         -DBENCHMARK_DOWNLOAD_DEPENDENCIES=ON
         -DCMAKE_BUILD_TYPE=${{ matrix.build_type }}
 
@@ -53,3 +52,45 @@ jobs:
       shell: bash
       working-directory: ${{ runner.workspace }}/_build
       run: ctest -C ${{ matrix.build_type }} -VV
+
+  # TODO: add compiler g++-6 to ubuntu-14.04 job
+  # TODO: enable testing for g++-6 compiler
+  ubuntu-14_04:
+    name: ubuntu-14.04.${{ matrix.build_type }}.${{ matrix.compiler }}
+    runs-on: [ubuntu-latest]
+    strategy:
+      fail-fast: false
+      matrix:
+        build_type: ['Release', 'Debug']
+        compiler: [g++-4.8, clang++-3.6]
+    container: ubuntu:14.04
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: install required bits
+      run: sudo apt update && sudo apt -y install clang-3.6 cmake3 g++-4.8 git
+
+    - name: create build environment
+      run: cmake -E make_directory $GITHUB_WORKSPACE/_build
+
+    - name: configure cmake
+      env:
+        CXX: ${{ matrix.compiler }}
+      shell: bash
+      working-directory: ${{ github.workspace }}/_build
+      run: >
+        cmake $GITHUB_WORKSPACE
+        -DBENCHMARK_ENABLE_TESTING=off
+        -DCMAKE_BUILD_TYPE=${{ matrix.build_type }}
+        #-DBENCHMARK_DOWNLOAD_DEPENDENCIES=ON
+
+    - name: build
+      shell: bash
+      working-directory: ${{ github.workspace }}/_build
+      run: cmake --build . --config ${{ matrix.build_type }}
+
+      # - name: test
+      #   shell: bash
+      #   working-directory: ${{ github.workspace }}/_build
+      #   run: ctest -C ${{ matrix.build_type }} -VV
+
