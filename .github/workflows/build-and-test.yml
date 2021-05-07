@@ -66,10 +66,10 @@ jobs:
         compiler: [g++-4.8, clang++-3.6]
         include:
           - compiler: g++-6
-            build_type: ['Debug']
+            build_type: 'Debug'
             run_tests: true
           - compiler: g++-6
-            build_type: ['Release']
+            build_type: 'Release'
             run_tests: true
     container: ubuntu:14.04
     steps:
