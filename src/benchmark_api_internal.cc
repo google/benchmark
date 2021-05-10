@@ -73,7 +73,7 @@ BenchmarkInstance::BenchmarkInstance(Benchmark* benchmark,
     }
     name_.time_type += "real_time";
   }
-        
+
   if (!benchmark_.thread_counts_.empty()) {
     name_.threads = StrFormat("threads:%d", threads_);
   }
@@ -85,7 +85,7 @@ double BenchmarkInstance::MinTime() const {
     // random_interleaving_repetitions(). Dividing
     // total execution time by random_interleaving_repetitions() gives
     // the adjusted min_time per repetition.
-    return min_time_ * GetRepetitions() / random_interleaving_repetitions();
+    return min_time_ * GetRepetitions() / RandomInterleavingRepetitions();
   }
   return min_time_;
 }

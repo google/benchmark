@@ -18,8 +18,6 @@
 #include "benchmark_api_internal.h"
 #include "internal_macros.h"
 
-DECLARE_double(benchmark_min_time);
-
 DECLARE_int32(benchmark_repetitions);
 
 DECLARE_bool(benchmark_report_aggregates_only);
@@ -43,7 +41,7 @@ struct RunResults {
 };
 
 void RunBenchmark(const benchmark::internal::BenchmarkInstance& b,
-                  const size_t outer_repetitions, const size_t inner_repetitions,
+                  int outer_repetitions, int inner_repetitions,
                   std::vector<BenchmarkReporter::Run>* complexity_reports,
                   RunResults* run_results);
 

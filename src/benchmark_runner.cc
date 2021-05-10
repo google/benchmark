@@ -142,8 +142,8 @@ void RunInThread(const BenchmarkInstance* b, IterationCount iters,
 class BenchmarkRunner {
  public:
   BenchmarkRunner(const benchmark::internal::BenchmarkInstance& b_,
-                  const size_t outer_repetitions_,
-                  const size_t inner_repetitions_,
+                  const int outer_repetitions_,
+                  const int inner_repetitions_,
                   std::vector<BenchmarkReporter::Run>* complexity_reports_,
                   RunResults* run_results_)
       : b(b_),
@@ -151,8 +151,8 @@ class BenchmarkRunner {
         run_results(run_results_),
         outer_repetitions(outer_repetitions_),
         inner_repetitions(inner_repetitions_),
+        min_time(!IsZero(b.min_time()) ? b.min_time() : GetMinTime()),
         repeats(b.repetitions() != 0 ? b.repetitions() : inner_repetitions),
-        min_time(!IsZero(b.min_time()) ? b.min_time() : FLAGS_benchmark_min_time),
         has_explicit_iteration_count(b.iterations() != 0),
         pool(b.threads() - 1),
         iters(has_explicit_iteration_count ? b.iterations() : 1),
@@ -180,7 +180,7 @@ class BenchmarkRunner {
           << "Perf counters were requested but could not be set up.";
     }
 
-    for (size_t repetition_num = 0; repetition_num < repeats;
+    for (int repetition_num = 0; repetition_num < repeats;
          repetition_num++) {
       DoOneRepetition(repetition_num);
     }
@@ -204,9 +204,10 @@ class BenchmarkRunner {
 
   RunResults* run_results = nullptr;
 
-  const size_t outer_repetitions;
-  const size_t inner_repetitions;
-  const size_t repeats;
+  const int outer_repetitions;
+  const int inner_repetitions;
+  const double min_time;
+  const int repeats;
   const bool has_explicit_iteration_count;
 
   std::vector<std::thread> pool;
@@ -352,7 +353,7 @@ class BenchmarkRunner {
         // If random interleaving is enabled and the repetitions is not
         // initialized, do it now.
         if (FLAGS_benchmark_enable_random_interleaving &&
-            !b.random_interleaving_repetitions_initialized()) {
+            !b.RandomInterleavingRepetitionsInitialized()) {
           InternalRandomInterleavingRepetitionsInput input;
           input.total_execution_time_per_repetition = exec_end - exec_start;
           input.time_used_per_repetition = i.seconds;
@@ -360,16 +361,15 @@ class BenchmarkRunner {
           input.min_time_per_repetition = GetMinTime();
           input.max_overhead = FLAGS_benchmark_random_interleaving_max_overhead;
           input.max_repetitions = GetRepetitions();
-          b.init_random_interleaving_repetitions(
+          b.InitRandomInterleavingRepetitions(
               ComputeRandomInterleavingRepetitions(input));
           // If the number of repetitions changed, need to rerun the last trial
           // because iters may also change. Note that we only need to do this
           // if accumulated_time < b.min_time(), i.e., the iterations we have
           // run is not enough for the already adjusted b.min_time().
           // Otherwise, we will still skip the rerun.
-          rerun_trial =
-              b.random_interleaving_repetitions() < GetRepetitions() &&
-              i.seconds < b.min_time() && !has_explicit_iteration_count;
+          rerun_trial = b.RandomInterleavingRepetitions() < GetRepetitions() &&
+            i.seconds < b.min_time() && !has_explicit_iteration_count;
         }
 
         if (!rerun_trial) break;  // Good, let's report them!
@@ -418,7 +418,7 @@ class BenchmarkRunner {
 }  // end namespace
 
 void RunBenchmark(const benchmark::internal::BenchmarkInstance& b,
-                  const size_t outer_repetitions, const size_t inner_repetitions,
+                  const int outer_repetitions, const int inner_repetitions,
                   std::vector<BenchmarkReporter::Run>* complexity_reports,
                   RunResults* run_results) {
   internal::BenchmarkRunner r(b, outer_repetitions, inner_repetitions,

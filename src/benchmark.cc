@@ -351,9 +351,9 @@ void RunBenchmarks(const std::vector<BenchmarkInstance>& benchmarks,
     //  {Random order of A, B, C, ...}, {Random order of A, B, C, ...}, ...
     // That is, repetitions is outside of RunBenchmark(), hence the name
     // outer_repetitions.
-    int64_t inner_repetitions =
+    int inner_repetitions =
         FLAGS_benchmark_enable_random_interleaving ? 1 : GetRepetitions();
-    int64_t outer_repetitions =
+    int outer_repetitions =
         FLAGS_benchmark_enable_random_interleaving ? GetRepetitions() : 1;
     std::vector<size_t> benchmark_indices(benchmarks.size());
     for (size_t i = 0; i < benchmarks.size(); ++i) {
@@ -364,14 +364,14 @@ void RunBenchmarks(const std::vector<BenchmarkInstance>& benchmarks,
     std::mt19937 g(rd());
     // 'run_results_vector' and 'benchmarks' are parallel arrays.
     std::vector<RunResults> run_results_vector(benchmarks.size());
-    for (int64_t i = 0; i < outer_repetitions; i++) {
+    for (int i = 0; i < outer_repetitions; i++) {
       if (FLAGS_benchmark_enable_random_interleaving) {
         std::shuffle(benchmark_indices.begin(), benchmark_indices.end(), g);
       }
       for (size_t j : benchmark_indices) {
         // Repetitions will be automatically adjusted under random interleaving.
         if (!FLAGS_benchmark_enable_random_interleaving ||
-            i < benchmarks[j].random_interleaving_repetitions()) {
+            i < benchmarks[j].RandomInterleavingRepetitions()) {
           RunBenchmark(benchmarks[j], outer_repetitions, inner_repetitions,
                        &complexity_reports, &run_results_vector[j]);
         }

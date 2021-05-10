@@ -1,10 +1,6 @@
 #ifndef BENCHMARK_API_INTERNAL_H
 #define BENCHMARK_API_INTERNAL_H
 
-#include "benchmark/benchmark.h"
-#include "commandlineflags.h"
-
-#include <chrono>
 #include <cmath>
 #include <iosfwd>
 #include <limits>
@@ -74,6 +70,11 @@ class BenchmarkInstance {
   BigO complexity_;
   BigOFunc* complexity_lambda_;
   UserCounters counters_;
+  const std::vector<Statistics>& statistics_;
+  int repetitions_;
+  double min_time_;
+  IterationCount iterations_;
+  int threads_;  // Number of concurrent threads to us
   mutable int64_t random_interleaving_repetitions_ = -1;
 };
 
