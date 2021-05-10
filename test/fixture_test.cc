@@ -27,7 +27,7 @@ class FIXTURE_BECHMARK_NAME : public ::benchmark::Fixture {
   std::unique_ptr<int> data;
 };
 
-BENCHMARK_F(FIXTURE_BECHMARK_NAME, Foo)(benchmark::State& st) {
+BENCHMARK_F(FIXTURE_BECHMARK_NAME, Foo)(benchmark::State &st) {
   assert(data.get() != nullptr);
   assert(*data == 42);
   for (auto _ : st) {

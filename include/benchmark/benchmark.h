@@ -410,7 +410,7 @@ class Counter {
   Counter(double v = 0., Flags f = kDefaults, OneK k = kIs1000)
       : value(v), flags(f), oneK(k) {}
 
-  BENCHMARK_ALWAYS_INLINE operator double const &() const { return value; }
+  BENCHMARK_ALWAYS_INLINE operator double const&() const { return value; }
   BENCHMARK_ALWAYS_INLINE operator double&() { return value; }
 };
 
@@ -1330,7 +1330,11 @@ struct CPUInfo {
     int num_sharing;
   };
 
-  enum Scaling { UNKNOWN, ENABLED, DISABLED };
+  enum Scaling {
+    UNKNOWN,
+    ENABLED,
+    DISABLED
+  };
 
   int num_cpus;
   Scaling scaling;
