@@ -360,6 +360,17 @@ void RunBenchmarks(const std::vector<BenchmarkInstance>& benchmarks,
       benchmark_indices[i] = i;
     }
 
+    auto report = [](BenchmarkReporter* reporter, bool report_aggregates_only,
+                     const RunResults& run_results) {
+      assert(reporter);
+      // If there are no aggregates, do output non-aggregates.
+      report_aggregates_only &= !run_results.aggregates_only.empty();
+      if (!report_aggregates_only)
+        reporter->ReportRuns(run_results.non_aggregates);
+      if (!run_results.aggregates_only.empty())
+        reporter->ReportRuns(run_results.aggregates_only);
+    };
+
     std::random_device rd;
     std::mt19937 g(rd());
     // 'run_results_vector' and 'benchmarks' are parallel arrays.
@@ -374,30 +385,34 @@ void RunBenchmarks(const std::vector<BenchmarkInstance>& benchmarks,
             i < benchmarks[j].RandomInterleavingRepetitions()) {
           RunBenchmark(benchmarks[j], outer_repetitions, inner_repetitions,
                        &complexity_reports, &run_results_vector[j]);
+          if (!FLAGS_benchmark_enable_random_interleaving) {
+            // Print out reports as they come in.
+            const RunResults& run_results = run_results_vector.at(j);
+            report(display_reporter, run_results.display_report_aggregates_only,
+                   run_results);
+            if (file_reporter)
+              report(file_reporter, run_results.file_report_aggregates_only,
+                     run_results);
+
+            flushStreams(display_reporter);
+            flushStreams(file_reporter);
+          }
         }
       }
     }
 
-    auto report = [](BenchmarkReporter* reporter, bool report_aggregates_only,
-                     const RunResults& run_results) {
-      assert(reporter);
-      // If there are no aggregates, do output non-aggregates.
-      report_aggregates_only &= !run_results.aggregates_only.empty();
-      if (!report_aggregates_only)
-        reporter->ReportRuns(run_results.non_aggregates);
-      if (!run_results.aggregates_only.empty())
-        reporter->ReportRuns(run_results.aggregates_only);
-    };
-
-    for (const RunResults& run_results : run_results_vector) {
-      report(display_reporter, run_results.display_report_aggregates_only,
-             run_results);
-      if (file_reporter)
-        report(file_reporter, run_results.file_report_aggregates_only,
+    if (FLAGS_benchmark_enable_random_interleaving) {
+      // Print out all reports at the end of the test.
+      for (const RunResults& run_results : run_results_vector) {
+        report(display_reporter, run_results.display_report_aggregates_only,
                run_results);
+        if (file_reporter)
+          report(file_reporter, run_results.file_report_aggregates_only,
+                 run_results);
 
-      flushStreams(display_reporter);
-      flushStreams(file_reporter);
+        flushStreams(display_reporter);
+        flushStreams(file_reporter);
+      }
     }
   }
   display_reporter->Finalize();
