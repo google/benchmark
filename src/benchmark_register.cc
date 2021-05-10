@@ -24,6 +24,7 @@
 
 #include <algorithm>
 #include <atomic>
+#include <cinttypes>
 #include <condition_variable>
 #include <cstdio>
 #include <cstdlib>
@@ -34,11 +35,6 @@
 #include <numeric>
 #include <sstream>
 #include <thread>
-
-#ifndef __STDC_FORMAT_MACROS
-#define __STDC_FORMAT_MACROS
-#endif
-#include <inttypes.h>
 
 #include "benchmark/benchmark.h"
 #include "benchmark_api_internal.h"

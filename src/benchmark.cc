@@ -317,8 +317,9 @@ void RunBenchmarks(const std::vector<BenchmarkInstance>& benchmarks,
         std::max<size_t>(name_field_width, benchmark.name().str().size());
     might_have_aggregates |= benchmark.repetitions() > 1;
 
-    for (const auto& Stat : *benchmark.statistics())
+    for (const auto& Stat : benchmark.statistics()) {
       stat_field_width = std::max<size_t>(stat_field_width, Stat.name_.size());
+    }
   }
   if (might_have_aggregates) name_field_width += 1 + stat_field_width;
 

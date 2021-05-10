@@ -12,6 +12,9 @@
 #include <string>
 #include <vector>
 
+#include "benchmark/benchmark.h"
+#include "commandlineflags.h"
+
 namespace benchmark {
 namespace internal {
 
@@ -23,44 +26,37 @@ class BenchmarkInstance {
   BenchmarkInstance(Benchmark* benchmark, const std::vector<int64_t>& args,
                     int threads);
 
-  // Const accessors.
-
-  const BenchmarkName& name() const;
-  int64_t repetitions() const;
-  const std::vector<Statistics>* statistics() const;
-  AggregationReportMode aggregation_report_mode() const;
-  TimeUnit time_unit() const;
-  int threads() const;
-  bool measure_process_cpu_time() const;
-  bool use_real_time() const;
-  bool use_manual_time() const;
-  BigO complexity() const;
-  BigOFunc* complexity_lambda() const;
-  bool last_benchmark_instance() const;
-  IterationCount iterations() const;
-
   // Returns the min time to run a microbenchmark in RunBenchmark().
-  double min_time() const;
+  double MinTime() const;
 
   // Returns number of repetitions for Random Interleaving. This will be
   // initialized later once we finish the first repetition, if Random
   // Interleaving is enabled. See also ComputeRandominterleavingrepetitions().
-  int64_t random_interleaving_repetitions() const;
+  int64_t RandomInterleavingRepetitions() const;
 
   // Returns true if repetitions for Random Interleaving is initialized.
-  bool random_interleaving_repetitions_initialized() const;
+  bool RandomInterleavingRepetitionsInitialized() const;
 
   // Initializes number of repetitions for random interleaving.
-  void init_random_interleaving_repetitions(int64_t repetitions) const;
+  void InitRandomInterleavingRepetitions(int64_t repetitions) const;
 
-  // Setters.
-
-  // Sets the value of last_benchmark_instance.
-  void set_last_benchmark_instance(bool last_benchmark_instance) {
-    last_benchmark_instance_ = last_benchmark_instance;
+  const BenchmarkName& name() const { return name_; }
+  AggregationReportMode aggregation_report_mode() const {
+    return aggregation_report_mode_;
   }
+  TimeUnit time_unit() const { return time_unit_; }
+  bool measure_process_cpu_time() const { return measure_process_cpu_time_; }
+  bool use_real_time() const { return use_real_time_; }
+  bool use_manual_time() const { return use_manual_time_; }
+  BigO complexity() const { return complexity_; }
+  BigOFunc& complexity_lambda() const { return *complexity_lambda_; }
+  const std::vector<Statistics>& statistics() const { return statistics_; }
+  int repetitions() const { return repetitions_; }
+  double min_time() const { return min_time_; }
+  IterationCount iterations() const { return iterations_; }
+  int threads() const { return threads_; }
 
-  // Public APIs.
+  bool last_benchmark_instance;
 
   State Run(IterationCount iters, int thread_id, internal::ThreadTimer* timer,
             internal::ThreadManager* manager,
@@ -68,25 +64,16 @@ class BenchmarkInstance {
 
  private:
   BenchmarkName name_;
-  Benchmark* benchmark_;
+  Benchmark& benchmark_;
   AggregationReportMode aggregation_report_mode_;
-  std::vector<int64_t> args_;
+  const std::vector<int64_t>& args_;
   TimeUnit time_unit_;
-  int range_multiplier_;
   bool measure_process_cpu_time_;
   bool use_real_time_;
   bool use_manual_time_;
   BigO complexity_;
   BigOFunc* complexity_lambda_;
   UserCounters counters_;
-  const std::vector<Statistics>* statistics_;
-  bool last_benchmark_instance_;
-  int64_t repetitions_;
-  double min_time_;
-  IterationCount iterations_;
-  int threads_;  // Number of concurrent threads to use
-  // Make it mutable so it can be initialized (mutated) later on a const
-  // instance.
   mutable int64_t random_interleaving_repetitions_ = -1;
 };
 

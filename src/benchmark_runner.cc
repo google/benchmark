@@ -96,7 +96,7 @@ BenchmarkReporter::Run CreateRunReport(
     report.complexity_n = results.complexity_n;
     report.complexity = b.complexity();
     report.complexity_lambda = b.complexity_lambda();
-    report.statistics = b.statistics();
+    report.statistics = &b.statistics();
     report.counters = results.counters;
 
     if (memory_iterations > 0) {
@@ -152,6 +152,7 @@ class BenchmarkRunner {
         outer_repetitions(outer_repetitions_),
         inner_repetitions(inner_repetitions_),
         repeats(b.repetitions() != 0 ? b.repetitions() : inner_repetitions),
+        min_time(!IsZero(b.min_time()) ? b.min_time() : FLAGS_benchmark_min_time),
         has_explicit_iteration_count(b.iterations() != 0),
         pool(b.threads() - 1),
         iters(has_explicit_iteration_count ? b.iterations() : 1),
@@ -188,7 +189,7 @@ class BenchmarkRunner {
     run_results->aggregates_only = ComputeStats(run_results->non_aggregates);
 
     // Maybe calculate complexity report
-    if ((b.complexity() != oNone) && b.last_benchmark_instance()) {
+    if ((b.complexity() != oNone) && b.last_benchmark_instance) {
       auto additional_run_stats = ComputeBigO(complexity_reports);
       run_results->aggregates_only.insert(run_results->aggregates_only.end(),
                                           additional_run_stats.begin(),
