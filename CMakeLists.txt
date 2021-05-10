@@ -144,7 +144,10 @@ else()
   add_cxx_compiler_flag(-Werror RELEASE)
   add_cxx_compiler_flag(-Werror RELWITHDEBINFO)
   add_cxx_compiler_flag(-Werror MINSIZEREL)
-  add_cxx_compiler_flag(-Wsuggest-override)
+  if (NOT BENCHMARK_ENABLE_TESTING)
+    # Disable warning when compiling tests as gtest does not use 'override'.
+    add_cxx_compiler_flag(-Wsuggest-override)
+  endif()
   # Disabled until googletest (gmock) stops emitting variadic macro warnings
   #add_cxx_compiler_flag(-pedantic)
   #add_cxx_compiler_flag(-pedantic-errors)
