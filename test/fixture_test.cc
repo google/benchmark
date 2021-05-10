@@ -1,8 +1,7 @@
+#include "benchmark/benchmark.h"
 
 #include <cassert>
 #include <memory>
-
-#include "benchmark/benchmark.h"
 
 #define FIXTURE_BECHMARK_NAME MyFixture
 

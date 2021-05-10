@@ -1,3 +1,5 @@
+#include "benchmark/benchmark.h"
+
 #include <cassert>
 #include <cmath>
 #include <cstdint>
@@ -6,8 +8,6 @@
 #include <limits>
 #include <sstream>
 #include <string>
-
-#include "benchmark/benchmark.h"
 
 namespace {
 
