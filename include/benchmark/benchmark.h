@@ -448,7 +448,7 @@ struct Statistics {
       : name_(name), compute_(compute) {}
 };
 
-struct BenchmarkInstance;
+class BenchmarkInstance;
 class ThreadTimer;
 class ThreadManager;
 class PerfCountersMeasurement;
@@ -703,7 +703,7 @@ class State {
   internal::ThreadManager* const manager_;
   internal::PerfCountersMeasurement* const perf_counters_measurement_;
 
-  friend struct internal::BenchmarkInstance;
+  friend class internal::BenchmarkInstance;
 };
 
 inline BENCHMARK_ALWAYS_INLINE bool State::KeepRunning() {
@@ -981,6 +981,7 @@ class Benchmark {
 
  private:
   friend class BenchmarkFamilies;
+  friend class BenchmarkInstance;
 
   std::string name_;
   AggregationReportMode aggregation_report_mode_;
