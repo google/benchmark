@@ -159,7 +159,7 @@ bool BenchmarkFamilies::FindBenchmarks(
         const auto full_name = instance.name().str();
         if ((re.Match(full_name) && !isNegativeFilter) ||
             (!re.Match(full_name) && isNegativeFilter)) {
-          instance.set_last_benchmark_instance(&args == &family->args_.back());
+          instance.last_benchmark_instance = (&args == &family->args_.back());
           benchmarks->push_back(std::move(instance));
         }
       }

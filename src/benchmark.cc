@@ -158,7 +158,7 @@ namespace internal {
 DEFINE_kvpairs(benchmark_context, {});
 
 std::map<std::string, std::string>* global_context = nullptr;
-  
+
 // Performance measurements always come with random variances. Defines a
 // factor by which the required number of iterations is overestimated in order
 // to reduce the probability that the minimum time requirement will not be met.
@@ -371,7 +371,7 @@ void RunBenchmarks(const std::vector<BenchmarkInstance>& benchmarks,
       for (size_t j : benchmark_indices) {
         // Repetitions will be automatically adjusted under random interleaving.
         if (!FLAGS_benchmark_enable_random_interleaving ||
-            i < benchmarks[j].random_interleaving_repetitions()) {
+            i < benchmarks[j].RandomInterleavingRepetitions()) {
           RunBenchmark(benchmarks[j], outer_repetitions, inner_repetitions,
                        &complexity_reports, &run_results_vector[j]);
         }

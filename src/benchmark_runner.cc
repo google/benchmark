@@ -152,7 +152,6 @@ class BenchmarkRunner {
         outer_repetitions(outer_repetitions_),
         inner_repetitions(inner_repetitions_),
         repeats(b.repetitions() != 0 ? b.repetitions() : inner_repetitions),
-        min_time(!IsZero(b.min_time()) ? b.min_time() : FLAGS_benchmark_min_time),
         has_explicit_iteration_count(b.iterations() != 0),
         pool(b.threads() - 1),
         iters(has_explicit_iteration_count ? b.iterations() : 1),
@@ -352,7 +351,7 @@ class BenchmarkRunner {
         // If random interleaving is enabled and the repetitions is not
         // initialized, do it now.
         if (FLAGS_benchmark_enable_random_interleaving &&
-            !b.random_interleaving_repetitions_initialized()) {
+            !b.RandomInterleavingRepetitionsInitialized()) {
           InternalRandomInterleavingRepetitionsInput input;
           input.total_execution_time_per_repetition = exec_end - exec_start;
           input.time_used_per_repetition = i.seconds;
@@ -360,7 +359,7 @@ class BenchmarkRunner {
           input.min_time_per_repetition = GetMinTime();
           input.max_overhead = FLAGS_benchmark_random_interleaving_max_overhead;
           input.max_repetitions = GetRepetitions();
-          b.init_random_interleaving_repetitions(
+          b.InitRandomInterleavingRepetitions(
               ComputeRandomInterleavingRepetitions(input));
           // If the number of repetitions changed, need to rerun the last trial
           // because iters may also change. Note that we only need to do this
@@ -368,7 +367,7 @@ class BenchmarkRunner {
           // run is not enough for the already adjusted b.min_time().
           // Otherwise, we will still skip the rerun.
           rerun_trial =
-              b.random_interleaving_repetitions() < GetRepetitions() &&
+              b.RandomInterleavingRepetitions() < GetRepetitions() &&
               i.seconds < b.min_time() && !has_explicit_iteration_count;
         }
 

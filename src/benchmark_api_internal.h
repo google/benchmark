@@ -73,6 +73,11 @@ class BenchmarkInstance {
   bool use_manual_time_;
   BigO complexity_;
   BigOFunc* complexity_lambda_;
+  std::vector<Statistics> statistics_;
+  int repetitions_;
+  double min_time_;
+  IterationCount iterations_;
+  int threads_;
   UserCounters counters_;
   mutable int64_t random_interleaving_repetitions_ = -1;
 };
