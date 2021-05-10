@@ -253,10 +253,10 @@ void RunBenchmarks(const std::vector<BenchmarkInstance>& benchmarks,
   size_t stat_field_width = 0;
   for (const BenchmarkInstance& benchmark : benchmarks) {
     name_field_width =
-        std::max<size_t>(name_field_width, benchmark.name.str().size());
-    might_have_aggregates |= benchmark.repetitions > 1;
+        std::max<size_t>(name_field_width, benchmark.name().str().size());
+    might_have_aggregates |= benchmark.repetitions() > 1;
 
-    for (const auto& Stat : *benchmark.statistics)
+    for (const auto& Stat : benchmark.statistics())
       stat_field_width = std::max<size_t>(stat_field_width, Stat.name_.size());
   }
   if (might_have_aggregates) name_field_width += 1 + stat_field_width;
@@ -425,7 +425,7 @@ size_t RunSpecifiedBenchmarks(BenchmarkReporter* display_reporter,
 
   if (FLAGS_benchmark_list_tests) {
     for (auto const& benchmark : benchmarks)
-      Out << benchmark.name.str() << "\n";
+      Out << benchmark.name().str() << "\n";
   } else {
     internal::RunBenchmarks(benchmarks, display_reporter, file_reporter);
   }

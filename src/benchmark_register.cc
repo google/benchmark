@@ -154,76 +154,9 @@ bool BenchmarkFamilies::FindBenchmarks(
 
     for (auto const& args : family->args_) {
       for (int num_threads : *thread_counts) {
-        BenchmarkInstance instance;
-        instance.name.function_name = family->name_;
-        instance.benchmark = family.get();
-        instance.aggregation_report_mode = family->aggregation_report_mode_;
-        instance.arg = args;
-        instance.time_unit = family->time_unit_;
-        instance.range_multiplier = family->range_multiplier_;
-        instance.min_time = family->min_time_;
-        instance.iterations = family->iterations_;
-        instance.repetitions = family->repetitions_;
-        instance.measure_process_cpu_time = family->measure_process_cpu_time_;
-        instance.use_real_time = family->use_real_time_;
-        instance.use_manual_time = family->use_manual_time_;
-        instance.complexity = family->complexity_;
-        instance.complexity_lambda = family->complexity_lambda_;
-        instance.statistics = &family->statistics_;
-        instance.threads = num_threads;
+        BenchmarkInstance instance(family.get(), args, num_threads);
 
-        // Add arguments to instance name
-        size_t arg_i = 0;
-        for (auto const& arg : args) {
-          if (!instance.name.args.empty()) {
-            instance.name.args += '/';
-          }
-
-          if (arg_i < family->arg_names_.size()) {
-            const auto& arg_name = family->arg_names_[arg_i];
-            if (!arg_name.empty()) {
-              instance.name.args += StrFormat("%s:", arg_name.c_str());
-            }
-          }
-
-          instance.name.args += StrFormat("%" PRId64, arg);
-          ++arg_i;
-        }
-
-        if (!IsZero(family->min_time_))
-          instance.name.min_time =
-              StrFormat("min_time:%0.3f", family->min_time_);
-        if (family->iterations_ != 0) {
-          instance.name.iterations =
-              StrFormat("iterations:%lu",
-                        static_cast<unsigned long>(family->iterations_));
-        }
-        if (family->repetitions_ != 0)
-          instance.name.repetitions =
-              StrFormat("repeats:%d", family->repetitions_);
-
-        if (family->measure_process_cpu_time_) {
-          instance.name.time_type = "process_time";
-        }
-
-        if (family->use_manual_time_) {
-          if (!instance.name.time_type.empty()) {
-            instance.name.time_type += '/';
-          }
-          instance.name.time_type += "manual_time";
-        } else if (family->use_real_time_) {
-          if (!instance.name.time_type.empty()) {
-            instance.name.time_type += '/';
-          }
-          instance.name.time_type += "real_time";
-        }
-
-        // Add the number of threads used to the name
-        if (!family->thread_counts_.empty()) {
-          instance.name.threads = StrFormat("threads:%d", instance.threads);
-        }
-
-        const auto full_name = instance.name.str();
+        const auto full_name = instance.name().str();
         if ((re.Match(full_name) && !isNegativeFilter) ||
             (!re.Match(full_name) && isNegativeFilter)) {
           instance.last_benchmark_instance = (&args == &family->args_.back());

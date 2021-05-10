@@ -71,28 +71,28 @@ BenchmarkReporter::Run CreateRunReport(
   // Create report about this benchmark run.
   BenchmarkReporter::Run report;
 
-  report.run_name = b.name;
+  report.run_name = b.name();
   report.error_occurred = results.has_error_;
   report.error_message = results.error_message_;
   report.report_label = results.report_label_;
   // This is the total iterations across all threads.
   report.iterations = results.iterations;
-  report.time_unit = b.time_unit;
-  report.threads = b.threads;
+  report.time_unit = b.time_unit();
+  report.threads = b.threads();
   report.repetition_index = repetition_index;
-  report.repetitions = b.repetitions;
+  report.repetitions = b.repetitions();
 
   if (!report.error_occurred) {
-    if (b.use_manual_time) {
+    if (b.use_manual_time()) {
       report.real_accumulated_time = results.manual_time_used;
     } else {
       report.real_accumulated_time = results.real_time_used;
     }
     report.cpu_accumulated_time = results.cpu_time_used;
     report.complexity_n = results.complexity_n;
-    report.complexity = b.complexity;
-    report.complexity_lambda = b.complexity_lambda;
-    report.statistics = b.statistics;
+    report.complexity = b.complexity();
+    report.complexity_lambda = b.complexity_lambda();
+    report.statistics = &b.statistics();
     report.counters = results.counters;
 
     if (memory_iterations > 0) {
@@ -104,7 +104,7 @@ BenchmarkReporter::Run CreateRunReport(
       report.max_bytes_used = memory_result.max_bytes_used;
     }
 
-    internal::Finish(&report.counters, results.iterations, seconds, b.threads);
+    internal::Finish(&report.counters, results.iterations, seconds, b.threads());
   }
   return report;
 }
@@ -115,7 +115,7 @@ void RunInThread(const BenchmarkInstance* b, IterationCount iters,
                  int thread_id, ThreadManager* manager,
                  PerfCountersMeasurement* perf_counters_measurement) {
   internal::ThreadTimer timer(
-      b->measure_process_cpu_time
+      b->measure_process_cpu_time()
           ? internal::ThreadTimer::CreateProcessCpuTime()
           : internal::ThreadTimer::Create());
   State st =
@@ -141,12 +141,12 @@ class BenchmarkRunner {
                   std::vector<BenchmarkReporter::Run>* complexity_reports_)
       : b(b_),
         complexity_reports(*complexity_reports_),
-        min_time(!IsZero(b.min_time) ? b.min_time : FLAGS_benchmark_min_time),
-        repeats(b.repetitions != 0 ? b.repetitions
+        min_time(!IsZero(b.min_time()) ? b.min_time() : FLAGS_benchmark_min_time),
+        repeats(b.repetitions() != 0 ? b.repetitions()
                                    : FLAGS_benchmark_repetitions),
-        has_explicit_iteration_count(b.iterations != 0),
-        pool(b.threads - 1),
-        iters(has_explicit_iteration_count ? b.iterations : 1),
+        has_explicit_iteration_count(b.iterations() != 0),
+        pool(b.threads() - 1),
+        iters(has_explicit_iteration_count ? b.iterations() : 1),
         perf_counters_measurement(
             PerfCounters::Create(StrSplit(FLAGS_benchmark_perf_counters, ','))),
         perf_counters_measurement_ptr(perf_counters_measurement.IsValid()
@@ -157,13 +157,13 @@ class BenchmarkRunner {
          FLAGS_benchmark_display_aggregates_only);
     run_results.file_report_aggregates_only =
         FLAGS_benchmark_report_aggregates_only;
-    if (b.aggregation_report_mode != internal::ARM_Unspecified) {
+    if (b.aggregation_report_mode() != internal::ARM_Unspecified) {
       run_results.display_report_aggregates_only =
-          (b.aggregation_report_mode &
+          (b.aggregation_report_mode() &
            internal::ARM_DisplayReportAggregatesOnly);
       run_results.file_report_aggregates_only =
-          (b.aggregation_report_mode & internal::ARM_FileReportAggregatesOnly);
-      CHECK(b.threads == 1 || !perf_counters_measurement.IsValid())
+          (b.aggregation_report_mode() & internal::ARM_FileReportAggregatesOnly);
+      CHECK(b.threads() == 1 || !perf_counters_measurement.IsValid())
           << "Perf counters are not supported in multi-threaded cases.\n";
       CHECK(FLAGS_benchmark_perf_counters.empty() ||
             perf_counters_measurement.IsValid())
@@ -178,7 +178,7 @@ class BenchmarkRunner {
     run_results.aggregates_only = ComputeStats(run_results.non_aggregates);
 
     // Maybe calculate complexity report
-    if ((b.complexity != oNone) && b.last_benchmark_instance) {
+    if ((b.complexity() != oNone) && b.last_benchmark_instance) {
       auto additional_run_stats = ComputeBigO(complexity_reports);
       run_results.aggregates_only.insert(run_results.aggregates_only.end(),
                                          additional_run_stats.begin(),
@@ -214,10 +214,10 @@ class BenchmarkRunner {
     double seconds;
   };
   IterationResults DoNIterations() {
-    VLOG(2) << "Running " << b.name.str() << " for " << iters << "\n";
+    VLOG(2) << "Running " << b.name().str() << " for " << iters << "\n";
 
     std::unique_ptr<internal::ThreadManager> manager;
-    manager.reset(new internal::ThreadManager(b.threads));
+    manager.reset(new internal::ThreadManager(b.threads()));
 
     // Run all but one thread in separate threads
     for (std::size_t ti = 0; ti < pool.size(); ++ti) {
@@ -244,23 +244,23 @@ class BenchmarkRunner {
     manager.reset();
 
     // Adjust real/manual time stats since they were reported per thread.
-    i.results.real_time_used /= b.threads;
-    i.results.manual_time_used /= b.threads;
+    i.results.real_time_used /= b.threads();
+    i.results.manual_time_used /= b.threads();
     // If we were measuring whole-process CPU usage, adjust the CPU time too.
-    if (b.measure_process_cpu_time) i.results.cpu_time_used /= b.threads;
+    if (b.measure_process_cpu_time()) i.results.cpu_time_used /= b.threads();
 
     VLOG(2) << "Ran in " << i.results.cpu_time_used << "/"
             << i.results.real_time_used << "\n";
 
     // By using KeepRunningBatch a benchmark can iterate more times than
     // requested, so take the iteration count from i.results.
-    i.iters = i.results.iterations / b.threads;
+    i.iters = i.results.iterations / b.threads();
 
     // Base decisions off of real time if requested by this benchmark.
     i.seconds = i.results.cpu_time_used;
-    if (b.use_manual_time) {
+    if (b.use_manual_time()) {
       i.seconds = i.results.manual_time_used;
-    } else if (b.use_real_time) {
+    } else if (b.use_real_time()) {
       i.seconds = i.results.real_time_used;
     }
 
@@ -301,7 +301,7 @@ class BenchmarkRunner {
            // CPU time is specified but the elapsed real time greatly exceeds
            // the minimum time.
            // Note that user provided timers are except from this sanity check.
-           ((i.results.real_time_used >= 5 * min_time) && !b.use_manual_time);
+           ((i.results.real_time_used >= 5 * min_time) && !b.use_manual_time());
   }
 
   void DoOneRepetition(int64_t repetition_index) {
@@ -360,7 +360,7 @@ class BenchmarkRunner {
         CreateRunReport(b, i.results, memory_iterations, memory_result,
                         i.seconds, repetition_index);
 
-    if (!report.error_occurred && b.complexity != oNone)
+    if (!report.error_occurred && b.complexity() != oNone)
       complexity_reports.push_back(report);
 
     run_results.non_aggregates.push_back(report);
