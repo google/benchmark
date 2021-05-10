@@ -33,7 +33,7 @@ struct InternalRandomInterleavingRepetitionsInput {
 
 // Should be called right after the first repetition is completed to estimate
 // the number of iterations.
-size_t ComputeRandomInterleavingRepetitions(
+int ComputeRandomInterleavingRepetitions(
     InternalRandomInterleavingRepetitionsInput input);
 
 }  // end namespace internal
