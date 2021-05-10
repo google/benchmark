@@ -1,9 +1,6 @@
 #ifndef BENCHMARK_API_INTERNAL_H
 #define BENCHMARK_API_INTERNAL_H
 
-#include "benchmark/benchmark.h"
-#include "commandlineflags.h"
-
 #include <cmath>
 #include <iosfwd>
 #include <limits>
@@ -11,16 +8,22 @@
 #include <string>
 #include <vector>
 
+#include "benchmark/benchmark.h"
+#include "commandlineflags.h"
+
 namespace benchmark {
 namespace internal {
 
 // Information kept per benchmark we may want to run
 class BenchmarkInstance {
  public:
-   BenchmarkInstance(Benchmark* benchmark, const std::vector<int64_t>& args, int threads);
+  BenchmarkInstance(Benchmark* benchmark, const std::vector<int64_t>& args,
+                    int threads);
 
   const BenchmarkName& name() const { return name_; }
-  AggregationReportMode aggregation_report_mode() const { return aggregation_report_mode_; }
+  AggregationReportMode aggregation_report_mode() const {
+    return aggregation_report_mode_;
+  }
   TimeUnit time_unit() const { return time_unit_; }
   bool measure_process_cpu_time() const { return measure_process_cpu_time_; }
   bool use_real_time() const { return use_real_time_; }
