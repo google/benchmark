@@ -144,6 +144,7 @@ else()
   add_cxx_compiler_flag(-Werror RELEASE)
   add_cxx_compiler_flag(-Werror RELWITHDEBINFO)
   add_cxx_compiler_flag(-Werror MINSIZEREL)
+  add_cxx_compiler_flag(-Wsuggest-override)
   # Disabled until googletest (gmock) stops emitting variadic macro warnings
   #add_cxx_compiler_flag(-pedantic)
   #add_cxx_compiler_flag(-pedantic-errors)
@@ -271,7 +272,7 @@ set(THREADS_PREFER_PTHREAD_FLAG ON)
 find_package(Threads REQUIRED)
 
 if (BENCHMARK_ENABLE_LIBPFM)
-  find_package(PFM)  
+  find_package(PFM)
 endif()
 
 # Set up directories
