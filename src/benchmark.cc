@@ -173,12 +173,12 @@ double GetMinTime() {
 }
 
 // Wraps --benchmark_repetitions and return valid default value if not supplied.
-int64_t GetRepetitions() {
-  const int64_t default_repetitions =
+int GetRepetitions() {
+  const int default_repetitions =
       FLAGS_benchmark_enable_random_interleaving
           ? kRandomInterleavingDefaultRepetitions
           : 1;
-  const int64_t flag_repetitions =
+  const int flag_repetitions =
       do_not_read_flag_directly::FLAGS_benchmark_repetitions;
   return flag_repetitions >= 0 ? flag_repetitions : default_repetitions;
 }

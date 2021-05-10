@@ -88,7 +88,7 @@ ConsoleReporter::OutputOptions GetOutputOptions(bool force_no_color = false);
 
 double GetMinTime();
 
-int64_t GetRepetitions();
+int GetRepetitions();
 
 }  // end namespace internal
 }  // end namespace benchmark
