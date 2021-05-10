@@ -9,7 +9,7 @@ namespace internal {
 
 BenchmarkInstance::BenchmarkInstance(Benchmark* benchmark,
                                      const std::vector<int64_t>& args,
-                                     int threads)
+                                     int thread_count)
     : benchmark_(*benchmark),
       aggregation_report_mode_(benchmark_.aggregation_report_mode_),
       args_(args),
@@ -23,7 +23,7 @@ BenchmarkInstance::BenchmarkInstance(Benchmark* benchmark,
       repetitions_(benchmark_.repetitions_),
       min_time_(benchmark_.min_time_),
       iterations_(benchmark_.iterations_),
-      threads_(threads) {
+      threads_(thread_count) {
   name_.function_name = benchmark_.name_;
 
   size_t arg_i = 0;
