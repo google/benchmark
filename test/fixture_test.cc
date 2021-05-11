@@ -8,14 +8,14 @@
 
 class FIXTURE_BECHMARK_NAME : public ::benchmark::Fixture {
  public:
-  void SetUp(const ::benchmark::State& state) {
+  void SetUp(const ::benchmark::State& state) BENCHMARK_OVERRIDE {
     if (state.thread_index == 0) {
       assert(data.get() == nullptr);
       data.reset(new int(42));
     }
   }
 
-  void TearDown(const ::benchmark::State& state) {
+  void TearDown(const ::benchmark::State& state) BENCHMARK_OVERRIDE {
     if (state.thread_index == 0) {
       assert(data.get() != nullptr);
       data.reset();
