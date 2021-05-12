@@ -43,7 +43,7 @@ struct RunResults {
 };
 
 void RunBenchmark(const benchmark::internal::BenchmarkInstance& b,
-                  const size_t outer_repetitions, const size_t inner_repetitions,
+                  int outer_repetitions, int inner_repetitions,
                   std::vector<BenchmarkReporter::Run>* complexity_reports,
                   RunResults* run_results);
 

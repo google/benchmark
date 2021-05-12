@@ -71,7 +71,7 @@ BenchmarkReporter::Run CreateRunReport(
     const internal::ThreadManager::Result& results,
     IterationCount memory_iterations,
     const MemoryManager::Result& memory_result, double seconds,
-    int64_t repetition_index) {
+    int repetition_index) {
   // Create report about this benchmark run.
   BenchmarkReporter::Run report;
 
@@ -142,13 +142,13 @@ void RunInThread(const BenchmarkInstance* b, IterationCount iters,
 class BenchmarkRunner {
  public:
   BenchmarkRunner(const benchmark::internal::BenchmarkInstance& b_,
-                  const size_t outer_repetitions_,
-                  const size_t inner_repetitions_,
+                  int outer_repetitions_,
+                  int inner_repetitions_,
                   std::vector<BenchmarkReporter::Run>* complexity_reports_,
                   RunResults* run_results_)
       : b(b_),
         complexity_reports(*complexity_reports_),
-        run_results(run_results_),
+        run_results(*run_results_),
         outer_repetitions(outer_repetitions_),
         inner_repetitions(inner_repetitions_),
         repeats(b.repetitions() != 0 ? b.repetitions() : inner_repetitions),
@@ -160,16 +160,16 @@ class BenchmarkRunner {
         perf_counters_measurement_ptr(perf_counters_measurement.IsValid()
                                           ? &perf_counters_measurement
                                           : nullptr) {
-    run_results->display_report_aggregates_only =
+    run_results.display_report_aggregates_only =
         (FLAGS_benchmark_report_aggregates_only ||
          FLAGS_benchmark_display_aggregates_only);
-    run_results->file_report_aggregates_only =
+    run_results.file_report_aggregates_only =
         FLAGS_benchmark_report_aggregates_only;
     if (b.aggregation_report_mode() != internal::ARM_Unspecified) {
-      run_results->display_report_aggregates_only =
+      run_results.display_report_aggregates_only =
           (b.aggregation_report_mode() &
            internal::ARM_DisplayReportAggregatesOnly);
-      run_results->file_report_aggregates_only =
+      run_results.file_report_aggregates_only =
           (b.aggregation_report_mode() &
            internal::ARM_FileReportAggregatesOnly);
       CHECK(b.threads() == 1 || !perf_counters_measurement.IsValid())
@@ -179,18 +179,17 @@ class BenchmarkRunner {
           << "Perf counters were requested but could not be set up.";
     }
 
-    for (size_t repetition_num = 0; repetition_num < repeats;
-         repetition_num++) {
+    for (int repetition_num = 0; repetition_num < repeats; repetition_num++) {
       DoOneRepetition(repetition_num);
     }
 
     // Calculate additional statistics
-    run_results->aggregates_only = ComputeStats(run_results->non_aggregates);
+    run_results.aggregates_only = ComputeStats(run_results.non_aggregates);
 
     // Maybe calculate complexity report
     if ((b.complexity() != oNone) && b.last_benchmark_instance) {
       auto additional_run_stats = ComputeBigO(complexity_reports);
-      run_results->aggregates_only.insert(run_results->aggregates_only.end(),
+      run_results.aggregates_only.insert(run_results.aggregates_only.end(),
                                           additional_run_stats.begin(),
                                           additional_run_stats.end());
       complexity_reports.clear();
@@ -201,11 +200,11 @@ class BenchmarkRunner {
   const benchmark::internal::BenchmarkInstance& b;
   std::vector<BenchmarkReporter::Run>& complexity_reports;
 
-  RunResults* run_results = nullptr;
+  RunResults& run_results;
 
-  const size_t outer_repetitions;
-  const size_t inner_repetitions;
-  const size_t repeats;
+  const int outer_repetitions;
+  const int inner_repetitions;
+  const int repeats;
   const bool has_explicit_iteration_count;
 
   std::vector<std::thread> pool;
@@ -317,7 +316,7 @@ class BenchmarkRunner {
             !b.use_manual_time());
   }
 
-  void DoOneRepetition(int64_t repetition_index) {
+  void DoOneRepetition(int repetition_index) {
     const bool is_the_first_repetition = repetition_index == 0;
     IterationResults i;
 
@@ -410,14 +409,14 @@ class BenchmarkRunner {
     if (!report.error_occurred && b.complexity() != oNone)
       complexity_reports.push_back(report);
 
-    run_results->non_aggregates.push_back(report);
+    run_results.non_aggregates.push_back(report);
   }
 };
 
 }  // end namespace
 
 void RunBenchmark(const benchmark::internal::BenchmarkInstance& b,
-                  const size_t outer_repetitions, const size_t inner_repetitions,
+                  const int outer_repetitions, const int inner_repetitions,
                   std::vector<BenchmarkReporter::Run>* complexity_reports,
                   RunResults* run_results) {
   internal::BenchmarkRunner r(b, outer_repetitions, inner_repetitions,
