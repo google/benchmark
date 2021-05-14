@@ -64,7 +64,7 @@ namespace {
 
 // Attempt to make each repetition run for at least this much of time.
 constexpr double kDefaultMinTimeTotalSecs = 0.5;
-constexpr int64_t kRandomInterleavingDefaultRepetitions = 12;
+constexpr int kRandomInterleavingDefaultRepetitions = 12;
 
 }  // namespace
 
@@ -173,12 +173,12 @@ double GetMinTime() {
 }
 
 // Wraps --benchmark_repetitions and return valid default value if not supplied.
-int64_t GetRepetitions() {
-  const int64_t default_repetitions =
+int GetRepetitions() {
+  const int default_repetitions =
       FLAGS_benchmark_enable_random_interleaving
           ? kRandomInterleavingDefaultRepetitions
           : 1;
-  const int64_t flag_repetitions =
+  const int flag_repetitions =
       do_not_read_flag_directly::FLAGS_benchmark_repetitions;
   return flag_repetitions >= 0 ? flag_repetitions : default_repetitions;
 }
@@ -351,35 +351,48 @@ void RunBenchmarks(const std::vector<BenchmarkInstance>& benchmarks,
     //  {Random order of A, B, C, ...}, {Random order of A, B, C, ...}, ...
     // That is, repetitions is outside of RunBenchmark(), hence the name
     // outer_repetitions.
-    int64_t inner_repetitions =
+    int inner_repetitions =
         FLAGS_benchmark_enable_random_interleaving ? 1 : GetRepetitions();
-    int64_t outer_repetitions =
+    int outer_repetitions =
         FLAGS_benchmark_enable_random_interleaving ? GetRepetitions() : 1;
     std::vector<size_t> benchmark_indices(benchmarks.size());
     for (size_t i = 0; i < benchmarks.size(); ++i) {
       benchmark_indices[i] = i;
     }
 
-    auto report = [](BenchmarkReporter* reporter, bool report_aggregates_only,
-                     const RunResults& run_results) {
-      assert(reporter);
-      // If there are no aggregates, do output non-aggregates.
-      report_aggregates_only &= !run_results.aggregates_only.empty();
-      if (!report_aggregates_only)
-        reporter->ReportRuns(run_results.non_aggregates);
-      if (!run_results.aggregates_only.empty())
-        reporter->ReportRuns(run_results.aggregates_only);
+    auto report = [flushStreams, display_reporter, file_reporter](
+        const RunResults& run_results) {
+      auto report_one = [](BenchmarkReporter* reporter,
+                           bool aggregates_only,
+                           const RunResults& results) {
+        assert(reporter);
+        // If there are no aggregates, do output non-aggregates.
+        aggregates_only &= !results.aggregates_only.empty();
+        if (!aggregates_only)
+          reporter->ReportRuns(results.non_aggregates);
+        if (!results.aggregates_only.empty())
+          reporter->ReportRuns(results.aggregates_only);
+      };
+
+      report_one(display_reporter, run_results.display_report_aggregates_only,
+                 run_results);
+      if (file_reporter)
+        report_one(file_reporter, run_results.file_report_aggregates_only,
+                   run_results);
+
+      flushStreams(display_reporter);
+      flushStreams(file_reporter);
     };
 
     std::random_device rd;
     std::mt19937 g(rd());
     // 'run_results_vector' and 'benchmarks' are parallel arrays.
     std::vector<RunResults> run_results_vector(benchmarks.size());
-    for (int64_t i = 0; i < outer_repetitions; i++) {
+    for (int i = 0; i < outer_repetitions; i++) {
       if (FLAGS_benchmark_enable_random_interleaving) {
         std::shuffle(benchmark_indices.begin(), benchmark_indices.end(), g);
       }
-      for (size_t j : benchmark_indices) {
+      for (int j : benchmark_indices) {
         // Repetitions will be automatically adjusted under random interleaving.
         if (!FLAGS_benchmark_enable_random_interleaving ||
             i < benchmarks[j].RandomInterleavingRepetitions()) {
@@ -388,14 +401,7 @@ void RunBenchmarks(const std::vector<BenchmarkInstance>& benchmarks,
           if (!FLAGS_benchmark_enable_random_interleaving) {
             // Print out reports as they come in.
             const RunResults& run_results = run_results_vector.at(j);
-            report(display_reporter, run_results.display_report_aggregates_only,
-                   run_results);
-            if (file_reporter)
-              report(file_reporter, run_results.file_report_aggregates_only,
-                     run_results);
-
-            flushStreams(display_reporter);
-            flushStreams(file_reporter);
+            report(run_results);
           }
         }
       }
@@ -404,14 +410,7 @@ void RunBenchmarks(const std::vector<BenchmarkInstance>& benchmarks,
     if (FLAGS_benchmark_enable_random_interleaving) {
       // Print out all reports at the end of the test.
       for (const RunResults& run_results : run_results_vector) {
-        report(display_reporter, run_results.display_report_aggregates_only,
-               run_results);
-        if (file_reporter)
-          report(file_reporter, run_results.file_report_aggregates_only,
-                 run_results);
-
-        flushStreams(display_reporter);
-        flushStreams(file_reporter);
+        report(run_results);
       }
     }
   }

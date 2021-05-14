@@ -90,7 +90,7 @@ double BenchmarkInstance::MinTime() const {
   return min_time_;
 }
 
-int64_t BenchmarkInstance::RandomInterleavingRepetitions() const {
+int BenchmarkInstance::RandomInterleavingRepetitions() const {
   return random_interleaving_repetitions_ < 0
              ? GetRepetitions()
              : random_interleaving_repetitions_;
@@ -101,7 +101,7 @@ bool BenchmarkInstance::RandomInterleavingRepetitionsInitialized() const {
 }
 
 void BenchmarkInstance::InitRandomInterleavingRepetitions(
-    int64_t repetitions) const {
+    int repetitions) const {
   random_interleaving_repetitions_ = repetitions;
 }
 

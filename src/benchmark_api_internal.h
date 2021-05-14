@@ -32,13 +32,13 @@ class BenchmarkInstance {
   // Returns number of repetitions for Random Interleaving. This will be
   // initialized later once we finish the first repetition, if Random
   // Interleaving is enabled. See also ComputeRandominterleavingrepetitions().
-  int64_t RandomInterleavingRepetitions() const;
+  int RandomInterleavingRepetitions() const;
 
   // Returns true if repetitions for Random Interleaving is initialized.
   bool RandomInterleavingRepetitionsInitialized() const;
 
   // Initializes number of repetitions for random interleaving.
-  void InitRandomInterleavingRepetitions(int64_t repetitions) const;
+  void InitRandomInterleavingRepetitions(int repetitions) const;
 
   const BenchmarkName& name() const { return name_; }
   AggregationReportMode aggregation_report_mode() const {
@@ -79,7 +79,7 @@ class BenchmarkInstance {
   IterationCount iterations_;
   int threads_;
   UserCounters counters_;
-  mutable int64_t random_interleaving_repetitions_ = -1;
+  mutable int random_interleaving_repetitions_ = -1;
 };
 
 bool FindBenchmarksInternal(const std::string& re,
@@ -92,7 +92,7 @@ ConsoleReporter::OutputOptions GetOutputOptions(bool force_no_color = false);
 
 double GetMinTime();
 
-int64_t GetRepetitions();
+int GetRepetitions();
 
 }  // end namespace internal
 }  // end namespace benchmark

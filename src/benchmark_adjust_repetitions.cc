@@ -26,7 +26,7 @@ constexpr double kNanosecondInSecond = 1e-9;
 
 }  // namespace
 
-size_t ComputeRandomInterleavingRepetitions(
+int ComputeRandomInterleavingRepetitions(
     InternalRandomInterleavingRepetitionsInput input) {
   // Find the repetitions such that total overhead is bounded. Let
   //   n = desired number of repetitions, i.e., the output of this method.
@@ -96,7 +96,7 @@ size_t ComputeRandomInterleavingRepetitions(
   double n = (1 + input.max_overhead) * e / (h + r);
   n = std::min(std::max(n, 1.0), static_cast<double>(input.max_repetitions));
 
-  size_t n_size_t = static_cast<size_t>(n);
+  int n_int = static_cast<int>(n);
 
   VLOG(2) << "Computed random interleaving repetitions"
           << "\n  input.total_execution_time_per_repetition: "
@@ -116,9 +116,9 @@ size_t ComputeRandomInterleavingRepetitions(
           << "\n  m: " << m
           << "\n  e: " << e
           << "\n  n: " << n
-          << "\n  n_size_t: " << n_size_t;
+          << "\n  n_int: " << n_int;
 
-  return n_size_t;
+  return n_int;
 }
 
 }  // internal

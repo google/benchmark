@@ -163,7 +163,7 @@ TEST_F(BenchmarkTest, Match1WithRandomInterleavingAndZeroOverhead) {
 
 InternalRandomInterleavingRepetitionsInput CreateInput(
     double total, double time, double real_time, double min_time,
-    double overhead, size_t repetitions) {
+    double overhead, int repetitions) {
   InternalRandomInterleavingRepetitionsInput input;
   input.total_execution_time_per_repetition = total;
   input.time_used_per_repetition = time;
