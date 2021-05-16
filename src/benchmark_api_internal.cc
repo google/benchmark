@@ -2,6 +2,7 @@
 
 #include <cinttypes>
 
+#include "check.h"
 #include "string_util.h"
 
 DECLARE_bool(benchmark_enable_random_interleaving);
@@ -23,9 +24,12 @@ BenchmarkInstance::BenchmarkInstance(Benchmark* benchmark,
       complexity_lambda_(benchmark_.complexity_lambda_),
       statistics_(benchmark_.statistics_),
       repetitions_(benchmark_.repetitions_),
-      min_time_(benchmark_.min_time_),
+      min_time_(!IsZero(benchmark_.min_time_) ? benchmark_.min_time_
+                                              : GetMinTime()),
       iterations_(benchmark_.iterations_),
       threads_(thread_count) {
+  CHECK(!IsZero(min_time_)) << "min_time must be non-zero.";
+
   name_.function_name = benchmark_.name_;
 
   size_t arg_i = 0;
@@ -79,7 +83,7 @@ BenchmarkInstance::BenchmarkInstance(Benchmark* benchmark,
   }
 }
 
-double BenchmarkInstance::MinTime() const {
+double BenchmarkInstance::min_time() const {
   if (FLAGS_benchmark_enable_random_interleaving) {
     // Random Interleaving will automatically adjust
     // random_interleaving_repetitions(). Dividing

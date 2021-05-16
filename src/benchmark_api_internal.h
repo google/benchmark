@@ -26,9 +26,6 @@ class BenchmarkInstance {
   BenchmarkInstance(Benchmark* benchmark, const std::vector<int64_t>& args,
                     int threads);
 
-  // Returns the min time to run a microbenchmark in RunBenchmark().
-  double MinTime() const;
-
   // Returns number of repetitions for Random Interleaving. This will be
   // initialized later once we finish the first repetition, if Random
   // Interleaving is enabled. See also ComputeRandominterleavingrepetitions().
@@ -52,7 +49,7 @@ class BenchmarkInstance {
   BigOFunc& complexity_lambda() const { return *complexity_lambda_; }
   const std::vector<Statistics>& statistics() const { return statistics_; }
   int repetitions() const { return repetitions_; }
-  double min_time() const { return min_time_; }
+  double min_time() const;
   IterationCount iterations() const { return iterations_; }
   int threads() const { return threads_; }
 
