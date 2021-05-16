@@ -302,6 +302,39 @@ void State::FinishKeepRunning() {
 namespace internal {
 namespace {
 
+// Flushes streams after invoking reporter methods that write to them. This
+// ensures users get timely updates even when streams are not line-buffered.
+void FlushStreams(BenchmarkReporter* reporter) {
+  if (!reporter) return;
+  std::flush(reporter->GetOutputStream());
+  std::flush(reporter->GetErrorStream());
+};
+
+// Reports in both display and file reporters.
+void Report(BenchmarkReporter* display_reporter,
+            BenchmarkReporter* file_reporter, const RunResults& run_results) {
+  auto report_one = [](BenchmarkReporter* reporter,
+                       bool aggregates_only,
+                       const RunResults& results) {
+    assert(reporter);
+    // If there are no aggregates, do output non-aggregates.
+    aggregates_only &= !results.aggregates_only.empty();
+    if (!aggregates_only)
+      reporter->ReportRuns(results.non_aggregates);
+    if (!results.aggregates_only.empty())
+      reporter->ReportRuns(results.aggregates_only);
+  };
+
+  report_one(display_reporter, run_results.display_report_aggregates_only,
+             run_results);
+  if (file_reporter)
+    report_one(file_reporter, run_results.file_report_aggregates_only,
+               run_results);
+
+  FlushStreams(display_reporter);
+  FlushStreams(file_reporter);
+};
+
 void RunBenchmarks(const std::vector<BenchmarkInstance>& benchmarks,
                    BenchmarkReporter* display_reporter,
                    BenchmarkReporter* file_reporter) {
@@ -330,18 +363,10 @@ void RunBenchmarks(const std::vector<BenchmarkInstance>& benchmarks,
   // Keep track of running times of all instances of current benchmark
   std::vector<BenchmarkReporter::Run> complexity_reports;
 
-  // We flush streams after invoking reporter methods that write to them. This
-  // ensures users get timely updates even when streams are not line-buffered.
-  auto flushStreams = [](BenchmarkReporter* reporter) {
-    if (!reporter) return;
-    std::flush(reporter->GetOutputStream());
-    std::flush(reporter->GetErrorStream());
-  };
-
   if (display_reporter->ReportContext(context) &&
       (!file_reporter || file_reporter->ReportContext(context))) {
-    flushStreams(display_reporter);
-    flushStreams(file_reporter);
+    FlushStreams(display_reporter);
+    FlushStreams(file_reporter);
 
     // Without random interleaving, benchmarks are executed in the order of:
     //   A, A, ..., A, B, B, ..., B, C, C, ..., C, ...
@@ -360,30 +385,6 @@ void RunBenchmarks(const std::vector<BenchmarkInstance>& benchmarks,
       benchmark_indices[i] = i;
     }
 
-    auto report = [flushStreams, display_reporter, file_reporter](
-        const RunResults& run_results) {
-      auto report_one = [](BenchmarkReporter* reporter,
-                           bool aggregates_only,
-                           const RunResults& results) {
-        assert(reporter);
-        // If there are no aggregates, do output non-aggregates.
-        aggregates_only &= !results.aggregates_only.empty();
-        if (!aggregates_only)
-          reporter->ReportRuns(results.non_aggregates);
-        if (!results.aggregates_only.empty())
-          reporter->ReportRuns(results.aggregates_only);
-      };
-
-      report_one(display_reporter, run_results.display_report_aggregates_only,
-                 run_results);
-      if (file_reporter)
-        report_one(file_reporter, run_results.file_report_aggregates_only,
-                   run_results);
-
-      flushStreams(display_reporter);
-      flushStreams(file_reporter);
-    };
-
     std::random_device rd;
     std::mt19937 g(rd());
     // 'run_results_vector' and 'benchmarks' are parallel arrays.
@@ -392,7 +393,7 @@ void RunBenchmarks(const std::vector<BenchmarkInstance>& benchmarks,
       if (FLAGS_benchmark_enable_random_interleaving) {
         std::shuffle(benchmark_indices.begin(), benchmark_indices.end(), g);
       }
-      for (int j : benchmark_indices) {
+      for (size_t j : benchmark_indices) {
         // Repetitions will be automatically adjusted under random interleaving.
         if (!FLAGS_benchmark_enable_random_interleaving ||
             i < benchmarks[j].RandomInterleavingRepetitions()) {
@@ -400,8 +401,7 @@ void RunBenchmarks(const std::vector<BenchmarkInstance>& benchmarks,
                        &complexity_reports, &run_results_vector[j]);
           if (!FLAGS_benchmark_enable_random_interleaving) {
             // Print out reports as they come in.
-            const RunResults& run_results = run_results_vector.at(j);
-            report(run_results);
+            Report(display_reporter, file_reporter, run_results_vector.at(j));
           }
         }
       }
@@ -410,14 +410,14 @@ void RunBenchmarks(const std::vector<BenchmarkInstance>& benchmarks,
     if (FLAGS_benchmark_enable_random_interleaving) {
       // Print out all reports at the end of the test.
       for (const RunResults& run_results : run_results_vector) {
-        report(run_results);
+        Report(display_reporter, file_reporter, run_results);
       }
     }
   }
   display_reporter->Finalize();
   if (file_reporter) file_reporter->Finalize();
-  flushStreams(display_reporter);
-  flushStreams(file_reporter);
+  FlushStreams(display_reporter);
+  FlushStreams(file_reporter);
 }
 
 // Disable deprecated warnings temporarily because we need to reference
@@ -567,6 +567,7 @@ void PrintUsageAndExit() {
           "          [--benchmark_filter=<regex>]\n"
           "          [--benchmark_min_time=<min_time>]\n"
           "          [--benchmark_repetitions=<num_repetitions>]\n"
+          "          [--benchmark_enable_random_interleaving={true|false}]\n"
           "          [--benchmark_report_aggregates_only={true|false}]\n"
           "          [--benchmark_display_aggregates_only={true|false}]\n"
           "          [--benchmark_format=<console|json|csv>]\n"
