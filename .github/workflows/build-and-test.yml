@@ -19,7 +19,7 @@ jobs:
         os: [ubuntu-latest, ubuntu-16.04, ubuntu-20.04, macos-latest]
         build_type: ['Release', 'Debug']
         compiler: [g++, clang++]
-        bits: [32, 64]
+        bits: ['32', '64']
         include:
           - displayTargetName: windows-latest-release
             os: windows-latest
@@ -30,8 +30,8 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
-      - if: matrix.bits == 32
-        name: install 32-bit
+      - name: install 32-bit
+        if: matrix.bits == '32'
         run: sudo apt -y install g++-multilib libc6-i386
 
       - name: create build environment
@@ -68,10 +68,10 @@ jobs:
         build_type: ['Release', 'Debug']
         compiler: [g++-4.8, clang++-3.6]
         include:
-          - compiler: g++-6
+          - compiler: 'g++-6'
             build_type: 'Debug'
             run_tests: true
-          - compiler: g++-6
+          - compiler: 'g++-6'
             build_type: 'Release'
             run_tests: true
     container: ubuntu:14.04
@@ -83,7 +83,7 @@ jobs:
           sudo apt update
           sudo apt -y install clang-3.6 cmake3 g++-4.8 git
 
-      - if: matrix.compiler == g++-6
+      - if: matrix.compiler == 'g++-6'
         name: install other bits
         run: |
           sudo apt -y install software-properties-common
