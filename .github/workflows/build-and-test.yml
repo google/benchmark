@@ -19,7 +19,7 @@ jobs:
         os: [ubuntu-latest, ubuntu-16.04, ubuntu-20.04, macos-latest]
         build_type: ['Release', 'Debug']
         compiler: [g++, clang++]
-        bits: ['32', '64']
+        bits: [32, 64]
         include:
           - displayTargetName: windows-latest-release
             os: windows-latest
@@ -30,7 +30,7 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
-      - if: matrix.bits == '32'
+      - if: matrix.bits == 32
         name: install 32-bit
         run: sudo apt -y install g++-multilib libc6-i386
 
@@ -40,7 +40,7 @@ jobs:
       - name: configure cmake
         env:
           CXX: ${{ matrix.compiler }}
-          BUILD_32_BITS: ${{ matrix.bits }} == "32"
+          BUILD_32_BITS: ${{ matrix.bits }} == 32
         shell: bash
         working-directory: ${{ runner.workspace }}/_build
         run: >
