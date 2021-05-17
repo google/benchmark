@@ -46,7 +46,7 @@ jobs:
         run: >
           cmake $GITHUB_WORKSPACE
           -DBENCHMARK_DOWNLOAD_DEPENDENCIES=ON
-          -DBENCHMARK_BUILD_32_BITS=${BUILD_32_BITS}
+          -DBENCHMARK_BUILD_32_BITS=${{ env.BUILD_32_BITS }}
           -DCMAKE_BUILD_TYPE=${{ matrix.build_type }}
 
       - name: build
