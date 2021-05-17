@@ -109,6 +109,7 @@ include(CXXFeatureCheck)
 
 if (BENCHMARK_BUILD_32_BITS)
   add_required_cxx_compiler_flag(-m32)
+  set_property(FIND_LIBRARY_USE_LIB64_PATHS OFF)
 endif()
 
 if (MSVC)
