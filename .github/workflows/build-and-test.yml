@@ -7,13 +7,11 @@ on:
     branches: [master]
 
 jobs:
-  # TODO: add 32-bit builds (g++ and clang++) for ubuntu
-  #   (requires g++-multilib and libc6:i386)
   # TODO: add coverage build (requires lcov)
   # TODO: add clang + libc++ builds for ubuntu
   # TODO: add clang + ubsan/asan/msan + libc++ builds for ubuntu
   job:
-    name: ${{ matrix.os }}.${{ matrix.build_type }}.${{ matrix.compiler }}
+    name: ${{ matrix.os }}.${{ matrix.build_type }}.${{ matrix.compiler }}.${{ matrix.bits }}_bit
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
@@ -21,6 +19,7 @@ jobs:
         os: [ubuntu-latest, ubuntu-16.04, ubuntu-20.04, macos-latest]
         build_type: ['Release', 'Debug']
         compiler: [g++, clang++]
+        bits: ['32', '64']
         include:
           - displayTargetName: windows-latest-release
             os: windows-latest
@@ -31,17 +30,23 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
+      - name: install 32-bit
+        if: ${{ matrix.bits }} == "32"
+        run: sudo apt -y install g++-multilib libc6:i386
+
       - name: create build environment
         run: cmake -E make_directory ${{ runner.workspace }}/_build
 
       - name: configure cmake
         env:
           CXX: ${{ matrix.compiler }}
+          BUILD_32_BITS: ${{ matrix.bits }} == "32"
         shell: bash
         working-directory: ${{ runner.workspace }}/_build
         run: >
           cmake $GITHUB_WORKSPACE
           -DBENCHMARK_DOWNLOAD_DEPENDENCIES=ON
+          -DBENCHMARK_BUILD_32_BITS=$BUILD_32_BITS
           -DCMAKE_BUILD_TYPE=${{ matrix.build_type }}
 
       - name: build
