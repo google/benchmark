@@ -40,13 +40,13 @@ jobs:
       - name: configure cmake
         env:
           CXX: ${{ matrix.compiler }}
-          BUILD_32_BITS: ${{ matrix.bits }} == 32
+          #BUILD_32_BITS: ${{ matrix.bits }} == 32
         shell: bash
         working-directory: ${{ runner.workspace }}/_build
         run: >
           cmake $GITHUB_WORKSPACE
           -DBENCHMARK_DOWNLOAD_DEPENDENCIES=ON
-          -DBENCHMARK_BUILD_32_BITS=${{ env.BUILD_32_BITS }}
+          -DBENCHMARK_BUILD_32_BITS=${{ matrix.bits == 32 }}
           -DCMAKE_BUILD_TYPE=${{ matrix.build_type }}
 
       - name: build
