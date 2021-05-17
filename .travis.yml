@@ -11,30 +11,6 @@ matrix:
             - lcov
       env: COMPILER=g++ C_COMPILER=gcc BUILD_TYPE=Coverage
     - compiler: gcc
-      addons:
-        apt:
-          packages:
-            - g++-multilib
-            - libc6:i386
-      env:
-        - COMPILER=g++
-        - C_COMPILER=gcc
-        - BUILD_TYPE=Debug
-        - BUILD_32_BITS=ON
-        - EXTRA_FLAGS="-m32"
-    - compiler: gcc
-      addons:
-        apt:
-          packages:
-            - g++-multilib
-            - libc6:i386
-      env:
-        - COMPILER=g++
-        - C_COMPILER=gcc
-        - BUILD_TYPE=Release
-        - BUILD_32_BITS=ON
-        - EXTRA_FLAGS="-m32"
-    - compiler: gcc
       env:
         - INSTALL_GCC6_FROM_PPA=1
         - COMPILER=g++-6 C_COMPILER=gcc-6  BUILD_TYPE=Debug
@@ -138,14 +114,6 @@ matrix:
         - ENABLE_SANITIZER=1
         - EXTRA_FLAGS="-g -O2 -fno-omit-frame-pointer -fsanitize=thread -fno-sanitize-recover=all"
         - EXTRA_CXX_FLAGS="-stdlib=libc++"
-    - os: osx
-      osx_image: xcode8.3
-      compiler: clang
-      env:
-        - COMPILER=clang++
-        - BUILD_TYPE=Release
-        - BUILD_32_BITS=ON
-        - EXTRA_FLAGS="-m32"
 
 before_script:
   - if [ -n "${LIBCXX_BUILD}" ]; then
