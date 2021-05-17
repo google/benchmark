@@ -40,7 +40,6 @@ jobs:
       - name: configure cmake
         env:
           CXX: ${{ matrix.compiler }}
-          #BUILD_32_BITS: ${{ matrix.bits }} == 32
         shell: bash
         working-directory: ${{ runner.workspace }}/_build
         run: >
@@ -52,7 +51,7 @@ jobs:
       - name: build
         shell: bash
         working-directory: ${{ runner.workspace }}/_build
-        run: cmake --build . --config ${{ matrix.build_type }}
+        run: cmake --build . --config ${{ matrix.build_type }} --verbose
 
       - name: test
         shell: bash
