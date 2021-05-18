@@ -29,7 +29,7 @@ jobs:
             build_type: 'Debug'
     env:
       EXTRA_FLAGS: ''
-      BUILD_32_BITS: 'off'
+      BUILD_32_BITS: off
     steps:
       - uses: actions/checkout@v2
 
@@ -40,8 +40,8 @@ jobs:
       - name: set 32-bit env
         if: matrix.bits == '32'
         run: |
-          echo "EXTRA_FLAGS='-m32'" >> $GITHUB_ENV
-          echo "BUILD_32_BITS='on'" >> $GITHUB_ENV
+          echo "EXTRA_FLAGS=-m32" >> $GITHUB_ENV
+          echo "BUILD_32_BITS=on" >> $GITHUB_ENV
 
       - name: create build environment
         run: cmake -E make_directory ${{ runner.workspace }}/_build
@@ -78,7 +78,7 @@ jobs:
         compiler: [g++-4.8, clang++-3.6, g++-6]
     container: ubuntu:14.04
     env:
-      ENABLE_TESTING: 'off'
+      ENABLE_TESTING: off
     steps:
       - uses: actions/checkout@v2
 
@@ -88,9 +88,12 @@ jobs:
           sudo apt -y install clang-3.6 cmake3 g++-4.8 git
 
       - if: matrix.compiler == 'g++-6'
-        name: install other bits
+        name: set g++-6 env
+        run: echo "ENABLE_TESTING=on" >> $GITHUB_ENV
+        
+      - if: matrix.compiler == 'g++-6'
+        name: install g++-6
         run: |
-          echo "ENABLE_TESTING='on'" >> $GITHUB_ENV
           sudo apt -y install software-properties-common
           sudo add-apt-repository -y "ppa:ubuntu-toolchain-r/test"
           sudo apt update
