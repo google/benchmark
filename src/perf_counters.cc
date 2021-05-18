@@ -67,6 +67,10 @@ PerfCounters PerfCounters::Create(
       return NoCounters();
     }
     attr.disabled = is_first;
+    // Note: the man page for perf_event_create suggests inerit = true and
+    // read_format = PERF_FORMAT_GROUP don't work together, but that's not the
+    // case.
+    attr.inherit = true;
     attr.pinned = is_first;
     attr.exclude_kernel = true;
     attr.exclude_user = false;
