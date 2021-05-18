@@ -13,8 +13,7 @@ This feature is available if:
   Unit (PMU),
 * The benchmark is compiled with support for collecting counters. Currently,
   this requires [libpfm](http://perfmon2.sourceforge.net/) be available at build
-  time, and
-* Currently, there is a limitation that the benchmark be run on one thread.
+  time
 
 The feature does not require modifying benchmark code. Counter collection is
 handled at the boundaries where timer collection is also handled. 
