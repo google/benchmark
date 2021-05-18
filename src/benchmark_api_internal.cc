@@ -83,7 +83,7 @@ BenchmarkInstance::BenchmarkInstance(Benchmark* benchmark,
   }
 }
 
-double BenchmarkInstance::min_time() const {
+double BenchmarkInstance::MinTime() const {
   if (FLAGS_benchmark_enable_random_interleaving) {
     // Random Interleaving will automatically adjust
     // random_interleaving_repetitions(). Dividing
@@ -105,8 +105,8 @@ bool BenchmarkInstance::RandomInterleavingRepetitionsInitialized() const {
 }
 
 void BenchmarkInstance::InitRandomInterleavingRepetitions(
-    int repetitions) const {
-  random_interleaving_repetitions_ = repetitions;
+    int reps) const {
+  random_interleaving_repetitions_ = reps;
 }
 
 State BenchmarkInstance::Run(

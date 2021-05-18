@@ -279,13 +279,13 @@ class BenchmarkRunner {
     // See how much iterations should be increased by.
     // Note: Avoid division by zero with max(seconds, 1ns).
     double multiplier =
-        b.min_time() * kSafetyMultiplier / std::max(i.seconds, 1e-9);
+        b.MinTime() * kSafetyMultiplier / std::max(i.seconds, 1e-9);
     // If our last run was at least 10% of FLAGS_benchmark_min_time then we
     // use the multiplier directly.
     // Otherwise we use at most 10 times expansion.
     // NOTE: When the last run was at least 10% of the min time the max
     // expansion should be 14x.
-    bool is_significant = (i.seconds / b.min_time()) > 0.1;
+    bool is_significant = (i.seconds / b.MinTime()) > 0.1;
     multiplier = is_significant ? multiplier : std::min(10.0, multiplier);
     if (multiplier <= 1.0) multiplier = 2.0;
 
@@ -306,13 +306,13 @@ class BenchmarkRunner {
     // or because an error was reported.
     return i.results.has_error_ ||
            i.iters >= kMaxIterations ||  // Too many iterations already.
-           i.seconds >= b.min_time() ||  // The elapsed time is large enough.
+           i.seconds >= b.MinTime() ||   // The elapsed time is large enough.
                                          // CPU time is specified but the
                                          // elapsed real time greatly exceeds
                                          // the minimum time. Note that user
                                          // provided timers are except from this
                                          // sanity check.
-           ((i.results.real_time_used >= 5 * b.min_time()) &&
+           ((i.results.real_time_used >= 5 * b.MinTime()) &&
             !b.use_manual_time());
   }
 
@@ -362,12 +362,12 @@ class BenchmarkRunner {
               ComputeRandomInterleavingRepetitions(input));
           // If the number of repetitions changed, need to rerun the last trial
           // because iters may also change. Note that we only need to do this
-          // if accumulated_time < b.min_time(), i.e., the iterations we have
-          // run is not enough for the already adjusted b.min_time().
+          // if accumulated_time < b.MinTime(), i.e., the iterations we have
+          // run is not enough for the already adjusted b.MinTime().
           // Otherwise, we will still skip the rerun.
           rerun_trial =
               b.RandomInterleavingRepetitions() < GetRepetitions() &&
-              i.seconds < b.min_time() && !has_explicit_iteration_count;
+              i.seconds < b.MinTime() && !has_explicit_iteration_count;
         }
 
         if (!rerun_trial) break;  // Good, let's report them!

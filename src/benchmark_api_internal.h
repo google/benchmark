@@ -35,7 +35,7 @@ class BenchmarkInstance {
   bool RandomInterleavingRepetitionsInitialized() const;
 
   // Initializes number of repetitions for random interleaving.
-  void InitRandomInterleavingRepetitions(int repetitions) const;
+  void InitRandomInterleavingRepetitions(int reps) const;
 
   const BenchmarkName& name() const { return name_; }
   AggregationReportMode aggregation_report_mode() const {
@@ -49,7 +49,7 @@ class BenchmarkInstance {
   BigOFunc& complexity_lambda() const { return *complexity_lambda_; }
   const std::vector<Statistics>& statistics() const { return statistics_; }
   int repetitions() const { return repetitions_; }
-  double min_time() const;
+  double MinTime() const;
   IterationCount iterations() const { return iterations_; }
   int threads() const { return threads_; }
 
