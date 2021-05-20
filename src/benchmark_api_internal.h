@@ -1,6 +1,10 @@
 #ifndef BENCHMARK_API_INTERNAL_H
 #define BENCHMARK_API_INTERNAL_H
 
+#include "benchmark/benchmark.h"
+#include "commandlineflags.h"
+
+#include <chrono>
 #include <cmath>
 #include <iosfwd>
 #include <limits>
@@ -14,11 +18,24 @@
 namespace benchmark {
 namespace internal {
 
+extern const double kSafetyMultiplier;
+
 // Information kept per benchmark we may want to run
 class BenchmarkInstance {
  public:
   BenchmarkInstance(Benchmark* benchmark, const std::vector<int64_t>& args,
                     int threads);
+
+  // Returns number of repetitions for Random Interleaving. This will be
+  // initialized later once we finish the first repetition, if Random
+  // Interleaving is enabled. See also ComputeRandominterleavingrepetitions().
+  int RandomInterleavingRepetitions() const;
+
+  // Returns true if repetitions for Random Interleaving is initialized.
+  bool RandomInterleavingRepetitionsInitialized() const;
+
+  // Initializes number of repetitions for random interleaving.
+  void InitRandomInterleavingRepetitions(int reps) const;
 
   const BenchmarkName& name() const { return name_; }
   AggregationReportMode aggregation_report_mode() const {
@@ -32,7 +49,7 @@ class BenchmarkInstance {
   BigOFunc& complexity_lambda() const { return *complexity_lambda_; }
   const std::vector<Statistics>& statistics() const { return statistics_; }
   int repetitions() const { return repetitions_; }
-  double min_time() const { return min_time_; }
+  double MinTime() const;
   IterationCount iterations() const { return iterations_; }
   int threads() const { return threads_; }
 
@@ -53,12 +70,13 @@ class BenchmarkInstance {
   bool use_manual_time_;
   BigO complexity_;
   BigOFunc* complexity_lambda_;
-  UserCounters counters_;
-  const std::vector<Statistics>& statistics_;
+  std::vector<Statistics> statistics_;
   int repetitions_;
   double min_time_;
   IterationCount iterations_;
-  int threads_;  // Number of concurrent threads to us
+  int threads_;
+  UserCounters counters_;
+  mutable int random_interleaving_repetitions_ = -1;
 };
 
 bool FindBenchmarksInternal(const std::string& re,
@@ -68,6 +86,10 @@ bool FindBenchmarksInternal(const std::string& re,
 bool IsZero(double n);
 
 ConsoleReporter::OutputOptions GetOutputOptions(bool force_no_color = false);
+
+double GetMinTime();
+
+int GetRepetitions();
 
 }  // end namespace internal
 }  // end namespace benchmark
