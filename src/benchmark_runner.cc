@@ -170,10 +170,8 @@ class BenchmarkRunner {
           (b.aggregation_report_mode() &
            internal::ARM_DisplayReportAggregatesOnly);
       run_results.file_report_aggregates_only =
-          (b.aggregation_report_mode() &
-           internal::ARM_FileReportAggregatesOnly);
-      CHECK(b.threads() == 1 || !perf_counters_measurement.IsValid())
-          << "Perf counters are not supported in multi-threaded cases.\n";
+          (b.aggregation_report_mode() & internal::ARM_FileReportAggregatesOnly);
+
       CHECK(FLAGS_benchmark_perf_counters.empty() ||
             perf_counters_measurement.IsValid())
           << "Perf counters were requested but could not be set up.";
