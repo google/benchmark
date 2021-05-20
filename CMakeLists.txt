@@ -13,7 +13,7 @@ foreach(p
   endif()
 endforeach()
 
-project (benchmark CXX)
+project (benchmark VERSION 1.5.3 LANGUAGES CXX)
 
 option(BENCHMARK_ENABLE_TESTING "Enable testing of the benchmark library." ON)
 option(BENCHMARK_ENABLE_EXCEPTIONS "Enable the use of exceptions in the benchmark library." ON)
@@ -94,8 +94,14 @@ list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 include(GetGitVersion)
 get_git_version(GIT_VERSION)
 
+# If no git version can be determined, use the version
+# from the project() command
+if ("${GIT_VERSION}" STREQUAL "0.0.0")
+  set(VERSION "${benchmark_VERSION}")
+else()
+  set(VERSION "${GIT_VERSION}")
+endif()
 # Tell the user what versions we are using
-string(REGEX MATCH "[0-9]+\\.[0-9]+\\.[0-9]+" VERSION ${GIT_VERSION})
 message(STATUS "Version: ${VERSION}")
 
 # The version of the libraries
