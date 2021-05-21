@@ -308,7 +308,7 @@ void FlushStreams(BenchmarkReporter* reporter) {
   if (!reporter) return;
   std::flush(reporter->GetOutputStream());
   std::flush(reporter->GetErrorStream());
-};
+}
 
 // Reports in both display and file reporters.
 void Report(BenchmarkReporter* display_reporter,
@@ -333,7 +333,7 @@ void Report(BenchmarkReporter* display_reporter,
 
   FlushStreams(display_reporter);
   FlushStreams(file_reporter);
-};
+}
 
 void RunBenchmarks(const std::vector<BenchmarkInstance>& benchmarks,
                    BenchmarkReporter* display_reporter,
