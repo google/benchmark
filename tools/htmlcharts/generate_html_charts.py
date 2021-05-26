@@ -32,6 +32,9 @@ def create_parser():
         args.htmlheaderfile = str(os.path.dirname(os.path.realpath(sys.argv[0]))) + '/charts_html_header.html'
     return args
 
+# parse cmd args
+args = create_parser()
+
 def try_regex_find(regex, string):
     regexmatch = re.findall(regex, string)
 
@@ -70,10 +73,92 @@ def parse_benchmark_file(file, benchmarks, metric, filterregex):
             benchmarks[benchname]['filedate'][str(file)] = date
             benchmarks[benchname]['data'].append(b[metric])
 
-def main():
-    # parse cmd args
-    args = create_parser()
+def populate_charts_and_groups(chartgroups, benchmark, benchmarkname):
+    sample_count = len(benchmark['data'])
+    print('found ' + str(sample_count) + ' benchmark records for benchmark ' + benchmarkname)
     
+    # find group name
+    groupname = ""
+    if args.groupmatchregex is not None:
+        regexmatch = re.findall(args.groupmatchregex, benchmarkname)
+        if len(regexmatch) > 0:
+            groupname = "".join(regexmatch[0])
+
+    # add to group
+    if chartgroups.get(groupname) is None:
+        chartgroups[groupname] = {}
+
+    charts = chartgroups[groupname]
+
+    # format chart name
+    chartname = try_regex_find(args.chartmatchregex, benchmarkname)
+
+    if charts.get(chartname) is None:
+        charts[chartname] = { 'benchmarks': [], 'filedate': {} }
+    
+    # Get list of all benchmark files in this chart before converting to chart data
+    charts[chartname]['filedate'].update(benchmark['filedate'])
+    charts[chartname]['benchmarks'].append(benchmarkname)
+
+def create_chart_html(benchmarks, chart, chartname):
+    # sort based on benchmark run datetime (oldest to newest)
+    filedatesorted = sorted(chart['filedate'].items(), key=operator.itemgetter(1))
+
+    # only use N most recent results
+    if int(args.maxchartentries) > 0:
+        filedatesorted = filedatesorted[-int(args.maxchartentries):]
+
+    # create data structure needed for Chart.js
+    chartdata = {
+        'type': args.charttype,
+        'data': {
+            'labels': [try_regex_find(args.labelformatregex, x[0]) for x in filedatesorted],
+            'files': [x[0] for x in filedatesorted],
+            'dates': [str(x[1]) for x in filedatesorted],
+            'datasets': []
+        },
+        'options':{ 'plugins':{
+            'title':{ 
+                'text': chartname
+            }
+        }, 
+        'scales':{ 'y': {
+			'title': {
+				'text': args.metric
+			}
+		}}}}
+
+    for benchmark in chart['benchmarks']:
+        # chart.js dataset format
+        chartdataset = {'label': try_regex_find(args.legendformatregex, benchmark), 'data': []}
+
+        filedatekeys = list(benchmarks[benchmark]['filedate'].keys())
+        founddata = False
+
+        # find data from matching file if it exists
+        for filedate in filedatesorted:
+            try:
+                idx = filedatekeys.index(filedate[0])
+                chartdataset['data'].append(benchmarks[benchmark]['data'][idx])
+                founddata = True
+            except:
+                # invalid data will be skipped in chart.js
+                chartdataset['data'].append('NaN')
+
+        if founddata:
+            chartdata['data']['datasets'].append(chartdataset)
+
+    # fill in chart data to html chart template
+    if len(chartdata['data']['datasets']) > 0:
+
+        # html template for chart, width/height aspect ratio is preserved
+        charthtml = '<canvas width="18" height="8"></canvas><script>allcharts.push(new Chart([...document.getElementsByTagName("canvas")].slice(-1)[0].getContext("2d"), %CHARTDATA%));</script>'
+                
+        return charthtml.replace("%CHARTDATA%", str(chartdata))
+
+    return ""
+
+def main():    
     # get list of files to parse
     files = []
     for entry in os.scandir(args.directory):
@@ -96,34 +181,10 @@ def main():
         except:
             print('Benchmark json parse failed: ' + entry.path)
                 
-    # analyse benchmarks
+    # sort benchmark data into charts and groups
     chartgroups = {}
     for benchmark in benchmarks:  
-        sample_count = len(benchmarks[benchmark]['data'])
-        print('found ' + str(sample_count) + ' benchmark records for benchmark ' + benchmark)
-        
-        # find group name
-        groupname = ""
-        if args.groupmatchregex is not None:
-            regexmatch = re.findall(args.groupmatchregex, benchmark)
-            if len(regexmatch) > 0:
-                groupname = "".join(regexmatch[0])
-
-        # add to group
-        if chartgroups.get(groupname) is None:
-            chartgroups[groupname] = {}
-
-        charts = chartgroups[groupname]
-
-        # format chart name
-        chartname = try_regex_find(args.chartmatchregex, benchmark)
-
-        if charts.get(chartname) is None:
-            charts[chartname] = { 'benchmarks': [], 'filedate': {} }
-        
-        # Get list of all benchmark files in this chart before converting to chart data
-        charts[chartname]['filedate'].update(benchmarks[benchmark]['filedate'])
-        charts[chartname]['benchmarks'].append(benchmark)
+        populate_charts_and_groups(chartgroups, benchmarks[benchmark], benchmark)
 
     # html header
     htmloutput = """
@@ -137,13 +198,9 @@ def main():
 
     htmloutput += '\n<ul class="collapsible">'
 
-    # html template for chart, width/height aspect ratio is preserved
-    htmlcharttemplate = '<canvas width="18" height="8"></canvas><script>allcharts.push(new Chart([...document.getElementsByTagName("canvas")].slice(-1)[0].getContext("2d"), %CHARTDATA%));</script>'
-
     # create collapsible html groups
     for group in chartgroups:
-        grouphtml = ''
-        chartsingroup = False     
+        grouphtml = ''  
 
         # html collapsible section for groups
         if group != '':
@@ -152,66 +209,13 @@ def main():
 
         # create chart html
         for chart in chartgroups[group]:
-            # sort based on benchmark run datetime (oldest to newest)
-            filedatesorted = sorted(chartgroups[group][chart]['filedate'].items(), key=operator.itemgetter(1))
-
-            # only use N most recent results
-            if int(args.maxchartentries) > 0:
-                filedatesorted = filedatesorted[-int(args.maxchartentries):]
-
-            # create data structure needed for Chart.js
-            chartdata = {
-                'type': args.charttype,
-                'data': {
-                    'labels': [try_regex_find(args.labelformatregex, x[0]) for x in filedatesorted],
-                    'files': [x[0] for x in filedatesorted],
-                    'dates': [str(x[1]) for x in filedatesorted],
-                    'datasets': []
-                },
-                'options':{ 'plugins':{
-                    'title':{ 
-                        'text': chart
-                    }
-                }, 
-                'scales':{ 'y': {
-					'title': {
-						'text': args.metric
-					}
-				}}}}
-
-            for benchmark in chartgroups[group][chart]['benchmarks']:
-                # chart.js dataset format
-                chartdataset = {'label': try_regex_find(args.legendformatregex, benchmark), 'data': []}
-
-                filedatekeys = list(benchmarks[benchmark]['filedate'].keys())
-                founddata = False
-
-                # find data from matching file if it exists
-                for filedate in filedatesorted:
-                    try:
-                        idx = filedatekeys.index(filedate[0])
-                        chartdataset['data'].append(benchmarks[benchmark]['data'][idx])
-                        founddata = True
-                    except:
-                        # invalid data will be skipped in chart.js
-                        chartdataset['data'].append('NaN')
-
-                if founddata:
-                    chartdata['data']['datasets'].append(chartdataset)
-
-            # fill in chart data to html chart template
-            if len(chartdata['data']['datasets']) > 0:
-                charthtml = htmlcharttemplate
-                charthtml = charthtml.replace("%CHARTDATA%", str(chartdata))
-                
-                grouphtml += charthtml
-                chartsingroup = True
+            grouphtml += create_chart_html(benchmarks, chartgroups[group][chart], chart)
         
         if group != "":
             grouphtml += '</div></li>'
 
         # Only add the group html if it contains charts
-        if chartsingroup:
+        if grouphtml.find("canvas") != -1:
             htmloutput += grouphtml
 
     # html footer, manages collapsible sections
