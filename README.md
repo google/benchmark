@@ -39,7 +39,6 @@ as some of the structural aspects of the APIs are similar.
 [Discussion group](https://groups.google.com/d/forum/benchmark-discuss)
 
 IRC channels:
-* [freenode](https://freenode.net) #googlebenchmark
 * [libera](https://libera.chat) #benchmark
 
 [Additional Tooling Documentation](docs/tools.md)
