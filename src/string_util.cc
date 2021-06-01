@@ -169,7 +169,7 @@ std::vector<std::string> StrSplit(const std::string& str, char delim) {
   size_t first = 0;
   size_t next = str.find(delim);
   for (; next != std::string::npos;
-       first = next + 1, next = str.find(first, delim)) {
+       first = next + 1, next = str.find(delim, first)) {
     ret.push_back(str.substr(first, next - first));
   }
   ret.push_back(str.substr(first));
