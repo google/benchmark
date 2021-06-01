@@ -1,8 +1,10 @@
 name: build-and-test
 
 on:
-  push: {}
-  pull_request: {}
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
 
 jobs:
   # TODO: add 32-bit builds (g++ and clang++) for ubuntu
