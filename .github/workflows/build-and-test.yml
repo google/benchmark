@@ -1,10 +1,8 @@
 name: build-and-test
 
 on:
-  push:
-    branches: [master]
-  pull_request:
-    branches: [master]
+  push: {}
+  pull_request: {}
 
 jobs:
   # TODO: add coverage build (requires lcov)
@@ -19,14 +17,18 @@ jobs:
         os: [ubuntu-latest, ubuntu-16.04, ubuntu-20.04, macos-latest]
         build_type: ['Release', 'Debug']
         compiler: [g++, clang++]
-        bits: ['32', '64']
         include:
-          - displayTargetName: windows-latest-release
+          - displayTargetName: windows-latest.release
             os: windows-latest
             build_type: 'Release'
-          - displayTargetName: windows-latest-debug
+          - displayTargetName: windows-latest.debug
             os: windows-latest
             build_type: 'Debug'
+          - displayTargetName: ubuntu-latest.debug.clang++.32_bit
+            os: ubuntu-latest
+            build_type: 'Debug'
+            compiler: clang++
+            bits: '32'
     env:
       EXTRA_FLAGS: ''
       BUILD_32_BITS: off
