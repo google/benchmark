@@ -179,7 +179,7 @@ BENCHMARK_MAIN();
 ```
 
 To run the benchmark, compile and link against the `benchmark` library
-(libbenchmark.a/.so). If you followed the build steps above, this library will
+(libbenchmark.a/.so). If you followed the build steps above, this library will 
 be under the build directory you created.
 
 ```bash
@@ -299,8 +299,6 @@ too (`-lkstat`).
 
 [Setting the Time Unit](#setting-the-time-unit)
 
-[Random Interleaving](docs/random_interleaving.md)
-
 [User-Requested Performance Counters](docs/perf_counters.md)
 
 [Preventing Optimization](#preventing-optimization)
@@ -401,8 +399,8 @@ Write benchmark results to a file with the `--benchmark_out=<filename>` option
 (or set `BENCHMARK_OUT`). Specify the output format with
 `--benchmark_out_format={json|console|csv}` (or set
 `BENCHMARK_OUT_FORMAT={json|console|csv}`). Note that the 'csv' reporter is
-deprecated and the saved `.csv` file
-[is not parsable](https://github.com/google/benchmark/issues/794) by csv
+deprecated and the saved `.csv` file 
+[is not parsable](https://github.com/google/benchmark/issues/794) by csv 
 parsers.
 
 Specifying `--benchmark_out` does not suppress the console output.
