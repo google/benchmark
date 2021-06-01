@@ -196,7 +196,6 @@ if (BENCHMARK_ENABLE_GTEST_TESTS)
 
   add_gtest(benchmark_gtest)
   add_gtest(benchmark_name_gtest)
-  add_gtest(benchmark_random_interleaving_gtest)
   add_gtest(commandlineflags_gtest)
   add_gtest(statistics_gtest)
   add_gtest(string_util_gtest)
