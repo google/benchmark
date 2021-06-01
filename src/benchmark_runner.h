@@ -50,19 +50,33 @@ struct RunResults {
 class BenchmarkRunner {
  public:
   BenchmarkRunner(const benchmark::internal::BenchmarkInstance& b_,
-                  std::vector<BenchmarkReporter::Run>* complexity_reports_);
+                  BenchmarkReporter::PerFamilyRunReports* reports_for_family);
 
-  RunResults&& get_results() { return std::move(run_results); }
+  int GetNumRepeats() const { return repeats; }
+
+  bool HasRepeatsRemaining() const {
+    return GetNumRepeats() != num_repetitions_done;
+  }
+
+  void DoOneRepetition();
+
+  RunResults&& GetResults();
+
+  BenchmarkReporter::PerFamilyRunReports* GetReportsForFamily() const {
+    return reports_for_family;
+  };
 
  private:
   RunResults run_results;
 
   const benchmark::internal::BenchmarkInstance& b;
-  std::vector<BenchmarkReporter::Run>* complexity_reports;
+  BenchmarkReporter::PerFamilyRunReports* reports_for_family;
 
   const double min_time;
   const int repeats;
   const bool has_explicit_iteration_count;
+
+  int num_repetitions_done = 0;
 
   std::vector<std::thread> pool;
 
@@ -83,13 +97,7 @@ class BenchmarkRunner {
   IterationCount PredictNumItersNeeded(const IterationResults& i) const;
 
   bool ShouldReportIterationResults(const IterationResults& i) const;
-
-  void DoOneRepetition(int64_t repetition_index);
 };
-
-RunResults RunBenchmark(
-    const benchmark::internal::BenchmarkInstance& b,
-    std::vector<BenchmarkReporter::Run>* complexity_reports);
 
 }  // namespace internal
 

@@ -33,8 +33,10 @@
 #include <cstdlib>
 #include <fstream>
 #include <iostream>
+#include <limits>
 #include <map>
 #include <memory>
+#include <random>
 #include <string>
 #include <thread>
 #include <utility>
@@ -72,6 +74,10 @@ DEFINE_double(benchmark_min_time, 0.5);
 // The number of runs of each benchmark. If greater than 1, the mean and
 // standard deviation of the runs will be reported.
 DEFINE_int32(benchmark_repetitions, 1);
+
+// If set, enable random interleaving of repetitions of all benchmarks.
+// See http://github.com/google/benchmark/issues/1051 for details.
+DEFINE_bool(benchmark_enable_random_interleaving, false);
 
 // Report the result of each benchmark repetitions. When 'true' is specified
 // only the mean, standard deviation, and other statistics are reported for
@@ -297,23 +303,68 @@ void RunBenchmarks(const std::vector<BenchmarkInstance>& benchmarks,
   context.name_field_width = name_field_width;
 
   // Keep track of running times of all instances of each benchmark family.
-  std::map<int /*family_index*/, std::vector<BenchmarkReporter::Run>>
-      complexity_reports;
+  std::map<int /*family_index*/, BenchmarkReporter::PerFamilyRunReports>
+      per_family_reports;
 
   if (display_reporter->ReportContext(context) &&
       (!file_reporter || file_reporter->ReportContext(context))) {
     FlushStreams(display_reporter);
     FlushStreams(file_reporter);
 
-    for (const BenchmarkInstance& benchmark : benchmarks) {
-      std::vector<BenchmarkReporter::Run>* complexity_reports_for_family =
-          nullptr;
-      if (benchmark.complexity() != oNone)
-        complexity_reports_for_family =
-            &complexity_reports[benchmark.family_index()];
+    size_t num_repetitions_total = 0;
 
-      RunResults run_results =
-          RunBenchmark(benchmark, complexity_reports_for_family);
+    std::vector<internal::BenchmarkRunner> runners;
+    runners.reserve(benchmarks.size());
+    for (const BenchmarkInstance& benchmark : benchmarks) {
+      BenchmarkReporter::PerFamilyRunReports* reports_for_family = nullptr;
+      if (benchmark.complexity() != oNone)
+        reports_for_family = &per_family_reports[benchmark.family_index()];
+
+      runners.emplace_back(benchmark, reports_for_family);
+      int num_repeats_of_this_instance = runners.back().GetNumRepeats();
+      num_repetitions_total += num_repeats_of_this_instance;
+      if (reports_for_family)
+        reports_for_family->num_runs_total += num_repeats_of_this_instance;
+    }
+    assert(runners.size() == benchmarks.size() && "Unexpected runner count.");
+
+    std::vector<int> repetition_indices;
+    repetition_indices.reserve(num_repetitions_total);
+    for (size_t runner_index = 0, num_runners = runners.size();
+         runner_index != num_runners; ++runner_index) {
+      const internal::BenchmarkRunner& runner = runners[runner_index];
+      std::fill_n(std::back_inserter(repetition_indices),
+                  runner.GetNumRepeats(), runner_index);
+    }
+    assert(repetition_indices.size() == num_repetitions_total &&
+           "Unexpected number of repetition indexes.");
+
+    if (FLAGS_benchmark_enable_random_interleaving) {
+      std::random_device rd;
+      std::mt19937 g(rd());
+      std::shuffle(repetition_indices.begin(), repetition_indices.end(), g);
+    }
+
+    for (size_t repetition_index : repetition_indices) {
+      internal::BenchmarkRunner& runner = runners[repetition_index];
+      runner.DoOneRepetition();
+      if (runner.HasRepeatsRemaining()) continue;
+      // FIXME: report each repetition separately, not all of them in bulk.
+
+      RunResults run_results = runner.GetResults();
+
+      // Maybe calculate complexity report
+      if (const auto* reports_for_family = runner.GetReportsForFamily()) {
+        if (reports_for_family->num_runs_done ==
+            reports_for_family->num_runs_total) {
+          auto additional_run_stats = ComputeBigO(reports_for_family->Runs);
+          run_results.aggregates_only.insert(run_results.aggregates_only.end(),
+                                             additional_run_stats.begin(),
+                                             additional_run_stats.end());
+          per_family_reports.erase(
+              (int)reports_for_family->Runs.front().family_index);
+        }
+      }
 
       Report(display_reporter, file_reporter, run_results);
     }
@@ -471,6 +522,7 @@ void PrintUsageAndExit() {
           "          [--benchmark_filter=<regex>]\n"
           "          [--benchmark_min_time=<min_time>]\n"
           "          [--benchmark_repetitions=<num_repetitions>]\n"
+          "          [--benchmark_enable_random_interleaving={true|false}]\n"
           "          [--benchmark_report_aggregates_only={true|false}]\n"
           "          [--benchmark_display_aggregates_only={true|false}]\n"
           "          [--benchmark_format=<console|json|csv>]\n"
@@ -495,6 +547,8 @@ void ParseCommandLineFlags(int* argc, char** argv) {
                         &FLAGS_benchmark_min_time) ||
         ParseInt32Flag(argv[i], "benchmark_repetitions",
                        &FLAGS_benchmark_repetitions) ||
+        ParseBoolFlag(argv[i], "benchmark_enable_random_interleaving",
+                      &FLAGS_benchmark_enable_random_interleaving) ||
         ParseBoolFlag(argv[i], "benchmark_report_aggregates_only",
                       &FLAGS_benchmark_report_aggregates_only) ||
         ParseBoolFlag(argv[i], "benchmark_display_aggregates_only",

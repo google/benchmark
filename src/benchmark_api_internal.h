@@ -39,8 +39,6 @@ class BenchmarkInstance {
   IterationCount iterations() const { return iterations_; }
   int threads() const { return threads_; }
 
-  bool last_benchmark_instance;
-
   State Run(IterationCount iters, int thread_id, internal::ThreadTimer* timer,
             internal::ThreadManager* manager,
             internal::PerfCountersMeasurement* perf_counters_measurement) const;
