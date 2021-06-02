@@ -71,6 +71,7 @@ void BM_Counters_Tabular(benchmark::State& state) {
 BENCHMARK(BM_Counters_Tabular)->ThreadRange(1, 16);
 ADD_CASES(TC_JSONOut,
           {{"\"name\": \"BM_Counters_Tabular/threads:%int\",$"},
+           {"\"family_index\": 0,$", MR_Next},
            {"\"run_name\": \"BM_Counters_Tabular/threads:%int\",$", MR_Next},
            {"\"run_type\": \"iteration\",$", MR_Next},
            {"\"repetitions\": 1,$", MR_Next},
@@ -123,6 +124,7 @@ void BM_CounterRates_Tabular(benchmark::State& state) {
 BENCHMARK(BM_CounterRates_Tabular)->ThreadRange(1, 16);
 ADD_CASES(TC_JSONOut,
           {{"\"name\": \"BM_CounterRates_Tabular/threads:%int\",$"},
+           {"\"family_index\": 1,$", MR_Next},
            {"\"run_name\": \"BM_CounterRates_Tabular/threads:%int\",$",
             MR_Next},
            {"\"run_type\": \"iteration\",$", MR_Next},
@@ -174,6 +176,7 @@ void BM_CounterSet0_Tabular(benchmark::State& state) {
 BENCHMARK(BM_CounterSet0_Tabular)->ThreadRange(1, 16);
 ADD_CASES(TC_JSONOut,
           {{"\"name\": \"BM_CounterSet0_Tabular/threads:%int\",$"},
+           {"\"family_index\": 2,$", MR_Next},
            {"\"run_name\": \"BM_CounterSet0_Tabular/threads:%int\",$", MR_Next},
            {"\"run_type\": \"iteration\",$", MR_Next},
            {"\"repetitions\": 1,$", MR_Next},
@@ -212,6 +215,7 @@ void BM_CounterSet1_Tabular(benchmark::State& state) {
 BENCHMARK(BM_CounterSet1_Tabular)->ThreadRange(1, 16);
 ADD_CASES(TC_JSONOut,
           {{"\"name\": \"BM_CounterSet1_Tabular/threads:%int\",$"},
+           {"\"family_index\": 3,$", MR_Next},
            {"\"run_name\": \"BM_CounterSet1_Tabular/threads:%int\",$", MR_Next},
            {"\"run_type\": \"iteration\",$", MR_Next},
            {"\"repetitions\": 1,$", MR_Next},
@@ -254,6 +258,7 @@ void BM_CounterSet2_Tabular(benchmark::State& state) {
 BENCHMARK(BM_CounterSet2_Tabular)->ThreadRange(1, 16);
 ADD_CASES(TC_JSONOut,
           {{"\"name\": \"BM_CounterSet2_Tabular/threads:%int\",$"},
+           {"\"family_index\": 4,$", MR_Next},
            {"\"run_name\": \"BM_CounterSet2_Tabular/threads:%int\",$", MR_Next},
            {"\"run_type\": \"iteration\",$", MR_Next},
            {"\"repetitions\": 1,$", MR_Next},
