@@ -72,6 +72,7 @@ BenchmarkReporter::Run CreateRunReport(
   BenchmarkReporter::Run report;
 
   report.run_name = b.name();
+  report.family_index = b.family_index();
   report.error_occurred = results.has_error_;
   report.error_message = results.error_message_;
   report.report_label = results.report_label_;

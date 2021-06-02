@@ -7,10 +7,11 @@
 namespace benchmark {
 namespace internal {
 
-BenchmarkInstance::BenchmarkInstance(Benchmark* benchmark,
+BenchmarkInstance::BenchmarkInstance(Benchmark* benchmark, int family_idx,
                                      const std::vector<int64_t>& args,
                                      int thread_count)
     : benchmark_(*benchmark),
+      family_index_(family_idx),
       aggregation_report_mode_(benchmark_.aggregation_report_mode_),
       args_(args),
       time_unit_(benchmark_.time_unit_),

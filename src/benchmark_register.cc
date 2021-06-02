@@ -129,8 +129,12 @@ bool BenchmarkFamilies::FindBenchmarks(
   // Special list of thread counts to use when none are specified
   const std::vector<int> one_thread = {1};
 
+  int next_family_index = 0;
+
   MutexLock l(mutex_);
   for (std::unique_ptr<Benchmark>& family : families_) {
+    int family_index = next_family_index;
+
     // Family was deleted or benchmark doesn't match
     if (!family) continue;
 
@@ -154,13 +158,18 @@ bool BenchmarkFamilies::FindBenchmarks(
 
     for (auto const& args : family->args_) {
       for (int num_threads : *thread_counts) {
-        BenchmarkInstance instance(family.get(), args, num_threads);
+        BenchmarkInstance instance(family.get(), family_index, args,
+                                   num_threads);
 
         const auto full_name = instance.name().str();
         if ((re.Match(full_name) && !isNegativeFilter) ||
             (!re.Match(full_name) && isNegativeFilter)) {
           instance.last_benchmark_instance = (&args == &family->args_.back());
           benchmarks->push_back(std::move(instance));
+
+          // Only bump the next family index once we've estabilished that
+          // at least one instance of this family will be run.
+          if (next_family_index == family_index) ++next_family_index;
         }
       }
     }

@@ -17,10 +17,11 @@ namespace internal {
 // Information kept per benchmark we may want to run
 class BenchmarkInstance {
  public:
-  BenchmarkInstance(Benchmark* benchmark, const std::vector<int64_t>& args,
-                    int threads);
+  BenchmarkInstance(Benchmark* benchmark, int family_index,
+                    const std::vector<int64_t>& args, int threads);
 
   const BenchmarkName& name() const { return name_; }
+  int family_index() const { return family_index_; }
   AggregationReportMode aggregation_report_mode() const {
     return aggregation_report_mode_;
   }
@@ -45,6 +46,7 @@ class BenchmarkInstance {
  private:
   BenchmarkName name_;
   Benchmark& benchmark_;
+  const int family_index_;
   AggregationReportMode aggregation_report_mode_;
   const std::vector<int64_t>& args_;
   TimeUnit time_unit_;
