@@ -23,7 +23,7 @@ ADD_CASES(TC_ConsoleOut, {{"^BM_empty %console_report$"}});
 ADD_CASES(TC_JSONOut, {{"\"name\": \"BM_empty\",$"},
                        {"\"run_name\": \"BM_empty\",$", MR_Next},
                        {"\"run_type\": \"iteration\",$", MR_Next},
-                       {"\"repetitions\": 0,$", MR_Next},
+                       {"\"repetitions\": 1,$", MR_Next},
                        {"\"repetition_index\": 0,$", MR_Next},
                        {"\"threads\": 1,$", MR_Next},
                        {"\"iterations\": %int,$", MR_Next},

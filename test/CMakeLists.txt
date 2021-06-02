@@ -87,6 +87,9 @@ add_test(NAME options_benchmarks COMMAND options_test --benchmark_min_time=0.01)
 compile_benchmark_test(basic_test)
 add_test(NAME basic_benchmark COMMAND basic_test --benchmark_min_time=0.01)
 
+compile_output_test(repetitions_test)
+add_test(NAME repetitions_benchmark COMMAND repetitions_test --benchmark_min_time=0.01 --benchmark_repetitions=3)
+
 compile_benchmark_test(diagnostics_test)
 add_test(NAME diagnostics_test COMMAND diagnostics_test --benchmark_min_time=0.01)
 

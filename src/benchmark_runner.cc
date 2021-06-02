@@ -67,7 +67,7 @@ BenchmarkReporter::Run CreateRunReport(
     const internal::ThreadManager::Result& results,
     IterationCount memory_iterations,
     const MemoryManager::Result& memory_result, double seconds,
-    int64_t repetition_index) {
+    int64_t repetition_index, int64_t repeats) {
   // Create report about this benchmark run.
   BenchmarkReporter::Run report;
 
@@ -80,7 +80,7 @@ BenchmarkReporter::Run CreateRunReport(
   report.time_unit = b.time_unit();
   report.threads = b.threads();
   report.repetition_index = repetition_index;
-  report.repetitions = b.repetitions();
+  report.repetitions = repeats;
 
   if (!report.error_occurred) {
     if (b.use_manual_time()) {
@@ -356,7 +356,7 @@ class BenchmarkRunner {
     // Ok, now actualy report.
     BenchmarkReporter::Run report =
         CreateRunReport(b, i.results, memory_iterations, memory_result,
-                        i.seconds, repetition_index);
+                        i.seconds, repetition_index, repeats);
 
     if (!report.error_occurred && b.complexity() != oNone)
       complexity_reports.push_back(report);
