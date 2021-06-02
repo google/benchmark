@@ -208,6 +208,9 @@ void JSONReporter::PrintRunData(Run const& run) {
   std::ostream& out = GetOutputStream();
   out << indent << FormatKV("name", run.benchmark_name()) << ",\n";
   out << indent << FormatKV("family_index", run.family_index) << ",\n";
+  out << indent
+      << FormatKV("per_family_instance_index", run.per_family_instance_index)
+      << ",\n";
   out << indent << FormatKV("run_name", run.run_name.str()) << ",\n";
   out << indent << FormatKV("run_type", [&run]() -> const char* {
     switch (run.run_type) {

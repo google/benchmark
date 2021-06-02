@@ -134,6 +134,7 @@ bool BenchmarkFamilies::FindBenchmarks(
   MutexLock l(mutex_);
   for (std::unique_ptr<Benchmark>& family : families_) {
     int family_index = next_family_index;
+    int per_family_instance_index = 0;
 
     // Family was deleted or benchmark doesn't match
     if (!family) continue;
@@ -158,7 +159,8 @@ bool BenchmarkFamilies::FindBenchmarks(
 
     for (auto const& args : family->args_) {
       for (int num_threads : *thread_counts) {
-        BenchmarkInstance instance(family.get(), family_index, args,
+        BenchmarkInstance instance(family.get(), family_index,
+                                   per_family_instance_index, args,
                                    num_threads);
 
         const auto full_name = instance.name().str();
@@ -166,6 +168,8 @@ bool BenchmarkFamilies::FindBenchmarks(
             (!re.Match(full_name) && isNegativeFilter)) {
           instance.last_benchmark_instance = (&args == &family->args_.back());
           benchmarks->push_back(std::move(instance));
+
+          ++per_family_instance_index;
 
           // Only bump the next family index once we've estabilished that
           // at least one instance of this family will be run.

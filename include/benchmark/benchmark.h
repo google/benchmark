@@ -1419,6 +1419,7 @@ class BenchmarkReporter {
     std::string benchmark_name() const;
     BenchmarkName run_name;
     int64_t family_index;
+    int64_t per_family_instance_index;
     RunType run_type;
     std::string aggregate_name;
     std::string report_label;  // Empty if not set by benchmark.
