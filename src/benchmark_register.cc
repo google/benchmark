@@ -150,7 +150,7 @@ bool BenchmarkFamilies::FindBenchmarks(
     }
     // reserve in the special case the regex ".", since we know the final
     // family size.
-    if (spec == ".") benchmarks->reserve(family_size);
+    if (spec == ".") benchmarks->reserve(benchmarks->size() + family_size);
 
     for (auto const& args : family->args_) {
       for (int num_threads : *thread_counts) {
