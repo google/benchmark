@@ -142,10 +142,11 @@ class BenchmarkRunner {
   BenchmarkRunner(const benchmark::internal::BenchmarkInstance& b_,
                   std::vector<BenchmarkReporter::Run>* complexity_reports_)
       : b(b_),
-        complexity_reports(*complexity_reports_),
-        min_time(!IsZero(b.min_time()) ? b.min_time() : FLAGS_benchmark_min_time),
+        complexity_reports(complexity_reports_),
+        min_time(!IsZero(b.min_time()) ? b.min_time()
+                                       : FLAGS_benchmark_min_time),
         repeats(b.repetitions() != 0 ? b.repetitions()
-                                   : FLAGS_benchmark_repetitions),
+                                     : FLAGS_benchmark_repetitions),
         has_explicit_iteration_count(b.iterations() != 0),
         pool(b.threads() - 1),
         iters(has_explicit_iteration_count ? b.iterations() : 1),
@@ -178,12 +179,12 @@ class BenchmarkRunner {
     run_results.aggregates_only = ComputeStats(run_results.non_aggregates);
 
     // Maybe calculate complexity report
-    if ((b.complexity() != oNone) && b.last_benchmark_instance) {
-      auto additional_run_stats = ComputeBigO(complexity_reports);
+    if (complexity_reports && b.last_benchmark_instance) {
+      auto additional_run_stats = ComputeBigO(*complexity_reports);
       run_results.aggregates_only.insert(run_results.aggregates_only.end(),
                                          additional_run_stats.begin(),
                                          additional_run_stats.end());
-      complexity_reports.clear();
+      complexity_reports->clear();
     }
   }
 
@@ -193,7 +194,7 @@ class BenchmarkRunner {
   RunResults run_results;
 
   const benchmark::internal::BenchmarkInstance& b;
-  std::vector<BenchmarkReporter::Run>& complexity_reports;
+  std::vector<BenchmarkReporter::Run>* complexity_reports;
 
   const double min_time;
   const int repeats;
@@ -360,8 +361,8 @@ class BenchmarkRunner {
         CreateRunReport(b, i.results, memory_iterations, memory_result,
                         i.seconds, repetition_index, repeats);
 
-    if (!report.error_occurred && b.complexity() != oNone)
-      complexity_reports.push_back(report);
+    if (complexity_reports && !report.error_occurred)
+      complexity_reports->push_back(report);
 
     run_results.non_aggregates.push_back(report);
   }

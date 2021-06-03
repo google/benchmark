@@ -265,8 +265,9 @@ void RunBenchmarks(const std::vector<BenchmarkInstance>& benchmarks,
   BenchmarkReporter::Context context;
   context.name_field_width = name_field_width;
 
-  // Keep track of running times of all instances of current benchmark
-  std::vector<BenchmarkReporter::Run> complexity_reports;
+  // Keep track of running times of all instances of each benchmark family.
+  std::map<int /*family_index*/, std::vector<BenchmarkReporter::Run>>
+      complexity_reports;
 
   // We flush streams after invoking reporter methods that write to them. This
   // ensures users get timely updates even when streams are not line-buffered.
@@ -281,8 +282,15 @@ void RunBenchmarks(const std::vector<BenchmarkInstance>& benchmarks,
     flushStreams(display_reporter);
     flushStreams(file_reporter);
 
-    for (const auto& benchmark : benchmarks) {
-      RunResults run_results = RunBenchmark(benchmark, &complexity_reports);
+    for (const BenchmarkInstance& benchmark : benchmarks) {
+      std::vector<BenchmarkReporter::Run>* complexity_reports_for_family =
+          nullptr;
+      if (benchmark.complexity() != oNone)
+        complexity_reports_for_family =
+            &complexity_reports[benchmark.family_index()];
+
+      RunResults run_results =
+          RunBenchmark(benchmark, complexity_reports_for_family);
 
       auto report = [&run_results](BenchmarkReporter* reporter,
                                    bool report_aggregates_only) {
