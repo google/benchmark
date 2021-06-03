@@ -1,9 +1,11 @@
-import unittest
 """report.py - Utilities for reporting statistics about benchmark results
 """
+
+import unittest
 import os
 import re
 import copy
+import random
 
 from scipy.stats import mannwhitneyu
 
@@ -910,6 +912,49 @@ class TestReportDifferenceWithUTestWhileDisplayingAggregatesOnly(
             self.assertEqual(out['time_unit'], expected['time_unit'])
             assert_utest(self, out, expected)
             assert_measurements(self, out, expected)
+
+
+class TestReportSorting(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        def load_result():
+            import json
+            testInputs = os.path.join(
+                os.path.dirname(
+                    os.path.realpath(__file__)),
+                'Inputs')
+            testOutput = os.path.join(testInputs, 'test4_run.json')
+            with open(testOutput, 'r') as f:
+                json = json.load(f)
+            return json
+
+        cls.json = load_result()
+
+    def test_json_diff_report_pretty_printing(self):
+        import util
+
+        expected_names = [
+            "99 family 0 instance 0 repetition 0",
+            "98 family 0 instance 0 repetition 1",
+            "97 family 0 instance 0 aggregate",
+            "96 family 0 instance 1 repetition 0",
+            "95 family 0 instance 1 repetition 1",
+            "94 family 0 instance 1 aggregate",
+            "93 family 1 instance 0 repetition 0",
+            "92 family 1 instance 0 repetition 1",
+            "91 family 1 instance 0 aggregate",
+            "90 family 1 instance 1 repetition 0",
+            "89 family 1 instance 1 repetition 1",
+            "88 family 1 instance 1 aggregate"
+        ]
+
+        for n in range(len(self.json['benchmarks']) ** 2):
+            random.shuffle(self.json['benchmarks'])
+            sorted_benchmarks = util.sort_benchmark_results(self.json)[
+                'benchmarks']
+            self.assertEqual(len(expected_names), len(sorted_benchmarks))
+            for out, expected in zip(sorted_benchmarks, expected_names):
+                self.assertEqual(out['name'], expected)
 
 
 def assert_utest(unittest_instance, lhs, rhs):
