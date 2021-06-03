@@ -13,7 +13,7 @@ env:
 jobs:
   job:
     name: ${{ matrix.sanitizer }}.${{ matrix.build_type }}
-    runs-on: ubuntu-16.04
+    runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
