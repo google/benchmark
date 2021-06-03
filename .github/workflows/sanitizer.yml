@@ -5,8 +5,8 @@ on:
   pull_request: {}
 
 env:
-  CC: clang-3.8
-  CXX: clang++-3.8
+  CC: clang
+  CXX: clang++
   EXTRA_CXX_FLAGS: "-stdlib=libc++"
   UBSAN_OPTIONS: "print_stacktrace=1"
 
