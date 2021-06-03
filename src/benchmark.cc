@@ -548,6 +548,10 @@ void Initialize(int* argc, char** argv) {
   internal::LogLevel() = FLAGS_v;
 }
 
+void Shutdown() {
+  delete internal::global_context;
+}
+
 bool ReportUnrecognizedArguments(int argc, char** argv) {
   for (int i = 1; i < argc; ++i) {
     fprintf(stderr, "%s: error: unrecognized command-line flag: %s\n", argv[0],

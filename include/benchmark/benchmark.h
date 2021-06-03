@@ -42,6 +42,7 @@ BENCHMARK(BM_StringCopy);
 int main(int argc, char** argv) {
   benchmark::Initialize(&argc, argv);
   benchmark::RunSpecifiedBenchmarks();
+  benchmark::Shutdown();
   return 0;
 }
 
@@ -274,6 +275,7 @@ class BenchmarkReporter;
 class MemoryManager;
 
 void Initialize(int* argc, char** argv);
+void Shutdown();
 
 // Report to stdout all arguments in 'argv' as unrecognized except the first.
 // Returns true there is at least on unrecognized argument (i.e. 'argc' > 1).
@@ -1314,6 +1316,7 @@ class Fixture : public internal::Benchmark {
     ::benchmark::Initialize(&argc, argv);                               \
     if (::benchmark::ReportUnrecognizedArguments(argc, argv)) return 1; \
     ::benchmark::RunSpecifiedBenchmarks();                              \
+    ::benchmark::Shutdown();                                            \
     return 0;                                                           \
   }                                                                     \
   int main(int, char**)
