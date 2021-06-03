@@ -23,14 +23,6 @@ jobs:
     steps:
     - uses: actions/checkout@v2
 
-    - name: install clang-3.8
-      run: |
-        sudo apt update
-        sudo apt -y install clang-3.8
-
-    - name: install libc++
-      run: "${GITHUB_WORKSPACE}/.libcxx-setup.sh"
-
     - name: configure msan env
       if: matrix.sanitizer == 'msan'
       run: |
@@ -54,6 +46,14 @@ jobs:
       run: |
         echo "EXTRA_FLAGS=-g -O2 -fno-omit-frame-pointer -fsanitize=thread -fno-sanitize-recover=all" >> $GITHUB_ENV
         echo "LIBCXX_SANITIZER=Thread" >> $GITHUB_ENV
+
+    - name: install clang-3.8
+      run: |
+        sudo apt update
+        sudo apt -y install clang-3.8
+
+    - name: install libc++
+      run: "${GITHUB_WORKSPACE}/.libcxx-setup.sh"
 
     - name: create build environment
       run: cmake -E make_directory ${{ runner.workspace }}/_build
