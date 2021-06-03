@@ -5,15 +5,15 @@ on:
   pull_request: {}
 
 env:
-  CC: clang
-  CXX: clang++
+  CC: clang-3.8
+  CXX: clang++-3.8
   EXTRA_CXX_FLAGS: "-stdlib=libc++"
   UBSAN_OPTIONS: "print_stacktrace=1"
 
 jobs:
   job:
     name: ${{ matrix.sanitizer }}.${{ matrix.build_type }}
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-16.04
     strategy:
       fail-fast: false
       matrix:
@@ -21,6 +21,11 @@ jobs:
         sanitizer: ['asan', 'ubsan', 'msan', 'tsan']
     steps:
     - uses: actions/checkout@v2
+
+    - name: install clang-3.8
+      run: |
+        sudo apt update
+        sudo apt -y install clang-3.8
 
     - name: install libc++
       run: |
