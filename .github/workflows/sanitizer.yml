@@ -28,9 +28,7 @@ jobs:
         sudo apt -y install clang-3.8
 
     - name: install libc++
-      run: |
-        sudo apt update
-        sudo apt -y install libc++-3.8-dev libc++abi-3.8-dev
+      run: "${GITHUB_WORKSPACE}/.libcxx-setup.sh
 
     - name: configure msan env
       if: matrix.sanitizer == 'msan'
