@@ -18,8 +18,7 @@ jobs:
       fail-fast: false
       matrix:
         build_type: ['Debug', 'RelWithDebInfo']
-        sanitizer: ['asan', 'ubsan', 'tsan']
-        # TODO: add 'msan' above. currently failing and needs investigation.
+        sanitizer: ['asan', 'ubsan', 'tsan', 'msan']
     steps:
     - uses: actions/checkout@v2
 
