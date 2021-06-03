@@ -28,7 +28,7 @@ jobs:
         sudo apt -y install clang-3.8
 
     - name: install libc++
-      run: "${GITHUB_WORKSPACE}/.libcxx-setup.sh
+      run: "${GITHUB_WORKSPACE}/.libcxx-setup.sh"
 
     - name: configure msan env
       if: matrix.sanitizer == 'msan'
