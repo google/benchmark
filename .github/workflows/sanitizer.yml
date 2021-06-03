@@ -5,15 +5,15 @@ on:
   pull_request: {}
 
 env:
-  CC: clang-3.8
-  CXX: clang++-3.8
+  CC: clang
+  CXX: clang++
   EXTRA_CXX_FLAGS: "-stdlib=libc++"
   UBSAN_OPTIONS: "print_stacktrace=1"
 
 jobs:
   job:
     name: ${{ matrix.sanitizer }}.${{ matrix.build_type }}
-    runs-on: ubuntu-16.04
+    runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
@@ -22,14 +22,10 @@ jobs:
     steps:
     - uses: actions/checkout@v2
 
-    - name: install clang-3.8
+    - name: install libc++
       run: |
         sudo apt update
-        sudo apt -y install clang-3.8
-    
-    - name: install libc++
-      run: "${GITHUB_WORKSPACE}/.libcxx-setup.sh"
-      
+        sudo apt -y install libc++-dev libc++abi-dev
 
     - name: configure msan env
       if: matrix.sanitizer == 'msan'
