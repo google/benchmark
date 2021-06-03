@@ -30,7 +30,7 @@ jobs:
     - name: install libc++
       run: |
         sudo apt update
-        sudo apt -y install libc++-dev libc++abi-dev
+        sudo apt -y install libc++-3.8-dev libc++abi-3.8-dev
 
     - name: configure msan env
       if: matrix.sanitizer == 'msan'
