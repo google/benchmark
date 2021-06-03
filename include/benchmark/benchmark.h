@@ -1472,6 +1472,19 @@ class BenchmarkReporter {
     int64_t max_bytes_used;
   };
 
+  struct PerFamilyRunReports {
+    PerFamilyRunReports() : num_runs_total(0), num_runs_done(0) {}
+
+    // How many runs will all instances of this benchmark perform?
+    int num_runs_total;
+
+    // How many runs have happened already?
+    int num_runs_done;
+
+    // The reports about (non-errneous!) runs of this family.
+    std::vector<BenchmarkReporter::Run> Runs;
+  };
+
   // Construct a BenchmarkReporter with the output stream set to 'std::cout'
   // and the error stream set to 'std::cerr'
   BenchmarkReporter();

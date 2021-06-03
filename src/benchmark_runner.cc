@@ -143,9 +143,9 @@ void RunInThread(const BenchmarkInstance* b, IterationCount iters,
 
 BenchmarkRunner::BenchmarkRunner(
     const benchmark::internal::BenchmarkInstance& b_,
-    std::vector<BenchmarkReporter::Run>* complexity_reports_)
+    BenchmarkReporter::PerFamilyRunReports* reports_for_family_)
     : b(b_),
-      complexity_reports(complexity_reports_),
+      reports_for_family(reports_for_family_),
       min_time(!IsZero(b.min_time()) ? b.min_time() : FLAGS_benchmark_min_time),
       repeats(b.repetitions() != 0 ? b.repetitions()
                                    : FLAGS_benchmark_repetitions),
@@ -171,22 +171,6 @@ BenchmarkRunner::BenchmarkRunner(
     CHECK(FLAGS_benchmark_perf_counters.empty() ||
           perf_counters_measurement.IsValid())
         << "Perf counters were requested but could not be set up.";
-  }
-
-  for (int repetition_num = 0; repetition_num < repeats; repetition_num++) {
-    DoOneRepetition(repetition_num);
-  }
-
-  // Calculate additional statistics
-  run_results.aggregates_only = ComputeStats(run_results.non_aggregates);
-
-  // Maybe calculate complexity report
-  if (complexity_reports && b.last_benchmark_instance) {
-    auto additional_run_stats = ComputeBigO(*complexity_reports);
-    run_results.aggregates_only.insert(run_results.aggregates_only.end(),
-                                       additional_run_stats.begin(),
-                                       additional_run_stats.end());
-    complexity_reports->clear();
   }
 }
 
@@ -283,8 +267,10 @@ bool BenchmarkRunner::ShouldReportIterationResults(
          ((i.results.real_time_used >= 5 * min_time) && !b.use_manual_time());
 }
 
-void BenchmarkRunner::DoOneRepetition(int64_t repetition_index) {
-  const bool is_the_first_repetition = repetition_index == 0;
+void BenchmarkRunner::DoOneRepetition() {
+  assert(HasRepeatsRemaining() && "Already done all repetitions?");
+
+  const bool is_the_first_repetition = num_repetitions_done == 0;
   IterationResults i;
 
   // We *may* be gradually increasing the length (iteration count)
@@ -337,19 +323,25 @@ void BenchmarkRunner::DoOneRepetition(int64_t repetition_index) {
   // Ok, now actualy report.
   BenchmarkReporter::Run report =
       CreateRunReport(b, i.results, memory_iterations, memory_result, i.seconds,
-                      repetition_index, repeats);
+                      num_repetitions_done, repeats);
 
-  if (complexity_reports && !report.error_occurred)
-    complexity_reports->push_back(report);
+  if (reports_for_family) {
+    ++reports_for_family->num_runs_done;
+    if (!report.error_occurred) reports_for_family->Runs.push_back(report);
+  }
 
   run_results.non_aggregates.push_back(report);
+
+  ++num_repetitions_done;
 }
 
-RunResults RunBenchmark(
-    const benchmark::internal::BenchmarkInstance& b,
-    std::vector<BenchmarkReporter::Run>* complexity_reports) {
-  internal::BenchmarkRunner r(b, complexity_reports);
-  return r.get_results();
+RunResults&& BenchmarkRunner::GetResults() {
+  assert(!HasRepeatsRemaining() && "Did not run all repetitions yet?");
+
+  // Calculate additional statistics over the repetitions of this instance.
+  run_results.aggregates_only = ComputeStats(run_results.non_aggregates);
+
+  return std::move(run_results);
 }
 
 }  // end namespace internal

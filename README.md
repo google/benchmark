@@ -299,6 +299,8 @@ too (`-lkstat`).
 
 [Setting the Time Unit](#setting-the-time-unit)
 
+[Random Interleaving](docs/random_interleaving.md)
+
 [User-Requested Performance Counters](docs/perf_counters.md)
 
 [Preventing Optimization](#preventing-optimization)
