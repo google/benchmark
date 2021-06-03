@@ -241,6 +241,37 @@ void State::FinishKeepRunning() {
 namespace internal {
 namespace {
 
+// Flushes streams after invoking reporter methods that write to them. This
+// ensures users get timely updates even when streams are not line-buffered.
+void FlushStreams(BenchmarkReporter* reporter) {
+  if (!reporter) return;
+  std::flush(reporter->GetOutputStream());
+  std::flush(reporter->GetErrorStream());
+}
+
+// Reports in both display and file reporters.
+void Report(BenchmarkReporter* display_reporter,
+            BenchmarkReporter* file_reporter, const RunResults& run_results) {
+  auto report_one = [](BenchmarkReporter* reporter, bool aggregates_only,
+                       const RunResults& results) {
+    assert(reporter);
+    // If there are no aggregates, do output non-aggregates.
+    aggregates_only &= !results.aggregates_only.empty();
+    if (!aggregates_only) reporter->ReportRuns(results.non_aggregates);
+    if (!results.aggregates_only.empty())
+      reporter->ReportRuns(results.aggregates_only);
+  };
+
+  report_one(display_reporter, run_results.display_report_aggregates_only,
+             run_results);
+  if (file_reporter)
+    report_one(file_reporter, run_results.file_report_aggregates_only,
+               run_results);
+
+  FlushStreams(display_reporter);
+  FlushStreams(file_reporter);
+}
+
 void RunBenchmarks(const std::vector<BenchmarkInstance>& benchmarks,
                    BenchmarkReporter* display_reporter,
                    BenchmarkReporter* file_reporter) {
@@ -269,18 +300,10 @@ void RunBenchmarks(const std::vector<BenchmarkInstance>& benchmarks,
   std::map<int /*family_index*/, std::vector<BenchmarkReporter::Run>>
       complexity_reports;
 
-  // We flush streams after invoking reporter methods that write to them. This
-  // ensures users get timely updates even when streams are not line-buffered.
-  auto flushStreams = [](BenchmarkReporter* reporter) {
-    if (!reporter) return;
-    std::flush(reporter->GetOutputStream());
-    std::flush(reporter->GetErrorStream());
-  };
-
   if (display_reporter->ReportContext(context) &&
       (!file_reporter || file_reporter->ReportContext(context))) {
-    flushStreams(display_reporter);
-    flushStreams(file_reporter);
+    FlushStreams(display_reporter);
+    FlushStreams(file_reporter);
 
     for (const BenchmarkInstance& benchmark : benchmarks) {
       std::vector<BenchmarkReporter::Run>* complexity_reports_for_family =
@@ -292,29 +315,13 @@ void RunBenchmarks(const std::vector<BenchmarkInstance>& benchmarks,
       RunResults run_results =
           RunBenchmark(benchmark, complexity_reports_for_family);
 
-      auto report = [&run_results](BenchmarkReporter* reporter,
-                                   bool report_aggregates_only) {
-        assert(reporter);
-        // If there are no aggregates, do output non-aggregates.
-        report_aggregates_only &= !run_results.aggregates_only.empty();
-        if (!report_aggregates_only)
-          reporter->ReportRuns(run_results.non_aggregates);
-        if (!run_results.aggregates_only.empty())
-          reporter->ReportRuns(run_results.aggregates_only);
-      };
-
-      report(display_reporter, run_results.display_report_aggregates_only);
-      if (file_reporter)
-        report(file_reporter, run_results.file_report_aggregates_only);
-
-      flushStreams(display_reporter);
-      flushStreams(file_reporter);
+      Report(display_reporter, file_reporter, run_results);
     }
   }
   display_reporter->Finalize();
   if (file_reporter) file_reporter->Finalize();
-  flushStreams(display_reporter);
-  flushStreams(file_reporter);
+  FlushStreams(display_reporter);
+  FlushStreams(file_reporter);
 }
 
 // Disable deprecated warnings temporarily because we need to reference
