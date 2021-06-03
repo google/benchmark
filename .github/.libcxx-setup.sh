@@ -9,6 +9,7 @@ if [ -z "$BUILD_32_BITS" ]; then
 fi
 
 # Build and install libc++ (Use unstable ABI for better sanitizer coverage)
+cd ./llvm-project
 cmake -DCMAKE_C_COMPILER=${C_COMPILER}          \
       -DCMAKE_CXX_COMPILER=${COMPILER}          \
       -DCMAKE_BUILD_TYPE=RelWithDebInfo         \
@@ -20,3 +21,4 @@ cmake -DCMAKE_C_COMPILER=${C_COMPILER}          \
       -S llvm -B llvm-build -G "Unix Makefiles"
 make -j2
 sudo make install-libcxxabi install-libcxx install-clang
+cd ..
