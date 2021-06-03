@@ -19,6 +19,6 @@ cmake -DCMAKE_C_COMPILER=${C_COMPILER}          \
       -DLLVM_BUILD_32_BITS=${BUILD_32_BITS}     \
       -DLLVM_ENABLE_PROJECTS='clang;libcxx;libcxxabi' \
       -S llvm -B llvm-build -G "Unix Makefiles"
-make -j2
-sudo make install-libcxxabi install-libcxx install-clang
+make -C llvm-build -j2
+sudo make -C llvm-build install-libcxxabi install-libcxx install-clang
 cd ..
