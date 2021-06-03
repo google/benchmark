@@ -1243,6 +1243,7 @@ int main(int argc, char** argv) {
       benchmark::RegisterBenchmark(test_input.name(), BM_test, test_input);
   benchmark::Initialize(&argc, argv);
   benchmark::RunSpecifiedBenchmarks();
+  benchmark::Shutdown();
 }
 ```
 
