@@ -149,7 +149,7 @@ matrix:
 
 before_script:
   - if [ -n "${LIBCXX_BUILD}" ]; then
-      source .travis-libcxx-setup.sh;
+      source .libcxx-setup.sh;
     fi
   - if [ -n "${ENABLE_SANITIZER}" ]; then
       export EXTRA_OPTIONS="-DBENCHMARK_ENABLE_ASSEMBLY_TESTS=OFF";
