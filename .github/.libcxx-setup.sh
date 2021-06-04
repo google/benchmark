@@ -13,7 +13,7 @@ cd ./llvm-project
 cmake -DCMAKE_C_COMPILER=${C_COMPILER}          \
       -DCMAKE_CXX_COMPILER=${COMPILER}          \
       -DCMAKE_BUILD_TYPE=RelWithDebInfo         \
-      -DCMAKE_INSTALL_PREFIX=/usr               \
+      -DCMAKE_INSTALL_PREFIX=/usr/local         \
       -DLIBCXX_ABI_UNSTABLE=OFF                 \
       -DLLVM_USE_SANITIZER=${LIBCXX_SANITIZER}  \
       -DLLVM_BUILD_32_BITS=${BUILD_32_BITS}     \
