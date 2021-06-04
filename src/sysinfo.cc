@@ -490,17 +490,19 @@ int GetNumCPUs() {
     return -1;
   }
   const std::string Key = "processor";
-  std::string ln;
+  std::string ln = "";
   while (std::getline(f, ln)) {
     if (ln.empty()) continue;
-    size_t SplitIdx = ln.find(':');
+    size_t split_idx = ln.find(':');
     std::string value;
 #if defined(__s390__)
     // s390 has another format in /proc/cpuinfo
     // it needs to be parsed differently
-    if (SplitIdx != std::string::npos) value = ln.substr(Key.size()+1,SplitIdx-Key.size()-1);
+    if (split_idx != std::string::npos)
+      value = ln.substr(Key.size()+1,split_idx-Key.size()-1);
 #else
-    if (SplitIdx != std::string::npos) value = ln.substr(SplitIdx + 1);
+    if (split_idx != std::string::npos)
+      value = ln.substr(split_idx + 1);
 #endif
     if (ln.size() >= Key.size() && ln.compare(0, Key.size(), Key) == 0) {
       NumCPUs++;
@@ -581,9 +583,9 @@ double GetCPUCyclesPerSecond(CPUInfo::Scaling scaling) {
   std::string ln;
   while (std::getline(f, ln)) {
     if (ln.empty()) continue;
-    size_t SplitIdx = ln.find(':');
+    size_t split_idx = ln.find(':');
     std::string value;
-    if (SplitIdx != std::string::npos) value = ln.substr(SplitIdx + 1);
+    if (split_idx != std::string::npos) value = ln.substr(split_idx + 1);
     // When parsing the "cpu MHz" and "bogomips" (fallback) entries, we only
     // accept positive values. Some environments (virtual machines) report zero,
     // which would cause infinite looping in WallTime_Init.
@@ -614,7 +616,7 @@ double GetCPUCyclesPerSecond(CPUInfo::Scaling scaling) {
   if (bogo_clock >= 0.0) return bogo_clock;
 
 #elif defined BENCHMARK_HAS_SYSCTL
-  constexpr auto* FreqStr =
+  constexpr auto* freq_str =
 #if defined(BENCHMARK_OS_FREEBSD) || defined(BENCHMARK_OS_NETBSD)
       "machdep.tsc_freq";
 #elif defined BENCHMARK_OS_OPENBSD
@@ -626,12 +628,12 @@ double GetCPUCyclesPerSecond(CPUInfo::Scaling scaling) {
 #endif
   unsigned long long hz = 0;
 #if defined BENCHMARK_OS_OPENBSD
-  if (GetSysctl(FreqStr, &hz)) return hz * 1000000;
+  if (GetSysctl(freq_str, &hz)) return hz * 1000000;
 #else
-  if (GetSysctl(FreqStr, &hz)) return hz;
+  if (GetSysctl(freq_str, &hz)) return hz;
 #endif
   fprintf(stderr, "Unable to determine clock rate from sysctl: %s: %s\n",
-          FreqStr, strerror(errno));
+          freq_str, strerror(errno));
 
 #elif defined BENCHMARK_OS_WINDOWS
   // In NT, read MHz from the registry. If we fail to do so or we're in win9x
