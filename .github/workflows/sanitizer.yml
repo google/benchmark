@@ -5,15 +5,15 @@ on:
   pull_request: {}
 
 env:
-  CC: clang-3.8
-  CXX: clang++-3.8
+  CC: clang
+  CXX: clang++
   EXTRA_CXX_FLAGS: "-stdlib=libc++"
   UBSAN_OPTIONS: "print_stacktrace=1"
 
 jobs:
   job:
     name: ${{ matrix.sanitizer }}.${{ matrix.build_type }}
-    runs-on: ubuntu-16.04
+    runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
@@ -28,7 +28,7 @@ jobs:
       run: |
         echo "EXTRA_FLAGS=-g -O2 -fno-omit-frame-pointer -fsanitize=memory -fsanitize-memory-track-origins" >> $GITHUB_ENV
         echo "LIBCXX_SANITIZER=MemoryWithOrigins" >> $GITHUB_ENV
-        
+
     - name: configure ubsan env
       if: matrix.sanitizer == 'ubsan'
       run: |
@@ -47,13 +47,8 @@ jobs:
         echo "EXTRA_FLAGS=-g -O2 -fno-omit-frame-pointer -fsanitize=thread -fno-sanitize-recover=all" >> $GITHUB_ENV
         echo "LIBCXX_SANITIZER=Thread" >> $GITHUB_ENV
 
-    - name: install clang-3.8
-      run: |
-        sudo apt update
-        sudo apt -y install clang-3.8
-
-    - name: install libc++
-      run: "${GITHUB_WORKSPACE}/.libcxx-setup.sh"
+    - name: install llvm stuff
+      run: "${GITHUB_WORKSPACE}/.github/.libcxx-setup.sh"
 
     - name: create build environment
       run: cmake -E make_directory ${{ runner.workspace }}/_build
@@ -76,7 +71,7 @@ jobs:
       shell: bash
       working-directory: ${{ runner.workspace }}/_build
       run: cmake --build . --config ${{ matrix.build_type }}
-      
+
     - name: test
       shell: bash
       working-directory: ${{ runner.workspace }}/_build
