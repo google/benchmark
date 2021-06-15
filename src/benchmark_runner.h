@@ -64,7 +64,7 @@ class BenchmarkRunner {
 
   BenchmarkReporter::PerFamilyRunReports* GetReportsForFamily() const {
     return reports_for_family;
-  };
+  }
 
  private:
   RunResults run_results;
