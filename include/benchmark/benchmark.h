@@ -1649,6 +1649,21 @@ inline double GetTimeUnitMultiplier(TimeUnit unit) {
   BENCHMARK_UNREACHABLE();
 }
 
+// Creates a list of integer values for the given range and multiplier.
+// This can be used together with ArgsProduct() to allow multiple ranges
+// with different multiplers.
+// Example:
+// ArgsProduct({
+//   CreateRange(0, 1024, /*multi=*/32),
+//   CreateRange(0, 100, /*multi=*/4),
+//   CreateDenseRange(0, 4, /*step=*/1),
+// });
+std::vector<int64_t> CreateRange(int64_t lo, int64_t hi, int multi);
+
+// Creates a list of integer values for the given range and step.
+std::vector<int64_t> CreateDenseRange(int64_t start, int64_t limit,
+                                      int step);
+
 }  // namespace benchmark
 
 #endif  // BENCHMARK_BENCHMARK_H_

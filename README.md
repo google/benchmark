@@ -616,6 +616,23 @@ BENCHMARK(BM_SetInsert)
     ->Args({8<<10, 80});
 ```
 
+For the most common scenarios, helper methods for creating a list of
+integers for a given sparse or dense range are provided.
+
+```c++
+BENCHMARK(BM_SetInsert)
+    ->ArgsProduct({
+      benchmark::CreateRange(8, 128, /*multi=*/2),
+      benchmark::CreateDenseRange(1, 4, /*step=*/1)
+    })
+// would generate the same benchmark arguments as
+BENCHMARK(BM_SetInsert)
+    ->ArgsProduct({
+      {8, 16, 32, 64, 128},
+      {1, 2, 3, 4}
+    });
+```
+
 For more complex patterns of inputs, passing a custom function to `Apply` allows
 programmatic specification of an arbitrary set of arguments on which to run the
 benchmark. The following example enumerates a dense range on one parameter,
