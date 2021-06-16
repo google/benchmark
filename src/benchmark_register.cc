@@ -458,4 +458,20 @@ void ClearRegisteredBenchmarks() {
   internal::BenchmarkFamilies::GetInstance()->ClearBenchmarks();
 }
 
+std::vector<int64_t> CreateRange(int64_t lo, int64_t hi, int multi) {
+  std::vector<int64_t> args;
+  internal::AddRange(&args, lo, hi, multi);
+  return args;
+}
+
+std::vector<int64_t> CreateDenseRange(int64_t start, int64_t limit,
+                                      int step) {
+  CHECK_LE(start, limit);
+  std::vector<int64_t> args;
+  for (int64_t arg = start; arg <= limit; arg += step) {
+    args.push_back(arg);
+  }
+  return args;
+}
+
 }  // end namespace benchmark
