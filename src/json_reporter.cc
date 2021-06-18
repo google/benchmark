@@ -162,11 +162,11 @@ bool JSONReporter::ReportContext(const Context& context) {
 #else
   const char build_type[] = "debug";
 #endif
-  out << indent << FormatKV("library_build_type", build_type) << "\n";
+  out << indent << FormatKV("library_build_type", build_type) << ",\n";
 
   if (internal::global_context != nullptr) {
     for (const auto& kv: *internal::global_context) {
-      out << indent << FormatKV(kv.first, kv.second) << "\n";
+      out << indent << FormatKV(kv.first, kv.second) << ",\n";
     }
   }
 
