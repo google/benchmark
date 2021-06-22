@@ -41,6 +41,9 @@
 #include <thread>
 #include <utility>
 
+#include "absl/flags/flag.h"
+#include "absl/flags/parse.h"
+#include "absl/synchronization/mutex.h"
 #include "check.h"
 #include "colorprint.h"
 #include "commandlineflags.h"
@@ -56,74 +59,80 @@
 #include "thread_manager.h"
 #include "thread_timer.h"
 
+ABSL_FLAG(
+    bool, benchmark_list_tests, false,
+    "Print a list of benchmarks. This option overrides all other options.");
+
+ABSL_FLAG(std::string, benchmark_filter, ".",
+          "A regular expression that specifies the set of benchmarks to "
+          "execute.  If this flag is empty, or if this flag is the string "
+          "\"all\", all benchmarks linked into the binary are run.");
+
+ABSL_FLAG(
+    double, benchmark_min_time, 0.5,
+    "Minimum number of seconds we should run benchmark before results are "
+    "considered significant.  For cpu-time based tests, this is the lower "
+    "bound on the total cpu time used by all threads that make up the test.  "
+    "For real-time based tests, this is the lower bound on the elapsed time of "
+    "the benchmark execution, regardless of number of threads.");
+
+ABSL_FLAG(int32_t, benchmark_repetitions, 1,
+          "The number of runs of each benchmark. If greater than 1, the mean "
+          "and standard deviation of the runs will be reported.");
+
+ABSL_FLAG(
+    bool, benchmark_enable_random_interleaving, false,
+    "If set, enable random interleaving of repetitions of all benchmarks. See "
+    "http://github.com/google/benchmark/issues/1051 for details.");
+
+ABSL_FLAG(bool, benchmark_report_aggregates_only, false,
+          "Report the result of each benchmark repetitions. When 'true' is "
+          "specified only the mean, standard deviation, and other statistics "
+          "are reported for repeated benchmarks. Affects all reporters.");
+
+ABSL_FLAG(
+    bool, benchmark_display_aggregates_only, false,
+    "Display the result of each benchmark repetitions. When 'true' is "
+    "specified only the mean, standard deviation, and other statistics are "
+    "displayed for repeated benchmarks. Unlike "
+    "benchmark_report_aggregates_only, only affects the display reporter, but  "
+    "*NOT* file reporter, which will still contain all the output.");
+
+ABSL_FLAG(std::string, benchmark_format, "console",
+          "The format to use for console output. Valid values are 'console', "
+          "'json', or 'csv'.");
+
+ABSL_FLAG(std::string, benchmark_out_format, "json",
+          "The format to use for file output. Valid values are 'console', "
+          "'json', or 'csv'.");
+
+ABSL_FLAG(std::string, benchmark_out, "",
+          "The file to write additional output to.");
+
+ABSL_FLAG(std::string, benchmark_color, "auto",
+          "Whether to use colors in the output.  Valid values: 'true'/'yes'/1, "
+          "'false'/'no'/0, and 'auto'. 'auto' means to use colors if the "
+          "output is being sent to a terminal and the TERM environment "
+          "variable is set to a terminal type that supports colors.");
+
+ABSL_FLAG(
+    bool, benchmark_counters_tabular, false,
+    "Whether to use tabular format when printing user counters to the console. "
+    "Valid values: 'true'/'yes'/1, 'false'/'no'/0.  Defaults to false.");
+
+ABSL_FLAG(int32_t, v, 0, "The level of verbose logging to output.");
+
+ABSL_FLAG(std::vector<std::string>, benchmark_perf_counters, {},
+          "List of additional perf counters to collect, in libpfm format. For "
+          "more information about libpfm: "
+          "https://man7.org/linux/man-pages/man3/libpfm.3.html");
+
+ABSL_FLAG(std::string, benchmark_context, "",
+          "Extra context to include in the output formatted as comma-separated "
+          "key-value pairs. Kept internal as it's only used for parsing from "
+          "env/command line.");
+
 namespace benchmark {
-// Print a list of benchmarks. This option overrides all other options.
-BM_DEFINE_bool(benchmark_list_tests, false);
-
-// A regular expression that specifies the set of benchmarks to execute.  If
-// this flag is empty, or if this flag is the string \"all\", all benchmarks
-// linked into the binary are run.
-BM_DEFINE_string(benchmark_filter, "");
-
-// Minimum number of seconds we should run benchmark before results are
-// considered significant.  For cpu-time based tests, this is the lower bound
-// on the total cpu time used by all threads that make up the test.  For
-// real-time based tests, this is the lower bound on the elapsed time of the
-// benchmark execution, regardless of number of threads.
-BM_DEFINE_double(benchmark_min_time, 0.5);
-
-// The number of runs of each benchmark. If greater than 1, the mean and
-// standard deviation of the runs will be reported.
-BM_DEFINE_int32(benchmark_repetitions, 1);
-
-// If set, enable random interleaving of repetitions of all benchmarks.
-// See http://github.com/google/benchmark/issues/1051 for details.
-BM_DEFINE_bool(benchmark_enable_random_interleaving, false);
-
-// Report the result of each benchmark repetitions. When 'true' is specified
-// only the mean, standard deviation, and other statistics are reported for
-// repeated benchmarks. Affects all reporters.
-BM_DEFINE_bool(benchmark_report_aggregates_only, false);
-
-// Display the result of each benchmark repetitions. When 'true' is specified
-// only the mean, standard deviation, and other statistics are displayed for
-// repeated benchmarks. Unlike benchmark_report_aggregates_only, only affects
-// the display reporter, but  *NOT* file reporter, which will still contain
-// all the output.
-BM_DEFINE_bool(benchmark_display_aggregates_only, false);
-
-// The format to use for console output.
-// Valid values are 'console', 'json', or 'csv'.
-BM_DEFINE_string(benchmark_format, "console");
-
-// The format to use for file output.
-// Valid values are 'console', 'json', or 'csv'.
-BM_DEFINE_string(benchmark_out_format, "json");
-
-// The file to write additional output to.
-BM_DEFINE_string(benchmark_out, "");
-
-// Whether to use colors in the output.  Valid values:
-// 'true'/'yes'/1, 'false'/'no'/0, and 'auto'. 'auto' means to use colors if
-// the output is being sent to a terminal and the TERM environment variable is
-// set to a terminal type that supports colors.
-BM_DEFINE_string(benchmark_color, "auto");
-
-// Whether to use tabular format when printing user counters to the console.
-// Valid values: 'true'/'yes'/1, 'false'/'no'/0.  Defaults to false.
-BM_DEFINE_bool(benchmark_counters_tabular, false);
-
-// List of additional perf counters to collect, in libpfm format. For more
-// information about libpfm: https://man7.org/linux/man-pages/man3/libpfm.3.html
-BM_DEFINE_string(benchmark_perf_counters, "");
-
-// Extra context to include in the output formatted as comma-separated key-value
-// pairs. Kept internal as it's only used for parsing from env/command line.
-BM_DEFINE_kvpairs(benchmark_context, {});
-
-// The level of verbose logging to output
-BM_DEFINE_int32(v, 0);
-
 namespace internal {
 
 std::map<std::string, std::string>* global_context = nullptr;
@@ -286,7 +295,7 @@ void RunBenchmarks(const std::vector<BenchmarkInstance>& benchmarks,
   BM_CHECK(display_reporter != nullptr);
 
   // Determine the width of the name field using a minimum width of 10.
-  bool might_have_aggregates = FLAGS_benchmark_repetitions > 1;
+  bool might_have_aggregates = absl::GetFlag(FLAGS_benchmark_repetitions) > 1;
   size_t name_field_width = 10;
   size_t stat_field_width = 0;
   for (const BenchmarkInstance& benchmark : benchmarks) {
@@ -340,7 +349,7 @@ void RunBenchmarks(const std::vector<BenchmarkInstance>& benchmarks,
     assert(repetition_indices.size() == num_repetitions_total &&
            "Unexpected number of repetition indexes.");
 
-    if (FLAGS_benchmark_enable_random_interleaving) {
+    if (absl::GetFlag(FLAGS_benchmark_enable_random_interleaving)) {
       std::random_device rd;
       std::mt19937 g(rd());
       std::shuffle(repetition_indices.begin(), repetition_indices.end(), g);
@@ -384,7 +393,7 @@ void RunBenchmarks(const std::vector<BenchmarkInstance>& benchmarks,
 #endif
 
 std::unique_ptr<BenchmarkReporter> CreateReporter(
-    std::string const& name, ConsoleReporter::OutputOptions output_opts) {
+    std::string const&& name, ConsoleReporter::OutputOptions output_opts) {
   typedef std::unique_ptr<BenchmarkReporter> PtrType;
   if (name == "console") {
     return PtrType(new ConsoleReporter(output_opts));
@@ -414,17 +423,17 @@ ConsoleReporter::OutputOptions GetOutputOptions(bool force_no_color) {
     if (force_no_color) {
       return false;
     }
-    if (FLAGS_benchmark_color == "auto") {
+    if (absl::GetFlag(FLAGS_benchmark_color) == "auto") {
       return IsColorTerminal();
     }
-    return IsTruthyFlagValue(FLAGS_benchmark_color);
+    return IsTruthyFlagValue(absl::GetFlag(FLAGS_benchmark_color));
   };
   if (is_benchmark_color()) {
     output_opts |= ConsoleReporter::OO_Color;
   } else {
     output_opts &= ~ConsoleReporter::OO_Color;
   }
-  if (FLAGS_benchmark_counters_tabular) {
+  if (absl::GetFlag(FLAGS_benchmark_counters_tabular)) {
     output_opts |= ConsoleReporter::OO_Tabular;
   } else {
     output_opts &= ~ConsoleReporter::OO_Tabular;
@@ -444,7 +453,7 @@ size_t RunSpecifiedBenchmarks(BenchmarkReporter* display_reporter) {
 
 size_t RunSpecifiedBenchmarks(BenchmarkReporter* display_reporter,
                               BenchmarkReporter* file_reporter) {
-  std::string spec = FLAGS_benchmark_filter;
+  std::string spec = absl::GetFlag(FLAGS_benchmark_filter);
   if (spec.empty() || spec == "all")
     spec = ".";  // Regexp that matches all benchmarks
 
@@ -454,13 +463,13 @@ size_t RunSpecifiedBenchmarks(BenchmarkReporter* display_reporter,
   std::unique_ptr<BenchmarkReporter> default_file_reporter;
   if (!display_reporter) {
     default_display_reporter = internal::CreateReporter(
-        FLAGS_benchmark_format, internal::GetOutputOptions());
+        absl::GetFlag(FLAGS_benchmark_format), internal::GetOutputOptions());
     display_reporter = default_display_reporter.get();
   }
   auto& Out = display_reporter->GetOutputStream();
   auto& Err = display_reporter->GetErrorStream();
 
-  std::string const& fname = FLAGS_benchmark_out;
+  const std::string fname = absl::GetFlag(FLAGS_benchmark_out);
   if (fname.empty() && file_reporter) {
     Err << "A custom file reporter was provided but "
            "--benchmark_out=<file> was not specified."
@@ -475,7 +484,7 @@ size_t RunSpecifiedBenchmarks(BenchmarkReporter* display_reporter,
     }
     if (!file_reporter) {
       default_file_reporter = internal::CreateReporter(
-          FLAGS_benchmark_out_format, ConsoleReporter::OO_None);
+          absl::GetFlag(FLAGS_benchmark_out_format), ConsoleReporter::OO_None);
       file_reporter = default_file_reporter.get();
     }
     file_reporter->SetOutputStream(&output_file);
@@ -490,7 +499,7 @@ size_t RunSpecifiedBenchmarks(BenchmarkReporter* display_reporter,
     return 0;
   }
 
-  if (FLAGS_benchmark_list_tests) {
+  if (absl::GetFlag(FLAGS_benchmark_list_tests)) {
     for (auto const& benchmark : benchmarks)
       Out << benchmark.name().str() << "\n";
   } else {
@@ -537,57 +546,18 @@ void PrintUsageAndExit() {
   exit(0);
 }
 
-void ParseCommandLineFlags(int* argc, char** argv) {
-  using namespace benchmark;
-  BenchmarkReporter::Context::executable_name =
-      (argc && *argc > 0) ? argv[0] : "unknown";
-  for (int i = 1; argc && i < *argc; ++i) {
-    if (ParseBoolFlag(argv[i], "benchmark_list_tests",
-                      &FLAGS_benchmark_list_tests) ||
-        ParseStringFlag(argv[i], "benchmark_filter", &FLAGS_benchmark_filter) ||
-        ParseDoubleFlag(argv[i], "benchmark_min_time",
-                        &FLAGS_benchmark_min_time) ||
-        ParseInt32Flag(argv[i], "benchmark_repetitions",
-                       &FLAGS_benchmark_repetitions) ||
-        ParseBoolFlag(argv[i], "benchmark_enable_random_interleaving",
-                      &FLAGS_benchmark_enable_random_interleaving) ||
-        ParseBoolFlag(argv[i], "benchmark_report_aggregates_only",
-                      &FLAGS_benchmark_report_aggregates_only) ||
-        ParseBoolFlag(argv[i], "benchmark_display_aggregates_only",
-                      &FLAGS_benchmark_display_aggregates_only) ||
-        ParseStringFlag(argv[i], "benchmark_format", &FLAGS_benchmark_format) ||
-        ParseStringFlag(argv[i], "benchmark_out", &FLAGS_benchmark_out) ||
-        ParseStringFlag(argv[i], "benchmark_out_format",
-                        &FLAGS_benchmark_out_format) ||
-        ParseStringFlag(argv[i], "benchmark_color", &FLAGS_benchmark_color) ||
-        // "color_print" is the deprecated name for "benchmark_color".
-        // TODO: Remove this.
-        ParseStringFlag(argv[i], "color_print", &FLAGS_benchmark_color) ||
-        ParseBoolFlag(argv[i], "benchmark_counters_tabular",
-                      &FLAGS_benchmark_counters_tabular) ||
-        ParseStringFlag(argv[i], "benchmark_perf_counters",
-                        &FLAGS_benchmark_perf_counters) ||
-        ParseKeyValueFlag(argv[i], "benchmark_context",
-                          &FLAGS_benchmark_context) ||
-        ParseInt32Flag(argv[i], "v", &FLAGS_v)) {
-      for (int j = i; j != *argc - 1; ++j) argv[j] = argv[j + 1];
-
-      --(*argc);
-      --i;
-    } else if (IsFlag(argv[i], "help")) {
+void ValidateCommandLineFlags() {
+  for (auto const& flag : {absl::GetFlag(FLAGS_benchmark_format),
+                           absl::GetFlag(FLAGS_benchmark_out_format)}) {
+    if (flag != "console" && flag != "json" && flag != "csv") {
       PrintUsageAndExit();
     }
   }
-  for (auto const* flag :
-       {&FLAGS_benchmark_format, &FLAGS_benchmark_out_format}) {
-    if (*flag != "console" && *flag != "json" && *flag != "csv") {
-      PrintUsageAndExit();
-    }
-  }
-  if (FLAGS_benchmark_color.empty()) {
+  if (absl::GetFlag(FLAGS_benchmark_color).empty()) {
     PrintUsageAndExit();
   }
-  for (const auto& kv : FLAGS_benchmark_context) {
+  for (const auto& kv : benchmark::KvPairsFromEnv(
+           absl::GetFlag(FLAGS_benchmark_context).c_str(), {})) {
     AddCustomContext(kv.first, kv.second);
   }
 }
@@ -600,20 +570,17 @@ int InitializeStreams() {
 }  // end namespace internal
 
 void Initialize(int* argc, char** argv) {
-  internal::ParseCommandLineFlags(argc, argv);
-  internal::LogLevel() = FLAGS_v;
+  using namespace benchmark;
+  BenchmarkReporter::Context::executable_name =
+      (argc && *argc > 0) ? argv[0] : "unknown";
+
+  absl::ParseCommandLine(*argc, argv);
+  benchmark::internal::ValidateCommandLineFlags();
+  internal::LogLevel() = absl::GetFlag(FLAGS_v);
 }
 
 void Shutdown() {
   delete internal::global_context;
-}
-
-bool ReportUnrecognizedArguments(int argc, char** argv) {
-  for (int i = 1; i < argc; ++i) {
-    fprintf(stderr, "%s: error: unrecognized command-line flag: %s\n", argv[0],
-            argv[i]);
-  }
-  return argc > 1;
 }
 
 }  // end namespace benchmark

@@ -21,10 +21,10 @@
 #include <tuple>
 #include <vector>
 
+#include "absl/flags/flag.h"
 #include "benchmark/benchmark.h"
 #include "check.h"
 #include "colorprint.h"
-#include "commandlineflags.h"
 #include "complexity.h"
 #include "counter.h"
 #include "internal_macros.h"

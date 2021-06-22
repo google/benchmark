@@ -2,31 +2,15 @@
 #define BENCHMARK_MUTEX_H_
 
 #include <condition_variable>
-#include <mutex>
 
+#include "absl/synchronization/mutex.h"
 #include "check.h"
 
-// Enable thread safety attributes only with clang.
-// The attributes can be safely erased when compiling with other compilers.
-#if defined(HAVE_THREAD_SAFETY_ATTRIBUTES)
-#define THREAD_ANNOTATION_ATTRIBUTE_(x) __attribute__((x))
-#else
-#define THREAD_ANNOTATION_ATTRIBUTE_(x)  // no-op
-#endif
+#define THREAD_ANNOTATION_ATTRIBUTE_ THREAD_ANNOTATION_ATTRIBUTE__
 
 #define CAPABILITY(x) THREAD_ANNOTATION_ATTRIBUTE_(capability(x))
 
 #define SCOPED_CAPABILITY THREAD_ANNOTATION_ATTRIBUTE_(scoped_lockable)
-
-#define GUARDED_BY(x) THREAD_ANNOTATION_ATTRIBUTE_(guarded_by(x))
-
-#define PT_GUARDED_BY(x) THREAD_ANNOTATION_ATTRIBUTE_(pt_guarded_by(x))
-
-#define ACQUIRED_BEFORE(...) \
-  THREAD_ANNOTATION_ATTRIBUTE_(acquired_before(__VA_ARGS__))
-
-#define ACQUIRED_AFTER(...) \
-  THREAD_ANNOTATION_ATTRIBUTE_(acquired_after(__VA_ARGS__))
 
 #define REQUIRES(...) \
   THREAD_ANNOTATION_ATTRIBUTE_(requires_capability(__VA_ARGS__))
@@ -60,9 +44,6 @@
   THREAD_ANNOTATION_ATTRIBUTE_(assert_shared_capability(x))
 
 #define RETURN_CAPABILITY(x) THREAD_ANNOTATION_ATTRIBUTE_(lock_returned(x))
-
-#define NO_THREAD_SAFETY_ANALYSIS \
-  THREAD_ANNOTATION_ATTRIBUTE_(no_thread_safety_analysis)
 
 namespace benchmark {
 

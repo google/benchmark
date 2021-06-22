@@ -38,9 +38,9 @@
 #include <thread>
 #include <utility>
 
+#include "absl/flags/flag.h"
 #include "check.h"
 #include "colorprint.h"
-#include "commandlineflags.h"
 #include "complexity.h"
 #include "counter.h"
 #include "internal_macros.h"
@@ -146,22 +146,24 @@ BenchmarkRunner::BenchmarkRunner(
     BenchmarkReporter::PerFamilyRunReports* reports_for_family_)
     : b(b_),
       reports_for_family(reports_for_family_),
-      min_time(!IsZero(b.min_time()) ? b.min_time() : FLAGS_benchmark_min_time),
-      repeats(b.repetitions() != 0 ? b.repetitions()
-                                   : FLAGS_benchmark_repetitions),
+      min_time(!IsZero(b.min_time()) ? b.min_time()
+                                     : absl::GetFlag(FLAGS_benchmark_min_time)),
+      repeats(b.repetitions() != 0
+                  ? b.repetitions()
+                  : absl::GetFlag(FLAGS_benchmark_repetitions)),
       has_explicit_iteration_count(b.iterations() != 0),
       pool(b.threads() - 1),
       iters(has_explicit_iteration_count ? b.iterations() : 1),
       perf_counters_measurement(
-          PerfCounters::Create(StrSplit(FLAGS_benchmark_perf_counters, ','))),
+          PerfCounters::Create(absl::GetFlag(FLAGS_benchmark_perf_counters))),
       perf_counters_measurement_ptr(perf_counters_measurement.IsValid()
                                         ? &perf_counters_measurement
                                         : nullptr) {
   run_results.display_report_aggregates_only =
-      (FLAGS_benchmark_report_aggregates_only ||
-       FLAGS_benchmark_display_aggregates_only);
+      (absl::GetFlag(FLAGS_benchmark_report_aggregates_only) ||
+       absl::GetFlag(FLAGS_benchmark_display_aggregates_only));
   run_results.file_report_aggregates_only =
-      FLAGS_benchmark_report_aggregates_only;
+      absl::GetFlag(FLAGS_benchmark_report_aggregates_only);
   if (b.aggregation_report_mode() != internal::ARM_Unspecified) {
     run_results.display_report_aggregates_only =
         (b.aggregation_report_mode() &

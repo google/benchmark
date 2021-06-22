@@ -33,7 +33,7 @@ const bool PerfCounters::kSupported = true;
 bool PerfCounters::Initialize() { return pfm_initialize() == PFM_SUCCESS; }
 
 PerfCounters PerfCounters::Create(
-    const std::vector<std::string>& counter_names) {
+    const std::vector<std::string>&& counter_names) {
   if (counter_names.empty()) {
     return NoCounters();
   }
@@ -119,7 +119,7 @@ const bool PerfCounters::kSupported = false;
 bool PerfCounters::Initialize() { return false; }
 
 PerfCounters PerfCounters::Create(
-    const std::vector<std::string>& counter_names) {
+    const std::vector<std::string>&& counter_names) {
   if (!counter_names.empty()) {
     GetErrorLogInstance() << "Performance counters not supported.";
   }

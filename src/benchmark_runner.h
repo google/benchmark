@@ -18,10 +18,22 @@
 #include <thread>
 #include <vector>
 
+#include "absl/flags/declare.h"
+#include "absl/flags/flag.h"
 #include "benchmark_api_internal.h"
 #include "internal_macros.h"
 #include "perf_counters.h"
 #include "thread_manager.h"
+
+ABSL_DECLARE_FLAG(double, benchmark_min_time);
+
+ABSL_DECLARE_FLAG(int32_t, benchmark_repetitions);
+
+ABSL_DECLARE_FLAG(bool, benchmark_report_aggregates_only);
+
+ABSL_DECLARE_FLAG(bool, benchmark_display_aggregates_only);
+
+ABSL_DECLARE_FLAG(std::vector<std::string>, benchmark_perf_counters);
 
 namespace benchmark {
 

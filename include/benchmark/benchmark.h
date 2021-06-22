@@ -1338,7 +1338,6 @@ class Fixture : public internal::Benchmark {
 #define BENCHMARK_MAIN()                                                \
   int main(int argc, char** argv) {                                     \
     ::benchmark::Initialize(&argc, argv);                               \
-    if (::benchmark::ReportUnrecognizedArguments(argc, argv)) return 1; \
     ::benchmark::RunSpecifiedBenchmarks();                              \
     ::benchmark::Shutdown();                                            \
     return 0;                                                           \

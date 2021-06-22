@@ -2,11 +2,16 @@
 #include <string>
 #include <vector>
 
-#include "../src/commandlineflags.h"
 #include "../src/string_util.h"
+#include "absl/flags/declare.h"
+#include "absl/flags/flag.h"
 #include "benchmark/benchmark.h"
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
+
+ABSL_DECLARE_FLAG(bool, benchmark_enable_random_interleaving);
+ABSL_DECLARE_FLAG(std::string, benchmark_filter);
+ABSL_DECLARE_FLAG(int32_t, benchmark_repetitions);
 
 namespace benchmark {
 
@@ -52,7 +57,7 @@ class BenchmarkTest : public testing::Test {
     queue->Clear();
 
     BenchmarkReporter* reporter = new NullReporter;
-    FLAGS_benchmark_filter = pattern;
+    absl::SetFlag(&FLAGS_benchmark_filter, pattern);
     RunSpecifiedBenchmarks(reporter);
     delete reporter;
 
@@ -90,7 +95,7 @@ TEST_F(BenchmarkTest, Match1) {
 }
 
 TEST_F(BenchmarkTest, Match1WithRepetition) {
-  FLAGS_benchmark_repetitions = 2;
+  absl::SetFlag(&FLAGS_benchmark_repetitions, 2);
 
   Execute("BM_Match1/(64|80)");
   ASSERT_EQ("BM_Match1/64", queue->Get());
@@ -101,8 +106,8 @@ TEST_F(BenchmarkTest, Match1WithRepetition) {
 }
 
 TEST_F(BenchmarkTest, Match1WithRandomInterleaving) {
-  FLAGS_benchmark_enable_random_interleaving = true;
-  FLAGS_benchmark_repetitions = 100;
+  absl::SetFlag(&FLAGS_benchmark_enable_random_interleaving, true);
+  absl::SetFlag(&FLAGS_benchmark_repetitions, 100);
 
   std::map<std::string, int> element_count;
   std::map<std::string, int> interleaving_count;

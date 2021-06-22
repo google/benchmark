@@ -8,8 +8,8 @@
 #include <string>
 #include <vector>
 
+#include "absl/flags/flag.h"
 #include "benchmark/benchmark.h"
-#include "commandlineflags.h"
 
 namespace benchmark {
 namespace internal {

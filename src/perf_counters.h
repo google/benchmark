@@ -87,7 +87,7 @@ class PerfCounters final {
   // implementation and OS specific.
   // TODO: once we move to C++-17, this should be a std::optional, and then the
   // IsValid() boolean can be dropped.
-  static PerfCounters Create(const std::vector<std::string>& counter_names);
+  static PerfCounters Create(const std::vector<std::string>&& counter_names);
 
   // Take a snapshot of the current value of the counters into the provided
   // valid PerfCounterValues storage. The values are populated such that:
