@@ -1,19 +1,20 @@
-include(FetchContent)
 
 set(ABSL_ENABLE_INSTALL ON)
 if (NOT (DEFINED ABSEIL_PATH))
   message("ABSEIL_PATH not provided. Downloading.")
-  FetchContent_Declare(
-    abseil
-    GIT_REPOSITORY    https://github.com/abseil/abseil-cpp.git
-    GIT_TAG           4a23151e7ee089f54f0575f0a6d499e3a3fb6728
-  )
-  FetchContent_GetProperties(abseil)
-  if(NOT abseil_POPULATED)
-      FetchContent_Populate(abseil)
-      add_subdirectory(${abseil_SOURCE_DIR} ${abseil_BINARY_DIR})
-      set(ABSEIL_PATH ${abseil_SOURCE_DIR})
+  set(ABSEIL_PREFIX "${benchmark_BINARY_DIR}/third_party/abseil")
+  configure_file(${benchmark_SOURCE_DIR}/cmake/Abseil.cmake.in ${ABSEIL_PREFIX}/CMakeLists.txt @ONLY)
+  execute_process(COMMAND ${CMAKE_COMMAND} -G "${CMAKE_GENERATOR}" . 
+    RESULT_VARIABLE result 
+    WORKING_DIRECTORY ${ABSEIL_PREFIX})
+  execute_process(COMMAND ${CMAKE_COMMAND} --build .
+    WORKING_DIRECTORY ${ABSEIL_PREFIX})
+  if(result)
+    message(FATAL_ERROR "CMake step for abseil failed: ${result}")
   endif()
+
+  set(ABSEIL_PATH ${ABSEIL_PREFIX}/abseil-src)
+  add_subdirectory(${ABSEIL_PATH} ${ABSEIL_PREFIX}/abseil-build)
 else()
     add_subdirectory(${ABSEIL_PATH} ${CMAKE_CURRENT_BINARY_DIR}/abseil-build)
 endif()
