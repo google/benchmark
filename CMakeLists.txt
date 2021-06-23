@@ -204,6 +204,12 @@ else()
     cxx_feature_check(THREAD_SAFETY_ATTRIBUTES)
   endif()
 
+  check_cxx_compiler_flag(-Wno-implicit-int-float-conversion 
+    CXX_SUPPORTS_NOIMPLINTFLOATCONV)
+  if(NOT CXX_SUPPORTS_NOIMPLINTFLOATCONV)
+    add_cxx_compiler_flag(-Wno-unknown-warning-option)
+  endif()
+
   # On most UNIX like platforms g++ and clang++ define _GNU_SOURCE as a
   # predefined macro, which turns on all of the wonderful libc extensions.
   # However g++ doesn't do this in Cygwin so we have to define it ourselfs
