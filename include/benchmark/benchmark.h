@@ -275,7 +275,10 @@ namespace benchmark {
 class BenchmarkReporter;
 class MemoryManager;
 
-void Initialize(int* argc, char** argv);
+// Initialize from command line arguments. Update argc to the number of unparsed
+// arguments, and return the vector of such arguments. The return includes the
+// process path (i.e. argv[0])
+std::vector<char*> Initialize(int* argc, char** argv);
 void Shutdown();
 
 // Report to stdout all arguments in 'argv' as unrecognized except the first.

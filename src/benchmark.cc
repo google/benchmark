@@ -569,18 +569,16 @@ int InitializeStreams() {
 
 }  // end namespace internal
 
-void Initialize(int* argc, char** argv) {
+std::vector<char*> Initialize(int* argc, char** argv) {
   using namespace benchmark;
   BenchmarkReporter::Context::executable_name =
       (argc && *argc > 0) ? argv[0] : "unknown";
 
-  auto parsed = absl::ParseCommandLine(*argc, argv);
-  // We assume everything is parsed through absl. The first argv is the 
-  // command line.
-  CHECK_EQ(parsed.size() + 1, static_cast<size_t>(*argc));
-  *argc = 0;
+  auto unparsed = absl::ParseCommandLine(*argc, argv);
+  *argc = static_cast<int>(unparsed.size());
   benchmark::internal::ValidateCommandLineFlags();
   internal::LogLevel() = absl::GetFlag(FLAGS_v);
+  return unparsed;
 }
 
 void Shutdown() {

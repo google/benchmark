@@ -76,15 +76,18 @@ int main(int argc, char **argv) {
     list_only |= std::string(argv[i]).find("--benchmark_list_tests") !=
                  std::string::npos;
 
-  benchmark::Initialize(&argc, argv);
+  auto unparsed_args = benchmark::Initialize(&argc, argv);
 
   TestReporter test_reporter;
   const size_t returned_count =
       benchmark::RunSpecifiedBenchmarks(&test_reporter);
 
-  if (argc == 2) {
+  // i.e. if there is an additional argument that's unparsed, other than the
+  // path to the executable. We expect that extra arg to be the expected
+  // benchmarks count.
+  if (unparsed_args.size() == 2) {
     // Make sure we ran all of the tests
-    std::stringstream ss(argv[1]);
+    std::stringstream ss(unparsed_args[1]);
     size_t expected_return;
     ss >> expected_return;
 
