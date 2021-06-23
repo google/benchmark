@@ -574,7 +574,11 @@ void Initialize(int* argc, char** argv) {
   BenchmarkReporter::Context::executable_name =
       (argc && *argc > 0) ? argv[0] : "unknown";
 
-  absl::ParseCommandLine(*argc, argv);
+  auto parsed = absl::ParseCommandLine(*argc, argv);
+  // We assume everything is parsed through absl. The first argv is the 
+  // command line.
+  CHECK_EQ(parsed.size() + 1, static_cast<size_t>(*argc));
+  *argc = 0;
   benchmark::internal::ValidateCommandLineFlags();
   internal::LogLevel() = absl::GetFlag(FLAGS_v);
 }
