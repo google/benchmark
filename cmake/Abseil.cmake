@@ -4,7 +4,7 @@ if (NOT (DEFINED ABSEIL_PATH))
   message("ABSEIL_PATH not provided. Downloading.")
   set(ABSEIL_PREFIX "${benchmark_BINARY_DIR}/third_party/abseil")
   configure_file(${benchmark_SOURCE_DIR}/cmake/Abseil.cmake.in ${ABSEIL_PREFIX}/CMakeLists.txt @ONLY)
-  execute_process(COMMAND ${CMAKE_COMMAND} -G "${CMAKE_GENERATOR}" . 
+  execute_process(COMMAND ${CMAKE_COMMAND} -G "${CMAKE_GENERATOR}" .
     RESULT_VARIABLE result 
     WORKING_DIRECTORY ${ABSEIL_PREFIX})
   execute_process(COMMAND ${CMAKE_COMMAND} --build .
