@@ -1,6 +1,7 @@
 workspace(name = "com_github_google_benchmark")
 
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
+load("@bazel_tools//tools/build_defs/repo:git.bzl", "git_repository")
 
 http_archive(
     name = "rules_cc",
@@ -9,11 +10,10 @@ http_archive(
     sha256 = "d7dc12c1d5bc1a87474de8e3d17b7731a4dcebcfb8aa3990fe8ac7734ef12f2f",
 )
 
-http_archive(
+git_repository(
     name = "com_google_absl",
-    sha256 = "f41868f7a938605c92936230081175d1eae87f6ea2c248f41077c8f88316f111",
-    strip_prefix = "abseil-cpp-20200225.2",
-    urls = ["https://github.com/abseil/abseil-cpp/archive/20200225.2.tar.gz"],
+    commit = "4a23151e7ee089f54f0575f0a6d499e3a3fb6728",
+    remote = "https://github.com/abseil/abseil-cpp.git",
 )
 
 http_archive(

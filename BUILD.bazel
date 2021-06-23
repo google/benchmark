@@ -36,6 +36,10 @@ cc_library(
     }),
     strip_include_prefix = "include",
     visibility = ["//visibility:public"],
+    deps = [
+        "@com_google_absl//absl/flags:flag",
+        "@com_google_absl//absl/flags:parse",
+    ]
 )
 
 cc_library(
