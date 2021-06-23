@@ -18,6 +18,14 @@ if (NOT (DEFINED ABSEIL_PATH))
   endif()
 
   set(ABSEIL_PATH ${ABSEIL_PREFIX}/abseil-src)
+
+  execute_process(COMMAND ${PYTHON_EXECUTABLE} 
+    ${ABSEIL_PATH}/absl/copts/generate_copts.py 
+    RESULT_VARIABLE result)
+  if(result)
+    message(FATAL_ERROR "Config step for abseil failed: ${result}")
+  endif()
+
   add_subdirectory(${ABSEIL_PATH} ${ABSEIL_PREFIX}/abseil-build)
 else()
     add_subdirectory(${ABSEIL_PATH} ${CMAKE_CURRENT_BINARY_DIR}/abseil-build)
