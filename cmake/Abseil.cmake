@@ -7,10 +7,14 @@ if (NOT (DEFINED ABSEIL_PATH))
   execute_process(COMMAND ${CMAKE_COMMAND} -G "${CMAKE_GENERATOR}" .
     RESULT_VARIABLE result 
     WORKING_DIRECTORY ${ABSEIL_PREFIX})
-  execute_process(COMMAND ${CMAKE_COMMAND} --build .
-    WORKING_DIRECTORY ${ABSEIL_PREFIX})
   if(result)
     message(FATAL_ERROR "CMake step for abseil failed: ${result}")
+  endif()
+
+  execute_process(COMMAND ${CMAKE_COMMAND} --build .
+    WORKING_DIRECTORY ${ABSEIL_PREFIX} RESULT_VARIABLE result)
+  if(result)
+    message(FATAL_ERROR "Download step for abseil failed: ${result}")
   endif()
 
   set(ABSEIL_PATH ${ABSEIL_PREFIX}/abseil-src)
