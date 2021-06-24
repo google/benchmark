@@ -10,6 +10,7 @@
 
 #include "../src/benchmark_api_internal.h"
 #include "../src/check.h"  // NOTE: check.h is for internal use only!
+#include "../src/log.h"    // NOTE: log.h is for internal use only
 #include "../src/re.h"     // NOTE: re.h is for internal use only
 #include "output_test.h"
 
@@ -237,18 +238,18 @@ void ResultsChecker::CheckResults(std::stringstream& output) {
   }
   // finally we can call the subscribed check functions
   for (const auto& p : check_patterns) {
-    VLOG(2) << "--------------------------------\n";
-    VLOG(2) << "checking for benchmarks matching " << p.regex_str << "...\n";
+    BM_VLOG(2) << "--------------------------------\n";
+    BM_VLOG(2) << "checking for benchmarks matching " << p.regex_str << "...\n";
     for (const auto& r : results) {
       if (!p.regex->Match(r.name)) {
-        VLOG(2) << p.regex_str << " is not matched by " << r.name << "\n";
+        BM_VLOG(2) << p.regex_str << " is not matched by " << r.name << "\n";
         continue;
       } else {
-        VLOG(2) << p.regex_str << " is matched by " << r.name << "\n";
+        BM_VLOG(2) << p.regex_str << " is matched by " << r.name << "\n";
       }
-      VLOG(1) << "Checking results of " << r.name << ": ... \n";
+      BM_VLOG(1) << "Checking results of " << r.name << ": ... \n";
       p.fn(r);
-      VLOG(1) << "Checking results of " << r.name << ": OK.\n";
+      BM_VLOG(1) << "Checking results of " << r.name << ": OK.\n";
     }
   }
 }
