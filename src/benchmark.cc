@@ -56,6 +56,7 @@
 #include "thread_manager.h"
 #include "thread_timer.h"
 
+namespace benchmark {
 // Print a list of benchmarks. This option overrides all other options.
 DEFINE_bool(benchmark_list_tests, false);
 
@@ -112,19 +113,18 @@ DEFINE_string(benchmark_color, "auto");
 // Valid values: 'true'/'yes'/1, 'false'/'no'/0.  Defaults to false.
 DEFINE_bool(benchmark_counters_tabular, false);
 
-// The level of verbose logging to output
-DEFINE_int32(v, 0);
-
 // List of additional perf counters to collect, in libpfm format. For more
 // information about libpfm: https://man7.org/linux/man-pages/man3/libpfm.3.html
 DEFINE_string(benchmark_perf_counters, "");
 
-namespace benchmark {
-namespace internal {
-
 // Extra context to include in the output formatted as comma-separated key-value
 // pairs. Kept internal as it's only used for parsing from env/command line.
 DEFINE_kvpairs(benchmark_context, {});
+
+// The level of verbose logging to output
+DEFINE_int32(v, 0);
+
+namespace internal {
 
 std::map<std::string, std::string>* global_context = nullptr;
 
@@ -530,6 +530,7 @@ void PrintUsageAndExit() {
           "          [--benchmark_out_format=<json|console|csv>]\n"
           "          [--benchmark_color={auto|true|false}]\n"
           "          [--benchmark_counters_tabular={true|false}]\n"
+          "          [--benchmark_perf_counters=<counter>,...]\n"
           "          [--benchmark_context=<key>=<value>,...]\n"
           "          [--v=<verbosity>]\n");
   exit(0);
