@@ -8,11 +8,12 @@
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
 
+namespace benchmark {
+
 DECLARE_bool(benchmark_enable_random_interleaving);
 DECLARE_string(benchmark_filter);
 DECLARE_int32(benchmark_repetitions);
 
-namespace benchmark {
 namespace internal {
 namespace {
 
