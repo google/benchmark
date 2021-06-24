@@ -175,7 +175,7 @@ BenchmarkRunner::BenchmarkRunner(
 }
 
 BenchmarkRunner::IterationResults BenchmarkRunner::DoNIterations() {
-  VLOG(2) << "Running " << b.name().str() << " for " << iters << "\n";
+  BM_VLOG(2) << "Running " << b.name().str() << " for " << iters << "\n";
 
   std::unique_ptr<internal::ThreadManager> manager;
   manager.reset(new internal::ThreadManager(b.threads()));
@@ -210,8 +210,8 @@ BenchmarkRunner::IterationResults BenchmarkRunner::DoNIterations() {
   // If we were measuring whole-process CPU usage, adjust the CPU time too.
   if (b.measure_process_cpu_time()) i.results.cpu_time_used /= b.threads();
 
-  VLOG(2) << "Ran in " << i.results.cpu_time_used << "/"
-          << i.results.real_time_used << "\n";
+  BM_VLOG(2) << "Ran in " << i.results.cpu_time_used << "/"
+             << i.results.real_time_used << "\n";
 
   // By using KeepRunningBatch a benchmark can iterate more times than
   // requested, so take the iteration count from i.results.
@@ -249,7 +249,7 @@ IterationCount BenchmarkRunner::PredictNumItersNeeded(
   // But we do have *some* sanity limits though..
   const IterationCount next_iters = std::min(max_next_iters, kMaxIterations);
 
-  VLOG(3) << "Next iters: " << next_iters << ", " << multiplier << "\n";
+  BM_VLOG(3) << "Next iters: " << next_iters << ", " << multiplier << "\n";
   return next_iters;  // round up before conversion to integer.
 }
 
