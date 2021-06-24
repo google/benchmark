@@ -112,22 +112,22 @@ std::vector<BenchmarkReporter::Run> ComputeStats(
         it = counter_stats.find(cnt.first);
         it->second.s.reserve(reports.size());
       } else {
-        CHECK_EQ(counter_stats[cnt.first].c.flags, cnt.second.flags);
+        BM_CHECK_EQ(counter_stats[cnt.first].c.flags, cnt.second.flags);
       }
     }
   }
 
   // Populate the accumulators.
   for (Run const& run : reports) {
-    CHECK_EQ(reports[0].benchmark_name(), run.benchmark_name());
-    CHECK_EQ(run_iterations, run.iterations);
+    BM_CHECK_EQ(reports[0].benchmark_name(), run.benchmark_name());
+    BM_CHECK_EQ(run_iterations, run.iterations);
     if (run.error_occurred) continue;
     real_accumulated_time_stat.emplace_back(run.real_accumulated_time);
     cpu_accumulated_time_stat.emplace_back(run.cpu_accumulated_time);
     // user counters
     for (auto const& cnt : run.counters) {
       auto it = counter_stats.find(cnt.first);
-      CHECK_NE(it, counter_stats.end());
+      BM_CHECK_NE(it, counter_stats.end());
       it->second.s.emplace_back(cnt.second);
     }
   }

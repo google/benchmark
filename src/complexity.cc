@@ -123,10 +123,10 @@ LeastSq MinimalLeastSq(const std::vector<int64_t>& n,
 //                  fitting curve.
 LeastSq MinimalLeastSq(const std::vector<int64_t>& n,
                        const std::vector<double>& time, const BigO complexity) {
-  CHECK_EQ(n.size(), time.size());
-  CHECK_GE(n.size(), 2);  // Do not compute fitting curve is less than two
-                          // benchmark runs are given
-  CHECK_NE(complexity, oNone);
+  BM_CHECK_EQ(n.size(), time.size());
+  BM_CHECK_GE(n.size(), 2);  // Do not compute fitting curve is less than two
+                             // benchmark runs are given
+  BM_CHECK_NE(complexity, oNone);
 
   LeastSq best_fit;
 
@@ -167,7 +167,8 @@ std::vector<BenchmarkReporter::Run> ComputeBigO(
 
   // Populate the accumulators.
   for (const Run& run : reports) {
-    CHECK_GT(run.complexity_n, 0) << "Did you forget to call SetComplexityN?";
+    BM_CHECK_GT(run.complexity_n, 0)
+        << "Did you forget to call SetComplexityN?";
     n.push_back(run.complexity_n);
     real_time.push_back(run.real_accumulated_time / run.iterations);
     cpu_time.push_back(run.cpu_accumulated_time / run.iterations);

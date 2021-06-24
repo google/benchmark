@@ -10,9 +10,9 @@
 
 namespace benchmark {
 
-DECLARE_bool(benchmark_enable_random_interleaving);
-DECLARE_string(benchmark_filter);
-DECLARE_int32(benchmark_repetitions);
+BM_DECLARE_bool(benchmark_enable_random_interleaving);
+BM_DECLARE_string(benchmark_filter);
+BM_DECLARE_int32(benchmark_repetitions);
 
 namespace internal {
 namespace {

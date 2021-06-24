@@ -225,7 +225,7 @@ std::string LocalDateTimeString() {
 
     tz_len = ::snprintf(tz_offset, sizeof(tz_offset), "%c%02li:%02li",
         tz_offset_sign, offset_minutes / 100, offset_minutes % 100);
-    CHECK(tz_len == kTzOffsetLen);
+    BM_CHECK(tz_len == kTzOffsetLen);
     ((void)tz_len); // Prevent unused variable warning in optimized build.
   } else {
     // Unknown offset. RFC3339 specifies that unknown local offsets should be
@@ -242,7 +242,7 @@ std::string LocalDateTimeString() {
 
   timestamp_len = std::strftime(storage, sizeof(storage), "%Y-%m-%dT%H:%M:%S",
       timeinfo_p);
-  CHECK(timestamp_len == kTimestampLen);
+  BM_CHECK(timestamp_len == kTimestampLen);
   // Prevent unused variable warning in optimized build.
   ((void)kTimestampLen);
 

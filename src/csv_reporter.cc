@@ -85,7 +85,8 @@ void CSVReporter::ReportRuns(const std::vector<Run>& reports) {
       for (const auto& cnt : run.counters) {
         if (cnt.first == "bytes_per_second" || cnt.first == "items_per_second")
           continue;
-        CHECK(user_counter_names_.find(cnt.first) != user_counter_names_.end())
+        BM_CHECK(user_counter_names_.find(cnt.first) !=
+                 user_counter_names_.end())
             << "All counters must be present in each run. "
             << "Counter named \"" << cnt.first
             << "\" was not in a run after being added to the header";

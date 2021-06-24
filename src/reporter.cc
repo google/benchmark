@@ -38,7 +38,7 @@ BenchmarkReporter::~BenchmarkReporter() {}
 
 void BenchmarkReporter::PrintBasicContext(std::ostream *out,
                                           Context const &context) {
-  CHECK(out) << "cannot be null";
+  BM_CHECK(out) << "cannot be null";
   auto &Out = *out;
 
   Out << LocalDateTimeString() << "\n";
