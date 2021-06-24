@@ -124,7 +124,7 @@ void RunInThread(const BenchmarkInstance* b, IterationCount iters,
           : internal::ThreadTimer::Create());
   State st =
       b->Run(iters, thread_id, &timer, manager, perf_counters_measurement);
-  CHECK(st.error_occurred() || st.iterations() >= st.max_iterations)
+  BM_CHECK(st.error_occurred() || st.iterations() >= st.max_iterations)
       << "Benchmark returned before State::KeepRunning() returned false!";
   {
     MutexLock l(manager->GetBenchmarkMutex());
@@ -168,8 +168,8 @@ BenchmarkRunner::BenchmarkRunner(
          internal::ARM_DisplayReportAggregatesOnly);
     run_results.file_report_aggregates_only =
         (b.aggregation_report_mode() & internal::ARM_FileReportAggregatesOnly);
-    CHECK(FLAGS_benchmark_perf_counters.empty() ||
-          perf_counters_measurement.IsValid())
+    BM_CHECK(FLAGS_benchmark_perf_counters.empty() ||
+             perf_counters_measurement.IsValid())
         << "Perf counters were requested but could not be set up.";
   }
 }
