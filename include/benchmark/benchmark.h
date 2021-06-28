@@ -187,6 +187,7 @@ BENCHMARK(BM_test)->Unit(benchmark::kMillisecond);
 #include <vector>
 
 #if defined(BENCHMARK_HAS_CXX11)
+#include <atomic>
 #include <initializer_list>
 #include <type_traits>
 #include <utility>
@@ -327,6 +328,14 @@ BENCHMARK_UNUSED static int stream_init_anchor = InitializeStreams();
 #define BENCHMARK_HAS_NO_INLINE_ASSEMBLY
 #endif
 
+// Force the compiler to flush pending writes to global memory. Acts as an
+// effective read/write barrier
+#ifdef BENCHMARK_HAS_CXX11
+inline BENCHMARK_ALWAYS_INLINE void ClobberMemory() {
+  std::atomic_signal_fence(std::memory_order_acq_rel);
+}
+#endif
+
 // The DoNotOptimize(...) function can be used to prevent a value or
 // expression from being optimized away by the compiler. This function is
 // intended to add little to no overhead.
@@ -346,11 +355,11 @@ inline BENCHMARK_ALWAYS_INLINE void DoNotOptimize(Tp& value) {
 #endif
 }
 
-// Force the compiler to flush pending writes to global memory. Acts as an
-// effective read/write barrier
+#ifndef BENCHMARK_HAS_CXX11
 inline BENCHMARK_ALWAYS_INLINE void ClobberMemory() {
   asm volatile("" : : : "memory");
 }
+#endif
 #elif defined(_MSC_VER)
 template <class Tp>
 inline BENCHMARK_ALWAYS_INLINE void DoNotOptimize(Tp const& value) {
@@ -358,13 +367,15 @@ inline BENCHMARK_ALWAYS_INLINE void DoNotOptimize(Tp const& value) {
   _ReadWriteBarrier();
 }
 
+#ifndef BENCHMARK_HAS_CXX11
 inline BENCHMARK_ALWAYS_INLINE void ClobberMemory() { _ReadWriteBarrier(); }
+#endif
 #else
 template <class Tp>
 inline BENCHMARK_ALWAYS_INLINE void DoNotOptimize(Tp const& value) {
   internal::UseCharPointer(&reinterpret_cast<char const volatile&>(value));
 }
-// FIXME Add ClobberMemory() for non-gnu and non-msvc compilers
+// FIXME Add ClobberMemory() for non-gnu and non-msvc compilers, before C++11.
 #endif
 
 // This class is used for user-defined counters.
