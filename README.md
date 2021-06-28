@@ -227,6 +227,11 @@ can link to pthread by adding `-pthread` to your linker command. Note, you can
 also use `-lpthread`, but there are potential issues with ordering of command
 line parameters if you use that.
 
+On QNX, the pthread library is part of libc and usually included automatically
+(see
+[`pthread_create()`](https://www.qnx.com/developers/docs/7.1/index.html#com.qnx.doc.neutrino.lib_ref/topic/p/pthread_create.html)).
+There's no separate pthread library to link.
+
 ### Building with Visual Studio 2015 or 2017
 
 The `shlwapi` library (`-lshlwapi`) is required to support a call to `CPUInfo` which reads the registry. Either add `shlwapi.lib` under `[ Configuration Properties > Linker > Input ]`, or use the following:
