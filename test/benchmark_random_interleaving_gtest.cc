@@ -34,7 +34,7 @@ class EventQueue : public std::queue<std::string> {
   }
 };
 
-static EventQueue* queue = new EventQueue;
+EventQueue* queue = new EventQueue();
 
 class NullReporter : public BenchmarkReporter {
  public:
@@ -60,7 +60,7 @@ class BenchmarkTest : public testing::Test {
   }
 };
 
-static void BM_Match1(benchmark::State& state) {
+void BM_Match1(benchmark::State& state) {
   const int64_t arg = state.range(0);
 
   for (auto _ : state) {

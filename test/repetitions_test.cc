@@ -6,7 +6,7 @@
 // ------------------------ Testing Basic Output --------------------------- //
 // ========================================================================= //
 
-void BM_ExplicitRepetitions(benchmark::State& state) {
+static void BM_ExplicitRepetitions(benchmark::State& state) {
   for (auto _ : state) {
   }
 }
@@ -105,7 +105,7 @@ ADD_CASES(TC_CSVOut,
 // ------------------------ Testing Basic Output --------------------------- //
 // ========================================================================= //
 
-void BM_ImplicitRepetitions(benchmark::State& state) {
+static void BM_ImplicitRepetitions(benchmark::State& state) {
   for (auto _ : state) {
   }
 }
