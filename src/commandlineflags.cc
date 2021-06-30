@@ -112,7 +112,7 @@ bool ParseKvPairs(const std::string& src_text, const char* str,
 static std::string FlagToEnvVar(const char* flag) {
   const std::string flag_str(flag);
 
-  std::string env_var;
+  std::string env_var = "";
   for (size_t i = 0; i != flag_str.length(); ++i)
     env_var += static_cast<char>(::toupper(flag_str.c_str()[i]));
 

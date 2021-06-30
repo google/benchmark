@@ -7,6 +7,7 @@ on:
 env:
   CC: clang
   CXX: clang++
+  EXTRA_FLAGS: "-g -O2 -fno-omit-frame-pointer -L/usr/local/lib -I/usr/local/include -I/usr/local/include/c++/v1"
   EXTRA_CXX_FLAGS: "-stdlib=libc++"
   UBSAN_OPTIONS: "print_stacktrace=1"
 
@@ -18,33 +19,32 @@ jobs:
       fail-fast: false
       matrix:
         build_type: ['Debug', 'RelWithDebInfo']
-        sanitizer: ['asan', 'ubsan', 'tsan']
-        # TODO: add 'msan' above. currently failing and needs investigation.
+        sanitizer: ['asan', 'ubsan', 'tsan', 'msan']
     steps:
     - uses: actions/checkout@v2
 
     - name: configure msan env
       if: matrix.sanitizer == 'msan'
       run: |
-        echo "EXTRA_FLAGS=-g -O2 -fno-omit-frame-pointer -fsanitize=memory -fsanitize-memory-track-origins" >> $GITHUB_ENV
+        echo "EXTRA_FLAGS=$EXTRA_FLAGS -fsanitize=memory -fsanitize-memory-track-origins" >> $GITHUB_ENV
         echo "LIBCXX_SANITIZER=MemoryWithOrigins" >> $GITHUB_ENV
 
     - name: configure ubsan env
       if: matrix.sanitizer == 'ubsan'
       run: |
-        echo "EXTRA_FLAGS=-g -O2 -fno-omit-frame-pointer -fsanitize=undefined -fno-sanitize-recover=all" >> $GITHUB_ENV
+        echo "EXTRA_FLAGS=$EXTRA_FLAGS -fsanitize=undefined -fno-sanitize-recover=all" >> $GITHUB_ENV
         echo "LIBCXX_SANITIZER=Undefined" >> $GITHUB_ENV
 
     - name: configure asan env
       if: matrix.sanitizer == 'asan'
       run: |
-        echo "EXTRA_FLAGS=-g -O2 -fno-omit-frame-pointer -fsanitize=address -fno-sanitize-recover=all" >> $GITHUB_ENV
+        echo "EXTRA_FLAGS=$EXTRA_FLAGS -fsanitize=address -fno-sanitize-recover=all" >> $GITHUB_ENV
         echo "LIBCXX_SANITIZER=Address" >> $GITHUB_ENV
 
     - name: configure tsan env
       if: matrix.sanitizer == 'tsan'
       run: |
-        echo "EXTRA_FLAGS=-g -O2 -fno-omit-frame-pointer -fsanitize=thread -fno-sanitize-recover=all" >> $GITHUB_ENV
+        echo "EXTRA_FLAGS=$EXTRA_FLAGS -fsanitize=thread -fno-sanitize-recover=all" >> $GITHUB_ENV
         echo "LIBCXX_SANITIZER=Thread" >> $GITHUB_ENV
 
     - name: install llvm stuff
