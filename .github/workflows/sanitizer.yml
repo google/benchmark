@@ -5,9 +5,6 @@ on:
   pull_request: {}
 
 env:
-  CC: clang
-  CXX: clang++
-  EXTRA_CXX_FLAGS: "-stdlib=libc++"
   UBSAN_OPTIONS: "print_stacktrace=1"
 
 jobs:
@@ -63,7 +60,9 @@ jobs:
 
     - name: install llvm stuff
       if: matrix.compiler == 'clang'
-      run: "${GITHUB_WORKSPACE}/.github/.libcxx-setup.sh"
+      run: |
+        "${GITHUB_WORKSPACE}/.github/.libcxx-setup.sh"
+        echo "EXTRA_CXX_FLAGS=\"-stdlib=libc++\"" >> $GITHUB_ENV
 
     - name: create build environment
       run: cmake -E make_directory ${{ runner.workspace }}/_build
