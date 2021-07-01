@@ -59,7 +59,7 @@ jobs:
       run: |
         sudo apt update && sudo apt -y install gcc-10 g++-10
         echo "CC=gcc-10" >> $GITHUB_ENV
-        echo "CXX=gcc-10" >> $GITHUB_ENV
+        echo "CXX=g++-10" >> $GITHUB_ENV
 
     - name: install llvm stuff
       if: matrix.compiler == 'clang'
