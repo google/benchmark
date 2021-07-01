@@ -12,7 +12,7 @@ env:
 
 jobs:
   job:
-    name: ${{ matrix.sanitizer }}.${{ matrix.build_type }}
+    name: ${{ matrix.sanitizer }}.${{ matrix.build_type }}.${{ matrix.compiler }}
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
