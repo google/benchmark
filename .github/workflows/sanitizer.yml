@@ -19,6 +19,7 @@ jobs:
       matrix:
         build_type: ['Debug', 'RelWithDebInfo']
         sanitizer: ['asan', 'ubsan', 'tsan']
+        compiler: ['clang', 'gcc']
         # TODO: add 'msan' above. currently failing and needs investigation.
     steps:
     - uses: actions/checkout@v2
@@ -47,7 +48,21 @@ jobs:
         echo "EXTRA_FLAGS=-g -O2 -fno-omit-frame-pointer -fsanitize=thread -fno-sanitize-recover=all" >> $GITHUB_ENV
         echo "LIBCXX_SANITIZER=Thread" >> $GITHUB_ENV
 
+    - name: configure clang
+      if: matrix.compiler == 'clang'
+      run: |
+        echo "CC=clang" >> $GITHUB_ENV
+        echo "CXX=clang++" >> $GITHUB_ENV
+
+    - name: configure gcc
+      if: matrix.compiler == 'gcc'
+      run: |
+        sudo apt update && sudo apt -y install gcc-10 g++-10
+        echo "CC=gcc-10" >> $GITHUB_ENV
+        echo "CXX=gcc-10" >> $GITHUB_ENV
+
     - name: install llvm stuff
+      if: matrix.compiler == 'clang'
       run: "${GITHUB_WORKSPACE}/.github/.libcxx-setup.sh"
 
     - name: create build environment
