@@ -32,7 +32,7 @@ class BenchmarkInstance {
   bool use_real_time() const { return use_real_time_; }
   bool use_manual_time() const { return use_manual_time_; }
   BigO complexity() const { return complexity_; }
-  BigOFunc& complexity_lambda() const { return *complexity_lambda_; }
+  BigOFunc* complexity_lambda() const { return complexity_lambda_; }
   const std::vector<Statistics>& statistics() const { return statistics_; }
   int repetitions() const { return repetitions_; }
   double min_time() const { return min_time_; }
