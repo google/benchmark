@@ -64,6 +64,11 @@ DEFINE_bool(benchmark_list_tests, false);
 // linked into the binary are run.
 DEFINE_string(benchmark_filter, ".");
 
+// Alias of benchmark_filter.
+// FIXME(vyng) Remove this once we've migrated everyone to using
+// benchmark_filter
+DEFINE_string(benchmarks, ".");
+
 // Minimum number of seconds we should run benchmark before results are
 // considered significant.  For cpu-time based tests, this is the lower bound
 // on the total cpu time used by all threads that make up the test.  For
@@ -444,6 +449,9 @@ size_t RunSpecifiedBenchmarks(BenchmarkReporter* display_reporter) {
 size_t RunSpecifiedBenchmarks(BenchmarkReporter* display_reporter,
                               BenchmarkReporter* file_reporter) {
   std::string spec = FLAGS_benchmark_filter;
+  std::string second_spec = FLAGS_benchmarks;
+  if (spec.empty()) spec = second_spec;
+  
   if (spec.empty() || spec == "all")
     spec = ".";  // Regexp that matches all benchmarks
 
@@ -543,6 +551,7 @@ void ParseCommandLineFlags(int* argc, char** argv) {
     if (ParseBoolFlag(argv[i], "benchmark_list_tests",
                       &FLAGS_benchmark_list_tests) ||
         ParseStringFlag(argv[i], "benchmark_filter", &FLAGS_benchmark_filter) ||
+        ParseStringFlag(argv[i], "benchmarks", &FLAGS_benchmarks) ||
         ParseDoubleFlag(argv[i], "benchmark_min_time",
                         &FLAGS_benchmark_min_time) ||
         ParseInt32Flag(argv[i], "benchmark_repetitions",
