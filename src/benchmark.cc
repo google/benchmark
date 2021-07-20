@@ -449,8 +449,7 @@ size_t RunSpecifiedBenchmarks(BenchmarkReporter* display_reporter) {
 size_t RunSpecifiedBenchmarks(BenchmarkReporter* display_reporter,
                               BenchmarkReporter* file_reporter) {
   std::string spec = FLAGS_benchmark_filter;
-  std::string second_spec = FLAGS_benchmarks;
-  if (spec.empty()) spec = second_spec;
+  if (spec.empty()) spec = FLAGS_benchmarks;
   
   if (spec.empty() || spec == "all")
     spec = ".";  // Regexp that matches all benchmarks
