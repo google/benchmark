@@ -5,13 +5,11 @@ on:
   pull_request: {}
 
 jobs:
-  # TODO: add 32-bit builds (g++ and clang++) for ubuntu
-  #   (requires g++-multilib and libc6:i386)
   # TODO: add coverage build (requires lcov)
   # TODO: add clang + libc++ builds for ubuntu
   # TODO: add clang + ubsan/asan/msan + libc++ builds for ubuntu
   job:
-    name: ${{ matrix.os }}.${{ matrix.build_type }}.${{ matrix.compiler }}
+    name: ${{ matrix.os }}.${{ matrix.build_type }}.${{ matrix.compiler }}.${{ matrix.bits }}_bit
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
@@ -20,14 +18,32 @@ jobs:
         build_type: ['Release', 'Debug']
         compiler: [g++, clang++]
         include:
-          - displayTargetName: windows-latest-release
+          - displayTargetName: windows-latest.release
             os: windows-latest
             build_type: 'Release'
-          - displayTargetName: windows-latest-debug
+          - displayTargetName: windows-latest.debug
             os: windows-latest
             build_type: 'Debug'
+          - displayTargetName: ubuntu-latest.debug.clang++.32_bit
+            os: ubuntu-latest
+            build_type: 'Debug'
+            compiler: clang++
+            bits: '32'
+    env:
+      EXTRA_FLAGS: ''
+      BUILD_32_BITS: off
     steps:
       - uses: actions/checkout@v2
+
+      - name: install 32-bit
+        if: matrix.bits == '32'
+        run: sudo apt -y install g++-multilib libc6-i386
+        
+      - name: set 32-bit env
+        if: matrix.bits == '32'
+        run: |
+          echo "EXTRA_FLAGS=-m32" >> $GITHUB_ENV
+          echo "BUILD_32_BITS=on" >> $GITHUB_ENV
 
       - name: create build environment
         run: cmake -E make_directory ${{ runner.workspace }}/_build
@@ -40,12 +56,14 @@ jobs:
         run: >
           cmake $GITHUB_WORKSPACE
           -DBENCHMARK_DOWNLOAD_DEPENDENCIES=ON
+          -DBENCHMARK_BUILD_32_BITS=${{ env.BUILD_32_BITS }}
+          -DEXTRA_FLAGS=${{ env.EXTRA_FLAGS }}
           -DCMAKE_BUILD_TYPE=${{ matrix.build_type }}
 
       - name: build
         shell: bash
         working-directory: ${{ runner.workspace }}/_build
-        run: cmake --build . --config ${{ matrix.build_type }}
+        run: cmake --build . --config ${{ matrix.build_type }} --verbose
 
       - name: test
         shell: bash
@@ -59,15 +77,10 @@ jobs:
       fail-fast: false
       matrix:
         build_type: ['Release', 'Debug']
-        compiler: [g++-4.8, clang++-3.6]
-        include:
-          - compiler: g++-6
-            build_type: 'Debug'
-            run_tests: true
-          - compiler: g++-6
-            build_type: 'Release'
-            run_tests: true
+        compiler: [g++-4.8, clang++-3.6, g++-6]
     container: ubuntu:14.04
+    env:
+      ENABLE_TESTING: off
     steps:
       - uses: actions/checkout@v2
 
@@ -76,8 +89,12 @@ jobs:
           sudo apt update
           sudo apt -y install clang-3.6 cmake3 g++-4.8 git
 
-      - name: install other bits
-        if: ${{ matrix.compiler }} == g++-6
+      - if: matrix.compiler == 'g++-6'
+        name: set g++-6 env
+        run: echo "ENABLE_TESTING=on" >> $GITHUB_ENV
+        
+      - if: matrix.compiler == 'g++-6'
+        name: install g++-6
         run: |
           sudo apt -y install software-properties-common
           sudo add-apt-repository -y "ppa:ubuntu-toolchain-r/test"
@@ -94,9 +111,9 @@ jobs:
         working-directory: ${{ github.workspace }}/_build
         run: >
           cmake $GITHUB_WORKSPACE
-          -DBENCHMARK_ENABLE_TESTING=${{ matrix.run_tests }}
+          -DBENCHMARK_ENABLE_TESTING=${{ env.ENABLE_TESTING }}
           -DCMAKE_BUILD_TYPE=${{ matrix.build_type }}
-          -DBENCHMARK_DOWNLOAD_DEPENDENCIES=${{ matrix.run_tests }}
+          -DBENCHMARK_DOWNLOAD_DEPENDENCIES=${{ env.ENABLE_TESTING }}
 
       - name: build
         shell: bash
