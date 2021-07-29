@@ -239,7 +239,7 @@ IterationCount BenchmarkRunner::PredictNumItersNeeded(
   // NOTE: When the last run was at least 10% of the min time the max
   // expansion should be 14x.
   bool is_significant = (i.seconds / min_time) > 0.1;
-  multiplier = is_significant ? multiplier : std::min(10.0, multiplier);
+  multiplier = is_significant ? multiplier : 10.0;
   if (multiplier <= 1.0) multiplier = 2.0;
 
   // So what seems to be the sufficiently-large iteration count? Round up.
