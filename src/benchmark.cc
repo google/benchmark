@@ -63,7 +63,7 @@ BM_DEFINE_bool(benchmark_list_tests, false);
 // A regular expression that specifies the set of benchmarks to execute.  If
 // this flag is empty, or if this flag is the string \"all\", all benchmarks
 // linked into the binary are run.
-BM_DEFINE_string(benchmark_filter, ".");
+BM_DEFINE_string(benchmark_filter, "");
 
 // Minimum number of seconds we should run benchmark before results are
 // considered significant.  For cpu-time based tests, this is the lower bound
