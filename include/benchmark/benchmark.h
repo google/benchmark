@@ -140,13 +140,13 @@ thread exits the loop body. As such, any global setup or teardown you want to
 do can be wrapped in a check against the thread index:
 
 static void BM_MultiThreaded(benchmark::State& state) {
-  if (state.thread_index() == 0) {
+  if (state.get_thread_index() == 0) {
     // Setup code here.
   }
   for (auto _ : state) {
     // Run the test as normal.
   }
-  if (state.thread_index() == 0) {
+  if (state.get_thread_index() == 0) {
     // Teardown code here.
   }
 }
