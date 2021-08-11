@@ -668,7 +668,7 @@ class State {
   int64_t range_y() const { return range(1); }
 
   BENCHMARK_ALWAYS_INLINE
-  int num_threads() { return threads; }
+  int threads() { return threads_; }
 
   BENCHMARK_ALWAYS_INLINE
   int get_thread_index() { return thread_index; }
@@ -681,8 +681,8 @@ class State {
     return max_iterations - total_iterations_ + batch_leftover_;
   }
 
- private
-     :  // items we expect on the first cache line (ie 64 bytes of the struct)
+ private:
+  // items we expect on the first cache line (ie 64 bytes of the struct)
   // When total_iterations_ is 0, KeepRunning() and friends will return false.
   // May be larger than max_iterations.
   IterationCount total_iterations_;
@@ -713,9 +713,6 @@ class State {
   const int thread_index
       BENCHMARK_DEPRECATED_MSG("Use get_thread_index() instead.");
 
-  // Number of threads concurrently executing the benchmark.
-  const int threads BENCHMARK_DEPRECATED_MSG("Use num_threads() instead.");
-
  private:
   State(IterationCount max_iters, const std::vector<int64_t>& ranges,
         int thread_i, int n_threads, internal::ThreadTimer* timer,
@@ -727,6 +724,10 @@ class State {
   // is_batch must be true unless n is 1.
   bool KeepRunningInternal(IterationCount n, bool is_batch);
   void FinishKeepRunning();
+
+  // Number of threads concurrently executing the benchmark.
+  const int threads_;
+
   internal::ThreadTimer* const timer_;
   internal::ThreadManager* const manager_;
   internal::PerfCountersMeasurement* const perf_counters_measurement_;

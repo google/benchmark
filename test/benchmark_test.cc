@@ -156,7 +156,7 @@ BENCHMARK(BM_LongTest)->Range(1 << 16, 1 << 28);
 
 static void BM_ParallelMemset(benchmark::State& state) {
   int64_t size = state.range(0) / static_cast<int64_t>(sizeof(int));
-  int thread_size = static_cast<int>(size) / state.num_threads();
+  int thread_size = static_cast<int>(size) / state.threads();
   int from = thread_size * state.get_thread_index();
   int to = from + thread_size;
 
@@ -223,16 +223,14 @@ BENCHMARK_CAPTURE(BM_non_template_args, basic_test, 0, 0);
 static void BM_DenseThreadRanges(benchmark::State& st) {
   switch (st.range(0)) {
     case 1:
-      assert(st.num_threads() == 1 || st.num_threads() == 2 ||
-             st.num_threads() == 3);
+      assert(st.threads() == 1 || st.threads() == 2 || st.threads() == 3);
       break;
     case 2:
-      assert(st.num_threads() == 1 || st.num_threads() == 3 ||
-             st.num_threads() == 4);
+      assert(st.threads() == 1 || st.threads() == 3 || st.threads() == 4);
       break;
     case 3:
-      assert(st.num_threads() == 5 || st.num_threads() == 8 ||
-             st.num_threads() == 11 || st.num_threads() == 14);
+      assert(st.threads() == 5 || st.threads() == 8 || st.threads() == 11 ||
+             st.threads() == 14);
       break;
     default:
       assert(false && "Invalid test case number");
