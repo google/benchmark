@@ -667,11 +667,13 @@ class State {
   BENCHMARK_DEPRECATED_MSG("use 'range(1)' instead")
   int64_t range_y() const { return range(1); }
 
+  // Number of threads concurrently executing the benchmark.
   BENCHMARK_ALWAYS_INLINE
   int threads() { return threads_; }
 
+  // Index of the executing thread. Values from [0, threads).
   BENCHMARK_ALWAYS_INLINE
-  int get_thread_index() { return thread_index; }
+  int get_thread_index() { return thread_index_; }
 
   BENCHMARK_ALWAYS_INLINE
   IterationCount iterations() const {
@@ -709,10 +711,6 @@ class State {
   // Container for user-defined counters.
   UserCounters counters;
 
-  // Index of the executing thread. Values from [0, threads).
-  const int thread_index
-      BENCHMARK_DEPRECATED_MSG("Use get_thread_index() instead.");
-
  private:
   State(IterationCount max_iters, const std::vector<int64_t>& ranges,
         int thread_i, int n_threads, internal::ThreadTimer* timer,
@@ -725,7 +723,7 @@ class State {
   bool KeepRunningInternal(IterationCount n, bool is_batch);
   void FinishKeepRunning();
 
-  // Number of threads concurrently executing the benchmark.
+  const int thread_index_;
   const int threads_;
 
   internal::ThreadTimer* const timer_;

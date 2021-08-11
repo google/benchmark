@@ -146,13 +146,13 @@ State::State(IterationCount max_iters, const std::vector<int64_t>& ranges,
       range_(ranges),
       complexity_n_(0),
       counters(),
-      thread_index(thread_i),
+      thread_index_(thread_i),
       threads_(n_threads),
       timer_(timer),
       manager_(manager),
       perf_counters_measurement_(perf_counters_measurement) {
   BM_CHECK(max_iterations != 0) << "At least one iteration must be run";
-  BM_CHECK_LT(thread_index, threads_)
+  BM_CHECK_LT(thread_index_, threads_)
       << "thread_index must be less than threads";
 
   // Note: The use of offsetof below is technically undefined until C++17
