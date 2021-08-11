@@ -126,7 +126,7 @@ static void BM_StringCompare(benchmark::State& state) {
 BENCHMARK(BM_StringCompare)->Range(1, 1 << 20);
 
 static void BM_SetupTeardown(benchmark::State& state) {
-  if (state.get_thread_index() == 0) {
+  if (state.thread_index() == 0) {
     // No need to lock test_vector_mu here as this is running single-threaded.
     test_vector = new std::vector<int>();
   }
@@ -139,7 +139,7 @@ static void BM_SetupTeardown(benchmark::State& state) {
       test_vector->pop_back();
     ++i;
   }
-  if (state.get_thread_index() == 0) {
+  if (state.thread_index() == 0) {
     delete test_vector;
   }
 }
@@ -157,10 +157,10 @@ BENCHMARK(BM_LongTest)->Range(1 << 16, 1 << 28);
 static void BM_ParallelMemset(benchmark::State& state) {
   int64_t size = state.range(0) / static_cast<int64_t>(sizeof(int));
   int thread_size = static_cast<int>(size) / state.threads();
-  int from = thread_size * state.get_thread_index();
+  int from = thread_size * state.thread_index();
   int to = from + thread_size;
 
-  if (state.get_thread_index() == 0) {
+  if (state.thread_index() == 0) {
     test_vector = new std::vector<int>(static_cast<size_t>(size));
   }
 
@@ -172,7 +172,7 @@ static void BM_ParallelMemset(benchmark::State& state) {
     }
   }
 
-  if (state.get_thread_index() == 0) {
+  if (state.thread_index() == 0) {
     delete test_vector;
   }
 }

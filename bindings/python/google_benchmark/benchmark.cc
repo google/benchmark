@@ -169,7 +169,7 @@ PYBIND11_MODULE(_benchmark, m) {
       .def("range", &State::range, py::arg("pos") = 0)
       .def_property_readonly("iterations", &State::iterations)
       .def_readwrite("counters", &State::counters)
-      .def_property_readonly("thread_index", &State::get_thread_index)
+      .def_property_readonly("thread_index", &State::thread_index)
       .def_property_readonly("threads", &State::threads);
 
   m.def("Initialize", Initialize);
