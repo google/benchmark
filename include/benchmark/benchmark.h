@@ -669,11 +669,11 @@ class State {
 
   // Number of threads concurrently executing the benchmark.
   BENCHMARK_ALWAYS_INLINE
-  int threads() { return threads_; }
+  int threads() const { return threads_; }
 
   // Index of the executing thread. Values from [0, threads).
   BENCHMARK_ALWAYS_INLINE
-  int get_thread_index() { return thread_index_; }
+  int get_thread_index() const { return thread_index_; }
 
   BENCHMARK_ALWAYS_INLINE
   IterationCount iterations() const {
