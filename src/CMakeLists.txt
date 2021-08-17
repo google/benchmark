@@ -117,4 +117,8 @@ if (BENCHMARK_ENABLE_INSTALL)
       EXPORT "${targets_export_name}"
       NAMESPACE "${namespace}"
       DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME}")
+
+  install(
+    DIRECTORY "${PROJECT_SOURCE_DIR}/docs/"
+    DESTINATION "${CMAKE_INSTALL_PREFIX}/share/doc/${PROJECT_NAME}")
 endif()
