@@ -97,7 +97,7 @@ ADD_CASES("BM_error_before_running_range_for", {{"", true, "error message"}});
 void BM_error_during_running(benchmark::State& state) {
   int first_iter = true;
   while (state.KeepRunning()) {
-    if (state.range(0) == 1 && state.thread_index <= (state.threads / 2)) {
+    if (state.range(0) == 1 && state.thread_index() <= (state.threads() / 2)) {
       assert(first_iter);
       first_iter = false;
       state.SkipWithError("error message");
@@ -142,7 +142,7 @@ void BM_error_after_running(benchmark::State& state) {
   for (auto _ : state) {
     benchmark::DoNotOptimize(state.iterations());
   }
-  if (state.thread_index <= (state.threads / 2))
+  if (state.thread_index() <= (state.threads() / 2))
     state.SkipWithError("error message");
 }
 BENCHMARK(BM_error_after_running)->ThreadRange(1, 8);
@@ -154,7 +154,7 @@ ADD_CASES("BM_error_after_running", {{"/threads:1", true, "error message"},
 void BM_error_while_paused(benchmark::State& state) {
   bool first_iter = true;
   while (state.KeepRunning()) {
-    if (state.range(0) == 1 && state.thread_index <= (state.threads / 2)) {
+    if (state.range(0) == 1 && state.thread_index() <= (state.threads() / 2)) {
       assert(first_iter);
       first_iter = false;
       state.PauseTiming();

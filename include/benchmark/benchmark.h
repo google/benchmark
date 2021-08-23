@@ -140,13 +140,13 @@ thread exits the loop body. As such, any global setup or teardown you want to
 do can be wrapped in a check against the thread index:
 
 static void BM_MultiThreaded(benchmark::State& state) {
-  if (state.thread_index == 0) {
+  if (state.thread_index() == 0) {
     // Setup code here.
   }
   for (auto _ : state) {
     // Run the test as normal.
   }
-  if (state.thread_index == 0) {
+  if (state.thread_index() == 0) {
     // Teardown code here.
   }
 }
@@ -667,6 +667,14 @@ class State {
   BENCHMARK_DEPRECATED_MSG("use 'range(1)' instead")
   int64_t range_y() const { return range(1); }
 
+  // Number of threads concurrently executing the benchmark.
+  BENCHMARK_ALWAYS_INLINE
+  int threads() const { return threads_; }
+
+  // Index of the executing thread. Values from [0, threads).
+  BENCHMARK_ALWAYS_INLINE
+  int thread_index() const { return thread_index_; }
+
   BENCHMARK_ALWAYS_INLINE
   IterationCount iterations() const {
     if (BENCHMARK_BUILTIN_EXPECT(!started_, false)) {
@@ -675,8 +683,8 @@ class State {
     return max_iterations - total_iterations_ + batch_leftover_;
   }
 
- private
-     :  // items we expect on the first cache line (ie 64 bytes of the struct)
+ private:
+  // items we expect on the first cache line (ie 64 bytes of the struct)
   // When total_iterations_ is 0, KeepRunning() and friends will return false.
   // May be larger than max_iterations.
   IterationCount total_iterations_;
@@ -702,10 +710,6 @@ class State {
  public:
   // Container for user-defined counters.
   UserCounters counters;
-  // Index of the executing thread. Values from [0, threads).
-  const int thread_index;
-  // Number of threads concurrently executing the benchmark.
-  const int threads;
 
  private:
   State(IterationCount max_iters, const std::vector<int64_t>& ranges,
@@ -718,6 +722,10 @@ class State {
   // is_batch must be true unless n is 1.
   bool KeepRunningInternal(IterationCount n, bool is_batch);
   void FinishKeepRunning();
+
+  const int thread_index_;
+  const int threads_;
+
   internal::ThreadTimer* const timer_;
   internal::ThreadManager* const manager_;
   internal::PerfCountersMeasurement* const perf_counters_measurement_;

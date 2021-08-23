@@ -9,14 +9,14 @@
 class FIXTURE_BECHMARK_NAME : public ::benchmark::Fixture {
  public:
   void SetUp(const ::benchmark::State& state) BENCHMARK_OVERRIDE {
-    if (state.thread_index == 0) {
+    if (state.thread_index() == 0) {
       assert(data.get() == nullptr);
       data.reset(new int(42));
     }
   }
 
   void TearDown(const ::benchmark::State& state) BENCHMARK_OVERRIDE {
-    if (state.thread_index == 0) {
+    if (state.thread_index() == 0) {
       assert(data.get() != nullptr);
       data.reset();
     }
@@ -35,7 +35,7 @@ BENCHMARK_F(FIXTURE_BECHMARK_NAME, Foo)(benchmark::State &st) {
 }
 
 BENCHMARK_DEFINE_F(FIXTURE_BECHMARK_NAME, Bar)(benchmark::State& st) {
-  if (st.thread_index == 0) {
+  if (st.thread_index() == 0) {
     assert(data.get() != nullptr);
     assert(*data == 42);
   }
