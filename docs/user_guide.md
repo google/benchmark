@@ -38,9 +38,9 @@
 
 [Setting the Time Unit](#setting-the-time-unit)
 
-[Random Interleaving](docs/random_interleaving.md)
+[Random Interleaving](random_interleaving.md)
 
-[User-Requested Performance Counters](docs/perf_counters.md)
+[User-Requested Performance Counters](perf_counters.md)
 
 [Preventing Optimization](#preventing-optimization)
 
@@ -183,7 +183,7 @@ BM_memcpy/32k       1834 ns       1837 ns     357143
 ## Result comparison
 
 It is possible to compare the benchmarking results.
-See [Additional Tooling Documentation](docs/tools.md)
+See [Additional Tooling Documentation](tools.md)
 
 <a name="extra-context" />
 
