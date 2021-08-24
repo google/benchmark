@@ -444,7 +444,7 @@ std::string GetSystemName() {
 #elif defined(BENCHMARK_OS_RTEMS)
 #define HOST_NAME_MAX 256
 #else
-#warning "HOST_NAME_MAX not defined. using 64"
+#pragma message("HOST_NAME_MAX not defined. using 64")
 #define HOST_NAME_MAX 64
 #endif
 #endif // def HOST_NAME_MAX
