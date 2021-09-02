@@ -3,6 +3,7 @@
 # Set BENCHMARK_ENABLE_LIBPFM to 0 to disable, regardless of libpfm presence.
 include(CheckIncludeFile)
 include(CheckLibraryExists)
+include(FeatureSummary)
 enable_language(C)
 
 set_package_properties(PFM PROPERTIES
