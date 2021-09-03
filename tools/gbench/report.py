@@ -599,8 +599,8 @@ class TestReportDifferenceWithUTest(unittest.TestCase):
             ['BM_Two', '+0.1111', '-0.0111', '9', '10', '90', '89'],
             ['BM_Two', '-0.1250', '-0.1628', '8', '7', '86', '72'],
             ['BM_Two_pvalue',
-             '0.6985',
-             '0.6985',
+             '1.0000',
+             '0.6667',
              'U',
              'Test,',
              'Repetitions:',
@@ -617,7 +617,7 @@ class TestReportDifferenceWithUTest(unittest.TestCase):
             ['short', '-0.4325', '-0.1351', '8', '5', '77', '67'],
             ['short_pvalue',
              '0.7671',
-             '0.1489',
+             '0.2000',
              'U',
              'Test,',
              'Repetitions:',
@@ -646,8 +646,8 @@ class TestReportDifferenceWithUTest(unittest.TestCase):
         expect_lines = [
             ['BM_One', '-0.1000', '+0.1000', '10', '9', '100', '110'],
             ['BM_Two_pvalue',
-             '0.6985',
-             '0.6985',
+             '1.0000',
+             '0.6667',
              'U',
              'Test,',
              'Repetitions:',
@@ -664,7 +664,7 @@ class TestReportDifferenceWithUTest(unittest.TestCase):
             ['short', '-0.4325', '-0.1351', '8', '5', '77', '67'],
             ['short_pvalue',
              '0.7671',
-             '0.1489',
+             '0.2000',
              'U',
              'Test,',
              'Repetitions:',
@@ -717,7 +717,7 @@ class TestReportDifferenceWithUTest(unittest.TestCase):
                 ],
                 'time_unit': 'ns',
                 'utest': {
-                    'have_optimal_repetitions': False, 'cpu_pvalue': 0.6985353583033387, 'time_pvalue': 0.6985353583033387
+                    'have_optimal_repetitions': False, 'cpu_pvalue': 0.6666666666666666, 'time_pvalue': 1.0
                 }
             },
             {
@@ -738,7 +738,7 @@ class TestReportDifferenceWithUTest(unittest.TestCase):
                 ],
                 'time_unit': 'ns',
                 'utest': {
-                    'have_optimal_repetitions': False, 'cpu_pvalue': 0.14891467317876572, 'time_pvalue': 0.7670968684102772
+                    'have_optimal_repetitions': False, 'cpu_pvalue': 0.2, 'time_pvalue': 0.7670968684102772
                 }
             },
             {
@@ -792,8 +792,8 @@ class TestReportDifferenceWithUTestWhileDisplayingAggregatesOnly(
             ['BM_Two', '+0.1111', '-0.0111', '9', '10', '90', '89'],
             ['BM_Two', '-0.1250', '-0.1628', '8', '7', '86', '72'],
             ['BM_Two_pvalue',
-             '0.6985',
-             '0.6985',
+             '1.0000',
+             '0.6667',
              'U',
              'Test,',
              'Repetitions:',
@@ -810,7 +810,7 @@ class TestReportDifferenceWithUTestWhileDisplayingAggregatesOnly(
             ['short', '-0.4325', '-0.1351', '8', '5', '77', '67'],
             ['short_pvalue',
              '0.7671',
-             '0.1489',
+             '0.2000',
              'U',
              'Test,',
              'Repetitions:',
@@ -865,7 +865,7 @@ class TestReportDifferenceWithUTestWhileDisplayingAggregatesOnly(
                 ],
                 'time_unit': 'ns',
                 'utest': {
-                    'have_optimal_repetitions': False, 'cpu_pvalue': 0.6985353583033387, 'time_pvalue': 0.6985353583033387
+                    'have_optimal_repetitions': False, 'cpu_pvalue': 0.6666666666666666, 'time_pvalue': 1.0
                 }
             },
             {
@@ -886,7 +886,7 @@ class TestReportDifferenceWithUTestWhileDisplayingAggregatesOnly(
                 ],
                 'time_unit': 'ns',
                 'utest': {
-                    'have_optimal_repetitions': False, 'cpu_pvalue': 0.14891467317876572, 'time_pvalue': 0.7670968684102772
+                    'have_optimal_repetitions': False, 'cpu_pvalue': 0.2, 'time_pvalue': 0.7670968684102772
                 }
             },
             {
