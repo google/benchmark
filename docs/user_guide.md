@@ -930,7 +930,7 @@ Note that `ClobberMemory()` is only available for GNU or MSVC based compilers.
 
 <a name="reporting-statistics" />
 
-## Statistics: Reporting the Mean, Median and Standard Deviation of Repeated Benchmarks
+## Statistics: Reporting the Mean, Median and Standard Deviation / Coefficient of variation of Repeated Benchmarks
 
 By default each benchmark is run once and that single result is reported.
 However benchmarks are often noisy and a single result may not be representative
@@ -940,16 +940,17 @@ benchmark.
 The number of runs of each benchmark is specified globally by the
 `--benchmark_repetitions` flag or on a per benchmark basis by calling
 `Repetitions` on the registered benchmark object. When a benchmark is run more
-than once the mean, median and standard deviation of the runs will be reported.
+than once the mean, median, standard deviation and coefficient of variation
+of the runs will be reported.
 
 Additionally the `--benchmark_report_aggregates_only={true|false}`,
 `--benchmark_display_aggregates_only={true|false}` flags or
 `ReportAggregatesOnly(bool)`, `DisplayAggregatesOnly(bool)` functions can be
 used to change how repeated tests are reported. By default the result of each
 repeated run is reported. When `report aggregates only` option is `true`,
-only the aggregates (i.e. mean, median and standard deviation, maybe complexity
-measurements if they were requested) of the runs is reported, to both the
-reporters - standard output (console), and the file.
+only the aggregates (i.e. mean, median, standard deviation and coefficient
+of variation, maybe complexity measurements if they were requested) of the runs
+is reported, to both the reporters - standard output (console), and the file.
 However when only the `display aggregates only` option is `true`,
 only the aggregates are displayed in the standard output, while the file
 output still contains everything.
@@ -961,11 +962,10 @@ benchmark.
 
 ## Custom Statistics
 
-While having mean, median and standard deviation is nice, this may not be
-enough for everyone. For example you may want to know what the largest
-observation is, e.g. because you have some real-time constraints. This is easy.
-The following code will specify a custom statistic to be calculated, defined
-by a lambda function.
+While having these aggregates is nice, this may not be enough for everyone.
+For example you may want to know what the largest observation is, e.g. because
+you have some real-time constraints. This is easy. The following code will
+specify a custom statistic to be calculated, defined by a lambda function.
 
 ```c++
 void BM_spin_empty(benchmark::State& state) {
