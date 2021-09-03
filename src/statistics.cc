@@ -168,9 +168,9 @@ std::vector<BenchmarkReporter::Run> ComputeStats(
     data.real_accumulated_time = Stat.compute_(real_accumulated_time_stat);
     data.cpu_accumulated_time = Stat.compute_(cpu_accumulated_time_stat);
 
-    if (data.aggregate_unit == StatisticUnit::Time) {
+    if (data.aggregate_unit == StatisticUnit::kTime) {
       // We will divide these times by data.iterations when reporting, but the
-      // data.iterations is not nessesairly the scale of these measurements,
+      // data.iterations is not necessarily the scale of these measurements,
       // because in each repetition, these timers are sum over all the iters.
       // And if we want to say that the stats are over N repetitions and not
       // M iterations, we need to multiply these by (N/M).

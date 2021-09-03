@@ -957,7 +957,7 @@ BENCHMARK(BM_UserPercentStats)
   ->Iterations(5)
   ->UseManualTime()
   ->Unit(benchmark::TimeUnit::kNanosecond)
-  ->ComputeStatistics("", UserPercentStatistics, benchmark::StatisticUnit::Percentage);
+  ->ComputeStatistics("", UserPercentStatistics, benchmark::StatisticUnit::kPercentage);
 // clang-format on
 
 // check that UserPercent-provided stats is calculated, and is after the

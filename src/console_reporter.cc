@@ -143,12 +143,12 @@ void ConsoleReporter::PrintRunData(const Run& result) {
     printer(Out, COLOR_YELLOW, "%10.0f %-4s %10.0f %-4s ", real_time * 100, "%",
             cpu_time * 100, "%");
   } else if (result.run_type != Run::RT_Aggregate ||
-             result.aggregate_unit == StatisticUnit::Time) {
+             result.aggregate_unit == StatisticUnit::kTime) {
     const char* timeLabel = GetTimeUnitString(result.time_unit);
     printer(Out, COLOR_YELLOW, "%s %-4s %s %-4s ", real_time_str.c_str(), timeLabel,
             cpu_time_str.c_str(), timeLabel);
   } else {
-    assert(result.aggregate_unit == StatisticUnit::Percentage);
+    assert(result.aggregate_unit == StatisticUnit::kPercentage);
     printer(Out, COLOR_YELLOW, "%10.2f %-4s %10.2f %-4s ",
             (100. * result.real_accumulated_time), "%",
             (100. * result.cpu_accumulated_time), "%");

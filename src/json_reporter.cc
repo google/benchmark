@@ -253,9 +253,9 @@ void JSONReporter::PrintRunData(Run const& run) {
     out << indent << FormatKV("aggregate_name", run.aggregate_name) << ",\n";
     out << indent << FormatKV("aggregate_unit", [&run]() -> const char* {
       switch (run.aggregate_unit) {
-        case StatisticUnit::Time:
+        case StatisticUnit::kTime:
           return "time";
-        case StatisticUnit::Percentage:
+        case StatisticUnit::kPercentage:
           return "percentage";
       }
       BENCHMARK_UNREACHABLE();
@@ -268,12 +268,12 @@ void JSONReporter::PrintRunData(Run const& run) {
   if (!run.report_big_o && !run.report_rms) {
     out << indent << FormatKV("iterations", run.iterations) << ",\n";
     if (run.run_type != Run::RT_Aggregate ||
-        run.aggregate_unit == StatisticUnit::Time) {
+        run.aggregate_unit == StatisticUnit::kTime) {
       out << indent << FormatKV("real_time", run.GetAdjustedRealTime())
           << ",\n";
       out << indent << FormatKV("cpu_time", run.GetAdjustedCPUTime());
     } else {
-      assert(run.aggregate_unit == StatisticUnit::Percentage);
+      assert(run.aggregate_unit == StatisticUnit::kPercentage);
       out << indent << FormatKV("real_time", run.real_accumulated_time)
           << ",\n";
       out << indent << FormatKV("cpu_time", run.cpu_accumulated_time);

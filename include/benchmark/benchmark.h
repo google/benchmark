@@ -450,7 +450,7 @@ enum BigO { oNone, o1, oN, oNSquared, oNCubed, oLogN, oNLogN, oAuto, oLambda };
 
 typedef uint64_t IterationCount;
 
-enum StatisticUnit { Time, Percentage };
+enum StatisticUnit { kTime, kPercentage };
 
 // BigOFunc is passed to a benchmark in order to specify the asymptotic
 // computational complexity for the benchmark.
@@ -467,7 +467,7 @@ struct Statistics {
   StatisticUnit unit_;
 
   Statistics(const std::string& name, StatisticsFunc* compute,
-             StatisticUnit unit = Time)
+             StatisticUnit unit = kTime)
       : name_(name), compute_(compute), unit_(unit) {}
 };
 
@@ -970,7 +970,7 @@ class Benchmark {
 
   // Add this statistics to be computed over all the values of benchmark run
   Benchmark* ComputeStatistics(std::string name, StatisticsFunc* statistics,
-                               StatisticUnit unit = Time);
+                               StatisticUnit unit = kTime);
 
   // Support for running multiple copies of the same benchmark concurrently
   // in multiple threads.  This may be useful when measuring the scaling
@@ -1426,7 +1426,7 @@ class BenchmarkReporter {
 
     Run()
         : run_type(RT_Iteration),
-          aggregate_unit(Time),
+          aggregate_unit(kTime),
           error_occurred(false),
           iterations(1),
           threads(1),
