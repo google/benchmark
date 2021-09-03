@@ -49,6 +49,7 @@ SubMap& GetSubstitutions() {
       {" %s ", "[ ]+"},
       {"%time", "[ ]*" + time_re + "[ ]+ns"},
       {"%console_report", "[ ]*" + time_re + "[ ]+ns [ ]*" + time_re + "[ ]+ns [ ]*[0-9]+"},
+      {"%console_percentage_report", "[ ]*" + time_re + "[ ]+% [ ]*" + time_re + "[ ]+% [ ]*[0-9]+"},
       {"%console_us_report", "[ ]*" + time_re + "[ ]+us [ ]*" + time_re + "[ ]+us [ ]*[0-9]+"},
       {"%console_ms_report", "[ ]*" + time_re + "[ ]+ms [ ]*" + time_re + "[ ]+ms [ ]*[0-9]+"},
       {"%console_s_report", "[ ]*" + time_re + "[ ]+s [ ]*" + time_re + "[ ]+s [ ]*[0-9]+"},
