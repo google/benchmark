@@ -399,8 +399,9 @@ Benchmark* Benchmark::Complexity(BigOFunc* complexity) {
 }
 
 Benchmark* Benchmark::ComputeStatistics(std::string name,
-                                        StatisticsFunc* statistics) {
-  statistics_.emplace_back(name, statistics);
+                                        StatisticsFunc* statistics,
+                                        StatisticUnit unit) {
+  statistics_.emplace_back(name, statistics, unit);
   return this;
 }
 

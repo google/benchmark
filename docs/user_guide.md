@@ -140,8 +140,8 @@ Write benchmark results to a file with the `--benchmark_out=<filename>` option
 (or set `BENCHMARK_OUT`). Specify the output format with
 `--benchmark_out_format={json|console|csv}` (or set
 `BENCHMARK_OUT_FORMAT={json|console|csv}`). Note that the 'csv' reporter is
-deprecated and the saved `.csv` file 
-[is not parsable](https://github.com/google/benchmark/issues/794) by csv 
+deprecated and the saved `.csv` file
+[is not parsable](https://github.com/google/benchmark/issues/794) by csv
 parsers.
 
 Specifying `--benchmark_out` does not suppress the console output.
@@ -980,6 +980,25 @@ BENCHMARK(BM_spin_empty)
   ->ComputeStatistics("max", [](const std::vector<double>& v) -> double {
     return *(std::max_element(std::begin(v), std::end(v)));
   })
+  ->Arg(512);
+```
+
+While usually the statistics produce values in time units,
+you can also produce percentages:
+
+```c++
+void BM_spin_empty(benchmark::State& state) {
+  for (auto _ : state) {
+    for (int x = 0; x < state.range(0); ++x) {
+      benchmark::DoNotOptimize(x);
+    }
+  }
+}
+
+BENCHMARK(BM_spin_empty)
+  ->ComputeStatistics("ratio", [](const std::vector<double>& v) -> double {
+    return std::begin(v) / std::end(v);
+  }, benchmark::StatisticUnit::Percentage)
   ->Arg(512);
 ```
 

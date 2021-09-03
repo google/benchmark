@@ -914,6 +914,69 @@ class TestReportDifferenceWithUTestWhileDisplayingAggregatesOnly(
             assert_measurements(self, out, expected)
 
 
+
+class TestReportDifferenceForPercentageAggregates(
+        unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        def load_results():
+            import json
+            testInputs = os.path.join(
+                os.path.dirname(
+                    os.path.realpath(__file__)),
+                'Inputs')
+            testOutput1 = os.path.join(testInputs, 'test4_run0.json')
+            testOutput2 = os.path.join(testInputs, 'test4_run1.json')
+            with open(testOutput1, 'r') as f:
+                json1 = json.load(f)
+            with open(testOutput2, 'r') as f:
+                json2 = json.load(f)
+            return json1, json2
+
+        json1, json2 = load_results()
+        cls.json_diff_report = get_difference_report(
+            json1, json2, utest=True)
+
+    def test_json_diff_report_pretty_printing(self):
+        expect_lines = [
+            ['whocares', '-0.5000', '+0.5000', '0', '0', '0', '0']
+        ]
+        output_lines_with_header = print_difference_report(
+            self.json_diff_report,
+            utest=True, utest_alpha=0.05, use_color=False)
+        output_lines = output_lines_with_header[2:]
+        print("\n")
+        print("\n".join(output_lines_with_header))
+        self.assertEqual(len(output_lines), len(expect_lines))
+        for i in range(0, len(output_lines)):
+            parts = [x for x in output_lines[i].split(' ') if x]
+            self.assertEqual(expect_lines[i], parts)
+
+    def test_json_diff_report(self):
+        expected_output = [
+            {
+                'name': u'whocares',
+                'measurements': [
+                    {'time': -0.5,
+                     'cpu': 0.5,
+                     'real_time': 0.01,
+                     'real_time_other': 0.005,
+                     'cpu_time': 0.10,
+                     'cpu_time_other': 0.15}
+                ],
+                'time_unit': 'ns',
+                'utest': {}
+            }
+        ]
+        self.assertEqual(len(self.json_diff_report), len(expected_output))
+        for out, expected in zip(
+                self.json_diff_report, expected_output):
+            self.assertEqual(out['name'], expected['name'])
+            self.assertEqual(out['time_unit'], expected['time_unit'])
+            assert_utest(self, out, expected)
+            assert_measurements(self, out, expected)
+
+
 class TestReportSorting(unittest.TestCase):
     @classmethod
     def setUpClass(cls):

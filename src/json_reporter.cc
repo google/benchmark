@@ -251,6 +251,15 @@ void JSONReporter::PrintRunData(Run const& run) {
   out << indent << FormatKV("threads", run.threads) << ",\n";
   if (run.run_type == BenchmarkReporter::Run::RT_Aggregate) {
     out << indent << FormatKV("aggregate_name", run.aggregate_name) << ",\n";
+    out << indent << FormatKV("aggregate_unit", [&run]() -> const char* {
+      switch (run.aggregate_unit) {
+        case StatisticUnit::Time:
+          return "time";
+        case StatisticUnit::Percentage:
+          return "percentage";
+      }
+      BENCHMARK_UNREACHABLE();
+    }()) << ",\n";
   }
   if (run.error_occurred) {
     out << indent << FormatKV("error_occurred", run.error_occurred) << ",\n";
@@ -258,8 +267,17 @@ void JSONReporter::PrintRunData(Run const& run) {
   }
   if (!run.report_big_o && !run.report_rms) {
     out << indent << FormatKV("iterations", run.iterations) << ",\n";
-    out << indent << FormatKV("real_time", run.GetAdjustedRealTime()) << ",\n";
-    out << indent << FormatKV("cpu_time", run.GetAdjustedCPUTime());
+    if (run.run_type != Run::RT_Aggregate ||
+        run.aggregate_unit == StatisticUnit::Time) {
+      out << indent << FormatKV("real_time", run.GetAdjustedRealTime())
+          << ",\n";
+      out << indent << FormatKV("cpu_time", run.GetAdjustedCPUTime());
+    } else {
+      assert(run.aggregate_unit == StatisticUnit::Percentage);
+      out << indent << FormatKV("real_time", run.real_accumulated_time)
+          << ",\n";
+      out << indent << FormatKV("cpu_time", run.cpu_accumulated_time);
+    }
     out << ",\n"
         << indent << FormatKV("time_unit", GetTimeUnitString(run.time_unit));
   } else if (run.report_big_o) {
