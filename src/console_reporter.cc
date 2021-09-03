@@ -161,10 +161,17 @@ void ConsoleReporter::PrintRunData(const Run& result) {
   for (auto& c : result.counters) {
     const std::size_t cNameLen = std::max(std::string::size_type(10),
                                           c.first.length());
-    auto const& s = HumanReadableNumber(c.second.value, c.second.oneK);
+    std::string s;
     const char* unit = "";
-    if (c.second.flags & Counter::kIsRate)
-      unit = (c.second.flags & Counter::kInvert) ? "s" : "/s";
+    if (result.run_type == Run::RT_Aggregate &&
+        result.aggregate_unit == StatisticUnit::kPercentage) {
+      s = StrFormat("%.2f", 100. * c.second.value);
+      unit = "%";
+    } else {
+      s = HumanReadableNumber(c.second.value, c.second.oneK);
+      if (c.second.flags & Counter::kIsRate)
+        unit = (c.second.flags & Counter::kInvert) ? "s" : "/s";
+    }
     if (output_options_ & OO_Tabular) {
       printer(Out, COLOR_DEFAULT, " %*s%s", cNameLen - strlen(unit), s.c_str(),
               unit);
