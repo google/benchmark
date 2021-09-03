@@ -74,7 +74,7 @@ double StatisticsStdDev(const std::vector<double>& v) {
   return Sqrt(v.size() / (v.size() - 1.0) * (avg_squares - Sqr(mean)));
 }
 
-double StatisticsRelStdDev(const std::vector<double>& v) {
+double StatisticsCV(const std::vector<double>& v) {
   if (v.size() < 2) return 0.0;
 
   const auto stddev = StatisticsStdDev(v);

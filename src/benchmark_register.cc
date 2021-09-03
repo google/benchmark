@@ -215,7 +215,7 @@ Benchmark::Benchmark(const char* name)
   ComputeStatistics("mean", StatisticsMean);
   ComputeStatistics("median", StatisticsMedian);
   ComputeStatistics("stddev", StatisticsStdDev);
-  ComputeStatistics("cv", StatisticsRelStdDev, kPercentage);
+  ComputeStatistics("cv", StatisticsCV, kPercentage);
 }
 
 Benchmark::~Benchmark() {}
