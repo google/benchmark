@@ -943,7 +943,7 @@ ADD_CASES(
 // ------------- Testing relative standard deviation statistics ------------ //
 // ========================================================================= //
 
-const auto UserPercentStatistics = [](const std::vector<double>& v) {
+const auto UserPercentStatistics = [](const std::vector<double>&) {
   return 1. / 100.;
 };
 void BM_UserPercentStats(benchmark::State& state) {
