@@ -381,7 +381,7 @@ inline BENCHMARK_ALWAYS_INLINE void DoNotOptimize(Tp const& value) {
 // This class is used for user-defined counters.
 class Counter {
  public:
-  enum Flags {
+  enum Flags : unsigned {
     kDefaults = 0,
     // Mark the counter as a rate. It will be presented divided
     // by the duration of the benchmark.
