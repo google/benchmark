@@ -381,31 +381,31 @@ inline BENCHMARK_ALWAYS_INLINE void DoNotOptimize(Tp const& value) {
 // This class is used for user-defined counters.
 class Counter {
  public:
-  enum Flags : unsigned {
+  enum Flags {
     kDefaults = 0,
     // Mark the counter as a rate. It will be presented divided
     // by the duration of the benchmark.
-    kIsRate = 1U << 0U,
+    kIsRate = 1 << 0,
     // Mark the counter as a thread-average quantity. It will be
     // presented divided by the number of threads.
-    kAvgThreads = 1U << 1U,
+    kAvgThreads = 1 << 1,
     // Mark the counter as a thread-average rate. See above.
     kAvgThreadsRate = kIsRate | kAvgThreads,
     // Mark the counter as a constant value, valid/same for *every* iteration.
     // When reporting, it will be *multiplied* by the iteration count.
-    kIsIterationInvariant = 1U << 2U,
+    kIsIterationInvariant = 1 << 2,
     // Mark the counter as a constant rate.
     // When reporting, it will be *multiplied* by the iteration count
     // and then divided by the duration of the benchmark.
     kIsIterationInvariantRate = kIsRate | kIsIterationInvariant,
     // Mark the counter as a iteration-average quantity.
     // It will be presented divided by the number of iterations.
-    kAvgIterations = 1U << 3U,
+    kAvgIterations = 1 << 3,
     // Mark the counter as a iteration-average rate. See above.
     kAvgIterationsRate = kIsRate | kAvgIterations,
 
     // In the end, invert the result. This is always done last!
-    kInvert = 1U << 31U
+    kInvert = 1 << 31
   };
 
   enum OneK {
