@@ -271,6 +271,42 @@ BENCHMARK(BM_test)->Unit(benchmark::kMillisecond);
 #define BENCHMARK_OVERRIDE
 #endif
 
+#if defined(__GNUC__)
+#if defined(__i386__) || defined(__x86_64__)
+#define BENCHMARK_INTERNAL_CACHELINE_SIZE 64
+#elif defined(__powerpc64__)
+#define BENCHMARK_INTERNAL_CACHELINE_SIZE 128
+#elif defined(__aarch64__)
+#define BENCHMARK_INTERNAL_CACHELINE_SIZE 64
+#elif defined(__arm__)
+// Cache line sizes for ARM: These values are not strictly correct since
+// cache line sizes depend on implementations, not architectures.  There
+// are even implementations with cache line sizes configurable at boot
+// time.
+#if defined(__ARM_ARCH_5T__)
+#define BENCHMARK_INTERNAL_CACHELINE_SIZE 32
+#elif defined(__ARM_ARCH_7A__)
+#define BENCHMARK_INTERNAL_CACHELINE_SIZE 64
+#endif
+#endif
+
+#ifndef BENCHMARK_INTERNAL_CACHELINE_SIZE
+// A reasonable default guess.  Note that overestimates tend to waste more
+// space, while underestimates tend to waste more time.
+#define BENCHMARK_INTERNAL_CACHELINE_SIZE 64
+#endif
+
+// Indicates that the declared object be cache aligned using
+// `BENCHMARK_INTERNAL_CACHELINE_SIZE` (see above).
+#define BENCHMARK_INTERNAL_CACHELINE_ALIGNED __attribute__((aligned(BENCHMARK_INTERNAL_CACHELINE_SIZE)))
+#elif defined(_MSC_VER)
+#define BENCHMARK_INTERNAL_CACHELINE_SIZE 64
+#define BENCHMARK_INTERNAL_CACHELINE_ALIGNED __declspec(align(BENCHMARK_INTERNAL_CACHELINE_SIZE))
+#else
+#define BENCHMARK_INTERNAL_CACHELINE_SIZE 64
+#define BENCHMARK_INTERNAL_CACHELINE_ALIGNED
+#endif
+
 namespace benchmark {
 class BenchmarkReporter;
 class MemoryManager;
@@ -500,7 +536,7 @@ enum AggregationReportMode
 
 // State is passed to a running Benchmark and contains state for the
 // benchmark to use.
-class State {
+class BENCHMARK_INTERNAL_CACHELINE_ALIGNED State {
  public:
   struct StateIterator;
   friend struct StateIterator;
