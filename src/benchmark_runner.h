@@ -37,12 +37,6 @@ ABSL_DECLARE_FLAG(std::vector<std::string>, benchmark_perf_counters);
 
 namespace benchmark {
 
-BM_DECLARE_double(benchmark_min_time);
-BM_DECLARE_int32(benchmark_repetitions);
-BM_DECLARE_bool(benchmark_report_aggregates_only);
-BM_DECLARE_bool(benchmark_display_aggregates_only);
-BM_DECLARE_string(benchmark_perf_counters);
-
 namespace internal {
 
 extern MemoryManager* memory_manager;

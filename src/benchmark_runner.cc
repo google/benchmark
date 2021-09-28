@@ -170,8 +170,8 @@ BenchmarkRunner::BenchmarkRunner(
          internal::ARM_DisplayReportAggregatesOnly);
     run_results.file_report_aggregates_only =
         (b.aggregation_report_mode() & internal::ARM_FileReportAggregatesOnly);
-    CHECK(absl::GetFlag(FLAGS_benchmark_perf_counters).empty() ||
-          perf_counters_measurement.IsValid())
+    BM_CHECK(absl::GetFlag(FLAGS_benchmark_perf_counters).empty() ||
+             perf_counters_measurement.IsValid())
         << "Perf counters were requested but could not be set up.";
   }
 }
