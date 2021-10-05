@@ -374,10 +374,10 @@ Benchmark* Benchmark::MeasureProcessCPUTime() {
   return this;
 }
 
-Benchmark* Benchmark::UseRealTime() {
+Benchmark* Benchmark::UseRealTime(bool value) {
   BM_CHECK(!use_manual_time_)
       << "Cannot set UseRealTime and UseManualTime simultaneously.";
-  use_real_time_ = true;
+  use_real_time_ = value;
   return this;
 }
 
