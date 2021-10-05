@@ -106,7 +106,7 @@ PYBIND11_MODULE(_benchmark, m) {
       .def("measure_process_cpu_time", &Benchmark::MeasureProcessCPUTime,
            py::return_value_policy::reference)
       .def("use_real_time", &Benchmark::UseRealTime,
-           py::return_value_policy::reference)
+           py::return_value_policy::reference, py::arg("value") = true)
       .def("use_manual_time", &Benchmark::UseManualTime,
            py::return_value_policy::reference)
       .def(
