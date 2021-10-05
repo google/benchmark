@@ -949,7 +949,7 @@ class Benchmark {
   // (wall) time will be used to control how many iterations are run, and in the
   // printing of items/second or MB/seconds values.
   // If not called, the CPU time used by the benchmark will be used.
-  Benchmark* UseRealTime();
+  Benchmark* UseRealTime(bool value = true);
 
   // If a benchmark must measure time manually (e.g. if GPU execution time is
   // being
