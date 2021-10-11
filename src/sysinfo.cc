@@ -214,10 +214,9 @@ bool ReadFromFile(std::string const& fname, ArgT* arg) {
 CPUInfo::Scaling CpuScaling(int num_cpus) {
   // We don't have a valid CPU count, so don't even bother.
   if (num_cpus <= 0) return CPUInfo::Scaling::UNKNOWN;
-#ifdef BENCHMARK_OS_QNX
+#if defined(BENCHMARK_OS_QNX)
   return CPUInfo::Scaling::UNKNOWN;
-#endif
-#ifndef BENCHMARK_OS_WINDOWS
+#elif !defined(BENCHMARK_OS_WINDOWS)
   // On Linux, the CPUfreq subsystem exposes CPU information as files on the
   // local file system. If reading the exported files fails, then we may not be
   // running on Linux, so we silently ignore all the read errors.
@@ -228,8 +227,9 @@ CPUInfo::Scaling CpuScaling(int num_cpus) {
     if (ReadFromFile(governor_file, &res) && res != "performance") return CPUInfo::Scaling::ENABLED;
   }
   return CPUInfo::Scaling::DISABLED;
-#endif
+#else
   return CPUInfo::Scaling::UNKNOWN;
+#endif
 }
 
 int CountSetBitsInCPUMap(std::string Val) {
@@ -444,7 +444,7 @@ std::string GetSystemName() {
 #elif defined(BENCHMARK_OS_RTEMS)
 #define HOST_NAME_MAX 256
 #else
-#warning "HOST_NAME_MAX not defined. using 64"
+#pragma message("HOST_NAME_MAX not defined. using 64")
 #define HOST_NAME_MAX 64
 #endif
 #endif // def HOST_NAME_MAX

@@ -599,8 +599,8 @@ class TestReportDifferenceWithUTest(unittest.TestCase):
             ['BM_Two', '+0.1111', '-0.0111', '9', '10', '90', '89'],
             ['BM_Two', '-0.1250', '-0.1628', '8', '7', '86', '72'],
             ['BM_Two_pvalue',
-             '0.6985',
-             '0.6985',
+             '1.0000',
+             '0.6667',
              'U',
              'Test,',
              'Repetitions:',
@@ -617,7 +617,7 @@ class TestReportDifferenceWithUTest(unittest.TestCase):
             ['short', '-0.4325', '-0.1351', '8', '5', '77', '67'],
             ['short_pvalue',
              '0.7671',
-             '0.1489',
+             '0.2000',
              'U',
              'Test,',
              'Repetitions:',
@@ -646,8 +646,8 @@ class TestReportDifferenceWithUTest(unittest.TestCase):
         expect_lines = [
             ['BM_One', '-0.1000', '+0.1000', '10', '9', '100', '110'],
             ['BM_Two_pvalue',
-             '0.6985',
-             '0.6985',
+             '1.0000',
+             '0.6667',
              'U',
              'Test,',
              'Repetitions:',
@@ -664,7 +664,7 @@ class TestReportDifferenceWithUTest(unittest.TestCase):
             ['short', '-0.4325', '-0.1351', '8', '5', '77', '67'],
             ['short_pvalue',
              '0.7671',
-             '0.1489',
+             '0.2000',
              'U',
              'Test,',
              'Repetitions:',
@@ -717,7 +717,7 @@ class TestReportDifferenceWithUTest(unittest.TestCase):
                 ],
                 'time_unit': 'ns',
                 'utest': {
-                    'have_optimal_repetitions': False, 'cpu_pvalue': 0.6985353583033387, 'time_pvalue': 0.6985353583033387
+                    'have_optimal_repetitions': False, 'cpu_pvalue': 0.6666666666666666, 'time_pvalue': 1.0
                 }
             },
             {
@@ -738,7 +738,7 @@ class TestReportDifferenceWithUTest(unittest.TestCase):
                 ],
                 'time_unit': 'ns',
                 'utest': {
-                    'have_optimal_repetitions': False, 'cpu_pvalue': 0.14891467317876572, 'time_pvalue': 0.7670968684102772
+                    'have_optimal_repetitions': False, 'cpu_pvalue': 0.2, 'time_pvalue': 0.7670968684102772
                 }
             },
             {
@@ -792,8 +792,8 @@ class TestReportDifferenceWithUTestWhileDisplayingAggregatesOnly(
             ['BM_Two', '+0.1111', '-0.0111', '9', '10', '90', '89'],
             ['BM_Two', '-0.1250', '-0.1628', '8', '7', '86', '72'],
             ['BM_Two_pvalue',
-             '0.6985',
-             '0.6985',
+             '1.0000',
+             '0.6667',
              'U',
              'Test,',
              'Repetitions:',
@@ -810,7 +810,7 @@ class TestReportDifferenceWithUTestWhileDisplayingAggregatesOnly(
             ['short', '-0.4325', '-0.1351', '8', '5', '77', '67'],
             ['short_pvalue',
              '0.7671',
-             '0.1489',
+             '0.2000',
              'U',
              'Test,',
              'Repetitions:',
@@ -865,7 +865,7 @@ class TestReportDifferenceWithUTestWhileDisplayingAggregatesOnly(
                 ],
                 'time_unit': 'ns',
                 'utest': {
-                    'have_optimal_repetitions': False, 'cpu_pvalue': 0.6985353583033387, 'time_pvalue': 0.6985353583033387
+                    'have_optimal_repetitions': False, 'cpu_pvalue': 0.6666666666666666, 'time_pvalue': 1.0
                 }
             },
             {
@@ -886,7 +886,7 @@ class TestReportDifferenceWithUTestWhileDisplayingAggregatesOnly(
                 ],
                 'time_unit': 'ns',
                 'utest': {
-                    'have_optimal_repetitions': False, 'cpu_pvalue': 0.14891467317876572, 'time_pvalue': 0.7670968684102772
+                    'have_optimal_repetitions': False, 'cpu_pvalue': 0.2, 'time_pvalue': 0.7670968684102772
                 }
             },
             {
@@ -903,6 +903,69 @@ class TestReportDifferenceWithUTestWhileDisplayingAggregatesOnly(
                 'utest': {},
                 'time_unit': u'ns',
                 'aggregate_name': ''
+            }
+        ]
+        self.assertEqual(len(self.json_diff_report), len(expected_output))
+        for out, expected in zip(
+                self.json_diff_report, expected_output):
+            self.assertEqual(out['name'], expected['name'])
+            self.assertEqual(out['time_unit'], expected['time_unit'])
+            assert_utest(self, out, expected)
+            assert_measurements(self, out, expected)
+
+
+
+class TestReportDifferenceForPercentageAggregates(
+        unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        def load_results():
+            import json
+            testInputs = os.path.join(
+                os.path.dirname(
+                    os.path.realpath(__file__)),
+                'Inputs')
+            testOutput1 = os.path.join(testInputs, 'test4_run0.json')
+            testOutput2 = os.path.join(testInputs, 'test4_run1.json')
+            with open(testOutput1, 'r') as f:
+                json1 = json.load(f)
+            with open(testOutput2, 'r') as f:
+                json2 = json.load(f)
+            return json1, json2
+
+        json1, json2 = load_results()
+        cls.json_diff_report = get_difference_report(
+            json1, json2, utest=True)
+
+    def test_json_diff_report_pretty_printing(self):
+        expect_lines = [
+            ['whocares', '-0.5000', '+0.5000', '0', '0', '0', '0']
+        ]
+        output_lines_with_header = print_difference_report(
+            self.json_diff_report,
+            utest=True, utest_alpha=0.05, use_color=False)
+        output_lines = output_lines_with_header[2:]
+        print("\n")
+        print("\n".join(output_lines_with_header))
+        self.assertEqual(len(output_lines), len(expect_lines))
+        for i in range(0, len(output_lines)):
+            parts = [x for x in output_lines[i].split(' ') if x]
+            self.assertEqual(expect_lines[i], parts)
+
+    def test_json_diff_report(self):
+        expected_output = [
+            {
+                'name': u'whocares',
+                'measurements': [
+                    {'time': -0.5,
+                     'cpu': 0.5,
+                     'real_time': 0.01,
+                     'real_time_other': 0.005,
+                     'cpu_time': 0.10,
+                     'cpu_time_other': 0.15}
+                ],
+                'time_unit': 'ns',
+                'utest': {}
             }
         ]
         self.assertEqual(len(self.json_diff_report), len(expected_output))

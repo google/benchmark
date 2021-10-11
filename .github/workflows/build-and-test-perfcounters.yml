@@ -22,6 +22,11 @@ jobs:
     - name: install libpfm
       run: sudo apt install libpfm4-dev
 
+    - name: setup cmake
+      uses: jwlawson/actions-setup-cmake@v1.9
+      with:
+        cmake-version: '3.5.1'
+        
     - name: create build environment
       run: cmake -E make_directory ${{ runner.workspace }}/_build
 

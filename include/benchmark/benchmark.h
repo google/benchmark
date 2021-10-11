@@ -34,7 +34,7 @@ static void BM_StringCopy(benchmark::State& state) {
 BENCHMARK(BM_StringCopy);
 
 // Augment the main() program to invoke benchmarks if specified
-// via the --benchmarks command line flag.  E.g.,
+// via the --benchmark_filter command line flag.  E.g.,
 //       my_unittest --benchmark_filter=all
 //       my_unittest --benchmark_filter=BM_StringCreation
 //       my_unittest --benchmark_filter=String
@@ -450,6 +450,8 @@ enum BigO { oNone, o1, oN, oNSquared, oNCubed, oLogN, oNLogN, oAuto, oLambda };
 
 typedef uint64_t IterationCount;
 
+enum StatisticUnit { kTime, kPercentage };
+
 // BigOFunc is passed to a benchmark in order to specify the asymptotic
 // computational complexity for the benchmark.
 typedef double(BigOFunc)(IterationCount);
@@ -462,9 +464,11 @@ namespace internal {
 struct Statistics {
   std::string name_;
   StatisticsFunc* compute_;
+  StatisticUnit unit_;
 
-  Statistics(const std::string& name, StatisticsFunc* compute)
-      : name_(name), compute_(compute) {}
+  Statistics(const std::string& name, StatisticsFunc* compute,
+             StatisticUnit unit = kTime)
+      : name_(name), compute_(compute), unit_(unit) {}
 };
 
 class BenchmarkInstance;
@@ -965,7 +969,8 @@ class Benchmark {
   Benchmark* Complexity(BigOFunc* complexity);
 
   // Add this statistics to be computed over all the values of benchmark run
-  Benchmark* ComputeStatistics(std::string name, StatisticsFunc* statistics);
+  Benchmark* ComputeStatistics(std::string name, StatisticsFunc* statistics,
+                               StatisticUnit unit = kTime);
 
   // Support for running multiple copies of the same benchmark concurrently
   // in multiple threads.  This may be useful when measuring the scaling
@@ -1421,6 +1426,7 @@ class BenchmarkReporter {
 
     Run()
         : run_type(RT_Iteration),
+          aggregate_unit(kTime),
           error_occurred(false),
           iterations(1),
           threads(1),
@@ -1444,6 +1450,7 @@ class BenchmarkReporter {
     int64_t per_family_instance_index;
     RunType run_type;
     std::string aggregate_name;
+    StatisticUnit aggregate_unit;
     std::string report_label;  // Empty if not set by benchmark.
     bool error_occurred;
     std::string error_message;

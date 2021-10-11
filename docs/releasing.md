@@ -19,4 +19,4 @@ project (benchmark VERSION 1.5.3 LANGUAGES CXX)
     * Update this to an annotated tag:
       * `git pull --tags`
       * `git tag -a -f <tag> <tag>`
-      * `git push --force origin`
+      * `git push --force --tags origin`

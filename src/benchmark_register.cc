@@ -215,6 +215,7 @@ Benchmark::Benchmark(const char* name)
   ComputeStatistics("mean", StatisticsMean);
   ComputeStatistics("median", StatisticsMedian);
   ComputeStatistics("stddev", StatisticsStdDev);
+  ComputeStatistics("cv", StatisticsCV, kPercentage);
 }
 
 Benchmark::~Benchmark() {}
@@ -399,8 +400,9 @@ Benchmark* Benchmark::Complexity(BigOFunc* complexity) {
 }
 
 Benchmark* Benchmark::ComputeStatistics(std::string name,
-                                        StatisticsFunc* statistics) {
-  statistics_.emplace_back(name, statistics);
+                                        StatisticsFunc* statistics,
+                                        StatisticUnit unit) {
+  statistics_.emplace_back(name, statistics, unit);
   return this;
 }
 

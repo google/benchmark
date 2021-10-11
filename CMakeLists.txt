@@ -13,7 +13,7 @@ foreach(p
   endif()
 endforeach()
 
-project (benchmark VERSION 1.5.6 LANGUAGES CXX)
+project (benchmark VERSION 1.6.0 LANGUAGES CXX)
 
 option(BENCHMARK_ENABLE_TESTING "Enable testing of the benchmark library." ON)
 option(BENCHMARK_ENABLE_EXCEPTIONS "Enable the use of exceptions in the benchmark library." ON)
@@ -25,6 +25,7 @@ else()
   set(BENCHMARK_BUILD_32_BITS OFF CACHE BOOL "Build a 32 bit version of the library - unsupported when using MSVC)" FORCE)
 endif()
 option(BENCHMARK_ENABLE_INSTALL "Enable installation of benchmark. (Projects embedding benchmark may want to turn this OFF.)" ON)
+option(BENCHMARK_INSTALL_DOCS "Enable installation of documentation." ON)
 
 # Allow unmet dependencies to be met using CMake's ExternalProject mechanics, which
 # may require downloading the source code.
@@ -33,6 +34,7 @@ option(BENCHMARK_DOWNLOAD_DEPENDENCIES "Allow the downloading and in-tree buildi
 # This option can be used to disable building and running unit tests which depend on gtest
 # in cases where it is not possible to build or find a valid version of gtest.
 option(BENCHMARK_ENABLE_GTEST_TESTS "Enable building the unit tests which depend on gtest" ON)
+option(BENCHMARK_USE_BUNDLED_GTEST "Use bundled GoogleTest. If disabled, the find_package(GTest) will be used." ON)
 
 option(BENCHMARK_ENABLE_LIBPFM "Enable performance counters provided by libpfm" OFF)
 
@@ -307,7 +309,15 @@ if (BENCHMARK_ENABLE_TESTING)
   if (BENCHMARK_ENABLE_GTEST_TESTS AND
       NOT (TARGET gtest AND TARGET gtest_main AND
            TARGET gmock AND TARGET gmock_main))
-    include(GoogleTest)
+    if (BENCHMARK_USE_BUNDLED_GTEST)
+      include(GoogleTest)
+    else()
+      find_package(GTest CONFIG REQUIRED)
+      add_library(gtest ALIAS GTest::gtest)
+      add_library(gtest_main ALIAS GTest::gtest_main)
+      add_library(gmock ALIAS GTest::gmock)
+      add_library(gmock_main ALIAS GTest::gmock_main)
+    endif()
   endif()
   add_subdirectory(test)
 endif()
