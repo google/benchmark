@@ -180,6 +180,7 @@ BENCHMARK(BM_test)->Unit(benchmark::kMillisecond);
 #include <cassert>
 #include <cstddef>
 #include <iosfwd>
+#include <limits>
 #include <map>
 #include <set>
 #include <string>
@@ -273,7 +274,6 @@ BENCHMARK(BM_test)->Unit(benchmark::kMillisecond);
 
 namespace benchmark {
 class BenchmarkReporter;
-class MemoryManager;
 
 void Initialize(int* argc, char** argv);
 void Shutdown();
@@ -298,6 +298,49 @@ size_t RunSpecifiedBenchmarks();
 size_t RunSpecifiedBenchmarks(BenchmarkReporter* display_reporter);
 size_t RunSpecifiedBenchmarks(BenchmarkReporter* display_reporter,
                               BenchmarkReporter* file_reporter);
+
+// If a MemoryManager is registered (via RegisterMemoryManager()),
+// it can be used to collect and report allocation metrics for a run of the
+// benchmark.
+class MemoryManager {
+ public:
+  static const int64_t TombstoneValue;
+
+  struct Result {
+    Result()
+        : num_allocs(0),
+          max_bytes_used(0),
+          total_allocated_bytes(TombstoneValue),
+          net_heap_growth(TombstoneValue) {}
+
+    // The number of allocations made in total between Start and Stop.
+    int64_t num_allocs;
+
+    // The peak memory use between Start and Stop.
+    int64_t max_bytes_used;
+
+    // The total memory allocated, in bytes, between Start and Stop.
+    // Init'ed to TombstoneValue if metric not available.
+    int64_t total_allocated_bytes;
+
+    // The net changes in memory, in bytes, between Start and Stop.
+    // ie., total_allocated_bytes - total_deallocated_bytes.
+    // Init'ed to TombstoneValue if metric not available.
+    int64_t net_heap_growth;
+  };
+
+  virtual ~MemoryManager() {}
+
+  // Implement this to start recording allocation information.
+  virtual void Start() = 0;
+
+  // Implement this to stop recording and fill out the given Result structure.
+  BENCHMARK_DEPRECATED_MSG("Use Stop(Result&) instead")
+  virtual void Stop(Result* result) = 0;
+
+  // FIXME(vyng): Make this pure virtual once we've migrated current users.
+  virtual void Stop(Result& result) { Stop(&result); }
+};
 
 // Register a MemoryManager instance that will be used to collect and report
 // allocation measurements for benchmark runs.
@@ -1440,9 +1483,8 @@ class BenchmarkReporter {
           report_big_o(false),
           report_rms(false),
           counters(),
-          has_memory_result(false),
-          allocs_per_iter(0.0),
-          max_bytes_used(0) {}
+          memory_result(NULL),
+          allocs_per_iter(0.0) {}
 
     std::string benchmark_name() const;
     BenchmarkName run_name;
@@ -1493,9 +1535,8 @@ class BenchmarkReporter {
     UserCounters counters;
 
     // Memory metrics.
-    bool has_memory_result;
+    const MemoryManager::Result* memory_result;
     double allocs_per_iter;
-    int64_t max_bytes_used;
   };
 
   struct PerFamilyRunReports {
@@ -1624,28 +1665,6 @@ class BENCHMARK_DEPRECATED_MSG(
   std::set<std::string> user_counter_names_;
 };
 
-// If a MemoryManager is registered, it can be used to collect and report
-// allocation metrics for a run of the benchmark.
-class MemoryManager {
- public:
-  struct Result {
-    Result() : num_allocs(0), max_bytes_used(0) {}
-
-    // The number of allocations made in total between Start and Stop.
-    int64_t num_allocs;
-
-    // The peak memory use between Start and Stop.
-    int64_t max_bytes_used;
-  };
-
-  virtual ~MemoryManager() {}
-
-  // Implement this to start recording allocation information.
-  virtual void Start() = 0;
-
-  // Implement this to stop recording and fill out the given Result structure.
-  virtual void Stop(Result* result) = 0;
-};
 
 inline const char* GetTimeUnitString(TimeUnit unit) {
   switch (unit) {
