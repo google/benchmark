@@ -105,6 +105,8 @@ BenchmarkReporter::Run CreateRunReport(
                                   memory_iterations
                             : 0;
       report.max_bytes_used = memory_result.max_bytes_used;
+      report.total_allocs = memory_result.total_allocs;
+      report.net_allocs = memory_result.net_allocs;
     }
 
     internal::Finish(&report.counters, results.iterations, seconds,

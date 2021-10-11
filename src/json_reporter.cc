@@ -280,6 +280,11 @@ void JSONReporter::PrintRunData(Run const& run) {
   if (run.has_memory_result) {
     out << ",\n" << indent << FormatKV("allocs_per_iter", run.allocs_per_iter);
     out << ",\n" << indent << FormatKV("max_bytes_used", run.max_bytes_used);
+
+    if (run.total_allocs != MemoryManager::TombstoneValue)
+      out << ",\n" << indent << FormatKV("total_allocs", run.total_allocs);
+    if (run.net_allocs != MemoryManager::TombstoneValue)
+      out << ",\n" << indent << FormatKV("net_allocs", run.net_allocs);
   }
 
   if (!run.report_label.empty()) {

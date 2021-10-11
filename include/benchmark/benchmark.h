@@ -1486,9 +1486,13 @@ class BenchmarkReporter {
     UserCounters counters;
 
     // Memory metrics.
+    // QUESTION: consider storing a pointer to MemoryManager::Result instead
+    // of duplicating the fields here?
     bool has_memory_result;
     double allocs_per_iter;
     int64_t max_bytes_used;
+    int64_t total_allocs;
+    int64_t net_allocs;
   };
 
   struct PerFamilyRunReports {
@@ -1621,14 +1625,29 @@ class BENCHMARK_DEPRECATED_MSG(
 // allocation metrics for a run of the benchmark.
 class MemoryManager {
  public:
+  template static constexpr int64_t TombstoneValue =
+      std::numeric_limits<int64_t>::max();
+
   struct Result {
-    Result() : num_allocs(0), max_bytes_used(0) {}
+    Result()
+        : num_allocs(0),
+          max_bytes_used(0),
+          total_allocs(TombstoneValue),
+          net_allocs(TombstoneValue) {}
 
     // The number of allocations made in total between Start and Stop.
     int64_t num_allocs;
 
     // The peak memory use between Start and Stop.
     int64_t max_bytes_used;
+
+    // The total memory allocated, in bytes, between Start and Stop.
+    //
+    int64_t total_allocs;
+
+    // The net changes in memory, in bytes, between Start and Stop.
+    // ie., totall_allocs - total_deallocs.
+    int64_t net_allocs;
   };
 
   virtual ~MemoryManager() {}
