@@ -29,33 +29,28 @@ target_include_directories(benchmark PUBLIC
 
 # libpfm, if available
 if (HAVE_LIBPFM)
-  target_link_libraries(benchmark libpfm.a)
+  target_link_libraries(benchmark PRIVATE pfm)
   add_definitions(-DHAVE_LIBPFM)
 endif()
 
 # Link threads.
-target_link_libraries(benchmark  ${BENCHMARK_CXX_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
-find_library(LIBRT rt)
-if(LIBRT)
-  target_link_libraries(benchmark ${LIBRT})
-endif()
+target_link_libraries(benchmark PRIVATE Threads::Threads)
 
-if(CMAKE_BUILD_TYPE)
-  string(TOUPPER ${CMAKE_BUILD_TYPE} CMAKE_BUILD_TYPE_UPPER)
-endif()
-if(NOT CMAKE_THREAD_LIBS_INIT AND "${CMAKE_CXX_FLAGS} ${CMAKE_CXX_FLAGS_${CMAKE_BUILD_TYPE_UPPER}}" MATCHES ".*-fsanitize=[^ ]*address.*")
-  message(WARNING "CMake's FindThreads.cmake did not fail, but CMAKE_THREAD_LIBS_INIT ended up being empty. This was fixed in https://github.com/Kitware/CMake/commit/d53317130e84898c5328c237186dbd995aaf1c12 Let's guess that -pthread is sufficient.")
-  target_link_libraries(benchmark -pthread)
-endif()
+target_link_libraries(benchmark PRIVATE ${BENCHMARK_CXX_LIBRARIES})
+
+if(HAVE_LIB_RT)
+  target_link_libraries(benchmark PRIVATE rt)
+endif(HAVE_LIB_RT)
+
 
 # We need extra libraries on Windows
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-  target_link_libraries(benchmark shlwapi)
+  target_link_libraries(benchmark PRIVATE shlwapi)
 endif()
 
 # We need extra libraries on Solaris
 if(${CMAKE_SYSTEM_NAME} MATCHES "SunOS")
-  target_link_libraries(benchmark kstat)
+  target_link_libraries(benchmark PRIVATE kstat)
 endif()
 
 # Benchmark main library

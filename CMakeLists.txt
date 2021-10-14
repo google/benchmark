@@ -125,6 +125,9 @@ string(SUBSTRING ${VERSION} 0 1 GENERIC_LIB_SOVERSION)
 include(CheckCXXCompilerFlag)
 include(AddCXXCompilerFlag)
 include(CXXFeatureCheck)
+include(CheckLibraryExists)
+
+check_library_exists(rt shm_open "" HAVE_LIB_RT)
 
 if (BENCHMARK_BUILD_32_BITS)
   add_required_cxx_compiler_flag(-m32)
