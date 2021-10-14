@@ -25,8 +25,7 @@ set_target_properties(benchmark PROPERTIES
   SOVERSION ${GENERIC_LIB_SOVERSION}
 )
 target_include_directories(benchmark PUBLIC
-    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../include>
-    )
+  $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>)
 
 # libpfm, if available
 if (HAVE_LIBPFM)
@@ -67,10 +66,7 @@ set_target_properties(benchmark_main PROPERTIES
   VERSION ${GENERIC_LIB_VERSION}
   SOVERSION ${GENERIC_LIB_SOVERSION}
 )
-target_include_directories(benchmark PUBLIC
-    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../include>
-    )
-target_link_libraries(benchmark_main benchmark::benchmark)
+target_link_libraries(benchmark_main PUBLIC benchmark::benchmark)
 
 
 set(generated_dir "${CMAKE_CURRENT_BINARY_DIR}/generated")
