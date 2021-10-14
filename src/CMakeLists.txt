@@ -64,7 +64,7 @@ set_target_properties(benchmark_main PROPERTIES
 target_link_libraries(benchmark_main PUBLIC benchmark::benchmark)
 
 
-set(generated_dir "${CMAKE_CURRENT_BINARY_DIR}/generated")
+set(generated_dir "${PROJECT_BINARY_DIR}")
 
 set(version_config "${generated_dir}/${PROJECT_NAME}ConfigVersion.cmake")
 set(project_config "${generated_dir}/${PROJECT_NAME}Config.cmake")
@@ -74,11 +74,18 @@ set(targets_export_name "${PROJECT_NAME}Targets")
 set(namespace "${PROJECT_NAME}::")
 
 include(CMakePackageConfigHelpers)
+
+configure_package_config_file (
+  ${PROJECT_SOURCE_DIR}/cmake/Config.cmake.in
+  ${project_config}
+  INSTALL_DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME}
+  NO_SET_AND_CHECK_MACRO
+  NO_CHECK_REQUIRED_COMPONENTS_MACRO
+)
 write_basic_package_version_file(
   "${version_config}" VERSION ${GENERIC_LIB_VERSION} COMPATIBILITY SameMajorVersion
 )
 
-configure_file("${PROJECT_SOURCE_DIR}/cmake/Config.cmake.in" "${project_config}" @ONLY)
 configure_file("${PROJECT_SOURCE_DIR}/cmake/benchmark.pc.in" "${pkg_config}" @ONLY)
 
 if (BENCHMARK_ENABLE_INSTALL)
@@ -114,4 +121,7 @@ if (BENCHMARK_ENABLE_INSTALL)
       DIRECTORY "${PROJECT_SOURCE_DIR}/docs/"
       DESTINATION "${CMAKE_INSTALL_DOCDIR}")
   endif()
+
+  export (EXPORT ${targets_export_name} NAMESPACE "${namespace}"
+    FILE ${generated_dir}/${targets_export_name}.cmake)
 endif()
