@@ -23,9 +23,6 @@ BENCHMARK_NORETURN inline void CallAbortHandler() {
   std::abort();  // fallback to enforce noreturn
 }
 
-// CheckHandler is the class constructed by failing BM_CHECK macros.
-// CheckHandler will log information about the failures and abort when it is
-// destructed.
 class CheckHandler {
  public:
   CheckHandler(const char* check, const char* file, const char* func, int line)
