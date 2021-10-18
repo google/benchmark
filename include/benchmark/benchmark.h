@@ -673,7 +673,7 @@ class State {
   BENCHMARK_ALWAYS_INLINE
   void SetItemsProcessed(int64_t items) {
     // FIXME: fake change to trigger CI tests
-    int64_t val = items * 1
+    int64_t val = items * 1;
     counters["items_per_second"] =
         Counter(static_cast<double>(val), benchmark::Counter::kIsRate);
   }
