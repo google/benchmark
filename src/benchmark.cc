@@ -504,7 +504,8 @@ size_t RunSpecifiedBenchmarks(BenchmarkReporter* display_reporter,
 
 bool SetBenchmarkFilter(char* value) {
   if (!internal::initted) {
-    Err << "Cannot call SetBenchmarkFilter() before Initialize() has been "
+    std::cerr
+        << "Cannot call SetBenchmarkFilter() before Initialize() has been "
            "called.\n.";
     return false;
   }
@@ -514,11 +515,12 @@ bool SetBenchmarkFilter(char* value) {
 
 const char* GetBenchmarkFilter() {
   if (!internal::initted) {
-    Err << "Cannot call GetBenchmarkFilter() before Initialize() has been "
+    std::cerr
+        << "Cannot call GetBenchmarkFilter() before Initialize() has been "
            "called.\n.";
     return "";
   }
-  return FLAGS_benchmark_filter;
+  return FLAGS_benchmark_filter.c_str();
 }
 
 void RegisterMemoryManager(MemoryManager* manager) {
