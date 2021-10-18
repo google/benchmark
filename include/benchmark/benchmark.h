@@ -282,6 +282,16 @@ void Shutdown();
 // Returns true there is at least on unrecognized argument (i.e. 'argc' > 1).
 bool ReportUnrecognizedArguments(int argc, char** argv);
 
+// Set the --benchmark_filter flag value.
+// This will overwrites the value previously specified via commandline flag.
+// Pre-condition: must be called after Initialize().
+// Returns true if flag was set successfully and false otherwise.
+bool SetBenchmarkFilter(char* value);
+
+// Returns the current value of --benchmark_filter.
+// Pre-condition: must be called after Initialize().
+const char* GetBenchmarkFilter();
+
 // Generate a list of benchmarks matching the specified --benchmark_filter flag
 // and if --benchmark_list_tests is specified return after printing the name
 // of each matching benchmark. Otherwise run each matching benchmark and

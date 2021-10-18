@@ -131,6 +131,8 @@ std::map<std::string, std::string>* global_context = nullptr;
 // FIXME: wouldn't LTO mess this up?
 void UseCharPointer(char const volatile*) {}
 
+bool initted = false;
+
 }  // namespace internal
 
 State::State(IterationCount max_iters, const std::vector<int64_t>& ranges,
@@ -500,6 +502,25 @@ size_t RunSpecifiedBenchmarks(BenchmarkReporter* display_reporter,
   return benchmarks.size();
 }
 
+bool SetBenchmarkFilter(char* value) {
+  if (!initted) {
+    Err << "Cannot call SetBenchmarkFilter() before Initialize() has been "
+           "called.\n.";
+    return false;
+  }
+  FLAGS_benchmark_filter = value;
+  return true;
+}
+
+const char* GetBenchmarkFilter() {
+  if (!initted) {
+    Err << "Cannot call GetBenchmarkFilter() before Initialize() has been "
+           "called.\n.";
+    return "";
+  }
+  return FLAGS_benchmark_filter;
+}
+
 void RegisterMemoryManager(MemoryManager* manager) {
   internal::memory_manager = manager;
 }
@@ -600,6 +621,8 @@ int InitializeStreams() {
 }  // end namespace internal
 
 void Initialize(int* argc, char** argv) {
+  assert(!initted);
+  initted = true;
   internal::ParseCommandLineFlags(argc, argv);
   internal::LogLevel() = FLAGS_v;
 }
