@@ -97,7 +97,6 @@ BM_DEFINE_bool(benchmark_display_aggregates_only, false);
 BM_DEFINE_string(benchmark_format, "console");
 
 // The format to use for file output.
-// Valid values are 'console', 'json', or 'csv'.
 BM_DEFINE_string(benchmark_out_format, "json");
 
 // The file to write additional output to.
