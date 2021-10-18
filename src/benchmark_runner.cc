@@ -67,7 +67,7 @@ BenchmarkReporter::Run CreateRunReport(
     const benchmark::internal::BenchmarkInstance& b,
     const internal::ThreadManager::Result& results,
     IterationCount memory_iterations,
-    const MemoryManager::Result& memory_result, double seconds,
+    const MemoryManager::Result* memory_result, double seconds,
     int64_t repetition_index, int64_t repeats) {
   // Create report about this benchmark run.
   BenchmarkReporter::Run report;
@@ -99,12 +99,12 @@ BenchmarkReporter::Run CreateRunReport(
     report.counters = results.counters;
 
     if (memory_iterations > 0) {
-      report.has_memory_result = true;
+      assert(memory_result != nullptr);
+      report.memory_result = memory_result;
       report.allocs_per_iter =
-          memory_iterations ? static_cast<double>(memory_result.num_allocs) /
+          memory_iterations ? static_cast<double>(memory_result->num_allocs) /
                                   memory_iterations
                             : 0;
-      report.max_bytes_used = memory_result.max_bytes_used;
     }
 
     internal::Finish(&report.counters, results.iterations, seconds,
@@ -302,9 +302,14 @@ void BenchmarkRunner::DoOneRepetition() {
   }
 
   // Oh, one last thing, we need to also produce the 'memory measurements'..
-  MemoryManager::Result memory_result;
+  MemoryManager::Result* memory_result = nullptr;
   IterationCount memory_iterations = 0;
   if (memory_manager != nullptr) {
+    // TODO(vyng): Consider making BenchmarkReporter::Run::memory_result an
+    // optional so we don't have to own the Result here.
+    // Can't do it now due to cxx03.
+    memory_results.push_back(MemoryManager::Result());
+    memory_result = &memory_results.back();
     // Only run a few iterations to reduce the impact of one-time
     // allocations in benchmarks that are not properly managed.
     memory_iterations = std::min<IterationCount>(16, iters);
@@ -316,7 +321,7 @@ void BenchmarkRunner::DoOneRepetition() {
     manager->WaitForAllThreads();
     manager.reset();
 
-    memory_manager->Stop(&memory_result);
+    memory_manager->Stop(memory_result);
   }
 
   // Ok, now actually report.

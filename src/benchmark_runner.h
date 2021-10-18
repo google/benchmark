@@ -76,6 +76,8 @@ class BenchmarkRunner {
 
   std::vector<std::thread> pool;
 
+  std::vector<MemoryManager::Result> memory_results;
+
   IterationCount iters;  // preserved between repetitions!
   // So only the first repetition has to find/calculate it,
   // the other repetitions will just use that precomputed iteration count.
