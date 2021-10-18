@@ -503,7 +503,7 @@ size_t RunSpecifiedBenchmarks(BenchmarkReporter* display_reporter,
 }
 
 bool SetBenchmarkFilter(char* value) {
-  if (!initted) {
+  if (!internal::initted) {
     Err << "Cannot call SetBenchmarkFilter() before Initialize() has been "
            "called.\n.";
     return false;
@@ -513,7 +513,7 @@ bool SetBenchmarkFilter(char* value) {
 }
 
 const char* GetBenchmarkFilter() {
-  if (!initted) {
+  if (!internal::initted) {
     Err << "Cannot call GetBenchmarkFilter() before Initialize() has been "
            "called.\n.";
     return "";
@@ -621,8 +621,8 @@ int InitializeStreams() {
 }  // end namespace internal
 
 void Initialize(int* argc, char** argv) {
-  assert(!initted);
-  initted = true;
+  assert(!internal::initted);
+  internal::initted = true;
   internal::ParseCommandLineFlags(argc, argv);
   internal::LogLevel() = FLAGS_v;
 }
