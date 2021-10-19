@@ -384,10 +384,8 @@ int SetSubstitutions(
 
 // Disable deprecated warnings temporarily because we need to reference
 // CSVReporter but don't want to trigger -Werror=-Wdeprecated-declarations
-#if defined(__GNUC__) || defined(__clang__)
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-#endif
+BENCHMARK_DISABLE_DEPRECATED_WARNING
+
 void RunOutputTests(int argc, char* argv[]) {
   using internal::GetTestCaseList;
   benchmark::Initialize(&argc, argv);
@@ -446,9 +444,7 @@ void RunOutputTests(int argc, char* argv[]) {
   internal::GetResultsChecker().CheckResults(csv.out_stream);
 }
 
-#ifdef __GNUC__
-#pragma GCC diagnostic pop
-#endif
+BENCHMARK_RESTORE_DEPRECATED_WARNING
 
 int SubstrCnt(const std::string& haystack, const std::string& pat) {
   if (pat.length() == 0) return 0;
