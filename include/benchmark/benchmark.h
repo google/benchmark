@@ -1069,8 +1069,8 @@ class Benchmark {
 
   std::string name_;
   AggregationReportMode aggregation_report_mode_;
-  std::vector<std::string> arg_names_;       // Args for all benchmark runs
-  std::vector<std::vector<int64_t> > args_;  // Args for all benchmark runs
+  std::vector<std::vector<std::string>> arg_names_;  // Args for all benchmark runs
+  std::vector<std::vector<int64_t> > args_;          // Args for all benchmark runs
   TimeUnit time_unit_;
   int range_multiplier_;
   double min_time_;

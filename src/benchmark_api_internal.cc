@@ -29,14 +29,16 @@ BenchmarkInstance::BenchmarkInstance(Benchmark* benchmark, int family_idx,
       threads_(thread_count) {
   name_.function_name = benchmark_.name_;
 
+  const auto* arg_names = per_family_instance_idx < benchmark->arg_names_.size() ?
+          &(benchmark->arg_names_[per_family_instance_idx]) : nullptr;
   size_t arg_i = 0;
   for (const auto& arg : args) {
     if (!name_.args.empty()) {
       name_.args += '/';
     }
 
-    if (arg_i < benchmark->arg_names_.size()) {
-      const auto& arg_name = benchmark_.arg_names_[arg_i];
+    if (arg_names && arg_i < arg_names->size()) {
+      const auto& arg_name = arg_names->operator[](arg_i);
       if (!arg_name.empty()) {
         name_.args += StrFormat("%s:", arg_name.c_str());
       }
