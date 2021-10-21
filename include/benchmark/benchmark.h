@@ -242,12 +242,19 @@ BENCHMARK(BM_test)->Unit(benchmark::kMillisecond);
 #if defined(__GNUC__) || defined(__clang__)
 #define BENCHMARK_BUILTIN_EXPECT(x, y) __builtin_expect(x, y)
 #define BENCHMARK_DEPRECATED_MSG(msg) __attribute__((deprecated(msg)))
+#define BENCHMARK_DISABLE_DEPRECATED_WARNING \
+  _Pragma("GCC diagnostic push") \
+  _Pragma("GCC diagnostic ignored \"-Wdeprecated-declarations\"")
+#define BENCHMARK_RESTORE_DEPRECATED_WARNING \
+  _Pragma("GCC diagnostic pop")
 #else
 #define BENCHMARK_BUILTIN_EXPECT(x, y) x
 #define BENCHMARK_DEPRECATED_MSG(msg)
 #define BENCHMARK_WARNING_MSG(msg)                           \
   __pragma(message(__FILE__ "(" BENCHMARK_INTERNAL_TOSTRING( \
       __LINE__) ") : warning note: " msg))
+#define BENCHMARK_DISABLE_DEPRECATED_WARNING
+#define BENCHMARK_RESTORE_DEPRECATED_WARNING
 #endif
 
 #if defined(__GNUC__) && !defined(__clang__)
@@ -339,7 +346,9 @@ class MemoryManager {
   virtual void Stop(Result* result) = 0;
 
   // FIXME(vyng): Make this pure virtual once we've migrated current users.
+  BENCHMARK_DISABLE_DEPRECATED_WARNING
   virtual void Stop(Result& result) { Stop(&result); }
+  BENCHMARK_RESTORE_DEPRECATED_WARNING
 };
 
 // Register a MemoryManager instance that will be used to collect and report
