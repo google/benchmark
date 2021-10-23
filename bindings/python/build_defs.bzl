@@ -2,9 +2,9 @@ _SHARED_LIB_SUFFIX = {
     "//conditions:default": ".so",
     "//:windows": ".dll",
 }
-
-def py_extension(name, srcs, hdrs = [], copts = [], features = [], deps = []):
-    for shared_lib_suffix in _SHARED_LIB_SUFFIX.values():
+ 
+  py_extension(name, srcs, hdrs = [], copts = [], features = [], deps = []):
+       shared_lib_suffix in _SHARED_LIB_SUFFIX.values():
         shared_lib_name = name + shared_lib_suffix
         native.cc_binary(
             name = shared_lib_name,
@@ -16,7 +16,7 @@ def py_extension(name, srcs, hdrs = [], copts = [], features = [], deps = []):
             deps = deps,
         )
 
-    return native.py_library(
+          native.py_library(
         name = name,
         data = select({
             platform: [name + shared_lib_suffix]
