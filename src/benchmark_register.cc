@@ -291,13 +291,13 @@ Benchmark* Benchmark::ArgsProduct(
 
 Benchmark* Benchmark::ArgName(const std::string& name) {
   BM_CHECK(ArgsCnt() == -1 || ArgsCnt() == 1);
-  arg_names_ = {name};
+  arg_names_.push_back({name});
   return this;
 }
 
 Benchmark* Benchmark::ArgNames(const std::vector<std::string>& names) {
   BM_CHECK(ArgsCnt() == -1 || ArgsCnt() == static_cast<int>(names.size()));
-  arg_names_ = names;
+  arg_names_.push_back(names);
   return this;
 }
 
@@ -443,7 +443,7 @@ void Benchmark::SetName(const char* name) { name_ = name; }
 int Benchmark::ArgsCnt() const {
   if (args_.empty()) {
     if (arg_names_.empty()) return -1;
-    return static_cast<int>(arg_names_.size());
+    return static_cast<int>(arg_names_.front().size());
   }
   return static_cast<int>(args_.front().size());
 }
