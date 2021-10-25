@@ -289,9 +289,11 @@ const char* GetBenchmarkFilter();
 // and if --benchmark_list_tests is specified return after printing the name
 // of each matching benchmark. Otherwise run each matching benchmark and
 // report the results.
+//
 // spec : Specify the benchmarks to run. If not specified or if NULL is used,
-// then the value of FLAGS_benchmark_filter will be used. The second and third
-// overload use the specified 'display_reporter' and
+//        then the value of FLAGS_benchmark_filter will be used.
+//
+// The second and third overload use the specified 'display_reporter' and
 //  'file_reporter' respectively. 'file_reporter' will write to the file
 //  specified
 //   by '--benchmark_output'. If '--benchmark_output' is not given the
