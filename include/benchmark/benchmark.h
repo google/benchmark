@@ -282,32 +282,28 @@ void Shutdown();
 // Returns true there is at least on unrecognized argument (i.e. 'argc' > 1).
 bool ReportUnrecognizedArguments(int argc, char** argv);
 
-// Set the --benchmark_filter flag value.
-// This will overwrites the value previously specified via commandline flag.
-// Pre-condition: must be called after Initialize().
-// Returns true if flag was set successfully and false otherwise.
-bool SetBenchmarkFilter(char* value);
-
 // Returns the current value of --benchmark_filter.
-// Pre-condition: must be called after Initialize().
 const char* GetBenchmarkFilter();
 
 // Generate a list of benchmarks matching the specified --benchmark_filter flag
 // and if --benchmark_list_tests is specified return after printing the name
 // of each matching benchmark. Otherwise run each matching benchmark and
 // report the results.
-//
-// The second and third overload use the specified 'display_reporter' and
+// spec : Specify the benchmarks to run. If not specified or if NULL is used,
+// then the value of FLAGS_benchmark_filter will be used. The second and third
+// overload use the specified 'display_reporter' and
 //  'file_reporter' respectively. 'file_reporter' will write to the file
 //  specified
 //   by '--benchmark_output'. If '--benchmark_output' is not given the
 //  'file_reporter' is ignored.
 //
 // RETURNS: The number of matching benchmarks.
-size_t RunSpecifiedBenchmarks();
-size_t RunSpecifiedBenchmarks(BenchmarkReporter* display_reporter);
+size_t RunSpecifiedBenchmarks(const char* spec = NULL);
 size_t RunSpecifiedBenchmarks(BenchmarkReporter* display_reporter,
-                              BenchmarkReporter* file_reporter);
+                              const char* spec = NULL);
+size_t RunSpecifiedBenchmarks(BenchmarkReporter* display_reporter,
+                              BenchmarkReporter* file_reporter,
+                              const char* spec = NULL);
 
 // If a MemoryManager is registered (via RegisterMemoryManager()),
 // it can be used to collect and report allocation metrics for a run of the

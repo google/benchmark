@@ -131,8 +131,6 @@ std::map<std::string, std::string>* global_context = nullptr;
 // FIXME: wouldn't LTO mess this up?
 void UseCharPointer(char const volatile*) {}
 
-bool initted = false;
-
 }  // namespace internal
 
 State::State(IterationCount max_iters, const std::vector<int64_t>& ranges,
@@ -436,17 +434,20 @@ ConsoleReporter::OutputOptions GetOutputOptions(bool force_no_color) {
 
 }  // end namespace internal
 
-size_t RunSpecifiedBenchmarks() {
-  return RunSpecifiedBenchmarks(nullptr, nullptr);
-}
-
-size_t RunSpecifiedBenchmarks(BenchmarkReporter* display_reporter) {
-  return RunSpecifiedBenchmarks(display_reporter, nullptr);
+size_t RunSpecifiedBenchmarks(const char* spec) {
+  return RunSpecifiedBenchmarks(nullptr, nullptr, spec);
 }
 
 size_t RunSpecifiedBenchmarks(BenchmarkReporter* display_reporter,
-                              BenchmarkReporter* file_reporter) {
-  std::string spec = FLAGS_benchmark_filter;
+                              const char* spec) {
+  return RunSpecifiedBenchmarks(display_reporter, nullptr, spec);
+}
+
+size_t RunSpecifiedBenchmarks(BenchmarkReporter* display_reporter,
+                              BenchmarkReporter* file_reporter,
+                              const char* spec_str) {
+  std::string spec =
+      spec_str != nullptr ? std::string(spec_str) : FLAGS_benchmark_filter;
   if (spec.empty() || spec == "all")
     spec = ".";  // Regexp that matches all benchmarks
 
@@ -502,24 +503,7 @@ size_t RunSpecifiedBenchmarks(BenchmarkReporter* display_reporter,
   return benchmarks.size();
 }
 
-bool SetBenchmarkFilter(char* value) {
-  if (!internal::initted) {
-    std::cerr
-        << "Cannot call SetBenchmarkFilter() before Initialize() has been "
-           "called.\n.";
-    return false;
-  }
-  FLAGS_benchmark_filter = value;
-  return true;
-}
-
 const char* GetBenchmarkFilter() {
-  if (!internal::initted) {
-    std::cerr
-        << "Cannot call GetBenchmarkFilter() before Initialize() has been "
-           "called.\n.";
-    return "";
-  }
   return FLAGS_benchmark_filter.c_str();
 }
 
@@ -623,8 +607,6 @@ int InitializeStreams() {
 }  // end namespace internal
 
 void Initialize(int* argc, char** argv) {
-  assert(!internal::initted);
-  internal::initted = true;
   internal::ParseCommandLineFlags(argc, argv);
   internal::LogLevel() = FLAGS_v;
 }
