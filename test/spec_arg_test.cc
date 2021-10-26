@@ -67,10 +67,12 @@ int main(int argc, char** argv) {
 
   // Check that the current flag value is reported
   // accurately.
-  if (FLAGS_benchmark_filter != benchmark::GetBenchmarkFilter()) {
-    std::cerr << "Unexpected values. FLAGS_benchmark_filter= "
+  if (FLAGS_benchmark_filter != benchmark::GetBenchmarkFilter() ||
+      flag != FLAGS_benchmark_filter) {
+    std::cerr << "Seeing different value for flags.. FLAGS_benchmark_filter= "
               << FLAGS_benchmark_filter
-              << " != " << benchmark::GetBenchmarkFilter() << "\n";
+              << ",  GetBenchmarkFilter()=" << benchmark::GetBenchmarkFilter()
+              << " expected flag= " << flag << "\n";
     return 1;
   }
   TestReporter test_reporter;
