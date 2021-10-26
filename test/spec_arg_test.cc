@@ -2,6 +2,7 @@
 #include <cassert>
 #include <cstdint>
 #include <cstdlib>
+#include <cstring>
 #include <iostream>
 #include <limits>
 #include <string>
@@ -56,13 +57,17 @@ BENCHMARK(BM_Chosen);
 int main(int argc, char** argv) {
   const char* const flag = "BM_NotChosen";
 
-  // Make a fake argv specify --benchmark_filter=BM_NotChosen.
-  char* fake_argv[] = {
-      argv[0],
-      "--benchmark_filter=BM_NotChosen",
-  };
-  int fake_argc = 2;
-  benchmark::Initialize(&fake_argc, fake_argv);
+  // Verify that argv specify --benchmark_filter=BM_NotChosen.
+  bool found;
+  for (int i = 0; i < argc; ++i) {
+    if (strcmp("--benchmark_filter=BM_NotChosen", argv[i]) == 0) {
+      found = true;
+      break;
+    }
+  }
+  assert(found);
+
+  benchmark::Initialize(&argc, argv);
 
   // Check that the current flag value is reported accurately via the
   // GetBenchmarkFilter() function.
