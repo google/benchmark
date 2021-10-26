@@ -74,12 +74,19 @@ int main(int argc, char** argv) {
     return 1;
   }
   TestReporter test_reporter;
+  const char* const spec = "BM_Chosen";
   const size_t returned_count =
       benchmark::RunSpecifiedBenchmarks(&test_reporter,
-                                        /*spec=*/"BM_Chosen");
+                                        spec);
   assert(returned_count == 1);
   const std::vector<std::string> matched_functions =
       test_reporter.GetMatchedFunctions();
   assert(matched_functions.size() == 1);
-  return "BM_Chosen" == matched_functions.front() ? 0 : 2;
+  if (strcmp(spec, matched_functions.front().c_str()) != 0) {
+    std::cerr
+      << "Expected benchmark [" << spec << "] to run, but got ["
+      << matched_functions.front() << "]\n";
+    return 2;
+  }
+  return 0;
 }
