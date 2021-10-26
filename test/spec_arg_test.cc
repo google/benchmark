@@ -26,7 +26,7 @@ class TestReporter : public benchmark::ConsoleReporter {
     ConsoleReporter::ReportRuns(report);
   };
 
-  TestReporter() : {}
+  TestReporter() {}
 
   virtual ~TestReporter() {}
 
