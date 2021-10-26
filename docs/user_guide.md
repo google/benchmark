@@ -483,14 +483,19 @@ template <class Q> void BM_Sequential(benchmark::State& state) {
   state.SetBytesProcessed(
       static_cast<int64_t>(state.iterations())*state.range(0));
 }
+// C++03
 BENCHMARK_TEMPLATE(BM_Sequential, WaitQueue<int>)->Range(1<<0, 1<<10);
+
+// C++11 or newer, you can use the BENCHMARK marcro with template parameters:
+BENCHMARK(BM_Sequential<WaitQueue<int>>)->Range(1<<0, 1<<10);
+
 ```
 
 Three macros are provided for adding benchmark templates.
 
 ```c++
 #ifdef BENCHMARK_HAS_CXX11
-#define BENCHMARK_TEMPLATE(func, ...) // Takes any number of parameters.
+#define BENCHMARK(func<...>) // Takes any number of parameters.
 #else // C++ < C++11
 #define BENCHMARK_TEMPLATE(func, arg1)
 #endif
