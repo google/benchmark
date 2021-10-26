@@ -164,8 +164,8 @@ void BM_TwoTemplateFunc(benchmark::State& state) {
     prod *= arg;
   }
 }
-BENCHMARK(BM_TwoTemplateFunc<int>)->Arg(1);
-BENCHMARK(BM_TwoTemplateFunc<double>)->Arg(1);
+BENCHMARK(BM_TwoTemplateFunc<int, double>)->Arg(1);
+BENCHMARK(BM_TwoTemplateFunc<double, int>)->Arg(1);
 
 #endif  // BENCHMARK_HAS_CXX11
 
