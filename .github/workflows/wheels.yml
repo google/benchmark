@@ -48,7 +48,7 @@ jobs:
         env:
           CIBW_BUILD: 'cp36-* cp37-* cp38-* cp39-*'
         run: |
-          pip install cibuildwheelcibuildwheel==2.0.0a2
+          pip install cibuildwheel
           python -m cibuildwheel --output-dir wheelhouse
 
       - name: Upload wheels
