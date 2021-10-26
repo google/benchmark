@@ -1198,8 +1198,15 @@ class Fixture : public internal::Benchmark {
 #endif
 
 // Helpers for generating unique variable names
+#ifdef BENCHMARK_HAS_CXX11
+#define BENCHMARK_PRIVATE_NAME(...)                                      \
+  BENCHMARK_PRIVATE_CONCAT(benchmark_uniq_, BENCHMARK_PRIVATE_UNIQUE_ID, \
+                           __VA_ARGS__)
+#else
 #define BENCHMARK_PRIVATE_NAME(n) \
   BENCHMARK_PRIVATE_CONCAT(benchmark_uniq_, BENCHMARK_PRIVATE_UNIQUE_ID, n)
+#endif  // BENCHMARK_HAS_CXX11
+
 #define BENCHMARK_PRIVATE_CONCAT(a, b, c) BENCHMARK_PRIVATE_CONCAT2(a, b, c)
 #define BENCHMARK_PRIVATE_CONCAT2(a, b, c) a##b##c
 // Helper for concatenation with macro name expansion
@@ -1210,10 +1217,18 @@ class Fixture : public internal::Benchmark {
   static ::benchmark::internal::Benchmark* BENCHMARK_PRIVATE_NAME(n) \
       BENCHMARK_UNUSED
 
+#ifdef BENCHMARK_HAS_CXX11
+#define BENCHMARK(...)                                               \
+  BENCHMARK_PRIVATE_DECLARE(_benchmark_) =                           \
+      (::benchmark::internal::RegisterBenchmarkInternal(             \
+          new ::benchmark::internal::FunctionBenchmark(#__VA_ARGS__, \
+                                                       &__VA_ARGS__)))
+#else
 #define BENCHMARK(n)                                     \
   BENCHMARK_PRIVATE_DECLARE(n) =                         \
       (::benchmark::internal::RegisterBenchmarkInternal( \
           new ::benchmark::internal::FunctionBenchmark(#n, n)))
+#endif  // BENCHMARK_HAS_CXX11
 
 // Old-style macros
 #define BENCHMARK_WITH_ARG(n, a) BENCHMARK(n)->Arg((a))
