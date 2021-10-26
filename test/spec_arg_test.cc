@@ -54,10 +54,16 @@ static void BM_Chosen(benchmark::State& state) {
 BENCHMARK(BM_Chosen);
 
 int main(int argc, char** argv) {
-  bool list_only = false;
+  const char* const flag = "BM_NotChosen";
 
-  FLAGS_benchmark_filter = "BM_NotChosen";
-  benchmark::Initialize(&argc, argv);
+  // Make a fake argv specify --benchmark_filter=BM_NotChosen.
+  const char* fake_argv[][] = {
+      "spec_arg_test",
+      " --benchmark_filter=BM_NotChosen",
+  };
+  int fake_argc = 2;
+
+  benchmark::Initialize(&fake_argc, fake_argv);
 
   // Check that the current flag value is reported
   // accurately.
@@ -71,7 +77,7 @@ int main(int argc, char** argv) {
   const size_t returned_count =
       benchmark::RunSpecifiedBenchmarks(&test_reporter,
                                         /*spec=*/"BM_Chosen");
-
+  assert(returned_count == 1);
   const std::vector<std::string> matched_functions =
       test_reporter.GetMatchedFunctions();
   assert(matched_functions.size() == 1);
