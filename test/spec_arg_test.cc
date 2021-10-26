@@ -57,22 +57,20 @@ int main(int argc, char** argv) {
   const char* const flag = "BM_NotChosen";
 
   // Make a fake argv specify --benchmark_filter=BM_NotChosen.
-  const char* fake_argv[][] = {
-      "spec_arg_test",
-      " --benchmark_filter=BM_NotChosen",
+  char* fake_argv[] = {
+      argv[0],
+      "--benchmark_filter=BM_NotChosen",
   };
   int fake_argc = 2;
-
   benchmark::Initialize(&fake_argc, fake_argv);
 
-  // Check that the current flag value is reported
-  // accurately.
-  if (FLAGS_benchmark_filter != benchmark::GetBenchmarkFilter() ||
-      flag != FLAGS_benchmark_filter) {
-    std::cerr << "Seeing different value for flags.. FLAGS_benchmark_filter= "
-              << FLAGS_benchmark_filter
-              << ",  GetBenchmarkFilter()=" << benchmark::GetBenchmarkFilter()
-              << " expected flag= " << flag << "\n";
+  // Check that the current flag value is reported accurately via the
+  // GetBenchmarkFilter() function.
+  if (strcmp(flag, benchmark::GetBenchmarkFilter()) != 0) {
+    std::cerr
+        << "Seeing different value for flags. GetBenchmarkFilter() returns ["
+        << benchmark::GetBenchmarkFilter() << "] expected flag=[" << flag
+        << "]\n";
     return 1;
   }
   TestReporter test_reporter;
