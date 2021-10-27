@@ -69,7 +69,7 @@ jobs:
           apt -y install clang cmake g++ git
 
       - name: install libpfm
-        run: sudo apt install libpfm4-dev
+        run: apt install libpfm4-dev
 
       - name: create build environment
         run: cmake -E make_directory $GITHUB_WORKSPACE/_build
