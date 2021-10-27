@@ -65,8 +65,8 @@ jobs:
 
       - name: install required bits
         run: |
-          sudo apt update
-          sudo apt -y install clang cmake3 g++ git
+          apt update
+          apt -y install clang cmake3 g++ git
 
       - name: create build environment
         run: cmake -E make_directory $GITHUB_WORKSPACE/_build
