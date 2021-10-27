@@ -26,7 +26,7 @@ jobs:
       uses: jwlawson/actions-setup-cmake@v1.9
       with:
         cmake-version: '3.5.1'
-        
+
     - name: create build environment
       run: cmake -E make_directory ${{ runner.workspace }}/_build
 
