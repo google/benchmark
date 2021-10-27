@@ -429,17 +429,20 @@ ConsoleReporter::OutputOptions GetOutputOptions(bool force_no_color) {
 
 }  // end namespace internal
 
-size_t RunSpecifiedBenchmarks() {
-  return RunSpecifiedBenchmarks(nullptr, nullptr);
-}
-
-size_t RunSpecifiedBenchmarks(BenchmarkReporter* display_reporter) {
-  return RunSpecifiedBenchmarks(display_reporter, nullptr);
+size_t RunSpecifiedBenchmarks(const char* spec) {
+  return RunSpecifiedBenchmarks(nullptr, nullptr, spec);
 }
 
 size_t RunSpecifiedBenchmarks(BenchmarkReporter* display_reporter,
-                              BenchmarkReporter* file_reporter) {
-  std::string spec = FLAGS_benchmark_filter;
+                              const char* spec) {
+  return RunSpecifiedBenchmarks(display_reporter, nullptr, spec);
+}
+
+size_t RunSpecifiedBenchmarks(BenchmarkReporter* display_reporter,
+                              BenchmarkReporter* file_reporter,
+                              const char* spec_str) {
+  std::string spec =
+      spec_str != nullptr ? std::string(spec_str) : FLAGS_benchmark_filter;
   if (spec.empty() || spec == "all")
     spec = ".";  // Regexp that matches all benchmarks
 
@@ -493,6 +496,10 @@ size_t RunSpecifiedBenchmarks(BenchmarkReporter* display_reporter,
   }
 
   return benchmarks.size();
+}
+
+const char* GetBenchmarkFilter() {
+  return FLAGS_benchmark_filter.c_str();
 }
 
 void RegisterMemoryManager(MemoryManager* manager) {

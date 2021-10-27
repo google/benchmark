@@ -289,10 +289,17 @@ void Shutdown();
 // Returns true there is at least on unrecognized argument (i.e. 'argc' > 1).
 bool ReportUnrecognizedArguments(int argc, char** argv);
 
+// Returns the current value of --benchmark_filter.
+const char* GetBenchmarkFilter();
+
 // Generate a list of benchmarks matching the specified --benchmark_filter flag
 // and if --benchmark_list_tests is specified return after printing the name
 // of each matching benchmark. Otherwise run each matching benchmark and
 // report the results.
+//
+// spec : Specify the benchmarks to run. If users do not specify this arg or
+//        if it has value of NULL, then the value of FLAGS_benchmark_filter
+//        will be used.
 //
 // The second and third overload use the specified 'display_reporter' and
 //  'file_reporter' respectively. 'file_reporter' will write to the file
@@ -301,10 +308,12 @@ bool ReportUnrecognizedArguments(int argc, char** argv);
 //  'file_reporter' is ignored.
 //
 // RETURNS: The number of matching benchmarks.
-size_t RunSpecifiedBenchmarks();
-size_t RunSpecifiedBenchmarks(BenchmarkReporter* display_reporter);
+size_t RunSpecifiedBenchmarks(const char* spec = NULL);
 size_t RunSpecifiedBenchmarks(BenchmarkReporter* display_reporter,
-                              BenchmarkReporter* file_reporter);
+                              const char* spec = NULL);
+size_t RunSpecifiedBenchmarks(BenchmarkReporter* display_reporter,
+                              BenchmarkReporter* file_reporter,
+                              const char* spec = NULL);
 
 // If a MemoryManager is registered (via RegisterMemoryManager()),
 // it can be used to collect and report allocation metrics for a run of the
