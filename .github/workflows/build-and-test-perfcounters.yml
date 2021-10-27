@@ -14,26 +14,30 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, ubuntu-16.04, ubuntu-20.04]
+        os: [ubuntu-latest, ubuntu-20.04]
         build_type: ['Release', 'Debug']
     steps:
     - uses: actions/checkout@v2
 
     - name: install libpfm
-      run: sudo apt install libpfm4-dev
+      run: sudo apt -y install libpfm4-dev
 
     - name: setup cmake
       uses: jwlawson/actions-setup-cmake@v1.9
       with:
         cmake-version: '3.5.1'
-        
+
     - name: create build environment
       run: cmake -E make_directory ${{ runner.workspace }}/_build
 
     - name: configure cmake
       shell: bash
       working-directory: ${{ runner.workspace }}/_build
-      run: cmake  -DBENCHMARK_ENABLE_LIBPFM=1 -DBENCHMARK_DOWNLOAD_DEPENDENCIES=ON $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=${{ matrix.build_type }}
+      run: >
+        cmake $GITHUB_WORKSPACE
+        -DBENCHMARK_ENABLE_LIBPFM=1
+        -DBENCHMARK_DOWNLOAD_DEPENDENCIES=ON
+        -DCMAKE_BUILD_TYPE=${{ matrix.build_type }}
 
     - name: build
       shell: bash
@@ -46,4 +50,48 @@ jobs:
     # - name: test
     #   shell: bash
     #   working-directory: ${{ runner.workspace }}/_build
-    #   run: sudo ctest -C ${{ matrix.build_type }} --rerun-failed --output-on-failure
+    #   run: ctest -C ${{ matrix.build_type }} --rerun-failed --output-on-failure
+
+  ubuntu-16_04:
+    name: ubuntu-16.04.${{ matrix.build_type }}
+    runs-on: [ubuntu-latest]
+    strategy:
+      fail-fast: false
+      matrix:
+        build_type: ['Release', 'Debug']
+    container: ubuntu:16.04
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: install required bits
+        run: |
+          apt update
+          apt -y install clang cmake g++ git
+
+      - name: install libpfm
+        run: apt -y install libpfm4-dev
+
+      - name: create build environment
+        run: cmake -E make_directory $GITHUB_WORKSPACE/_build
+
+      - name: configure cmake
+        shell: bash
+        working-directory: ${{ github.workspace }}/_build
+        run: >
+          cmake $GITHUB_WORKSPACE
+          -DBENCHMARK_ENABLE_LIBPFM=1
+          -DBENCHMARK_DOWNLOAD_DEPENDENCIES=ON
+          -DCMAKE_BUILD_TYPE=${{ matrix.build_type }}
+
+      - name: build
+        shell: bash
+        working-directory: ${{ github.workspace }}/_build
+        run: cmake --build . --config ${{ matrix.build_type }}
+
+    # Skip testing, for now. It seems perf_event_open does not succeed on the
+    # hosting machine, very likely a permissions issue.
+    # TODO(mtrofin): Enable test.
+    # - name: test
+    #   shell: bash
+    #   working-directory: ${{ runner.workspace }}/_build
+    #   run: ctest -C ${{ matrix.build_type }} --rerun-failed --output-on-failure
