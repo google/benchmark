@@ -58,7 +58,7 @@ int main(int argc, char** argv) {
   const char* const flag = "BM_NotChosen";
 
   // Verify that argv specify --benchmark_filter=BM_NotChosen.
-  bool found;
+  bool found=false;
   for (int i = 0; i < argc; ++i) {
     if (strcmp("--benchmark_filter=BM_NotChosen", argv[i]) == 0) {
       found = true;
