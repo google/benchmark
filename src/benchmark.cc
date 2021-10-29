@@ -429,20 +429,33 @@ ConsoleReporter::OutputOptions GetOutputOptions(bool force_no_color) {
 
 }  // end namespace internal
 
-size_t RunSpecifiedBenchmarks(const char* spec) {
+size_t RunSpecifiedBenchmarks() {
+  return RunSpecifiedBenchmarks(nullptr, nullptr, FLAGS_benchmark_filter);
+}
+
+size_t RunSpecifiedBenchmarks(std::string spec) {
   return RunSpecifiedBenchmarks(nullptr, nullptr, spec);
 }
 
+size_t RunSpecifiedBenchmarks(BenchmarkReporter* display_reporter) {
+  return RunSpecifiedBenchmarks(display_reporter, nullptr,
+                                FLAGS_benchmark_filter);
+}
+
 size_t RunSpecifiedBenchmarks(BenchmarkReporter* display_reporter,
-                              const char* spec) {
+                              std::string spec) {
   return RunSpecifiedBenchmarks(display_reporter, nullptr, spec);
 }
 
 size_t RunSpecifiedBenchmarks(BenchmarkReporter* display_reporter,
+                              BenchmarkReporter* file_reporter) {
+  return RunSpecifiedBenchmarks(display_reporter, file_reporter,
+                                FLAGS_benchmark_filter);
+}
+
+size_t RunSpecifiedBenchmarks(BenchmarkReporter* display_reporter,
                               BenchmarkReporter* file_reporter,
-                              const char* spec_str) {
-  std::string spec =
-      spec_str != nullptr ? std::string(spec_str) : FLAGS_benchmark_filter;
+                              std::string spec) {
   if (spec.empty() || spec == "all")
     spec = ".";  // Regexp that matches all benchmarks
 
@@ -498,9 +511,7 @@ size_t RunSpecifiedBenchmarks(BenchmarkReporter* display_reporter,
   return benchmarks.size();
 }
 
-const char* GetBenchmarkFilter() {
-  return FLAGS_benchmark_filter.c_str();
-}
+std::string GetBenchmarkFilter() { return FLAGS_benchmark_filter; }
 
 void RegisterMemoryManager(MemoryManager* manager) {
   internal::memory_manager = manager;
