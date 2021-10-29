@@ -55,7 +55,7 @@ static void BM_Chosen(benchmark::State& state) {
 BENCHMARK(BM_Chosen);
 
 int main(int argc, char** argv) {
-  const char* const flag = "BM_NotChosen";
+  const std::string flag = "BM_NotChosen";
 
   // Verify that argv specify --benchmark_filter=BM_NotChosen.
   bool found = false;
@@ -71,7 +71,7 @@ int main(int argc, char** argv) {
 
   // Check that the current flag value is reported accurately via the
   // GetBenchmarkFilter() function.
-  if (strcmp(flag, benchmark::GetBenchmarkFilter()) != 0) {
+  if (flag != benchmark::GetBenchmarkFilter()) {
     std::cerr
         << "Seeing different value for flags. GetBenchmarkFilter() returns ["
         << benchmark::GetBenchmarkFilter() << "] expected flag=[" << flag
