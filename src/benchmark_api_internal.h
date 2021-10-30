@@ -11,6 +11,10 @@
 #include "benchmark/benchmark.h"
 #include "commandlineflags.h"
 
+#if defined(BENCHMARK_HAS_CXX11)
+#include <functional>
+#endif
+
 namespace benchmark {
 namespace internal {
 
@@ -38,6 +42,8 @@ class BenchmarkInstance {
   double min_time() const { return min_time_; }
   IterationCount iterations() const { return iterations_; }
   int threads() const { return threads_; }
+  void Setup() const;
+  void Teardown() const;
 
   State Run(IterationCount iters, int thread_id, internal::ThreadTimer* timer,
             internal::ThreadManager* manager,
@@ -62,6 +68,11 @@ class BenchmarkInstance {
   double min_time_;
   IterationCount iterations_;
   int threads_;  // Number of concurrent threads to us
+
+#if defined(BENCHMARK_HAS_CXX11)
+  std::function<void(benchmark::State&)> setup_;
+  std::function<void(benchmark::State&)> teardown_;
+#endif
 };
 
 bool FindBenchmarksInternal(const std::string& re,

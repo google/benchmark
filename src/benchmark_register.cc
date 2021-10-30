@@ -321,6 +321,16 @@ Benchmark* Benchmark::Apply(void (*custom_arguments)(Benchmark* benchmark)) {
   return this;
 }
 
+#if defined(BENCHMARK_HAS_CXX11)
+Benchmark* Benchmark::SetUp(std::function<void(benchmark::State&)> setup) {
+  setup_(std::move(setup));
+  return this;
+}
+Benchmark* TearDown(std::function<void(benchmark::State&)> teardown) {
+  teardown_(std::move(teardown));
+}
+#endif
+
 Benchmark* Benchmark::RangeMultiplier(int multiplier) {
   BM_CHECK(multiplier > 1);
   range_multiplier_ = multiplier;

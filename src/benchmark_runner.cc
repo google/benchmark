@@ -279,6 +279,7 @@ void BenchmarkRunner::DoOneRepetition() {
   // is *only* calculated for the *first* repetition, and other repetitions
   // simply use that precomputed iteration count.
   for (;;) {
+    b.Setup();
     i = DoNIterations();
 
     // Do we consider the results to be significant?
@@ -290,6 +291,7 @@ void BenchmarkRunner::DoOneRepetition() {
                                          has_explicit_iteration_count ||
                                          ShouldReportIterationResults(i);
 
+    b.Tearndown();
     if (results_are_significant) break;  // Good, let's report them!
 
     // Nope, bad iteration. Let's re-estimate the hopefully-sufficient
