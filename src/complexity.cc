@@ -82,7 +82,16 @@ std::string GetBigOString(BigO complexity) {
 LeastSq MinimalLeastSq(const std::vector<int64_t>& n,
                        const std::vector<double>& time,
                        BigOFunc* fitting_curve) {
+// When compiling benchmarks in WASM on MacOS with Clang, Clang emits an erroneous warning
+// 'error: variable 'sigma_gn' set but not used [-Werror,-Wunused-but-set-variable]'
+//'  double sigma_gn = 0.0;'
+// This variable is clearly used in the for loop below, so disable the warning.
+#pragma clang diagnostic push
+#if defined(__EMSCRIPTEN__) && defined(__clang__)
+#pragma clang diagnostic ignored "-Wunused-but-set-variable"
+#endif
   double sigma_gn = 0.0;
+#pragma clang diagnostic pop
   double sigma_gn_squared = 0.0;
   double sigma_time = 0.0;
   double sigma_time_gn = 0.0;
