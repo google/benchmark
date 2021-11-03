@@ -36,7 +36,7 @@ struct TestCase {
       BM_CHECK(run.report_label == label) << "expected " << label << " got "
                                        << run.report_label;
     } else {
-      BM_CHECK(run.report_label == "");
+      BM_CHECK(run.report_label.empty());
     }
     // clang-format on
   }
