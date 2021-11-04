@@ -154,7 +154,7 @@ double ThreadCPUUsage() {
   mach_msg_type_number_t count = THREAD_BASIC_INFO_COUNT;
   thread_basic_info_data_t info;
   mach_port_t thread = pthread_mach_thread_np(pthread_self());
-  if (thread_info(thread, THREAD_BASIC_INFO, (thread_info_t)&info, &count) ==
+  if (thread_info(thread, THREAD_BASIC_INFO, static_cast<thread_info_t>(&info), &count) ==
       KERN_SUCCESS) {
     return MakeTime(info);
   }
