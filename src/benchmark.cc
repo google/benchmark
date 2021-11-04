@@ -363,7 +363,7 @@ void RunBenchmarks(const std::vector<BenchmarkInstance>& benchmarks,
                                              additional_run_stats.begin(),
                                              additional_run_stats.end());
           per_family_reports.erase(
-              (int)reports_for_family->Runs.front().family_index);
+              static_cast<int>(reports_for_family->Runs.front().family_index));
         }
       }
 
@@ -617,9 +617,7 @@ void Initialize(int* argc, char** argv) {
   internal::LogLevel() = FLAGS_v;
 }
 
-void Shutdown() {
-  delete internal::global_context;
-}
+void Shutdown() { delete internal::global_context; }
 
 bool ReportUnrecognizedArguments(int argc, char** argv) {
   for (int i = 1; i < argc; ++i) {
