@@ -102,10 +102,10 @@ std::string FormatString(const char* msg, va_list args) {
     return local_buff;
   else {
     // we did not provide a long enough buffer on our first attempt.
-    size = (size_t)ret + 1;  // + 1 for the null byte
+    size = static_cast<size_t>(ret) + 1;  // + 1 for the null byte
     std::unique_ptr<char[]> buff(new char[size]);
     ret = vsnprintf(buff.get(), size, msg, args);
-    BM_CHECK(ret > 0 && ((size_t)ret) < size);
+    BM_CHECK(ret > 0 && (static_cast<size_t>(ret)) < size);
     return buff.get();
   }
 }
