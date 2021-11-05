@@ -462,7 +462,8 @@ BENCHMARK(BM_memcpy)->Name("memcpy")->RangeMultiplier(2)->Range(8, 8<<10);
 The invocation will execute the benchmark as before using `BM_memcpy` but changes
 the prefix in the report to `memcpy`.
 
-<a name="templated-benchmarks" />
+<a name="
+         d-benchmarks" />
 
 ## Templated Benchmarks
 
@@ -486,7 +487,7 @@ template <class Q> void BM_Sequential(benchmark::State& state) {
 // C++03
 BENCHMARK_TEMPLATE(BM_Sequential, WaitQueue<int>)->Range(1<<0, 1<<10);
 
-// C++11 or newer, you can use the BENCHMARK marcro with template parameters:
+// C++11 or newer, you can use the BENCHMARK macro with template parameters:
 BENCHMARK(BM_Sequential<WaitQueue<int>>)->Range(1<<0, 1<<10);
 
 ```
