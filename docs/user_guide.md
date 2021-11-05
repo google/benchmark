@@ -462,8 +462,7 @@ BENCHMARK(BM_memcpy)->Name("memcpy")->RangeMultiplier(2)->Range(8, 8<<10);
 The invocation will execute the benchmark as before using `BM_memcpy` but changes
 the prefix in the report to `memcpy`.
 
-<a name="
-         d-benchmarks" />
+<a name="d-benchmarks" />
 
 ## Templated Benchmarks
 
