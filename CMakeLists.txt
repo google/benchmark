@@ -139,6 +139,7 @@ if (MSVC)
   string(REGEX REPLACE "[-/]W[1-4]" "" CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /W4")
   add_definitions(-D_CRT_SECURE_NO_WARNINGS)
+  add_definitions(-D_CRT_USE_BUILTIN_OFFSETOF)
 
   if (NOT BENCHMARK_ENABLE_EXCEPTIONS)
     add_cxx_compiler_flag(-EHs-)
