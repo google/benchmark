@@ -321,13 +321,13 @@ Benchmark* Benchmark::Apply(void (*custom_arguments)(Benchmark* benchmark)) {
   return this;
 }
 
-Benchmark* Benchmark::Setup(void (*setup)(benchmark::State&)) {
+Benchmark* Benchmark::Setup(void (*setup)(const benchmark::State&)) {
   BM_CHECK(setup != nullptr);
   setup_ = setup;
   return this;
 }
 
-Benchmark* Benchmark::Teardown(void (*teardown)(benchmark::State&)) {
+Benchmark* Benchmark::Teardown(void (*teardown)(const benchmark::State&)) {
   BM_CHECK(teardown != nullptr);
   teardown_ = teardown;
   return this;

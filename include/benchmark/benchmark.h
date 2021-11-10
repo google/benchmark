@@ -981,8 +981,8 @@ class Benchmark {
   // The callback will be passed the number of threads for this benchmark run.
   //
   // The callback must not be NULL or self-deleting.
-  Benchmark* Setup(void (*setup)(benchmark::State&));
-  Benchmark* Teardown(void (*teardown)(benchmark::State&));
+  Benchmark* Setup(void (*setup)(const benchmark::State&));
+  Benchmark* Teardown(void (*teardown)(const benchmark::State&));
 
   // Pass this benchmark object to *func, which can customize
   // the benchmark by calling various methods like Arg, Args,
@@ -1115,7 +1115,7 @@ class Benchmark {
   std::vector<Statistics> statistics_;
   std::vector<int> thread_counts_;
 
-  typedef void (*callback_function)(benchmark::State&);
+  typedef void (*callback_function)(const benchmark::State&);
   callback_function setup_;
   callback_function teardown_;
 

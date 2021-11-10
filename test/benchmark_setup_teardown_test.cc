@@ -16,14 +16,14 @@ namespace single {
 static int setup_call = 0;
 static int teardown_call = 0;
 }  // namespace single
-static void DoSetup1(benchmark::State& state) {
+static void DoSetup1(const benchmark::State& state) {
   ++single::setup_call;
 
   // Setup/Teardown should never be called with any thread_idx != 0.
   assert(state.thread_index() == 0);
 }
 
-static void DoTeardown1(benchmark::State& state) {
+static void DoTeardown1(const benchmark::State& state) {
   ++single::teardown_call;
   assert(state.thread_index() == 0);
 }
@@ -49,12 +49,12 @@ static std::atomic<int> teardown_call(0);
 static std::atomic<int> func_call(0);
 }  // namespace concurrent
 
-static void DoSetup2(benchmark::State& state) {
+static void DoSetup2(const benchmark::State& state) {
   concurrent::setup_call.fetch_add(1, std::memory_order_acquire);
   assert(state.thread_index() == 0);
 }
 
-static void DoTeardown2(benchmark::State& state) {
+static void DoTeardown2(const benchmark::State& state) {
   concurrent::teardown_call.fetch_add(1, std::memory_order_acquire);
   assert(state.thread_index() == 0);
 }
