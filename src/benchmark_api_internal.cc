@@ -79,10 +79,8 @@ BenchmarkInstance::BenchmarkInstance(Benchmark* benchmark, int family_idx,
     name_.threads = StrFormat("threads:%d", threads_);
   }
 
-#if defined(BENCHMARK_HAS_CXX11)
-  setup_(benchmark.setup_);
-  teardown_(benchmark.teardown_);
-#endif
+  setup_ = benchmark_.setup_;
+  teardown_ = benchmark_.teardown_;
 }
 
 State BenchmarkInstance::Run(
@@ -96,29 +94,19 @@ State BenchmarkInstance::Run(
 }
 
 void BenchmarkInstance::Setup() const {
-#if defined(BENCHMARK_HAS_CXX11)
-  State st(/*iters*/ 1, args_, /*thread_id*/ 0, threads_, nullptr, nullptr,
-           nullptr);
-  // FIXME: Perhaps use an optional<std::function> here to distinguish
-  // no-setup VS NULL setup.
-  // (ie., people *could* try to set a NULL callback to do something weird ...)
   if (setup_) {
+    State st(/*iters*/ 1, args_, /*thread_id*/ 0, threads_, nullptr, nullptr,
+             nullptr);
     setup_(st);
   }
-#endif
 }
 
 void BenchmarkInstance::Teardown() const {
-#if defined(BENCHMARK_HAS_CXX11)
-  State st(/*iters*/ 1, args_, /*thread_id*/ 0, threads_, nullptr, nullptr,
-           nullptr);
-  // TODO(vyng): Perhaps use an optional<std::function> here to distinguish
-  // no-setup VS NULL setup.
-  // (ie., people *could* try to set a NULL callback to do something weird ...)
   if (teardown_) {
+    State st(/*iters*/ 1, args_, /*thread_id*/ 0, threads_, nullptr, nullptr,
+             nullptr);
     teardown_(st);
   }
-#endif
 }
 }  // namespace internal
 }  // namespace benchmark

@@ -291,7 +291,7 @@ void BenchmarkRunner::DoOneRepetition() {
                                          has_explicit_iteration_count ||
                                          ShouldReportIterationResults(i);
 
-    b.Tearndown();
+    b.Teardown();
     if (results_are_significant) break;  // Good, let's report them!
 
     // Nope, bad iteration. Let's re-estimate the hopefully-sufficient

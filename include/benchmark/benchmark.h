@@ -189,7 +189,6 @@ BENCHMARK(BM_test)->Unit(benchmark::kMillisecond);
 
 #if defined(BENCHMARK_HAS_CXX11)
 #include <atomic>
-#include <functional>
 #include <initializer_list>
 #include <type_traits>
 #include <utility>
@@ -969,7 +968,6 @@ class Benchmark {
     return Ranges(ranges);
   }
 
-#if defined(BENCHMARK_HAS_CXX11)
   // Have "setup" and/or "teardown" invoked once for every benchmark run.
   // If the benchmark is multi-threaded (will run in k threads concurrently),
   // the setup callback will be be invoked exactly once (not k times) before
@@ -982,11 +980,9 @@ class Benchmark {
   //
   // The callback will be passed the number of threads for this benchmark run.
   //
-  // The callback must not be self-deleting.  The Benchmark
-  // object takes ownership of the callback std::function object.
-  Benchmark* SetUp(std::function<void(benchmark::State&)>);
-  Benchmark* TearDown(std::function<void(benchmark::State&)>);
-#endif
+  // The callback must not be NULL or self-deleting.
+  Benchmark* Setup(void (*setup)(benchmark::State&));
+  Benchmark* Teardown(void (*teardown)(benchmark::State&));
 
   // Pass this benchmark object to *func, which can customize
   // the benchmark by calling various methods like Arg, Args,
@@ -1118,10 +1114,11 @@ class Benchmark {
   BigOFunc* complexity_lambda_;
   std::vector<Statistics> statistics_;
   std::vector<int> thread_counts_;
-#if defined(BENCHMARK_HAS_CXX11)
-  std::function<void(benchmark::State&)> setup_;
-  std::function<void(benchmark::State&)> teardown_;
-#endif
+
+  typedef void (*callback_function)(benchmark::State&);
+  callback_function setup_;
+  callback_function teardown_;
+
   Benchmark& operator=(Benchmark const&);
 };
 

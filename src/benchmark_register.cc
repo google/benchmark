@@ -321,15 +321,17 @@ Benchmark* Benchmark::Apply(void (*custom_arguments)(Benchmark* benchmark)) {
   return this;
 }
 
-#if defined(BENCHMARK_HAS_CXX11)
-Benchmark* Benchmark::SetUp(std::function<void(benchmark::State&)> setup) {
-  setup_(std::move(setup));
+Benchmark* Benchmark::Setup(void (*setup)(benchmark::State&)) {
+  BM_CHECK(setup != nullptr);
+  setup_ = setup;
   return this;
 }
-Benchmark* TearDown(std::function<void(benchmark::State&)> teardown) {
-  teardown_(std::move(teardown));
+
+Benchmark* Benchmark::Teardown(void (*teardown)(benchmark::State&)) {
+  BM_CHECK(teardown != nullptr);
+  teardown_ = teardown;
+  return this;
 }
-#endif
 
 Benchmark* Benchmark::RangeMultiplier(int multiplier) {
   BM_CHECK(multiplier > 1);
