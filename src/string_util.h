@@ -4,6 +4,7 @@
 #include <sstream>
 #include <string>
 #include <utility>
+
 #include "internal_macros.h"
 
 namespace benchmark {
@@ -47,13 +48,13 @@ std::vector<std::string> StrSplit(const std::string& str, char delim);
  * namespace, not std:: namespace.
  */
 unsigned long stoul(const std::string& str, size_t* pos = nullptr,
-                           int base = 10);
+                    int base = 10);
 int stoi(const std::string& str, size_t* pos = nullptr, int base = 10);
 double stod(const std::string& str, size_t* pos = nullptr);
 #else
-using std::stoul;
-using std::stoi;
 using std::stod;
+using std::stoi;
+using std::stoul;
 #endif
 
 }  // end namespace benchmark

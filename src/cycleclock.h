@@ -187,7 +187,7 @@ inline BENCHMARK_ALWAYS_INLINE int64_t Now() {
   asm("stck %0" : "=Q"(tsc) : : "cc");
 #endif
   return tsc;
-#elif defined(__riscv) // RISC-V
+#elif defined(__riscv)  // RISC-V
   // Use RDCYCLE (and RDCYCLEH on riscv32)
 #if __riscv_xlen == 32
   uint32_t cycles_lo, cycles_hi0, cycles_hi1;

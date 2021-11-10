@@ -243,10 +243,9 @@ BENCHMARK(BM_test)->Unit(benchmark::kMillisecond);
 #define BENCHMARK_BUILTIN_EXPECT(x, y) __builtin_expect(x, y)
 #define BENCHMARK_DEPRECATED_MSG(msg) __attribute__((deprecated(msg)))
 #define BENCHMARK_DISABLE_DEPRECATED_WARNING \
-  _Pragma("GCC diagnostic push") \
+  _Pragma("GCC diagnostic push")             \
   _Pragma("GCC diagnostic ignored \"-Wdeprecated-declarations\"")
-#define BENCHMARK_RESTORE_DEPRECATED_WARNING \
-  _Pragma("GCC diagnostic pop")
+#define BENCHMARK_RESTORE_DEPRECATED_WARNING _Pragma("GCC diagnostic pop")
 #else
 #define BENCHMARK_BUILTIN_EXPECT(x, y) x
 #define BENCHMARK_DEPRECATED_MSG(msg)
@@ -1235,7 +1234,7 @@ class Fixture : public internal::Benchmark {
 #define BENCHMARK_PRIVATE_CONCAT2(a, b, c) a##b##c
 // Helper for concatenation with macro name expansion
 #define BENCHMARK_PRIVATE_CONCAT_NAME(BaseClass, Method) \
-    BaseClass##_##Method##_Benchmark
+  BaseClass##_##Method##_Benchmark
 
 #define BENCHMARK_PRIVATE_DECLARE(n)                                 \
   static ::benchmark::internal::Benchmark* BENCHMARK_PRIVATE_NAME(n) \
@@ -1440,11 +1439,7 @@ struct CPUInfo {
     int num_sharing;
   };
 
-  enum Scaling {
-    UNKNOWN,
-    ENABLED,
-    DISABLED
-  };
+  enum Scaling { UNKNOWN, ENABLED, DISABLED };
 
   int num_cpus;
   Scaling scaling;
@@ -1704,7 +1699,6 @@ class BENCHMARK_DEPRECATED_MSG(
   std::set<std::string> user_counter_names_;
 };
 
-
 inline const char* GetTimeUnitString(TimeUnit unit) {
   switch (unit) {
     case kSecond:
@@ -1745,8 +1739,7 @@ inline double GetTimeUnitMultiplier(TimeUnit unit) {
 std::vector<int64_t> CreateRange(int64_t lo, int64_t hi, int multi);
 
 // Creates a list of integer values for the given range and step.
-std::vector<int64_t> CreateDenseRange(int64_t start, int64_t limit,
-                                      int step);
+std::vector<int64_t> CreateDenseRange(int64_t start, int64_t limit, int step);
 
 }  // namespace benchmark
 

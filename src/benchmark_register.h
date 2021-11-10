@@ -12,8 +12,8 @@ namespace internal {
 // Append the powers of 'mult' in the closed interval [lo, hi].
 // Returns iterator to the start of the inserted range.
 template <typename T>
-typename std::vector<T>::iterator
-AddPowers(std::vector<T>* dst, T lo, T hi, int mult) {
+typename std::vector<T>::iterator AddPowers(std::vector<T>* dst, T lo, T hi,
+                                            int mult) {
   BM_CHECK_GE(lo, 0);
   BM_CHECK_GE(hi, lo);
   BM_CHECK_GE(mult, 2);
