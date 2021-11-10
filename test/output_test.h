@@ -113,9 +113,7 @@ struct Results {
     return NumIterations() * GetTime(kRealTime);
   }
   // get the cpu_time duration of the benchmark in seconds
-  double DurationCPUTime() const {
-    return NumIterations() * GetTime(kCpuTime);
-  }
+  double DurationCPUTime() const { return NumIterations() * GetTime(kCpuTime); }
 
   // get the string for a result by name, or nullptr if the name
   // is not found

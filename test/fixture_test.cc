@@ -1,8 +1,8 @@
 
-#include "benchmark/benchmark.h"
-
 #include <cassert>
 #include <memory>
+
+#include "benchmark/benchmark.h"
 
 #define FIXTURE_BECHMARK_NAME MyFixture
 
@@ -27,7 +27,7 @@ class FIXTURE_BECHMARK_NAME : public ::benchmark::Fixture {
   std::unique_ptr<int> data;
 };
 
-BENCHMARK_F(FIXTURE_BECHMARK_NAME, Foo)(benchmark::State &st) {
+BENCHMARK_F(FIXTURE_BECHMARK_NAME, Foo)(benchmark::State& st) {
   assert(data.get() != nullptr);
   assert(*data == 42);
   for (auto _ : st) {

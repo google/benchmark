@@ -81,16 +81,14 @@ int main(int argc, char** argv) {
   TestReporter test_reporter;
   const char* const spec = "BM_Chosen";
   const size_t returned_count =
-      benchmark::RunSpecifiedBenchmarks(&test_reporter,
-                                        spec);
+      benchmark::RunSpecifiedBenchmarks(&test_reporter, spec);
   assert(returned_count == 1);
   const std::vector<std::string> matched_functions =
       test_reporter.GetMatchedFunctions();
   assert(matched_functions.size() == 1);
   if (strcmp(spec, matched_functions.front().c_str()) != 0) {
-    std::cerr
-      << "Expected benchmark [" << spec << "] to run, but got ["
-      << matched_functions.front() << "]\n";
+    std::cerr << "Expected benchmark [" << spec << "] to run, but got ["
+              << matched_functions.front() << "]\n";
     return 2;
   }
   return 0;
