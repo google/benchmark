@@ -239,6 +239,7 @@ BENCHMARK(BM_test)->Unit(benchmark::kMillisecond);
 #define BENCHMARK_INTERNAL_TOSTRING2(x) #x
 #define BENCHMARK_INTERNAL_TOSTRING(x) BENCHMARK_INTERNAL_TOSTRING2(x)
 
+// clang-format off
 #if defined(__GNUC__) || defined(__clang__)
 #define BENCHMARK_BUILTIN_EXPECT(x, y) __builtin_expect(x, y)
 #define BENCHMARK_DEPRECATED_MSG(msg) __attribute__((deprecated(msg)))
@@ -255,6 +256,7 @@ BENCHMARK(BM_test)->Unit(benchmark::kMillisecond);
 #define BENCHMARK_DISABLE_DEPRECATED_WARNING
 #define BENCHMARK_RESTORE_DEPRECATED_WARNING
 #endif
+// clang-format on
 
 #if defined(__GNUC__) && !defined(__clang__)
 #define BENCHMARK_GCC_VERSION (__GNUC__ * 100 + __GNUC_MINOR__)
@@ -489,8 +491,8 @@ class Counter {
   Counter(double v = 0., Flags f = kDefaults, OneK k = kIs1000)
       : value(v), flags(f), oneK(k) {}
 
-  BENCHMARK_ALWAYS_INLINE operator double const&() const { return value; }
-  BENCHMARK_ALWAYS_INLINE operator double&() { return value; }
+  BENCHMARK_ALWAYS_INLINE operator double const &() const { return value; }
+  BENCHMARK_ALWAYS_INLINE operator double &() { return value; }
 };
 
 // A helper for user code to create unforeseen combinations of Flags, without
