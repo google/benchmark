@@ -5,7 +5,7 @@
 
 #ifndef GTEST_SKIP
 struct MsgHandler {
-  void operator=(std::ostream&){}
+  void operator=(std::ostream&) {}
 };
 #define GTEST_SKIP() return MsgHandler() = std::cout
 #endif

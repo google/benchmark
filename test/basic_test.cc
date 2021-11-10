@@ -96,7 +96,6 @@ void BM_empty_stop_start(benchmark::State& state) {
 BENCHMARK(BM_empty_stop_start);
 BENCHMARK(BM_empty_stop_start)->ThreadPerCpu();
 
-
 void BM_KeepRunning(benchmark::State& state) {
   benchmark::IterationCount iter_count = 0;
   assert(iter_count == state.iterations());
@@ -171,8 +170,10 @@ BENCHMARK(BM_TwoTemplateFunc<double, int>)->Arg(1);
 
 // Ensure that StateIterator provides all the necessary typedefs required to
 // instantiate std::iterator_traits.
-static_assert(std::is_same<
-  typename std::iterator_traits<benchmark::State::StateIterator>::value_type,
-  typename benchmark::State::StateIterator::value_type>::value, "");
+static_assert(
+    std::is_same<typename std::iterator_traits<
+                     benchmark::State::StateIterator>::value_type,
+                 typename benchmark::State::StateIterator::value_type>::value,
+    "");
 
 BENCHMARK_MAIN();
