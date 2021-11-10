@@ -492,7 +492,7 @@ class Counter {
       : value(v), flags(f), oneK(k) {}
 
   BENCHMARK_ALWAYS_INLINE operator double const &() const { return value; }
-  BENCHMARK_ALWAYS_INLINE operator double &() { return value; }
+  BENCHMARK_ALWAYS_INLINE operator double&() { return value; }
 };
 
 // A helper for user code to create unforeseen combinations of Flags, without
