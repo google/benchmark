@@ -15,12 +15,13 @@
 // Source project : https://github.com/ismaelJimenez/cpp.leastsq
 // Adapted to be used with google benchmark
 
-#include "benchmark/benchmark.h"
+#include "complexity.h"
 
 #include <algorithm>
 #include <cmath>
+
+#include "benchmark/benchmark.h"
 #include "check.h"
-#include "complexity.h"
 
 namespace benchmark {
 
