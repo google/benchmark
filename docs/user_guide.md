@@ -18,6 +18,8 @@
 
 [Runtime and Reporting Considerations](#runtime-and-reporting-considerations)
 
+[Setup/Teardown] (#setup-teardown)
+
 [Passing Arguments](#passing-arguments)
 
 [Custom Benchmark Name](#custom-benchmark-name)
@@ -237,6 +239,38 @@ times and statistical results across these repetitions will also be reported.
 
 As well as the per-benchmark entries, a preamble in the report will include
 information about the machine on which the benchmarks are run.
+
+<a name="setup-teardown" />
+
+## Setup/Teardown
+
+Global setup/teardown specific to each benchmark group can be done by
+passing a callback to Setup/Teardown:
+
+The setup/teardown callbacks will be invoked once for every group.
+If the benchmark is multi-threaded (will run in k threads), they will be invoked exactly once before
+each run with k threads.
+If the benchmark uses different size groups of threads, the above will be true for each size group.
+
+Eg.,
+
+```c++
+static void DoSetup(const benchmark::State& state) {
+}
+
+static void DoTeardown(const benchmark::State& state) {
+}
+
+static void BM_func(benchmark::State& state) {...}
+
+BENCHMARK(BM_func)->Arg(1)->Arg(3)->Threads(16)->Threads(32)->Setup(DoSetup)->Teardonw(DoTeardown);
+
+```
+
+In this example, `DoSetup` and `DoTearDown` will be invoked 4 times each,
+specifically, once for each of this family:
+ - BM_func_Arg_1_Threads_16, BM_func_Arg_1_Threads_32
+ - BM_func_Arg_3_Threads_16, BM_func_Arg_3_Threads_32
 
 <a name="passing-arguments" />
 

@@ -978,7 +978,8 @@ class Benchmark {
   // If the benchmark uses different size groups of threads (e.g. via
   // ThreadRange), the above will be true for each size group.
   //
-  // The callback will be passed the number of threads for this benchmark run.
+  // The callback will be passed a State object, which includes the number
+  // of threads, thread-index, benchmark arguments, etc.
   //
   // The callback must not be NULL or self-deleting.
   Benchmark* Setup(void (*setup)(const benchmark::State&));
