@@ -2,6 +2,9 @@ name: Build and upload Python wheels
 
 on:
   workflow_dispatch:
+  release:
+    types:
+      - published
 
 jobs:
   build_sdist:
@@ -57,7 +60,7 @@ jobs:
             curl -O --retry-delay 5 --retry 5 https://copr.fedorainfracloud.org/coprs/vbatts/bazel/repo/epel-7/vbatts-bazel-epel-7.repo &&
             cp vbatts-bazel-epel-7.repo /etc/yum.repos.d/bazel.repo &&
             yum install -y bazel4
-          # TODO: Test bindings afterwards
+          CIBW_TEST_COMMAND: python {project}/bindings/python/google_benchmark/example.py
         run: |
           pip install cibuildwheel
           python -m cibuildwheel --output-dir wheelhouse
@@ -87,7 +90,8 @@ jobs:
           CIBW_BUILD: 'cp37-* cp38-* cp39-* cp310-*'
           # ARM64 requires Python 3.8 minimum
           CIBW_SKIP: 'cp37-*-arm64'
-          # TODO: Test bindings afterwards
+          CIBW_TEST_COMMAND: python {project}/bindings/python/google_benchmark/example.py
+          CIBW_TEST_SKIP: "*_arm64"
         run: |
           pip install cibuildwheel
           python -m cibuildwheel --output-dir wheelhouse
@@ -98,7 +102,7 @@ jobs:
           name: dist
           path: wheelhouse/*.whl
 
-  build_wheels:
+  build_windows:
     name: Build google-benchmark wheels on Windows
     runs-on: windows-latest
 
@@ -117,7 +121,7 @@ jobs:
           CIBW_ARCHS_WINDOWS: AMD64
           # otherwise, pip crashes the job by trying to remove an in-use bazel DLL
           PIP_NO_CLEAN: true
-          # TODO: Test bindings afterwards
+          CIBW_TEST_COMMAND: python {project}/bindings/python/google_benchmark/example.py
         run: |
           pip install cibuildwheel
           python -m cibuildwheel --output-dir wheelhouse
