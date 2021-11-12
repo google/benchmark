@@ -113,7 +113,10 @@ PYBIND11_MODULE(_benchmark, m) {
           "complexity",
           (Benchmark * (Benchmark::*)(benchmark::BigO)) & Benchmark::Complexity,
           py::return_value_policy::reference,
-          py::arg("complexity") = benchmark::oAuto);
+          py::arg("complexity") = benchmark::oAuto)
+      .def("setup", &Benchmark::Setup, py::return_value_policy::reference)
+      .def("teardown", &Benchmark::Teardown,
+           py::return_value_policy::reference);
 
   using benchmark::Counter;
   py::class_<Counter> py_counter(m, "Counter");

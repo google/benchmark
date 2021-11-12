@@ -8,8 +8,6 @@
 
 #include "benchmark/benchmark.h"
 
-#ifdef BENCHMARK_HAS_CXX11
-
 // Test that Setup() and Teardown() are called exactly once
 // for each benchmark run (single-threaded).
 namespace single {
@@ -79,22 +77,15 @@ int main(int argc, char** argv) {
   size_t ret = benchmark::RunSpecifiedBenchmarks(".");
   assert(ret > 0);
 
-  // Setup/Teardown is called once for each arg group.
-  // (There were 3,5,7,4)
+  // Setup/Teardown is called once for each arg group (1,3,5,7).
   assert(single::setup_call == 4);
   assert(single::teardown_call == 4);
 
+  // 3 group of threads calling this function (3,5,10).
   assert(concurrent::setup_call.load(std::memory_order_relaxed) == 3);
   assert(concurrent::teardown_call.load(std::memory_order_relaxed) == 3);
-
-  // 3 group of threads calling this function.
   assert((5 + 10 + 15) ==
          concurrent::func_call.load(std::memory_order_relaxed));
 
   return 0;
 }
-
-#else
-// Do nothing
-int main(int, char**) { return 0; }
-#endif  // BENCHMARK_HAS_CXX11
