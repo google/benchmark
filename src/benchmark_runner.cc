@@ -318,10 +318,12 @@ void BenchmarkRunner::DoOneRepetition() {
     memory_manager->Start();
     std::unique_ptr<internal::ThreadManager> manager;
     manager.reset(new internal::ThreadManager(1));
+    b.Setup();
     RunInThread(&b, memory_iterations, 0, manager.get(),
                 perf_counters_measurement_ptr);
     manager->WaitForAllThreads();
     manager.reset();
+    b.Teardown();
 
     BENCHMARK_DISABLE_DEPRECATED_WARNING
     memory_manager->Stop(memory_result);

@@ -71,6 +71,62 @@ BENCHMARK(BM_concurrent)
     ->Threads(10)
     ->Threads(15);
 
+// Test that setup/teardown is repeated for each repetition.
+// Also testing interaction with Fixture::Setup/Teardown
+
+namespace fixture_interaction {
+int setup = 0;
+int fixture_setup = 0;
+}  // namespace fixture_interaction
+
+#define FIXTURE_BECHMARK_NAME MyFixture
+
+class FIXTURE_BECHMARK_NAME : public ::benchmark::Fixture {
+ public:
+  void SetUp(const ::benchmark::State& state) BENCHMARK_OVERRIDE {
+    fixture_interaction::fixture_setup++;
+  }
+
+  ~FIXTURE_BECHMARK_NAME() {}
+};
+
+BENCHMARK_F(FIXTURE_BECHMARK_NAME, BM_WithFixture)(benchmark::State& st) {
+  for (auto _ : st) {
+  }
+}
+
+static void DoSetupWithFixture(const benchmark::State& state) {
+  fixture_interaction::setup++;
+}
+
+BENCHMARK_REGISTER_F(FIXTURE_BECHMARK_NAME, BM_WithFixture)
+    ->Arg(1)
+    ->Arg(3)
+    ->Arg(5)
+    ->Arg(7)
+    ->Setup(DoSetupWithFixture)
+    ->Iterations(100);
+
+namespace repetitions {
+int setup = 0;
+}
+
+static void DoSetupWithRepetitions(const benchmark::State& state) {
+  repetitions::setup++;
+}
+static void BM_WithRep(benchmark::State& state) {
+  for (auto _ : state) {
+  }
+}
+
+BENCHMARK(BM_WithRep)
+    ->Arg(1)
+    ->Arg(3)
+    ->Arg(5)
+    ->Arg(7)
+    ->Setup(DoSetupWithRepetitions)
+    ->Repetitions(5);
+
 int main(int argc, char** argv) {
   benchmark::Initialize(&argc, argv);
 
@@ -86,6 +142,14 @@ int main(int argc, char** argv) {
   assert(concurrent::teardown_call.load(std::memory_order_relaxed) == 3);
   assert((5 + 10 + 15) ==
          concurrent::func_call.load(std::memory_order_relaxed));
+
+  // Setup is called 4 times, once for each arg group (1,3,5,7)
+  assert(fixture_interaction::setup == 4);
+  // Fixture::Setup is called everytime the bm routine is run.
+  assert(fixture_interaction::fixture_setup == 14);
+
+  // Setup is call once for each repetion * num_arg =  4 * 4 = 16.
+  assert(repetitions::setup == 16);
 
   return 0;
 }
