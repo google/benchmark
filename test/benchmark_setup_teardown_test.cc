@@ -71,9 +71,7 @@ BENCHMARK(BM_concurrent)
     ->Threads(10)
     ->Threads(15);
 
-// Test that setup/teardown is repeated for each repetition.
-// Also testing interaction with Fixture::Setup/Teardown
-
+// Testing interaction with Fixture::Setup/Teardown
 namespace fixture_interaction {
 int setup = 0;
 int fixture_setup = 0;
@@ -107,6 +105,7 @@ BENCHMARK_REGISTER_F(FIXTURE_BECHMARK_NAME, BM_WithFixture)
     ->Setup(DoSetupWithFixture)
     ->Iterations(100);
 
+// Testing repetitions.
 namespace repetitions {
 int setup = 0;
 }
@@ -125,7 +124,8 @@ BENCHMARK(BM_WithRep)
     ->Arg(5)
     ->Arg(7)
     ->Setup(DoSetupWithRepetitions)
-    ->Repetitions(5);
+    ->Iterations(100)
+    ->Repetitions(4);
 
 int main(int argc, char** argv) {
   benchmark::Initialize(&argc, argv);
@@ -148,7 +148,7 @@ int main(int argc, char** argv) {
   // Fixture::Setup is called everytime the bm routine is run.
   assert(fixture_interaction::fixture_setup == 14);
 
-  // Setup is call once for each repetion * num_arg =  4 * 4 = 16.
+  // Setup is call once for each repetition * num_arg =  4 * 4 = 16.
   assert(repetitions::setup == 16);
 
   return 0;
