@@ -13,15 +13,16 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "benchmark/benchmark.h"
+#include "statistics.h"
 
 #include <algorithm>
 #include <cmath>
 #include <numeric>
 #include <string>
 #include <vector>
+
+#include "benchmark/benchmark.h"
 #include "check.h"
-#include "statistics.h"
 
 namespace benchmark {
 

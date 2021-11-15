@@ -25,8 +25,8 @@
 #include "internal_macros.h"
 
 #ifdef BENCHMARK_OS_WINDOWS
-#include <windows.h>
 #include <io.h>
+#include <windows.h>
 #else
 #include <unistd.h>
 #endif  // BENCHMARK_OS_WINDOWS

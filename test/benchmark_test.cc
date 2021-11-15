@@ -93,8 +93,9 @@ static void BM_SetInsert(benchmark::State& state) {
   state.SetBytesProcessed(state.iterations() * state.range(1) * sizeof(int));
 }
 
-// Test many inserts at once to reduce the total iterations needed. Otherwise, the slower,
-// non-timed part of each iteration will make the benchmark take forever.
+// Test many inserts at once to reduce the total iterations needed. Otherwise,
+// the slower, non-timed part of each iteration will make the benchmark take
+// forever.
 BENCHMARK(BM_SetInsert)->Ranges({{1 << 10, 8 << 10}, {128, 512}});
 
 template <typename Container,
@@ -214,7 +215,8 @@ BENCHMARK_CAPTURE(BM_with_args, string_and_pair_test, std::string("abc"),
                   std::pair<int, double>(42, 3.8));
 
 void BM_non_template_args(benchmark::State& state, int, double) {
-  while(state.KeepRunning()) {}
+  while (state.KeepRunning()) {
+  }
 }
 BENCHMARK_CAPTURE(BM_non_template_args, basic_test, 0, 0);
 

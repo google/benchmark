@@ -478,8 +478,7 @@ std::vector<int64_t> CreateRange(int64_t lo, int64_t hi, int multi) {
   return args;
 }
 
-std::vector<int64_t> CreateDenseRange(int64_t start, int64_t limit,
-                                      int step) {
+std::vector<int64_t> CreateDenseRange(int64_t start, int64_t limit, int step) {
   BM_CHECK_LE(start, limit);
   std::vector<int64_t> args;
   for (int64_t arg = start; arg <= limit; arg += step) {

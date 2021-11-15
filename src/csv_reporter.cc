@@ -12,9 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "benchmark/benchmark.h"
-#include "complexity.h"
-
 #include <algorithm>
 #include <cstdint>
 #include <iostream>
@@ -22,7 +19,9 @@
 #include <tuple>
 #include <vector>
 
+#include "benchmark/benchmark.h"
 #include "check.h"
+#include "complexity.h"
 #include "string_util.h"
 #include "timers.h"
 
@@ -37,13 +36,17 @@ std::vector<std::string> elements = {
     "error_occurred", "error_message"};
 }  // namespace
 
-std::string CsvEscape(const std::string & s) {
+std::string CsvEscape(const std::string& s) {
   std::string tmp;
   tmp.reserve(s.size() + 2);
   for (char c : s) {
     switch (c) {
-    case '"' : tmp += "\"\""; break;
-    default  : tmp += c; break;
+      case '"':
+        tmp += "\"\"";
+        break;
+      default:
+        tmp += c;
+        break;
     }
   }
   return '"' + tmp + '"';

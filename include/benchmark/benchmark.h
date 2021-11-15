@@ -239,14 +239,14 @@ BENCHMARK(BM_test)->Unit(benchmark::kMillisecond);
 #define BENCHMARK_INTERNAL_TOSTRING2(x) #x
 #define BENCHMARK_INTERNAL_TOSTRING(x) BENCHMARK_INTERNAL_TOSTRING2(x)
 
+// clang-format off
 #if defined(__GNUC__) || defined(__clang__)
 #define BENCHMARK_BUILTIN_EXPECT(x, y) __builtin_expect(x, y)
 #define BENCHMARK_DEPRECATED_MSG(msg) __attribute__((deprecated(msg)))
 #define BENCHMARK_DISABLE_DEPRECATED_WARNING \
-  _Pragma("GCC diagnostic push") \
+  _Pragma("GCC diagnostic push")             \
   _Pragma("GCC diagnostic ignored \"-Wdeprecated-declarations\"")
-#define BENCHMARK_RESTORE_DEPRECATED_WARNING \
-  _Pragma("GCC diagnostic pop")
+#define BENCHMARK_RESTORE_DEPRECATED_WARNING _Pragma("GCC diagnostic pop")
 #else
 #define BENCHMARK_BUILTIN_EXPECT(x, y) x
 #define BENCHMARK_DEPRECATED_MSG(msg)
@@ -256,6 +256,7 @@ BENCHMARK(BM_test)->Unit(benchmark::kMillisecond);
 #define BENCHMARK_DISABLE_DEPRECATED_WARNING
 #define BENCHMARK_RESTORE_DEPRECATED_WARNING
 #endif
+// clang-format on
 
 #if defined(__GNUC__) && !defined(__clang__)
 #define BENCHMARK_GCC_VERSION (__GNUC__ * 100 + __GNUC_MINOR__)
@@ -452,27 +453,27 @@ class Counter {
     kDefaults = 0,
     // Mark the counter as a rate. It will be presented divided
     // by the duration of the benchmark.
-    kIsRate = 1U << 0U,
+    kIsRate = 1 << 0,
     // Mark the counter as a thread-average quantity. It will be
     // presented divided by the number of threads.
-    kAvgThreads = 1U << 1U,
+    kAvgThreads = 1 << 1,
     // Mark the counter as a thread-average rate. See above.
     kAvgThreadsRate = kIsRate | kAvgThreads,
     // Mark the counter as a constant value, valid/same for *every* iteration.
     // When reporting, it will be *multiplied* by the iteration count.
-    kIsIterationInvariant = 1U << 2U,
+    kIsIterationInvariant = 1 << 2,
     // Mark the counter as a constant rate.
     // When reporting, it will be *multiplied* by the iteration count
     // and then divided by the duration of the benchmark.
     kIsIterationInvariantRate = kIsRate | kIsIterationInvariant,
     // Mark the counter as a iteration-average quantity.
     // It will be presented divided by the number of iterations.
-    kAvgIterations = 1U << 3U,
+    kAvgIterations = 1 << 3,
     // Mark the counter as a iteration-average rate. See above.
     kAvgIterationsRate = kIsRate | kAvgIterations,
 
     // In the end, invert the result. This is always done last!
-    kInvert = 1U << 31U
+    kInvert = 1 << 31
   };
 
   enum OneK {
@@ -490,7 +491,7 @@ class Counter {
   Counter(double v = 0., Flags f = kDefaults, OneK k = kIs1000)
       : value(v), flags(f), oneK(k) {}
 
-  BENCHMARK_ALWAYS_INLINE operator double const&() const { return value; }
+  BENCHMARK_ALWAYS_INLINE operator double const &() const { return value; }
   BENCHMARK_ALWAYS_INLINE operator double&() { return value; }
 };
 
@@ -1256,7 +1257,7 @@ class Fixture : public internal::Benchmark {
 #define BENCHMARK_PRIVATE_CONCAT2(a, b, c) a##b##c
 // Helper for concatenation with macro name expansion
 #define BENCHMARK_PRIVATE_CONCAT_NAME(BaseClass, Method) \
-    BaseClass##_##Method##_Benchmark
+  BaseClass##_##Method##_Benchmark
 
 #define BENCHMARK_PRIVATE_DECLARE(n)                                 \
   static ::benchmark::internal::Benchmark* BENCHMARK_PRIVATE_NAME(n) \
@@ -1461,11 +1462,7 @@ struct CPUInfo {
     int num_sharing;
   };
 
-  enum Scaling {
-    UNKNOWN,
-    ENABLED,
-    DISABLED
-  };
+  enum Scaling { UNKNOWN, ENABLED, DISABLED };
 
   int num_cpus;
   Scaling scaling;
@@ -1725,7 +1722,6 @@ class BENCHMARK_DEPRECATED_MSG(
   std::set<std::string> user_counter_names_;
 };
 
-
 inline const char* GetTimeUnitString(TimeUnit unit) {
   switch (unit) {
     case kSecond:
@@ -1766,8 +1762,7 @@ inline double GetTimeUnitMultiplier(TimeUnit unit) {
 std::vector<int64_t> CreateRange(int64_t lo, int64_t hi, int multi);
 
 // Creates a list of integer values for the given range and step.
-std::vector<int64_t> CreateDenseRange(int64_t start, int64_t limit,
-                                      int step);
+std::vector<int64_t> CreateDenseRange(int64_t start, int64_t limit, int step);
 
 }  // namespace benchmark
 
