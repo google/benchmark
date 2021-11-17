@@ -102,6 +102,7 @@ BENCHMARK_REGISTER_F(FIXTURE_BECHMARK_NAME, BM_WithFixture)
     ->Arg(5)
     ->Arg(7)
     ->Setup(DoSetupWithFixture)
+    ->Repetitions(1)
     ->Iterations(100);
 
 // Testing repetitions.
@@ -145,7 +146,9 @@ int main(int argc, char** argv) {
   // Setup is called 4 times, once for each arg group (1,3,5,7)
   assert(fixture_interaction::setup == 4);
   // Fixture::Setup is called everytime the bm routine is run.
-  assert(fixture_interaction::fixture_setup == 14);
+  // The exact number is indeterministic, so we just assert that
+  // it's more than setup.
+  assert(fixture_interaction::fixture_setup > fixture_interaction::setup);
 
   // Setup is call once for each repetition * num_arg =  4 * 4 = 16.
   assert(repetitions::setup == 16);
