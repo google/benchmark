@@ -66,8 +66,8 @@ class BenchmarkInstance {
   int threads_;  // Number of concurrent threads to us
 
   typedef void (*callback_function)(const benchmark::State&);
-  callback_function setup_;
-  callback_function teardown_;
+  callback_function setup_ = nullptr;
+  callback_function teardown_ = nullptr;
 };
 
 bool FindBenchmarksInternal(const std::string& re,
