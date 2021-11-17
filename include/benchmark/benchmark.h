@@ -969,6 +969,23 @@ class Benchmark {
     return Ranges(ranges);
   }
 
+  // Have "setup" and/or "teardown" invoked once for every benchmark run.
+  // If the benchmark is multi-threaded (will run in k threads concurrently),
+  // the setup callback will be be invoked exactly once (not k times) before
+  // each run with k threads. Time allowing (e.g. for a short benchmark), there
+  // may be multiple such runs per benchmark, each run with its own
+  // "setup"/"teardown".
+  //
+  // If the benchmark uses different size groups of threads (e.g. via
+  // ThreadRange), the above will be true for each size group.
+  //
+  // The callback will be passed a State object, which includes the number
+  // of threads, thread-index, benchmark arguments, etc.
+  //
+  // The callback must not be NULL or self-deleting.
+  Benchmark* Setup(void (*setup)(const benchmark::State&));
+  Benchmark* Teardown(void (*teardown)(const benchmark::State&));
+
   // Pass this benchmark object to *func, which can customize
   // the benchmark by calling various methods like Arg, Args,
   // Threads, etc.
@@ -1099,6 +1116,10 @@ class Benchmark {
   BigOFunc* complexity_lambda_;
   std::vector<Statistics> statistics_;
   std::vector<int> thread_counts_;
+
+  typedef void (*callback_function)(const benchmark::State&);
+  callback_function setup_;
+  callback_function teardown_;
 
   Benchmark& operator=(Benchmark const&);
 };

@@ -211,7 +211,9 @@ Benchmark::Benchmark(const char* name)
       use_real_time_(false),
       use_manual_time_(false),
       complexity_(oNone),
-      complexity_lambda_(nullptr) {
+      complexity_lambda_(nullptr),
+      setup_(nullptr),
+      teardown_(nullptr) {
   ComputeStatistics("mean", StatisticsMean);
   ComputeStatistics("median", StatisticsMedian);
   ComputeStatistics("stddev", StatisticsStdDev);
@@ -318,6 +320,18 @@ Benchmark* Benchmark::Args(const std::vector<int64_t>& args) {
 
 Benchmark* Benchmark::Apply(void (*custom_arguments)(Benchmark* benchmark)) {
   custom_arguments(this);
+  return this;
+}
+
+Benchmark* Benchmark::Setup(void (*setup)(const benchmark::State&)) {
+  BM_CHECK(setup != nullptr);
+  setup_ = setup;
+  return this;
+}
+
+Benchmark* Benchmark::Teardown(void (*teardown)(const benchmark::State&)) {
+  BM_CHECK(teardown != nullptr);
+  teardown_ = teardown;
   return this;
 }
 

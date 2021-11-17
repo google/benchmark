@@ -279,7 +279,9 @@ void BenchmarkRunner::DoOneRepetition() {
   // is *only* calculated for the *first* repetition, and other repetitions
   // simply use that precomputed iteration count.
   for (;;) {
+    b.Setup();
     i = DoNIterations();
+    b.Teardown();
 
     // Do we consider the results to be significant?
     // If we are doing repetitions, and the first repetition was already done,
@@ -316,10 +318,12 @@ void BenchmarkRunner::DoOneRepetition() {
     memory_manager->Start();
     std::unique_ptr<internal::ThreadManager> manager;
     manager.reset(new internal::ThreadManager(1));
+    b.Setup();
     RunInThread(&b, memory_iterations, 0, manager.get(),
                 perf_counters_measurement_ptr);
     manager->WaitForAllThreads();
     manager.reset();
+    b.Teardown();
 
     BENCHMARK_DISABLE_DEPRECATED_WARNING
     memory_manager->Stop(memory_result);
