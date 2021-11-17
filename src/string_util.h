@@ -40,6 +40,8 @@ inline std::string StrCat(Args&&... args) {
 
 std::vector<std::string> StrSplit(const std::string& str, char delim);
 
+// Disable lint checking for this block since it re-implements C functions.
+// NOLINTBEGIN
 #ifdef BENCHMARK_STL_ANDROID_GNUSTL
 /*
  * GNU STL in Android NDK lacks support for some C++11 functions, including
@@ -56,6 +58,7 @@ using std::stod;
 using std::stoi;
 using std::stoul;
 #endif
+// NOLINTEND
 
 }  // end namespace benchmark
 
