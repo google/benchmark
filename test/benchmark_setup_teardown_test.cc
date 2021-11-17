@@ -26,7 +26,6 @@ static void DoTeardown1(const benchmark::State& state) {
   assert(state.thread_index() == 0);
 }
 
-static int func_c = 0;
 static void BM_with_setup(benchmark::State& state) {
   for (auto s : state) {
   }
