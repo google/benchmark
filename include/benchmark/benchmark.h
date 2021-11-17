@@ -1118,8 +1118,8 @@ class Benchmark {
   std::vector<int> thread_counts_;
 
   typedef void (*callback_function)(const benchmark::State&);
-  callback_function setup_ = nullptr;
-  callback_function teardown_ = nullptr;
+  callback_function setup_ = NULL;
+  callback_function teardown_ = NULL;
 
   Benchmark& operator=(Benchmark const&);
 };
