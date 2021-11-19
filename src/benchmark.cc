@@ -573,9 +573,6 @@ void ParseCommandLineFlags(int* argc, char** argv) {
         ParseStringFlag(argv[i], "benchmark_out_format",
                         &FLAGS_benchmark_out_format) ||
         ParseStringFlag(argv[i], "benchmark_color", &FLAGS_benchmark_color) ||
-        // "color_print" is the deprecated name for "benchmark_color".
-        // TODO: Remove this.
-        ParseStringFlag(argv[i], "color_print", &FLAGS_benchmark_color) ||
         ParseBoolFlag(argv[i], "benchmark_counters_tabular",
                       &FLAGS_benchmark_counters_tabular) ||
         ParseStringFlag(argv[i], "benchmark_perf_counters",
