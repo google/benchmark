@@ -54,9 +54,9 @@ unsigned long stoul(const std::string& str, size_t* pos = nullptr,
 int stoi(const std::string& str, size_t* pos = nullptr, int base = 10);
 double stod(const std::string& str, size_t* pos = nullptr);
 #else
-using std::stod;
-using std::stoi;
-using std::stoul;
+using std::stod;   // NOLINT(misc-unused-using-decls)
+using std::stoi;   // NOLINT(misc-unused-using-decls)
+using std::stoul;  // NOLINT(misc-unused-using-decls)
 #endif
 // NOLINTEND
 
