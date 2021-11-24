@@ -151,7 +151,7 @@ std::string StrFormatImp(const char* msg, va_list args) {
   auto buff_ptr = std::unique_ptr<char[]>(new char[size]);
   // 2015-10-08: vsnprintf is used instead of snd::vsnprintf due to a limitation
   // in the android-ndk
-  ret = vsnprintf(buff_ptr.get(), size, msg, args);
+  vsnprintf(buff_ptr.get(), size, msg, args);
   return std::string(buff_ptr.get());
 }
 

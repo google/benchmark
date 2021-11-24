@@ -119,7 +119,7 @@ ADD_CASES("BM_error_during_running", {{"/1/threads:1", true, "error message"},
 
 void BM_error_during_running_ranged_for(benchmark::State& state) {
   assert(state.max_iterations > 3 && "test requires at least a few iterations");
-  int first_iter = true;
+  [[maybe_unused]] bool first_iter = true;
   // NOTE: Users should not write the for loop explicitly.
   for (auto It = state.begin(), End = state.end(); It != End; ++It) {
     if (state.range(0) == 1) {
