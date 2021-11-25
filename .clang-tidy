@@ -1,0 +1,7 @@
+---
+Checks:          'clang-analyzer-*'
+WarningsAsErrors: 'clang-analyzer-*'
+HeaderFilterRegex: '.*'
+AnalyzeTemporaryDtors: false
+FormatStyle:     none
+User:            user
