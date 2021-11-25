@@ -774,7 +774,7 @@ class State {
   bool finished_;
   bool error_occurred_;
 
- private:  // items we don't need on the first cache line
+  // items we don't need on the first cache line
   std::vector<int64_t> range_;
 
   int64_t complexity_n_;
@@ -1169,8 +1169,7 @@ class LambdaBenchmark : public Benchmark {
 
   LambdaBenchmark(LambdaBenchmark const&) = delete;
 
- private:
-  template <class Lam>
+  template <class Lam>  // NOLINTNEXTLINE(readability-redundant-declaration)
   friend Benchmark* ::benchmark::RegisterBenchmark(const char*, Lam&&);
 
   Lambda lambda_;
@@ -1338,7 +1337,7 @@ class Fixture : public internal::Benchmark {
 #define BENCHMARK_PRIVATE_DECLARE_F(BaseClass, Method)                  \
   class BaseClass##_##Method##_Benchmark : public BaseClass {           \
    public:                                                              \
-    BaseClass##_##Method##_Benchmark() : BaseClass() {                  \
+    BaseClass##_##Method##_Benchmark() {                                \
       this->SetName(#BaseClass "/" #Method);                            \
     }                                                                   \
                                                                         \
@@ -1349,7 +1348,7 @@ class Fixture : public internal::Benchmark {
 #define BENCHMARK_TEMPLATE1_PRIVATE_DECLARE_F(BaseClass, Method, a)     \
   class BaseClass##_##Method##_Benchmark : public BaseClass<a> {        \
    public:                                                              \
-    BaseClass##_##Method##_Benchmark() : BaseClass<a>() {               \
+    BaseClass##_##Method##_Benchmark() {                                \
       this->SetName(#BaseClass "<" #a ">/" #Method);                    \
     }                                                                   \
                                                                         \
@@ -1360,7 +1359,7 @@ class Fixture : public internal::Benchmark {
 #define BENCHMARK_TEMPLATE2_PRIVATE_DECLARE_F(BaseClass, Method, a, b)  \
   class BaseClass##_##Method##_Benchmark : public BaseClass<a, b> {     \
    public:                                                              \
-    BaseClass##_##Method##_Benchmark() : BaseClass<a, b>() {            \
+    BaseClass##_##Method##_Benchmark() {                                \
       this->SetName(#BaseClass "<" #a "," #b ">/" #Method);             \
     }                                                                   \
                                                                         \
@@ -1372,7 +1371,7 @@ class Fixture : public internal::Benchmark {
 #define BENCHMARK_TEMPLATE_PRIVATE_DECLARE_F(BaseClass, Method, ...)       \
   class BaseClass##_##Method##_Benchmark : public BaseClass<__VA_ARGS__> { \
    public:                                                                 \
-    BaseClass##_##Method##_Benchmark() : BaseClass<__VA_ARGS__>() {        \
+    BaseClass##_##Method##_Benchmark() {                                   \
       this->SetName(#BaseClass "<" #__VA_ARGS__ ">/" #Method);             \
     }                                                                      \
                                                                            \
@@ -1539,7 +1538,6 @@ class BenchmarkReporter {
           complexity_n(0),
           report_big_o(false),
           report_rms(false),
-          counters(),
           memory_result(NULL),
           allocs_per_iter(0.0) {}
 
@@ -1676,10 +1674,7 @@ class ConsoleReporter : public BenchmarkReporter {
     OO_Defaults = OO_ColorTabular
   };
   explicit ConsoleReporter(OutputOptions opts_ = OO_Defaults)
-      : output_options_(opts_),
-        name_field_width_(0),
-        prev_counters_(),
-        printed_header_(false) {}
+      : output_options_(opts_), name_field_width_(0), printed_header_(false) {}
 
   virtual bool ReportContext(const Context& context) BENCHMARK_OVERRIDE;
   virtual void ReportRuns(const std::vector<Run>& reports) BENCHMARK_OVERRIDE;

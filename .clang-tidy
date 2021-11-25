@@ -1,6 +1,6 @@
 ---
-Checks:          'clang-analyzer-*'
-WarningsAsErrors: 'clang-analyzer-*'
+Checks:          'clang-analyzer-*,readability-redundant-*'
+WarningsAsErrors: 'clang-analyzer-*,readability-redundant-*'
 HeaderFilterRegex: '.*'
 AnalyzeTemporaryDtors: false
 FormatStyle:     none
