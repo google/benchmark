@@ -18,7 +18,7 @@
 
 [Runtime and Reporting Considerations](#runtime-and-reporting-considerations)
 
-[Setup/Teardown] (#setup-teardown)
+[Setup/Teardown](#setupteardown)
 
 [Passing Arguments](#passing-arguments)
 
