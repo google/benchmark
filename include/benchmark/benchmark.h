@@ -1054,7 +1054,8 @@ class Benchmark {
   Benchmark* Complexity(BigOFunc* complexity);
 
   // Add this statistics to be computed over all the values of benchmark run
-  Benchmark* ComputeStatistics(std::string name, StatisticsFunc* statistics,
+  Benchmark* ComputeStatistics(const std::string& name,
+                               StatisticsFunc* statistics,
                                StatisticUnit unit = kTime);
 
   // Support for running multiple copies of the same benchmark concurrently

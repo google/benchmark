@@ -13,9 +13,10 @@ namespace {
 #define ADD_COMPLEXITY_CASES(...) \
   int CONCAT(dummy, __LINE__) = AddComplexityTest(__VA_ARGS__)
 
-int AddComplexityTest(std::string test_name, std::string big_o_test_name,
-                      std::string rms_test_name, std::string big_o,
-                      int family_index) {
+int AddComplexityTest(const std::string &test_name,
+                      const std::string &big_o_test_name,
+                      const std::string &rms_test_name,
+                      const std::string &big_o, int family_index) {
   SetSubstitutions({{"%name", test_name},
                     {"%bigo_name", big_o_test_name},
                     {"%rms_name", rms_test_name},
