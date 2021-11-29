@@ -15,6 +15,8 @@ endforeach()
 
 project (benchmark VERSION 1.6.0 LANGUAGES CXX)
 
+set(CMAKE_CXX_STANDARD 17)
+
 option(BENCHMARK_ENABLE_TESTING "Enable testing of the benchmark library." ON)
 option(BENCHMARK_ENABLE_EXCEPTIONS "Enable the use of exceptions in the benchmark library." ON)
 option(BENCHMARK_ENABLE_LTO "Enable link time optimisation of the benchmark library." OFF)
