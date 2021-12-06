@@ -15,6 +15,7 @@
 #include "perf_counters.h"
 
 #include <cstring>
+#include <memory>
 #include <vector>
 
 #if defined HAVE_LIBPFM
@@ -104,7 +105,7 @@ PerfCounters PerfCounters::Create(
   return PerfCounters(counter_names, std::move(counter_ids));
 }
 
-PerfCounters::~PerfCounters() {
+void PerfCounters::CloseCounters() const {
   if (counter_ids_.empty()) {
     return;
   }
@@ -126,7 +127,44 @@ PerfCounters PerfCounters::Create(
   return NoCounters();
 }
 
-PerfCounters::~PerfCounters() = default;
+void PerfCounters::CloseCounters() const {}
 #endif  // defined HAVE_LIBPFM
+
+Mutex PerfCountersMeasurement::mutex_;
+int PerfCountersMeasurement::ref_count_ = 0;
+PerfCounters PerfCountersMeasurement::counters_ = PerfCounters::NoCounters();
+
+PerfCountersMeasurement::PerfCountersMeasurement(
+    const std::vector<std::string>& counter_names)
+    : start_values_(counter_names.size()), end_values_(counter_names.size()) {
+  MutexLock l(mutex_);
+  if (ref_count_ == 0) {
+    counters_ = PerfCounters::Create(counter_names);
+  }
+  // We chose to increment it even if `counters_` ends up invalid,
+  // so that we don't keep trying to create, and also since the dtor
+  // will decrement regardless of `counters_`'s validity
+  ++ref_count_;
+
+  BM_CHECK(!counters_.IsValid() || counters_.names() == counter_names);
+}
+
+PerfCountersMeasurement::~PerfCountersMeasurement() {
+  MutexLock l(mutex_);
+  --ref_count_;
+  if (ref_count_ == 0) {
+    counters_ = PerfCounters::NoCounters();
+  }
+}
+
+PerfCounters& PerfCounters::operator=(PerfCounters&& other) noexcept {
+  if (this != &other) {
+    CloseCounters();
+
+    counter_ids_ = std::move(other.counter_ids_);
+    counter_names_ = std::move(other.counter_names_);
+  }
+  return *this;
+}
 }  // namespace internal
 }  // namespace benchmark

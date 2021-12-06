@@ -184,7 +184,10 @@ void State::PauseTiming() {
   BM_CHECK(started_ && !finished_ && !error_occurred_);
   timer_->StopTimer();
   if (perf_counters_measurement_) {
-    auto measurements = perf_counters_measurement_->StopAndGetMeasurements();
+    std::vector<std::pair<std::string, double>> measurements;
+    if (!perf_counters_measurement_->Stop(measurements)) {
+      BM_CHECK(false) << "Perf counters read the value failed.";
+    }
     for (const auto& name_and_measurement : measurements) {
       auto name = name_and_measurement.first;
       auto measurement = name_and_measurement.second;

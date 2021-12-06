@@ -152,8 +152,7 @@ BenchmarkRunner::BenchmarkRunner(
       has_explicit_iteration_count(b.iterations() != 0),
       pool(b.threads() - 1),
       iters(has_explicit_iteration_count ? b.iterations() : 1),
-      perf_counters_measurement(
-          PerfCounters::Create(StrSplit(FLAGS_benchmark_perf_counters, ','))),
+      perf_counters_measurement(StrSplit(FLAGS_benchmark_perf_counters, ',')),
       perf_counters_measurement_ptr(perf_counters_measurement.IsValid()
                                         ? &perf_counters_measurement
                                         : nullptr) {
