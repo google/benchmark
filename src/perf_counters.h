@@ -136,17 +136,18 @@ class PerfCountersMeasurement final {
     // Tell the compiler to not move instructions above/below where we take
     // the snapshot.
     ClobberMemory();
-    counters_.Snapshot(&start_values_);
+    valid_read_ &= counters_.Snapshot(&start_values_);
     ClobberMemory();
   }
 
-  BENCHMARK_ALWAYS_INLINE std::vector<std::pair<std::string, double>>
-  StopAndGetMeasurements() {
+  BENCHMARK_ALWAYS_INLINE
+      std::pair<std::vector<std::pair<std::string, double>>, bool>
+      StopAndGetMeasurements() {
     assert(IsValid());
     // Tell the compiler to not move instructions above/below where we take
     // the snapshot.
     ClobberMemory();
-    counters_.Snapshot(&end_values_);
+    valid_read_ &= counters_.Snapshot(&end_values_);
     ClobberMemory();
 
     std::vector<std::pair<std::string, double>> ret;
@@ -155,10 +156,11 @@ class PerfCountersMeasurement final {
                            static_cast<double>(start_values_[i]);
       ret.push_back({counters_.names()[i], measurement});
     }
-    return ret;
+    return std::make_pair(ret, valid_read_);
   }
 
  private:
+  bool valid_read_ = true;
   PerfCounters counters_;
   PerfCounterValues start_values_;
   PerfCounterValues end_values_;

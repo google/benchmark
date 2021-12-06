@@ -184,7 +184,11 @@ void State::PauseTiming() {
   BM_CHECK(started_ && !finished_ && !error_occurred_);
   timer_->StopTimer();
   if (perf_counters_measurement_) {
-    auto measurements = perf_counters_measurement_->StopAndGetMeasurements();
+    std::vector<std::pair<std::string, double>> measurements;
+    bool valid_read;
+    std::tie(measurements, valid_read) =
+        perf_counters_measurement_->StopAndGetMeasurements();
+    BM_CHECK(valid_read) << "Perf counters read the value failed.";
     for (const auto& name_and_measurement : measurements) {
       auto name = name_and_measurement.first;
       auto measurement = name_and_measurement.second;
@@ -313,6 +317,13 @@ void RunBenchmarks(const std::vector<BenchmarkInstance>& benchmarks,
 
     size_t num_repetitions_total = 0;
 
+    PerfCountersMeasurement perf_counters_measurement =
+        PerfCounters::Create(StrSplit(FLAGS_benchmark_perf_counters, ','));
+
+    PerfCountersMeasurement* perf_counters_measurement_ptr =
+        perf_counters_measurement.IsValid() ? &perf_counters_measurement
+                                            : nullptr;
+
     std::vector<internal::BenchmarkRunner> runners;
     runners.reserve(benchmarks.size());
     for (const BenchmarkInstance& benchmark : benchmarks) {
@@ -320,7 +331,8 @@ void RunBenchmarks(const std::vector<BenchmarkInstance>& benchmarks,
       if (benchmark.complexity() != oNone)
         reports_for_family = &per_family_reports[benchmark.family_index()];
 
-      runners.emplace_back(benchmark, reports_for_family);
+      runners.emplace_back(benchmark, reports_for_family,
+                           perf_counters_measurement_ptr);
       int num_repeats_of_this_instance = runners.back().GetNumRepeats();
       num_repetitions_total += num_repeats_of_this_instance;
       if (reports_for_family)

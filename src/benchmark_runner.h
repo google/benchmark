@@ -46,7 +46,8 @@ struct RunResults {
 class BenchmarkRunner {
  public:
   BenchmarkRunner(const benchmark::internal::BenchmarkInstance& b_,
-                  BenchmarkReporter::PerFamilyRunReports* reports_for_family);
+                  BenchmarkReporter::PerFamilyRunReports* reports_for_family,
+                  PerfCountersMeasurement* perf_counters_measurement_ptr);
 
   int GetNumRepeats() const { return repeats; }
 
@@ -82,7 +83,6 @@ class BenchmarkRunner {
   // So only the first repetition has to find/calculate it,
   // the other repetitions will just use that precomputed iteration count.
 
-  PerfCountersMeasurement perf_counters_measurement;
   PerfCountersMeasurement* const perf_counters_measurement_ptr;
 
   struct IterationResults {

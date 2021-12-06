@@ -143,7 +143,8 @@ void RunInThread(const BenchmarkInstance* b, IterationCount iters,
 
 BenchmarkRunner::BenchmarkRunner(
     const benchmark::internal::BenchmarkInstance& b_,
-    BenchmarkReporter::PerFamilyRunReports* reports_for_family_)
+    BenchmarkReporter::PerFamilyRunReports* reports_for_family_,
+    PerfCountersMeasurement* perf_counters_measurement_ptr_)
     : b(b_),
       reports_for_family(reports_for_family_),
       min_time(!IsZero(b.min_time()) ? b.min_time() : FLAGS_benchmark_min_time),
@@ -152,11 +153,7 @@ BenchmarkRunner::BenchmarkRunner(
       has_explicit_iteration_count(b.iterations() != 0),
       pool(b.threads() - 1),
       iters(has_explicit_iteration_count ? b.iterations() : 1),
-      perf_counters_measurement(
-          PerfCounters::Create(StrSplit(FLAGS_benchmark_perf_counters, ','))),
-      perf_counters_measurement_ptr(perf_counters_measurement.IsValid()
-                                        ? &perf_counters_measurement
-                                        : nullptr) {
+      perf_counters_measurement_ptr(perf_counters_measurement_ptr_) {
   run_results.display_report_aggregates_only =
       (FLAGS_benchmark_report_aggregates_only ||
        FLAGS_benchmark_display_aggregates_only);
@@ -169,7 +166,7 @@ BenchmarkRunner::BenchmarkRunner(
     run_results.file_report_aggregates_only =
         (b.aggregation_report_mode() & internal::ARM_FileReportAggregatesOnly);
     BM_CHECK(FLAGS_benchmark_perf_counters.empty() ||
-             perf_counters_measurement.IsValid())
+          perf_counters_measurement_ptr->IsValid())
         << "Perf counters were requested but could not be set up.";
   }
 }
