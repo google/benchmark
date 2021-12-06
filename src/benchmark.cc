@@ -145,7 +145,6 @@ State::State(IterationCount max_iters, const std::vector<int64_t>& ranges,
       error_occurred_(false),
       range_(ranges),
       complexity_n_(0),
-      counters(),
       thread_index_(thread_i),
       threads_(n_threads),
       timer_(timer),
@@ -434,7 +433,7 @@ size_t RunSpecifiedBenchmarks() {
 }
 
 size_t RunSpecifiedBenchmarks(std::string spec) {
-  return RunSpecifiedBenchmarks(nullptr, nullptr, spec);
+  return RunSpecifiedBenchmarks(nullptr, nullptr, std::move(spec));
 }
 
 size_t RunSpecifiedBenchmarks(BenchmarkReporter* display_reporter) {
@@ -444,7 +443,7 @@ size_t RunSpecifiedBenchmarks(BenchmarkReporter* display_reporter) {
 
 size_t RunSpecifiedBenchmarks(BenchmarkReporter* display_reporter,
                               std::string spec) {
-  return RunSpecifiedBenchmarks(display_reporter, nullptr, spec);
+  return RunSpecifiedBenchmarks(display_reporter, nullptr, std::move(spec));
 }
 
 size_t RunSpecifiedBenchmarks(BenchmarkReporter* display_reporter,

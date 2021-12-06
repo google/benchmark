@@ -141,7 +141,7 @@ void CheckCases(TestCaseList const& checks, std::stringstream& output) {
 class TestReporter : public benchmark::BenchmarkReporter {
  public:
   TestReporter(std::vector<benchmark::BenchmarkReporter*> reps)
-      : reporters_(reps) {}
+      : reporters_(std::move(reps)) {}
 
   virtual bool ReportContext(const Context& context) BENCHMARK_OVERRIDE {
     bool last_ret = false;
@@ -183,7 +183,7 @@ class ResultsChecker {
  public:
   struct PatternAndFn : public TestCase {  // reusing TestCase for its regexes
     PatternAndFn(const std::string& rx, ResultsCheckFn fn_)
-        : TestCase(rx), fn(fn_) {}
+        : TestCase(rx), fn(std::move(fn_)) {}
     ResultsCheckFn fn;
   };
 
@@ -191,7 +191,7 @@ class ResultsChecker {
   std::vector<Results> results;
   std::vector<std::string> field_names;
 
-  void Add(const std::string& entry_pattern, ResultsCheckFn fn);
+  void Add(const std::string& entry_pattern, const ResultsCheckFn& fn);
 
   void CheckResults(std::stringstream& output);
 
@@ -210,7 +210,8 @@ ResultsChecker& GetResultsChecker() {
 }
 
 // add a results checker for a benchmark
-void ResultsChecker::Add(const std::string& entry_pattern, ResultsCheckFn fn) {
+void ResultsChecker::Add(const std::string& entry_pattern,
+                         const ResultsCheckFn& fn) {
   check_patterns.emplace_back(entry_pattern, fn);
 }
 
@@ -299,7 +300,7 @@ std::vector<std::string> ResultsChecker::SplitCsv_(const std::string& line) {
 
 }  // end namespace internal
 
-size_t AddChecker(const char* bm_name, ResultsCheckFn fn) {
+size_t AddChecker(const char* bm_name, const ResultsCheckFn& fn) {
   auto& rc = internal::GetResultsChecker();
   rc.Add(bm_name, fn);
   return rc.results.size();

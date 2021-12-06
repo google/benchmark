@@ -85,7 +85,7 @@ std::string GetFileReporterOutput(int argc, char* argv[]);
 struct Results;
 typedef std::function<void(Results const&)> ResultsCheckFn;
 
-size_t AddChecker(const char* bm_name_pattern, ResultsCheckFn fn);
+size_t AddChecker(const char* bm_name_pattern, const ResultsCheckFn& fn);
 
 // Class holding the results of a benchmark.
 // It is passed in calls to checker functions.

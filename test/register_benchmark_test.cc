@@ -45,7 +45,7 @@ struct TestCase {
 std::vector<TestCase> ExpectedResults;
 
 int AddCases(std::initializer_list<TestCase> const& v) {
-  for (auto N : v) {
+  for (const auto& N : v) {
     ExpectedResults.push_back(N);
   }
   return 0;

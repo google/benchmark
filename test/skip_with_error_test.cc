@@ -119,12 +119,13 @@ ADD_CASES("BM_error_during_running", {{"/1/threads:1", true, "error message"},
 
 void BM_error_during_running_ranged_for(benchmark::State& state) {
   assert(state.max_iterations > 3 && "test requires at least a few iterations");
-  [[maybe_unused]] bool first_iter = true;
+  bool first_iter = true;
   // NOTE: Users should not write the for loop explicitly.
   for (auto It = state.begin(), End = state.end(); It != End; ++It) {
     if (state.range(0) == 1) {
       assert(first_iter);
       first_iter = false;
+      (void)first_iter;
       state.SkipWithError("error message");
       // Test the unfortunate but documented behavior that the ranged-for loop
       // doesn't automatically terminate when SkipWithError is set.
