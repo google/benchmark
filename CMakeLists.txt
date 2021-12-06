@@ -293,6 +293,8 @@ endif()
 
 # Set up directories
 include_directories(${PROJECT_SOURCE_DIR}/include)
+set(JSON_INCLUDE_DIR "${PROJECT_SOURCE_DIR}/third_party/json/src")
+include_directories(${JSON_INCLUDE_DIR})
 
 # Build the targets
 add_subdirectory(src)
