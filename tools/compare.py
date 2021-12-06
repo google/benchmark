@@ -238,10 +238,10 @@ def main():
         options_contender = ['--benchmark_filter=%s' % filter_contender]
 
     # Run the benchmarks and report the results
-    json1 = json1_orig = gbench.util.run_or_load_benchmark(
-        test_baseline, benchmark_options + options_baseline)
-    json2 = json2_orig = gbench.util.run_or_load_benchmark(
-        test_contender, benchmark_options + options_contender)
+    json1 = json1_orig = gbench.util.sort_benchmark_results(gbench.util.run_or_load_benchmark(
+        test_baseline, benchmark_options + options_baseline))
+    json2 = json2_orig = gbench.util.sort_benchmark_results(gbench.util.run_or_load_benchmark(
+        test_contender, benchmark_options + options_contender))
 
     # Now, filter the benchmarks so that the difference report can work
     if filter_baseline and filter_contender:

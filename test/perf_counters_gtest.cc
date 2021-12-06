@@ -1,3 +1,5 @@
+#include <thread>
+
 #include "../src/perf_counters.h"
 #include "gtest/gtest.h"
 
@@ -91,5 +93,53 @@ TEST(PerfCountersTest, Read2Counters) {
   EXPECT_TRUE(counters.Snapshot(&values2));
   EXPECT_GT(values2[0], 0);
   EXPECT_GT(values2[1], 0);
+}
+
+size_t do_work() {
+  size_t res = 0;
+  for (size_t i = 0; i < 100000000; ++i) res += i * i;
+  return res;
+}
+
+void measure(size_t threadcount, PerfCounterValues* values1,
+             PerfCounterValues* values2) {
+  BM_CHECK_NE(values1, nullptr);
+  BM_CHECK_NE(values2, nullptr);
+  std::vector<std::thread> threads(threadcount);
+  auto work = [&]() { BM_CHECK(do_work() > 1000); };
+
+  // We need to first set up the counters, then start the threads, so the
+  // threads would inherit the counters. But later, we need to first destroy the
+  // thread pool (so all the work finishes), then measure the counters. So the
+  // scopes overlap, and we need to explicitly control the scope of the
+  // threadpool.
+  auto counters =
+      PerfCounters::Create({kGenericPerfEvent1, kGenericPerfEvent3});
+  for (auto& t : threads) t = std::thread(work);
+  counters.Snapshot(values1);
+  for (auto& t : threads) t.join();
+  counters.Snapshot(values2);
+}
+
+TEST(PerfCountersTest, MultiThreaded) {
+  if (!PerfCounters::kSupported) {
+    GTEST_SKIP() << "Test skipped because libpfm is not supported.";
+  }
+  EXPECT_TRUE(PerfCounters::Initialize());
+  PerfCounterValues values1(2);
+  PerfCounterValues values2(2);
+
+  measure(2, &values1, &values2);
+  std::vector<double> D1{static_cast<double>(values2[0] - values1[0]),
+                         static_cast<double>(values2[1] - values1[1])};
+
+  measure(4, &values1, &values2);
+  std::vector<double> D2{static_cast<double>(values2[0] - values1[0]),
+                         static_cast<double>(values2[1] - values1[1])};
+
+  // Some extra work will happen on the main thread - like joining the threads
+  // - so the ratio won't be quite 2.0, but very close.
+  EXPECT_GE(D2[0], 1.9 * D1[0]);
+  EXPECT_GE(D2[1], 1.9 * D1[1]);
 }
 }  // namespace

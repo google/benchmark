@@ -42,7 +42,7 @@ namespace internal {
 class PerfCounterValues {
  public:
   explicit PerfCounterValues(size_t nr_counters) : nr_counters_(nr_counters) {
-    CHECK_LE(nr_counters_, kMaxCounters);
+    BM_CHECK_LE(nr_counters_, kMaxCounters);
   }
 
   uint64_t operator[](size_t pos) const { return values_[kPadding + pos]; }
@@ -92,7 +92,7 @@ class PerfCounters final {
   // Take a snapshot of the current value of the counters into the provided
   // valid PerfCounterValues storage. The values are populated such that:
   // names()[i]'s value is (*values)[i]
-  BENCHMARK_ALWAYS_INLINE bool Snapshot(PerfCounterValues* values) {
+  BENCHMARK_ALWAYS_INLINE bool Snapshot(PerfCounterValues* values) const {
 #ifndef BENCHMARK_OS_WINDOWS
     assert(values != nullptr);
     assert(IsValid());

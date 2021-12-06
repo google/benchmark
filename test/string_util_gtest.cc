@@ -154,8 +154,8 @@ TEST(StringUtilTest, StrSplit) {
   EXPECT_EQ(benchmark::StrSplit("", ','), std::vector<std::string>{});
   EXPECT_EQ(benchmark::StrSplit("hello", ','),
             std::vector<std::string>({"hello"}));
-  EXPECT_EQ(benchmark::StrSplit("hello,there", ','),
-            std::vector<std::string>({"hello", "there"}));
+  EXPECT_EQ(benchmark::StrSplit("hello,there,is,more", ','),
+            std::vector<std::string>({"hello", "there", "is", "more"}));
 }
 
 }  // end namespace

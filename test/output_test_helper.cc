@@ -10,6 +10,7 @@
 
 #include "../src/benchmark_api_internal.h"
 #include "../src/check.h"  // NOTE: check.h is for internal use only!
+#include "../src/log.h"    // NOTE: log.h is for internal use only
 #include "../src/re.h"     // NOTE: re.h is for internal use only
 #include "output_test.h"
 
@@ -94,27 +95,27 @@ void CheckCase(std::stringstream& remaining_output, TestCase const& TC,
   bool on_first = true;
   std::string line;
   while (remaining_output.eof() == false) {
-    CHECK(remaining_output.good());
+    BM_CHECK(remaining_output.good());
     std::getline(remaining_output, line);
     if (on_first) {
       first_line = line;
       on_first = false;
     }
     for (const auto& NC : not_checks) {
-      CHECK(!NC.regex->Match(line))
+      BM_CHECK(!NC.regex->Match(line))
           << "Unexpected match for line \"" << line << "\" for MR_Not regex \""
           << NC.regex_str << "\""
           << "\n    actual regex string \"" << TC.substituted_regex << "\""
           << "\n    started matching near: " << first_line;
     }
     if (TC.regex->Match(line)) return;
-    CHECK(TC.match_rule != MR_Next)
+    BM_CHECK(TC.match_rule != MR_Next)
         << "Expected line \"" << line << "\" to match regex \"" << TC.regex_str
         << "\""
         << "\n    actual regex string \"" << TC.substituted_regex << "\""
         << "\n    started matching near: " << first_line;
   }
-  CHECK(remaining_output.eof() == false)
+  BM_CHECK(remaining_output.eof() == false)
       << "End of output reached before match for regex \"" << TC.regex_str
       << "\" was found"
       << "\n    actual regex string \"" << TC.substituted_regex << "\""
@@ -144,7 +145,7 @@ class TestReporter : public benchmark::BenchmarkReporter {
     bool first = true;
     for (auto rep : reporters_) {
       bool new_ret = rep->ReportContext(context);
-      CHECK(first || new_ret == last_ret)
+      BM_CHECK(first || new_ret == last_ret)
           << "Reports return different values for ReportContext";
       first = false;
       last_ret = new_ret;
@@ -226,7 +227,7 @@ void ResultsChecker::CheckResults(std::stringstream& output) {
   std::string line;
   bool on_first = true;
   while (output.eof() == false) {
-    CHECK(output.good());
+    BM_CHECK(output.good());
     std::getline(output, line);
     if (on_first) {
       SetHeader_(line);  // this is important
@@ -237,18 +238,18 @@ void ResultsChecker::CheckResults(std::stringstream& output) {
   }
   // finally we can call the subscribed check functions
   for (const auto& p : check_patterns) {
-    VLOG(2) << "--------------------------------\n";
-    VLOG(2) << "checking for benchmarks matching " << p.regex_str << "...\n";
+    BM_VLOG(2) << "--------------------------------\n";
+    BM_VLOG(2) << "checking for benchmarks matching " << p.regex_str << "...\n";
     for (const auto& r : results) {
       if (!p.regex->Match(r.name)) {
-        VLOG(2) << p.regex_str << " is not matched by " << r.name << "\n";
+        BM_VLOG(2) << p.regex_str << " is not matched by " << r.name << "\n";
         continue;
       } else {
-        VLOG(2) << p.regex_str << " is matched by " << r.name << "\n";
+        BM_VLOG(2) << p.regex_str << " is matched by " << r.name << "\n";
       }
-      VLOG(1) << "Checking results of " << r.name << ": ... \n";
+      BM_VLOG(1) << "Checking results of " << r.name << ": ... \n";
       p.fn(r);
-      VLOG(1) << "Checking results of " << r.name << ": OK.\n";
+      BM_VLOG(1) << "Checking results of " << r.name << ": OK.\n";
     }
   }
 }
@@ -261,9 +262,9 @@ void ResultsChecker::SetHeader_(const std::string& csv_header) {
 // set the values for a benchmark
 void ResultsChecker::SetValues_(const std::string& entry_csv_line) {
   if (entry_csv_line.empty()) return;  // some lines are empty
-  CHECK(!field_names.empty());
+  BM_CHECK(!field_names.empty());
   auto vals = SplitCsv_(entry_csv_line);
-  CHECK_EQ(vals.size(), field_names.size());
+  BM_CHECK_EQ(vals.size(), field_names.size());
   results.emplace_back(vals[0]);  // vals[0] is the benchmark name
   auto& entry = results.back();
   for (size_t i = 1, e = vals.size(); i < e; ++i) {
@@ -278,7 +279,7 @@ std::vector<std::string> ResultsChecker::SplitCsv_(const std::string& line) {
   if (!field_names.empty()) out.reserve(field_names.size());
   size_t prev = 0, pos = line.find_first_of(','), curr = pos;
   while (pos != line.npos) {
-    CHECK(curr > 0);
+    BM_CHECK(curr > 0);
     if (line[prev] == '"') ++prev;
     if (line[curr - 1] == '"') --curr;
     out.push_back(line.substr(prev, curr - prev));
@@ -309,7 +310,7 @@ int Results::NumThreads() const {
   ss << name.substr(pos + 9, end);
   int num = 1;
   ss >> num;
-  CHECK(!ss.fail());
+  BM_CHECK(!ss.fail());
   return num;
 }
 
@@ -318,11 +319,11 @@ double Results::NumIterations() const {
 }
 
 double Results::GetTime(BenchmarkTime which) const {
-  CHECK(which == kCpuTime || which == kRealTime);
+  BM_CHECK(which == kCpuTime || which == kRealTime);
   const char* which_str = which == kCpuTime ? "cpu_time" : "real_time";
   double val = GetAs<double>(which_str);
   auto unit = Get("time_unit");
-  CHECK(unit);
+  BM_CHECK(unit);
   if (*unit == "ns") {
     return val * 1.e-9;
   } else if (*unit == "us") {
@@ -332,7 +333,7 @@ double Results::GetTime(BenchmarkTime which) const {
   } else if (*unit == "s") {
     return val;
   } else {
-    CHECK(1 == 0) << "unknown time unit: " << *unit;
+    BM_CHECK(1 == 0) << "unknown time unit: " << *unit;
     return 0;
   }
 }
@@ -348,10 +349,10 @@ TestCase::TestCase(std::string re, int rule)
       regex(std::make_shared<benchmark::Regex>()) {
   std::string err_str;
   regex->Init(substituted_regex, &err_str);
-  CHECK(err_str.empty()) << "Could not construct regex \"" << substituted_regex
-                         << "\""
-                         << "\n    originally \"" << regex_str << "\""
-                         << "\n    got error: " << err_str;
+  BM_CHECK(err_str.empty())
+      << "Could not construct regex \"" << substituted_regex << "\""
+      << "\n    originally \"" << regex_str << "\""
+      << "\n    got error: " << err_str;
 }
 
 int AddCases(TestCaseID ID, std::initializer_list<TestCase> il) {
@@ -438,7 +439,7 @@ void RunOutputTests(int argc, char* argv[]) {
   // the checks to subscribees.
   auto& csv = TestCases[2];
   // would use == but gcc spits a warning
-  CHECK(std::strcmp(csv.name, "CSVReporter") == 0);
+  BM_CHECK(std::strcmp(csv.name, "CSVReporter") == 0);
   internal::GetResultsChecker().CheckResults(csv.out_stream);
 }
 

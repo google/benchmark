@@ -13,7 +13,7 @@ foreach(p
   endif()
 endforeach()
 
-project (benchmark CXX)
+project (benchmark VERSION 1.5.4 LANGUAGES CXX)
 
 option(BENCHMARK_ENABLE_TESTING "Enable testing of the benchmark library." ON)
 option(BENCHMARK_ENABLE_EXCEPTIONS "Enable the use of exceptions in the benchmark library." ON)
@@ -94,8 +94,14 @@ list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 include(GetGitVersion)
 get_git_version(GIT_VERSION)
 
+# If no git version can be determined, use the version
+# from the project() command
+if ("${GIT_VERSION}" STREQUAL "0.0.0")
+  set(VERSION "${benchmark_VERSION}")
+else()
+  set(VERSION "${GIT_VERSION}")
+endif()
 # Tell the user what versions we are using
-string(REGEX MATCH "[0-9]+\\.[0-9]+\\.[0-9]+" VERSION ${GIT_VERSION})
 message(STATUS "Version: ${VERSION}")
 
 # The version of the libraries
@@ -161,9 +167,8 @@ else()
     # Disable warning when compiling tests as gtest does not use 'override'.
     add_cxx_compiler_flag(-Wsuggest-override)
   endif()
-  # Disabled until googletest (gmock) stops emitting variadic macro warnings
-  #add_cxx_compiler_flag(-pedantic)
-  #add_cxx_compiler_flag(-pedantic-errors)
+  add_cxx_compiler_flag(-pedantic)
+  add_cxx_compiler_flag(-pedantic-errors)
   add_cxx_compiler_flag(-Wshorten-64-to-32)
   add_cxx_compiler_flag(-fstrict-aliasing)
   # Disable warnings regarding deprecated parts of the library while building

@@ -33,14 +33,14 @@ struct TestCase {
   typedef benchmark::BenchmarkReporter::Run Run;
 
   void CheckRun(Run const& run) const {
-    CHECK(name == run.benchmark_name())
+    BM_CHECK(name == run.benchmark_name())
         << "expected " << name << " got " << run.benchmark_name();
-    CHECK(error_occurred == run.error_occurred);
-    CHECK(error_message == run.error_message);
+    BM_CHECK(error_occurred == run.error_occurred);
+    BM_CHECK(error_message == run.error_message);
     if (error_occurred) {
-      // CHECK(run.iterations == 0);
+      // BM_CHECK(run.iterations == 0);
     } else {
-      CHECK(run.iterations != 0);
+      BM_CHECK(run.iterations != 0);
     }
   }
 };
