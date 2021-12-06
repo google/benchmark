@@ -6,7 +6,9 @@
 *.dylib
 *.cmake
 !/cmake/*.cmake
+!/test/AssemblyTests.cmake
 *~
+*.swp
 *.pyc
 __pycache__
 
@@ -41,9 +43,13 @@ build.ninja
 install_manifest.txt
 rules.ninja
 
+# bazel output symlinks.
+bazel-*
+
 # out-of-source build top-level folders.
 build/
 _build/
+build*/
 
 # in-source dependencies
 /googletest/
@@ -51,3 +57,10 @@ _build/
 # Visual Studio 2015/2017 cache/options directory
 .vs/
 CMakeSettings.json
+
+# Visual Studio Code cache/options directory
+.vscode/
+
+# Python build stuff
+dist/
+*.egg-info*

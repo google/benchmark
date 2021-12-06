@@ -1,6 +1,9 @@
 #include "string_util.h"
 
 #include <array>
+#ifdef BENCHMARK_STL_ANDROID_GNUSTL
+#include <cerrno>
+#endif
 #include <cmath>
 #include <cstdarg>
 #include <cstdio>
@@ -122,7 +125,7 @@ std::string HumanReadableNumber(double n, double one_k) {
   return ToBinaryStringFullySpecified(n, 1.1, 1, one_k);
 }
 
-std::string StringPrintFImp(const char* msg, va_list args) {
+std::string StrFormatImp(const char* msg, va_list args) {
   // we might need a second shot at this, so pre-emptivly make a copy
   va_list args_cp;
   va_copy(args_cp, args);
@@ -152,21 +155,114 @@ std::string StringPrintFImp(const char* msg, va_list args) {
   return std::string(buff_ptr.get());
 }
 
-std::string StringPrintF(const char* format, ...) {
+std::string StrFormat(const char* format, ...) {
   va_list args;
   va_start(args, format);
-  std::string tmp = StringPrintFImp(format, args);
+  std::string tmp = StrFormatImp(format, args);
   va_end(args);
   return tmp;
 }
 
-void ReplaceAll(std::string* str, const std::string& from,
-                const std::string& to) {
-  std::size_t start = 0;
-  while ((start = str->find(from, start)) != std::string::npos) {
-    str->replace(start, from.length(), to);
-    start += to.length();
+std::vector<std::string> StrSplit(const std::string& str, char delim) {
+  if (str.empty()) return {};
+  std::vector<std::string> ret;
+  size_t first = 0;
+  size_t next = str.find(delim);
+  for (; next != std::string::npos;
+       first = next + 1, next = str.find(delim, first)) {
+    ret.push_back(str.substr(first, next - first));
   }
+  ret.push_back(str.substr(first));
+  return ret;
 }
+
+#ifdef BENCHMARK_STL_ANDROID_GNUSTL
+/*
+ * GNU STL in Android NDK lacks support for some C++11 functions, including
+ * stoul, stoi, stod. We reimplement them here using C functions strtoul,
+ * strtol, strtod. Note that reimplemented functions are in benchmark::
+ * namespace, not std:: namespace.
+ */
+unsigned long stoul(const std::string& str, size_t* pos, int base) {
+  /* Record previous errno */
+  const int oldErrno = errno;
+  errno = 0;
+
+  const char* strStart = str.c_str();
+  char* strEnd = const_cast<char*>(strStart);
+  const unsigned long result = strtoul(strStart, &strEnd, base);
+
+  const int strtoulErrno = errno;
+  /* Restore previous errno */
+  errno = oldErrno;
+
+  /* Check for errors and return */
+  if (strtoulErrno == ERANGE) {
+    throw std::out_of_range(
+      "stoul failed: " + str + " is outside of range of unsigned long");
+  } else if (strEnd == strStart || strtoulErrno != 0) {
+    throw std::invalid_argument(
+      "stoul failed: " + str + " is not an integer");
+  }
+  if (pos != nullptr) {
+    *pos = static_cast<size_t>(strEnd - strStart);
+  }
+  return result;
+}
+
+int stoi(const std::string& str, size_t* pos, int base) {
+  /* Record previous errno */
+  const int oldErrno = errno;
+  errno = 0;
+
+  const char* strStart = str.c_str();
+  char* strEnd = const_cast<char*>(strStart);
+  const long result = strtol(strStart, &strEnd, base);
+
+  const int strtolErrno = errno;
+  /* Restore previous errno */
+  errno = oldErrno;
+
+  /* Check for errors and return */
+  if (strtolErrno == ERANGE || long(int(result)) != result) {
+    throw std::out_of_range(
+      "stoul failed: " + str + " is outside of range of int");
+  } else if (strEnd == strStart || strtolErrno != 0) {
+    throw std::invalid_argument(
+      "stoul failed: " + str + " is not an integer");
+  }
+  if (pos != nullptr) {
+    *pos = static_cast<size_t>(strEnd - strStart);
+  }
+  return int(result);
+}
+
+double stod(const std::string& str, size_t* pos) {
+  /* Record previous errno */
+  const int oldErrno = errno;
+  errno = 0;
+
+  const char* strStart = str.c_str();
+  char* strEnd = const_cast<char*>(strStart);
+  const double result = strtod(strStart, &strEnd);
+
+  /* Restore previous errno */
+  const int strtodErrno = errno;
+  errno = oldErrno;
+
+  /* Check for errors and return */
+  if (strtodErrno == ERANGE) {
+    throw std::out_of_range(
+      "stoul failed: " + str + " is outside of range of int");
+  } else if (strEnd == strStart || strtodErrno != 0) {
+    throw std::invalid_argument(
+      "stoul failed: " + str + " is not an integer");
+  }
+  if (pos != nullptr) {
+    *pos = static_cast<size_t>(strEnd - strStart);
+  }
+  return result;
+}
+#endif
 
 }  // end namespace benchmark

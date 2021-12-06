@@ -27,36 +27,43 @@ function(cxx_feature_check FILE)
     return()
   endif()
 
-  message("-- Performing Test ${FEATURE}")
-  if(CMAKE_CROSSCOMPILING)
-    try_compile(COMPILE_${FEATURE}
-            ${CMAKE_BINARY_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/cmake/${FILE}.cpp
-            CMAKE_FLAGS ${BENCHMARK_CXX_LINKER_FLAGS}
-            LINK_LIBRARIES ${BENCHMARK_CXX_LIBRARIES})
-    if(COMPILE_${FEATURE})
-      message(WARNING
-            "If you see build failures due to cross compilation, try setting HAVE_${VAR} to 0")
-      set(RUN_${FEATURE} 0)
+  if (ARGC GREATER 1)
+    message(STATUS "Enabling additional flags: ${ARGV1}")
+    list(APPEND BENCHMARK_CXX_LINKER_FLAGS ${ARGV1})
+  endif()
+
+  if (NOT DEFINED COMPILE_${FEATURE})
+    message(STATUS "Performing Test ${FEATURE}")
+    if(CMAKE_CROSSCOMPILING)
+      try_compile(COMPILE_${FEATURE}
+              ${CMAKE_BINARY_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/cmake/${FILE}.cpp
+              CMAKE_FLAGS ${BENCHMARK_CXX_LINKER_FLAGS}
+              LINK_LIBRARIES ${BENCHMARK_CXX_LIBRARIES})
+      if(COMPILE_${FEATURE})
+        message(WARNING
+              "If you see build failures due to cross compilation, try setting HAVE_${VAR} to 0")
+        set(RUN_${FEATURE} 0 CACHE INTERNAL "")
+      else()
+        set(RUN_${FEATURE} 1 CACHE INTERNAL "")
+      endif()
     else()
-      set(RUN_${FEATURE} 1)
+      message(STATUS "Performing Test ${FEATURE}")
+      try_run(RUN_${FEATURE} COMPILE_${FEATURE}
+              ${CMAKE_BINARY_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/cmake/${FILE}.cpp
+              CMAKE_FLAGS ${BENCHMARK_CXX_LINKER_FLAGS}
+              LINK_LIBRARIES ${BENCHMARK_CXX_LIBRARIES})
     endif()
-  else()
-    message("-- Performing Test ${FEATURE}")
-    try_run(RUN_${FEATURE} COMPILE_${FEATURE}
-            ${CMAKE_BINARY_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/cmake/${FILE}.cpp
-            CMAKE_FLAGS ${BENCHMARK_CXX_LINKER_FLAGS}
-            LINK_LIBRARIES ${BENCHMARK_CXX_LIBRARIES})
   endif()
 
   if(RUN_${FEATURE} EQUAL 0)
-    message("-- Performing Test ${FEATURE} -- success")
+    message(STATUS "Performing Test ${FEATURE} -- success")
     set(HAVE_${VAR} 1 PARENT_SCOPE)
     add_definitions(-DHAVE_${VAR})
   else()
     if(NOT COMPILE_${FEATURE})
-      message("-- Performing Test ${FEATURE} -- failed to compile")
+      message(STATUS "Performing Test ${FEATURE} -- failed to compile")
     else()
-      message("-- Performing Test ${FEATURE} -- compiled but failed to run")
+      message(STATUS "Performing Test ${FEATURE} -- compiled but failed to run")
     endif()
   endif()
 endfunction()
