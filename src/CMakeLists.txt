@@ -150,6 +150,8 @@ else()
       DESTINATION ${CMAKE_INSTALL_DOCDIR})
   endif()
 
-  export (EXPORT ${targets_export_name} NAMESPACE "${namespace}"
-    FILE ${generated_dir}/${targets_export_name}.cmake)
+  if (BENCHMARK_ENABLE_INSTALL)
+    export (EXPORT ${targets_export_name} NAMESPACE "${namespace}"
+      FILE ${generated_dir}/${targets_export_name}.cmake)
+  endif()
 endif()
