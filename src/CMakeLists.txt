@@ -69,6 +69,7 @@ set(generated_dir "${PROJECT_BINARY_DIR}")
 set(version_config "${generated_dir}/${PROJECT_NAME}ConfigVersion.cmake")
 set(project_config "${generated_dir}/${PROJECT_NAME}Config.cmake")
 set(pkg_config "${generated_dir}/${PROJECT_NAME}.pc")
+set(targets_to_export benchmark benchmark_main)
 set(targets_export_name "${PROJECT_NAME}Targets")
 
 set(namespace "${PROJECT_NAME}::")
@@ -88,10 +89,16 @@ write_basic_package_version_file(
 
 configure_file("${PROJECT_SOURCE_DIR}/cmake/benchmark.pc.in" "${pkg_config}" @ONLY)
 
+export (
+  TARGETS ${targets_to_export}
+  NAMESPACE "${namespace}"
+  FILE ${generated_dir}/${targets_export_name}.cmake
+)
+
 if (BENCHMARK_ENABLE_INSTALL)
   # Install target (will install the library to specified CMAKE_INSTALL_PREFIX variable)
   install(
-    TARGETS benchmark benchmark_main
+    TARGETS ${targets_to_export}
     EXPORT ${targets_export_name}
     ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
     LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
@@ -138,18 +145,15 @@ if (BENCHMARK_ENABLE_DOXYGEN)
     ALL
     WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
     COMMENT "Building documentation with Doxygen.")
-  if (BENCHMARK_INSTALL_DOCS)
+  if (BENCHMARK_ENABLE_INSTALL AND BENCHMARK_INSTALL_DOCS)
     install(
       DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/html/"
       DESTINATION ${CMAKE_INSTALL_DOCDIR})
   endif()
 else()
-  if (BENCHMARK_INSTALL_DOCS)
+  if (BENCHMARK_ENABLE_INSTALL AND BENCHMARK_INSTALL_DOCS)
     install(
       DIRECTORY "${PROJECT_SOURCE_DIR}/docs/"
       DESTINATION ${CMAKE_INSTALL_DOCDIR})
   endif()
-
-  export (EXPORT ${targets_export_name} NAMESPACE "${namespace}"
-    FILE ${generated_dir}/${targets_export_name}.cmake)
 endif()
