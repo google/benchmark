@@ -166,7 +166,7 @@ BenchmarkRunner::BenchmarkRunner(
     run_results.file_report_aggregates_only =
         (b.aggregation_report_mode() & internal::ARM_FileReportAggregatesOnly);
     BM_CHECK(FLAGS_benchmark_perf_counters.empty() ||
-          perf_counters_measurement_ptr->IsValid())
+             perf_counters_measurement_ptr->IsValid())
         << "Perf counters were requested but could not be set up.";
   }
 }

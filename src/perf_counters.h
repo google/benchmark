@@ -141,8 +141,8 @@ class PerfCountersMeasurement final {
   }
 
   BENCHMARK_ALWAYS_INLINE
-      std::pair<std::vector<std::pair<std::string, double>>, bool>
-      StopAndGetMeasurements() {
+  std::pair<std::vector<std::pair<std::string, double>>, bool>
+  StopAndGetMeasurements() {
     assert(IsValid());
     // Tell the compiler to not move instructions above/below where we take
     // the snapshot.
