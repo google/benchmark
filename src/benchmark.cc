@@ -328,7 +328,7 @@ void RunBenchmarks(const std::vector<BenchmarkInstance>& benchmarks,
     }
     assert(runners.size() == benchmarks.size() && "Unexpected runner count.");
 
-    std::vector<int> repetition_indices;
+    std::vector<size_t> repetition_indices;
     repetition_indices.reserve(num_repetitions_total);
     for (size_t runner_index = 0, num_runners = runners.size();
          runner_index != num_runners; ++runner_index) {
