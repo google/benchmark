@@ -36,15 +36,15 @@ class CheckHandler {
   LogType& GetLog() { return log_; }
 
 #if defined (COMPILER_MSVC)
-  #pragma warning(push)
-  #pragma warning(disable:4722)
+#pragma warning(push)
+#pragma warning(disable:4722)
 #endif
   BENCHMARK_NORETURN ~CheckHandler() BENCHMARK_NOEXCEPT_OP(false) {
     log_ << std::endl;
     CallAbortHandler();
   }
 #if defined (COMPILER_MSVC)
-  #pragma warning(pop)
+#pragma warning(pop)
 #endif
 
   CheckHandler& operator=(const CheckHandler&) = delete;
