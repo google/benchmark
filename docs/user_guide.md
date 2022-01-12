@@ -50,6 +50,8 @@
 
 [Custom Statistics](#custom-statistics)
 
+[Memory Usage](#memory-usage)
+
 [Using RegisterBenchmark](#using-register-benchmark)
 
 [Exiting with an Error](#exiting-with-an-error)
@@ -1050,6 +1052,21 @@ BENCHMARK(BM_spin_empty)
   }, benchmark::StatisticUnit::Percentage)
   ->Arg(512);
 ```
+
+<a name="memory-usage" />
+
+## Memory Usage
+
+It's often useful to also track memory usage for benchmarks, alongside CPU
+performance. For this reason, benchmark offers the `RegisterMemoryManager`
+method that allows a custom `MemoryManager` to be injected.
+
+If set, the `MemoryManager::Start` and `MemoryManager::Stop` methods will be
+called at the start and end of benchmark runs to allow user code to fill out
+a report on the number of allocations, bytes used, etc.
+
+This data will then be reported alongside other performance data, currently
+only when using JSON output.
 
 <a name="using-register-benchmark" />
 
