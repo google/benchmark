@@ -1058,7 +1058,7 @@ void BM_spin_empty(benchmark::State& state) {
 BENCHMARK(BM_spin_empty)
   ->ComputeStatistics("ratio", [](const std::vector<double>& v) -> double {
     return std::begin(v) / std::end(v);
-  }, benchmark::StatisticUnit::Percentage)
+  }, benchmark::StatisticUnit::kPercentage)
   ->Arg(512);
 ```
 
