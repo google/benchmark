@@ -93,6 +93,12 @@ class BuildBazelExtension(build_ext.build_ext):
         elif sys.platform == "darwin" and platform.machine() == "x86_64":
             bazel_argv.append("--macos_minimum_os=10.9")
 
+            # ARCHFLAGS is always set by cibuildwheel before macOS wheel builds.
+            archflags = os.getenv("ARCHFLAGS", "")
+            if "arm64" in archflags:
+                bazel_argv.append("--cpu=darwin_arm64")
+                bazel_argv.append("--macos_cpus=arm64")
+
         self.spawn(bazel_argv)
 
         shared_lib_suffix = '.dll' if IS_WINDOWS else '.so'
