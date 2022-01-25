@@ -11,6 +11,7 @@ struct MsgHandler {
 #endif
 
 using benchmark::internal::PerfCounters;
+using benchmark::internal::PerfCountersMeasurement;
 using benchmark::internal::PerfCounterValues;
 
 namespace {
@@ -93,6 +94,53 @@ TEST(PerfCountersTest, Read2Counters) {
   EXPECT_TRUE(counters.Snapshot(&values2));
   EXPECT_GT(values2[0], 0);
   EXPECT_GT(values2[1], 0);
+}
+
+TEST(PerfCountersTest, ReopenExistingCounters) {
+  // The test works (i.e. causes read to fail) for the assumptions
+  // about hardware capabilities (i.e. small number (3-4) hardware
+  // counters) at this date.
+  if (!PerfCounters::kSupported) {
+    GTEST_SKIP() << "Test skipped because libpfm is not supported.\n";
+  }
+  EXPECT_TRUE(PerfCounters::Initialize());
+  std::vector<PerfCounters> counters;
+  counters.reserve(6);
+  for (int i = 0; i < 6; i++)
+    counters.push_back(PerfCounters::Create({kGenericPerfEvent1}));
+  PerfCounterValues values(1);
+  EXPECT_TRUE(counters[0].Snapshot(&values));
+  EXPECT_FALSE(counters[4].Snapshot(&values));
+  EXPECT_FALSE(counters[5].Snapshot(&values));
+}
+
+TEST(PerfCountersTest, CreateExistingMeasurements) {
+  // The test works (i.e. causes read to fail) for the assumptions
+  // about hardware capabilities (i.e. small number (3-4) hardware
+  // counters) at this date,
+  // the same as previous test ReopenExistingCounters.
+  if (!PerfCounters::kSupported) {
+    GTEST_SKIP() << "Test skipped because libpfm is not supported.\n";
+  }
+  EXPECT_TRUE(PerfCounters::Initialize());
+  std::vector<PerfCountersMeasurement> perf_counter_measurements;
+  std::vector<std::pair<std::string, double>> measurements;
+
+  perf_counter_measurements.reserve(10);
+  for (int i = 0; i < 10; i++)
+    perf_counter_measurements.emplace_back(
+        std::vector<std::string>{kGenericPerfEvent1});
+
+  perf_counter_measurements[0].Start();
+  EXPECT_TRUE(perf_counter_measurements[0].Stop(measurements));
+
+  measurements.clear();
+  perf_counter_measurements[8].Start();
+  EXPECT_FALSE(perf_counter_measurements[8].Stop(measurements));
+
+  measurements.clear();
+  perf_counter_measurements[9].Start();
+  EXPECT_FALSE(perf_counter_measurements[9].Stop(measurements));
 }
 
 size_t do_work() {
