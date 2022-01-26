@@ -29,6 +29,12 @@
 #include <unistd.h>
 #endif
 
+#if defined(_MSC_VER)
+#pragma warning(push)
+// C4251: <symbol> needs to have dll-interface to be used by clients of class
+#pragma warning(disable : 4251)
+#endif
+
 namespace benchmark {
 namespace internal {
 
@@ -68,7 +74,7 @@ class PerfCounterValues {
 // Collect PMU counters. The object, once constructed, is ready to be used by
 // calling read(). PMU counter collection is enabled from the time create() is
 // called, to obtain the object, until the object's destructor is called.
-class PerfCounters final {
+class BENCHMARK_EXPORT PerfCounters final {
  public:
   // True iff this platform supports performance counters.
   static const bool kSupported;
@@ -125,7 +131,7 @@ class PerfCounters final {
 };
 
 // Typical usage of the above primitives.
-class PerfCountersMeasurement final {
+class BENCHMARK_EXPORT PerfCountersMeasurement final {
  public:
   PerfCountersMeasurement(const std::vector<std::string>& counter_names);
   ~PerfCountersMeasurement();
@@ -183,5 +189,9 @@ BENCHMARK_UNUSED static bool perf_init_anchor = PerfCounters::Initialize();
 
 }  // namespace internal
 }  // namespace benchmark
+
+#if defined(_MSC_VER)
+#pragma warning(pop)
+#endif
 
 #endif  // BENCHMARK_PERF_COUNTERS_H

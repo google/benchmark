@@ -50,7 +50,10 @@ option(BENCHMARK_USE_BUNDLED_GTEST "Use bundled GoogleTest. If disabled, the fin
 
 option(BENCHMARK_ENABLE_LIBPFM "Enable performance counters provided by libpfm" OFF)
 
-set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
+# Export only public symbols
+set(CMAKE_CXX_VISIBILITY_PRESET hidden)
+set(CMAKE_VISIBILITY_INLINES_HIDDEN ON)
+
 if(MSVC)
     # As of CMake 3.18, CMAKE_SYSTEM_PROCESSOR is not set properly for MSVC and
     # cross-compilation (e.g. Host=x86_64, target=aarch64) requires using the
@@ -123,10 +126,11 @@ set(GENERIC_LIB_VERSION ${VERSION})
 string(SUBSTRING ${VERSION} 0 1 GENERIC_LIB_SOVERSION)
 
 # Import our CMake modules
-include(CheckCXXCompilerFlag)
 include(AddCXXCompilerFlag)
-include(CXXFeatureCheck)
+include(CheckCXXCompilerFlag)
 include(CheckLibraryExists)
+include(CXXFeatureCheck)
+include(GenerateExportHeader)
 
 check_library_exists(rt shm_open "" HAVE_LIB_RT)
 

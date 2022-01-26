@@ -15,3 +15,13 @@
 #include "benchmark/benchmark.h"
 
 BENCHMARK_MAIN();
+
+// MSVC does not allow the definition of dllimport. Thus, define it here instead
+// inline in a macro.
+int main(int argc, char** argv) {
+  ::benchmark::Initialize(&argc, argv);
+  if (::benchmark::ReportUnrecognizedArguments(argc, argv)) return 1;
+  ::benchmark::RunSpecifiedBenchmarks();
+  ::benchmark::Shutdown();
+  return 0;
+}

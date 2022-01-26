@@ -5,6 +5,7 @@
 #include <cstdlib>
 #include <ostream>
 
+#include "benchmark/export.h"
 #include "internal_macros.h"
 #include "log.h"
 
@@ -13,10 +14,8 @@ namespace internal {
 
 typedef void(AbortHandlerT)();
 
-inline AbortHandlerT*& GetAbortHandler() {
-  static AbortHandlerT* handler = &std::abort;
-  return handler;
-}
+BENCHMARK_EXPORT
+AbortHandlerT*& GetAbortHandler();
 
 BENCHMARK_NORETURN inline void CallAbortHandler() {
   GetAbortHandler()();
