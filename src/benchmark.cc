@@ -121,6 +121,10 @@ BM_DEFINE_string(benchmark_perf_counters, "");
 // pairs. Kept internal as it's only used for parsing from env/command line.
 BM_DEFINE_kvpairs(benchmark_context, {});
 
+// Set the default time unit to use for reports
+// Valid values are 'ns', 'us', 'ms' or 's' 
+BM_DEFINE_string(benchmark_time_unit, "");
+
 // The level of verbose logging to output
 BM_DEFINE_int32(v, 0);
 
@@ -520,6 +524,19 @@ size_t RunSpecifiedBenchmarks(BenchmarkReporter* display_reporter,
   return benchmarks.size();
 }
 
+namespace {
+  // stores the time unit benchmarks use by default
+  TimeUnit gDefaultTimeUnit = kNanosecond;
+}
+
+TimeUnit GetDefaultTimeUnit() {
+  return gDefaultTimeUnit;
+}
+
+void SetDefaultTimeUnit(TimeUnit unit) {
+  gDefaultTimeUnit = unit;
+}
+
 std::string GetBenchmarkFilter() { return FLAGS_benchmark_filter; }
 
 void RegisterMemoryManager(MemoryManager* manager) {
@@ -534,6 +551,23 @@ void AddCustomContext(const std::string& key, const std::string& value) {
     std::cerr << "Failed to add custom context \"" << key << "\" as it already "
               << "exists with value \"" << value << "\"\n";
   }
+}
+
+namespace {
+
+inline TimeUnit GetTimeUnitFromString(std::string unit_string) {
+  if (unit_string == "s") {
+    return kSecond;
+  } else if (unit_string == "ms") {
+    return kMillisecond;
+  } else if (unit_string == "us") {
+    return kMicrosecond;
+  } else if (unit_string == "ns") {
+    return kNanosecond;
+  }
+  BENCHMARK_UNREACHABLE();
+}
+
 }
 
 namespace internal {
@@ -559,6 +593,7 @@ void PrintUsageAndExit() {
             "          [--benchmark_color={auto|true|false}]\n"
             "          [--benchmark_counters_tabular={true|false}]\n"
             "          [--benchmark_context=<key>=<value>,...]\n"
+            "          [--benchmark_time_unit={ns|us|ms|s}]\n"
             "          [--v=<verbosity>]\n");
   }
   exit(0);
@@ -593,6 +628,8 @@ void ParseCommandLineFlags(int* argc, char** argv) {
                         &FLAGS_benchmark_perf_counters) ||
         ParseKeyValueFlag(argv[i], "benchmark_context",
                           &FLAGS_benchmark_context) ||
+        ParseStringFlag(argv[i], "benchmark_time_unit",
+                        &FLAGS_benchmark_time_unit) ||
         ParseInt32Flag(argv[i], "v", &FLAGS_v)) {
       for (int j = i; j != *argc - 1; ++j) argv[j] = argv[j + 1];
 
@@ -607,6 +644,15 @@ void ParseCommandLineFlags(int* argc, char** argv) {
     if (*flag != "console" && *flag != "json" && *flag != "csv") {
       PrintUsageAndExit();
     }
+  }
+  if (!FLAGS_benchmark_time_unit.empty() &&
+      FLAGS_benchmark_time_unit != "ns" &&
+      FLAGS_benchmark_time_unit != "us" &&
+      FLAGS_benchmark_time_unit != "ms" &&
+      FLAGS_benchmark_time_unit != "s") {
+      PrintUsageAndExit();
+  } else if (!FLAGS_benchmark_time_unit.empty()) {
+      SetDefaultTimeUnit(GetTimeUnitFromString(FLAGS_benchmark_time_unit));
   }
   if (FLAGS_benchmark_color.empty()) {
     PrintUsageAndExit();
