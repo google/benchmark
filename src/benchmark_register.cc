@@ -202,7 +202,7 @@ bool FindBenchmarksInternal(const std::string& re,
 Benchmark::Benchmark(const char* name)
     : name_(name),
       aggregation_report_mode_(ARM_Unspecified),
-      time_unit_(kNanosecond),
+      time_unit_(GetDefaultTimeUnit()),
       use_default_time_unit_(true),
       range_multiplier_(kRangeMultiplier),
       min_time_(0),

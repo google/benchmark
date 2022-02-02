@@ -1557,7 +1557,7 @@ class BENCHMARK_EXPORT BenchmarkReporter {
           error_occurred(false),
           iterations(1),
           threads(1),
-          time_unit(kNanosecond),
+          time_unit(GetDefaultTimeUnit()),
           real_accumulated_time(0),
           cpu_accumulated_time(0),
           max_heapbytes_used(0),
