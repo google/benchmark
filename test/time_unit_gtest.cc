@@ -7,7 +7,7 @@ namespace internal {
 namespace {
 
 class DummyBenchmark : public Benchmark {
-public:
+ public:
   DummyBenchmark() : Benchmark("dummy") {}
   virtual void Run(State&) override {}
 };

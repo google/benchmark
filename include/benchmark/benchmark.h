@@ -1129,10 +1129,10 @@ class BENCHMARK_EXPORT Benchmark {
   AggregationReportMode aggregation_report_mode_;
   std::vector<std::string> arg_names_;       // Args for all benchmark runs
   std::vector<std::vector<int64_t> > args_;  // Args for all benchmark runs
-  
+
   TimeUnit time_unit_;
   bool use_default_time_unit_;
-  
+
   int range_multiplier_;
   double min_time_;
   IterationCount iterations_;
