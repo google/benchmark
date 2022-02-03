@@ -136,10 +136,14 @@ class PerfCountersMeasurement final {
   // concurrently running with this. This is preferring efficiency to
   // maintainability, because the address of the static can be known at compile
   // time.
-  bool IsValid() const { return counters_.IsValid(); }
+  bool IsValid() const {
+    MutexLock l(mutex_);
+    return counters_.IsValid();
+  }
 
   BENCHMARK_ALWAYS_INLINE void Start() {
     assert(IsValid());
+    MutexLock l(mutex_);
     // Tell the compiler to not move instructions above/below where we take
     // the snapshot.
     ClobberMemory();
@@ -150,6 +154,7 @@ class PerfCountersMeasurement final {
   BENCHMARK_ALWAYS_INLINE bool Stop(
       std::vector<std::pair<std::string, double>>& measurements) {
     assert(IsValid());
+    MutexLock l(mutex_);
     // Tell the compiler to not move instructions above/below where we take
     // the snapshot.
     ClobberMemory();
