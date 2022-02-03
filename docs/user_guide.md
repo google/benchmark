@@ -50,6 +50,8 @@
 
 [Custom Statistics](#custom-statistics)
 
+[Memory Usage](#memory-usage)
+
 [Using RegisterBenchmark](#using-register-benchmark)
 
 [Exiting with an Error](#exiting-with-an-error)
@@ -434,13 +436,22 @@ The `test_case_name` is appended to the name of the benchmark and
 should describe the values passed.
 
 ```c++
-template <class ...ExtraArgs>
-void BM_takes_args(benchmark::State& state, ExtraArgs&&... extra_args) {
-  [...]
+template <class ...Args>
+void BM_takes_args(benchmark::State& state, Args&&... args) {
+  auto args_tuple = std::make_tuple(std::move(args)...);
+  for (auto _ : state) {
+    std::cout << std::get<0>(args_tuple) << ": " << std::get<1>(args_tuple)
+              << '\n';
+    [...]
+  }
 }
 // Registers a benchmark named "BM_takes_args/int_string_test" that passes
-// the specified values to `extra_args`.
+// the specified values to `args`.
 BENCHMARK_CAPTURE(BM_takes_args, int_string_test, 42, std::string("abc"));
+
+// Registers the same benchmark "BM_takes_args/int_test" that passes
+// the specified values to `args`.
+BENCHMARK_CAPTURE(BM_takes_args, int_test, 42, 43);
 ```
 
 Note that elements of `...args` may refer to global variables. Users should
@@ -773,6 +784,16 @@ static void BM_MultiThreaded(benchmark::State& state) {
 BENCHMARK(BM_MultiThreaded)->Threads(2);
 ```
 
+To run the benchmark across a range of thread counts, instead of `Threads`, use
+`ThreadRange`. This takes two parameters (`min_threads` and `max_threads`) and
+runs the benchmark once for values in the inclusive range. For example:
+
+```c++
+BENCHMARK(BM_MultiThreaded)->ThreadRange(1, 8);
+```
+
+will run `BM_MultiThreaded` with thread counts 1, 2, 4, and 8.
+
 If the benchmarked code itself uses threads and you want to compare it to
 single-threaded code, you may want to use real-time ("wallclock") measurements
 for latency comparisons:
@@ -1037,9 +1058,24 @@ void BM_spin_empty(benchmark::State& state) {
 BENCHMARK(BM_spin_empty)
   ->ComputeStatistics("ratio", [](const std::vector<double>& v) -> double {
     return std::begin(v) / std::end(v);
-  }, benchmark::StatisticUnit::Percentage)
+  }, benchmark::StatisticUnit::kPercentage)
   ->Arg(512);
 ```
+
+<a name="memory-usage" />
+
+## Memory Usage
+
+It's often useful to also track memory usage for benchmarks, alongside CPU
+performance. For this reason, benchmark offers the `RegisterMemoryManager`
+method that allows a custom `MemoryManager` to be injected.
+
+If set, the `MemoryManager::Start` and `MemoryManager::Stop` methods will be
+called at the start and end of benchmark runs to allow user code to fill out
+a report on the number of allocations, bytes used, etc.
+
+This data will then be reported alongside other performance data, currently
+only when using JSON output.
 
 <a name="using-register-benchmark" />
 
@@ -1191,10 +1227,36 @@ If you see this error:
 ***WARNING*** CPU scaling is enabled, the benchmark real time measurements may be noisy and will incur extra overhead.
 ```
 
-you might want to disable the CPU frequency scaling while running the benchmark:
+you might want to disable the CPU frequency scaling while running the
+benchmark.  Exactly how to do this depends on the Linux distribution,
+desktop environment, and installed programs.  Specific details are a moving
+target, so we will not attempt to exhaustively document them here.
+
+One simple option is to use the `cpupower` program to change the
+performance governor to "performance".  This tool is maintained along with
+the Linux kernel and provided by your distribution.
+
+It must be run as root, like this:
 
 ```bash
 sudo cpupower frequency-set --governor performance
-./mybench
-sudo cpupower frequency-set --governor powersave
 ```
+
+After this you can verify that all CPUs are using the performance governor
+by running this command:
+
+```bash
+cpupower frequency-info -o proc
+```
+
+The benchmarks you subsequently run will have less variance.
+
+Note that changing the governor in this way will not persist across
+reboots.  To set the governor back, run the first command again with the
+governor your system usually runs with, which varies.
+
+If you find yourself doing this often, there are probably better options
+than running the commands above.  Some approaches allow you to do this
+without root access, or by using a GUI, etc.  The Arch Wiki [Cpu frequency
+scaling](https://wiki.archlinux.org/title/CPU_frequency_scaling) page is a
+good place to start looking for options.
