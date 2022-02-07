@@ -526,12 +526,12 @@ size_t RunSpecifiedBenchmarks(BenchmarkReporter* display_reporter,
 
 namespace {
 // stores the time unit benchmarks use by default
-TimeUnit gDefaultTimeUnit = kNanosecond;
+TimeUnit default_time_unit = kNanosecond;
 }  // namespace
 
-TimeUnit GetDefaultTimeUnit() { return gDefaultTimeUnit; }
+TimeUnit GetDefaultTimeUnit() { return default_time_unit; }
 
-void SetDefaultTimeUnit(TimeUnit unit) { gDefaultTimeUnit = unit; }
+void SetDefaultTimeUnit(TimeUnit unit) { default_time_unit = unit; }
 
 std::string GetBenchmarkFilter() { return FLAGS_benchmark_filter; }
 
@@ -548,23 +548,6 @@ void AddCustomContext(const std::string& key, const std::string& value) {
               << "exists with value \"" << value << "\"\n";
   }
 }
-
-namespace {
-
-inline TimeUnit GetTimeUnitFromString(const std::string& unit_string) {
-  if (unit_string == "s") {
-    return kSecond;
-  } else if (unit_string == "ms") {
-    return kMillisecond;
-  } else if (unit_string == "us") {
-    return kMicrosecond;
-  } else if (unit_string == "ns") {
-    return kNanosecond;
-  }
-  BENCHMARK_UNREACHABLE();
-}
-
-}  // namespace
 
 namespace internal {
 
@@ -593,6 +576,20 @@ void PrintUsageAndExit() {
             "          [--v=<verbosity>]\n");
   }
   exit(0);
+}
+
+void SetDefaultTimeUnitFromFlag(const std::string& time_unit_flag) {
+  if (time_unit_flag == "s") {
+    return SetDefaultTimeUnit(kSecond);
+  } else if (time_unit_flag == "ms") {
+    return SetDefaultTimeUnit(kMillisecond);
+  } else if (time_unit_flag == "us") {
+    return SetDefaultTimeUnit(kMicrosecond);
+  } else if (time_unit_flag == "ns") {
+    return SetDefaultTimeUnit(kNanosecond);
+  } else if (!time_unit_flag.empty()) {
+    PrintUsageAndExit();
+  }
 }
 
 void ParseCommandLineFlags(int* argc, char** argv) {
@@ -641,13 +638,7 @@ void ParseCommandLineFlags(int* argc, char** argv) {
       PrintUsageAndExit();
     }
   }
-  if (!FLAGS_benchmark_time_unit.empty() && FLAGS_benchmark_time_unit != "ns" &&
-      FLAGS_benchmark_time_unit != "us" && FLAGS_benchmark_time_unit != "ms" &&
-      FLAGS_benchmark_time_unit != "s") {
-    PrintUsageAndExit();
-  } else if (!FLAGS_benchmark_time_unit.empty()) {
-    SetDefaultTimeUnit(GetTimeUnitFromString(FLAGS_benchmark_time_unit));
-  }
+  SetDefaultTimeUnitFromFlag(FLAGS_benchmark_time_unit);
   if (FLAGS_benchmark_color.empty()) {
     PrintUsageAndExit();
   }
