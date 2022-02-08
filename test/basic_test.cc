@@ -147,10 +147,10 @@ void BM_OneTemplateFunc(benchmark::State& state) {
   auto arg = state.range(0);
   T sum = 0;
   for (auto _ : state) {
-    sum += arg;
+    sum += static_cast<T>(arg);
   }
 }
-BENCHMARK(BM_OneTemplateFunc<long long>)->Arg(1);
+BENCHMARK(BM_OneTemplateFunc<int>)->Arg(1);
 BENCHMARK(BM_OneTemplateFunc<double>)->Arg(1);
 
 template <typename A, typename B>
@@ -159,12 +159,12 @@ void BM_TwoTemplateFunc(benchmark::State& state) {
   A sum = 0;
   B prod = 1;
   for (auto _ : state) {
-    sum += arg;
-    prod *= arg;
+    sum += static_cast<A>(arg);
+    prod *= static_cast<B>(arg);
   }
 }
 BENCHMARK(BM_TwoTemplateFunc<int, double>)->Arg(1);
-BENCHMARK(BM_TwoTemplateFunc<double, long long>)->Arg(1);
+BENCHMARK(BM_TwoTemplateFunc<double, int>)->Arg(1);
 
 #endif  // BENCHMARK_HAS_CXX11
 
