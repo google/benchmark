@@ -75,6 +75,6 @@ BENCHMARK(BM_diagnostic_test_keep_running);
 
 int main(int argc, char* argv[]) {
   benchmark::internal::GetAbortHandler() = &TestHandler;
-  benchmark::Initialize(&argc, argv);
+  benchmark::Initialize(&argc, argv, benchmark::internal::helper_printer);
   benchmark::RunSpecifiedBenchmarks();
 }

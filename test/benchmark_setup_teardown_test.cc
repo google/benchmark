@@ -128,7 +128,7 @@ BENCHMARK(BM_WithRep)
     ->Repetitions(4);
 
 int main(int argc, char** argv) {
-  benchmark::Initialize(&argc, argv);
+  benchmark::Initialize(&argc, argv, benchmark::internal::helper_printer);
 
   size_t ret = benchmark::RunSpecifiedBenchmarks(".");
   assert(ret > 0);

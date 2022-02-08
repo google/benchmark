@@ -387,7 +387,7 @@ BENCHMARK_DISABLE_DEPRECATED_WARNING
 
 void RunOutputTests(int argc, char* argv[]) {
   using internal::GetTestCaseList;
-  benchmark::Initialize(&argc, argv);
+  benchmark::Initialize(&argc, argv, benchmark::internal::helper_printer);
   auto options = benchmark::internal::GetOutputOptions(/*force_no_color*/ true);
   benchmark::ConsoleReporter CR(options);
   benchmark::JSONReporter JR;
@@ -504,7 +504,8 @@ std::string GetFileReporterOutput(int argc, char* argv[]) {
 
   argc = int(new_argv.size());
 
-  benchmark::Initialize(&argc, new_argv.data());
+  benchmark::Initialize(&argc, new_argv.data(),
+                        benchmark::internal::helper_printer);
   benchmark::RunSpecifiedBenchmarks();
 
   // Read the output back from the file, and delete the file.
