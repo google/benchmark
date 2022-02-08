@@ -150,7 +150,7 @@ void BM_OneTemplateFunc(benchmark::State& state) {
     sum += arg;
   }
 }
-BENCHMARK(BM_OneTemplateFunc<int>)->Arg(1);
+BENCHMARK(BM_OneTemplateFunc<long long>)->Arg(1);
 BENCHMARK(BM_OneTemplateFunc<double>)->Arg(1);
 
 template <typename A, typename B>
@@ -164,7 +164,7 @@ void BM_TwoTemplateFunc(benchmark::State& state) {
   }
 }
 BENCHMARK(BM_TwoTemplateFunc<int, double>)->Arg(1);
-BENCHMARK(BM_TwoTemplateFunc<double, int>)->Arg(1);
+BENCHMARK(BM_TwoTemplateFunc<double, long long>)->Arg(1);
 
 #endif  // BENCHMARK_HAS_CXX11
 
