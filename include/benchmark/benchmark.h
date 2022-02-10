@@ -293,6 +293,11 @@ bool ReportUnrecognizedArguments(int argc, char** argv);
 // Returns the current value of --benchmark_filter.
 std::string GetBenchmarkFilter();
 
+// Creates a default display reporter. Used by the library when no display
+// reporter is provided, but also made available for external use in case a
+// custom reporter should respect the `--benchmark_format` flag as a fallback
+BenchmarkReporter* CreateDefaultDisplayReporter();
+
 // Generate a list of benchmarks matching the specified --benchmark_filter flag
 // and if --benchmark_list_tests is specified return after printing the name
 // of each matching benchmark. Otherwise run each matching benchmark and
