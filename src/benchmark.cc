@@ -434,7 +434,8 @@ ConsoleReporter::OutputOptions GetOutputOptions(bool force_no_color) {
 BenchmarkReporter* CreateDefaultDisplayReporter() {
   static auto default_display_reporter =
       internal::CreateReporter(FLAGS_benchmark_format,
-                               internal::GetOutputOptions()).release();
+                               internal::GetOutputOptions())
+          .release();
   return default_display_reporter;
 }
 
