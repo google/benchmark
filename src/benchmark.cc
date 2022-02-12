@@ -388,9 +388,9 @@ std::unique_ptr<BenchmarkReporter> CreateReporter(
   if (name == "console") {
     return PtrType(new ConsoleReporter(output_opts));
   } else if (name == "json") {
-    return PtrType(new JSONReporter);
+    return PtrType(new JSONReporter());
   } else if (name == "csv") {
-    return PtrType(new CSVReporter);
+    return PtrType(new CSVReporter());
   } else {
     std::cerr << "Unexpected format: '" << name << "'\n";
     std::exit(1);
@@ -431,6 +431,14 @@ ConsoleReporter::OutputOptions GetOutputOptions(bool force_no_color) {
 
 }  // end namespace internal
 
+BenchmarkReporter* CreateDefaultDisplayReporter() {
+  static auto default_display_reporter =
+      internal::CreateReporter(FLAGS_benchmark_format,
+                               internal::GetOutputOptions())
+          .release();
+  return default_display_reporter;
+}
+
 size_t RunSpecifiedBenchmarks() {
   return RunSpecifiedBenchmarks(nullptr, nullptr, FLAGS_benchmark_filter);
 }
@@ -466,8 +474,7 @@ size_t RunSpecifiedBenchmarks(BenchmarkReporter* display_reporter,
   std::unique_ptr<BenchmarkReporter> default_display_reporter;
   std::unique_ptr<BenchmarkReporter> default_file_reporter;
   if (!display_reporter) {
-    default_display_reporter = internal::CreateReporter(
-        FLAGS_benchmark_format, internal::GetOutputOptions());
+    default_display_reporter.reset(CreateDefaultDisplayReporter());
     display_reporter = default_display_reporter.get();
   }
   auto& Out = display_reporter->GetOutputStream();
