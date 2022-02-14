@@ -310,7 +310,9 @@ inline void HelperPrinter() {
           "          [--benchmark_context=<key>=<value>,...]\n"
           "          [--v=<verbosity>]\n");
 }
-BENCHMARK_EXPORT void Initialize(int* argc, char** argv, void (*help_printer)());
+BENCHMARK_EXPORT void Initialize(
+    int* argc, char** argv,
+    void (*HelperPrinterf)() = benchmark::HelperPrinter);
 BENCHMARK_EXPORT void Shutdown();
 
 // Report to stdout all arguments in 'argv' as unrecognized except the first.
@@ -1482,17 +1484,7 @@ class Fixture : public internal::Benchmark {
 #endif
 
 // Helper macro to create a main routine in a test that runs the benchmarks
-#define BENCHMARK_MAIN() BENCHMARK_MAIN_HELPER(::benchmark::HelperPrinter)
-
-#define BENCHMARK_MAIN_HELPER(helpPrinter)                              \
-  int main(int argc, char** argv) {                                     \
-    ::benchmark::Initialize(&argc, argv);                               \
-    if (::benchmark::ReportUnrecognizedArguments(argc, argv)) return 1; \
-    ::benchmark::RunSpecifiedBenchmarks();                              \
-    ::benchmark::Shutdown();                                            \
-    return 0;                                                           \
-  }                                                                     \
-  int main(int, char**)
+#define BENCHMARK_MAIN() BENCHMARK_EXPORT int main(int, char**)
 
 // ------------------------------------------------------
 // Benchmark Reporters
