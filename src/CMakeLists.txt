@@ -22,10 +22,15 @@ add_library(benchmark::benchmark ALIAS benchmark)
 set_target_properties(benchmark PROPERTIES
   OUTPUT_NAME "benchmark"
   VERSION ${GENERIC_LIB_VERSION}
-  SOVERSION ${GENERIC_LIB_SOVERSION}
+  SOVERSION 2
 )
 target_include_directories(benchmark PUBLIC
-  $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>)
+  $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>
+  $<BUILD_INTERFACE:${PROJECT_BINARY_DIR}/include>
+)
+
+generate_export_header(benchmark
+  EXPORT_FILE_NAME ${PROJECT_BINARY_DIR}/include/benchmark/export.h)
 
 # libpfm, if available
 if (HAVE_LIBPFM)
@@ -59,7 +64,8 @@ add_library(benchmark::benchmark_main ALIAS benchmark_main)
 set_target_properties(benchmark_main PROPERTIES
   OUTPUT_NAME "benchmark_main"
   VERSION ${GENERIC_LIB_VERSION}
-  SOVERSION ${GENERIC_LIB_SOVERSION}
+  SOVERSION 2
+  DEFINE_SYMBOL benchmark_EXPORTS
 )
 target_link_libraries(benchmark_main PUBLIC benchmark::benchmark)
 
@@ -107,6 +113,7 @@ if (BENCHMARK_ENABLE_INSTALL)
 
   install(
     DIRECTORY "${PROJECT_SOURCE_DIR}/include/benchmark"
+              "${PROJECT_BINARY_DIR}/include/benchmark"
     DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
     FILES_MATCHING PATTERN "*.*h")
 

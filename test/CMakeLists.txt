@@ -1,5 +1,7 @@
 # Enable the tests
 
+set(THREADS_PREFER_PTHREAD_FLAG ON)
+
 find_package(Threads REQUIRED)
 include(CheckCXXCompilerFlag)
 
@@ -35,10 +37,11 @@ if (DEFINED BENCHMARK_CXX_LINKER_FLAGS)
 endif()
 
 add_library(output_test_helper STATIC output_test_helper.cc output_test.h)
+target_link_libraries(output_test_helper PRIVATE benchmark::benchmark)
 
 macro(compile_benchmark_test name)
   add_executable(${name} "${name}.cc")
-  target_link_libraries(${name} benchmark::benchmark ${CMAKE_THREAD_LIBS_INIT})
+  target_link_libraries(${name} benchmark::benchmark_main ${CMAKE_THREAD_LIBS_INIT})
 endmacro(compile_benchmark_test)
 
 macro(compile_benchmark_test_with_main name)
@@ -48,7 +51,7 @@ endmacro(compile_benchmark_test_with_main)
 
 macro(compile_output_test name)
   add_executable(${name} "${name}.cc" output_test.h)
-  target_link_libraries(${name} output_test_helper benchmark::benchmark
+  target_link_libraries(${name} output_test_helper benchmark::benchmark_main
           ${BENCHMARK_CXX_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
 endmacro(compile_output_test)
 
@@ -158,8 +161,8 @@ add_test(NAME user_counters_thousands_test COMMAND user_counters_thousands_test 
 compile_output_test(memory_manager_test)
 add_test(NAME memory_manager_test COMMAND memory_manager_test --benchmark_min_time=0.01)
 
-check_cxx_compiler_flag(-std=c++03 BENCHMARK_HAS_CXX03_FLAG)
-if (BENCHMARK_HAS_CXX03_FLAG)
+# MSVC does not allow to set the language standard to C++98/03.
+if(NOT CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
   compile_benchmark_test(cxx03_test)
   set_target_properties(cxx03_test
       PROPERTIES
@@ -170,11 +173,17 @@ if (BENCHMARK_HAS_CXX03_FLAG)
   # causing the test to fail to compile. To prevent this we explicitly disable
   # the warning.
   check_cxx_compiler_flag(-Wno-odr BENCHMARK_HAS_WNO_ODR)
-  if (BENCHMARK_ENABLE_LTO AND BENCHMARK_HAS_WNO_ODR)
-    set_target_properties(cxx03_test
-        PROPERTIES
-        LINK_FLAGS "-Wno-odr")
+  check_cxx_compiler_flag(-Wno-lto-type-mismatch BENCHMARK_HAS_WNO_LTO_TYPE_MISMATCH)
+  # Cannot set_target_properties multiple times here because the warnings will
+  # be overwritten on each call
+  set (DISABLE_LTO_WARNINGS "")
+  if (BENCHMARK_HAS_WNO_ODR)
+    set(DISABLE_LTO_WARNINGS "${DISABLE_LTO_WARNINGS} -Wno-odr")
   endif()
+  if (BENCHMARK_HAS_WNO_LTO_TYPE_MISMATCH)
+    set(DISABLE_LTO_WARNINGS "${DISABLE_LTO_WARNINGS} -Wno-lto-type-mismatch")
+  endif()
+  set_target_properties(cxx03_test PROPERTIES LINK_FLAGS "${DISABLE_LTO_WARNINGS}")
   add_test(NAME cxx03 COMMAND cxx03_test --benchmark_min_time=0.01)
 endif()
 
