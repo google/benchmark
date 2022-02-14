@@ -177,7 +177,7 @@ void RunTestTwo() {
 }
 
 int main(int argc, char* argv[]) {
-  benchmark::Initialize(&argc, argv, benchmark::internal::helper_printer);
+  benchmark::Initialize(&argc, argv);
 
   RunTestOne();
   RunTestTwo();

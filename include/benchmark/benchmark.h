@@ -292,6 +292,24 @@ BENCHMARK(BM_test)->Unit(benchmark::kMillisecond);
 namespace benchmark {
 class BenchmarkReporter;
 
+inline void HelperPrinter() {
+  fprintf(stdout,
+          "benchmark"
+          " [--benchmark_list_tests={true|false}]\n"
+          "          [--benchmark_filter=<regex>]\n"
+          "          [--benchmark_min_time=<min_time>]\n"
+          "          [--benchmark_repetitions=<num_repetitions>]\n"
+          "          [--benchmark_enable_random_interleaving={true|false}]\n"
+          "          [--benchmark_report_aggregates_only={true|false}]\n"
+          "          [--benchmark_display_aggregates_only={true|false}]\n"
+          "          [--benchmark_format=<console|json|csv>]\n"
+          "          [--benchmark_out=<filename>]\n"
+          "          [--benchmark_out_format=<json|console|csv>]\n"
+          "          [--benchmark_color={auto|true|false}]\n"
+          "          [--benchmark_counters_tabular={true|false}]\n"
+          "          [--benchmark_context=<key>=<value>,...]\n"
+          "          [--v=<verbosity>]\n");
+}
 BENCHMARK_EXPORT void Initialize(int* argc, char** argv, void (*help_printer)());
 BENCHMARK_EXPORT void Shutdown();
 
@@ -1203,25 +1221,6 @@ class LambdaBenchmark : public Benchmark {
   Lambda lambda_;
 };
 #endif
-
-inline void helper_printer() {
-  fprintf(stdout,
-          "benchmark"
-          " [--benchmark_list_tests={true|false}]\n"
-          "          [--benchmark_filter=<regex>]\n"
-          "          [--benchmark_min_time=<min_time>]\n"
-          "          [--benchmark_repetitions=<num_repetitions>]\n"
-          "          [--benchmark_enable_random_interleaving={true|false}]\n"
-          "          [--benchmark_report_aggregates_only={true|false}]\n"
-          "          [--benchmark_display_aggregates_only={true|false}]\n"
-          "          [--benchmark_format=<console|json|csv>]\n"
-          "          [--benchmark_out=<filename>]\n"
-          "          [--benchmark_out_format=<json|console|csv>]\n"
-          "          [--benchmark_color={auto|true|false}]\n"
-          "          [--benchmark_counters_tabular={true|false}]\n"
-          "          [--benchmark_context=<key>=<value>,...]\n"
-          "          [--v=<verbosity>]\n");
-}
 }  // namespace internal
 
 inline internal::Benchmark* RegisterBenchmark(const char* name,
@@ -1483,7 +1482,9 @@ class Fixture : public internal::Benchmark {
 #endif
 
 // Helper macro to create a main routine in a test that runs the benchmarks
-#define BENCHMARK_MAIN()                                                \
+#define BENCHMARK_MAIN() BENCHMARK_MAIN_HELPER(::benchmark::HelperPrinter)
+
+#define BENCHMARK_MAIN_HELPER(helpPrinter)                              \
   int main(int argc, char** argv) {                                     \
     ::benchmark::Initialize(&argc, argv);                               \
     if (::benchmark::ReportUnrecognizedArguments(argc, argv)) return 1; \

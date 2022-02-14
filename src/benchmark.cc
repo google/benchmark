@@ -538,10 +538,10 @@ void AddCustomContext(const std::string& key, const std::string& value) {
 
 namespace internal {
 
-void (*hprintf)();
+void (*HelperPrintf)();
 
 void PrintUsageAndExit() {
-  hprintf();
+  HelperPrintf();
   exit(0);
 }
 
@@ -604,10 +604,10 @@ int InitializeStreams() {
 
 }  // end namespace internal
 
-void Initialize(int* argc, char** argv, void (*helper_printer)()) {
+void Initialize(int* argc, char** argv, void (*HelperPrintf)()) {
   internal::ParseCommandLineFlags(argc, argv);
   internal::LogLevel() = FLAGS_v;
-  internal::hprintf = helper_printer;
+  internal::HelperPrintf = HelperPrintf;
 }
 
 void Shutdown() { delete internal::global_context; }

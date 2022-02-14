@@ -67,7 +67,7 @@ int main(int argc, char** argv) {
   }
   assert(found);
 
-  benchmark::Initialize(&argc, argv, benchmark::internal::helper_printer);
+  benchmark::Initialize(&argc, argv);
 
   // Check that the current flag value is reported accurately via the
   // GetBenchmarkFilter() function.

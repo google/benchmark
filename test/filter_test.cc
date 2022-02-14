@@ -76,7 +76,7 @@ int main(int argc, char** argv) {
     list_only |= std::string(argv[i]).find("--benchmark_list_tests") !=
                  std::string::npos;
 
-  benchmark::Initialize(&argc, argv, benchmark::internal::helper_printer);
+  benchmark::Initialize(&argc, argv);
 
   TestReporter test_reporter;
   const size_t returned_count =
