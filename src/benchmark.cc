@@ -541,7 +541,26 @@ namespace internal {
 void (*HelperPrintf)();
 
 void PrintUsageAndExit() {
-  HelperPrintf();
+  if (HelperPrintf) {
+    HelperPrintf();
+  } else {
+    fprintf(stdout,
+            "benchmark"
+            " [--benchmark_list_tests={true|false}]\n"
+            "          [--benchmark_filter=<regex>]\n"
+            "          [--benchmark_min_time=<min_time>]\n"
+            "          [--benchmark_repetitions=<num_repetitions>]\n"
+            "          [--benchmark_enable_random_interleaving={true|false}]\n"
+            "          [--benchmark_report_aggregates_only={true|false}]\n"
+            "          [--benchmark_display_aggregates_only={true|false}]\n"
+            "          [--benchmark_format=<console|json|csv>]\n"
+            "          [--benchmark_out=<filename>]\n"
+            "          [--benchmark_out_format=<json|console|csv>]\n"
+            "          [--benchmark_color={auto|true|false}]\n"
+            "          [--benchmark_counters_tabular={true|false}]\n"
+            "          [--benchmark_context=<key>=<value>,...]\n"
+            "          [--v=<verbosity>]\n");
+  }
   exit(0);
 }
 
