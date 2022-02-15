@@ -1,7 +1,7 @@
 licenses(["notice"])
 
 load(
-    "@com_github_google_benchmark//tools:workspace/generate_export_header.bzl",
+    "//tools:workspace/generate_export_header.bzl",
     "generate_export_header",
 )
 
