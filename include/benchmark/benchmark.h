@@ -291,7 +291,8 @@ BENCHMARK(BM_test)->Unit(benchmark::kMillisecond);
 namespace benchmark {
 class BenchmarkReporter;
 
-BENCHMARK_EXPORT void Initialize(int* argc, char** argv);
+BENCHMARK_EXPORT void Initialize(int* argc, char** argv,
+                                 void (*HelperPrinterf)() = NULL);
 BENCHMARK_EXPORT void Shutdown();
 
 // Report to stdout all arguments in 'argv' as unrecognized except the first.
@@ -1202,7 +1203,6 @@ class LambdaBenchmark : public Benchmark {
   Lambda lambda_;
 };
 #endif
-
 }  // namespace internal
 
 inline internal::Benchmark* RegisterBenchmark(const char* name,
@@ -1254,7 +1254,6 @@ class Fixture : public internal::Benchmark {
  protected:
   virtual void BenchmarkCase(State&) = 0;
 };
-
 }  // namespace benchmark
 
 // ------------------------------------------------------
