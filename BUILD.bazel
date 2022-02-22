@@ -1,6 +1,6 @@
 licenses(["notice"])
 
-load("//:workspace/generate_export_header.bzl", "generate_export_header")
+load("//:config/generate_export_header.bzl", "generate_export_header")
 
 posix_copts = [
     "-fvisibility=hidden",
