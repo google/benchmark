@@ -341,10 +341,10 @@ RunSpecifiedBenchmarks(BenchmarkReporter* display_reporter,
 // for the measured time.
 enum TimeUnit { kNanosecond, kMicrosecond, kMillisecond, kSecond };
 
-TimeUnit GetDefaultTimeUnit();
+BENCHMARK_EXPORT TimeUnit GetDefaultTimeUnit();
 
 // Sets the default time unit the benchmarks use
-void SetDefaultTimeUnit(TimeUnit unit);
+BENCHMARK_EXPORT void SetDefaultTimeUnit(TimeUnit unit);
 
 // If a MemoryManager is registered (via RegisterMemoryManager()),
 // it can be used to collect and report allocation metrics for a run of the
