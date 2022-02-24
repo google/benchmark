@@ -4,15 +4,6 @@ load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 load("@bazel_tools//tools/build_defs/repo:git.bzl", "git_repository")
 
 http_archive(
-    name = "platforms",
-    sha256 = "379113459b0feaf6bfbb584a91874c065078aa673222846ac765f86661c27407",
-    urls = [
-        "https://mirror.bazel.build/github.com/bazelbuild/platforms/releases/download/0.0.5/platforms-0.0.5.tar.gz",
-        "https://github.com/bazelbuild/platforms/releases/download/0.0.5/platforms-0.0.5.tar.gz",
-    ],
-)
-
-http_archive(
     name = "com_google_absl",
     sha256 = "f41868f7a938605c92936230081175d1eae87f6ea2c248f41077c8f88316f111",
     strip_prefix = "abseil-cpp-20200225.2",
