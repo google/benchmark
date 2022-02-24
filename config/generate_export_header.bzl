@@ -144,7 +144,8 @@ def generate_export_header(
     if out == None:
         out = "%s_export.h" % lib
     if export_import_condition == None:
-        export_import_condition = "%s_EXPORTS" % lib.upper()
+        # CMake does not uppercase the <lib>_EXPORTS define.
+        export_import_condition = "%s_EXPORTS" % lib
     if export_macro_name == None:
         export_macro_name = "%s_EXPORT" % lib.upper()
     if deprecated_macro_name == None:
