@@ -45,9 +45,20 @@ def _make_identifier(s):
 
 # Defines the implementation actions to generate_export_header.
 def _generate_export_header_impl(ctx):
+    windows_constraint = ctx.attr._windows_constraint[platform_common.ConstraintValueInfo]
     output = ctx.outputs.out
 
     guard = _make_identifier(output.basename.upper())
+    if ctx.target_platform_has_constraint(windows_constraint):
+      export_attr = "__declspec(dllexport)"
+      import_attr = "__declspec(dllimport)"
+      no_export_attr = ""
+      deprecated_attr = "__declspec(deprecated)"
+    else:
+      export_attr = "__attribute__((visibility(\"default\")))"
+      import_attr = "__attribute__((visibility(\"default\")))"
+      no_export_attr = "__attribute__((visibility(\"hidden\")))"
+      deprecated_attr = "__attribute__((__deprecated__))"
 
     content = [
         "#ifndef %s" % guard,
@@ -57,12 +68,20 @@ def _generate_export_header_impl(ctx):
         "#  define %s" % ctx.attr.export_macro_name,
         "#  define %s" % ctx.attr.no_export_macro_name,
         "#else",
-        "#  define %s __attribute__((visibility(\"default\")))" % ctx.attr.export_macro_name,  # noqa
-        "#  define %s __attribute__((visibility(\"hidden\")))" % ctx.attr.no_export_macro_name,  # noqa
+        "#  ifndef %s" % ctx.attr.export_macro_name,
+        "#    ifdef %s" % ctx.attr.export_import_condition,
+        "#      define %s %s" % (ctx.attr.export_macro_name, export_attr),
+        "#    else",
+        "#      define %s %s" % (ctx.attr.export_macro_name, import_attr),
+        "#    endif",
+        "#  endif",
+        "#  ifndef %s" % ctx.attr.no_export_macro_name,
+        "#    define %s %s" % (ctx.attr.no_export_macro_name, no_export_attr),
+        "#  endif",
         "#endif",
         "",
         "#ifndef %s" % ctx.attr.deprecated_macro_name,
-        "#  define %s __attribute__ ((__deprecated__))" % ctx.attr.deprecated_macro_name,  # noqa
+        "#  define %s %s" % (ctx.attr.deprecated_macro_name, deprecated_attr),
         "#endif",
         "",
         "#ifndef %s" % ctx.attr.export_deprecated_macro_name,
@@ -82,12 +101,14 @@ def _generate_export_header_impl(ctx):
 _generate_export_header_gen = rule(
     attrs = {
         "out": attr.output(mandatory = True),
+        "export_import_condition": attr.string(),
         "export_macro_name": attr.string(),
         "deprecated_macro_name": attr.string(),
         "export_deprecated_macro_name": attr.string(),
         "no_export_macro_name": attr.string(),
         "no_export_deprecated_macro_name": attr.string(),
         "static_define": attr.string(),
+        "_windows_constraint": attr.label(default = "@platforms//os:windows"),
     },
     output_to_genfiles = True,
     implementation = _generate_export_header_impl,
@@ -97,6 +118,7 @@ def generate_export_header(
         lib = None,
         name = None,
         out = None,
+        export_import_condition = None,
         export_macro_name = None,
         deprecated_macro_name = None,
         export_deprecated_macro_name = None,
@@ -121,6 +143,8 @@ def generate_export_header(
         name = "__%s_export_h" % lib
     if out == None:
         out = "%s_export.h" % lib
+    if export_import_condition == None:
+        export_import_condition = "%s_EXPORTS" % lib.upper()
     if export_macro_name == None:
         export_macro_name = "%s_EXPORT" % lib.upper()
     if deprecated_macro_name == None:
@@ -138,6 +162,7 @@ def generate_export_header(
     _generate_export_header_gen(
         name = name,
         out = out,
+        export_import_condition = export_import_condition,
         export_macro_name = export_macro_name,
         deprecated_macro_name = deprecated_macro_name,
         export_deprecated_macro_name = export_deprecated_macro_name,

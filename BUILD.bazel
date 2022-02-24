@@ -55,6 +55,10 @@ cc_library(
         ":windows": [],
         "//conditions:default": posix_copts,
     }),
+    local_defines = select({
+        ":windows": ["BENCHMARK_EXPORTS"],
+        "//conditions:default": [],
+    }),
 )
 
 cc_library(
