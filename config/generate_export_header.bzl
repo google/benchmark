@@ -36,19 +36,11 @@
 #
 # -*- python -*-
 
-def _make_identifier(s):
-    result = ""
-    for i in range(len(s)):
-        result += s[i] if s[i].isalnum() else "_"
-
-    return result
-
 # Defines the implementation actions to generate_export_header.
 def _generate_export_header_impl(ctx):
     windows_constraint = ctx.attr._windows_constraint[platform_common.ConstraintValueInfo]
     output = ctx.outputs.out
 
-    guard = _make_identifier(output.basename.upper())
     if ctx.target_platform_has_constraint(windows_constraint):
       export_attr = "__declspec(dllexport)"
       import_attr = "__declspec(dllimport)"
@@ -61,8 +53,8 @@ def _generate_export_header_impl(ctx):
       deprecated_attr = "__attribute__((__deprecated__))"
 
     content = [
-        "#ifndef %s" % guard,
-        "#define %s" % guard,
+        "#ifndef %s_H" % ctx.attr.export_macro_name,
+        "#define %s_H" % ctx.attr.export_macro_name,
         "",
         "#ifdef %s" % ctx.attr.static_define,
         "#  define %s" % ctx.attr.export_macro_name,
