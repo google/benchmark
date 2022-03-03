@@ -344,6 +344,7 @@ enum TimeUnit { kNanosecond, kMicrosecond, kMillisecond, kSecond };
 BENCHMARK_EXPORT TimeUnit GetDefaultTimeUnit();
 
 // Sets the default time unit the benchmarks use
+// Has to be called before the benchmark loop to take effect
 BENCHMARK_EXPORT void SetDefaultTimeUnit(TimeUnit unit);
 
 // If a MemoryManager is registered (via RegisterMemoryManager()),
