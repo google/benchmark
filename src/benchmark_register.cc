@@ -202,7 +202,8 @@ bool FindBenchmarksInternal(const std::string& re,
 Benchmark::Benchmark(const char* name)
     : name_(name),
       aggregation_report_mode_(ARM_Unspecified),
-      time_unit_(kNanosecond),
+      time_unit_(GetDefaultTimeUnit()),
+      use_default_time_unit_(true),
       range_multiplier_(kRangeMultiplier),
       min_time_(0),
       iterations_(0),
@@ -235,6 +236,7 @@ Benchmark* Benchmark::Arg(int64_t x) {
 
 Benchmark* Benchmark::Unit(TimeUnit unit) {
   time_unit_ = unit;
+  use_default_time_unit_ = false;
   return this;
 }
 
@@ -460,6 +462,10 @@ int Benchmark::ArgsCnt() const {
     return static_cast<int>(arg_names_.size());
   }
   return static_cast<int>(args_.front().size());
+}
+
+TimeUnit Benchmark::GetTimeUnit() const {
+  return use_default_time_unit_ ? GetDefaultTimeUnit() : time_unit_;
 }
 
 //=============================================================================//
