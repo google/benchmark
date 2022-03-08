@@ -535,6 +535,10 @@ void SetDefaultTimeUnit(TimeUnit unit) { default_time_unit = unit; }
 
 std::string GetBenchmarkFilter() { return FLAGS_benchmark_filter; }
 
+void SetBenchmarkFilter(std::string value) {
+  FLAGS_benchmark_filter = std::move(value);
+}
+
 void RegisterMemoryManager(MemoryManager* manager) {
   internal::memory_manager = manager;
 }
