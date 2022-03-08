@@ -302,6 +302,10 @@ BENCHMARK_EXPORT bool ReportUnrecognizedArguments(int argc, char** argv);
 // Returns the current value of --benchmark_filter.
 BENCHMARK_EXPORT std::string GetBenchmarkFilter();
 
+// Sets the value of --benchmark_filter. (This will override this flag's
+// current value).
+BENCHMARK_EXPORT void SetBenchmarkFilter(std::string value);
+
 // Creates a default display reporter. Used by the library when no display
 // reporter is provided, but also made available for external use in case a
 // custom reporter should respect the `--benchmark_format` flag as a fallback
