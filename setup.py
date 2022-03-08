@@ -16,6 +16,10 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 IS_WINDOWS = sys.platform.startswith("win")
 
 
+with open("README.md", "r", encoding="utf-8") as fp:
+    long_description = fp.read()
+
+
 def _get_version():
     """Parse the version string from __init__.py."""
     with open(
@@ -118,6 +122,8 @@ setuptools.setup(
     version=_get_version(),
     url="https://github.com/google/benchmark",
     description="A library to benchmark code snippets.",
+    long_description=long_description,
+    long_description_content_type="text/markdown",
     author="Google",
     author_email="benchmark-py@google.com",
     # Contained modules and scripts.
