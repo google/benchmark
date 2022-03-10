@@ -202,6 +202,8 @@
    limitations under the License.
    
    
+Only benchmark/config/generate_export_header.bzl depends on the following licence:
+
                  BSD 3-Clause License
 
 Copyright (c) [year], [fullname]
