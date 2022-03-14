@@ -136,7 +136,6 @@ jobs:
     name: Publish google-benchmark wheels to PyPI
     needs: [build_sdist, build_linux, build_macos, build_windows]
     runs-on: ubuntu-latest
-    if: github.event_name == 'release' && github.event.action == 'published'
     steps:
     - uses: actions/download-artifact@v2
       with:
