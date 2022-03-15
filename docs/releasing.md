@@ -33,3 +33,5 @@ __version__ = "1.6.0"  # <-- change this to the release version you are creating
       * `git pull --tags`
       * `git tag -a -f <tag> <tag>`
       * `git push --force --tags origin`
+* Confirm that the "Build and upload Python wheels" action runs to completion
+    * run it manually if it hasn't run
