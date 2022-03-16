@@ -55,10 +55,11 @@ cc_library(
         ":windows": [],
         "//conditions:default": posix_copts,
     }),
-    local_defines = select({
-        ":windows": ["benchmark_EXPORTS"],
-        "//conditions:default": [],
-    }),
+    # Only static linking is allowed; no .so will be produced.
+    # Using `defines` (i.e. not `local_defines`) means that no
+    # dependent rules need to bother about defining the macro.
+    linkstatic = True,
+    defines = ["BENCHMARK_STATIC_DEFINE"],
 )
 
 cc_library(

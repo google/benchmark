@@ -14,7 +14,6 @@ def py_extension(name, srcs, hdrs = [], copts = [], features = [], deps = []):
             copts = copts,
             features = features,
             deps = deps,
-            local_defines = ["BENCHMARK_STATIC_DEFINE"],
         )
 
     return native.py_library(
