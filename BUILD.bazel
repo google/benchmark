@@ -2,11 +2,6 @@ licenses(["notice"])
 
 load("//:config/generate_export_header.bzl", "generate_export_header")
 
-posix_copts = [
-    "-fvisibility=hidden",
-    "-fvisibility-inlines-hidden",
-]
-
 # Generate header to provide ABI export symbols
 generate_export_header(
     out = "include/benchmark/export.h",
@@ -51,10 +46,6 @@ cc_library(
     }),
     strip_include_prefix = "include",
     visibility = ["//visibility:public"],
-    copts = select({
-        ":windows": [],
-        "//conditions:default": posix_copts,
-    }),
     # Only static linking is allowed; no .so will be produced.
     # Using `defines` (i.e. not `local_defines`) means that no
     # dependent rules need to bother about defining the macro.
@@ -69,10 +60,6 @@ cc_library(
     strip_include_prefix = "include",
     visibility = ["//visibility:public"],
     deps = [":benchmark"],
-    copts = select({
-        ":windows": [],
-        "//conditions:default": posix_copts,
-    }),
 )
 
 cc_library(
