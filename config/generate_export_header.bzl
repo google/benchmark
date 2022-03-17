@@ -118,8 +118,10 @@ def generate_export_header(
         no_export_deprecated_macro_name = None,
         static_define = None,
         **kwargs):
-    """Creates a rule to generate an export header for a named library.  This
-    is an incomplete implementation of CMake's generate_export_header. (In
+    """
+    Creates a rule to generate an export header for a named library.
+    
+    This is an incomplete implementation of CMake's generate_export_header. (In
     particular, it assumes a platform that uses
     __attribute__((visibility("default"))) to decorate exports.)
 
