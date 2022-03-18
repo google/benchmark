@@ -1,7 +1,7 @@
 # How to release
 
 * Make sure you're on main and synced to HEAD
-* Ensure the project builds and tests run (sanity check only, obviously)
+* Ensure the project builds and tests run
     * `parallel -j0 exec ::: test/*_test` can help ensure everything at least
       passes
 * Prepare release notes
