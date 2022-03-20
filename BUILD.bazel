@@ -1,5 +1,14 @@
 licenses(["notice"])
 
+load("//:config/generate_export_header.bzl", "generate_export_header")
+
+# Generate header to provide ABI export symbols
+generate_export_header(
+    out = "include/benchmark/export.h",
+    lib = "benchmark",
+    static_define = "BENCHMARK_STATIC_DEFINE",
+)
+
 config_setting(
     name = "qnx",
     constraint_values = ["@platforms//os:qnx"],
@@ -27,13 +36,21 @@ cc_library(
         ],
         exclude = ["src/benchmark_main.cc"],
     ),
-    hdrs = ["include/benchmark/benchmark.h"],
+    hdrs = [
+        "include/benchmark/benchmark.h",
+        "include/benchmark/export.h", # From generate_export_header
+    ],
     linkopts = select({
         ":windows": ["-DEFAULTLIB:shlwapi.lib"],
         "//conditions:default": ["-pthread"],
     }),
     strip_include_prefix = "include",
     visibility = ["//visibility:public"],
+    # Only static linking is allowed; no .so will be produced.
+    # Using `defines` (i.e. not `local_defines`) means that no
+    # dependent rules need to bother about defining the macro.
+    linkstatic = True,
+    defines = ["BENCHMARK_STATIC_DEFINE"],
 )
 
 cc_library(

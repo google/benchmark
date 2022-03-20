@@ -1,5 +1,7 @@
 // Benchmark for Python.
 
+#include "benchmark/benchmark.h"
+
 #include <map>
 #include <string>
 #include <vector>
@@ -8,8 +10,6 @@
 #include "pybind11/pybind11.h"
 #include "pybind11/stl.h"
 #include "pybind11/stl_bind.h"
-
-#include "benchmark/benchmark.h"
 
 PYBIND11_MAKE_OPAQUE(benchmark::UserCounters);
 

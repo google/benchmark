@@ -91,5 +91,15 @@ int main(int argc, char** argv) {
               << matched_functions.front() << "]\n";
     return 2;
   }
+
+  // Test that SetBenchmarkFilter works.
+  const std::string golden_value = "golden_value";
+  benchmark::SetBenchmarkFilter(golden_value);
+  std::string current_value = benchmark::GetBenchmarkFilter();
+  if (golden_value != current_value) {
+    std::cerr << "Expected [" << golden_value
+              << "] for --benchmark_filter but got [" << current_value << "]\n";
+    return 3;
+  }
   return 0;
 }

@@ -927,6 +927,10 @@ order to manually set the time unit, you can specify it manually:
 BENCHMARK(BM_test)->Unit(benchmark::kMillisecond);
 ```
 
+Additionally the default time unit can be set globally with the
+`--benchmark_time_unit={ns|us|ms|s}` command line argument. The argument only
+affects benchmarks where the time unit is not set explicitly.
+
 <a name="preventing-optimization" />
 
 ## Preventing Optimization

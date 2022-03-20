@@ -244,7 +244,7 @@ IterationCount BenchmarkRunner::PredictNumItersNeeded(
   const IterationCount max_next_iters = static_cast<IterationCount>(
       std::lround(std::max(multiplier * static_cast<double>(i.iters),
                            static_cast<double>(i.iters) + 1.0)));
-  // But we do have *some* sanity limits though..
+  // But we do have *some* limits though..
   const IterationCount next_iters = std::min(max_next_iters, kMaxIterations);
 
   BM_VLOG(3) << "Next iters: " << next_iters << ", " << multiplier << "\n";
@@ -261,7 +261,7 @@ bool BenchmarkRunner::ShouldReportIterationResults(
          i.seconds >= min_time ||      // The elapsed time is large enough.
          // CPU time is specified but the elapsed real time greatly exceeds
          // the minimum time.
-         // Note that user provided timers are except from this sanity check.
+         // Note that user provided timers are except from this test.
          ((i.results.real_time_used >= 5 * min_time) && !b.use_manual_time());
 }
 
