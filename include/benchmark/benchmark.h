@@ -1243,8 +1243,15 @@ internal::Benchmark* RegisterBenchmark(const char* name, Lambda&& fn) {
 template <class Lambda, class... Args>
 internal::Benchmark* RegisterBenchmark(const char* name, Lambda&& fn,
                                        Args&&... args) {
+#if defined(BENCHMARK_HAS_CXX14)
+  return benchmark::RegisterBenchmark(
+      name, [=, gn = std::forward<Lambda>(fn)](benchmark::State& st) {
+        gn(st, args...);
+      });
+#else
   return benchmark::RegisterBenchmark(
       name, [=](benchmark::State& st) { fn(st, args...); });
+#endif
 }
 #else
 #define BENCHMARK_HAS_NO_VARIADIC_REGISTER_BENCHMARK
