@@ -99,7 +99,7 @@ struct ValueUnion {
   using DataPtr = std::unique_ptr<DataT, decltype(&std::free)>;
 
   // The size of the data union member + its trailing array size.
-  int size;
+  std::size_t size;
   DataPtr buff;
 
  public:
@@ -287,7 +287,7 @@ std::vector<CPUInfo::CacheInfo> GetCacheSizesFromKVFS() {
 #ifdef BENCHMARK_OS_MACOSX
 std::vector<CPUInfo::CacheInfo> GetCacheSizesMacOSX() {
   std::vector<CPUInfo::CacheInfo> res;
-  std::array<uint64_t, 4> cache_counts{{0, 0, 0, 0}};
+  std::array<int64_t, 4> cache_counts{{0, 0, 0, 0}};
   GetSysctl("hw.cacheconfig", &cache_counts);
 
   struct {
