@@ -105,7 +105,7 @@ struct ValueUnion {
  public:
   ValueUnion() : size(0), buff(nullptr, &std::free) {}
 
-  explicit ValueUnion(int buff_size)
+  explicit ValueUnion(std::size_t buff_size)
       : size(sizeof(DataT) + buff_size),
         buff(::new (std::malloc(size)) DataT(), &std::free) {}
 
@@ -131,7 +131,7 @@ struct ValueUnion {
     BM_CHECK_LE(arr_size, size);
     std::array<T, N> arr;
     std::memcpy(arr.data(), data(), arr_size);
-    return Arr;
+    return arr;
   }
 };
 
@@ -156,7 +156,7 @@ ValueUnion GetSysctlImp(std::string const& name) {
   }
   return ValueUnion();
 #else
-  int cur_buff_size = 0;
+  std::size_t cur_buff_size = 0;
   if (sysctlbyname(name.c_str(), nullptr, &cur_buff_size, nullptr, 0) == -1)
     return ValueUnion();
 
