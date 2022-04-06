@@ -161,7 +161,7 @@ ValueUnion GetSysctlImp(std::string const& name) {
     return ValueUnion();
 
   ValueUnion buff(cur_buff_size);
-  if (sysctlbyname(name.c_str(), buff.data(), &buff.Size, nullptr, 0) == 0)
+  if (sysctlbyname(name.c_str(), buff.data(), &buff.size, nullptr, 0) == 0)
     return buff;
   return ValueUnion();
 #endif
@@ -287,7 +287,7 @@ std::vector<CPUInfo::CacheInfo> GetCacheSizesFromKVFS() {
 #ifdef BENCHMARK_OS_MACOSX
 std::vector<CPUInfo::CacheInfo> GetCacheSizesMacOSX() {
   std::vector<CPUInfo::CacheInfo> res;
-  std::array<int64_t, 4> cache_counts{{0, 0, 0, 0}};
+  std::array<int, 4> cache_counts{{0, 0, 0, 0}};
   GetSysctl("hw.cacheconfig", &cache_counts);
 
   struct {
@@ -306,7 +306,7 @@ std::vector<CPUInfo::CacheInfo> GetCacheSizesMacOSX() {
     info.type = c.type;
     info.level = c.level;
     info.size = val;
-    info.num_sharing = static_cast<int>(c.num_sharing);
+    info.num_sharing = c.num_sharing;
     res.push_back(std::move(info));
   }
   return res;
