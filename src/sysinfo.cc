@@ -91,67 +91,59 @@ BENCHMARK_NORETURN void PrintErrorAndDie(Args&&... args) {
 /// `sysctl` with the result type it's to be interpreted as.
 struct ValueUnion {
   union DataT {
-    uint32_t uint32_value;
-    uint64_t uint64_value;
+    int32_t int32_value;
+    int64_t int64_value;
     // For correct aliasing of union members from bytes.
     char bytes[8];
   };
   using DataPtr = std::unique_ptr<DataT, decltype(&std::free)>;
 
   // The size of the data union member + its trailing array size.
-  size_t Size;
-  DataPtr Buff;
+  int size;
+  DataPtr buff;
 
  public:
-  ValueUnion() : Size(0), Buff(nullptr, &std::free) {}
+  ValueUnion() : size(0), buff(nullptr, &std::free) {}
 
-  explicit ValueUnion(size_t BuffSize)
-      : Size(sizeof(DataT) + BuffSize),
-        Buff(::new (std::malloc(Size)) DataT(), &std::free) {}
+  explicit ValueUnion(int buff_size)
+      : size(sizeof(DataT) + buff_size),
+        buff(::new(std::malloc(size)) DataT(), &std::free) {}
 
   ValueUnion(ValueUnion&& other) = default;
 
-  explicit operator bool() const { return bool(Buff); }
+  explicit operator bool() const { return bool(buff); }
 
-  char* data() const { return Buff->bytes; }
+  char* data() const { return buff->bytes; }
 
   std::string GetAsString() const { return std::string(data()); }
 
   int64_t GetAsInteger() const {
-    if (Size == sizeof(Buff->uint32_value))
-      return static_cast<int32_t>(Buff->uint32_value);
-    else if (Size == sizeof(Buff->uint64_value))
-      return static_cast<int64_t>(Buff->uint64_value);
-    BENCHMARK_UNREACHABLE();
-  }
-
-  uint64_t GetAsUnsigned() const {
-    if (Size == sizeof(Buff->uint32_value))
-      return Buff->uint32_value;
-    else if (Size == sizeof(Buff->uint64_value))
-      return Buff->uint64_value;
+    if (size == sizeof(buff->int32_value))
+      return buff->int32_value;
+    else if (size == sizeof(buff->int64_value))
+      return buff->int64_value;
     BENCHMARK_UNREACHABLE();
   }
 
   template <class T, int N>
   std::array<T, N> GetAsArray() {
-    const int ArrSize = sizeof(T) * N;
-    BM_CHECK_LE(ArrSize, Size);
-    std::array<T, N> Arr;
-    std::memcpy(Arr.data(), data(), ArrSize);
+    const int arr_size = sizeof(T) * N;
+    BM_CHECK_LE(arr_size, size);
+    std::array<T, N> arr;
+    std::memcpy(arr.data(), data(), arr_size);
     return Arr;
   }
 };
 
-ValueUnion GetSysctlImp(std::string const& Name) {
+ValueUnion GetSysctlImp(std::string const& name) {
 #if defined BENCHMARK_OS_OPENBSD
   int mib[2];
 
   mib[0] = CTL_HW;
-  if ((Name == "hw.ncpu") || (Name == "hw.cpuspeed")) {
+  if ((name == "hw.ncpu") || (name == "hw.cpuspeed")) {
     ValueUnion buff(sizeof(int));
 
-    if (Name == "hw.ncpu") {
+    if (name == "hw.ncpu") {
       mib[1] = HW_NCPU;
     } else {
       mib[1] = HW_CPUSPEED;
@@ -164,41 +156,42 @@ ValueUnion GetSysctlImp(std::string const& Name) {
   }
   return ValueUnion();
 #else
-  size_t CurBuffSize = 0;
-  if (sysctlbyname(Name.c_str(), nullptr, &CurBuffSize, nullptr, 0) == -1)
+  int cur_buff_size = 0;
+  if (sysctlbyname(name.c_str(), nullptr, &cur_buff_size, nullptr, 0) == -1)
     return ValueUnion();
 
-  ValueUnion buff(CurBuffSize);
-  if (sysctlbyname(Name.c_str(), buff.data(), &buff.Size, nullptr, 0) == 0)
+  ValueUnion buff(cur_buff_size);
+  if (sysctlbyname(name.c_str(), buff.data(), &buff.Size, nullptr, 0) == 0)
     return buff;
   return ValueUnion();
 #endif
 }
 
 BENCHMARK_MAYBE_UNUSED
-bool GetSysctl(std::string const& Name, std::string* Out) {
-  Out->clear();
-  auto Buff = GetSysctlImp(Name);
-  if (!Buff) return false;
-  Out->assign(Buff.data());
+bool GetSysctl(std::string const& name, std::string* out) {
+  out->clear();
+  auto buff = GetSysctlImp(name);
+  if (!buff) return false;
+  out->assign(buff.data());
   return true;
 }
 
 template <class Tp,
           class = typename std::enable_if<std::is_integral<Tp>::value>::type>
-bool GetSysctl(std::string const& Name, Tp* Out) {
-  *Out = 0;
-  auto Buff = GetSysctlImp(Name);
-  if (!Buff) return false;
-  *Out = static_cast<Tp>(Buff.GetAsUnsigned());
+bool GetSysctl(std::string const& name, Tp* out) {
+  *out = 0;
+  auto buff = GetSysctlImp(name);
+  if (!buff) return false;
+  *out = static_cast<Tp>(buff.GetAsInteger());
   return true;
 }
 
 template <class Tp, size_t N>
-bool GetSysctl(std::string const& Name, std::array<Tp, N>* Out) {
-  auto Buff = GetSysctlImp(Name);
-  if (!Buff) return false;
-  *Out = Buff.GetAsArray<Tp, N>();
+bool GetSysctl(std::string const& name, std::array<Tp, N>* out) {
+  out->clear();
+  auto buff = GetSysctlImp(name);
+  if (!buff) return false;
+  *out = buff.GetAsArray<Tp, N>();
   return true;
 }
 #endif
@@ -234,21 +227,21 @@ CPUInfo::Scaling CpuScaling(int num_cpus) {
 #endif
 }
 
-int CountSetBitsInCPUMap(std::string Val) {
+int CountSetBitsInCPUMap(std::string val) {
   auto CountBits = [](std::string Part) {
     using CPUMask = std::bitset<sizeof(std::uintptr_t) * CHAR_BIT>;
     Part = "0x" + Part;
     CPUMask Mask(benchmark::stoul(Part, nullptr, 16));
     return static_cast<int>(Mask.count());
   };
-  size_t Pos;
+  std::size_t pos;
   int total = 0;
-  while ((Pos = Val.find(',')) != std::string::npos) {
-    total += CountBits(Val.substr(0, Pos));
-    Val = Val.substr(Pos + 1);
+  while ((pos = val.find(',')) != std::string::npos) {
+    total += CountBits(val.substr(0, pos));
+    val = val.substr(pos + 1);
   }
-  if (!Val.empty()) {
-    total += CountBits(Val);
+  if (!val.empty()) {
+    total += CountBits(val);
   }
   return total;
 }
@@ -294,26 +287,26 @@ std::vector<CPUInfo::CacheInfo> GetCacheSizesFromKVFS() {
 #ifdef BENCHMARK_OS_MACOSX
 std::vector<CPUInfo::CacheInfo> GetCacheSizesMacOSX() {
   std::vector<CPUInfo::CacheInfo> res;
-  std::array<uint64_t, 4> CacheCounts{{0, 0, 0, 0}};
-  GetSysctl("hw.cacheconfig", &CacheCounts);
+  std::array<uint64_t, 4> cache_counts{{0, 0, 0, 0}};
+  GetSysctl("hw.cacheconfig", &cache_counts);
 
   struct {
     std::string name;
     std::string type;
     int level;
-    uint64_t num_sharing;
-  } Cases[] = {{"hw.l1dcachesize", "Data", 1, CacheCounts[1]},
-               {"hw.l1icachesize", "Instruction", 1, CacheCounts[1]},
-               {"hw.l2cachesize", "Unified", 2, CacheCounts[2]},
-               {"hw.l3cachesize", "Unified", 3, CacheCounts[3]}};
-  for (auto& C : Cases) {
+    int num_sharing;
+  } cases[] = {{"hw.l1dcachesize", "Data", 1, cache_counts[1]},
+               {"hw.l1icachesize", "Instruction", 1, cache_counts[1]},
+               {"hw.l2cachesize", "Unified", 2, cache_counts[2]},
+               {"hw.l3cachesize", "Unified", 3, cache_counts[3]}};
+  for (auto& c : cases) {
     int val;
-    if (!GetSysctl(C.name, &val)) continue;
+    if (!GetSysctl(c.name, &val)) continue;
     CPUInfo::CacheInfo info;
-    info.type = C.type;
-    info.level = C.level;
+    info.type = c.type;
+    info.level = c.level;
     info.size = val;
-    info.num_sharing = static_cast<int>(C.num_sharing);
+    info.num_sharing = static_cast<int>(c.num_sharing);
     res.push_back(std::move(info));
   }
   return res;
@@ -456,8 +449,8 @@ std::string GetSystemName() {
 
 int GetNumCPUs() {
 #ifdef BENCHMARK_HAS_SYSCTL
-  int NumCPU = -1;
-  if (GetSysctl("hw.ncpu", &NumCPU)) return NumCPU;
+  int num_cpu = -1;
+  if (GetSysctl("hw.ncpu", &num_cpu)) return num_cpu;
   fprintf(stderr, "Err: %s\n", strerror(errno));
   std::exit(EXIT_FAILURE);
 #elif defined(BENCHMARK_OS_WINDOWS)
@@ -471,17 +464,17 @@ int GetNumCPUs() {
                                         // group
 #elif defined(BENCHMARK_OS_SOLARIS)
   // Returns -1 in case of a failure.
-  int NumCPU = sysconf(_SC_NPROCESSORS_ONLN);
-  if (NumCPU < 0) {
+  int num_cpu = sysconf(_SC_NPROCESSORS_ONLN);
+  if (num_cpu < 0) {
     fprintf(stderr, "sysconf(_SC_NPROCESSORS_ONLN) failed with error: %s\n",
             strerror(errno));
   }
-  return NumCPU;
+  return num_cpu;
 #elif defined(BENCHMARK_OS_QNX)
   return static_cast<int>(_syspage_ptr->num_cpu);
 #else
-  int NumCPUs = 0;
-  int MaxID = -1;
+  int num_cpus = 0;
+  int max_id = -1;
   std::ifstream f("/proc/cpuinfo");
   if (!f.is_open()) {
     std::cerr << "failed to open /proc/cpuinfo\n";
@@ -491,21 +484,21 @@ int GetNumCPUs() {
   std::string ln;
   while (std::getline(f, ln)) {
     if (ln.empty()) continue;
-    size_t SplitIdx = ln.find(':');
+    std::size_t split_idx = ln.find(':');
     std::string value;
 #if defined(__s390__)
     // s390 has another format in /proc/cpuinfo
     // it needs to be parsed differently
-    if (SplitIdx != std::string::npos)
-      value = ln.substr(Key.size() + 1, SplitIdx - Key.size() - 1);
+    if (split_idx != std::string::npos)
+      value = ln.substr(Key.size() + 1, split_idx - Key.size() - 1);
 #else
-    if (SplitIdx != std::string::npos) value = ln.substr(SplitIdx + 1);
+    if (split_idx != std::string::npos) value = ln.substr(split_idx + 1);
 #endif
     if (ln.size() >= Key.size() && ln.compare(0, Key.size(), Key) == 0) {
-      NumCPUs++;
+      num_cpus++;
       if (!value.empty()) {
-        int CurID = benchmark::stoi(value);
-        MaxID = std::max(CurID, MaxID);
+        const int cur_id = benchmark::stoi(value);
+        max_id = std::max(cur_id, max_id);
       }
     }
   }
@@ -519,12 +512,12 @@ int GetNumCPUs() {
   }
   f.close();
 
-  if ((MaxID + 1) != NumCPUs) {
+  if ((max_id + 1) != num_cpus) {
     fprintf(stderr,
             "CPU ID assignments in /proc/cpuinfo seem messed up."
             " This is usually caused by a bad BIOS.\n");
   }
-  return NumCPUs;
+  return num_cpus;
 #endif
   BENCHMARK_UNREACHABLE();
 }
@@ -580,9 +573,9 @@ double GetCPUCyclesPerSecond(CPUInfo::Scaling scaling) {
   std::string ln;
   while (std::getline(f, ln)) {
     if (ln.empty()) continue;
-    size_t SplitIdx = ln.find(':');
+    std::size_t split_idx = ln.find(':');
     std::string value;
-    if (SplitIdx != std::string::npos) value = ln.substr(SplitIdx + 1);
+    if (split_idx != std::string::npos) value = ln.substr(split_idx + 1);
     // When parsing the "cpu MHz" and "bogomips" (fallback) entries, we only
     // accept positive values. Some environments (virtual machines) report zero,
     // which would cause infinite looping in WallTime_Init.
