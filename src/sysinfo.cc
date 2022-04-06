@@ -188,7 +188,6 @@ bool GetSysctl(std::string const& name, Tp* out) {
 
 template <class Tp, size_t N>
 bool GetSysctl(std::string const& name, std::array<Tp, N>* out) {
-  out->clear();
   auto buff = GetSysctlImp(name);
   if (!buff) return false;
   *out = buff.GetAsArray<Tp, N>();
