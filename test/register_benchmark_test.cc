@@ -106,12 +106,16 @@ struct CustomFixture {
   }
 };
 
+static void StaticFunction(::benchmark::State& state, int) {}
+
 void TestRegistrationAtRuntime() {
 #ifdef BENCHMARK_HAS_CXX11
   {
     CustomFixture fx;
     benchmark::RegisterBenchmark("custom_fixture", fx);
     AddCases({"custom_fixture"});
+
+    benchmark::RegisterBenchmark("static", StaticFunction, 1);
   }
 #endif
 #ifndef BENCHMARK_HAS_NO_VARIADIC_REGISTER_BENCHMARK
