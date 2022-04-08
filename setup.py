@@ -116,6 +116,9 @@ class BuildBazelExtension(build_ext.build_ext):
             os.makedirs(ext_dest_dir)
         shutil.copyfile(ext_bazel_bin_path, ext_dest_path)
 
+        # explicitly call `bazel shutdown` for graceful exit
+        self.spawn(["bazel", "shutdown"])
+
 
 setuptools.setup(
     name="google_benchmark",
