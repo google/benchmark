@@ -12,7 +12,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Check out repo
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Install Python 3.9
         uses: actions/setup-python@v3
@@ -23,40 +23,36 @@ jobs:
         run: |
           python setup.py sdist
       - name: Upload sdist
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: dist
           path: dist/*.tar.gz
 
-  build_linux:
-    name: Build google-benchmark manylinux wheels
-    runs-on: ubuntu-latest
+  build_wheels:
+    name: Build Google Benchmark wheels on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
 
     steps:
       - name: Check out Google Benchmark
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Set up Python 3.9
         uses: actions/setup-python@v3
         with:
           python-version: 3.9
 
-      # TODO: Bazel does not seem to work in an emulated Docker environment, see
-      # https://github.com/bazelbuild/bazel/issues/11379
-#      - name: Set up QEMU
-#        uses: docker/setup-qemu-action@v1
-#        with:
-#          platforms: all
-
-      - name: Build Python wheels on ubuntu-latest
+      - name: Install and run cibuildwheel on ${{ matrix.os }}
         env:
           CIBW_BUILD: 'cp37-* cp38-* cp39-* cp310-*'
-          CIBW_SKIP: "*-musllinux_*"
-          # Bazel repo only exists on CentOS 7 for x86 and ppc, so no manylinux2010
+          CIBW_SKIP: "cp37-*-arm64 *-musllinux_*"
           # TODO: Build ppc64le, aarch64 using some other trick
-          CIBW_MANYLINUX_X86_64_IMAGE: manylinux2014
           CIBW_ARCHS_LINUX: x86_64
-          CIBW_BEFORE_ALL: >
+          CIBW_ARCHS_MACOS: x86_64 arm64
+          CIBW_ARCHS_WINDOWS: AMD64
+          CIBW_BEFORE_ALL_LINUX: >
             curl -O --retry-delay 5 --retry 5 https://copr.fedorainfracloud.org/coprs/vbatts/bazel/repo/epel-7/vbatts-bazel-epel-7.repo &&
             cp vbatts-bazel-epel-7.repo /etc/yum.repos.d/bazel.repo &&
             yum install -y bazel4
@@ -65,79 +61,18 @@ jobs:
           pip install cibuildwheel
           python -m cibuildwheel --output-dir wheelhouse
 
-      - name: Upload Linux wheels
-        uses: actions/upload-artifact@v2
+      - name: Upload Google Benchmark ${{ matrix.os }} wheels
+        uses: actions/upload-artifact@v3
         with:
           name: dist
-          path: wheelhouse/*.whl
-
-  build_macos:
-    name: Build google-benchmark macOS wheels
-    runs-on: macos-latest
-
-    steps:
-      - name: Check out Google Benchmark
-        uses: actions/checkout@v2
-
-      - name: Set up Python 3.9
-        uses: actions/setup-python@v3
-        with:
-          python-version: 3.9
-
-      - name: Build Python wheels on macOS
-        env:
-          CIBW_ARCHS_MACOS: "x86_64 arm64"
-          CIBW_BUILD: 'cp37-* cp38-* cp39-* cp310-*'
-          # ARM64 requires Python 3.8 minimum
-          CIBW_SKIP: 'cp37-*-arm64'
-          CIBW_TEST_COMMAND: python {project}/bindings/python/google_benchmark/example.py
-          CIBW_TEST_SKIP: "*_arm64"
-        run: |
-          pip install cibuildwheel
-          python -m cibuildwheel --output-dir wheelhouse
-
-      - name: Upload macOS wheels
-        uses: actions/upload-artifact@v2
-        with:
-          name: dist
-          path: wheelhouse/*.whl
-
-  build_windows:
-    name: Build google-benchmark wheels on Windows
-    runs-on: windows-latest
-
-    steps:
-      - name: Check out Google Benchmark
-        uses: actions/checkout@v2
-
-      - name: Set up Python 3.9
-        uses: actions/setup-python@v3
-        with:
-          python-version: 3.9
-
-      - name: Build Python wheels on Windows
-        env:
-          CIBW_BUILD: 'cp37-* cp38-* cp39-* cp310-*'
-          CIBW_ARCHS_WINDOWS: AMD64
-          # otherwise, pip crashes the job by trying to remove an in-use bazel DLL
-          PIP_NO_CLEAN: true
-          CIBW_TEST_COMMAND: python {project}/bindings/python/google_benchmark/example.py
-        run: |
-          pip install cibuildwheel
-          python -m cibuildwheel --output-dir wheelhouse
-
-      - name: Upload wheels
-        uses: actions/upload-artifact@v2
-        with:
-          name: dist
-          path: wheelhouse/*.whl
+          path: ./wheelhouse/*.whl
 
   pypi_upload:
     name: Publish google-benchmark wheels to PyPI
     needs: [build_sdist, build_linux, build_macos, build_windows]
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/download-artifact@v2
+    - uses: actions/download-artifact@v3
       with:
         name: dist
         path: dist
