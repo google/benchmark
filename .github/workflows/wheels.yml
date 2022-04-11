@@ -69,7 +69,7 @@ jobs:
 
   pypi_upload:
     name: Publish google-benchmark wheels to PyPI
-    needs: [build_sdist, build_linux, build_macos, build_windows]
+    needs: [build_sdist, build_wheels]
     runs-on: ubuntu-latest
     steps:
     - uses: actions/download-artifact@v3
