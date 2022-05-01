@@ -249,6 +249,7 @@ def get_difference_report(
     partitions = partition_benchmarks(json1, json2)
     for partition in partitions:
         benchmark_name = partition[0][0]['name']
+        label = partition[0][0]['label'] if 'label' in partition[0][0] else ''
         time_unit = partition[0][0]['time_unit']
         measurements = []
         utest_results = {}
@@ -289,6 +290,7 @@ def get_difference_report(
             aggregate_name = partition[0][0]['aggregate_name'] if run_type == 'aggregate' and 'aggregate_name' in partition[0][0] else ''
             diff_report.append({
                 'name': benchmark_name,
+                'label': label,
                 'measurements': measurements,
                 'time_unit': time_unit,
                 'run_type': run_type,
@@ -301,6 +303,7 @@ def get_difference_report(
     if lhs_gmean.any() and rhs_gmean.any():
         diff_report.append({
             'name': 'OVERALL_GEOMEAN',
+            'label': '',
             'measurements': [{
                 'real_time': lhs_gmean[0],
                 'cpu_time': lhs_gmean[1],
@@ -450,7 +453,8 @@ class TestReportDifference(unittest.TestCase):
                 '-0.1000', '100', '110', '100', '90'],
             ['BM_ThirdFaster', '-0.3333', '-0.3334', '100', '67', '100', '67'],
             ['BM_NotBadTimeUnit', '-0.9000', '+0.2000', '0', '0', '0', '1'],
-            ['OVERALL_GEOMEAN', '-0.8344', '-0.8026', '0', '0', '0', '0']
+            ['BM_hasLabel', '+0.0000', '+0.0000', '1', '1', '1', '1'],
+            ['OVERALL_GEOMEAN', '-0.8117', '-0.7783', '0', '0', '0', '0']
         ]
         output_lines_with_header = print_difference_report(
             self.json_diff_report, use_color=False)
@@ -467,81 +471,127 @@ class TestReportDifference(unittest.TestCase):
         expected_output = [
             {
                 'name': 'BM_SameTimes',
-                'measurements': [{'time': 0.0000, 'cpu': 0.0000, 'real_time': 10, 'real_time_other': 10, 'cpu_time': 10, 'cpu_time_other': 10}],
+                'label': '',
+                'measurements': [{'time': 0.0000, 'cpu': 0.0000,
+                                  'real_time': 10, 'real_time_other': 10,
+                                  'cpu_time': 10, 'cpu_time_other': 10}],
                 'time_unit': 'ns',
                 'utest': {}
             },
             {
                 'name': 'BM_2xFaster',
-                'measurements': [{'time': -0.5000, 'cpu': -0.5000, 'real_time': 50, 'real_time_other': 25, 'cpu_time': 50, 'cpu_time_other': 25}],
+                'label': '',
+                'measurements': [{'time': -0.5000, 'cpu': -0.5000,
+                                  'real_time': 50, 'real_time_other': 25,
+                                  'cpu_time': 50, 'cpu_time_other': 25}],
                 'time_unit': 'ns',
                 'utest': {}
             },
             {
                 'name': 'BM_2xSlower',
-                'measurements': [{'time': 1.0000, 'cpu': 1.0000, 'real_time': 50, 'real_time_other': 100, 'cpu_time': 50, 'cpu_time_other': 100}],
+                'label': '',
+                'measurements': [{'time': 1.0000, 'cpu': 1.0000,
+                                  'real_time': 50, 'real_time_other': 100,
+                                  'cpu_time': 50, 'cpu_time_other': 100}],
                 'time_unit': 'ns',
                 'utest': {}
             },
             {
                 'name': 'BM_1PercentFaster',
-                'measurements': [{'time': -0.0100, 'cpu': -0.0100, 'real_time': 100, 'real_time_other': 98.9999999, 'cpu_time': 100, 'cpu_time_other': 98.9999999}],
+                'label': '',
+                'measurements': [{'time': -0.0100, 'cpu': -0.0100,
+                                  'real_time': 100, 'real_time_other': 98.9999999,
+                                  'cpu_time': 100, 'cpu_time_other': 98.9999999}],
                 'time_unit': 'ns',
                 'utest': {}
             },
             {
                 'name': 'BM_1PercentSlower',
-                'measurements': [{'time': 0.0100, 'cpu': 0.0100, 'real_time': 100, 'real_time_other': 101, 'cpu_time': 100, 'cpu_time_other': 101}],
+                'label': '',
+                'measurements': [{'time': 0.0100, 'cpu': 0.0100,
+                                  'real_time': 100, 'real_time_other': 101,
+                                  'cpu_time': 100, 'cpu_time_other': 101}],
                 'time_unit': 'ns',
                 'utest': {}
             },
             {
                 'name': 'BM_10PercentFaster',
-                'measurements': [{'time': -0.1000, 'cpu': -0.1000, 'real_time': 100, 'real_time_other': 90, 'cpu_time': 100, 'cpu_time_other': 90}],
+                'label': '',
+                'measurements': [{'time': -0.1000, 'cpu': -0.1000,
+                                  'real_time': 100, 'real_time_other': 90,
+                                  'cpu_time': 100, 'cpu_time_other': 90}],
                 'time_unit': 'ns',
                 'utest': {}
             },
             {
                 'name': 'BM_10PercentSlower',
-                'measurements': [{'time': 0.1000, 'cpu': 0.1000, 'real_time': 100, 'real_time_other': 110, 'cpu_time': 100, 'cpu_time_other': 110}],
+                'label': '',
+                'measurements': [{'time': 0.1000, 'cpu': 0.1000,
+                                  'real_time': 100, 'real_time_other': 110,
+                                  'cpu_time': 100, 'cpu_time_other': 110}],
                 'time_unit': 'ns',
                 'utest': {}
             },
             {
                 'name': 'BM_100xSlower',
-                'measurements': [{'time': 99.0000, 'cpu': 99.0000, 'real_time': 100, 'real_time_other': 10000, 'cpu_time': 100, 'cpu_time_other': 10000}],
+                'label': '',
+                'measurements': [{'time': 99.0000, 'cpu': 99.0000,
+                                  'real_time': 100, 'real_time_other': 10000,
+                                  'cpu_time': 100, 'cpu_time_other': 10000}],
                 'time_unit': 'ns',
                 'utest': {}
             },
             {
                 'name': 'BM_100xFaster',
-                'measurements': [{'time': -0.9900, 'cpu': -0.9900, 'real_time': 10000, 'real_time_other': 100, 'cpu_time': 10000, 'cpu_time_other': 100}],
+                'label': '',
+                'measurements': [{'time': -0.9900, 'cpu': -0.9900,
+                                  'real_time': 10000, 'real_time_other': 100,
+                                  'cpu_time': 10000, 'cpu_time_other': 100}],
                 'time_unit': 'ns',
                 'utest': {}
             },
             {
                 'name': 'BM_10PercentCPUToTime',
-                'measurements': [{'time': 0.1000, 'cpu': -0.1000, 'real_time': 100, 'real_time_other': 110, 'cpu_time': 100, 'cpu_time_other': 90}],
+                'label': '',
+                'measurements': [{'time': 0.1000, 'cpu': -0.1000,
+                                  'real_time': 100, 'real_time_other': 110,
+                                  'cpu_time': 100, 'cpu_time_other': 90}],
                 'time_unit': 'ns',
                 'utest': {}
             },
             {
                 'name': 'BM_ThirdFaster',
-                'measurements': [{'time': -0.3333, 'cpu': -0.3334, 'real_time': 100, 'real_time_other': 67, 'cpu_time': 100, 'cpu_time_other': 67}],
+                'label': '',
+                'measurements': [{'time': -0.3333, 'cpu': -0.3334,
+                                  'real_time': 100, 'real_time_other': 67,
+                                  'cpu_time': 100, 'cpu_time_other': 67}],
                 'time_unit': 'ns',
                 'utest': {}
             },
             {
                 'name': 'BM_NotBadTimeUnit',
-                'measurements': [{'time': -0.9000, 'cpu': 0.2000, 'real_time': 0.4, 'real_time_other': 0.04, 'cpu_time': 0.5, 'cpu_time_other': 0.6}],
+                'label': '',
+                'measurements': [{'time': -0.9000, 'cpu': 0.2000,
+                                  'real_time': 0.4, 'real_time_other': 0.04,
+                                  'cpu_time': 0.5, 'cpu_time_other': 0.6}],
+                'time_unit': 's',
+                'utest': {}
+            },
+            {
+                'name': 'BM_hasLabel',
+                'label': 'a label',
+                'measurements': [{'time': 0.0000, 'cpu': 0.0000,
+                                  'real_time': 1, 'real_time_other': 1,
+                                  'cpu_time': 1, 'cpu_time_other': 1}],
                 'time_unit': 's',
                 'utest': {}
             },
             {
                 'name': 'OVERALL_GEOMEAN',
-                'measurements': [{'real_time': 1.193776641714438e-06, 'cpu_time': 1.2144445585302297e-06,
+                'label': '',
+                'measurements': [{'real_time': 3.1622776601683826e-06, 'cpu_time': 3.2130844755623912e-06,
                                   'real_time_other': 1.9768988699420897e-07, 'cpu_time_other': 2.397447755209533e-07,
-                                  'time': -0.834399601997324, 'cpu': -0.8025889499549471}],
+                                  'time': -0.8117033010153573, 'cpu': -0.7783324768278522}],
                 'time_unit': 's',
                 'run_type': 'aggregate',
                 'aggregate_name': 'geomean', 'utest': {}
@@ -551,6 +601,7 @@ class TestReportDifference(unittest.TestCase):
         for out, expected in zip(
                 self.json_diff_report, expected_output):
             self.assertEqual(out['name'], expected['name'])
+            self.assertEqual(out['label'], expected['label'])
             self.assertEqual(out['time_unit'], expected['time_unit'])
             assert_utest(self, out, expected)
             assert_measurements(self, out, expected)
