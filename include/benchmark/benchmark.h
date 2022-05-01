@@ -546,7 +546,7 @@ typedef std::map<std::string, Counter> UserCounters;
 // calculated automatically to the best fit.
 enum BigO { oNone, o1, oN, oNSquared, oNCubed, oLogN, oNLogN, oAuto, oLambda };
 
-typedef uint64_t IterationCount;
+typedef int64_t IterationCount;
 
 enum StatisticUnit { kTime, kPercentage };
 
