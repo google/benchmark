@@ -32,7 +32,7 @@ typename std::vector<T>::iterator AddPowers(std::vector<T>* dst, T lo, T hi,
     if (i > kmax / mult) break;
   }
 
-  return dst->begin() + start_offset;
+  return dst->begin() + static_cast<int>(start_offset);
 }
 
 template <typename T>

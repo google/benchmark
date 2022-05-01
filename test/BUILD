@@ -3,6 +3,7 @@ TEST_COPTS = [
     "-pedantic-errors",
     "-std=c++11",
     "-Wall",
+    "-Wconversion",
     "-Wextra",
     "-Wshadow",
     #    "-Wshorten-64-to-32",

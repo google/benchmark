@@ -4,9 +4,9 @@
 
 namespace {
 #if defined(__GNUC__)
-std::uint64_t double_up(const std::uint64_t x) __attribute__((const));
+std::int64_t double_up(const std::int64_t x) __attribute__((const));
 #endif
-std::uint64_t double_up(const std::uint64_t x) { return x * 2; }
+std::int64_t double_up(const std::int64_t x) { return x * 2; }
 }  // namespace
 
 // Using DoNotOptimize on types like BitRef seem to cause a lot of problems
