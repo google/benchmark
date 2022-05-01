@@ -182,6 +182,12 @@ BM_memcpy/32          12 ns         12 ns   54687500
 BM_memcpy/32k       1834 ns       1837 ns     357143
 ```
 
+## Disabling Benchmarks
+
+It is possible to temporarily disable benchmarks by renaming the benchmark
+function to have the prefix "DISABLED_". This will cause the benchmark to
+be skipped at runtime.
+
 <a name="result-comparison" />
 
 ## Result comparison
