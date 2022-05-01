@@ -96,6 +96,18 @@ ADD_CASES({"test1", "One"}, {"test2", "Two"}, {"test3", "Three"});
 #endif  // BENCHMARK_HAS_NO_VARIADIC_REGISTER_BENCHMARK
 
 //----------------------------------------------------------------------------//
+// Test RegisterBenchmark with DISABLED_ benchmark
+//----------------------------------------------------------------------------//
+void DISABLED_BM_function(benchmark::State& state) {
+  for (auto _ : state) {
+  }
+}
+BENCHMARK(DISABLED_BM_function);
+ReturnVal dummy3 = benchmark::RegisterBenchmark("DISABLED_BM_function_manual",
+                                                DISABLED_BM_function);
+// No need to add cases because we don't expect them to run.
+
+//----------------------------------------------------------------------------//
 // Test RegisterBenchmark with different callable types
 //----------------------------------------------------------------------------//
 
