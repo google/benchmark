@@ -47,6 +47,8 @@ IRC channels:
 
 [Assembly Testing Documentation](docs/AssemblyTests.md)
 
+[Building and installing Python bindings](docs/python_bindings.md)
+
 ## Requirements
 
 The library can be used with C++03. However, it requires C++11 to build,
