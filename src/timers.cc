@@ -123,7 +123,7 @@ double ProcessCPUUsage() {
   // clock_gettime(CLOCK_PROCESS_CPUTIME_ID, ...) returns 0 on Emscripten.
   // Use Emscripten-specific API. Reported CPU time would be exactly the
   // same as total time, but this is ok because there aren't long-latency
-  // syncronous system calls in Emscripten.
+  // synchronous system calls in Emscripten.
   return emscripten_get_now() * 1e-3;
 #elif defined(CLOCK_PROCESS_CPUTIME_ID) && !defined(BENCHMARK_OS_MACOSX)
   // FIXME We want to use clock_gettime, but its not available in MacOS 10.11.

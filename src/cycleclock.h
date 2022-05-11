@@ -132,7 +132,7 @@ inline BENCHMARK_ALWAYS_INLINE int64_t Now() {
 
   // Native Client does not provide any API to access cycle counter.
   // Use clock_gettime(CLOCK_MONOTONIC, ...) instead of gettimeofday
-  // because is provides nanosecond resolution (which is noticable at
+  // because is provides nanosecond resolution (which is noticeable at
   // least for PNaCl modules running on x86 Mac & Linux).
   // Initialize to always return 0 if clock_gettime fails.
   struct timespec ts = {0, 0};
