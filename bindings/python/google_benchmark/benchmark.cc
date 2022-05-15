@@ -1,5 +1,7 @@
 // Benchmark for Python.
 
+#include "benchmark/benchmark.h"
+
 #include <map>
 #include <string>
 #include <vector>
@@ -8,8 +10,6 @@
 #include "pybind11/pybind11.h"
 #include "pybind11/stl.h"
 #include "pybind11/stl_bind.h"
-
-#include "benchmark/benchmark.h"
 
 PYBIND11_MAKE_OPAQUE(benchmark::UserCounters);
 
@@ -165,12 +165,12 @@ PYBIND11_MODULE(_benchmark, m) {
                     &State::SetComplexityN)
       .def_property("items_processed", &State::items_processed,
                     &State::SetItemsProcessed)
-      .def("set_label", (void (State::*)(const char*)) & State::SetLabel)
+      .def("set_label", (void(State::*)(const char*)) & State::SetLabel)
       .def("range", &State::range, py::arg("pos") = 0)
       .def_property_readonly("iterations", &State::iterations)
       .def_readwrite("counters", &State::counters)
-      .def_readonly("thread_index", &State::thread_index)
-      .def_readonly("threads", &State::threads);
+      .def_property_readonly("thread_index", &State::thread_index)
+      .def_property_readonly("threads", &State::threads);
 
   m.def("Initialize", Initialize);
   m.def("RegisterBenchmark", RegisterBenchmark,

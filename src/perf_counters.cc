@@ -15,6 +15,7 @@
 #include "perf_counters.h"
 
 #include <cstring>
+#include <memory>
 #include <vector>
 
 #if defined HAVE_LIBPFM
@@ -49,7 +50,7 @@ PerfCounters PerfCounters::Create(
   const int mode = PFM_PLM3;  // user mode only
   for (size_t i = 0; i < counter_names.size(); ++i) {
     const bool is_first = i == 0;
-    struct perf_event_attr attr{};
+    struct perf_event_attr attr {};
     attr.size = sizeof(attr);
     const int group_id = !is_first ? counter_ids[0] : -1;
     const auto& name = counter_names[i];
@@ -67,6 +68,10 @@ PerfCounters PerfCounters::Create(
       return NoCounters();
     }
     attr.disabled = is_first;
+    // Note: the man page for perf_event_create suggests inerit = true and
+    // read_format = PERF_FORMAT_GROUP don't work together, but that's not the
+    // case.
+    attr.inherit = true;
     attr.pinned = is_first;
     attr.exclude_kernel = true;
     attr.exclude_user = false;
@@ -100,7 +105,7 @@ PerfCounters PerfCounters::Create(
   return PerfCounters(counter_names, std::move(counter_ids));
 }
 
-PerfCounters::~PerfCounters() {
+void PerfCounters::CloseCounters() const {
   if (counter_ids_.empty()) {
     return;
   }
@@ -122,7 +127,44 @@ PerfCounters PerfCounters::Create(
   return NoCounters();
 }
 
-PerfCounters::~PerfCounters() = default;
+void PerfCounters::CloseCounters() const {}
 #endif  // defined HAVE_LIBPFM
+
+Mutex PerfCountersMeasurement::mutex_;
+int PerfCountersMeasurement::ref_count_ = 0;
+PerfCounters PerfCountersMeasurement::counters_ = PerfCounters::NoCounters();
+
+PerfCountersMeasurement::PerfCountersMeasurement(
+    const std::vector<std::string>& counter_names)
+    : start_values_(counter_names.size()), end_values_(counter_names.size()) {
+  MutexLock l(mutex_);
+  if (ref_count_ == 0) {
+    counters_ = PerfCounters::Create(counter_names);
+  }
+  // We chose to increment it even if `counters_` ends up invalid,
+  // so that we don't keep trying to create, and also since the dtor
+  // will decrement regardless of `counters_`'s validity
+  ++ref_count_;
+
+  BM_CHECK(!counters_.IsValid() || counters_.names() == counter_names);
+}
+
+PerfCountersMeasurement::~PerfCountersMeasurement() {
+  MutexLock l(mutex_);
+  --ref_count_;
+  if (ref_count_ == 0) {
+    counters_ = PerfCounters::NoCounters();
+  }
+}
+
+PerfCounters& PerfCounters::operator=(PerfCounters&& other) noexcept {
+  if (this != &other) {
+    CloseCounters();
+
+    counter_ids_ = std::move(other.counter_ids_);
+    counter_names_ = std::move(other.counter_names_);
+  }
+  return *this;
+}
 }  // namespace internal
 }  // namespace benchmark

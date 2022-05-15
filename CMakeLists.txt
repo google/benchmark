@@ -13,18 +13,31 @@ foreach(p
   endif()
 endforeach()
 
-project (benchmark CXX)
+project (benchmark VERSION 1.6.1 LANGUAGES CXX)
 
 option(BENCHMARK_ENABLE_TESTING "Enable testing of the benchmark library." ON)
 option(BENCHMARK_ENABLE_EXCEPTIONS "Enable the use of exceptions in the benchmark library." ON)
 option(BENCHMARK_ENABLE_LTO "Enable link time optimisation of the benchmark library." OFF)
 option(BENCHMARK_USE_LIBCXX "Build and test using libc++ as the standard library." OFF)
+option(BENCHMARK_ENABLE_WERROR "Build Release candidates with -Werror." ON)
+option(BENCHMARK_FORCE_WERROR "Build Release candidates with -Werror regardless of compiler issues." OFF)
+
+if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "PGI")
+  # PGC++ maybe reporting false positives.
+  set(BENCHMARK_ENABLE_WERROR OFF)
+endif()
+if(BENCHMARK_FORCE_WERROR)
+  set(BENCHMARK_ENABLE_WERROR ON)
+endif(BENCHMARK_FORCE_WERROR)
+
 if(NOT MSVC)
   option(BENCHMARK_BUILD_32_BITS "Build a 32 bit version of the library." OFF)
 else()
   set(BENCHMARK_BUILD_32_BITS OFF CACHE BOOL "Build a 32 bit version of the library - unsupported when using MSVC)" FORCE)
 endif()
 option(BENCHMARK_ENABLE_INSTALL "Enable installation of benchmark. (Projects embedding benchmark may want to turn this OFF.)" ON)
+option(BENCHMARK_ENABLE_DOXYGEN "Build documentation with Doxygen." OFF)
+option(BENCHMARK_INSTALL_DOCS "Enable installation of documentation." ON)
 
 # Allow unmet dependencies to be met using CMake's ExternalProject mechanics, which
 # may require downloading the source code.
@@ -33,10 +46,14 @@ option(BENCHMARK_DOWNLOAD_DEPENDENCIES "Allow the downloading and in-tree buildi
 # This option can be used to disable building and running unit tests which depend on gtest
 # in cases where it is not possible to build or find a valid version of gtest.
 option(BENCHMARK_ENABLE_GTEST_TESTS "Enable building the unit tests which depend on gtest" ON)
+option(BENCHMARK_USE_BUNDLED_GTEST "Use bundled GoogleTest. If disabled, the find_package(GTest) will be used." ON)
 
 option(BENCHMARK_ENABLE_LIBPFM "Enable performance counters provided by libpfm" OFF)
 
-set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
+# Export only public symbols
+set(CMAKE_CXX_VISIBILITY_PRESET hidden)
+set(CMAKE_VISIBILITY_INLINES_HIDDEN ON)
+
 if(MSVC)
     # As of CMake 3.18, CMAKE_SYSTEM_PROCESSOR is not set properly for MSVC and
     # cross-compilation (e.g. Host=x86_64, target=aarch64) requires using the
@@ -94,8 +111,14 @@ list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 include(GetGitVersion)
 get_git_version(GIT_VERSION)
 
+# If no git version can be determined, use the version
+# from the project() command
+if ("${GIT_VERSION}" STREQUAL "0.0.0")
+  set(VERSION "${benchmark_VERSION}")
+else()
+  set(VERSION "${GIT_VERSION}")
+endif()
 # Tell the user what versions we are using
-string(REGEX MATCH "[0-9]+\\.[0-9]+\\.[0-9]+" VERSION ${GIT_VERSION})
 message(STATUS "Version: ${VERSION}")
 
 # The version of the libraries
@@ -103,9 +126,13 @@ set(GENERIC_LIB_VERSION ${VERSION})
 string(SUBSTRING ${VERSION} 0 1 GENERIC_LIB_SOVERSION)
 
 # Import our CMake modules
-include(CheckCXXCompilerFlag)
 include(AddCXXCompilerFlag)
+include(CheckCXXCompilerFlag)
+include(CheckLibraryExists)
 include(CXXFeatureCheck)
+include(GenerateExportHeader)
+
+check_library_exists(rt shm_open "" HAVE_LIB_RT)
 
 if (BENCHMARK_BUILD_32_BITS)
   add_required_cxx_compiler_flag(-m32)
@@ -155,16 +182,18 @@ else()
   add_cxx_compiler_flag(-Wall)
   add_cxx_compiler_flag(-Wextra)
   add_cxx_compiler_flag(-Wshadow)
-  add_cxx_compiler_flag(-Werror RELEASE)
-  add_cxx_compiler_flag(-Werror RELWITHDEBINFO)
-  add_cxx_compiler_flag(-Werror MINSIZEREL)
+  add_cxx_compiler_flag(-Wfloat-equal)
+  if(BENCHMARK_ENABLE_WERROR)
+      add_cxx_compiler_flag(-Werror RELEASE)
+      add_cxx_compiler_flag(-Werror RELWITHDEBINFO)
+      add_cxx_compiler_flag(-Werror MINSIZEREL)
+  endif()
   if (NOT BENCHMARK_ENABLE_TESTING)
     # Disable warning when compiling tests as gtest does not use 'override'.
     add_cxx_compiler_flag(-Wsuggest-override)
   endif()
-  # Disabled until googletest (gmock) stops emitting variadic macro warnings
-  #add_cxx_compiler_flag(-pedantic)
-  #add_cxx_compiler_flag(-pedantic-errors)
+  add_cxx_compiler_flag(-pedantic)
+  add_cxx_compiler_flag(-pedantic-errors)
   add_cxx_compiler_flag(-Wshorten-64-to-32)
   add_cxx_compiler_flag(-fstrict-aliasing)
   # Disable warnings regarding deprecated parts of the library while building
@@ -177,9 +206,11 @@ else()
     add_cxx_compiler_flag(-wd1786)
   endif()
   # Disable deprecation warnings for release builds (when -Werror is enabled).
-  add_cxx_compiler_flag(-Wno-deprecated RELEASE)
-  add_cxx_compiler_flag(-Wno-deprecated RELWITHDEBINFO)
-  add_cxx_compiler_flag(-Wno-deprecated MINSIZEREL)
+  if(BENCHMARK_ENABLE_WERROR)
+      add_cxx_compiler_flag(-Wno-deprecated RELEASE)
+      add_cxx_compiler_flag(-Wno-deprecated RELWITHDEBINFO)
+      add_cxx_compiler_flag(-Wno-deprecated MINSIZEREL)
+  endif()
   if (NOT BENCHMARK_ENABLE_EXCEPTIONS)
     add_cxx_compiler_flag(-fno-exceptions)
   endif()
@@ -303,7 +334,15 @@ if (BENCHMARK_ENABLE_TESTING)
   if (BENCHMARK_ENABLE_GTEST_TESTS AND
       NOT (TARGET gtest AND TARGET gtest_main AND
            TARGET gmock AND TARGET gmock_main))
-    include(GoogleTest)
+    if (BENCHMARK_USE_BUNDLED_GTEST)
+      include(GoogleTest)
+    else()
+      find_package(GTest CONFIG REQUIRED)
+      add_library(gtest ALIAS GTest::gtest)
+      add_library(gtest_main ALIAS GTest::gtest_main)
+      add_library(gmock ALIAS GTest::gmock)
+      add_library(gmock_main ALIAS GTest::gmock_main)
+    endif()
   endif()
   add_subdirectory(test)
 endif()

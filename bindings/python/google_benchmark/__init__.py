@@ -66,7 +66,7 @@ __all__ = [
     "oLambda",
 ]
 
-__version__ = "0.2.0"
+__version__ = "1.6.1"
 
 
 class __OptionMaker:

@@ -115,7 +115,7 @@ inline BENCHMARK_ALWAYS_INLINE int64_t Now() {
   // the code is being compiled with a non-ancient compiler.
   _asm rdtsc
 #elif defined(COMPILER_MSVC) && defined(_M_ARM64)
-  // See https://docs.microsoft.com/en-us/cpp/intrinsics/arm64-intrinsics?view=vs-2019
+  // See // https://docs.microsoft.com/en-us/cpp/intrinsics/arm64-intrinsics
   // and https://reviews.llvm.org/D53115
   int64_t virtual_timer_value;
   virtual_timer_value = _ReadStatusReg(ARM64_CNTVCT);
@@ -173,6 +173,10 @@ inline BENCHMARK_ALWAYS_INLINE int64_t Now() {
   struct timeval tv;
   gettimeofday(&tv, nullptr);
   return static_cast<int64_t>(tv.tv_sec) * 1000000 + tv.tv_usec;
+#elif defined(__loongarch__)
+  struct timeval tv;
+  gettimeofday(&tv, nullptr);
+  return static_cast<int64_t>(tv.tv_sec) * 1000000 + tv.tv_usec;
 #elif defined(__s390__)  // Covers both s390 and s390x.
   // Return the CPU clock.
   uint64_t tsc;
@@ -183,7 +187,7 @@ inline BENCHMARK_ALWAYS_INLINE int64_t Now() {
   asm("stck %0" : "=Q"(tsc) : : "cc");
 #endif
   return tsc;
-#elif defined(__riscv) // RISC-V
+#elif defined(__riscv)  // RISC-V
   // Use RDCYCLE (and RDCYCLEH on riscv32)
 #if __riscv_xlen == 32
   uint32_t cycles_lo, cycles_hi0, cycles_hi1;

@@ -8,8 +8,8 @@ def py_extension(name, srcs, hdrs = [], copts = [], features = [], deps = []):
         shared_lib_name = name + shared_lib_suffix
         native.cc_binary(
             name = shared_lib_name,
-            linkshared = 1,
-            linkstatic = 1,
+            linkshared = True,
+            linkstatic = True,
             srcs = srcs + hdrs,
             copts = copts,
             features = features,

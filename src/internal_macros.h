@@ -44,6 +44,13 @@
   #define BENCHMARK_OS_CYGWIN 1
 #elif defined(_WIN32)
   #define BENCHMARK_OS_WINDOWS 1
+  #if defined(WINAPI_FAMILY_PARTITION)
+    #if WINAPI_FAMILY_PARTITION(WINAPI_PARTITION_DESKTOP)
+      #define BENCHMARK_OS_WINDOWS_WIN32 1
+    #elif WINAPI_FAMILY_PARTITION(WINAPI_PARTITION_APP)
+      #define BENCHMARK_OS_WINDOWS_RT 1
+    #endif
+  #endif
   #if defined(__MINGW32__)
     #define BENCHMARK_OS_MINGW 1
   #endif

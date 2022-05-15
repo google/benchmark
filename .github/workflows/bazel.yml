@@ -19,7 +19,7 @@ jobs:
         path: "~/.cache/bazel"
         key: ${{ env.cache-name }}-${{ runner.os }}-${{ github.ref }}
         restore-keys: |
-          ${{ env.cache-name }}-${{ runner.os }}-master
+          ${{ env.cache-name }}-${{ runner.os }}-main
 
     - name: build
       run: |

@@ -8,7 +8,7 @@
 
 namespace benchmark {
 namespace internal {
-extern std::map<std::string, std::string>* global_context;
+BENCHMARK_EXPORT extern std::map<std::string, std::string>* global_context;
 
 namespace {
 
@@ -143,6 +143,7 @@ TEST(AddCustomContext, Simple) {
               testing::UnorderedElementsAre(testing::Pair("foo", "bar"),
                                             testing::Pair("baz", "qux")));
 
+  delete global_context;
   global_context = nullptr;
 }
 
@@ -155,6 +156,7 @@ TEST(AddCustomContext, DuplicateKey) {
   EXPECT_THAT(*global_context,
               testing::UnorderedElementsAre(testing::Pair("foo", "bar")));
 
+  delete global_context;
   global_context = nullptr;
 }
 
