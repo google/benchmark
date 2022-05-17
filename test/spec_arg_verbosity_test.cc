@@ -23,9 +23,8 @@ int main(int argc, char** argv) {
     }
   }
   if (!found) {
-    std::cerr
-        << "This test requires '--v=42' to be passed as a command-line "
-        << "argument.\n";
+    std::cerr << "This test requires '--v=42' to be passed as a command-line "
+              << "argument.\n";
     return 1;
   }
 
