@@ -62,6 +62,9 @@ add_test(NAME benchmark COMMAND benchmark_test --benchmark_min_time=0.01)
 compile_benchmark_test(spec_arg_test)
 add_test(NAME spec_arg COMMAND spec_arg_test --benchmark_filter=BM_NotChosen)
 
+compile_benchmark_test(spec_arg_verbosity_test)
+add_test(NAME spec_arg_verbosity COMMAND spec_arg_verbosity_test --v=42)
+
 compile_benchmark_test(benchmark_setup_teardown_test)
 add_test(NAME benchmark_setup_teardown COMMAND benchmark_setup_teardown_test)
 

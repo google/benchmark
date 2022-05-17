@@ -539,6 +539,8 @@ void SetBenchmarkFilter(std::string value) {
   FLAGS_benchmark_filter = std::move(value);
 }
 
+int32_t GetBenchmarkVerbosity() { return FLAGS_v; }
+
 void RegisterMemoryManager(MemoryManager* manager) {
   internal::memory_manager = manager;
 }

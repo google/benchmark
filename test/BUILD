@@ -23,6 +23,7 @@ PER_SRC_TEST_ARGS = ({
     "user_counters_tabular_test.cc": ["--benchmark_counters_tabular=true"],
     "repetitions_test.cc": [" --benchmark_repetitions=3"],
     "spec_arg_test.cc" : ["--benchmark_filter=BM_NotChosen"],
+    "spec_arg_verbosity_test.cc" : ["--v=42"],
 })
 
 load("@rules_cc//cc:defs.bzl", "cc_library", "cc_test")
