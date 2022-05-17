@@ -308,6 +308,9 @@ BENCHMARK_EXPORT std::string GetBenchmarkFilter();
 // `benchmark::Initialize()` will override the flag's value.
 BENCHMARK_EXPORT void SetBenchmarkFilter(std::string value);
 
+// Returns the current value of --v (command line value for verbosity).
+BENCHMARK_EXPORT int32_t GetBenchmarkVerbosity();
+
 // Creates a default display reporter. Used by the library when no display
 // reporter is provided, but also made available for external use in case a
 // custom reporter should respect the `--benchmark_format` flag as a fallback
