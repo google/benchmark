@@ -26,6 +26,7 @@
 namespace benchmark {
 
 BM_DECLARE_double(benchmark_min_time);
+BM_DECLARE_double(benchmark_min_warmup_time);
 BM_DECLARE_int32(benchmark_repetitions);
 BM_DECLARE_bool(benchmark_report_aggregates_only);
 BM_DECLARE_bool(benchmark_display_aggregates_only);
@@ -69,6 +70,8 @@ class BenchmarkRunner {
   BenchmarkReporter::PerFamilyRunReports* reports_for_family;
 
   const double min_time;
+  const double min_warmup_time;
+  bool warmup_done;
   const int repeats;
   const bool has_explicit_iteration_count;
 
@@ -95,6 +98,12 @@ class BenchmarkRunner {
   IterationCount PredictNumItersNeeded(const IterationResults& i) const;
 
   bool ShouldReportIterationResults(const IterationResults& i) const;
+
+  double GetMinTimeToApply() const;
+
+  void FinishWarmUp(const IterationCount& i);
+
+  void RunWarmUp();
 };
 
 }  // namespace internal
