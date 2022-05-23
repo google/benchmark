@@ -278,10 +278,7 @@ double BenchmarkRunner::GetMinTimeToApply() const {
   // min_time or min_warmup_time. This function will figure out if we are in the
   // warmup phase and therefore need to apply min_warmup_time or if we already
   // in the benchmarking phase and min_time needs to be applied.
-  if (!warmup_done)
-    return min_warmup_time;
-  else
-    return min_time;
+  return warmup_done ? min_time : min_warmup_time;
 }
 
 void BenchmarkRunner::FinishWarmUp(const IterationCount& i) {
@@ -306,9 +303,9 @@ void BenchmarkRunner::RunWarmUp() {
     i_warmup = DoNIterations();
     b.Teardown();
 
-    const bool finsish = ShouldReportIterationResults(i_warmup);
+    const bool finish = ShouldReportIterationResults(i_warmup);
 
-    if (finsish) {
+    if (finish) {
       FinishWarmUp(i_backup);
       break;
     }
