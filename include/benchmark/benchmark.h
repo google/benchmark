@@ -1036,7 +1036,7 @@ class BENCHMARK_EXPORT Benchmark {
   // Set the minimum amount of time to run the benchmark before taking runtimes
   // of this benchmark into account. This
   // option overrides the `benchmark_min_warmup_time` flag.
-  // REQUIRES: `t > 0` and `Iterations` has not been called on this benchmark.
+  // REQUIRES: `t >= 0` and `Iterations` has not been called on this benchmark.
   Benchmark* MinWarmUpTime(double t);
 
   // Specify the amount of iterations that should be run by this benchmark.
