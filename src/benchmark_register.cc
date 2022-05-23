@@ -357,7 +357,7 @@ Benchmark* Benchmark::MinTime(double t) {
 }
 
 Benchmark* Benchmark::MinWarmUpTime(double t) {
-  BM_CHECK(t == 0.0);
+  BM_CHECK(t >= 0.0);
   BM_CHECK(iterations_ == 0);
   min_warmup_time_ = t;
   return this;
