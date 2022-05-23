@@ -240,6 +240,19 @@ iterations is at least one, not more than 1e9, until CPU time is greater than
 the minimum time, or the wallclock time is 5x minimum time. The minimum time is
 set per benchmark by calling `MinTime` on the registered benchmark object.
 
+Furthermore warming up a benchmark might be necessary in order to get
+stable results because of e.g caching effects of the code under benchmark.
+Warming up means running the benchmark a given amount of time, before
+results are actually taken into account. The amount of time for which
+the warmup should be run can be set per benchmark by calling
+`MinWarmUpTime` on the registered benchmark object or for all benchmarks
+using the `--benchmark_min_warmup_time` command-line option. Note that
+`MinWarmUpTime` will overwrite the value of `--benchmark_min_warmup_time`
+for the single benchmark. How many iterations the warmup run of each
+benchmark takes is determined the same way as described in the paragraph
+above. Per default the warmup phase is set to 0 seconds and is therefore
+disabled.
+
 Average timings are then reported over the iterations run. If multiple
 repetitions are requested using the `--benchmark_repetitions` command-line
 option, or at registration time, the benchmark function will be run several
