@@ -95,6 +95,8 @@ PYBIND11_MODULE(_benchmark, m) {
       .def("range_multiplier", &Benchmark::RangeMultiplier,
            py::return_value_policy::reference)
       .def("min_time", &Benchmark::MinTime, py::return_value_policy::reference)
+      .def("min_warmup_time", &Benchmark::MinWarmUpTime,
+           py::return_value_policy::reference)
       .def("iterations", &Benchmark::Iterations,
            py::return_value_policy::reference)
       .def("repetitions", &Benchmark::Repetitions,
@@ -165,7 +167,7 @@ PYBIND11_MODULE(_benchmark, m) {
                     &State::SetComplexityN)
       .def_property("items_processed", &State::items_processed,
                     &State::SetItemsProcessed)
-      .def("set_label", (void(State::*)(const char*)) & State::SetLabel)
+      .def("set_label", (void (State::*)(const char*)) & State::SetLabel)
       .def("range", &State::range, py::arg("pos") = 0)
       .def_property_readonly("iterations", &State::iterations)
       .def_readwrite("counters", &State::counters)

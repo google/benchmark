@@ -72,6 +72,13 @@ BM_DEFINE_string(benchmark_filter, "");
 // benchmark execution, regardless of number of threads.
 BM_DEFINE_double(benchmark_min_time, 0.5);
 
+// Minimum number of seconds a benchmark should be run before results should be
+// taken into account. This e.g can be neccessary for benchmarks of code which
+// needs to fill some form of cache before performance is of interrest.
+// Note: results gathered within this period are discarded and not used for
+// reported result.
+BM_DEFINE_double(benchmark_min_warmup_time, 0.0);
+
 // The number of runs of each benchmark. If greater than 1, the mean and
 // standard deviation of the runs will be reported.
 BM_DEFINE_int32(benchmark_repetitions, 1);
@@ -568,6 +575,7 @@ void PrintUsageAndExit() {
             " [--benchmark_list_tests={true|false}]\n"
             "          [--benchmark_filter=<regex>]\n"
             "          [--benchmark_min_time=<min_time>]\n"
+            "          [--benchmark_min_warmup_time=<min_warmup_time>]\n"
             "          [--benchmark_repetitions=<num_repetitions>]\n"
             "          [--benchmark_enable_random_interleaving={true|false}]\n"
             "          [--benchmark_report_aggregates_only={true|false}]\n"
@@ -608,6 +616,8 @@ void ParseCommandLineFlags(int* argc, char** argv) {
         ParseStringFlag(argv[i], "benchmark_filter", &FLAGS_benchmark_filter) ||
         ParseDoubleFlag(argv[i], "benchmark_min_time",
                         &FLAGS_benchmark_min_time) ||
+        ParseDoubleFlag(argv[i], "benchmark_min_warmup_time",
+                        &FLAGS_benchmark_min_warmup_time) ||
         ParseInt32Flag(argv[i], "benchmark_repetitions",
                        &FLAGS_benchmark_repetitions) ||
         ParseBoolFlag(argv[i], "benchmark_enable_random_interleaving",

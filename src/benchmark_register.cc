@@ -211,6 +211,7 @@ Benchmark::Benchmark(const char* name)
       use_default_time_unit_(true),
       range_multiplier_(kRangeMultiplier),
       min_time_(0),
+      min_warmup_time_(0),
       iterations_(0),
       repetitions_(0),
       measure_process_cpu_time_(false),
@@ -355,9 +356,17 @@ Benchmark* Benchmark::MinTime(double t) {
   return this;
 }
 
+Benchmark* Benchmark::MinWarmUpTime(double t) {
+  BM_CHECK(t >= 0.0);
+  BM_CHECK(iterations_ == 0);
+  min_warmup_time_ = t;
+  return this;
+}
+
 Benchmark* Benchmark::Iterations(IterationCount n) {
   BM_CHECK(n > 0);
   BM_CHECK(IsZero(min_time_));
+  BM_CHECK(IsZero(min_warmup_time_));
   iterations_ = n;
   return this;
 }

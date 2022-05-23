@@ -122,6 +122,7 @@ void RunInThread(const BenchmarkInstance* b, IterationCount iters,
       b->measure_process_cpu_time()
           ? internal::ThreadTimer::CreateProcessCpuTime()
           : internal::ThreadTimer::Create());
+
   State st =
       b->Run(iters, thread_id, &timer, manager, perf_counters_measurement);
   BM_CHECK(st.error_occurred() || st.iterations() >= st.max_iterations)
@@ -147,6 +148,10 @@ BenchmarkRunner::BenchmarkRunner(
     : b(b_),
       reports_for_family(reports_for_family_),
       min_time(!IsZero(b.min_time()) ? b.min_time() : FLAGS_benchmark_min_time),
+      min_warmup_time((!IsZero(b.min_time()) && b.min_warmup_time() > 0.0)
+                          ? b.min_warmup_time()
+                          : FLAGS_benchmark_min_warmup_time),
+      warmup_done(!(min_warmup_time > 0.0)),
       repeats(b.repetitions() != 0 ? b.repetitions()
                                    : FLAGS_benchmark_repetitions),
       has_explicit_iteration_count(b.iterations() != 0),
@@ -231,13 +236,13 @@ IterationCount BenchmarkRunner::PredictNumItersNeeded(
     const IterationResults& i) const {
   // See how much iterations should be increased by.
   // Note: Avoid division by zero with max(seconds, 1ns).
-  double multiplier = min_time * 1.4 / std::max(i.seconds, 1e-9);
+  double multiplier = GetMinTimeToApply() * 1.4 / std::max(i.seconds, 1e-9);
   // If our last run was at least 10% of FLAGS_benchmark_min_time then we
   // use the multiplier directly.
   // Otherwise we use at most 10 times expansion.
   // NOTE: When the last run was at least 10% of the min time the max
   // expansion should be 14x.
-  bool is_significant = (i.seconds / min_time) > 0.1;
+  const bool is_significant = (i.seconds / GetMinTimeToApply()) > 0.1;
   multiplier = is_significant ? multiplier : 10.0;
 
   // So what seems to be the sufficiently-large iteration count? Round up.
@@ -258,19 +263,78 @@ bool BenchmarkRunner::ShouldReportIterationResults(
   // or because an error was reported.
   return i.results.has_error_ ||
          i.iters >= kMaxIterations ||  // Too many iterations already.
-         i.seconds >= min_time ||      // The elapsed time is large enough.
+         i.seconds >=
+             GetMinTimeToApply() ||  // The elapsed time is large enough.
          // CPU time is specified but the elapsed real time greatly exceeds
          // the minimum time.
          // Note that user provided timers are except from this test.
-         ((i.results.real_time_used >= 5 * min_time) && !b.use_manual_time());
+         ((i.results.real_time_used >= 5 * GetMinTimeToApply()) &&
+          !b.use_manual_time());
+}
+
+double BenchmarkRunner::GetMinTimeToApply() const {
+  // In order to re-use functionality to run and measure benchmarks for running
+  // a warmup phase of the benchmark, we need a way of telling whether to apply
+  // min_time or min_warmup_time. This function will figure out if we are in the
+  // warmup phase and therefore need to apply min_warmup_time or if we already
+  // in the benchmarking phase and min_time needs to be applied.
+  return warmup_done ? min_time : min_warmup_time;
+}
+
+void BenchmarkRunner::FinishWarmUp(const IterationCount& i) {
+  warmup_done = true;
+  iters = i;
+}
+
+void BenchmarkRunner::RunWarmUp() {
+  // Use the same mechanisms for warming up the benchmark as used for actually
+  // running and measuring the benchmark.
+  IterationResults i_warmup;
+  // Dont use the iterations determined in the warmup phase for the actual
+  // measured benchmark phase. While this may be a good starting point for the
+  // benchmark and it would therefore get rid of the need to figure out how many
+  // iterations are needed if min_time is set again, this may also be a complete
+  // wrong guess since the warmup loops might be considerably slower (e.g
+  // because of caching effects).
+  const IterationCount i_backup = iters;
+
+  for (;;) {
+    b.Setup();
+    i_warmup = DoNIterations();
+    b.Teardown();
+
+    const bool finish = ShouldReportIterationResults(i_warmup);
+
+    if (finish) {
+      FinishWarmUp(i_backup);
+      break;
+    }
+
+    // Although we are running "only" a warmup phase where running enough
+    // iterations at once without measuring time isn't as important as it is for
+    // the benchmarking phase, we still do it the same way as otherwise it is
+    // very confusing for the user to know how to choose a proper value for
+    // min_warmup_time if a different approach on running it is used.
+    iters = PredictNumItersNeeded(i_warmup);
+    assert(iters > i_warmup.iters &&
+           "if we did more iterations than we want to do the next time, "
+           "then we should have accepted the current iteration run.");
+  }
 }
 
 void BenchmarkRunner::DoOneRepetition() {
   assert(HasRepeatsRemaining() && "Already done all repetitions?");
 
   const bool is_the_first_repetition = num_repetitions_done == 0;
-  IterationResults i;
 
+  // In case a warmup phase is requested by the benchmark, run it now.
+  // After running the warmup phase the BenchmarkRunner should be in a state as
+  // this warmup never happened except the fact that warmup_done is set. Every
+  // other manipulation of the BenchmarkRunner instance would be a bug! Please
+  // fix it.
+  if (!warmup_done) RunWarmUp();
+
+  IterationResults i;
   // We *may* be gradually increasing the length (iteration count)
   // of the benchmark until we decide the results are significant.
   // And once we do, we report those last results and exit.
