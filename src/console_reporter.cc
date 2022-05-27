@@ -99,6 +99,9 @@ static void IgnoreColorPrint(std::ostream& out, LogColor, const char* fmt,
 }
 
 static std::string FormatTime(double time) {
+  // For the time columns of the console printer 13 digits are reserved. One of
+  // them is a space and max two of them are the time unit (e.g ns). That puts
+  // us at 10 digits usable for the number.
   // Align decimal places...
   if (time < 1.0) {
     return FormatString("%10.3f", time);
@@ -108,6 +111,11 @@ static std::string FormatTime(double time) {
   }
   if (time < 100.0) {
     return FormatString("%10.1f", time);
+  }
+  // Assuming the time ist at max 9.9999e+99 and we have 10 digits for the
+  // number, we get 10-1(.)-1(e)-1(sign)-2(exponent) = 5 digits to print.
+  if (time > 9999999999 /*max 10 digit number*/) {
+    return FormatString("%1.4e", time);
   }
   return FormatString("%10.0f", time);
 }
