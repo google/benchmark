@@ -13,7 +13,11 @@ foreach(p
   endif()
 endforeach()
 
-project (benchmark VERSION 1.6.1 LANGUAGES CXX)
+set(LIBBENCHMARK_MAJOR_VERSION 1)
+set(LIBBENCHMARK_MINOR_VERSION 6)
+set(LIBBENCHMARK_PATCH_VERSION 1)
+project (benchmark VERSION ${LIBBENCHMARK_MAJOR_VERSION}.${LIBBENCHMARK_MINOR_VERSION}.${LIBBENCHMARK_PATCH_VERSION} LANGUAGES CXX)
+
 
 option(BENCHMARK_ENABLE_TESTING "Enable testing of the benchmark library." ON)
 option(BENCHMARK_ENABLE_EXCEPTIONS "Enable the use of exceptions in the benchmark library." ON)
@@ -324,6 +328,10 @@ endif()
 
 # Set up directories
 include_directories(${PROJECT_SOURCE_DIR}/include)
+
+# Generate config file (currently only used for version num but may be expanded if needed.)
+configure_file(${PROJECT_SOURCE_DIR}/include/version_config.h.in ${CMAKE_BINARY_DIR}/include/generated/version_config.h)
+include_directories(${CMAKE_BINARY_DIR}/include/generated/)
 
 # Build the targets
 add_subdirectory(src)

@@ -23,6 +23,7 @@
 #include "check.h"
 #include "string_util.h"
 #include "timers.h"
+#include "version_config.h"
 
 namespace benchmark {
 namespace internal {
@@ -43,7 +44,9 @@ void BenchmarkReporter::PrintBasicContext(std::ostream *out,
 
   if (context.executable_name)
     Out << "Running " << context.executable_name << "\n";
-
+  Out << "libbenchmark version: " << LIBBENCHMARK_MAJOR_VERSION << "."
+      << LIBBENCHMARK_MINOR_VERSION << "." << LIBBENCHMARK_PATCH_VERSION
+      << "\n";
   const CPUInfo &info = context.cpu_info;
   Out << "Run on (" << info.num_cpus << " X "
       << (info.cycles_per_second / 1000000.0) << " MHz CPU "
