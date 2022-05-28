@@ -24,9 +24,9 @@
 
 #include "benchmark/benchmark.h"
 #include "complexity.h"
+#include "generated/version_config.h"
 #include "string_util.h"
 #include "timers.h"
-#include "generated/version_config.h"
 
 namespace benchmark {
 namespace internal {
