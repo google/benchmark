@@ -1,14 +1,8 @@
 #ifndef VERSION_CONFIG_H
 #define VERSION_CONFIG_H
-
 // clang-format off
 #define LIBBENCHMARK_MAJOR_VERSION @LIBBENCHMARK_MAJOR_VERSION@
 #define LIBBENCHMARK_MINOR_VERSION @LIBBENCHMARK_MINOR_VERSION@
 #define LIBBENCHMARK_PATCH_VERSION @LIBBENCHMARK_PATCH_VERSION@
-
-inline unsigned int GetLibMajorVersion() { return @LIBBENCHMARK_MAJOR_VERSION@; }
-inline unsigned int GetLibMinorVersion() { return @LIBBENCHMARK_MINOR_VERSION@; }
-inline unsigned int GetLibPatchVersion() { return @LIBBENCHMARK_PATCH_VERSION@; }
 // clang-format on
-
 #endif  // VERSION_CONFIG_H
