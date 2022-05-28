@@ -21,9 +21,9 @@
 
 #include "benchmark/benchmark.h"
 #include "check.h"
+#include "generated/version_config.h"
 #include "string_util.h"
 #include "timers.h"
-#include "generated/version_config.h"
 
 namespace benchmark {
 namespace internal {
