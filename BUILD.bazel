@@ -1,12 +1,21 @@
 licenses(["notice"])
 
 load("//:config/generate_export_header.bzl", "generate_export_header")
+load("//:config/generate_version_header.bzl", "generate_version_header")
 
 # Generate header to provide ABI export symbols
 generate_export_header(
     out = "include/benchmark/export.h",
     lib = "benchmark",
     static_define = "BENCHMARK_STATIC_DEFINE",
+)
+
+generate_version_header(
+    out = "include/generated/version_config.h",
+    name = "generate_version_header",
+    major = 1,
+    minor = 6,
+    patch = 1,
 )
 
 config_setting(
@@ -39,6 +48,7 @@ cc_library(
     hdrs = [
         "include/benchmark/benchmark.h",
         "include/benchmark/export.h", # From generate_export_header
+        "include/generated/version_config.h", # From generate_version_header
     ],
     linkopts = select({
         ":windows": ["-DEFAULTLIB:shlwapi.lib"],

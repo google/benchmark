@@ -23,7 +23,7 @@
 #include "check.h"
 #include "string_util.h"
 #include "timers.h"
-#include "version_config.h"
+#include "generated/version_config.h"
 
 namespace benchmark {
 namespace internal {

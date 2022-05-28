@@ -10,7 +10,8 @@
     * Pick the most interesting.
 * Create one last commit that updates the version saved in `CMakeLists.txt` and the
   `__version__` variable in `bindings/python/google_benchmark/__init__.py`to the release
-  version you're creating. (This version will be used if benchmark is installed from the
+  version you're creating. Furthermore adapt the version number in BUILD.bazel.
+  (This version will be used if benchmark is installed from the
   archive you'll be creating in the next step.)
 
 ```
@@ -18,6 +19,15 @@ set(LIBBENCHMARK_MAJOR_VERSION 1)
 set(LIBBENCHMARK_MINOR_VERSION 6)
 set(LIBBENCHMARK_PATCH_VERSION 1)
 project (benchmark VERSION ${LIBBENCHMARK_MAJOR_VERSION}.${LIBBENCHMARK_MINOR_VERSION}.${LIBBENCHMARK_PATCH_VERSION} LANGUAGES CXX)
+```
+```
+generate_version_header(
+    out = "include/generated/version_config.h",
+    name = "generate_version_header",
+    major = 1,
+    minor = 6,
+    patch = 1,
+)
 ```
 
 ```python
