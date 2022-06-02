@@ -114,6 +114,50 @@ void PerfCounters::CloseCounters() const {
     close(fd);
   }
 }
+#elif defined(BENCHMARK_OS_MACOSX)
+const bool PerfCounters::kSupported = true;
+
+//nothing to initialize (could check if the thread_self syscall is available)
+bool PerfCounters::Initialize() { return true; }
+
+//nothing to close
+void PerfCounters::CloseCounters() const {}
+
+PerfCounters PerfCounters::Create(
+    const std::vector<std::string>& counter_names) {
+
+  if (counter_names.empty()) {
+    return NoCounters();
+  }
+
+  if (counter_names.size() > PerfCounterValues::kMaxCounters) {
+    GetErrorLogInstance()
+        << counter_names.size()
+        << " counters were requested. The minimum is 1, the maximum is "
+        << PerfCounterValues::kMaxCounters 
+        << "\n";
+    return NoCounters();
+  }
+
+  std::vector<int> counter_ids(counter_names.size());
+
+  for (size_t i=0;i<counter_names.size();i++) {
+    if (counter_names[i]=="INSTRUCTIONS") {
+      counter_ids[i]=1; //MT_CORE_INSTR: the index in the syscall result array for the instruction counter
+    }
+    else if (counter_names[i]=="CYCLES") {
+      counter_ids[i]=0; //MT_CORE_CYCLES: the index  in the syscall result array for the cycles counter
+    } else {
+      GetErrorLogInstance()
+          << "Unknown counter "
+          << counter_names[i] << "\n";
+      return NoCounters();     
+    }
+  }
+
+  return PerfCounters(counter_names, std::move(counter_ids));
+}
+
 #else   // defined HAVE_LIBPFM
 const bool PerfCounters::kSupported = false;
 
