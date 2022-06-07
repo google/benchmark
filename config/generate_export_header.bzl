@@ -1,5 +1,5 @@
 #
-# Originl file is located at:
+# Original file is located at:
 # https://github.com/RobotLocomotion/drake/blob/bad032aeb09b13c7f8c87ed64b624c8d1e9adb30/tools/workspace/generate_export_header.bzl
 #
 # All components of Drake are licensed under the BSD 3-Clause License
