@@ -125,10 +125,8 @@ bool JSONReporter::ReportContext(const Context& context) {
   std::string walltime_value = LocalDateTimeString();
   out << indent << FormatKV("date", walltime_value) << ",\n";
 
-  const std::string vers(std::to_string(LIBBENCHMARK_MAJOR_VERSION) + "." +
-                         std::to_string(LIBBENCHMARK_MINOR_VERSION) + "." +
-                         std::to_string(LIBBENCHMARK_PATCH_VERSION));
-  out << indent << FormatKV("libbenchmark version", vers) << ",\n";
+  out << indent << FormatKV("libbenchmark version", LIBBENCHMARK_VERSION)
+      << ",\n";
 
   out << indent << FormatKV("host_name", context.sys_info.name) << ",\n";
 

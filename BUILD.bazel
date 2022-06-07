@@ -13,9 +13,7 @@ generate_export_header(
 generate_version_header(
     out = "include/generated/version_config.h",
     name = "generate_version_header",
-    major = 1,
-    minor = 6,
-    patch = 1,
+    git_version = "1.6.1",
 )
 
 config_setting(

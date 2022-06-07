@@ -4,9 +4,7 @@ def _generate_version_header_impl(ctx):
         "#ifndef VERSION_CONFIG_H",
         "#define VERSION_CONFIG_H",
         "// clang-format off",
-        "#define LIBBENCHMARK_MAJOR_VERSION %d" % ctx.attr.major,
-        "#define LIBBENCHMARK_MINOR_VERSION %d" % ctx.attr.minor,
-        "#define LIBBENCHMARK_PATCH_VERSION %d" % ctx.attr.patch,
+        "#define LIBBENCHMARK_VERSION \"%s\"" % ctx.attr.git_version,
         "// clang-format on",
         "#endif  // VERSION_CONFIG_H",
     ]
@@ -17,8 +15,6 @@ generate_version_header = rule(
     implementation = _generate_version_header_impl,
     attrs = {
         "out": attr.output(mandatory = True),
-        "major": attr.int(mandatory = True),
-        "minor": attr.int(mandatory = True),
-        "patch": attr.int(mandatory = True),
+        "git_version": attr.string(mandatory = True),
     },
 )

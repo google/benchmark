@@ -13,11 +13,7 @@ foreach(p
   endif()
 endforeach()
 
-set(LIBBENCHMARK_MAJOR_VERSION 1)
-set(LIBBENCHMARK_MINOR_VERSION 6)
-set(LIBBENCHMARK_PATCH_VERSION 1)
-project (benchmark VERSION ${LIBBENCHMARK_MAJOR_VERSION}.${LIBBENCHMARK_MINOR_VERSION}.${LIBBENCHMARK_PATCH_VERSION} LANGUAGES CXX)
-
+project (benchmark VERSION 1.6.1 LANGUAGES CXX)
 
 option(BENCHMARK_ENABLE_TESTING "Enable testing of the benchmark library." ON)
 option(BENCHMARK_ENABLE_EXCEPTIONS "Enable the use of exceptions in the benchmark library." ON)
