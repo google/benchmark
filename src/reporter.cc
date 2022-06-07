@@ -20,8 +20,8 @@
 #include <vector>
 
 #include "benchmark/benchmark.h"
+#include "benchmark/version.h"
 #include "check.h"
-#include "generated/version_config.h"
 #include "string_util.h"
 #include "timers.h"
 

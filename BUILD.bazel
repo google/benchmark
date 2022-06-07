@@ -11,7 +11,7 @@ generate_export_header(
 )
 
 generate_version_header(
-    out = "include/generated/version_config.h",
+    out = "include/benchmark/version.h",
     name = "generate_version_header",
     git_version = "1.6.1",
 )
@@ -46,7 +46,7 @@ cc_library(
     hdrs = [
         "include/benchmark/benchmark.h",
         "include/benchmark/export.h", # From generate_export_header
-        "include/generated/version_config.h", # From generate_version_header
+        "include/benchmark/version.h", # From generate_version_header
     ],
     linkopts = select({
         ":windows": ["-DEFAULTLIB:shlwapi.lib"],
