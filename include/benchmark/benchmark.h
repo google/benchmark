@@ -510,7 +510,7 @@ class Counter {
     kAvgIterationsRate = kIsRate | kAvgIterations,
 
     // In the end, invert the result. This is always done last!
-    kInvert = 1 << 31
+    kInvert = 0x80000000   // ==1 << 31
   };
 
   enum OneK {
@@ -1592,7 +1592,7 @@ class BENCHMARK_EXPORT BenchmarkReporter {
           complexity_n(0),
           report_big_o(false),
           report_rms(false),
-          memory_result(NULL),
+          memory_result(nullptr),
           allocs_per_iter(0.0) {}
 
     std::string benchmark_name() const;
