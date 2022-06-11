@@ -1,3 +1,23 @@
+set(CLANG_SUPPORTED_VERSION "5.0.0")
+set(GCC_SUPPORTED_VERSION "5.5.0")
+
+if (CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+  if (NOT CMAKE_CXX_COMPILER_VERSION VERSION_EQUAL ${CLANG_SUPPORTED_VERSION})
+    message (WARNING
+      "Unsupported Clang version " ${CMAKE_CXX_COMPILER_VERSION}
+      ". Expected is " ${CLANG_SUPPORTED_VERSION}
+      ". Assembly tests may be broken.")
+  endif()
+elseif(CMAKE_CXX_COMPILER_ID MATCHES "GNU")
+  if (NOT CMAKE_CXX_COMPILER_VERSION VERSION_EQUAL ${GCC_SUPPORTED_VERSION})
+    message (WARNING
+      "Unsupported GCC version " ${CMAKE_CXX_COMPILER_VERSION}
+      ". Expected is " ${GCC_SUPPORTED_VERSION}
+      ". Assembly tests may be broken.")
+  endif()
+else()
+  message (WARNING "Unsupported compiler. Assembly tests may be broken.")
+endif()
 
 include(split_list)
 
