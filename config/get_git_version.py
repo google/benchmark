@@ -35,14 +35,20 @@ def main():
     parser.add_argument('--header',
                         required=True,
                         help='output header file')
+    parser.add_argument('--header_input',
+                        required=True,
+                        help='input header file')
     parser.add_argument('--volatile_file',
                         required=True,
                         help='file containing the git version variables')
     parser.add_argument('--version_variable_name',
+                        required=True,
                         help='variablename of the hash')
     parser.add_argument('--is_dirty_name',
+                        required=True,
                         help='variablename of the boolean communicating if the workspace has no local changes')
     parser.add_argument('--default_version',
+                        required=True,
                         help='variablename for version which should be used in case git was not executable.')
 
     args = parser.parse_args()
@@ -78,15 +84,15 @@ def main():
     print("Version: " + git_version)
 
     # Write the actual version.h
-    with open(args.header, "w") as f:
-        f.write("""
-#ifndef VERSION_H
-// clang-format off
-#define VERSION_H
-#define LIBBENCHMARK_VERSION "{version}"
-// clang-format on
-#endif  // VERSION_H
-""".format(version=git_version))
+    texttosearch = "@VERSION@"
+
+    with open(args.header_input, "r") as f:
+        with open(args.header, "w") as w:
+            for line in f:
+                if texttosearch in line:
+                    w.write(line.replace(texttosearch, git_version))
+                else:
+                    w.write(line)
 
 
 if __name__ == "__main__":

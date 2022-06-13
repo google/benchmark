@@ -24,6 +24,7 @@ generate_version_header(
     git_is_dirty_name = "GIT_IS_DIRTY",
     default_version = "DEFAULT_VERSION",
     header = "include/benchmark/version.h",
+    src = "include/version.h.in"
 )
 
 config_setting(
