@@ -10,8 +10,8 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
-    matrix:
-      os: [ubuntu-latest, macos-latest, windows-2022]
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-2022]
 
     steps:
     - uses: actions/checkout@v1
