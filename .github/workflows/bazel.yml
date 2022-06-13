@@ -5,9 +5,14 @@ on:
   pull_request: {}
 
 jobs:
-  build-and-test:
-    runs-on: ubuntu-latest
-    
+  job:
+    name: bazel.${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-2022]
+
     steps:
     - uses: actions/checkout@v1
 
@@ -17,9 +22,9 @@ jobs:
         cache-name: bazel-cache
       with:
         path: "~/.cache/bazel"
-        key: ${{ env.cache-name }}-${{ runner.os }}-${{ github.ref }}
+        key: ${{ env.cache-name }}-${{ matrix.os }}-${{ github.ref }}
         restore-keys: |
-          ${{ env.cache-name }}-${{ runner.os }}-main
+          ${{ env.cache-name }}-${{ matrix.os }}-main
 
     - name: build
       run: |
