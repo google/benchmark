@@ -1,6 +1,6 @@
-#ifndef VERSION_CONFIG_H
-#define VERSION_CONFIG_H
+#ifndef VERSION_H
+#define VERSION_H
 // clang-format off
 #define LIBBENCHMARK_VERSION "@VERSION@"
 // clang-format on
-#endif  // VERSION_CONFIG_H
+#endif  // VERSION_H

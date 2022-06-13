@@ -10,10 +10,20 @@ generate_export_header(
     static_define = "BENCHMARK_STATIC_DEFINE",
 )
 
+# Get the git version variables
+py_binary(
+    name = "get_git_version",
+    srcs = ["config/get_git_version.py"],
+    python_version = "PY3"
+)
+
+# Generate version header
 generate_version_header(
-    out = "include/benchmark/version.h",
     name = "generate_version_header",
-    git_version = "1.6.1",
+    git_version_name = "GIT_VERSION",
+    git_is_dirty_name = "GIT_IS_DIRTY",
+    default_version = "DEFAULT_VERSION",
+    header = "include/benchmark/version.h",
 )
 
 config_setting(
