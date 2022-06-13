@@ -33,7 +33,10 @@ cc_library(
     testonly = 1,
     srcs = ["output_test_helper.cc"],
     hdrs = ["output_test.h"],
-    copts = TEST_COPTS,
+    copts = PER_SRC_COPTS.get(test_src, []) + select({
+        "@platforms//os:windows": [],
+        "//conditions:default": TEST_COPTS,
+    },
     deps = [
         "//:benchmark",
         "//:benchmark_internal_headers",
@@ -46,7 +49,10 @@ cc_library(
         size = "small",
         srcs = [test_src],
         args = TEST_ARGS + PER_SRC_TEST_ARGS.get(test_src, []),
-        copts = TEST_COPTS + PER_SRC_COPTS.get(test_src, []),
+        copts = PER_SRC_COPTS.get(test_src, []) + select({
+            "@platforms//os:windows": [],
+            "//conditions:default": TEST_COPTS,
+        },
         deps = [
             ":output_test_helper",
             "//:benchmark",
@@ -71,6 +77,9 @@ cc_test(
     name = "link_main_test",
     size = "small",
     srcs = ["link_main_test.cc"],
-    copts = TEST_COPTS,
+    copts = PER_SRC_COPTS.get(test_src, []) + select({
+        "@platforms//os:windows": [],
+        "//conditions:default": TEST_COPTS,
+    },
     deps = ["//:benchmark_main"],
 )
