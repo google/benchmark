@@ -99,6 +99,10 @@ State BenchmarkInstance::Run(
   return st;
 }
 
+const std::vector<int64_t>& BenchmarkInstance::GetArguments() const noexcept {
+  return args_;
+};
+
 void BenchmarkInstance::Setup() const {
   if (setup_) {
     State st(/*iters*/ 1, args_, /*thread_id*/ 0, threads_, nullptr, nullptr,

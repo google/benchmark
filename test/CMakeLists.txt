@@ -137,6 +137,9 @@ add_test(NAME link_main_test COMMAND link_main_test --benchmark_min_time=0.01)
 compile_output_test(reporter_output_test)
 add_test(NAME reporter_output_test COMMAND reporter_output_test --benchmark_min_time=0.01)
 
+compile_output_test(reporter_output_json_arguments_test)
+add_test(NAME reporter_output_json_arguments_test COMMAND reporter_output_json_arguments_test)
+
 compile_output_test(templated_fixture_test)
 add_test(NAME templated_fixture_test COMMAND templated_fixture_test --benchmark_min_time=0.01)
 

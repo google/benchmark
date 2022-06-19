@@ -232,6 +232,27 @@ void JSONReporter::PrintRunData(Run const& run) {
       << FormatKV("per_family_instance_index", run.per_family_instance_index)
       << ",\n";
   out << indent << FormatKV("run_name", run.run_name.str()) << ",\n";
+
+  // Get the name of the benchmark function
+  std::string func_name = run.run_name.str();
+  auto pos = run.run_name.str().find("/");
+  // Only if "/" is contained in run_name we need to do something.
+  if (pos != std::string::npos) func_name = func_name.substr(0, pos);
+  out << indent << FormatKV("function_name", func_name) << ",\n";
+
+  // Print all arguments
+  out << indent << "\"arguments\": "
+      << "[";
+  if (run.arguments.size() > 0) {
+    for (auto& arg : run.arguments) {
+      out << "\"" << arg << "\"";
+      if (&arg != &run.arguments.back()) out << ", ";
+    }
+  }
+  out << "]"
+      << ","
+      << "\n";
+
   out << indent << FormatKV("run_type", [&run]() -> const char* {
     switch (run.run_type) {
       case BenchmarkReporter::Run::RT_Iteration:

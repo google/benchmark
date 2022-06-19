@@ -32,6 +32,7 @@ PER_SRC_TEST_ARGS = ({
     "repetitions_test.cc": [" --benchmark_repetitions=3"],
     "spec_arg_test.cc" : ["--benchmark_filter=BM_NotChosen"],
     "spec_arg_verbosity_test.cc" : ["--v=42"],
+    "reporter_output_json_arguments_test.cc": ["--benchmark_min_time=0.001"],
 })
 
 cc_library(
