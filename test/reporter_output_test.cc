@@ -18,14 +18,12 @@ static int AddContextCases() {
            {
                {"^%int-%int-%intT%int:%int:%int[-+]%int:%int$", MR_Default},
                {"Running .*(/|\\\\)reporter_output_test(\\.exe)?$", MR_Next},
-               {"libbenchmark version: %int\\.%int\\.%int", MR_Next},
                {"Run on \\(%int X %float MHz CPU s?\\)", MR_Next},
            });
   AddCases(TC_JSONOut,
            {{"^\\{", MR_Default},
             {"\"context\":", MR_Next},
             {"\"date\": \"", MR_Next},
-            {"\"libbenchmark version\":", MR_Next},
             {"\"host_name\":", MR_Next},
             {"\"executable\": \".*(/|\\\\)reporter_output_test(\\.exe)?\",",
              MR_Next},

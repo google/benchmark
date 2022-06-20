@@ -1,2 +1,0 @@
-# Call workspace_status.py when building benchmark to determine current version of the lib
-build --workspace_status_command "python workspace_status.py --default_version "1.6.1""

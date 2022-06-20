@@ -23,7 +23,6 @@
 #include <vector>
 
 #include "benchmark/benchmark.h"
-#include "benchmark/version.h"
 #include "complexity.h"
 #include "string_util.h"
 #include "timers.h"
@@ -124,9 +123,6 @@ bool JSONReporter::ReportContext(const Context& context) {
 
   std::string walltime_value = LocalDateTimeString();
   out << indent << FormatKV("date", walltime_value) << ",\n";
-
-  out << indent << FormatKV("libbenchmark version", LIBBENCHMARK_VERSION)
-      << ",\n";
 
   out << indent << FormatKV("host_name", context.sys_info.name) << ",\n";
 

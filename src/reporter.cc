@@ -20,7 +20,6 @@
 #include <vector>
 
 #include "benchmark/benchmark.h"
-#include "benchmark/version.h"
 #include "check.h"
 #include "string_util.h"
 #include "timers.h"
@@ -44,7 +43,7 @@ void BenchmarkReporter::PrintBasicContext(std::ostream *out,
 
   if (context.executable_name)
     Out << "Running " << context.executable_name << "\n";
-  Out << "libbenchmark version: " << LIBBENCHMARK_VERSION << "\n";
+
   const CPUInfo &info = context.cpu_info;
   Out << "Run on (" << info.num_cpus << " X "
       << (info.cycles_per_second / 1000000.0) << " MHz CPU "
