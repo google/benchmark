@@ -625,7 +625,7 @@ double GetCPUCyclesPerSecond(CPUInfo::Scaling scaling) {
           freqStr, strerror(errno));
   fprintf(stderr,
           "This does not affect benchmark measurements, only the "
-          "metadata output.\n")
+          "metadata output.\n");
 
 #elif defined BENCHMARK_OS_WINDOWS_WIN32
   // In NT, read MHz from the registry. If we fail to do so or we're in win9x
