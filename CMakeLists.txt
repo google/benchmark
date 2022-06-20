@@ -323,7 +323,7 @@ if (BENCHMARK_ENABLE_LIBPFM)
 endif()
 
 # Generate config file (currently only used for version num but may be expanded if needed.)
-configure_file(${PROJECT_SOURCE_DIR}/include/version.h.in ${CMAKE_BINARY_DIR}/include/benchmark/version.h)
+configure_file(${PROJECT_SOURCE_DIR}/include/version.h.in ${PROJECT_BINARY_DIR}/include/benchmark/version.h)
 
 # Set up directories
 include_directories(${PROJECT_SOURCE_DIR}/include)
