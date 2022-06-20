@@ -107,7 +107,7 @@ struct ValueUnion {
 
   explicit ValueUnion(std::size_t buff_size)
       : size(sizeof(DataT) + buff_size),
-        buff(::new (std::malloc(size)) DataT(), &std::free) {}
+        buff(::new(std::malloc(size)) DataT(), &std::free) {}
 
   ValueUnion(ValueUnion&& other) = default;
 
@@ -623,6 +623,9 @@ double GetCPUCyclesPerSecond(CPUInfo::Scaling scaling) {
 #endif
   fprintf(stderr, "Unable to determine clock rate from sysctl: %s: %s\n",
           freqStr, strerror(errno));
+  fprintf(stderr,
+          "This does not affect benchmark measurements, only the "
+          "metadata output.\n")
 
 #elif defined BENCHMARK_OS_WINDOWS_WIN32
   // In NT, read MHz from the registry. If we fail to do so or we're in win9x
