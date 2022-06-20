@@ -1,0 +1,6 @@
+#ifndef VERSION_H
+#define VERSION_H
+// clang-format off
+#define LIBBENCHMARK_VERSION "@VERSION@"
+// clang-format on
+#endif  // VERSION_H
