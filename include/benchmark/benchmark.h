@@ -446,6 +446,7 @@ inline BENCHMARK_ALWAYS_INLINE void ClobberMemory() {
 // intended to add little to no overhead.
 // See: https://youtu.be/nXaxk27zwlk?t=2441
 #ifndef BENCHMARK_HAS_NO_INLINE_ASSEMBLY
+#if !defined(__GNUC__) || defined(__llvm__) || defined(__INTEL_COMPILER)
 template <class Tp>
 inline BENCHMARK_ALWAYS_INLINE void DoNotOptimize(Tp const& value) {
   asm volatile("" : : "r,m"(value) : "memory");
@@ -459,6 +460,55 @@ inline BENCHMARK_ALWAYS_INLINE void DoNotOptimize(Tp& value) {
   asm volatile("" : "+m,r"(value) : : "memory");
 #endif
 }
+#elif defined(BENCHMARK_HAS_CXX11) && (__GNUC__ >= 5)
+// Workaround for a bug with full argument copy overhead with GCC.
+// See: #1340 and https://gcc.gnu.org/bugzilla/show_bug.cgi?id=105519
+template <class Tp>
+inline BENCHMARK_ALWAYS_INLINE
+    typename std::enable_if<std::is_trivially_copyable<Tp>::value &&
+                            (sizeof(Tp) <= sizeof(Tp*))>::type
+    DoNotOptimize(Tp const& value) {
+  asm volatile("" : : "r"(value) : "memory");
+}
+
+template <class Tp>
+inline BENCHMARK_ALWAYS_INLINE
+    typename std::enable_if<!std::is_trivially_copyable<Tp>::value ||
+                            (sizeof(Tp) > sizeof(Tp*))>::type
+    DoNotOptimize(Tp const& value) {
+  asm volatile("" : : "m"(value) : "memory");
+}
+
+template <class Tp>
+inline BENCHMARK_ALWAYS_INLINE
+    typename std::enable_if<std::is_trivially_copyable<Tp>::value &&
+                            (sizeof(Tp) <= sizeof(Tp*))>::type
+    DoNotOptimize(Tp& value) {
+  asm volatile("" : "+r"(value) : : "memory");
+}
+
+template <class Tp>
+inline BENCHMARK_ALWAYS_INLINE
+    typename std::enable_if<!std::is_trivially_copyable<Tp>::value ||
+                            (sizeof(Tp) > sizeof(Tp*))>::type
+    DoNotOptimize(Tp& value) {
+  asm volatile("" : "+m"(value) : : "memory");
+}
+
+#else
+// Fallback for GCC < 5. Can add some overhead because the compiler is forced
+// to use memory operations instead of operations with registers.
+// TODO: Remove if GCC < 5 will be unsupported.
+template <class Tp>
+inline BENCHMARK_ALWAYS_INLINE void DoNotOptimize(Tp const& value) {
+  asm volatile("" : : "m"(value) : "memory");
+}
+
+template <class Tp>
+inline BENCHMARK_ALWAYS_INLINE void DoNotOptimize(Tp& value) {
+  asm volatile("" : "+m"(value) : : "memory");
+}
+#endif
 
 #ifndef BENCHMARK_HAS_CXX11
 inline BENCHMARK_ALWAYS_INLINE void ClobberMemory() {
