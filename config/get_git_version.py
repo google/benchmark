@@ -66,11 +66,13 @@ def main():
                         git_version = key_value[1].strip()
                     if key == args.is_dirty_name:
                         is_dirty = key_value[1].strip()
+                    if key == args.default_version:
+                        default_version = key_value[1].strip()
     except:
         # In case volatile-status cannot be read, exit with an error
         sys.exit("Cannot open volatile-status.txt")
 
-    if git_version == "" or is_dirty == "":
+    if git_version == "" or is_dirty == "" or default_version == "":
         sys.exit("No usable entry in volatile-status.txt")
 
     git_version = normalize_version(git_version, is_dirty)
@@ -78,7 +80,7 @@ def main():
     # In case we werent able to determine the current version
     # use the default set version
     if git_version == "0.0.0":
-        git_version = args.default_version
+        git_version = default_version
 
     # Notify the user about the version used.
     print("Version: " + git_version)
