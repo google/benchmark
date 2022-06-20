@@ -1,30 +1,12 @@
 licenses(["notice"])
 
 load("//:config/generate_export_header.bzl", "generate_export_header")
-load("//:config/generate_version_header.bzl", "generate_version_header")
 
 # Generate header to provide ABI export symbols
 generate_export_header(
     out = "include/benchmark/export.h",
     lib = "benchmark",
     static_define = "BENCHMARK_STATIC_DEFINE",
-)
-
-# Get the git version variables
-py_binary(
-    name = "get_git_version",
-    srcs = ["config/get_git_version.py"],
-    python_version = "PY3"
-)
-
-# Generate version header
-generate_version_header(
-    name = "generate_version_header",
-    git_version_name = "GIT_VERSION",
-    git_is_dirty_name = "GIT_IS_DIRTY",
-    default_version = "DEFAULT_VERSION",
-    header = "include/benchmark/version.h",
-    src = "include/version.h.in"
 )
 
 config_setting(
@@ -57,7 +39,6 @@ cc_library(
     hdrs = [
         "include/benchmark/benchmark.h",
         "include/benchmark/export.h", # From generate_export_header
-        "include/benchmark/version.h", # From generate_version_header
     ],
     linkopts = select({
         ":windows": ["-DEFAULTLIB:shlwapi.lib"],
