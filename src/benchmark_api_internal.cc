@@ -101,7 +101,7 @@ State BenchmarkInstance::Run(
 
 const std::vector<int64_t>& BenchmarkInstance::GetArguments() const noexcept {
   return args_;
-};
+}
 
 void BenchmarkInstance::Setup() const {
   if (setup_) {

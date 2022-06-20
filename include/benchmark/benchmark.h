@@ -578,7 +578,7 @@ class Counter {
   Counter(double v = 0., Flags f = kDefaults, OneK k = kIs1000)
       : value(v), flags(f), oneK(k) {}
 
-  BENCHMARK_ALWAYS_INLINE operator double const&() const { return value; }
+  BENCHMARK_ALWAYS_INLINE operator double const &() const { return value; }
   BENCHMARK_ALWAYS_INLINE operator double&() { return value; }
 };
 
@@ -1636,7 +1636,6 @@ class BENCHMARK_EXPORT BenchmarkReporter {
           time_unit(GetDefaultTimeUnit()),
           real_accumulated_time(0),
           cpu_accumulated_time(0),
-          arguments(),
           max_heapbytes_used(0),
           complexity(oNone),
           complexity_lambda(),
