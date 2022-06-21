@@ -39,13 +39,13 @@ def get_git_dirty(path):
             ["git", "update-index", "-q", "--refresh"], cwd=path, stdout=subprocess.PIPE)
         (out, err) = p.communicate()
         if p.returncode != 0:
-            return "TRUE"
+            return "FALSE"
 
         p = subprocess.Popen(["git", "diff-index", "--name-only",
                              "HEAD", "--"], cwd=path, stdout=subprocess.PIPE)
         (out, err) = p.communicate()
         if p.returncode != 0:
-            return "TRUE"
+            return "FALSE"
 
         if out.decode() != "":
             return "TRUE"
@@ -53,9 +53,7 @@ def get_git_dirty(path):
             return "FALSE"
 
     except:
-        # Be pessimistic. In case git is not available
-        # assume the repository to be dirty.
-        return "TRUE"
+        return "FALSE"
 
 
 if __name__ == "__main__":

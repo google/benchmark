@@ -9,6 +9,7 @@ import re
 
 
 def normalize_version(git_version, git_is_dirty):
+    tmp_version = git_version
     if '-' in git_version:
         cleaned = re.search('[0-9]+\.[0-9]+\.[0-9]\-[0-9]+', git_version)
         cleaned_string = cleaned.group(0).replace("-", ".")
@@ -17,13 +18,15 @@ def normalize_version(git_version, git_is_dirty):
     else:
         cleaned_string = git_version
 
+    # Maybe think about adding the -dirty also for the version header.
+    if git_is_dirty == True:
+        tmp_version = git_version+"-dirty"
+
     # In case the repository is in a dirty state (uncommited changes)
     # we do tell the user during build by writing to stdout.
     # That is the way it is done in the CMake Build as well.
-    # Maybe think about adding the -dirty also for the version header.
-    if git_is_dirty == "TRUE":
-        git_version_dirty = git_version+"-dirty"
-        print("git version: " + git_version_dirty +
+    if tmp_version != cleaned_string:
+        print("git version: " + tmp_version +
               " normalized to " + cleaned_string)
 
     return cleaned_string
@@ -51,10 +54,11 @@ def main():
                         help='default for version which should be used in case git was not executable.')
 
     args = parser.parse_args()
-
+    
+    warning = "Warning: libbenchmark version could not be determined. Using default."
     # Read volatile-status.txt file
     git_version = ""
-    is_dirty = ""
+    is_dirty = None
     try:
         with open(args.volatile_file, "r") as f:
             for entry in f.read().split("\n"):
@@ -64,15 +68,17 @@ def main():
                     if key == args.version_variable_name:
                         git_version = key_value[1].strip()
                     if key == args.is_dirty_name:
-                        is_dirty = key_value[1].strip()
+                        is_dirty = (key_value[1].strip() == "TRUE")
     except:
         # In case volatile-status cannot be read, use the default version
         git_version = args.default_version
-        is_dirty = "TRUE"
+        is_dirty = False
+        print(warning)
 
-    if git_version == "" or is_dirty == "":
+    if git_version == "" or is_dirty == None:
         git_version = args.default_version
-        is_dirty = "TRUE"
+        is_dirty = False
+        print(warning)
 
     git_version = normalize_version(git_version, is_dirty)
 
@@ -80,6 +86,7 @@ def main():
     # use the default set version
     if git_version == "0.0.0":
         git_version = args.default_version
+        print(warning)
 
     # Notify the user about the version used.
     print("Version: " + git_version)
