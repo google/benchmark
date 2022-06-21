@@ -6,12 +6,6 @@ import argparse
 
 
 def main():
-    parser = argparse.ArgumentParser(description='')
-    parser.add_argument('--default_version',
-                        required=True,
-                        help='default version in case git can not be called')
-    args = parser.parse_args()
-
     # Get the current status of the repository by calling out to git.
     # In case there is no git executable use the default version.
     git_version = get_version(".")
@@ -23,7 +17,6 @@ def main():
     # to bazels documentation.
     print("GIT_VERSION {}".format(git_version))
     print("GIT_IS_DIRTY {}".format(git_is_dirty))
-    print("DEFAULT_VERSION {}".format(args.default_version))
 
 
 def get_version(path):

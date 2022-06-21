@@ -4,7 +4,6 @@
 # This script takes these information and generates the version.h which later is
 # used by the library to report its version.
 import argparse
-import sys
 import os
 import re
 
@@ -49,7 +48,7 @@ def main():
                         help='variablename of the boolean communicating if the workspace has no local changes')
     parser.add_argument('--default_version',
                         required=True,
-                        help='variablename for version which should be used in case git was not executable.')
+                        help='default for version which should be used in case git was not executable.')
 
     args = parser.parse_args()
 
@@ -66,21 +65,21 @@ def main():
                         git_version = key_value[1].strip()
                     if key == args.is_dirty_name:
                         is_dirty = key_value[1].strip()
-                    if key == args.default_version:
-                        default_version = key_value[1].strip()
     except:
-        # In case volatile-status cannot be read, exit with an error
-        sys.exit("Cannot open volatile-status.txt")
+        # In case volatile-status cannot be read, use the default version
+        git_version = args.default_version
+        is_dirty = "TRUE"
 
-    if git_version == "" or is_dirty == "" or default_version == "":
-        sys.exit("No usable entry in volatile-status.txt")
+    if git_version == "" or is_dirty == "":
+        git_version = args.default_version
+        is_dirty = "TRUE"
 
     git_version = normalize_version(git_version, is_dirty)
 
     # In case we werent able to determine the current version
     # use the default set version
     if git_version == "0.0.0":
-        git_version = default_version
+        git_version = args.default_version
 
     # Notify the user about the version used.
     print("Version: " + git_version)
