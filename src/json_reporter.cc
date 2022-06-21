@@ -234,18 +234,15 @@ void JSONReporter::PrintRunData(Run const& run) {
   out << indent << FormatKV("run_name", run.run_name.str()) << ",\n";
 
   // Get the name of the benchmark function
-  std::string func_name = run.run_name.str();
-  auto pos = run.run_name.str().find('/');
-  // Only if "/" is contained in run_name we need to do something.
-  if (pos != std::string::npos) func_name = func_name.substr(0, pos);
-  out << indent << FormatKV("function_name", func_name) << ",\n";
+  out << indent << FormatKV("function_name", run.run_name.function_name)
+      << ",\n";
 
   // Print all arguments
   out << indent << "\"arguments\": "
       << "[";
   if (run.arguments.size() > 0) {
     for (auto& arg : run.arguments) {
-      out << "\"" << arg << "\"";
+      out << arg;
       if (&arg != &run.arguments.back()) out << ", ";
     }
   }
