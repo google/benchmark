@@ -291,9 +291,10 @@ BENCHMARK(BM_test)->Unit(benchmark::kMillisecond);
 namespace benchmark {
 class BenchmarkReporter;
 
+BENCHMARK_EXPORT void PrintDefaultHelp();
+
 BENCHMARK_EXPORT void Initialize(int* argc, char** argv,
-                                 void (*HelperPrinterf)(FILE*,
-                                                        const char*) = NULL);
+                                 void (*HelperPrinterf)() = PrintDefaultHelp);
 BENCHMARK_EXPORT void Shutdown();
 
 // Report to stdout all arguments in 'argv' as unrecognized except the first.

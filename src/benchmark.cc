@@ -564,32 +564,10 @@ void AddCustomContext(const std::string& key, const std::string& value) {
 
 namespace internal {
 
-void (*HelperPrintf)(FILE* stream, const char* text);
-
-void DefaultHelperPrintf(FILE* stream, const char* text) {
-  fprintf(stream, "%s", text);
-}
+void (*HelperPrintf)();
 
 void PrintUsageAndExit() {
-  HelperPrintf(
-      stdout,
-      "benchmark"
-      " [--benchmark_list_tests={true|false}]\n"
-      "          [--benchmark_filter=<regex>]\n"
-      "          [--benchmark_min_time=<min_time>]\n"
-      "          [--benchmark_min_warmup_time=<min_warmup_time>]\n"
-      "          [--benchmark_repetitions=<num_repetitions>]\n"
-      "          [--benchmark_enable_random_interleaving={true|false}]\n"
-      "          [--benchmark_report_aggregates_only={true|false}]\n"
-      "          [--benchmark_display_aggregates_only={true|false}]\n"
-      "          [--benchmark_format=<console|json|csv>]\n"
-      "          [--benchmark_out=<filename>]\n"
-      "          [--benchmark_out_format=<json|console|csv>]\n"
-      "          [--benchmark_color={auto|true|false}]\n"
-      "          [--benchmark_counters_tabular={true|false}]\n"
-      "          [--benchmark_context=<key>=<value>,...]\n"
-      "          [--benchmark_time_unit={ns|us|ms|s}]\n"
-      "          [--v=<verbosity>]\n");
+  HelperPrintf();
   exit(0);
 }
 
@@ -671,12 +649,31 @@ int InitializeStreams() {
 
 }  // end namespace internal
 
-void Initialize(int* argc, char** argv,
-                void (*HelperPrintf)(FILE*, const char*)) {
+void PrintDefaultHelp() {
+  fprintf(stdout,
+          "benchmark"
+          " [--benchmark_list_tests={true|false}]\n"
+          "          [--benchmark_filter=<regex>]\n"
+          "          [--benchmark_min_time=<min_time>]\n"
+          "          [--benchmark_min_warmup_time=<min_warmup_time>]\n"
+          "          [--benchmark_repetitions=<num_repetitions>]\n"
+          "          [--benchmark_enable_random_interleaving={true|false}]\n"
+          "          [--benchmark_report_aggregates_only={true|false}]\n"
+          "          [--benchmark_display_aggregates_only={true|false}]\n"
+          "          [--benchmark_format=<console|json|csv>]\n"
+          "          [--benchmark_out=<filename>]\n"
+          "          [--benchmark_out_format=<json|console|csv>]\n"
+          "          [--benchmark_color={auto|true|false}]\n"
+          "          [--benchmark_counters_tabular={true|false}]\n"
+          "          [--benchmark_context=<key>=<value>,...]\n"
+          "          [--benchmark_time_unit={ns|us|ms|s}]\n"
+          "          [--v=<verbosity>]\n");
+}
+
+void Initialize(int* argc, char** argv, void (*HelperPrintf)()) {
   internal::ParseCommandLineFlags(argc, argv);
   internal::LogLevel() = FLAGS_v;
-  internal::HelperPrintf =
-      HelperPrintf ? HelperPrintf : internal::DefaultHelperPrintf;
+  internal::HelperPrintf = HelperPrintf;
 }
 
 void Shutdown() { delete internal::global_context; }
