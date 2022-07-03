@@ -292,7 +292,8 @@ namespace benchmark {
 class BenchmarkReporter;
 
 BENCHMARK_EXPORT void Initialize(int* argc, char** argv,
-                                 void (*HelperPrinterf)() = NULL);
+                                 void (*HelperPrinterf)(FILE*,
+                                                        const char*) = NULL);
 BENCHMARK_EXPORT void Shutdown();
 
 // Report to stdout all arguments in 'argv' as unrecognized except the first.
