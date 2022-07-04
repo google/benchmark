@@ -45,12 +45,22 @@ jobs:
         echo "EXTRA_FLAGS=-g -O2 -fno-omit-frame-pointer -fsanitize=thread -fno-sanitize-recover=all" >> $GITHUB_ENV
         echo "LIBCXX_SANITIZER=Thread" >> $GITHUB_ENV
 
+    - name: setup clang
+      if: matrix.compiler == 'clang'
+      uses: egor-tensin/setup-clang@v1
+      with:
+        version: latest
+        platform: x64
+          #run: |
+          #sudo apt update && sudo apt -y install clang-13 clang++-13
+          #echo "CC=clang-13" >> $GITHUB_ENV
+          #echo "CXX=clang++-13" >> $GITHUB_ENV
+
     - name: configure clang
       if: matrix.compiler == 'clang'
       run: |
-        sudo apt update && sudo apt -y install clang-13 clang++-13
-        echo "CC=clang-13" >> $GITHUB_ENV
-        echo "CXX=clang++-13" >> $GITHUB_ENV
+        echo "CC=cc" >> $GITHUB_ENV
+        echo "CXX=c++" >> $GITHUB_ENV
 
     - name: configure gcc
       if: matrix.compiler == 'gcc'
@@ -62,8 +72,8 @@ jobs:
     - name: install llvm stuff
       if: matrix.compiler == 'clang'
       run: |
-        sudo apt update && sudo apt -y install libc++-dev libc++abi-dev libc++1 libc++abi1
-        #"${GITHUB_WORKSPACE}/.github/.libcxx-setup.sh"
+        # sudo apt update && sudo apt -y install libc++-dev libc++abi-dev libc++1 libc++abi1
+        "${GITHUB_WORKSPACE}/.github/.libcxx-setup.sh"
         echo "EXTRA_CXX_FLAGS=\"-stdlib=libc++\"" >> $GITHUB_ENV
 
     - name: create build environment
