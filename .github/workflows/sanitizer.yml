@@ -61,7 +61,8 @@ jobs:
     - name: install llvm stuff
       if: matrix.compiler == 'clang'
       run: |
-        "${GITHUB_WORKSPACE}/.github/.libcxx-setup.sh"
+        sudo apt update && sudo apt -y install libc++-dev libc++abi-dev libc++1 libc++abi1
+        #"${GITHUB_WORKSPACE}/.github/.libcxx-setup.sh"
         echo "EXTRA_CXX_FLAGS=\"-stdlib=libc++\"" >> $GITHUB_ENV
 
     - name: create build environment
