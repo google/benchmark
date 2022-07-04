@@ -48,8 +48,9 @@ jobs:
     - name: configure clang
       if: matrix.compiler == 'clang'
       run: |
-        echo "CC=clang" >> $GITHUB_ENV
-        echo "CXX=clang++" >> $GITHUB_ENV
+        sudo apt update && sudo apt -y install clang-13 clang++-13
+        echo "CC=clang-13" >> $GITHUB_ENV
+        echo "CXX=clang++-13" >> $GITHUB_ENV
 
     - name: configure gcc
       if: matrix.compiler == 'gcc'
