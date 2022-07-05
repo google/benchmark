@@ -38,7 +38,8 @@ function(cxx_feature_check FILE)
       try_compile(COMPILE_${FEATURE}
               ${CMAKE_BINARY_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/cmake/${FILE}.cpp
               CMAKE_FLAGS ${BENCHMARK_CXX_LINKER_FLAGS}
-              LINK_LIBRARIES ${BENCHMARK_CXX_LIBRARIES})
+              LINK_LIBRARIES ${BENCHMARK_CXX_LIBRARIES}
+              OUTPUT_VARIABLE COMPILE_OUTPUT_VAR)
       if(COMPILE_${FEATURE})
         message(WARNING
               "If you see build failures due to cross compilation, try setting HAVE_${VAR} to 0")
@@ -51,7 +52,8 @@ function(cxx_feature_check FILE)
       try_run(RUN_${FEATURE} COMPILE_${FEATURE}
               ${CMAKE_BINARY_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/cmake/${FILE}.cpp
               CMAKE_FLAGS ${BENCHMARK_CXX_LINKER_FLAGS}
-              LINK_LIBRARIES ${BENCHMARK_CXX_LIBRARIES})
+              LINK_LIBRARIES ${BENCHMARK_CXX_LIBRARIES}
+              COMPILE_OUTPUT_VARIABLE COMPILE_OUTPUT_VAR)
     endif()
   endif()
 
@@ -61,7 +63,7 @@ function(cxx_feature_check FILE)
     add_definitions(-DHAVE_${VAR})
   else()
     if(NOT COMPILE_${FEATURE})
-      message(STATUS "Performing Test ${FEATURE} -- failed to compile")
+      message(STATUS "Performing Test ${FEATURE} -- failed to compile: ${COMPILE_OUTPUT_VAR}")
     else()
       message(STATUS "Performing Test ${FEATURE} -- compiled but failed to run")
     endif()

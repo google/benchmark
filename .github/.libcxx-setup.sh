@@ -10,8 +10,8 @@ fi
 
 # Build and install libc++ (Use unstable ABI for better sanitizer coverage)
 cd ./llvm-project
-cmake -DCMAKE_C_COMPILER=${C_COMPILER}          \
-      -DCMAKE_CXX_COMPILER=${COMPILER}          \
+cmake -DCMAKE_C_COMPILER=${CC}                  \
+      -DCMAKE_CXX_COMPILER=${CXX}               \
       -DCMAKE_BUILD_TYPE=RelWithDebInfo         \
       -DCMAKE_INSTALL_PREFIX=/usr               \
       -DLIBCXX_ABI_UNSTABLE=OFF                 \
