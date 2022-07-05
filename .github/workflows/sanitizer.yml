@@ -51,10 +51,6 @@ jobs:
       with:
         version: latest
         platform: x64
-          #run: |
-          #sudo apt update && sudo apt -y install clang-13 clang++-13
-          #echo "CC=clang-13" >> $GITHUB_ENV
-          #echo "CXX=clang++-13" >> $GITHUB_ENV
 
     - name: configure clang
       if: matrix.compiler == 'clang'
@@ -72,7 +68,6 @@ jobs:
     - name: install llvm stuff
       if: matrix.compiler == 'clang'
       run: |
-        # sudo apt update && sudo apt -y install libc++-dev libc++abi-dev libc++1 libc++abi1
         "${GITHUB_WORKSPACE}/.github/.libcxx-setup.sh"
         echo "EXTRA_CXX_FLAGS=\"-stdlib=libc++\"" >> $GITHUB_ENV
 
