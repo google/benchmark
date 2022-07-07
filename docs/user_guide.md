@@ -314,7 +314,7 @@ static void BM_memcpy(benchmark::State& state) {
   delete[] src;
   delete[] dst;
 }
-BENCHMARK(BM_memcpy)->Arg(8)->Arg(64)->Arg(512)->Arg(1<<10)->Arg(8<<10);
+BENCHMARK(BM_memcpy)->Arg(8)->Arg(64)->Arg(512)->Arg(4<<10)->Arg(8<<10);
 ```
 
 The preceding code is quite repetitive, and can be replaced with the following
