@@ -44,6 +44,7 @@ from google_benchmark._benchmark import (
     oNLogN,
     oAuto,
     oLambda,
+    State,
 )
 
 
@@ -64,6 +65,7 @@ __all__ = [
     "oNLogN",
     "oAuto",
     "oLambda",
+    "State",
 ]
 
 __version__ = "1.6.1"
