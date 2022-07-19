@@ -1,14 +1,5 @@
 licenses(["notice"])
 
-load("//:config/generate_export_header.bzl", "generate_export_header")
-
-# Generate header to provide ABI export symbols
-generate_export_header(
-    out = "include/benchmark/export.h",
-    lib = "benchmark",
-    static_define = "BENCHMARK_STATIC_DEFINE",
-)
-
 config_setting(
     name = "qnx",
     constraint_values = ["@platforms//os:qnx"],

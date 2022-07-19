@@ -29,9 +29,6 @@ target_include_directories(benchmark PUBLIC
   $<BUILD_INTERFACE:${PROJECT_BINARY_DIR}/include>
 )
 
-generate_export_header(benchmark
-  EXPORT_FILE_NAME ${PROJECT_BINARY_DIR}/include/benchmark/export.h)
-
 # libpfm, if available
 if (HAVE_LIBPFM)
   target_link_libraries(benchmark PRIVATE pfm)
