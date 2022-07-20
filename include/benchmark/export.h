@@ -1,17 +1,17 @@
 #ifndef BENCHMARK_EXPORT_H
 #define BENCHMARK_EXPORT_H
 
-#ifdef BENCHMARK_OS_WINDOWS
+#if defined(_WIN32)
 #define EXPORT_ATTR __declspec(dllexport)
 #define IMPORT_ATTR __declspec(dllimport)
 #define NO_EXPORT_ATTR
 #define DEPRECATED_ATTR __declspec(deprecated)
-#else  // BENCHMARK_OS_WINDOWS
+#else  // _WIN32
 #define EXPORT_ATTR __attribute__((visibility("default")))
 #define IMPORT_ATTR __attribute__((visibility("default")))
 #define NO_EXPORT_ATTR __attribute__((visibility("hidden")))
 #define DEPRECATE_ATTR __attribute__((__deprecated__))
-#endif  // BENCHMARK_OS_WINDOWS
+#endif  // _WIN32
 
 #ifdef BENCHMARK_STATIC_DEFINE
 #define BENCHMARK_EXPORT
