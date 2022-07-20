@@ -1,6 +1,7 @@
 {
   "context": {
     "date": "2016-08-02 17:44:46",
+    "libbenchmark_version": "1.6.1",
     "num_cpus": 4,
     "mhz_per_cpu": 4228,
     "cpu_scaling_enabled": false,
