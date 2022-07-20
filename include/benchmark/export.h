@@ -7,9 +7,9 @@
 #define NO_EXPORT_ATTR
 #define DEPRECATED_ATTR __declspec(deprecated)
 #else  // BENCHMARK_OS_WINDOWS
-#define EXPORT_ATTR     __attribute__((visibility("default")))
-#define IMPORT_ATTR     __attribute__((visibility("default")))
-#define NO_EXPORT_ATTR  __attribute__((visibility("hidden")))
+#define EXPORT_ATTR __attribute__((visibility("default")))
+#define IMPORT_ATTR __attribute__((visibility("default")))
+#define NO_EXPORT_ATTR __attribute__((visibility("hidden")))
 #define DEPRECATE_ATTR __attribute__((__deprecated__))
 #endif  // BENCHMARK_OS_WINDOWS
 
