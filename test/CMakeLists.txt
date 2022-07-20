@@ -24,6 +24,10 @@ if( NOT uppercase_CMAKE_BUILD_TYPE STREQUAL "DEBUG" )
   endforeach()
 endif()
 
+if (NOT BUILD_SHARED_LIBS)
+  add_definitions(-DBENCHMARK_STATIC_DEFINE)
+endif()
+
 check_cxx_compiler_flag(-O3 BENCHMARK_HAS_O3_FLAG)
 set(BENCHMARK_O3_FLAG "")
 if (BENCHMARK_HAS_O3_FLAG)
