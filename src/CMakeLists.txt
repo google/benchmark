@@ -55,6 +55,10 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "SunOS")
   target_link_libraries(benchmark PRIVATE kstat)
 endif()
 
+if (NOT BUILD_SHARED_LIBS)
+  add_compile_definitions(BENCHMARK_STATIC_DEFINE)
+endif()
+
 # Benchmark main library
 add_library(benchmark_main "benchmark_main.cc")
 add_library(benchmark::benchmark_main ALIAS benchmark_main)
