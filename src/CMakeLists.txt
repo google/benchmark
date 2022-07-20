@@ -29,9 +29,6 @@ target_include_directories(benchmark PUBLIC
   $<BUILD_INTERFACE:${PROJECT_BINARY_DIR}/include>
 )
 
-generate_export_header(benchmark
-  EXPORT_FILE_NAME ${PROJECT_BINARY_DIR}/include/benchmark/export.h)
-
 # libpfm, if available
 if (HAVE_LIBPFM)
   target_link_libraries(benchmark PRIVATE pfm)
@@ -56,6 +53,10 @@ endif()
 # We need extra libraries on Solaris
 if(${CMAKE_SYSTEM_NAME} MATCHES "SunOS")
   target_link_libraries(benchmark PRIVATE kstat)
+endif()
+
+if (NOT BUILD_SHARED_LIBS)
+  add_definitions(-DBENCHMARK_STATIC_DEFINE)
 endif()
 
 # Benchmark main library

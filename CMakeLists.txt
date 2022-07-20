@@ -130,7 +130,6 @@ include(AddCXXCompilerFlag)
 include(CheckCXXCompilerFlag)
 include(CheckLibraryExists)
 include(CXXFeatureCheck)
-include(GenerateExportHeader)
 
 check_library_exists(rt shm_open "" HAVE_LIB_RT)
 
