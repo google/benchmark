@@ -32,7 +32,7 @@ target_include_directories(benchmark PUBLIC
 # libpfm, if available
 if (HAVE_LIBPFM)
   target_link_libraries(benchmark PRIVATE pfm)
-  add_definitions(-DHAVE_LIBPFM)
+  target_compile_definitions(benchmark PRIVATE -DHAVE_LIBPFM)
 endif()
 
 # Link threads.
@@ -56,7 +56,7 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "SunOS")
 endif()
 
 if (NOT BUILD_SHARED_LIBS)
-  add_definitions(-DBENCHMARK_STATIC_DEFINE)
+  target_compile_definitions(benchmark PRIVATE -DBENCHMARK_STATIC_DEFINE)
 endif()
 
 # Benchmark main library
