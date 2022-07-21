@@ -133,21 +133,21 @@ std::string StrFormatImp(const char* msg, va_list args) {
   // TODO(ericwf): use std::array for first attempt to avoid one memory
   // allocation guess what the size might be
   std::array<char, 256> local_buff;
-  std::size_t size = local_buff.size();
+
   // 2015-10-08: vsnprintf is used instead of snd::vsnprintf due to a limitation
   // in the android-ndk
-  auto ret = vsnprintf(local_buff.data(), size, msg, args_cp);
+  auto ret = vsnprintf(local_buff.data(), local_buff.size(), msg, args_cp);
 
   va_end(args_cp);
 
   // handle empty expansion
   if (ret == 0) return std::string{};
-  if (static_cast<std::size_t>(ret) < size)
+  if (static_cast<std::size_t>(ret) < local_buff.size())
     return std::string(local_buff.data());
 
   // we did not provide a long enough buffer on our first attempt.
   // add 1 to size to account for null-byte in size cast to prevent overflow
-  size = static_cast<std::size_t>(ret) + 1;
+  std::size_t size = static_cast<std::size_t>(ret) + 1;
   auto buff_ptr = std::unique_ptr<char[]>(new char[size]);
   // 2015-10-08: vsnprintf is used instead of snd::vsnprintf due to a limitation
   // in the android-ndk
