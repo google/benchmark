@@ -9,12 +9,18 @@
 #include "internal_macros.h"
 #include "log.h"
 
+#if defined(_WIN32)
+#define WEAK_ATTR __declspec(selectany)
+#else
+#define WEAK_ATTR __attribute__((weak))
+#endif
+
 namespace benchmark {
 namespace internal {
 
 typedef void(AbortHandlerT)();
 
-BENCHMARK_EXPORT
+BENCHMARK_EXPORT WEAK_ATTR
 AbortHandlerT*& GetAbortHandler();
 
 BENCHMARK_NORETURN inline void CallAbortHandler() {
