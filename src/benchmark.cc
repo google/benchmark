@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "third_party/benchmark/include/benchmark/benchmark.h"
+#include "benchmark/benchmark.h"
 
 #include "benchmark_api_internal.h"
 #include "benchmark_runner.h"
