@@ -52,11 +52,13 @@ std::string CsvEscape(const std::string& s) {
   return '"' + tmp + '"';
 }
 
+BENCHMARK_EXPORT
 bool CSVReporter::ReportContext(const Context& context) {
   PrintBasicContext(&GetErrorStream(), context);
   return true;
 }
 
+BENCHMARK_EXPORT
 void CSVReporter::ReportRuns(const std::vector<Run>& reports) {
   std::ostream& Out = GetOutputStream();
 
@@ -103,6 +105,7 @@ void CSVReporter::ReportRuns(const std::vector<Run>& reports) {
   }
 }
 
+BENCHMARK_EXPORT
 void CSVReporter::PrintRunData(const Run& run) {
   std::ostream& Out = GetOutputStream();
   Out << CsvEscape(run.benchmark_name()) << ",";

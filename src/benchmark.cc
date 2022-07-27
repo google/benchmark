@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "benchmark/benchmark.h"
+#include "third_party/benchmark/include/benchmark/benchmark.h"
 
 #include "benchmark_api_internal.h"
 #include "benchmark_runner.h"
@@ -137,7 +137,7 @@ BM_DEFINE_int32(v, 0);
 
 namespace internal {
 
-BENCHMARK_EXPORT std::map<std::string, std::string>* global_context = nullptr;
+std::map<std::string, std::string>* global_context = nullptr;
 
 // FIXME: wouldn't LTO mess this up?
 void UseCharPointer(char const volatile*) {}
@@ -678,9 +678,9 @@ void PrintDefaultHelp() {
 }
 
 void Initialize(int* argc, char** argv, void (*HelperPrintf)()) {
-  internal::HelperPrintf = HelperPrintf;
   internal::ParseCommandLineFlags(argc, argv);
   internal::LogLevel() = FLAGS_v;
+  internal::HelperPrintf = HelperPrintf;
 }
 
 void Shutdown() { delete internal::global_context; }
