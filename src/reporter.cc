@@ -25,9 +25,6 @@
 #include "timers.h"
 
 namespace benchmark {
-namespace internal {
-extern std::map<std::string, std::string> *global_context;
-}
 
 BenchmarkReporter::BenchmarkReporter()
     : output_stream_(&std::cout), error_stream_(&std::cerr) {}
@@ -67,8 +64,11 @@ void BenchmarkReporter::PrintBasicContext(std::ostream *out,
     Out << "\n";
   }
 
-  if (internal::global_context != nullptr) {
-    for (const auto &kv : *internal::global_context) {
+  std::map<std::string, std::string> *global_context =
+      internal::GetGlobalContext();
+
+  if (global_context != nullptr) {
+    for (const auto &kv : *global_context) {
       Out << kv.first << ": " << kv.second << "\n";
     }
   }

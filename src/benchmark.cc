@@ -139,6 +139,10 @@ namespace internal {
 
 std::map<std::string, std::string>* global_context = nullptr;
 
+BENCHMARK_EXPORT std::map<std::string, std::string>* GetGlobalContext() {
+  return global_context;
+}
+
 // FIXME: wouldn't LTO mess this up?
 void UseCharPointer(char const volatile*) {}
 
