@@ -139,7 +139,7 @@ namespace internal {
 
 std::map<std::string, std::string>* global_context = nullptr;
 
-BENCHMARK_EXPORT std::map<std::string, std::string>* GetGlobalContext() {
+BENCHMARK_EXPORT std::map<std::string, std::string>*& GetGlobalContext() {
   return global_context;
 }
 
