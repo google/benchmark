@@ -28,10 +28,6 @@
 #include "timers.h"
 
 namespace benchmark {
-namespace internal {
-extern std::map<std::string, std::string>* global_context;
-}
-
 namespace {
 
 std::string StrEscape(const std::string& s) {
@@ -178,8 +174,11 @@ bool JSONReporter::ReportContext(const Context& context) {
 #endif
   out << indent << FormatKV("library_build_type", build_type);
 
-  if (internal::global_context != nullptr) {
-    for (const auto& kv : *internal::global_context) {
+  std::map<std::string, std::string>* global_context =
+      internal::GetGlobalContext();
+
+  if (global_context != nullptr) {
+    for (const auto& kv : *global_context) {
       out << ",\n";
       out << indent << FormatKV(kv.first, kv.second);
     }
