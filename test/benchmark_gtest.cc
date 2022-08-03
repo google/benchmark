@@ -5,6 +5,7 @@
 #include "../src/benchmark_register.h"
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
+
 namespace benchmark {
 namespace internal {
 
