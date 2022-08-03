@@ -167,4 +167,3 @@ TEST(AddCustomContext, DuplicateKey) {
 }  // namespace
 }  // namespace internal
 }  // namespace benchmark
-
