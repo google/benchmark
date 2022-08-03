@@ -5,7 +5,7 @@ namespace internal {
 
 static AbortHandlerT* handler = &std::abort;
 
-AbortHandlerT*& GetAbortHandler() { return handler; }
+BENCHMARK_EXPORT AbortHandlerT*& GetAbortHandler() { return handler; }
 
 }  // namespace internal
 }  // namespace benchmark

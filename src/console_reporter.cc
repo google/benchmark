@@ -33,6 +33,7 @@
 
 namespace benchmark {
 
+BENCHMARK_EXPORT
 bool ConsoleReporter::ReportContext(const Context& context) {
   name_field_width_ = context.name_field_width;
   printed_header_ = false;
@@ -52,6 +53,7 @@ bool ConsoleReporter::ReportContext(const Context& context) {
   return true;
 }
 
+BENCHMARK_EXPORT
 void ConsoleReporter::PrintHeader(const Run& run) {
   std::string str =
       FormatString("%-*s %13s %15s %12s", static_cast<int>(name_field_width_),
@@ -69,6 +71,7 @@ void ConsoleReporter::PrintHeader(const Run& run) {
   GetOutputStream() << line << "\n" << str << "\n" << line << "\n";
 }
 
+BENCHMARK_EXPORT
 void ConsoleReporter::ReportRuns(const std::vector<Run>& reports) {
   for (const auto& run : reports) {
     // print the header:
@@ -120,6 +123,7 @@ static std::string FormatTime(double time) {
   return FormatString("%10.0f", time);
 }
 
+BENCHMARK_EXPORT
 void ConsoleReporter::PrintRunData(const Run& result) {
   typedef void(PrinterFn)(std::ostream&, LogColor, const char*, ...);
   auto& Out = GetOutputStream();

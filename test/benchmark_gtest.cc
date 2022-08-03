@@ -8,7 +8,6 @@
 
 namespace benchmark {
 namespace internal {
-BENCHMARK_EXPORT extern std::map<std::string, std::string>* global_context;
 
 namespace {
 
@@ -134,6 +133,8 @@ TEST(AddRangeTest, Simple8) {
 }
 
 TEST(AddCustomContext, Simple) {
+  std::map<std::string, std::string> *&global_context =
+      internal::GetGlobalContext();
   EXPECT_THAT(global_context, nullptr);
 
   AddCustomContext("foo", "bar");
@@ -148,6 +149,8 @@ TEST(AddCustomContext, Simple) {
 }
 
 TEST(AddCustomContext, DuplicateKey) {
+  std::map<std::string, std::string> *&global_context =
+      internal::GetGlobalContext();
   EXPECT_THAT(global_context, nullptr);
 
   AddCustomContext("foo", "bar");

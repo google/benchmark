@@ -417,6 +417,8 @@ class Benchmark;
 class BenchmarkImp;
 class BenchmarkFamilies;
 
+BENCHMARK_EXPORT std::map<std::string, std::string>*& GetGlobalContext();
+
 BENCHMARK_EXPORT
 void UseCharPointer(char const volatile*);
 
