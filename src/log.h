@@ -54,7 +54,7 @@ inline int& LogLevel() {
 }
 
 inline LogType& GetNullLogInstance() {
-  static LogType null_log((std::ostream*) nullptr);
+  static LogType null_log((std::ostream*)nullptr);
   return null_log;
 }
 
