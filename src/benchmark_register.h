@@ -1,6 +1,7 @@
 #ifndef BENCHMARK_REGISTER_H
 #define BENCHMARK_REGISTER_H
 
+#include <algorithm>
 #include <limits>
 #include <vector>
 

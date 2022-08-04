@@ -9,6 +9,23 @@
 #include "internal_macros.h"
 #include "log.h"
 
+#if defined(__GNUC__) || defined(__clang__)
+#define BENCHMARK_NOEXCEPT noexcept
+#define BENCHMARK_NOEXCEPT_OP(x) noexcept(x)
+#elif defined(_MSC_VER) && !defined(__clang__)
+#if _MSC_VER >= 1900
+#define BENCHMARK_NOEXCEPT noexcept
+#define BENCHMARK_NOEXCEPT_OP(x) noexcept(x)
+#else
+#define BENCHMARK_NOEXCEPT
+#define BENCHMARK_NOEXCEPT_OP(x)
+#endif
+#define __func__ __FUNCTION__
+#else
+#define BENCHMARK_NOEXCEPT
+#define BENCHMARK_NOEXCEPT_OP(x)
+#endif
+
 namespace benchmark {
 namespace internal {
 

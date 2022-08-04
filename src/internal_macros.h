@@ -1,8 +1,6 @@
 #ifndef BENCHMARK_INTERNAL_MACROS_H_
 #define BENCHMARK_INTERNAL_MACROS_H_
 
-#include "benchmark/benchmark.h"
-
 /* Needed to detect STL */
 #include <cstdlib>
 

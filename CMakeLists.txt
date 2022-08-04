@@ -223,7 +223,7 @@ else()
   add_cxx_compiler_flag(-wd654)
   add_cxx_compiler_flag(-Wthread-safety)
   if (HAVE_CXX_FLAG_WTHREAD_SAFETY)
-    cxx_feature_check(THREAD_SAFETY_ATTRIBUTES)
+    cxx_feature_check(THREAD_SAFETY_ATTRIBUTES "-DINCLUDE_DIRECTORIES=${PROJECT_SOURCE_DIR}/include")
   endif()
 
   # On most UNIX like platforms g++ and clang++ define _GNU_SOURCE as a
