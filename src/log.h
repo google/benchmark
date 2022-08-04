@@ -4,8 +4,6 @@
 #include <iostream>
 #include <ostream>
 
-#include "benchmark/benchmark.h"
-
 namespace benchmark {
 namespace internal {
 
@@ -23,7 +21,16 @@ class LogType {
  private:
   LogType(std::ostream* out) : out_(out) {}
   std::ostream* out_;
-  BENCHMARK_DISALLOW_COPY_AND_ASSIGN(LogType);
+
+  // NOTE: we could use BENCHMARK_DISALLOW_COPY_AND_ASSIGN but we shouldn't have
+  // a dependency on benchmark.h from here.
+#ifndef BENCHMARK_HAS_CXX11
+  LogType(const LogType&);
+  LogType& operator=(const LogType&);
+#else
+  LogType(const LogType&) = delete;
+  LogType& operator=(const LogType&) = delete;
+#endif
 };
 
 template <class Tp>

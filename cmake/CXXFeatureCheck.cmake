@@ -27,17 +27,18 @@ function(cxx_feature_check FILE)
     return()
   endif()
 
+  set(FEATURE_CHECK_CMAKE_FLAGS ${BENCHMARK_CXX_LINKER_FLAGS})
   if (ARGC GREATER 1)
     message(STATUS "Enabling additional flags: ${ARGV1}")
-    list(APPEND BENCHMARK_CXX_LINKER_FLAGS ${ARGV1})
+    list(APPEND FEATURE_CHECK_CMAKE_FLAGS ${ARGV1})
   endif()
 
   if (NOT DEFINED COMPILE_${FEATURE})
-    message(STATUS "Performing Test ${FEATURE}")
     if(CMAKE_CROSSCOMPILING)
+      message(STATUS "Cross-compiling to test ${FEATURE}")
       try_compile(COMPILE_${FEATURE}
               ${CMAKE_BINARY_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/cmake/${FILE}.cpp
-              CMAKE_FLAGS ${BENCHMARK_CXX_LINKER_FLAGS}
+              CMAKE_FLAGS ${FEATURE_CHECK_CMAKE_FLAGS}
               LINK_LIBRARIES ${BENCHMARK_CXX_LIBRARIES}
               OUTPUT_VARIABLE COMPILE_OUTPUT_VAR)
       if(COMPILE_${FEATURE})
@@ -48,10 +49,10 @@ function(cxx_feature_check FILE)
         set(RUN_${FEATURE} 1 CACHE INTERNAL "")
       endif()
     else()
-      message(STATUS "Performing Test ${FEATURE}")
+      message(STATUS "Compiling and running to test ${FEATURE}")
       try_run(RUN_${FEATURE} COMPILE_${FEATURE}
               ${CMAKE_BINARY_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/cmake/${FILE}.cpp
-              CMAKE_FLAGS ${BENCHMARK_CXX_LINKER_FLAGS}
+              CMAKE_FLAGS ${FEATURE_CHECK_CMAKE_FLAGS}
               LINK_LIBRARIES ${BENCHMARK_CXX_LIBRARIES}
               COMPILE_OUTPUT_VARIABLE COMPILE_OUTPUT_VAR)
     endif()
