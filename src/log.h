@@ -4,6 +4,13 @@
 #include <iostream>
 #include <ostream>
 
+// NOTE: this is also defined in benchmark.h but we're trying to avoid a
+// dependency.
+// The _MSVC_LANG check should detect Visual Studio 2015 Update 3 and newer.
+#if __cplusplus >= 201103L || (defined(_MSVC_LANG) && _MSVC_LANG >= 201103L)
+#define BENCHMARK_HAS_CXX11
+#endif
+
 namespace benchmark {
 namespace internal {
 
