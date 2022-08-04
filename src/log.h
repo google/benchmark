@@ -54,13 +54,13 @@ inline int& LogLevel() {
 }
 
 inline LogType& GetNullLogInstance() {
-  static LogType log(nullptr);
-  return log;
+  static LogType null_log((std::ostream*) nullptr);
+  return null_log;
 }
 
 inline LogType& GetErrorLogInstance() {
-  static LogType log(&std::clog);
-  return log;
+  static LogType error_log(&std::clog);
+  return error_log;
 }
 
 inline LogType& GetLogInstanceForLevel(int level) {
