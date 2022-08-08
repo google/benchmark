@@ -138,6 +138,7 @@ if (BENCHMARK_BUILD_32_BITS)
 endif()
 
 set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 if (MSVC)
   # Turn compiler warnings up to 11
