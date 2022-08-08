@@ -137,7 +137,7 @@ if (BENCHMARK_BUILD_32_BITS)
   add_required_cxx_compiler_flag(-m32)
 endif()
 
-set(CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD 11)
 
 if (MSVC)
   # Turn compiler warnings up to 11
