@@ -6,7 +6,8 @@ foreach(p
     CMP0056 # export EXE_LINKER_FLAGS to try_run
     CMP0057 # Support no if() IN_LIST operator
     CMP0063 # Honor visibility properties for all targets
-    CMP0067 # Honor language standard in try_compile() source file signature
+    # TODO: enable when cmake bumps above 3.8
+    #    CMP0067 # Honor language standard in try_compile() source file signature
     CMP0077 # Allow option() overrides in importing projects
     )
   if(POLICY ${p})
@@ -140,6 +141,7 @@ endif()
 
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
 
 if (MSVC)
   # Turn compiler warnings up to 11
