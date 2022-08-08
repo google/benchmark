@@ -231,7 +231,7 @@ BENCHMARK(BM_test)->Unit(benchmark::kMillisecond);
 #define BENCHMARK_INTERNAL_TOSTRING(x) BENCHMARK_INTERNAL_TOSTRING2(x)
 
 // clang-format off
-#if defined(__GNUC__) || defined(__clang__)
+#if defined(__GNUC__) && !defined(__NVCC__) || defined(__clang__)
 #define BENCHMARK_BUILTIN_EXPECT(x, y) __builtin_expect(x, y)
 #define BENCHMARK_DEPRECATED_MSG(msg) __attribute__((deprecated(msg)))
 #define BENCHMARK_DISABLE_DEPRECATED_WARNING \
