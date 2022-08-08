@@ -179,5 +179,6 @@ PYBIND11_MODULE(_benchmark, m) {
         py::return_value_policy::reference);
   m.def("RunSpecifiedBenchmarks",
         []() { benchmark::RunSpecifiedBenchmarks(); });
+  m.def("ClearRegisteredBenchmarks", benchmark::ClearRegisteredBenchmarks);
 };
 }  // namespace
