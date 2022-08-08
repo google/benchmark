@@ -182,7 +182,7 @@ State::State(IterationCount max_iters, const std::vector<int64_t>& ranges,
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Winvalid-offsetof"
 #endif
-#if defined(__CUDACC__)
+#if defined(__NVCC__)
 #pragma nv_diagnostic push
 #pragma nv_diag_suppress 1427
 #endif
@@ -196,7 +196,7 @@ State::State(IterationCount max_iters, const std::vector<int64_t>& ranges,
 #elif defined(__GNUC__)
 #pragma GCC diagnostic pop
 #endif
-#if defined(__CUDACC__)
+#if defined(__NVCC__)
 #pragma nv_diagnostic pop
 #endif
 }
