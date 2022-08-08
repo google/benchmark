@@ -137,6 +137,8 @@ if (BENCHMARK_BUILD_32_BITS)
   add_required_cxx_compiler_flag(-m32)
 endif()
 
+set(CMAKE_CXX_STANDARD 11)
+
 if (MSVC)
   # Turn compiler warnings up to 11
   string(REGEX REPLACE "[-/]W[1-4]" "" CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
