@@ -26,6 +26,7 @@ Example usage:
   if __name__ == '__main__':
     benchmark.main()
 """
+import atexit
 
 from absl import app
 from google_benchmark import _benchmark
@@ -158,3 +159,4 @@ def main(argv=None):
 # Methods for use with custom main function.
 initialize = _benchmark.Initialize
 run_benchmarks = _benchmark.RunSpecifiedBenchmarks
+atexit.register(_benchmark.ClearRegisteredBenchmarks)
