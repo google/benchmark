@@ -1107,7 +1107,7 @@ class BENCHMARK_EXPORT Benchmark {
   // By default, the CPU time is measured only for the main thread, which may
   // be unrepresentative if the benchmark uses threads internally. If called,
   // the total CPU time spent by all the threads will be measured instead.
-  // By default, the only the main thread CPU time will be measured.
+  // By default, only the main thread CPU time will be measured.
   Benchmark* MeasureProcessCPUTime();
 
   // If a particular benchmark should use the Wall clock instead of the CPU time
