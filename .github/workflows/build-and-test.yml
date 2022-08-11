@@ -35,6 +35,13 @@ jobs:
       - name: create build environment
         run: cmake -E make_directory ${{ runner.workspace }}/_build
 
+      # we need llvm-ar and other tools for clang release builds
+      - name: setup llvm
+        if: matrix.compiler == 'clang++' && matrix.build_type == 'Release'
+        run: |
+          apt update
+          apt install -y llvm
+
       - name: setup cmake initial cache
         run: touch compiler-cache.cmake
 
