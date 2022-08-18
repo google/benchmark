@@ -55,7 +55,7 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "SunOS")
 endif()
 
 if (NOT BUILD_SHARED_LIBS)
-  target_compile_definitions(benchmark PRIVATE -DBENCHMARK_STATIC_DEFINE)
+  target_compile_definitions(benchmark PUBLIC -DBENCHMARK_STATIC_DEFINE)
 endif()
 
 # Benchmark main library
