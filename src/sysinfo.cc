@@ -419,18 +419,16 @@ std::string GetSystemName() {
 #else
   std::vector<wchar_t> converted;
   // Find the length first.
-  int len = ::MultiByteToWideChar(CP_UTF8, MB_ERR_INVALID_CHARS, hostname, 
-                                  DWCOUNT, converted.begin(), 0); 
-   // TODO: Report error from GetLastError()?
-   if (len == 0)
-     return std::string("");
+  int len = ::MultiByteToWideChar(CP_UTF8, MB_ERR_INVALID_CHARS, hostname,
+                                  DWCOUNT, converted.begin(), 0);
+  // TODO: Report error from GetLastError()?
+  if (len == 0) return std::string("");
   converted.reserve(len + 1);
-  
-  len = ::MultiByteToWideChar(CP_UTF8, MB_ERR_INVALID_CHARS, hostname, 
-                                  DWCOUNT, converted.begin(), converted.size()); 
-   // TODO: Report error from GetLastError()?
-   if (len == 0)
-     return std::string("");
+
+  len = ::MultiByteToWideChar(CP_UTF8, MB_ERR_INVALID_CHARS, hostname, DWCOUNT,
+                              converted.begin(), converted.size());
+  // TODO: Report error from GetLastError()?
+  if (len == 0) return std::string("");
   str = std::string(converted.data());
 #endif
   return str;
