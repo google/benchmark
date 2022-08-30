@@ -417,11 +417,19 @@ std::string GetSystemName() {
 #ifndef UNICODE
   str = std::string(hostname, DWCOUNT);
 #else
-  // Using wstring_convert, Is deprecated in C++17
-  using convert_type = std::codecvt_utf8<wchar_t>;
-  std::wstring_convert<convert_type, wchar_t> converter;
-  std::wstring wStr(hostname, DWCOUNT);
-  str = converter.to_bytes(wStr);
+  std::vector<wchar_t> converted;
+  // Find the length first.
+  int len = ::MultiByteToWideChar(CP_UTF8, MB_ERR_INVALID_CHARS, hostname,
+                                  DWCOUNT, converted.begin(), 0);
+  // TODO: Report error from GetLastError()?
+  if (len == 0) return std::string("");
+  converted.reserve(len + 1);
+
+  len = ::MultiByteToWideChar(CP_UTF8, MB_ERR_INVALID_CHARS, hostname, DWCOUNT,
+                              converted.begin(), converted.size());
+  // TODO: Report error from GetLastError()?
+  if (len == 0) return std::string("");
+  str = std::string(converted.data());
 #endif
   return str;
 #else  // defined(BENCHMARK_OS_WINDOWS)
