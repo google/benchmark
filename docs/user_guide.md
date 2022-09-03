@@ -58,8 +58,11 @@
 
 [A Faster KeepRunning Loop](#a-faster-keep-running-loop)
 
+## Benchmarking Tips
+
 [Disabling CPU Frequency Scaling](#disabling-cpu-frequency-scaling)
 
+[Reducing Variance in Benchmarks](#reducing-variance)
 
 <a name="output-formats" />
 
@@ -1266,12 +1269,54 @@ cpupower frequency-info -o proc
 
 The benchmarks you subsequently run will have less variance.
 
-Note that changing the governor in this way will not persist across
-reboots.  To set the governor back, run the first command again with the
-governor your system usually runs with, which varies.
+<a name="reducing-variance" />
 
-If you find yourself doing this often, there are probably better options
-than running the commands above.  Some approaches allow you to do this
-without root access, or by using a GUI, etc.  The Arch Wiki [Cpu frequency
-scaling](https://wiki.archlinux.org/title/CPU_frequency_scaling) page is a
-good place to start looking for options.
+## Reducing Variance in Benchmarks
+
+The Linux CPU frequency governor [discussed
+above](#disabling-cpu-frequency-scaling) is not the only source of noise in
+benchmarks.  Some, but not all, of the sources of variance include:
+
+1. On multi-core machines not all CPUs run the same speed, so running a
+   benchmark one time and then again may give a different result depending
+   on which CPU it ran on.
+2. CPU scaling features that run on the CPU, like Intel's Turbo Boost and
+   AMD Turbo Core and Precision Boost, can temporarily change the CPU
+   frequency even when the using the "performance" governor on Linux.
+3. Context switching between CPUs, or scheduling competition on the CPU the
+   benchmark is running on.
+4. Intel Hyperthreading or AMD SMT causing the same issue as above.
+5. Cache effects caused by code running on other CPUs.
+6. Non-uniform memory architectures (NUMA).
+
+These can cause variance in benchmarks results within a single run
+(`--benchmark_repetitions=N`) or across multiple runs of the benchmark
+program.
+
+Reducing sources of variance is OS and architecture dependent, which is one
+reason some companies maintain machines dedicated to performance testing.
+
+Some of the easier and and effective ways of reducing variance on a typical
+Linux workstation are:
+
+1. Use the performance governer as [discussed
+above](#disabling-cpu-frequency-scaling).
+2. Set the benchmark program's task affinity to a fixed cpu.  For example:
+   ```bash
+   taskset -c 0 ./mybenchmark
+   ```
+3. Disabling Hyperthreading/SMT.  This can be done in the Bios or using the
+   `/sys` file system (see the LLVM project's [Benchmarking
+   tips](https://llvm.org/docs/Benchmarking.html)).
+4. Close other programs that do non-trivial things based on timers, such as
+   your web browser, desktop environment, etc.
+5. Reduce the working set of your benchmark to fit within the L1 cache, but
+   do be aware that this may lead you to optimize for an unrelistic
+   situation.
+
+Further resources on this topic:
+
+1. The LLVM project's [Benchmarking
+   tips](https://llvm.org/docs/Benchmarking.html).
+1. The Arch Wiki [Cpu frequency
+scaling](https://wiki.archlinux.org/title/CPU_frequency_scaling) page.
