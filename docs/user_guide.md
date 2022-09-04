@@ -1301,8 +1301,15 @@ Linux workstation are:
 
 1. Use the performance governer as [discussed
 above](#disabling-cpu-frequency-scaling).
+1. Disable processor boosting by:
+   ```sh
+   echo 0 | sudo tee /sys/devices/system/cpu/cpufreq/boost
+   ```
+   See the Linux kernel's
+   [boost.txt](https://www.kernel.org/doc/Documentation/cpu-freq/boost.txt)
+   for more information.
 2. Set the benchmark program's task affinity to a fixed cpu.  For example:
-   ```bash
+   ```sh
    taskset -c 0 ./mybenchmark
    ```
 3. Disabling Hyperthreading/SMT.  This can be done in the Bios or using the
