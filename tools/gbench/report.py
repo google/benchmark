@@ -9,7 +9,6 @@ import random
 
 from scipy.stats import mannwhitneyu, gmean
 from numpy import array
-from pandas import Timedelta
 
 
 class BenchmarkColor(object):
@@ -42,6 +41,13 @@ BC_UNDERLINE = BenchmarkColor('UNDERLINE', '\033[4m')
 UTEST_MIN_REPETITIONS = 2
 UTEST_OPTIMAL_REPETITIONS = 9  # Lowest reasonable number, More is better.
 UTEST_COL_NAME = "_pvalue"
+
+_TIME_UNIT_TO_SECONDS_MULTIPLIER = {
+    "s": 1.0,
+    "ms": 1e-3,
+    "us": 1e-6,
+    "ns": 1e-9,
+}
 
 
 def color_format(use_color, fmt_str, *args, **kwargs):
@@ -157,9 +163,9 @@ def get_timedelta_field_as_seconds(benchmark, field_name):
     Get value of field_name field of benchmark, which is time with time unit
     time_unit, as time in seconds.
     """
-    time_unit = benchmark['time_unit'] if 'time_unit' in benchmark else 's'
-    dt = Timedelta(benchmark[field_name], time_unit)
-    return dt / Timedelta(1, 's')
+    timedelta = benchmark[field_name]
+    time_unit = benchmark.get('time_unit', 's')
+    return timedelta * _TIME_UNIT_TO_SECONDS_MULTIPLIER.get(time_unit)
 
 
 def calculate_geomean(json):
@@ -454,7 +460,7 @@ class TestReportDifference(unittest.TestCase):
             ['BM_ThirdFaster', '-0.3333', '-0.3334', '100', '67', '100', '67'],
             ['BM_NotBadTimeUnit', '-0.9000', '+0.2000', '0', '0', '0', '1'],
             ['BM_hasLabel', '+0.0000', '+0.0000', '1', '1', '1', '1'],
-            ['OVERALL_GEOMEAN', '-0.8117', '-0.7783', '0', '0', '0', '0']
+            ['OVERALL_GEOMEAN', '-0.8113', '-0.7779', '0', '0', '0', '0']
         ]
         output_lines_with_header = print_difference_report(
             self.json_diff_report, use_color=False)
@@ -591,7 +597,7 @@ class TestReportDifference(unittest.TestCase):
                 'label': '',
                 'measurements': [{'real_time': 3.1622776601683826e-06, 'cpu_time': 3.2130844755623912e-06,
                                   'real_time_other': 1.9768988699420897e-07, 'cpu_time_other': 2.397447755209533e-07,
-                                  'time': -0.8117033010153573, 'cpu': -0.7783324768278522}],
+                                  'time': -0.8112976497120911, 'cpu': -0.7778551721181174}],
                 'time_unit': 's',
                 'run_type': 'aggregate',
                 'aggregate_name': 'geomean', 'utest': {}
