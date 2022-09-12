@@ -136,13 +136,16 @@ void ColorPrintf(std::ostream& out, LogColor color, const char* fmt,
   CONSOLE_SCREEN_BUFFER_INFO buffer_info;
   GetConsoleScreenBufferInfo(stdout_handle, &buffer_info);
   const WORD old_color_attrs = buffer_info.wAttributes;
-
+  WORD  new_attr;
+  
   // We need to flush the stream buffers into the console before each
   // SetConsoleTextAttribute call lest it affect the text that is already
   // printed but has not yet reached the console.
   fflush(stdout);
+  new_attr = (buffer_info.wAttributes & ~7);
+  new_attr &= ~8;    // Since 'wAttributes' could have been hi-intensity at startup.
   SetConsoleTextAttribute(stdout_handle,
-                          GetPlatformColorCode(color) | FOREGROUND_INTENSITY);
+                          new_attr | GetPlatformColorCode(color) | FOREGROUND_INTENSITY);
   vprintf(fmt, args);
 
   fflush(stdout);
