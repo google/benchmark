@@ -19,9 +19,9 @@ git_repository(
 http_archive(
     name = "pybind11",
     build_file = "@//bindings/python:pybind11.BUILD",
-    sha256 = "1eed57bc6863190e35637290f97a20c81cfe4d9090ac0a24f3bbf08f265eb71d",
-    strip_prefix = "pybind11-2.4.3",
-    urls = ["https://github.com/pybind/pybind11/archive/v2.4.3.tar.gz"],
+    sha256 = "eacf582fa8f696227988d08cfc46121770823839fe9e301a20fbce67e7cd70ec",
+    strip_prefix = "pybind11-2.10.0",
+    urls = ["https://github.com/pybind/pybind11/archive/v2.10.0.tar.gz"],
 )
 
 new_local_repository(
