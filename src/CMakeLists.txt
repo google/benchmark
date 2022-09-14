@@ -69,7 +69,6 @@ set_target_properties(benchmark_main PROPERTIES
 )
 target_link_libraries(benchmark_main PUBLIC benchmark::benchmark)
 
-
 set(generated_dir "${PROJECT_BINARY_DIR}")
 
 set(version_config "${generated_dir}/${PROJECT_NAME}ConfigVersion.cmake")

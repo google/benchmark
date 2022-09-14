@@ -1,4 +1,4 @@
-cmake_minimum_required (VERSION 3.5.1)
+cmake_minimum_required (VERSION 3.16.3)
 
 foreach(p
     CMP0048 # OK to clear PROJECT_VERSION on project()
@@ -6,6 +6,7 @@ foreach(p
     CMP0056 # export EXE_LINKER_FLAGS to try_run
     CMP0057 # Support no if() IN_LIST operator
     CMP0063 # Honor visibility properties for all targets
+    CMP0067 # Honor language standard in try_compile() source file signature
     CMP0077 # Allow option() overrides in importing projects
     )
   if(POLICY ${p})
@@ -138,6 +139,16 @@ if (BENCHMARK_BUILD_32_BITS)
 endif()
 
 if (MSVC)
+  set(BENCHMARK_CXX_STANDARD 14)
+else()
+  set(BENCHMARK_CXX_STANDARD 11)
+endif()
+
+set(CMAKE_CXX_STANDARD ${BENCHMARK_CXX_STANDARD})
+set(CMAKE_CXX_STANDARD_REQUIRED YES)
+set(CMAKE_CXX_EXTENSIONS OFF)
+
+if (MSVC)
   # Turn compiler warnings up to 11
   string(REGEX REPLACE "[-/]W[1-4]" "" CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /W4")
@@ -169,13 +180,6 @@ if (MSVC)
     set(CMAKE_EXE_LINKER_FLAGS_MINSIZEREL "${CMAKE_EXE_LINKER_FLAGS_MINSIZEREL} /LTCG")
   endif()
 else()
-  # Try and enable C++11. Don't use C++14 because it doesn't work in some
-  # configurations.
-  add_cxx_compiler_flag(-std=c++11)
-  if (NOT HAVE_CXX_FLAG_STD_CXX11)
-    add_cxx_compiler_flag(-std=c++0x)
-  endif()
-
   # Turn compiler warnings up to 11
   add_cxx_compiler_flag(-Wall)
   add_cxx_compiler_flag(-Wextra)
