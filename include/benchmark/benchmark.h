@@ -664,7 +664,7 @@ class BENCHMARK_EXPORT State {
   // returned false.
   bool KeepRunning();
 
-  // Returns true iff the benchmark should run n more iterations.
+  // Returns true if the benchmark should run n more iterations.
   // REQUIRES: 'n' > 0.
   // NOTE: A benchmark must not return from the test until KeepRunningBatch()
   // has returned false.
