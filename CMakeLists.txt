@@ -332,6 +332,7 @@ include_directories(${PROJECT_SOURCE_DIR}/include)
 add_subdirectory(src)
 
 if (BENCHMARK_ENABLE_TESTING)
+  find_package(Python3 3.6 REQUIRED COMPONENTS Interpreter)
   enable_testing()
   if (BENCHMARK_ENABLE_GTEST_TESTS AND
       NOT (TARGET gtest AND TARGET gtest_main AND
