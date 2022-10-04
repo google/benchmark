@@ -23,7 +23,7 @@
 #include <codecvt>
 #else
 #include <fcntl.h>
-#ifndef BENCHMARK_OS_FUCHSIA
+#if !defined(BENCHMARK_OS_FUCHSIA) && !defined(BENCHMARK_OS_QURT)
 #include <sys/resource.h>
 #endif
 #include <sys/time.h>
@@ -41,6 +41,9 @@
 #endif
 #if defined(BENCHMARK_OS_QNX)
 #include <sys/syspage.h>
+#endif
+#if defined(BENCHMARK_OS_QURT)
+#include <qurt.h>
 #endif
 
 #include <algorithm>
@@ -402,6 +405,8 @@ std::vector<CPUInfo::CacheInfo> GetCacheSizes() {
   return GetCacheSizesWindows();
 #elif defined(BENCHMARK_OS_QNX)
   return GetCacheSizesQNX();
+#elif defined(BENCHMARK_OS_QURT)
+  return std::vector<CPUInfo::CacheInfo>();
 #else
   return GetCacheSizesFromKVFS();
 #endif
@@ -432,7 +437,15 @@ std::string GetSystemName() {
   str = std::string(converted.data());
 #endif
   return str;
-#else  // defined(BENCHMARK_OS_WINDOWS)
+#elif defined(BENCHMARK_OS_QURT)
+  std::string str = "Hexagon DSP";
+  qurt_arch_version_t arch_version_struct;
+  if (qurt_sysenv_get_arch_version(&arch_version_struct) == QURT_EOK) {
+    str += " v";
+    str += std::to_string(arch_version_struct.arch_version);
+  }
+  return str;
+#else
 #ifndef HOST_NAME_MAX
 #ifdef BENCHMARK_HAS_SYSCTL  // BSD/Mac Doesnt have HOST_NAME_MAX defined
 #define HOST_NAME_MAX 64
@@ -479,6 +492,12 @@ int GetNumCPUs() {
   return num_cpu;
 #elif defined(BENCHMARK_OS_QNX)
   return static_cast<int>(_syspage_ptr->num_cpu);
+#elif defined(BENCHMARK_OS_QURT)
+  qurt_sysenv_max_hthreads_t hardware_threads;
+  if (qurt_sysenv_get_max_hw_threads(&hardware_threads) != QURT_EOK) {
+    hardware_threads.max_hthreads = 1;
+  }
+  return hardware_threads.max_hthreads;
 #else
   int num_cpus = 0;
   int max_id = -1;
@@ -678,6 +697,9 @@ double GetCPUCyclesPerSecond(CPUInfo::Scaling scaling) {
 #elif defined(BENCHMARK_OS_QNX)
   return static_cast<double>((int64_t)(SYSPAGE_ENTRY(cpuinfo)->speed) *
                              (int64_t)(1000 * 1000));
+#elif defined(BENCHMARK_OS_QURT)
+  // QuRT doesn't provide any API to query Hexagon frequency.
+  return 1000000000;
 #endif
   // If we've fallen through, attempt to roughly estimate the CPU clock rate.
   static constexpr int estimate_time_ms = 1000;

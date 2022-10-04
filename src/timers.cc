@@ -23,7 +23,7 @@
 #include <windows.h>
 #else
 #include <fcntl.h>
-#ifndef BENCHMARK_OS_FUCHSIA
+#if !defined(BENCHMARK_OS_FUCHSIA) && !defined(BENCHMARK_OS_QURT)
 #include <sys/resource.h>
 #endif
 #include <sys/time.h>
@@ -37,6 +37,9 @@
 #include <mach/mach_init.h>
 #include <mach/mach_port.h>
 #include <mach/thread_act.h>
+#endif
+#if defined(BENCHMARK_OS_QURT)
+#include <qurt.h>
 #endif
 #endif
 
@@ -79,7 +82,7 @@ double MakeTime(FILETIME const& kernel_time, FILETIME const& user_time) {
           static_cast<double>(user.QuadPart)) *
          1e-7;
 }
-#elif !defined(BENCHMARK_OS_FUCHSIA)
+#elif !defined(BENCHMARK_OS_FUCHSIA) && !defined(BENCHMARK_OS_QURT)
 double MakeTime(struct rusage const& ru) {
   return (static_cast<double>(ru.ru_utime.tv_sec) +
           static_cast<double>(ru.ru_utime.tv_usec) * 1e-6 +
@@ -119,6 +122,10 @@ double ProcessCPUUsage() {
                       &user_time))
     return MakeTime(kernel_time, user_time);
   DiagnoseAndExit("GetProccessTimes() failed");
+#elif defined(BENCHMARK_OS_QURT)
+  return static_cast<double>(
+             qurt_timer_timetick_to_us(qurt_timer_get_ticks())) *
+         1.0e-6;
 #elif defined(BENCHMARK_OS_EMSCRIPTEN)
   // clock_gettime(CLOCK_PROCESS_CPUTIME_ID, ...) returns 0 on Emscripten.
   // Use Emscripten-specific API. Reported CPU time would be exactly the
@@ -149,6 +156,10 @@ double ThreadCPUUsage() {
   GetThreadTimes(this_thread, &creation_time, &exit_time, &kernel_time,
                  &user_time);
   return MakeTime(kernel_time, user_time);
+#elif defined(BENCHMARK_OS_QURT)
+  return static_cast<double>(
+             qurt_timer_timetick_to_us(qurt_timer_get_ticks())) *
+         1.0e-6;
 #elif defined(BENCHMARK_OS_MACOSX)
   // FIXME We want to use clock_gettime, but its not available in MacOS 10.11.
   // See https://github.com/google/benchmark/pull/292
