@@ -36,7 +36,11 @@ void BenchmarkReporter::PrintBasicContext(std::ostream *out,
   BM_CHECK(out) << "cannot be null";
   auto &Out = *out;
 
+#ifndef BENCHMARK_OS_QURT
+  // Date/time information is not available on QuRT.
+  // Attempting to get it via this call cause the binary to crash.
   Out << LocalDateTimeString() << "\n";
+#endif
 
   if (context.executable_name)
     Out << "Running " << context.executable_name << "\n";

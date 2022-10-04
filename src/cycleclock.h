@@ -212,6 +212,10 @@ inline BENCHMARK_ALWAYS_INLINE int64_t Now() {
   struct timeval tv;
   gettimeofday(&tv, nullptr);
   return static_cast<int64_t>(tv.tv_sec) * 1000000 + tv.tv_usec;
+#elif defined(__hexagon__)
+  uint64_t pcycle;
+  asm volatile("%0 = C15:14" : "=r"(pcycle));
+  return static_cast<double>(pcycle);
 #else
 // The soft failover to a generic implementation is automatic only for ARM.
 // For other platforms the developer is expected to make an attempt to create
