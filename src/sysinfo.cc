@@ -38,6 +38,7 @@
 #endif
 #if defined(BENCHMARK_OS_SOLARIS)
 #include <kstat.h>
+#include <netdb.h>
 #endif
 #if defined(BENCHMARK_OS_QNX)
 #include <sys/syspage.h>
@@ -455,6 +456,8 @@ std::string GetSystemName() {
 #define HOST_NAME_MAX 154
 #elif defined(BENCHMARK_OS_RTEMS)
 #define HOST_NAME_MAX 256
+#elif defined(BENCHMARK_OS_SOLARIS)
+#define HOST_NAME_MAX MAXHOSTNAMELEN
 #else
 #pragma message("HOST_NAME_MAX not defined. using 64")
 #define HOST_NAME_MAX 64
@@ -484,12 +487,12 @@ int GetNumCPUs() {
                                         // group
 #elif defined(BENCHMARK_OS_SOLARIS)
   // Returns -1 in case of a failure.
-  int num_cpu = sysconf(_SC_NPROCESSORS_ONLN);
+  long num_cpu = sysconf(_SC_NPROCESSORS_ONLN);
   if (num_cpu < 0) {
     fprintf(stderr, "sysconf(_SC_NPROCESSORS_ONLN) failed with error: %s\n",
             strerror(errno));
   }
-  return num_cpu;
+  return (int)num_cpu;
 #elif defined(BENCHMARK_OS_QNX)
   return static_cast<int>(_syspage_ptr->num_cpu);
 #elif defined(BENCHMARK_OS_QURT)
@@ -671,7 +674,8 @@ double GetCPUCyclesPerSecond(CPUInfo::Scaling scaling) {
     std::cerr << "failed to open /dev/kstat\n";
     return -1;
   }
-  kstat_t* ksp = kstat_lookup(kc, (char*)"cpu_info", -1, (char*)"cpu_info0");
+  kstat_t* ksp = kstat_lookup(kc, const_cast<char*>("cpu_info"), -1,
+                              const_cast<char*>("cpu_info0"));
   if (!ksp) {
     std::cerr << "failed to lookup in /dev/kstat\n";
     return -1;
@@ -680,8 +684,8 @@ double GetCPUCyclesPerSecond(CPUInfo::Scaling scaling) {
     std::cerr << "failed to read from /dev/kstat\n";
     return -1;
   }
-  kstat_named_t* knp =
-      (kstat_named_t*)kstat_data_lookup(ksp, (char*)"current_clock_Hz");
+  kstat_named_t* knp = (kstat_named_t*)kstat_data_lookup(
+      ksp, const_cast<char*>("current_clock_Hz"));
   if (!knp) {
     std::cerr << "failed to lookup data in /dev/kstat\n";
     return -1;
