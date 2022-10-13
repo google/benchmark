@@ -47,7 +47,7 @@ macro(add_filecheck_test name)
   set_target_properties(${name} PROPERTIES COMPILE_FLAGS "-S ${ASM_TEST_FLAGS}")
   set(ASM_OUTPUT_FILE "${CMAKE_CURRENT_BINARY_DIR}/${name}.s")
   add_custom_target(copy_${name} ALL
-      COMMAND ${Python3_EXECUTABLE} ${PROJECT_SOURCE_DIR}/tools/strip_asm.py
+      COMMAND ${PROJECT_SOURCE_DIR}/tools/strip_asm.py
         $<TARGET_OBJECTS:${name}>
         ${ASM_OUTPUT_FILE}
       BYPRODUCTS ${ASM_OUTPUT_FILE})
