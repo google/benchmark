@@ -35,6 +35,13 @@
 #pragma warning(disable : 4251)
 #endif
 
+#ifdef BENCHMARK_OS_MACOSX
+  //this is the OSX syscall wrapper function, implemented in libpthread, that returns
+  //per thread instruction and cycle counters. The counts remain correct over context
+  //switches and core migrations.
+  extern "C"  int thread_selfcounts(int type, void *buf, size_t nbytes);
+#endif
+
 namespace benchmark {
 namespace internal {
 
@@ -55,7 +62,12 @@ class PerfCounterValues {
 
   uint64_t operator[](size_t pos) const { return values_[kPadding + pos]; }
 
+#ifdef BENCHMARK_OS_MACOSX
+  //OSX only supports cycles and instructions
+  static constexpr size_t kMaxCounters = 2;
+#else
   static constexpr size_t kMaxCounters = 3;
+#endif
 
  private:
   friend class PerfCounters;
@@ -66,7 +78,12 @@ class PerfCounterValues {
             sizeof(uint64_t) * (kPadding + nr_counters_)};
   }
 
+#ifdef BENCHMARK_OS_MACOSX
+  //the padding is not needed on OSX
+  static constexpr size_t kPadding = 0;
+#else
   static constexpr size_t kPadding = 1;
+#endif
   std::array<uint64_t, kPadding + kMaxCounters> values_;
   const size_t nr_counters_;
 };
@@ -104,11 +121,25 @@ class BENCHMARK_EXPORT PerfCounters final {
   // names()[i]'s value is (*values)[i]
   BENCHMARK_ALWAYS_INLINE bool Snapshot(PerfCounterValues* values) const {
 #ifndef BENCHMARK_OS_WINDOWS
+#ifdef BENCHMARK_OS_MACOSX
+    //call the undocumented syscall wrapper function to get per thread instructions and cycles
+    //the OS maintains these counters across context switches/cpu migrations.    
+    uint64_t counts[2] = {}; //counts[0]=cycles, counts[1]=instructions
+    int res = thread_selfcounts(1, counts, sizeof(counts));
+
+    //copy the number of counters we have and reindex
+    uint64_t* buffer = (uint64_t*)values->get_data_buffer().first;
+    for (size_t i=0;i<counter_ids_.size();i++)
+      buffer[i]=counts[ counter_ids_[i] ];
+
+    return res==0;
+#else
     assert(values != nullptr);
     assert(IsValid());
     auto buffer = values->get_data_buffer();
     auto read_bytes = ::read(counter_ids_[0], buffer.first, buffer.second);
     return static_cast<size_t>(read_bytes) == buffer.second;
+#endif
 #else
     (void)values;
     return false;
