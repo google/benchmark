@@ -382,6 +382,7 @@ class MemoryManager {
   // Implement this to start recording allocation information.
   virtual void Start() = 0;
 
+  // Implement this to stop recording and fill out the given Result structure.
   virtual void Stop(Result& result) = 0;
 };
 
