@@ -382,9 +382,7 @@ class MemoryManager {
   // Implement this to start recording allocation information.
   virtual void Start() = 0;
 
-  BENCHMARK_DISABLE_DEPRECATED_WARNING
   virtual void Stop(Result& result) = 0;
-  BENCHMARK_RESTORE_DEPRECATED_WARNING
 };
 
 // Register a MemoryManager instance that will be used to collect and report
