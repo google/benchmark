@@ -387,10 +387,7 @@ void BenchmarkRunner::DoOneRepetition() {
     manager->WaitForAllThreads();
     manager.reset();
     b.Teardown();
-
-    BENCHMARK_DISABLE_DEPRECATED_WARNING
-    memory_manager->Stop(memory_result);
-    BENCHMARK_RESTORE_DEPRECATED_WARNING
+    memory_manager->Stop(*memory_result);
   }
 
   // Ok, now actually report.
