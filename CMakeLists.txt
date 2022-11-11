@@ -14,7 +14,7 @@ foreach(p
   endif()
 endforeach()
 
-project (benchmark VERSION 1.7.0 LANGUAGES CXX)
+project (benchmark VERSION 1.7.1 LANGUAGES CXX)
 
 option(BENCHMARK_ENABLE_TESTING "Enable testing of the benchmark library." ON)
 option(BENCHMARK_ENABLE_EXCEPTIONS "Enable the use of exceptions in the benchmark library." ON)
