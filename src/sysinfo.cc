@@ -423,15 +423,12 @@ std::string GetSystemName() {
 #ifndef UNICODE
   str = std::string(hostname, DWCOUNT);
 #else
+  // `WideCharToMultiByte` returns `0` when conversion fails.
   int len = WideCharToMultiByte(CP_UTF8, WC_ERR_INVALID_CHARS, hostname,
                                 DWCOUNT, NULL, 0, NULL, NULL);
-  // TODO: Report error from GetLastError()?
-  if (len == 0) return std::string("");
   str.resize(len);
   WideCharToMultiByte(CP_UTF8, WC_ERR_INVALID_CHARS, hostname, DWCOUNT, &str[0],
-                      len, NULL, NULL);
-  // TODO: Report error from GetLastError()?
-  if (len == 0) return std::string("");
+                      str.size(), NULL, NULL);
 #endif
   return str;
 #elif defined(BENCHMARK_OS_QURT)
