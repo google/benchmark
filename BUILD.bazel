@@ -18,6 +18,14 @@ config_setting(
     visibility = [":__subpackages__"],
 )
 
+config_setting(
+    name = "perfcounters",
+    define_values = {
+        "pfm": "1",
+    },
+    visibility = [":__subpackages__"],
+)
+
 cc_library(
     name = "benchmark",
     srcs = glob(
@@ -41,7 +49,16 @@ cc_library(
     # Using `defines` (i.e. not `local_defines`) means that no
     # dependent rules need to bother about defining the macro.
     linkstatic = True,
-    defines = ["BENCHMARK_STATIC_DEFINE"],
+    defines = [
+        "BENCHMARK_STATIC_DEFINE",
+    ] + select({
+        ":perfcounters": ["HAVE_LIBPFM"],
+        "//conditions:default": [],
+    }),
+    deps = select({
+        ":perfcounters": ["@libpfm//:libpfm"],
+        "//conditions:default": [],
+    }),
 )
 
 cc_library(

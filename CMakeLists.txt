@@ -1,4 +1,4 @@
-cmake_minimum_required (VERSION 3.5.1)
+cmake_minimum_required (VERSION 3.16.3)
 
 foreach(p
     CMP0048 # OK to clear PROJECT_VERSION on project()
@@ -6,8 +6,7 @@ foreach(p
     CMP0056 # export EXE_LINKER_FLAGS to try_run
     CMP0057 # Support no if() IN_LIST operator
     CMP0063 # Honor visibility properties for all targets
-    # TODO: enable when cmake bumps above 3.8
-    #    CMP0067 # Honor language standard in try_compile() source file signature
+    CMP0067 # Honor language standard in try_compile() source file signature
     CMP0077 # Allow option() overrides in importing projects
     )
   if(POLICY ${p})
@@ -15,7 +14,7 @@ foreach(p
   endif()
 endforeach()
 
-project (benchmark VERSION 1.7.0 LANGUAGES CXX)
+project (benchmark VERSION 1.7.1 LANGUAGES CXX)
 
 option(BENCHMARK_ENABLE_TESTING "Enable testing of the benchmark library." ON)
 option(BENCHMARK_ENABLE_EXCEPTIONS "Enable the use of exceptions in the benchmark library." ON)
@@ -141,6 +140,16 @@ endif()
 
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
+
+if (MSVC)
+  set(BENCHMARK_CXX_STANDARD 14)
+else()
+  set(BENCHMARK_CXX_STANDARD 11)
+endif()
+
+set(CMAKE_CXX_STANDARD ${BENCHMARK_CXX_STANDARD})
+set(CMAKE_CXX_STANDARD_REQUIRED YES)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
 if (MSVC)

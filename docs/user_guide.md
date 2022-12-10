@@ -58,8 +58,11 @@
 
 [A Faster KeepRunning Loop](#a-faster-keep-running-loop)
 
+## Benchmarking Tips
+
 [Disabling CPU Frequency Scaling](#disabling-cpu-frequency-scaling)
 
+[Reducing Variance in Benchmarks](reducing_variance.md)
 
 <a name="output-formats" />
 
@@ -1243,35 +1246,7 @@ If you see this error:
 ```
 
 you might want to disable the CPU frequency scaling while running the
-benchmark.  Exactly how to do this depends on the Linux distribution,
-desktop environment, and installed programs.  Specific details are a moving
-target, so we will not attempt to exhaustively document them here.
+benchmark, as well as consider other ways to stabilize the performance of
+your system while benchmarking.
 
-One simple option is to use the `cpupower` program to change the
-performance governor to "performance".  This tool is maintained along with
-the Linux kernel and provided by your distribution.
-
-It must be run as root, like this:
-
-```bash
-sudo cpupower frequency-set --governor performance
-```
-
-After this you can verify that all CPUs are using the performance governor
-by running this command:
-
-```bash
-cpupower frequency-info -o proc
-```
-
-The benchmarks you subsequently run will have less variance.
-
-Note that changing the governor in this way will not persist across
-reboots.  To set the governor back, run the first command again with the
-governor your system usually runs with, which varies.
-
-If you find yourself doing this often, there are probably better options
-than running the commands above.  Some approaches allow you to do this
-without root access, or by using a GUI, etc.  The Arch Wiki [Cpu frequency
-scaling](https://wiki.archlinux.org/title/CPU_frequency_scaling) page is a
-good place to start looking for options.
+See [Reducing Variance](reducing_variance.md) for more information.

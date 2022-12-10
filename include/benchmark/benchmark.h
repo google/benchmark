@@ -383,13 +383,7 @@ class MemoryManager {
   virtual void Start() = 0;
 
   // Implement this to stop recording and fill out the given Result structure.
-  BENCHMARK_DEPRECATED_MSG("Use Stop(Result&) instead")
-  virtual void Stop(Result* result) = 0;
-
-  // FIXME(vyng): Make this pure virtual once we've migrated current users.
-  BENCHMARK_DISABLE_DEPRECATED_WARNING
-  virtual void Stop(Result& result) { Stop(&result); }
-  BENCHMARK_RESTORE_DEPRECATED_WARNING
+  virtual void Stop(Result& result) = 0;
 };
 
 // Register a MemoryManager instance that will be used to collect and report
@@ -1534,8 +1528,15 @@ class Fixture : public internal::Benchmark {
 #endif
 
 // Helper macro to create a main routine in a test that runs the benchmarks
+// Note the workaround for Hexagon simulator passing argc != 0, argv = NULL.
 #define BENCHMARK_MAIN()                                                \
   int main(int argc, char** argv) {                                     \
+    char arg0_default[] = "benchmark";                                  \
+    char* args_default = arg0_default;                                  \
+    if (!argv) {                                                        \
+      argc = 1;                                                         \
+      argv = &args_default;                                             \
+    }                                                                   \
     ::benchmark::Initialize(&argc, argv);                               \
     if (::benchmark::ReportUnrecognizedArguments(argc, argv)) return 1; \
     ::benchmark::RunSpecifiedBenchmarks();                              \

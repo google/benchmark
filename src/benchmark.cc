@@ -19,7 +19,7 @@
 #include "internal_macros.h"
 
 #ifndef BENCHMARK_OS_WINDOWS
-#ifndef BENCHMARK_OS_FUCHSIA
+#if !defined(BENCHMARK_OS_FUCHSIA) && !defined(BENCHMARK_OS_QURT)
 #include <sys/resource.h>
 #endif
 #include <sys/time.h>
@@ -676,6 +676,9 @@ void PrintDefaultHelp() {
           "          [--benchmark_out_format=<json|console|csv>]\n"
           "          [--benchmark_color={auto|true|false}]\n"
           "          [--benchmark_counters_tabular={true|false}]\n"
+#if defined HAVE_LIBPFM
+          "          [--benchmark_perf_counters=<counter>,...]\n"
+#endif
           "          [--benchmark_context=<key>=<value>,...]\n"
           "          [--benchmark_time_unit={ns|us|ms|s}]\n"
           "          [--v=<verbosity>]\n");

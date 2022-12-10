@@ -1,8 +1,10 @@
 name: build-and-test
 
 on:
-  push: {}
-  pull_request: {}
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
 
 jobs:
   # TODO: add 32-bit builds (g++ and clang++) for ubuntu
@@ -15,7 +17,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, ubuntu-20.04, macos-latest]
+        # ubuntu-18.04 is deprecated but included for best-effort support
+        os: [ubuntu-22.04, ubuntu-20.04, ubuntu-18.04, macos-latest]
         build_type: ['Release', 'Debug']
         compiler: [g++, clang++]
         lib: ['shared', 'static']
@@ -23,20 +26,17 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
+      - name: setup cmake
+        if: matrix.os == 'ubuntu-18.04'
+        uses: jwlawson/actions-setup-cmake@v1.9
+        with:
+          cmake-version: '3.16.3'
+
       - name: create build environment
         run: cmake -E make_directory ${{ runner.workspace }}/_build
 
       - name: setup cmake initial cache
         run: touch compiler-cache.cmake
-
-      - name: setup lto
-        # Workaround for enabling -flto on old GCC versions
-        if: matrix.build_type == 'Release' && startsWith(matrix.compiler, 'g++') && matrix.os != 'macos-latest'
-        run: >
-          echo 'set (CMAKE_CXX_FLAGS -flto CACHE STRING "")' >> compiler-cache.cmake;
-          echo 'set (CMAKE_RANLIB /usr/bin/gcc-ranlib CACHE FILEPATH "")' >> compiler-cache.cmake;
-          echo 'set (CMAKE_AR /usr/bin/gcc-ar CACHE FILEPATH "")' >> compiler-cache.cmake;
-          echo 'set (CMAKE_NM /usr/bin/gcc-nm CACHE FILEPATH "")' >> compiler-cache.cmake;
 
       - name: configure cmake
         env:
@@ -113,140 +113,4 @@ jobs:
       - name: test
         run: ctest --test-dir _build/ -C ${{ matrix.build_type }} -VV
 
-  ubuntu-16_04:
-    name: ubuntu-16.04.${{ matrix.build_type }}.${{ matrix.compiler }}
-    runs-on: [ubuntu-latest]
-    strategy:
-      fail-fast: false
-      matrix:
-        build_type: ['Release', 'Debug']
-        compiler: [g++, clang++]
-    container: ubuntu:16.04
-    steps:
-      - uses: actions/checkout@v2
 
-      - name: install required bits
-        run: |
-          apt update
-          apt -y install clang cmake g++ git
-
-      - name: create build environment
-        run: cmake -E make_directory $GITHUB_WORKSPACE/_build
-
-      - name: setup cmake initial cache
-        run: touch compiler-cache.cmake
-
-      - name: setup lto
-        # Workaround for enabling -flto on old GCC versions
-        # -Wl,--no-as-needed is needed to avoid the following linker error:
-        #
-        #   /usr/lib/gcc/x86_64-linux-gnu/5/libstdc++.so: undefined reference to `pthread_create'
-        #
-        if: matrix.build_type == 'Release' && startsWith(matrix.compiler, 'g++')
-        run: >
-          echo 'set (CMAKE_CXX_FLAGS "-Wl,--no-as-needed -flto" CACHE STRING "")' >> compiler-cache.cmake;
-          echo 'set (CMAKE_RANLIB "/usr/bin/gcc-ranlib" CACHE FILEPATH "")' >> compiler-cache.cmake;
-          echo 'set (CMAKE_AR "/usr/bin/gcc-ar" CACHE FILEPATH "")' >> compiler-cache.cmake;
-          echo 'set (CMAKE_NM "/usr/bin/gcc-nm" CACHE FILEPATH "")' >> compiler-cache.cmake;
-
-      - name: configure cmake
-        env:
-          CXX: ${{ matrix.compiler }}
-        shell: bash
-        working-directory: ${{ github.workspace }}/_build
-        run: >
-          cmake -C ../compiler-cache.cmake ..
-          -DBENCHMARK_DOWNLOAD_DEPENDENCIES=ON
-          -DBUILD_SHARED_LIBS=${{ matrix.lib == 'shared' }}
-          -DCMAKE_BUILD_TYPE=${{ matrix.build_type }}
-          -DCMAKE_CXX_VISIBILITY_PRESET=hidden
-          -DCMAKE_VISIBILITY_INLINES_HIDDEN=ON
-
-      - name: build
-        shell: bash
-        working-directory: ${{ github.workspace }}/_build
-        run: cmake --build . --config ${{ matrix.build_type }}
-
-      - name: test
-        shell: bash
-        working-directory: ${{ github.workspace }}/_build
-        run: ctest -C ${{ matrix.build_type }} -VV
-
-  ubuntu-14_04:
-    name: ubuntu-14.04.${{ matrix.build_type }}.${{ matrix.compiler }}
-    runs-on: [ubuntu-latest]
-    strategy:
-      fail-fast: false
-      matrix:
-        build_type: ['Release', 'Debug']
-        compiler: [g++-4.8, clang++-3.6]
-        include:
-          - compiler: g++-6
-            build_type: 'Debug'
-            run_tests: true
-          - compiler: g++-6
-            build_type: 'Release'
-            run_tests: true
-    container: ubuntu:14.04
-    steps:
-      - uses: actions/checkout@v2
-
-      - name: install required bits
-        run: |
-          sudo apt update
-          sudo apt -y install clang-3.6 cmake3 g++-4.8 git
-
-      - name: install other bits
-        if: ${{ matrix.compiler }} == g++-6
-        run: |
-          sudo apt -y install software-properties-common
-          sudo add-apt-repository -y "ppa:ubuntu-toolchain-r/test"
-          sudo apt update
-          sudo apt -y install g++-6
-
-      - name: create build environment
-        run: cmake -E make_directory $GITHUB_WORKSPACE/_build
-
-      - name: setup cmake initial cache
-        run: touch compiler-cache.cmake
-
-      - name: setup lto
-        # Workaround for enabling -flto on old GCC versions
-        # -Wl,--no-as-needed is needed to avoid the following linker error:
-        #
-        #   /usr/lib/gcc/x86_64-linux-gnu/6/libstdc++.so: undefined reference to `pthread_create'
-        #
-        if: matrix.build_type == 'Release' && startsWith(matrix.compiler, 'g++')
-        run: >
-          COMPILER=${{ matrix.compiler }};
-          VERSION=${COMPILER#g++-};
-          PREFIX=/usr/bin/gcc;
-          echo "set (CMAKE_CXX_FLAGS \"-Wl,--no-as-needed -flto\" CACHE STRING \"\")" >> compiler-cache.cmake;
-          echo "set (CMAKE_RANLIB \"$PREFIX-ranlib-$VERSION\" CACHE FILEPATH \"\")" >> compiler-cache.cmake;
-          echo "set (CMAKE_AR \"$PREFIX-ar-$VERSION\" CACHE FILEPATH \"\")" >> compiler-cache.cmake;
-          echo "set (CMAKE_NM \"$PREFIX-nm-$VERSION\" CACHE FILEPAT \"\")" >> compiler-cache.cmake;
-
-      - name: configure cmake
-        env:
-          CXX: ${{ matrix.compiler }}
-        shell: bash
-        working-directory: ${{ github.workspace }}/_build
-        run: >
-          cmake -C ../compiler-cache.cmake ..
-          -DBENCHMARK_DOWNLOAD_DEPENDENCIES=${{ matrix.run_tests }}
-          -DBENCHMARK_ENABLE_TESTING=${{ matrix.run_tests }}
-          -DBUILD_SHARED_LIBS=${{ matrix.lib == 'shared' }}
-          -DCMAKE_BUILD_TYPE=${{ matrix.build_type }}
-          -DCMAKE_CXX_VISIBILITY_PRESET=hidden
-          -DCMAKE_VISIBILITY_INLINES_HIDDEN=ON
-
-      - name: build
-        shell: bash
-        working-directory: ${{ github.workspace }}/_build
-        run: cmake --build . --config ${{ matrix.build_type }}
-
-      - name: test
-        if: ${{ matrix.run_tests }}
-        shell: bash
-        working-directory: ${{ github.workspace }}/_build
-        run: ctest -C ${{ matrix.build_type }} -VV
