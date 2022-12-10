@@ -41,7 +41,7 @@ function(cxx_feature_check FILE)
       try_compile(COMPILE_${FEATURE}
               ${CMAKE_BINARY_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/cmake/${FILE}.cpp
               CXX_STANDARD 11
-              CXX_STANDARD_REQUIRED
+              CXX_STANDARD_REQUIRED ON
               CMAKE_FLAGS ${FEATURE_CHECK_CMAKE_FLAGS}
               LINK_LIBRARIES ${BENCHMARK_CXX_LIBRARIES}
               OUTPUT_VARIABLE COMPILE_OUTPUT_VAR)
@@ -57,7 +57,7 @@ function(cxx_feature_check FILE)
       try_run(RUN_${FEATURE} COMPILE_${FEATURE}
               ${CMAKE_BINARY_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/cmake/${FILE}.cpp
               CXX_STANDARD 11
-              CXX_STANDARD_REQUIRED
+              CXX_STANDARD_REQUIRED ON
               CMAKE_FLAGS ${FEATURE_CHECK_CMAKE_FLAGS}
               LINK_LIBRARIES ${BENCHMARK_CXX_LIBRARIES}
               COMPILE_OUTPUT_VARIABLE COMPILE_OUTPUT_VAR)
