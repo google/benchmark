@@ -14,11 +14,11 @@ namespace {
 
 class TestReporter : public benchmark::ConsoleReporter {
  public:
-  virtual bool ReportContext(const Context& context) BENCHMARK_OVERRIDE {
+  bool ReportContext(const Context& context) override {
     return ConsoleReporter::ReportContext(context);
   };
 
-  virtual void ReportRuns(const std::vector<Run>& report) BENCHMARK_OVERRIDE {
+  void ReportRuns(const std::vector<Run>& report) override {
     ++count_;
     max_family_index_ = std::max(max_family_index_, report[0].family_index);
     ConsoleReporter::ReportRuns(report);
@@ -26,7 +26,7 @@ class TestReporter : public benchmark::ConsoleReporter {
 
   TestReporter() : count_(0), max_family_index_(0) {}
 
-  virtual ~TestReporter() {}
+  ~TestReporter() override {}
 
   int GetCount() const { return count_; }
 
