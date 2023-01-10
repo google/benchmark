@@ -22,9 +22,10 @@
 
 namespace benchmark {
 
-// Return a vector containing the mean, median and standard devation information
-// (and any user-specified info) for the specified list of reports. If 'reports'
-// contains less than two non-errored runs an empty vector is returned
+// Return a vector containing the mean, median and standard deviation
+// information (and any user-specified info) for the specified list of reports.
+// If 'reports' contains less than two non-errored runs an empty vector is
+// returned
 BENCHMARK_EXPORT
 std::vector<BenchmarkReporter::Run> ComputeStats(
     const std::vector<BenchmarkReporter::Run>& reports);

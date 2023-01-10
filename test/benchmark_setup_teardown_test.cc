@@ -80,11 +80,11 @@ int fixture_setup = 0;
 
 class FIXTURE_BECHMARK_NAME : public ::benchmark::Fixture {
  public:
-  void SetUp(const ::benchmark::State&) BENCHMARK_OVERRIDE {
+  void SetUp(const ::benchmark::State&) override {
     fixture_interaction::fixture_setup++;
   }
 
-  ~FIXTURE_BECHMARK_NAME() {}
+  ~FIXTURE_BECHMARK_NAME() override {}
 };
 
 BENCHMARK_F(FIXTURE_BECHMARK_NAME, BM_WithFixture)(benchmark::State& st) {
@@ -145,7 +145,7 @@ int main(int argc, char** argv) {
 
   // Setup is called 4 times, once for each arg group (1,3,5,7)
   assert(fixture_interaction::setup == 4);
-  // Fixture::Setup is called everytime the bm routine is run.
+  // Fixture::Setup is called every time the bm routine is run.
   // The exact number is indeterministic, so we just assert that
   // it's more than setup.
   assert(fixture_interaction::fixture_setup > fixture_interaction::setup);

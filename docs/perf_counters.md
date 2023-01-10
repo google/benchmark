@@ -19,7 +19,7 @@ The feature does not require modifying benchmark code. Counter collection is
 handled at the boundaries where timer collection is also handled. 
 
 To opt-in:
-* If using a Bazel build, add `--define pfm=1` to your buid flags
+* If using a Bazel build, add `--define pfm=1` to your build flags
 * If using CMake:
   * Install `libpfm4-dev`, e.g. `apt-get install libpfm4-dev`.
   * Enable the CMake flag `BENCHMARK_ENABLE_LIBPFM` in `CMakeLists.txt`.

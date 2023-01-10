@@ -73,8 +73,8 @@ BM_DEFINE_string(benchmark_filter, "");
 BM_DEFINE_double(benchmark_min_time, 0.5);
 
 // Minimum number of seconds a benchmark should be run before results should be
-// taken into account. This e.g can be neccessary for benchmarks of code which
-// needs to fill some form of cache before performance is of interrest.
+// taken into account. This e.g can be necessary for benchmarks of code which
+// needs to fill some form of cache before performance is of interest.
 // Note: results gathered within this period are discarded and not used for
 // reported result.
 BM_DEFINE_double(benchmark_min_warmup_time, 0.0);
