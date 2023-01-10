@@ -148,9 +148,9 @@ void UseCharPointer(char const volatile*) {}
 
 }  // namespace internal
 
-State::State(IterationCount max_iters, const std::vector<int64_t>& ranges,
-             int thread_i, int n_threads, internal::ThreadTimer* timer,
-             internal::ThreadManager* manager,
+State::State(std::string name, IterationCount max_iters,
+             const std::vector<int64_t>& ranges, int thread_i, int n_threads,
+             internal::ThreadTimer* timer, internal::ThreadManager* manager,
              internal::PerfCountersMeasurement* perf_counters_measurement)
     : total_iterations_(0),
       batch_leftover_(0),
@@ -160,6 +160,7 @@ State::State(IterationCount max_iters, const std::vector<int64_t>& ranges,
       error_occurred_(false),
       range_(ranges),
       complexity_n_(0),
+      name_(std::move(name)),
       thread_index_(thread_i),
       threads_(n_threads),
       timer_(timer),

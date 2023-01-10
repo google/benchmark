@@ -825,6 +825,9 @@ class BENCHMARK_EXPORT State {
     return max_iterations - total_iterations_ + batch_leftover_;
   }
 
+  BENCHMARK_ALWAYS_INLINE
+  std::string name() const { return name_; }
+
  private:
   // items we expect on the first cache line (ie 64 bytes of the struct)
   // When total_iterations_ is 0, KeepRunning() and friends will return false.
@@ -854,9 +857,9 @@ class BENCHMARK_EXPORT State {
   UserCounters counters;
 
  private:
-  State(IterationCount max_iters, const std::vector<int64_t>& ranges,
-        int thread_i, int n_threads, internal::ThreadTimer* timer,
-        internal::ThreadManager* manager,
+  State(std::string name, IterationCount max_iters,
+        const std::vector<int64_t>& ranges, int thread_i, int n_threads,
+        internal::ThreadTimer* timer, internal::ThreadManager* manager,
         internal::PerfCountersMeasurement* perf_counters_measurement);
 
   void StartKeepRunning();
@@ -865,6 +868,7 @@ class BENCHMARK_EXPORT State {
   bool KeepRunningInternal(IterationCount n, bool is_batch);
   void FinishKeepRunning();
 
+  const std::string name_;
   const int thread_index_;
   const int threads_;
 
