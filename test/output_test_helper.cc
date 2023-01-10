@@ -143,7 +143,7 @@ class TestReporter : public benchmark::BenchmarkReporter {
   TestReporter(std::vector<benchmark::BenchmarkReporter*> reps)
       : reporters_(std::move(reps)) {}
 
-  virtual bool ReportContext(const Context& context) BENCHMARK_OVERRIDE {
+  bool ReportContext(const Context& context) override {
     bool last_ret = false;
     bool first = true;
     for (auto rep : reporters_) {
@@ -157,10 +157,10 @@ class TestReporter : public benchmark::BenchmarkReporter {
     return last_ret;
   }
 
-  void ReportRuns(const std::vector<Run>& report) BENCHMARK_OVERRIDE {
+  void ReportRuns(const std::vector<Run>& report) override {
     for (auto rep : reporters_) rep->ReportRuns(report);
   }
-  void Finalize() BENCHMARK_OVERRIDE {
+  void Finalize() override {
     for (auto rep : reporters_) rep->Finalize();
   }
 

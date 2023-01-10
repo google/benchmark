@@ -9,7 +9,7 @@ namespace {
 class DummyBenchmark : public Benchmark {
  public:
   DummyBenchmark() : Benchmark("dummy") {}
-  virtual void Run(State&) override {}
+  void Run(State&) override {}
 };
 
 TEST(DefaultTimeUnitTest, TimeUnitIsNotSet) {

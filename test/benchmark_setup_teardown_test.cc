@@ -80,11 +80,11 @@ int fixture_setup = 0;
 
 class FIXTURE_BECHMARK_NAME : public ::benchmark::Fixture {
  public:
-  void SetUp(const ::benchmark::State&) BENCHMARK_OVERRIDE {
+  void SetUp(const ::benchmark::State&) override {
     fixture_interaction::fixture_setup++;
   }
 
-  ~FIXTURE_BECHMARK_NAME() {}
+  ~FIXTURE_BECHMARK_NAME() override {}
 };
 
 BENCHMARK_F(FIXTURE_BECHMARK_NAME, BM_WithFixture)(benchmark::State& st) {
