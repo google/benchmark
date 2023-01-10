@@ -1845,7 +1845,7 @@ inline double GetTimeUnitMultiplier(TimeUnit unit) {
 
 // Creates a list of integer values for the given range and multiplier.
 // This can be used together with ArgsProduct() to allow multiple ranges
-// with different multiplers.
+// with different multipliers.
 // Example:
 // ArgsProduct({
 //   CreateRange(0, 1024, /*multi=*/32),

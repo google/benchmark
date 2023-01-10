@@ -104,7 +104,7 @@ class __OptionMaker:
                 options = self.make(func_or_options)
                 options.builder_calls.append((builder_name, args, kwargs))
                 # The decorator returns Options so it is not technically a decorator
-                # and needs a final call to @regiser
+                # and needs a final call to @register
                 return options
 
             return __decorator

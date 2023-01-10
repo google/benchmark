@@ -236,7 +236,7 @@ else()
 
   # On most UNIX like platforms g++ and clang++ define _GNU_SOURCE as a
   # predefined macro, which turns on all of the wonderful libc extensions.
-  # However g++ doesn't do this in Cygwin so we have to define it ourselfs
+  # However g++ doesn't do this in Cygwin so we have to define it ourselves
   # since we depend on GNU/POSIX/BSD extensions.
   if (CYGWIN)
     add_definitions(-D_GNU_SOURCE=1)
