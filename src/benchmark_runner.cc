@@ -149,7 +149,12 @@ struct BenchTimeType {
 };
 
 BenchTimeType ParseBenchMinTime(const std::string& value) {
-  if (value.empty()) return {BenchTimeType::TIME, 0.0};
+  BenchTimeType ret = {BenchTimeType::TIME, 0};
+
+  if (value.empty()) {
+    ret.time = 0.0;
+    return ret;
+  }
 
   if (value.back() == 'x') {
     std::string num_iters_str = value.substr(0, value.length() - 1);
@@ -162,7 +167,8 @@ BenchTimeType ParseBenchMinTime(const std::string& value) {
         << "Malformed iters value passed to --benchmark_min_time: `" << value
         << "`. Expected --benchmark_min_time=<integer>x.";
 
-    BenchTimeType ret = {BenchTimeType::ITERS, num_iters};
+    ret.tag = BenchTimeType::ITERS;
+    ret.iters = num_iters;
     return ret;
   }
 
@@ -181,7 +187,9 @@ BenchTimeType ParseBenchMinTime(const std::string& value) {
       << "Malformed seconds value passed to --benchmark_min_time: `" << value
       << "`. Expected --benchmark_min_time=<float>x.";
 
-  BenchTimeType ret = {BenchTimeType::TIME, min_time};
+  ret.tag = BenchTimeType::TIME;
+  ret.time = min_time;
+
   return ret;
 }
 
@@ -191,7 +199,7 @@ double GetMinTime(const benchmark::internal::BenchmarkInstance& b) {
   // If the flag was used to specify number of iters, then return 0 for time.
   if (iters_or_time.tag == BenchTimeType::ITERS) return 0;
 
-  return iters_or_time.t;
+  return iters_or_time.time;
 }
 
 bool BenchMinTimeHasIters() {
@@ -206,7 +214,7 @@ int GetIters(const benchmark::internal::BenchmarkInstance& b) {
   // iters but do a sanity check anyway.
   BenchTimeType parsed = ParseBenchMinTime(FLAGS_benchmark_min_time);
   assert(parsed.tag == BenchTimeType::ITERS);
-  return parsed.i;
+  return parsed.iters;
 }
 
 }  // end namespace
