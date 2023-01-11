@@ -28,7 +28,7 @@ class TestReporter : public benchmark::ConsoleReporter {
 
   virtual ~TestReporter() {}
 
-  const std::vector<int>& GetMinTimes() const { return min_times__; }
+  const std::vector<std::string>& GetMinTimes() const { return min_times__; }
 
  private:
   std::vector<std::string> min_times_;
