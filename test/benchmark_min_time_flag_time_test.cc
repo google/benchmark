@@ -44,6 +44,12 @@ void DoTestHelper(int* argc, const char** argv, const std::string& expected) {
 
   // Check the min_time
   const std::vector<std::string>& min_times = test_reporter.GetMinTimes();
+  if (min_times.empty()) std::cout << "**** min_times empty\n";
+  else {
+    std::cout << " *** EXPECTED = " << expected << "\n";
+    for (const std::string& v : min_times)
+      std::cout << "   ** v = " << v << "\n";
+  }
   assert(!min_times.empty() && min_times[0] == expected);
 }
 
