@@ -70,7 +70,7 @@ BM_DEFINE_string(benchmark_filter, "");
 // It can be either an exact number of iterations (specified as `<integer>x`),
 // or a minimum number of seconds (specified as `<float>s`). If the latter
 // format (ie., min seconds) is used, the system may run the benchmark longer
-// until the results are considered significatn.
+// until the results are considered significant.
 //
 // For backward compatibility, the `s` suffix may be omitted, in which case,
 // the specified number is interpreted as the number of seconds.
@@ -79,9 +79,6 @@ BM_DEFINE_string(benchmark_filter, "");
 // on the total cpu time used by all threads that make up the test.  For
 // real-time based tests, this is the lower bound on the elapsed time of the
 // benchmark execution, regardless of number of threads.
-//
-// FIXME: Renmae this flag to --benchmark_time for clarity (and for consistency
-// with other Go's)
 BM_DEFINE_string(benchmark_min_time, "0.5s");
 
 // Minimum number of seconds a benchmark should be run before results should be

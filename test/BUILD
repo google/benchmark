@@ -33,6 +33,8 @@ PER_SRC_TEST_ARGS = {
     "spec_arg_test.cc": ["--benchmark_filter=BM_NotChosen"],
     "spec_arg_verbosity_test.cc": ["--v=42"],
     "benchmark_min_time_flag_iters_test.cc": ["--benchmark_min_time=4x"],
+    # Backward compat test.
+    "benchmark_min_time_flag_time_test.cc": ["--benchmark_min_time=2"],
 }
 
 cc_library(

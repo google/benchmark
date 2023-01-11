@@ -143,7 +143,7 @@ void RunInThread(const BenchmarkInstance* b, IterationCount iters,
 struct BenchTimeType {
   enum { ITERS, TIME } tag;
   union {
-    int iter;
+    int iters;
     double time;
   };
 };
