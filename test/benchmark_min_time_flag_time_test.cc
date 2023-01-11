@@ -44,7 +44,7 @@ void DoTestHelper(int* argc, const char** argv, const std::string& expected) {
 
   // Check the min_time
   const std::vector<std::string>& min_times = test_reporter.GetMinTimes();
-  assert(!iters.empty() && min_times[0] == expected);
+  assert(!min_times.empty() && min_times[0] == expected);
 }
 
 }  // end namespace
@@ -57,13 +57,13 @@ BENCHMARK(BM_MyBench);
 
 int main(int argc, char** argv) {
   // Make a fake argv and append the new --benchmark_min_time=<foo> to it.
-  const int fake_argc = argc + 1;
+  int fake_argc = argc + 1;
   const char** fake_argv = new const char*[fake_argc];
 
   for (int i = 0; i < argc; ++i) fake_argv[i] = argv[i];
 
-  const char[] no_suffix = "--benchmark_min_time=4.0";
-  const char[] with_suffix = "--benchmark_min_time=4.0s";
+  const char* no_suffix = "--benchmark_min_time=4.0";
+  const char* with_suffix = "--benchmark_min_time=4.0s";
   std::string expected = "min_time:4.0s";
 
   fake_argv[argc] = no_suffix;
