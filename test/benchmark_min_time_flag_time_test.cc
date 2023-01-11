@@ -31,11 +31,11 @@ class TestReporter : public benchmark::ConsoleReporter {
   const std::vector<int>& GetMinTimes() const { return min_times__; }
 
  private:
-  std::vector<string> min_times_;
+  std::vector<std::string> min_times_;
 };
 
 void DoTestHelper(int* argc, const char** argv, const std::string& expected) {
-  benchmark::Initialize(argc, argv);
+  benchmark::Initialize(argc, const_cast<char**>(argv));
 
   TestReporter test_reporter;
   const size_t returned_count =
