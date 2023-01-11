@@ -19,7 +19,7 @@ class TestReporter : public benchmark::ConsoleReporter {
 
   virtual void ReportRuns(const std::vector<Run>& report) BENCHMARK_OVERRIDE {
     assert(report.size() == 1);
-    iter_nums.push_back(report[0].iterations);
+    iter_nums_.push_back(report[0].iterations);
     ConsoleReporter::ReportRuns(report);
   };
 
