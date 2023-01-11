@@ -65,12 +65,24 @@ BM_DEFINE_bool(benchmark_list_tests, false);
 // linked into the binary are run.
 BM_DEFINE_string(benchmark_filter, "");
 
-// Minimum number of seconds we should run benchmark before results are
-// considered significant.  For cpu-time based tests, this is the lower bound
+// Specification of how long to run the benchmark.
+//
+// It can be either an exact number of iterations (specified as `<integer>x`),
+// or a minimum number of seconds (specified as `<float>s`). If the latter
+// format (ie., min seconds) is used, the system may run the benchmark longer
+// until the results are considered significatn.
+//
+// For backward compatibility, the `s` suffix may be omitted, in which case,
+// the specified number is interpreted as the number of seconds.
+//
+// For cpu-time based tests, this is the lower bound
 // on the total cpu time used by all threads that make up the test.  For
 // real-time based tests, this is the lower bound on the elapsed time of the
 // benchmark execution, regardless of number of threads.
-BM_DEFINE_double(benchmark_min_time, 0.5);
+//
+// FIXME: Renmae this flag to --benchmark_time for clarity (and for consistency
+// with other Go's)
+BM_DEFINE_double(benchmark_min_time, "0.5s");
 
 // Minimum number of seconds a benchmark should be run before results should be
 // taken into account. This e.g can be necessary for benchmarks of code which
@@ -605,7 +617,7 @@ void ParseCommandLineFlags(int* argc, char** argv) {
     if (ParseBoolFlag(argv[i], "benchmark_list_tests",
                       &FLAGS_benchmark_list_tests) ||
         ParseStringFlag(argv[i], "benchmark_filter", &FLAGS_benchmark_filter) ||
-        ParseDoubleFlag(argv[i], "benchmark_min_time",
+        ParseStringFlag(argv[i], "benchmark_min_time",
                         &FLAGS_benchmark_min_time) ||
         ParseDoubleFlag(argv[i], "benchmark_min_warmup_time",
                         &FLAGS_benchmark_min_warmup_time) ||
@@ -666,7 +678,7 @@ void PrintDefaultHelp() {
           "benchmark"
           " [--benchmark_list_tests={true|false}]\n"
           "          [--benchmark_filter=<regex>]\n"
-          "          [--benchmark_min_time=<min_time>]\n"
+          "          [--benchmark_min_time=`<integer>x` OR `<float>s` ]\n"
           "          [--benchmark_min_warmup_time=<min_warmup_time>]\n"
           "          [--benchmark_repetitions=<num_repetitions>]\n"
           "          [--benchmark_enable_random_interleaving={true|false}]\n"

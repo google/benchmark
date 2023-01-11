@@ -1081,11 +1081,12 @@ class BENCHMARK_EXPORT Benchmark {
   Benchmark* MinWarmUpTime(double t);
 
   // Specify the amount of iterations that should be run by this benchmark.
+  // This option overrides the `benchmark_min_time` flag.
   // REQUIRES: 'n > 0' and `MinTime` has not been called on this benchmark.
   //
   // NOTE: This function should only be used when *exact* iteration control is
   //   needed and never to control or limit how long a benchmark runs, where
-  // `--benchmark_min_time=N` or `MinTime(...)` should be used instead.
+  // `--benchmark_min_time=<N>s` or `MinTime(...)` should be used instead.
   Benchmark* Iterations(IterationCount n);
 
   // Specify the amount of times to repeat this benchmark. This option overrides

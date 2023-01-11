@@ -37,6 +37,7 @@
 #include <string>
 #include <thread>
 #include <utility>
+#include <variant>
 
 #include "check.h"
 #include "colorprint.h"
@@ -140,6 +141,63 @@ void RunInThread(const BenchmarkInstance* b, IterationCount iters,
   manager->NotifyThreadComplete();
 }
 
+std::variant<int, double> ParseBenchMinTime(const std::string& value) {
+  if (value.empty()) return 0;
+
+  if (value.back() == 'x') {
+    std::string num_iters_str = value.substr(0, value.length() - 1);
+    int num_iters = std::atoi(num_iters_str);
+
+    // std::atoi doesn't provide useful error messages, so we do some
+    // sanity checks.
+    // Also check that the iters is not negative.
+    BM_CHECK(num_iters > 0 && !(num_iters == 0 && num_iters_str != "0"))
+        << "Malformed iters value passed to --benchmark_min_time: `" << value
+        << "`. Expected --benchmark_min_time=<integer>x.";
+    return num_iters;
+  }
+
+  std::string min_time_str;
+  if (value.back() != 's') {
+    BM_VLOG(2) << "Value passed to --benchmark_min_time should have a suffix. "
+                  "Eg., `30s` for 30-seconds.";
+    min_time_str = value;
+  } else {
+    min_time_str = value.substr(0, value.length() - 1);
+  }
+  double min_time = std::atof(min_time_str);
+
+  BM_CHECK(min_time > 0 &&
+           !(min_time == 0 && (min_time_str != "0" || min_time_str != "0.0")))
+      << "Malformed seconds value passed to --benchmark_min_time: `" << value
+      << "`. Expected --benchmark_min_time=<float>x.";
+  return min_time;
+}
+
+double GetMinTime(const benchmark::internal::BenchmarkInstance& b) {
+  if (!IsZero(b.min_time())) return b.min_time();
+
+  std::variant<int, double> iters_or_time =
+      ParseBenchMinTime(FLAGS_benchmark_min_time);
+
+  // If the flag was used to specify number of iters, then return 0 for time.
+  if (iters_or_time.index() == 0) return 0;
+  return std::get<double>(iters_or_time);
+}
+
+bool BenchMinTimeHasIters() {
+  return !FLAGS_benchmark_min_time.empty() &&
+         FLAGS_benchmark_min_time.empty.back() == 'x';
+}
+
+int GetIters(const benchmark::internal::BenchmarkInstance& b) {
+  if (b.iterations() != 0) return b.iterations();
+
+  // We've already checked that this flag is currently used to pass
+  // iters.
+  return std::get<int>(ParseBenchMinTime(FLAGS_benchmark_min_time));
+}
+
 }  // end namespace
 
 BenchmarkRunner::BenchmarkRunner(
@@ -147,16 +205,17 @@ BenchmarkRunner::BenchmarkRunner(
     BenchmarkReporter::PerFamilyRunReports* reports_for_family_)
     : b(b_),
       reports_for_family(reports_for_family_),
-      min_time(!IsZero(b.min_time()) ? b.min_time() : FLAGS_benchmark_min_time),
+      min_time(GetMinTime(b_)),
       min_warmup_time((!IsZero(b.min_time()) && b.min_warmup_time() > 0.0)
                           ? b.min_warmup_time()
                           : FLAGS_benchmark_min_warmup_time),
       warmup_done(!(min_warmup_time > 0.0)),
       repeats(b.repetitions() != 0 ? b.repetitions()
                                    : FLAGS_benchmark_repetitions),
-      has_explicit_iteration_count(b.iterations() != 0),
+      has_explicit_iteration_count(b.iterations() != 0 ||
+                                   BenchMinTimeHasIters()),
       pool(b.threads() - 1),
-      iters(has_explicit_iteration_count ? b.iterations() : 1),
+      iters(has_explicit_iteration_count ? GetIters(b_) : 1),
       perf_counters_measurement(StrSplit(FLAGS_benchmark_perf_counters, ',')),
       perf_counters_measurement_ptr(perf_counters_measurement.IsValid()
                                         ? &perf_counters_measurement
