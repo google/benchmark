@@ -82,7 +82,7 @@ BM_DEFINE_string(benchmark_filter, "");
 //
 // FIXME: Renmae this flag to --benchmark_time for clarity (and for consistency
 // with other Go's)
-BM_DEFINE_double(benchmark_min_time, "0.5s");
+BM_DEFINE_string(benchmark_min_time, "0.5s");
 
 // Minimum number of seconds a benchmark should be run before results should be
 // taken into account. This e.g can be necessary for benchmarks of code which
