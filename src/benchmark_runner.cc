@@ -37,7 +37,6 @@
 #include <string>
 #include <thread>
 #include <utility>
-#include <variant>
 
 #include "check.h"
 #include "colorprint.h"
@@ -141,7 +140,15 @@ void RunInThread(const BenchmarkInstance* b, IterationCount iters,
   manager->NotifyThreadComplete();
 }
 
-std::variant<int, double> ParseBenchMinTime(const std::string& value) {
+struct BenchTimeType {
+  enum { ITERS, TIME } tag;
+  union {
+    int iter;
+    double time;
+  };
+};
+
+BenchTimeType ParseBenchMinTime(const std::string& value) {
   if (value.empty()) return 0;
 
   if (value.back() == 'x') {
@@ -154,7 +161,9 @@ std::variant<int, double> ParseBenchMinTime(const std::string& value) {
     BM_CHECK(num_iters > 0 && !(num_iters == 0 && num_iters_str != "0"))
         << "Malformed iters value passed to --benchmark_min_time: `" << value
         << "`. Expected --benchmark_min_time=<integer>x.";
-    return num_iters;
+
+    BenchTimeType ret = {BenchTimeType::ITERS, num_iters};
+    return ret;
   }
 
   std::string min_time_str;
@@ -171,18 +180,19 @@ std::variant<int, double> ParseBenchMinTime(const std::string& value) {
            !(min_time == 0 && (min_time_str != "0" || min_time_str != "0.0")))
       << "Malformed seconds value passed to --benchmark_min_time: `" << value
       << "`. Expected --benchmark_min_time=<float>x.";
-  return min_time;
+
+  BenchTimeType ret = {BenchTimeType::TIME, min_time};
+  return ret;
 }
 
 double GetMinTime(const benchmark::internal::BenchmarkInstance& b) {
   if (!IsZero(b.min_time())) return b.min_time();
 
-  std::variant<int, double> iters_or_time =
-      ParseBenchMinTime(FLAGS_benchmark_min_time);
+  BenchTimeType iters_or_time = ParseBenchMinTime(FLAGS_benchmark_min_time);
 
   // If the flag was used to specify number of iters, then return 0 for time.
-  if (iters_or_time.index() == 0) return 0;
-  return std::get<double>(iters_or_time);
+  if (iters_or_time.tag == BenchTimeType::ITERS) return 0;
+  return return iters_or_time.t;
 }
 
 bool BenchMinTimeHasIters() {
@@ -194,8 +204,10 @@ int GetIters(const benchmark::internal::BenchmarkInstance& b) {
   if (b.iterations() != 0) return b.iterations();
 
   // We've already checked that this flag is currently used to pass
-  // iters.
-  return std::get<int>(ParseBenchMinTime(FLAGS_benchmark_min_time));
+  // iters but do a sanity check anyway.
+  BenchTimeType parsed = ParseBenchMinTime(FLAGS_benchmark_min_time);
+  assert(parsed.tag == BenchTimeType::ITERS);
+  return parsed.i;
 }
 
 }  // end namespace
