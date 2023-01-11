@@ -149,9 +149,10 @@ struct BenchTimeType {
 };
 
 BenchTimeType ParseBenchMinTime(const std::string& value) {
-  BenchTimeType ret = {BenchTimeType::TIME, 0};
+  BenchTimeType ret;
 
   if (value.empty()) {
+    ret.tag = BenchTimeType::TIME;
     ret.time = 0.0;
     return ret;
   }
@@ -207,7 +208,7 @@ bool BenchMinTimeHasIters() {
          FLAGS_benchmark_min_time.back() == 'x';
 }
 
-int GetIters(const benchmark::internal::BenchmarkInstance& b) {
+IterationCount GetIters(const benchmark::internal::BenchmarkInstance& b) {
   if (b.iterations() != 0) return b.iterations();
 
   // We've already checked that this flag is currently used to pass
