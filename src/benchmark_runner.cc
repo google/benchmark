@@ -149,11 +149,11 @@ struct BenchTimeType {
 };
 
 BenchTimeType ParseBenchMinTime(const std::string& value) {
-  if (value.empty()) return 0;
+  if (value.empty()) return {BenchTimeType::TIME, 0.0};
 
   if (value.back() == 'x') {
     std::string num_iters_str = value.substr(0, value.length() - 1);
-    int num_iters = std::atoi(num_iters_str);
+    int num_iters = std::atoi(num_iters_str.c_str());
 
     // std::atoi doesn't provide useful error messages, so we do some
     // sanity checks.
@@ -174,7 +174,7 @@ BenchTimeType ParseBenchMinTime(const std::string& value) {
   } else {
     min_time_str = value.substr(0, value.length() - 1);
   }
-  double min_time = std::atof(min_time_str);
+  double min_time = std::atof(min_time_str.c_str());
 
   BM_CHECK(min_time > 0 &&
            !(min_time == 0 && (min_time_str != "0" || min_time_str != "0.0")))
@@ -187,17 +187,16 @@ BenchTimeType ParseBenchMinTime(const std::string& value) {
 
 double GetMinTime(const benchmark::internal::BenchmarkInstance& b) {
   if (!IsZero(b.min_time())) return b.min_time();
-
   BenchTimeType iters_or_time = ParseBenchMinTime(FLAGS_benchmark_min_time);
-
   // If the flag was used to specify number of iters, then return 0 for time.
   if (iters_or_time.tag == BenchTimeType::ITERS) return 0;
-  return return iters_or_time.t;
+
+  return iters_or_time.t;
 }
 
 bool BenchMinTimeHasIters() {
   return !FLAGS_benchmark_min_time.empty() &&
-         FLAGS_benchmark_min_time.empty.back() == 'x';
+         FLAGS_benchmark_min_time.back() == 'x';
 }
 
 int GetIters(const benchmark::internal::BenchmarkInstance& b) {
