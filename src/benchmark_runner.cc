@@ -28,6 +28,7 @@
 
 #include <algorithm>
 #include <atomic>
+#include <climits>
 #include <condition_variable>
 #include <cstdio>
 #include <cstdlib>
@@ -140,14 +141,6 @@ void RunInThread(const BenchmarkInstance* b, IterationCount iters,
   manager->NotifyThreadComplete();
 }
 
-struct BenchTimeType {
-  enum { ITERS, TIME } tag;
-  union {
-    int iters;
-    double time;
-  };
-};
-
 BenchTimeType ParseBenchMinTime(const std::string& value) {
   BenchTimeType ret;
 
@@ -158,13 +151,18 @@ BenchTimeType ParseBenchMinTime(const std::string& value) {
   }
 
   if (value.back() == 'x') {
-    std::string num_iters_str = value.substr(0, value.length() - 1);
-    int num_iters = std::atoi(num_iters_str.c_str());
+    const char* iters_str = value.c_str();
+    char* p_end;
+    // Reset error since atol will change it.
+    const int old_errno = errno;
+    errno = 0;
+    IterationCount num_iters = std::strtol(iters_str, &p_end, 10);
+    const int new_errno = errno;
+    errno = old_errno;
 
-    // std::atoi doesn't provide useful error messages, so we do some
-    // sanity checks.
-    // Also check that the iters is not negative.
-    BM_CHECK(num_iters > 0 && !(num_iters == 0 && num_iters_str != "0"))
+    // After a valid parse, p_end should have been set to
+    // point to the 'x' suffix.
+    BM_CHECK(new_errno == 0 && p_end != nullptr && *p_end == 'x')
         << "Malformed iters value passed to --benchmark_min_time: `" << value
         << "`. Expected --benchmark_min_time=<integer>x.";
 
@@ -173,18 +171,25 @@ BenchTimeType ParseBenchMinTime(const std::string& value) {
     return ret;
   }
 
-  std::string min_time_str;
-  if (value.back() != 's') {
+  const char* time_str = value.c_str();
+  bool has_suffix = value.back() == 's';
+  if (!has_suffix) {
     BM_VLOG(2) << "Value passed to --benchmark_min_time should have a suffix. "
                   "Eg., `30s` for 30-seconds.";
-    min_time_str = value;
-  } else {
-    min_time_str = value.substr(0, value.length() - 1);
   }
-  double min_time = std::atof(min_time_str.c_str());
 
-  BM_CHECK(min_time > 0 &&
-           !(min_time == 0 && (min_time_str != "0" || min_time_str != "0.0")))
+  char* p_end;
+  // Reset error before it's changed by strtod.
+  const int old_errno = errno;
+  errno = 0;
+  double min_time = std::strtod(time_str, &p_end);
+  const int new_errno = errno;
+  errno = old_errno;
+
+  // After a successfull parse, p_end should point to the suffix 's'
+  // or the end of the string, if the suffix was omitted.
+  BM_CHECK(new_errno == 0 && p_end != nullptr &&
+           (has_suffix && *p_end == 's' || *p_end == '\0'))
       << "Malformed seconds value passed to --benchmark_min_time: `" << value
       << "`. Expected --benchmark_min_time=<float>x.";
 
@@ -194,27 +199,23 @@ BenchTimeType ParseBenchMinTime(const std::string& value) {
   return ret;
 }
 
-double GetMinTime(const benchmark::internal::BenchmarkInstance& b) {
+double GetMinTime(const benchmark::internal::BenchmarkInstance& b,
+                  const BenchTimeType& iters_or_time) {
   if (!IsZero(b.min_time())) return b.min_time();
-  BenchTimeType iters_or_time = ParseBenchMinTime(FLAGS_benchmark_min_time);
   // If the flag was used to specify number of iters, then return 0 for time.
   if (iters_or_time.tag == BenchTimeType::ITERS) return 0;
 
   return iters_or_time.time;
 }
 
-bool BenchMinTimeHasIters() {
-  return !FLAGS_benchmark_min_time.empty() &&
-         FLAGS_benchmark_min_time.back() == 'x';
-}
-
-IterationCount GetIters(const benchmark::internal::BenchmarkInstance& b) {
+IterationCount GetIters(const benchmark::internal::BenchmarkInstance& b,
+                        const BenchTimeType& iters_or_time) {
   if (b.iterations() != 0) return b.iterations();
 
   // We've already checked that this flag is currently used to pass
-  // iters but do a sanity check anyway.
+  // iters but do a check anyway.
   BenchTimeType parsed = ParseBenchMinTime(FLAGS_benchmark_min_time);
-  assert(parsed.tag == BenchTimeType::ITERS);
+  BM_CHECK(parsed.tag == BenchTimeType::ITERS);
   return parsed.iters;
 }
 
@@ -225,7 +226,8 @@ BenchmarkRunner::BenchmarkRunner(
     BenchmarkReporter::PerFamilyRunReports* reports_for_family_)
     : b(b_),
       reports_for_family(reports_for_family_),
-      min_time(GetMinTime(b_)),
+      parsed_benchtime_flag(ParseBenchMinTime(FLAGS_benchmark_min_time)),
+      min_time(GetMinTime(b_, parsed_benchtime_flag)),
       min_warmup_time((!IsZero(b.min_time()) && b.min_warmup_time() > 0.0)
                           ? b.min_warmup_time()
                           : FLAGS_benchmark_min_warmup_time),
@@ -233,9 +235,11 @@ BenchmarkRunner::BenchmarkRunner(
       repeats(b.repetitions() != 0 ? b.repetitions()
                                    : FLAGS_benchmark_repetitions),
       has_explicit_iteration_count(b.iterations() != 0 ||
-                                   BenchMinTimeHasIters()),
+                                   parsed_benchtime_flag.tag ==
+                                       BenchTimeType::ITERS),
       pool(b.threads() - 1),
-      iters(has_explicit_iteration_count ? GetIters(b_) : 1),
+      iters(has_explicit_iteration_count ? GetIters(b_, parsed_benchtime_flag)
+                                         : 1),
       perf_counters_measurement(StrSplit(FLAGS_benchmark_perf_counters, ',')),
       perf_counters_measurement_ptr(perf_counters_measurement.IsValid()
                                         ? &perf_counters_measurement
@@ -263,16 +267,17 @@ void BenchmarkRunner::UpdateReport(RunResults& run_results) {
 
   if (!update_time && !update_iters) return;
 
-  auto UpdateRun = [](bool update_time, double min_time, bool update_iters, IterationCount iters,
-                      BenchmarkReporter::Run& run) {
-        if (update_time)
-          run.run_name.min_time = StrFormat("min_time:%0.3fs", min_time);
-        if (update_iters)
-          run.iterations = iters;
-      };
+  auto UpdateRun = [](bool update_time, double min_time, bool update_iters,
+                      IterationCount iters, BenchmarkReporter::Run& run) {
+    if (update_time)
+      run.run_name.min_time = StrFormat("min_time:%0.3fs", min_time);
+    if (update_iters) run.iterations = iters;
+  };
 
-  for (auto& run : run_results.non_aggregates) UpdateRun(update_time, min_time, update_iters, iters, run);
-  for (auto& run: run_results.aggregates_only) UpdateRun(update_time, min_time, update_iters, iters, run);
+  for (auto& run : run_results.non_aggregates)
+    UpdateRun(update_time, min_time, update_iters, iters, run);
+  for (auto& run : run_results.aggregates_only)
+    UpdateRun(update_time, min_time, update_iters, iters, run);
 }
 
 BenchmarkRunner::IterationResults BenchmarkRunner::DoNIterations() {

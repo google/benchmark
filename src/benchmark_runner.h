@@ -44,6 +44,14 @@ struct RunResults {
   bool file_report_aggregates_only = false;
 };
 
+struct BenchTimeType {
+  enum { ITERS, TIME } tag;
+  union {
+    int iters;
+    double time;
+  };
+};
+
 class BenchmarkRunner {
  public:
   BenchmarkRunner(const benchmark::internal::BenchmarkInstance& b_,
@@ -71,6 +79,7 @@ class BenchmarkRunner {
   const benchmark::internal::BenchmarkInstance& b;
   BenchmarkReporter::PerFamilyRunReports* reports_for_family;
 
+  BenchTimeType parsed_benchtime_flag;
   const double min_time;
   const double min_warmup_time;
   bool warmup_done;

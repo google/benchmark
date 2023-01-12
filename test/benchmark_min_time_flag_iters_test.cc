@@ -46,7 +46,7 @@ int main(int argc, char** argv) {
   int fake_argc = argc + 1;
   const char** fake_argv = new const char*[fake_argc];
   for (int i = 0; i < argc; ++i) fake_argv[i] = argv[i];
-  fake_argv[argc] =  "--benchmark_min_time=4x";
+  fake_argv[argc] = "--benchmark_min_time=4x";
 
   benchmark::Initialize(&fake_argc, const_cast<char**>(fake_argv));
 
