@@ -257,6 +257,24 @@ BenchmarkRunner::BenchmarkRunner(
   }
 }
 
+void BenchmarkRunner::UpdateReport(RunResults& run_results) {
+  bool update_time = min_time != b.min_time();
+  bool update_iters = has_explicit_iteration_count && iters != b.iterations();
+
+  if (!update_time && !update_iters) return;
+
+  auto UpdateRun = [](bool update_time, double min_time, bool update_iters, IterationCount iters,
+                      BenchmarkReporter::Run& run) {
+        if (update_time)
+          run.run_name.min_time = StrFormat("min_time:%0.3fs", min_time);
+        if (update_iters)
+          run.iterations = iters;
+      };
+
+  for (auto& run : run_results.non_aggregates) UpdateRun(update_time, min_time, update_iters, iters, run);
+  for (auto& run: run_results.aggregates_only) UpdateRun(update_time, min_time, update_iters, iters, run);
+}
+
 BenchmarkRunner::IterationResults BenchmarkRunner::DoNIterations() {
   BM_VLOG(2) << "Running " << b.name().str() << " for " << iters << "\n";
 

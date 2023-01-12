@@ -44,12 +44,6 @@ void DoTestHelper(int* argc, const char** argv, const std::string& expected) {
 
   // Check the min_time
   const std::vector<std::string>& min_times = test_reporter.GetMinTimes();
-  if (min_times.empty()) std::cout << "**** min_times empty\n";
-  else {
-    std::cout << " *** EXPECTED = " << expected << "\n";
-    for (const std::string& v : min_times)
-      std::cout << "   ** v = " << v << "\n";
-  }
   assert(!min_times.empty() && min_times[0] == expected);
 }
 
@@ -68,9 +62,9 @@ int main(int argc, char** argv) {
 
   for (int i = 0; i < argc; ++i) fake_argv[i] = argv[i];
 
-  const char* no_suffix = "--benchmark_min_time=4.0";
+  const char* no_suffix = "--benchmark_min_time=4";
   const char* with_suffix = "--benchmark_min_time=4.0s";
-  std::string expected = "min_time:4.0s";
+  std::string expected = "min_time:4.000s";
 
   fake_argv[argc] = no_suffix;
   DoTestHelper(&fake_argc, fake_argv, expected);

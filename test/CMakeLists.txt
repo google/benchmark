@@ -78,6 +78,12 @@ macro(add_filter_test name filter expect)
   add_test(NAME ${name}_list_only COMMAND filter_test --benchmark_list_tests --benchmark_filter=${filter} ${expect})
 endmacro(add_filter_test)
 
+compile_benchmark_test(benchmark_min_time_flag_time_test)
+add_test(NAME min_time_flag_time COMMAND benchmark_min_time_flag_time_test)
+
+compile_benchmark_test(benchmark_min_time_flag_iters_test)
+add_test(NAME min_time_flag_iters COMMAND benchmark_min_time_flag_iters_test)
+
 add_filter_test(filter_simple "Foo" 3)
 add_filter_test(filter_simple_negative "-Foo" 2)
 add_filter_test(filter_suffix "BM_.*" 4)

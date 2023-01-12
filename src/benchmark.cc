@@ -401,6 +401,10 @@ void RunBenchmarks(const std::vector<BenchmarkInstance>& benchmarks,
         }
       }
 
+      // Final step: fixup the configs that were overrriden with
+      // non-default values.
+      runner.UpdateReport(run_results);
+
       Report(display_reporter, file_reporter, run_results);
     }
   }

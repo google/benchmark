@@ -63,6 +63,8 @@ class BenchmarkRunner {
     return reports_for_family;
   }
 
+  void UpdateReport(RunResults& run_results);
+
  private:
   RunResults run_results;
 

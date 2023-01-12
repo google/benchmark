@@ -42,16 +42,13 @@ static void BM_MyBench(benchmark::State& state) {
 BENCHMARK(BM_MyBench);
 
 int main(int argc, char** argv) {
-  // Verify that argv specify --benchmark_min_time=4x
-  bool found = false;
-  for (int i = 0; i < argc; ++i) {
-    if (strcmp("--benchmark_min_time=4x", argv[i]) == 0) {
-      found = true;
-      break;
-    }
-  }
-  assert(found);
-  benchmark::Initialize(&argc, argv);
+  // Make a fake argv and append the new --benchmark_min_time=<foo> to it.
+  int fake_argc = argc + 1;
+  const char** fake_argv = new const char*[fake_argc];
+  for (int i = 0; i < argc; ++i) fake_argv[i] = argv[i];
+  fake_argv[argc] =  "--benchmark_min_time=4x";
+
+  benchmark::Initialize(&fake_argc, const_cast<char**>(fake_argv));
 
   TestReporter test_reporter;
   const size_t returned_count =
