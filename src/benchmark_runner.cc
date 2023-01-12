@@ -272,9 +272,10 @@ static bool AlmostEqual(double a, double b) {
 }
 
 void BenchmarkRunner::UpdateReport(RunResults& current_run_results) {
-  // If we the default min_time is different from the requested min_time
-  // then update it.
-  bool update_time = !AlmostEqual(min_time, b.min_time()) || !AlmostEqual(min_time, 0.0);
+  // If we the actual min_time is different from the value in the benchmark instance
+  // AND if it's not the default value then update it.
+  bool update_time = !AlmostEqual(min_time, b.min_time())
+                     && !AlmostEqual(min_time, kDefaultMinTime);
   bool update_iters = has_explicit_iteration_count && iters != b.iterations();
 
   if (!update_time && !update_iters) return;

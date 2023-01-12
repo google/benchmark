@@ -48,12 +48,12 @@ BenchmarkInstance::BenchmarkInstance(Benchmark* benchmark, int family_idx,
   }
 
   if (!IsZero(benchmark->min_time_)) {
-    name_.min_time = StrFormat("min_time:%0.3fs", benchmark_.min_time_);
+    name_.min_time = StrFormat("min_time:%0.3f", benchmark_.min_time_);
   }
 
   if (!IsZero(benchmark->min_warmup_time_)) {
     name_.min_warmup_time =
-        StrFormat("min_warmup_time:%0.3fs", benchmark_.min_warmup_time_);
+        StrFormat("min_warmup_time:%0.3f", benchmark_.min_warmup_time_);
   }
 
   if (benchmark_.iterations_ != 0) {

@@ -280,6 +280,8 @@ BENCHMARK(BM_test)->Unit(benchmark::kMillisecond);
 namespace benchmark {
 class BenchmarkReporter;
 
+BENCHMARK_EXPORT const double kDefaultMinTime = 0.5;
+
 BENCHMARK_EXPORT void PrintDefaultHelp();
 
 BENCHMARK_EXPORT void Initialize(int* argc, char** argv,
