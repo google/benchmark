@@ -25,16 +25,13 @@ PER_SRC_COPTS = {
     "donotoptimize_test.cc": ["-O3"],
 }
 
-TEST_ARGS = ["--benchmark_min_time=0.01s"]
+TEST_ARGS = ["--benchmark_min_time=0.01"]
 
 PER_SRC_TEST_ARGS = {
     "user_counters_tabular_test.cc": ["--benchmark_counters_tabular=true"],
     "repetitions_test.cc": [" --benchmark_repetitions=3"],
     "spec_arg_test.cc": ["--benchmark_filter=BM_NotChosen"],
     "spec_arg_verbosity_test.cc": ["--v=42"],
-    "benchmark_min_time_flag_iters_test.cc": ["--benchmark_min_time=4x"],
-    # Backward compat test.
-    "benchmark_min_time_flag_time_test.cc": ["--benchmark_min_time=2"],
 }
 
 cc_library(
