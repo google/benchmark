@@ -29,15 +29,18 @@
 #include <algorithm>
 #include <atomic>
 #include <climits>
+#include <cmath>
 #include <condition_variable>
 #include <cstdio>
 #include <cstdlib>
 #include <fstream>
 #include <iostream>
+#include <limits>
 #include <memory>
 #include <string>
 #include <thread>
 #include <utility>
+
 
 #include "check.h"
 #include "colorprint.h"
@@ -160,6 +163,8 @@ BenchTimeType ParseBenchMinTime(const std::string& value) {
     const int new_errno = errno;
     errno = old_errno;
 
+    (void)new_errno;
+
     // After a valid parse, p_end should have been set to
     // point to the 'x' suffix.
     BM_CHECK(new_errno == 0 && p_end != nullptr && *p_end == 'x')
@@ -185,6 +190,8 @@ BenchTimeType ParseBenchMinTime(const std::string& value) {
   double min_time = std::strtod(time_str, &p_end);
   const int new_errno = errno;
   errno = old_errno;
+
+  (void)new_errno;
 
   // After a successfull parse, p_end should point to the suffix 's'
   // or the end of the string, if the suffix was omitted.
@@ -214,9 +221,8 @@ IterationCount GetIters(const benchmark::internal::BenchmarkInstance& b,
 
   // We've already checked that this flag is currently used to pass
   // iters but do a check anyway.
-  BenchTimeType parsed = ParseBenchMinTime(FLAGS_benchmark_min_time);
-  BM_CHECK(parsed.tag == BenchTimeType::ITERS);
-  return parsed.iters;
+  BM_CHECK(iters_or_time.tag == BenchTimeType::ITERS);
+  return iters_or_time.iters;
 }
 
 }  // end namespace
@@ -261,22 +267,28 @@ BenchmarkRunner::BenchmarkRunner(
   }
 }
 
-void BenchmarkRunner::UpdateReport(RunResults& run_results) {
-  bool update_time = min_time != b.min_time();
+static bool AlmostEqual(double a, double b) {
+   return std::fabs(a - b) < std::numeric_limits<double>::epsilon();
+}
+
+void BenchmarkRunner::UpdateReport(RunResults& current_run_results) {
+  // If we the default min_time is different from the requested min_time
+  // then update it.
+  bool update_time = !AlmostEqual(min_time, b.min_time()) || !AlmostEqual(min_time, 0.0);
   bool update_iters = has_explicit_iteration_count && iters != b.iterations();
 
   if (!update_time && !update_iters) return;
 
-  auto UpdateRun = [](bool update_time, double min_time, bool update_iters,
-                      IterationCount iters, BenchmarkReporter::Run& run) {
-    if (update_time)
-      run.run_name.min_time = StrFormat("min_time:%0.3fs", min_time);
-    if (update_iters) run.iterations = iters;
+  auto UpdateRun = [](bool update_t, double new_min_time, bool update_i,
+                      IterationCount new_iters, BenchmarkReporter::Run& run) {
+    if (update_t)
+      run.run_name.min_time = StrFormat("min_time:%0.3fs", new_min_time);
+    if (update_i) run.iterations = new_iters;
   };
 
-  for (auto& run : run_results.non_aggregates)
+  for (auto& run : current_run_results.non_aggregates)
     UpdateRun(update_time, min_time, update_iters, iters, run);
-  for (auto& run : run_results.aggregates_only)
+  for (auto& run : current_run_results.aggregates_only)
     UpdateRun(update_time, min_time, update_iters, iters, run);
 }
 
