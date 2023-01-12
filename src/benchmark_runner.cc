@@ -66,6 +66,7 @@ MemoryManager* memory_manager = nullptr;
 namespace {
 
 static constexpr IterationCount kMaxIterations = 1000000000;
+static constexpr double kDefaultMinTime = 0.5;
 
 BenchmarkReporter::Run CreateRunReport(
     const benchmark::internal::BenchmarkInstance& b,
@@ -272,22 +273,22 @@ static bool AlmostEqual(double a, double b) {
 }
 
 void BenchmarkRunner::UpdateReport(RunResults& current_run_results) {
-  // If we the actual min_time is different from the value in the benchmark instance
-  // AND if it's not the default value then update it.
-  bool update_time = !AlmostEqual(min_time, b.min_time())
-                     && !AlmostEqual(min_time, kDefaultMinTime);
-  bool update_iters = has_explicit_iteration_count && iters != b.iterations();
+   // If we the actual min_time is different from the value in the benchmark
+   // instance AND if it's not the default value then update it.
+   bool update_time = !AlmostEqual(min_time, b.min_time()) &&
+                      !AlmostEqual(min_time, kDefaultMinTime);
+   bool update_iters = has_explicit_iteration_count && iters != b.iterations();
 
-  if (!update_time && !update_iters) return;
+   if (!update_time && !update_iters) return;
 
-  auto UpdateRun = [](bool update_t, double new_min_time, bool update_i,
-                      IterationCount new_iters, BenchmarkReporter::Run& run) {
-    if (update_t)
-      run.run_name.min_time = StrFormat("min_time:%0.3fs", new_min_time);
-    if (update_i) run.iterations = new_iters;
-  };
+   auto UpdateRun = [](bool update_t, double new_min_time, bool update_i,
+                       IterationCount new_iters, BenchmarkReporter::Run& run) {
+     if (update_t)
+       run.run_name.min_time = StrFormat("min_time:%0.3fs", new_min_time);
+     if (update_i) run.iterations = new_iters;
+   };
 
-  for (auto& run : current_run_results.non_aggregates)
+   for (auto& run : current_run_results.non_aggregates)
     UpdateRun(update_time, min_time, update_iters, iters, run);
   for (auto& run : current_run_results.aggregates_only)
     UpdateRun(update_time, min_time, update_iters, iters, run);
