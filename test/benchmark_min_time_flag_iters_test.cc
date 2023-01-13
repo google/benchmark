@@ -58,5 +58,7 @@ int main(int argc, char** argv) {
   // Check the executed iters.
   const std::vector<int> iters = test_reporter.GetIters();
   assert(!iters.empty() && iters[0] == 4);
+
+  delete[] fake_argv;
   return 0;
 }

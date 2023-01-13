@@ -41,7 +41,6 @@
 #include <thread>
 #include <utility>
 
-
 #include "check.h"
 #include "colorprint.h"
 #include "commandlineflags.h"

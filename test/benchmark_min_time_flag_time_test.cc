@@ -85,5 +85,6 @@ int main(int argc, char** argv) {
   fake_argv[argc] = with_suffix;
   DoTestHelper(&fake_argc, fake_argv, expected);
 
+  delete[] fake_argv;
   return 0;
 }
