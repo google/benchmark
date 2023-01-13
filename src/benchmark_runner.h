@@ -47,7 +47,7 @@ struct RunResults {
 struct BenchTimeType {
   enum { ITERS, TIME } tag;
   union {
-    int iters;
+    IterationCount iters;
     double time;
   };
 };
@@ -71,11 +71,12 @@ class BenchmarkRunner {
     return reports_for_family;
   }
 
-  double GetMinTime() const {return min_time;}
+  double GetMinTime() const { return min_time; }
 
-  bool HasExplicitIters() const {return has_explicit_iteration_count;}
+  bool HasExplicitIters() const { return has_explicit_iteration_count; }
 
-  IterationCount GetIters() const {return iters;}
+  IterationCount GetIters() const { return iters; }
+
  private:
   RunResults run_results;
 

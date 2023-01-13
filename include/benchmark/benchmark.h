@@ -1726,7 +1726,9 @@ class BENCHMARK_EXPORT BenchmarkReporter {
 
   // Called once for each group of benchmark runs, gives information about
   // the configurations of the runs.
-  virtual void ReportRunsConfig(double /*min_time*/, bool /*has_explicit_iters*/, IterationCount /*iters*/) {}
+  virtual void ReportRunsConfig(double /*min_time*/,
+                                bool /*has_explicit_iters*/,
+                                IterationCount /*iters*/) {}
 
   // Called once for each group of benchmark runs, gives information about
   // cpu-time and heap memory usage during the benchmark run. If the group

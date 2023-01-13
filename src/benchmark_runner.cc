@@ -208,16 +208,17 @@ BenchTimeType ParseBenchMinTime(const std::string& value) {
 }
 
 double ComputeMinTime(const benchmark::internal::BenchmarkInstance& b,
-                  const BenchTimeType& iters_or_time) {
+                      const BenchTimeType& iters_or_time) {
   if (!IsZero(b.min_time())) return b.min_time();
-  // If the flag was used to specify number of iters, then return the default min_time.
+  // If the flag was used to specify number of iters, then return the default
+  // min_time.
   if (iters_or_time.tag == BenchTimeType::ITERS) return kDefaultMinTime;
 
   return iters_or_time.time;
 }
 
 IterationCount ComputeIters(const benchmark::internal::BenchmarkInstance& b,
-                        const BenchTimeType& iters_or_time) {
+                            const BenchTimeType& iters_or_time) {
   if (b.iterations() != 0) return b.iterations();
 
   // We've already concluded that this flag is currently used to pass
@@ -245,8 +246,9 @@ BenchmarkRunner::BenchmarkRunner(
                                    parsed_benchtime_flag.tag ==
                                        BenchTimeType::ITERS),
       pool(b.threads() - 1),
-      iters(has_explicit_iteration_count ? ComputeIters(b_, parsed_benchtime_flag)
-                                         : 1),
+      iters(has_explicit_iteration_count
+                ? ComputeIters(b_, parsed_benchtime_flag)
+                : 1),
       perf_counters_measurement(StrSplit(FLAGS_benchmark_perf_counters, ',')),
       perf_counters_measurement_ptr(perf_counters_measurement.IsValid()
                                         ? &perf_counters_measurement

@@ -386,12 +386,11 @@ void RunBenchmarks(const std::vector<BenchmarkInstance>& benchmarks,
       if (runner.HasRepeatsRemaining()) continue;
       // FIXME: report each repetition separately, not all of them in bulk.
 
-      display_reporter->ReportRunsConfig(runner.GetMinTime(),
-                                         runner.HasExplicitIters(),
-                                         runner.GetIters());
-      if (file_reporter) file_reporter->ReportRunsConfig(runner.GetMinTime(),
-                                                         runner.HasExplicitIters(),
-                                                         runner.GetIters());
+      display_reporter->ReportRunsConfig(
+          runner.GetMinTime(), runner.HasExplicitIters(), runner.GetIters());
+      if (file_reporter)
+        file_reporter->ReportRunsConfig(
+            runner.GetMinTime(), runner.HasExplicitIters(), runner.GetIters());
 
       RunResults run_results = runner.GetResults();
 

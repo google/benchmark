@@ -28,7 +28,8 @@ class TestReporter : public benchmark::ConsoleReporter {
     ConsoleReporter::ReportRuns(report);
   };
 
-  virtual void ReportRunsConfig(double min_time, bool has_explicit_iters, IterationCount iters) BENCHMARK_OVERRIDE {
+  virtual void ReportRunsConfig(double min_time, bool has_explicit_iters,
+                                IterationCount iters) BENCHMARK_OVERRIDE {
     min_times_.push_back(min_time);
   }
 
@@ -43,7 +44,7 @@ class TestReporter : public benchmark::ConsoleReporter {
 };
 
 bool AlmostEqual(double a, double b) {
-   return std::fabs(a - b) < std::numeric_limits<double>::epsilon();
+  return std::fabs(a - b) < std::numeric_limits<double>::epsilon();
 }
 
 void DoTestHelper(int* argc, const char** argv, double expected) {
