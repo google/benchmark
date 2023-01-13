@@ -386,6 +386,13 @@ void RunBenchmarks(const std::vector<BenchmarkInstance>& benchmarks,
       if (runner.HasRepeatsRemaining()) continue;
       // FIXME: report each repetition separately, not all of them in bulk.
 
+      display_reporter->ReportRunsConfig(runner.GetMinTime(),
+                                         runner.HasExplicitIters(),
+                                         runner.GetIters());
+      if (file_reporter) file_reporter->ReportRunsConfig(runner.GetMinTime(),
+                                                         runner.HasExplicitIters(),
+                                                         runner.GetIters());
+
       RunResults run_results = runner.GetResults();
 
       // Maybe calculate complexity report
@@ -400,10 +407,6 @@ void RunBenchmarks(const std::vector<BenchmarkInstance>& benchmarks,
               static_cast<int>(reports_for_family->Runs.front().family_index));
         }
       }
-
-      // Final step: fixup the configs that were overrriden with
-      // non-default values.
-      runner.UpdateReport(run_results);
 
       Report(display_reporter, file_reporter, run_results);
     }

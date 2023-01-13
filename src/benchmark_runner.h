@@ -71,8 +71,11 @@ class BenchmarkRunner {
     return reports_for_family;
   }
 
-  void UpdateReport(RunResults& run_results);
+  double GetMinTime() const {return min_time;}
 
+  bool HasExplicitIters() const {return has_explicit_iteration_count;}
+
+  IterationCount GetIters() const {return iters;}
  private:
   RunResults run_results;
 

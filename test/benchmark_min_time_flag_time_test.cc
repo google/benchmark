@@ -1,4 +1,6 @@
 #include <cassert>
+#include <climits>
+#include <cmath>
 #include <cstdlib>
 #include <cstring>
 #include <iostream>
@@ -12,6 +14,9 @@
 // --benchmark_min_time=<NUM>s
 namespace {
 
+// This is from benchmark.h
+typedef int64_t IterationCount;
+
 class TestReporter : public benchmark::ConsoleReporter {
  public:
   virtual bool ReportContext(const Context& context) BENCHMARK_OVERRIDE {
@@ -20,21 +25,28 @@ class TestReporter : public benchmark::ConsoleReporter {
 
   virtual void ReportRuns(const std::vector<Run>& report) BENCHMARK_OVERRIDE {
     assert(report.size() == 1);
-    min_times_.push_back(report[0].run_name.min_time);
     ConsoleReporter::ReportRuns(report);
   };
+
+  virtual void ReportRunsConfig(double min_time, bool has_explicit_iters, IterationCount iters) BENCHMARK_OVERRIDE {
+    min_times_.push_back(min_time);
+  }
 
   TestReporter() {}
 
   virtual ~TestReporter() {}
 
-  const std::vector<std::string>& GetMinTimes() const { return min_times_; }
+  const std::vector<double>& GetMinTimes() const { return min_times_; }
 
  private:
-  std::vector<std::string> min_times_;
+  std::vector<double> min_times_;
 };
 
-void DoTestHelper(int* argc, const char** argv, const std::string& expected) {
+bool AlmostEqual(double a, double b) {
+   return std::fabs(a - b) < std::numeric_limits<double>::epsilon();
+}
+
+void DoTestHelper(int* argc, const char** argv, double expected) {
   benchmark::Initialize(argc, const_cast<char**>(argv));
 
   TestReporter test_reporter;
@@ -43,8 +55,8 @@ void DoTestHelper(int* argc, const char** argv, const std::string& expected) {
   assert(returned_count == 1);
 
   // Check the min_time
-  const std::vector<std::string>& min_times = test_reporter.GetMinTimes();
-  assert(!min_times.empty() && min_times[0] == expected);
+  const std::vector<double>& min_times = test_reporter.GetMinTimes();
+  assert(!min_times.empty() && AlmostEqual(min_times[0], expected));
 }
 
 }  // end namespace
@@ -64,7 +76,7 @@ int main(int argc, char** argv) {
 
   const char* no_suffix = "--benchmark_min_time=4";
   const char* with_suffix = "--benchmark_min_time=4.0s";
-  std::string expected = "min_time:4.000s";
+  double expected = 4.0;
 
   fake_argv[argc] = no_suffix;
   DoTestHelper(&fake_argc, fake_argv, expected);

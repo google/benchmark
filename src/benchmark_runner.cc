@@ -180,7 +180,7 @@ BenchTimeType ParseBenchMinTime(const std::string& value) {
   const char* time_str = value.c_str();
   bool has_suffix = value.back() == 's';
   if (!has_suffix) {
-    BM_VLOG(2) << "Value passed to --benchmark_min_time should have a suffix. "
+    BM_VLOG(0) << "Value passed to --benchmark_min_time should have a suffix. "
                   "Eg., `30s` for 30-seconds.";
   }
 
@@ -207,21 +207,21 @@ BenchTimeType ParseBenchMinTime(const std::string& value) {
   return ret;
 }
 
-double GetMinTime(const benchmark::internal::BenchmarkInstance& b,
+double ComputeMinTime(const benchmark::internal::BenchmarkInstance& b,
                   const BenchTimeType& iters_or_time) {
   if (!IsZero(b.min_time())) return b.min_time();
-  // If the flag was used to specify number of iters, then return 0 for time.
-  if (iters_or_time.tag == BenchTimeType::ITERS) return 0;
+  // If the flag was used to specify number of iters, then return the default min_time.
+  if (iters_or_time.tag == BenchTimeType::ITERS) return kDefaultMinTime;
 
   return iters_or_time.time;
 }
 
-IterationCount GetIters(const benchmark::internal::BenchmarkInstance& b,
+IterationCount ComputeIters(const benchmark::internal::BenchmarkInstance& b,
                         const BenchTimeType& iters_or_time) {
   if (b.iterations() != 0) return b.iterations();
 
-  // We've already checked that this flag is currently used to pass
-  // iters but do a check anyway.
+  // We've already concluded that this flag is currently used to pass
+  // iters but do a check here again anyway.
   BM_CHECK(iters_or_time.tag == BenchTimeType::ITERS);
   return iters_or_time.iters;
 }
@@ -234,7 +234,7 @@ BenchmarkRunner::BenchmarkRunner(
     : b(b_),
       reports_for_family(reports_for_family_),
       parsed_benchtime_flag(ParseBenchMinTime(FLAGS_benchmark_min_time)),
-      min_time(GetMinTime(b_, parsed_benchtime_flag)),
+      min_time(ComputeMinTime(b_, parsed_benchtime_flag)),
       min_warmup_time((!IsZero(b.min_time()) && b.min_warmup_time() > 0.0)
                           ? b.min_warmup_time()
                           : FLAGS_benchmark_min_warmup_time),
@@ -245,7 +245,7 @@ BenchmarkRunner::BenchmarkRunner(
                                    parsed_benchtime_flag.tag ==
                                        BenchTimeType::ITERS),
       pool(b.threads() - 1),
-      iters(has_explicit_iteration_count ? GetIters(b_, parsed_benchtime_flag)
+      iters(has_explicit_iteration_count ? ComputeIters(b_, parsed_benchtime_flag)
                                          : 1),
       perf_counters_measurement(StrSplit(FLAGS_benchmark_perf_counters, ',')),
       perf_counters_measurement_ptr(perf_counters_measurement.IsValid()
@@ -266,32 +266,6 @@ BenchmarkRunner::BenchmarkRunner(
              perf_counters_measurement.IsValid())
         << "Perf counters were requested but could not be set up.";
   }
-}
-
-static bool AlmostEqual(double a, double b) {
-   return std::fabs(a - b) < std::numeric_limits<double>::epsilon();
-}
-
-void BenchmarkRunner::UpdateReport(RunResults& current_run_results) {
-   // If we the actual min_time is different from the value in the benchmark
-   // instance AND if it's not the default value then update it.
-   bool update_time = !AlmostEqual(min_time, b.min_time()) &&
-                      !AlmostEqual(min_time, kDefaultMinTime);
-   bool update_iters = has_explicit_iteration_count && iters != b.iterations();
-
-   if (!update_time && !update_iters) return;
-
-   auto UpdateRun = [](bool update_t, double new_min_time, bool update_i,
-                       IterationCount new_iters, BenchmarkReporter::Run& run) {
-     if (update_t)
-       run.run_name.min_time = StrFormat("min_time:%0.3fs", new_min_time);
-     if (update_i) run.iterations = new_iters;
-   };
-
-   for (auto& run : current_run_results.non_aggregates)
-    UpdateRun(update_time, min_time, update_iters, iters, run);
-  for (auto& run : current_run_results.aggregates_only)
-    UpdateRun(update_time, min_time, update_iters, iters, run);
 }
 
 BenchmarkRunner::IterationResults BenchmarkRunner::DoNIterations() {
