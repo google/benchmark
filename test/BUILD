@@ -25,7 +25,7 @@ PER_SRC_COPTS = {
     "donotoptimize_test.cc": ["-O3"],
 }
 
-TEST_ARGS = ["--benchmark_min_time=0.01"]
+TEST_ARGS = ["--benchmark_min_time=0.01s"]
 
 PER_SRC_TEST_ARGS = {
     "user_counters_tabular_test.cc": ["--benchmark_counters_tabular=true"],
