@@ -248,9 +248,8 @@ void ResultsChecker::CheckResults(std::stringstream& output) {
       if (!p.regex->Match(r.name)) {
         BM_VLOG(2) << p.regex_str << " is not matched by " << r.name << "\n";
         continue;
-      } else {
-        BM_VLOG(2) << p.regex_str << " is matched by " << r.name << "\n";
       }
+      BM_VLOG(2) << p.regex_str << " is matched by " << r.name << "\n";
       BM_VLOG(1) << "Checking results of " << r.name << ": ... \n";
       p.fn(r);
       BM_VLOG(1) << "Checking results of " << r.name << ": OK.\n";
@@ -328,16 +327,18 @@ double Results::GetTime(BenchmarkTime which) const {
   BM_CHECK(unit);
   if (*unit == "ns") {
     return val * 1.e-9;
-  } else if (*unit == "us") {
-    return val * 1.e-6;
-  } else if (*unit == "ms") {
-    return val * 1.e-3;
-  } else if (*unit == "s") {
-    return val;
-  } else {
-    BM_CHECK(1 == 0) << "unknown time unit: " << *unit;
-    return 0;
   }
+  if (*unit == "us") {
+    return val * 1.e-6;
+  }
+  if (*unit == "ms") {
+    return val * 1.e-3;
+  }
+  if (*unit == "s") {
+    return val;
+  }
+  BM_CHECK(1 == 0) << "unknown time unit: " << *unit;
+  return 0;
 }
 
 // ========================================================================= //

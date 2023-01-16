@@ -410,14 +410,15 @@ std::unique_ptr<BenchmarkReporter> CreateReporter(
   typedef std::unique_ptr<BenchmarkReporter> PtrType;
   if (name == "console") {
     return PtrType(new ConsoleReporter(output_opts));
-  } else if (name == "json") {
-    return PtrType(new JSONReporter());
-  } else if (name == "csv") {
-    return PtrType(new CSVReporter());
-  } else {
-    std::cerr << "Unexpected format: '" << name << "'\n";
-    std::exit(1);
   }
+  if (name == "json") {
+    return PtrType(new JSONReporter());
+  }
+  if (name == "csv") {
+    return PtrType(new CSVReporter());
+  }
+  std::cerr << "Unexpected format: '" << name << "'\n";
+  std::exit(1);
 }
 
 BENCHMARK_RESTORE_DEPRECATED_WARNING
@@ -586,13 +587,17 @@ void PrintUsageAndExit() {
 void SetDefaultTimeUnitFromFlag(const std::string& time_unit_flag) {
   if (time_unit_flag == "s") {
     return SetDefaultTimeUnit(kSecond);
-  } else if (time_unit_flag == "ms") {
+  }
+  if (time_unit_flag == "ms") {
     return SetDefaultTimeUnit(kMillisecond);
-  } else if (time_unit_flag == "us") {
+  }
+  if (time_unit_flag == "us") {
     return SetDefaultTimeUnit(kMicrosecond);
-  } else if (time_unit_flag == "ns") {
+  }
+  if (time_unit_flag == "ns") {
     return SetDefaultTimeUnit(kNanosecond);
-  } else if (!time_unit_flag.empty()) {
+  }
+  if (!time_unit_flag.empty()) {
     PrintUsageAndExit();
   }
 }
