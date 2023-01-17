@@ -280,7 +280,9 @@ BENCHMARK(BM_test)->Unit(benchmark::kMillisecond);
 namespace benchmark {
 class BenchmarkReporter;
 
+// Default number of minimum benchmark running time in seconds.
 const double kDefaultMinTime = 0.5;
+const char kDefaultMinTimeStr[] = "0.5s";
 
 BENCHMARK_EXPORT void PrintDefaultHelp();
 

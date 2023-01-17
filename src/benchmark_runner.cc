@@ -65,7 +65,6 @@ MemoryManager* memory_manager = nullptr;
 namespace {
 
 static constexpr IterationCount kMaxIterations = 1000000000;
-static constexpr double kDefaultMinTime = 0.5;
 
 BenchmarkReporter::Run CreateRunReport(
     const benchmark::internal::BenchmarkInstance& b,

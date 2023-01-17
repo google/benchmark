@@ -79,7 +79,7 @@ BM_DEFINE_string(benchmark_filter, "");
 // on the total cpu time used by all threads that make up the test.  For
 // real-time based tests, this is the lower bound on the elapsed time of the
 // benchmark execution, regardless of number of threads.
-BM_DEFINE_string(benchmark_min_time, "0.5s");
+BM_DEFINE_string(benchmark_min_time, kDefaultMinTimeStr);
 
 // Minimum number of seconds a benchmark should be run before results should be
 // taken into account. This e.g can be necessary for benchmarks of code which
