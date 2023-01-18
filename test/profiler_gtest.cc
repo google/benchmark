@@ -44,15 +44,13 @@ class TestProfiler : public benchmark::Profiler {
   void Start() BENCHMARK_OVERRIDE { queue->Put("Start"); }
   void Stop() BENCHMARK_OVERRIDE { queue->Put("Stop"); }
   void Finalize() BENCHMARK_OVERRIDE { queue->Put("Finalize"); }
-
- private:
 };
 
 class BenchmarkTest : public testing::Test {
  public:
   static void SetUpTestSuite() { RegisterProfiler(InitTestProfiler()); }
 
-  static void TearDownTestSuite() { benchmark::RegisterMemoryManager(nullptr); }
+  static void TearDownTestSuite() { RegisterProfiler(nullptr); }
   static void SetupHook(const benchmark::State& state) { queue->Put("Setup"); }
 
   static void TeardownHook(const benchmark::State& state) {
