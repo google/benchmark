@@ -58,6 +58,7 @@ namespace benchmark {
 namespace internal {
 
 MemoryManager* memory_manager = nullptr;
+Profiler* profiler = nullptr;
 
 namespace {
 
@@ -343,7 +344,9 @@ void BenchmarkRunner::DoOneRepetition() {
   // simply use that precomputed iteration count.
   for (;;) {
     b.Setup();
+    if (profiler != nullptr) profiler->Start();
     i = DoNIterations();
+    if (profiler != nullptr) profiler->Stop();
     b.Teardown();
 
     // Do we consider the results to be significant?

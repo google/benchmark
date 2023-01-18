@@ -391,6 +391,30 @@ class MemoryManager {
 BENCHMARK_EXPORT
 void RegisterMemoryManager(MemoryManager* memory_manager);
 
+class BENCHMARK_EXPORT Profiler {
+ public:
+  // Called once in each 'RunSpecifiedBenchmarks'.
+  // Implement this to reset internal states (e.g., counters).
+  virtual void Init() = 0;
+
+  virtual ~Profiler() = default;
+
+  // Called after each 'BenchmarkInstance::Setup' to start capturing states.
+  // Start and Stop are called in pair and injected to skip measurement in
+  // test set-up and tear-down.
+  virtual void Start() = 0;
+
+  // Called before each 'BenchmarkInstance::TearDown' to pause capturing
+  // states..
+  virtual void Stop() = 0;
+
+  // Called once after benchmark instances complete.
+  // Implement this to do post-processing if necessary and save results.
+  virtual void Finalize() = 0;
+};
+
+BENCHMARK_EXPORT void RegisterProfiler(Profiler* profiler);
+
 // Add a key-value pair to output as part of the context stanza in the report.
 BENCHMARK_EXPORT
 void AddCustomContext(const std::string& key, const std::string& value);

@@ -35,6 +35,7 @@ BM_DECLARE_string(benchmark_perf_counters);
 namespace internal {
 
 extern MemoryManager* memory_manager;
+extern Profiler* profiler;
 
 struct RunResults {
   std::vector<BenchmarkReporter::Run> non_aggregates;
