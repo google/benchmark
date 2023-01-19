@@ -157,18 +157,13 @@ BenchTimeType ParseBenchMinTime(const std::string& value) {
   if (value.back() == 'x') {
     const char* iters_str = value.c_str();
     char* p_end;
-    // Reset error since atol will change it.
-    const int old_errno = errno;
+    // Reset errno before it's changed by strtol.
     errno = 0;
     IterationCount num_iters = std::strtol(iters_str, &p_end, 10);
-    const int new_errno = errno;
-    errno = old_errno;
-
-    (void)new_errno;
 
     // After a valid parse, p_end should have been set to
     // point to the 'x' suffix.
-    BM_CHECK(new_errno == 0 && p_end != nullptr && *p_end == 'x')
+    BM_CHECK(errno == 0 && p_end != nullptr && *p_end == 'x')
         << "Malformed iters value passed to --benchmark_min_time: `" << value
         << "`. Expected --benchmark_min_time=<integer>x.";
 
@@ -185,18 +180,13 @@ BenchTimeType ParseBenchMinTime(const std::string& value) {
   }
 
   char* p_end;
-  // Reset error before it's changed by strtod.
-  const int old_errno = errno;
+  // Reset errno before it's changed by strtod.
   errno = 0;
   double min_time = std::strtod(time_str, &p_end);
-  const int new_errno = errno;
-  errno = old_errno;
-
-  (void)new_errno;
 
   // After a successfull parse, p_end should point to the suffix 's'
   // or the end of the string, if the suffix was omitted.
-  BM_CHECK(new_errno == 0 && p_end != nullptr &&
+  BM_CHECK(errno == 0 && p_end != nullptr &&
            (has_suffix && *p_end == 's' || *p_end == '\0'))
       << "Malformed seconds value passed to --benchmark_min_time: `" << value
       << "`. Expected --benchmark_min_time=<float>x.";
