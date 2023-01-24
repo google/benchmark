@@ -7,6 +7,7 @@ TEST(ParseMinTimeTest, InvalidInput) {
 #if GTEST_HAS_DEATH_TEST
   // Tests only runnable in debug mode (when BM_CHECK is enabled).
 #ifndef NDEBUG
+#ifndef TEST_BENCHMARK_LIBRARY_HAS_NO_ASSERTIONS
   ASSERT_DEATH_IF_SUPPORTED(
       { benchmark::internal::ParseBenchMinTime("abc"); },
       "Malformed seconds value passed to --benchmark_min_time: `abc`");
@@ -22,6 +23,7 @@ TEST(ParseMinTimeTest, InvalidInput) {
   ASSERT_DEATH_IF_SUPPORTED(
       { benchmark::internal::ParseBenchMinTime("1hs"); },
       "Malformed seconds value passed to --benchmark_min_time: `1hs`");
+#endif
 #endif
 #endif
 }
