@@ -44,7 +44,7 @@ struct RunResults {
   bool file_report_aggregates_only = false;
 };
 
-struct BenchTimeType {
+struct BENCHMARK_EXPORT BenchTimeType {
   enum { ITERS, TIME } tag;
   union {
     IterationCount iters;
@@ -52,6 +52,7 @@ struct BenchTimeType {
   };
 };
 
+BENCHMARK_EXPORT
 BenchTimeType ParseBenchMinTime(const std::string& value);
 
 class BenchmarkRunner {
