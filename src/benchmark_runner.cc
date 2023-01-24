@@ -145,6 +145,28 @@ void RunInThread(const BenchmarkInstance* b, IterationCount iters,
   manager->NotifyThreadComplete();
 }
 
+double ComputeMinTime(const benchmark::internal::BenchmarkInstance& b,
+                      const BenchTimeType& iters_or_time) {
+  if (!IsZero(b.min_time())) return b.min_time();
+  // If the flag was used to specify number of iters, then return the default
+  // min_time.
+  if (iters_or_time.tag == BenchTimeType::ITERS) return kDefaultMinTime;
+
+  return iters_or_time.time;
+}
+
+IterationCount ComputeIters(const benchmark::internal::BenchmarkInstance& b,
+                            const BenchTimeType& iters_or_time) {
+  if (b.iterations() != 0) return b.iterations();
+
+  // We've already concluded that this flag is currently used to pass
+  // iters but do a check here again anyway.
+  BM_CHECK(iters_or_time.tag == BenchTimeType::ITERS);
+  return iters_or_time.iters;
+}
+
+}  // end namespace
+
 BenchTimeType ParseBenchMinTime(const std::string& value) {
   BenchTimeType ret;
 
@@ -196,28 +218,6 @@ BenchTimeType ParseBenchMinTime(const std::string& value) {
 
   return ret;
 }
-
-double ComputeMinTime(const benchmark::internal::BenchmarkInstance& b,
-                      const BenchTimeType& iters_or_time) {
-  if (!IsZero(b.min_time())) return b.min_time();
-  // If the flag was used to specify number of iters, then return the default
-  // min_time.
-  if (iters_or_time.tag == BenchTimeType::ITERS) return kDefaultMinTime;
-
-  return iters_or_time.time;
-}
-
-IterationCount ComputeIters(const benchmark::internal::BenchmarkInstance& b,
-                            const BenchTimeType& iters_or_time) {
-  if (b.iterations() != 0) return b.iterations();
-
-  // We've already concluded that this flag is currently used to pass
-  // iters but do a check here again anyway.
-  BM_CHECK(iters_or_time.tag == BenchTimeType::ITERS);
-  return iters_or_time.iters;
-}
-
-}  // end namespace
 
 BenchmarkRunner::BenchmarkRunner(
     const benchmark::internal::BenchmarkInstance& b_,

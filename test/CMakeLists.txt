@@ -233,6 +233,7 @@ if (BENCHMARK_ENABLE_GTEST_TESTS)
   add_gtest(string_util_gtest)
   add_gtest(perf_counters_gtest)
   add_gtest(time_unit_gtest)
+  add_gtest(min_time_parse_gtest)
 endif(BENCHMARK_ENABLE_GTEST_TESTS)
 
 ###############################################################################

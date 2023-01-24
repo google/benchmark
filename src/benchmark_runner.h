@@ -52,6 +52,8 @@ struct BenchTimeType {
   };
 };
 
+BenchTimeType ParseBenchMinTime(const std::string& value);
+
 class BenchmarkRunner {
  public:
   BenchmarkRunner(const benchmark::internal::BenchmarkInstance& b_,
