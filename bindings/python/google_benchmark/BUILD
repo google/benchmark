@@ -15,7 +15,6 @@ py_extension(
     copts = [
         "-fexceptions",
         "-fno-strict-aliasing",
-        "-std=c++17",
     ],
     features = [
         "-use_header_modules",

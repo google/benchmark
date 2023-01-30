@@ -1,3 +1,10 @@
+
+config_setting(
+    name = "macos",
+    constraint_values = ["@platforms//os:macos"],
+    visibility = [":__subpackages__"],
+)
+
 cc_library(
     name = "nanobind",
     hdrs = glob(
@@ -30,11 +37,13 @@ cc_library(
     ],
     copts = [
         "-fexceptions",
-        "-std=c++17", # requires C++17
-        "-Os",  # size optimization option for nanobind
+        "-Os",  # size optimization
         "-flto", # enable LTO
     ],
-    linkopts = ["-undefined suppress", "-flat_namespace", "-flto"],
+    linkopts = select({
+        ":macos": ["-undefined suppress", "-flat_namespace"],
+        "//conditions:default": [],
+    }),
     includes = ["include", "ext/robin_map/include"],
     deps = ["@python_headers"],
     visibility = ["//visibility:public"],
