@@ -26,7 +26,7 @@ int AddComplexityTest(const std::string &test_name,
   AddCases(
       TC_ConsoleOut,
       {{"^%bigo_name %bigo_str %bigo_str[ ]*$"},
-       {"^%bigo_name", MR_Not},  // Assert we we didn't only matched a name.
+       {"^%bigo_name", MR_Not},  // Assert if we didn't only matched a name.
        {"^%rms_name %rms %rms[ ]*$", MR_Next}});
   AddCases(
       TC_JSONOut,
@@ -34,6 +34,8 @@ int AddComplexityTest(const std::string &test_name,
        {"\"family_index\": " + std::to_string(family_index) + ",$", MR_Next},
        {"\"per_family_instance_index\": 0,$", MR_Next},
        {"\"run_name\": \"%name\",$", MR_Next},
+       {"\"function_name\": \"%name\",$", MR_Next},
+       {"\"arguments\": \\[],$", MR_Next},
        {"\"run_type\": \"aggregate\",$", MR_Next},
        {"\"repetitions\": %int,$", MR_Next},
        {"\"threads\": 1,$", MR_Next},
@@ -48,6 +50,8 @@ int AddComplexityTest(const std::string &test_name,
        {"\"family_index\": " + std::to_string(family_index) + ",$", MR_Next},
        {"\"per_family_instance_index\": 0,$", MR_Next},
        {"\"run_name\": \"%name\",$", MR_Next},
+       {"\"function_name\": \"%name\",$", MR_Next},
+       {"\"arguments\": \\[],$", MR_Next},
        {"\"run_type\": \"aggregate\",$", MR_Next},
        {"\"repetitions\": %int,$", MR_Next},
        {"\"threads\": 1,$", MR_Next},
@@ -215,6 +219,7 @@ BENCHMARK_CAPTURE(BM_ComplexityCaptureArgs, capture_test, 100)
 
 const std::string complexity_capture_name =
     "BM_ComplexityCaptureArgs/capture_test";
+const std::string complexity_name = "BM_ComplexityCaptureArgs";
 
 ADD_COMPLEXITY_CASES(complexity_capture_name, complexity_capture_name + "_BigO",
                      complexity_capture_name + "_RMS", "N", /*family_index=*/9);

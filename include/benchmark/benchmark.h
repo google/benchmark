@@ -1661,6 +1661,7 @@ class BENCHMARK_EXPORT BenchmarkReporter {
     TimeUnit time_unit;
     double real_accumulated_time;
     double cpu_accumulated_time;
+    std::vector<int64_t> arguments;
 
     // Return a value representing the real time per iteration in the unit
     // specified by 'time_unit'.

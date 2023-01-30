@@ -46,6 +46,8 @@ class BenchmarkInstance {
             internal::ThreadManager* manager,
             internal::PerfCountersMeasurement* perf_counters_measurement) const;
 
+  const std::vector<int64_t>& GetArguments() const noexcept;
+
  private:
   BenchmarkName name_;
   Benchmark& benchmark_;
