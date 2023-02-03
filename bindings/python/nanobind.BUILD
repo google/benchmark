@@ -1,8 +1,7 @@
 
 config_setting(
-    name = "macos",
-    constraint_values = ["@platforms//os:macos"],
-    visibility = [":__subpackages__"],
+    name = "msvc_compiler",
+    flag_values = {"@bazel_tools//tools/cpp:compiler": "msvc-cl"},
 )
 
 cc_library(
@@ -35,13 +34,16 @@ cc_library(
         "src/tensor.cpp",
         "src/trampoline.cpp",
     ],
-    copts = [
+    copts = select({
+        ":msvc_compiler": [],
+        "//conditions:default": [
         "-fexceptions",
         "-Os",  # size optimization
         "-flto", # enable LTO
-    ],
+        ],
+    }),
     linkopts = select({
-        ":macos": ["-undefined suppress", "-flat_namespace"],
+        "@com_github_google_benchmark//:macos": ["-undefined suppress", "-flat_namespace"],
         "//conditions:default": [],
     }),
     includes = ["include", "ext/robin_map/include"],

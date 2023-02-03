@@ -48,7 +48,7 @@ def benchmark_deps():
         git_repository(
             name = "nanobind",
             remote = "https://github.com/wjakob/nanobind.git",
-            commit = "947fbb071eca282e6350402c0a23800502a1644f",
+            commit = "fe3ecb800a7a3e8023e8ee77167a6241591e0b8b",
             build_file = "@//bindings/python:nanobind.BUILD",
             recursive_init_submodules = True,
         )

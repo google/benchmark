@@ -91,7 +91,8 @@ class BuildBazelExtension(build_ext.build_ext):
                 ext.bazel_target,
                 f"--symlink_prefix={temp_path / 'bazel-'}",
                 f"--compilation_mode={'dbg' if self.debug else 'opt'}",
-                "--cxxopt=-std=c++17",  # required by nanobind
+                # C++17 is required by nanobind
+                f"--cxxopt={'/std:c++17' if IS_WINDOWS else '-std=c++17'}",
             ]
 
             if IS_WINDOWS:
