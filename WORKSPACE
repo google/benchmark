@@ -18,5 +18,5 @@ pip3_install(
 new_local_repository(
     name = "python_headers",
     build_file = "@//bindings/python:python_headers.BUILD",
-    path = "/usr/include/python3.6",  # May be overwritten by setup.py.
+    path = "<PYTHON_INCLUDE_PATH>",  # May be overwritten by setup.py.
 )
