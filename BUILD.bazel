@@ -19,6 +19,12 @@ config_setting(
 )
 
 config_setting(
+    name = "macos",
+    constraint_values = ["@platforms//os:macos"],
+    visibility = ["//visibility:public"],
+)
+
+config_setting(
     name = "perfcounters",
     define_values = {
         "pfm": "1",

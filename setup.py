@@ -88,23 +88,31 @@ class BuildBazelExtension(build_ext.build_ext):
             bazel_argv = [
                 "bazel",
                 "build",
-                str(ext.bazel_target),
+                ext.bazel_target,
                 f"--symlink_prefix={temp_path / 'bazel-'}",
                 f"--compilation_mode={'dbg' if self.debug else 'opt'}",
+                # C++17 is required by nanobind
+                f"--cxxopt={'/std:c++17' if IS_WINDOWS else '-std=c++17'}",
             ]
 
             if IS_WINDOWS:
                 # Link with python*.lib.
                 for library_dir in self.library_dirs:
                     bazel_argv.append("--linkopt=/LIBPATH:" + library_dir)
-            elif IS_MAC and platform.machine() == "x86_64":
-                bazel_argv.append("--macos_minimum_os=10.9")
+            elif IS_MAC:
+                if platform.machine() == "x86_64":
+                    # C++17 needs macOS 10.14 at minimum
+                    bazel_argv.append("--macos_minimum_os=10.14")
 
-                # ARCHFLAGS is always set by cibuildwheel before macOS wheel builds.
-                archflags = os.getenv("ARCHFLAGS", "")
-                if "arm64" in archflags:
-                    bazel_argv.append("--cpu=darwin_arm64")
-                    bazel_argv.append("--macos_cpus=arm64")
+                    # cross-compilation for Mac ARM64 on GitHub Mac x86 runners.
+                    # ARCHFLAGS is set by cibuildwheel before macOS wheel builds.
+                    archflags = os.getenv("ARCHFLAGS", "")
+                    if "arm64" in archflags:
+                        bazel_argv.append("--cpu=darwin_arm64")
+                        bazel_argv.append("--macos_cpus=arm64")
+
+                elif platform.machine() == "arm64":
+                    bazel_argv.append("--macos_minimum_os=11.0")
 
             self.spawn(bazel_argv)
 
@@ -146,7 +154,6 @@ setuptools.setup(
         "Intended Audience :: Developers",
         "Intended Audience :: Science/Research",
         "License :: OSI Approved :: Apache Software License",
-        "Programming Language :: Python :: 3.7",
         "Programming Language :: Python :: 3.8",
         "Programming Language :: Python :: 3.9",
         "Programming Language :: Python :: 3.10",

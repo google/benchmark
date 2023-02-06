@@ -44,13 +44,13 @@ def benchmark_deps():
             tag = "release-1.11.0",
         )
 
-    if "pybind11" not in native.existing_rules():
-        http_archive(
-            name = "pybind11",
-            build_file = "@//bindings/python:pybind11.BUILD",
-            sha256 = "eacf582fa8f696227988d08cfc46121770823839fe9e301a20fbce67e7cd70ec",
-            strip_prefix = "pybind11-2.10.0",
-            urls = ["https://github.com/pybind/pybind11/archive/v2.10.0.tar.gz"],
+    if "nanobind" not in native.existing_rules():
+        git_repository(
+            name = "nanobind",
+            remote = "https://github.com/wjakob/nanobind.git",
+            commit = "fe3ecb800a7a3e8023e8ee77167a6241591e0b8b",
+            build_file = "@//bindings/python:nanobind.BUILD",
+            recursive_init_submodules = True,
         )
 
     if "libpfm" not in native.existing_rules():
