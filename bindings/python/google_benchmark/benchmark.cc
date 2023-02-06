@@ -145,8 +145,9 @@ NB_MODULE(_benchmark, m) {
       .def_readwrite("value", &Counter::value)
       .def_readwrite("flags", &Counter::flags)
       .def_readwrite("oneK", &Counter::oneK)
-      .def(nb::init_implicit<double>())
-      .def(nb::init_implicit<nb::int_>());
+      .def(nb::init_implicit<double>());
+
+  nb::implicitly_convertible<nb::int_, Counter>();
 
   nb::bind_map<benchmark::UserCounters>(m, "UserCounters");
 
