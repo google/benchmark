@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 """
 strip_asm.py - Cleanup ASM output for the specified file

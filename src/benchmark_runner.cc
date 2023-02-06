@@ -19,7 +19,7 @@
 #include "internal_macros.h"
 
 #ifndef BENCHMARK_OS_WINDOWS
-#ifndef BENCHMARK_OS_FUCHSIA
+#if !defined(BENCHMARK_OS_FUCHSIA) && !defined(BENCHMARK_OS_QURT)
 #include <sys/resource.h>
 #endif
 #include <sys/time.h>
@@ -387,10 +387,7 @@ void BenchmarkRunner::DoOneRepetition() {
     manager->WaitForAllThreads();
     manager.reset();
     b.Teardown();
-
-    BENCHMARK_DISABLE_DEPRECATED_WARNING
-    memory_manager->Stop(memory_result);
-    BENCHMARK_RESTORE_DEPRECATED_WARNING
+    memory_manager->Stop(*memory_result);
   }
 
   // Ok, now actually report.
