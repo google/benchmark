@@ -75,7 +75,8 @@ BENCHMARK_RANGE(BM_CalculatePiRange, 1, 1024 * 1024);
 static void BM_CalculatePi(benchmark::State& state) {
   static const int depth = 1024;
   for (auto _ : state) {
-    benchmark::DoNotOptimize(CalculatePi(static_cast<int>(depth)));
+    double pi = CalculatePi(static_cast<int>(depth));
+    benchmark::DoNotOptimize(pi);
   }
 }
 BENCHMARK(BM_CalculatePi)->Threads(8);
@@ -124,7 +125,10 @@ static void BM_StringCompare(benchmark::State& state) {
   size_t len = static_cast<size_t>(state.range(0));
   std::string s1(len, '-');
   std::string s2(len, '-');
-  for (auto _ : state) benchmark::DoNotOptimize(s1.compare(s2));
+  for (auto _ : state) {
+    auto comp = s1.compare(s2);
+    benchmark::DoNotOptimize(comp);
+  }
 }
 BENCHMARK(BM_StringCompare)->Range(1, 1 << 20);
 
