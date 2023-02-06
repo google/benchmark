@@ -70,7 +70,7 @@ reason some companies maintain machines dedicated to performance testing.
 Some of the easier and and effective ways of reducing variance on a typical
 Linux workstation are:
 
-1. Use the performance governer as [discussed
+1. Use the performance governor as [discussed
 above](user_guide#disabling-cpu-frequency-scaling).
 1. Disable processor boosting by:
    ```sh

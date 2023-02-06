@@ -441,7 +441,7 @@ std::string GetSystemName() {
   return str;
 #else
 #ifndef HOST_NAME_MAX
-#ifdef BENCHMARK_HAS_SYSCTL  // BSD/Mac Doesnt have HOST_NAME_MAX defined
+#ifdef BENCHMARK_HAS_SYSCTL  // BSD/Mac doesn't have HOST_NAME_MAX defined
 #define HOST_NAME_MAX 64
 #elif defined(BENCHMARK_OS_NACL)
 #define HOST_NAME_MAX 64

@@ -435,6 +435,9 @@ inline BENCHMARK_ALWAYS_INLINE void ClobberMemory() {
 #ifndef BENCHMARK_HAS_NO_INLINE_ASSEMBLY
 #if !defined(__GNUC__) || defined(__llvm__) || defined(__INTEL_COMPILER)
 template <class Tp>
+BENCHMARK_DEPRECATED_MSG(
+    "The const-ref version of this method can permit "
+    "undesired compiler optimizations in benchmarks")
 inline BENCHMARK_ALWAYS_INLINE void DoNotOptimize(Tp const& value) {
   asm volatile("" : : "r,m"(value) : "memory");
 }
@@ -451,6 +454,9 @@ inline BENCHMARK_ALWAYS_INLINE void DoNotOptimize(Tp& value) {
 // Workaround for a bug with full argument copy overhead with GCC.
 // See: #1340 and https://gcc.gnu.org/bugzilla/show_bug.cgi?id=105519
 template <class Tp>
+BENCHMARK_DEPRECATED_MSG(
+    "The const-ref version of this method can permit "
+    "undesired compiler optimizations in benchmarks")
 inline BENCHMARK_ALWAYS_INLINE
     typename std::enable_if<std::is_trivially_copyable<Tp>::value &&
                             (sizeof(Tp) <= sizeof(Tp*))>::type
@@ -459,6 +465,9 @@ inline BENCHMARK_ALWAYS_INLINE
 }
 
 template <class Tp>
+BENCHMARK_DEPRECATED_MSG(
+    "The const-ref version of this method can permit "
+    "undesired compiler optimizations in benchmarks")
 inline BENCHMARK_ALWAYS_INLINE
     typename std::enable_if<!std::is_trivially_copyable<Tp>::value ||
                             (sizeof(Tp) > sizeof(Tp*))>::type
@@ -487,6 +496,9 @@ inline BENCHMARK_ALWAYS_INLINE
 // to use memory operations instead of operations with registers.
 // TODO: Remove if GCC < 5 will be unsupported.
 template <class Tp>
+BENCHMARK_DEPRECATED_MSG(
+    "The const-ref version of this method can permit "
+    "undesired compiler optimizations in benchmarks")
 inline BENCHMARK_ALWAYS_INLINE void DoNotOptimize(Tp const& value) {
   asm volatile("" : : "m"(value) : "memory");
 }
@@ -504,6 +516,9 @@ inline BENCHMARK_ALWAYS_INLINE void ClobberMemory() {
 #endif
 #elif defined(_MSC_VER)
 template <class Tp>
+BENCHMARK_DEPRECATED_MSG(
+    "The const-ref version of this method can permit "
+    "undesired compiler optimizations in benchmarks")
 inline BENCHMARK_ALWAYS_INLINE void DoNotOptimize(Tp const& value) {
   internal::UseCharPointer(&reinterpret_cast<char const volatile&>(value));
   _ReadWriteBarrier();
@@ -514,6 +529,9 @@ inline BENCHMARK_ALWAYS_INLINE void ClobberMemory() { _ReadWriteBarrier(); }
 #endif
 #else
 template <class Tp>
+BENCHMARK_DEPRECATED_MSG(
+    "The const-ref version of this method can permit "
+    "undesired compiler optimizations in benchmarks")
 inline BENCHMARK_ALWAYS_INLINE void DoNotOptimize(Tp const& value) {
   internal::UseCharPointer(&reinterpret_cast<char const volatile&>(value));
 }
@@ -825,6 +843,9 @@ class BENCHMARK_EXPORT State {
     return max_iterations - total_iterations_ + batch_leftover_;
   }
 
+  BENCHMARK_ALWAYS_INLINE
+  std::string name() const { return name_; }
+
  private:
   // items we expect on the first cache line (ie 64 bytes of the struct)
   // When total_iterations_ is 0, KeepRunning() and friends will return false.
@@ -854,9 +875,9 @@ class BENCHMARK_EXPORT State {
   UserCounters counters;
 
  private:
-  State(IterationCount max_iters, const std::vector<int64_t>& ranges,
-        int thread_i, int n_threads, internal::ThreadTimer* timer,
-        internal::ThreadManager* manager,
+  State(std::string name, IterationCount max_iters,
+        const std::vector<int64_t>& ranges, int thread_i, int n_threads,
+        internal::ThreadTimer* timer, internal::ThreadManager* manager,
         internal::PerfCountersMeasurement* perf_counters_measurement);
 
   void StartKeepRunning();
@@ -865,6 +886,7 @@ class BENCHMARK_EXPORT State {
   bool KeepRunningInternal(IterationCount n, bool is_batch);
   void FinishKeepRunning();
 
+  const std::string name_;
   const int thread_index_;
   const int threads_;
 
@@ -1845,7 +1867,7 @@ inline double GetTimeUnitMultiplier(TimeUnit unit) {
 
 // Creates a list of integer values for the given range and multiplier.
 // This can be used together with ArgsProduct() to allow multiple ranges
-// with different multiplers.
+// with different multipliers.
 // Example:
 // ArgsProduct({
 //   CreateRange(0, 1024, /*multi=*/32),

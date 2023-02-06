@@ -145,7 +145,7 @@ int main(int argc, char** argv) {
 
   // Setup is called 4 times, once for each arg group (1,3,5,7)
   assert(fixture_interaction::setup == 4);
-  // Fixture::Setup is called everytime the bm routine is run.
+  // Fixture::Setup is called every time the bm routine is run.
   // The exact number is indeterministic, so we just assert that
   // it's more than setup.
   assert(fixture_interaction::fixture_setup > fixture_interaction::setup);
