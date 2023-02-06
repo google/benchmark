@@ -19,7 +19,7 @@
 #include "internal_macros.h"
 
 #ifndef BENCHMARK_OS_WINDOWS
-#ifndef BENCHMARK_OS_FUCHSIA
+#if !defined(BENCHMARK_OS_FUCHSIA) && !defined(BENCHMARK_OS_QURT)
 #include <sys/resource.h>
 #endif
 #include <sys/time.h>
@@ -73,8 +73,8 @@ BM_DEFINE_string(benchmark_filter, "");
 BM_DEFINE_double(benchmark_min_time, 0.5);
 
 // Minimum number of seconds a benchmark should be run before results should be
-// taken into account. This e.g can be neccessary for benchmarks of code which
-// needs to fill some form of cache before performance is of interrest.
+// taken into account. This e.g can be necessary for benchmarks of code which
+// needs to fill some form of cache before performance is of interest.
 // Note: results gathered within this period are discarded and not used for
 // reported result.
 BM_DEFINE_double(benchmark_min_warmup_time, 0.0);
@@ -148,9 +148,9 @@ void UseCharPointer(char const volatile*) {}
 
 }  // namespace internal
 
-State::State(IterationCount max_iters, const std::vector<int64_t>& ranges,
-             int thread_i, int n_threads, internal::ThreadTimer* timer,
-             internal::ThreadManager* manager,
+State::State(std::string name, IterationCount max_iters,
+             const std::vector<int64_t>& ranges, int thread_i, int n_threads,
+             internal::ThreadTimer* timer, internal::ThreadManager* manager,
              internal::PerfCountersMeasurement* perf_counters_measurement)
     : total_iterations_(0),
       batch_leftover_(0),
@@ -160,6 +160,7 @@ State::State(IterationCount max_iters, const std::vector<int64_t>& ranges,
       error_occurred_(false),
       range_(ranges),
       complexity_n_(0),
+      name_(std::move(name)),
       thread_index_(thread_i),
       threads_(n_threads),
       timer_(timer),
@@ -182,7 +183,7 @@ State::State(IterationCount max_iters, const std::vector<int64_t>& ranges,
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Winvalid-offsetof"
 #endif
-#if defined(__CUDACC__)
+#if defined(__NVCC__)
 #pragma nv_diagnostic push
 #pragma nv_diag_suppress 1427
 #endif
@@ -196,7 +197,7 @@ State::State(IterationCount max_iters, const std::vector<int64_t>& ranges,
 #elif defined(__GNUC__)
 #pragma GCC diagnostic pop
 #endif
-#if defined(__CUDACC__)
+#if defined(__NVCC__)
 #pragma nv_diagnostic pop
 #endif
 }
@@ -409,14 +410,15 @@ std::unique_ptr<BenchmarkReporter> CreateReporter(
   typedef std::unique_ptr<BenchmarkReporter> PtrType;
   if (name == "console") {
     return PtrType(new ConsoleReporter(output_opts));
-  } else if (name == "json") {
-    return PtrType(new JSONReporter());
-  } else if (name == "csv") {
-    return PtrType(new CSVReporter());
-  } else {
-    std::cerr << "Unexpected format: '" << name << "'\n";
-    std::exit(1);
   }
+  if (name == "json") {
+    return PtrType(new JSONReporter());
+  }
+  if (name == "csv") {
+    return PtrType(new CSVReporter());
+  }
+  std::cerr << "Unexpected format: '" << name << "'\n";
+  std::exit(1);
 }
 
 BENCHMARK_RESTORE_DEPRECATED_WARNING
@@ -585,13 +587,17 @@ void PrintUsageAndExit() {
 void SetDefaultTimeUnitFromFlag(const std::string& time_unit_flag) {
   if (time_unit_flag == "s") {
     return SetDefaultTimeUnit(kSecond);
-  } else if (time_unit_flag == "ms") {
+  }
+  if (time_unit_flag == "ms") {
     return SetDefaultTimeUnit(kMillisecond);
-  } else if (time_unit_flag == "us") {
+  }
+  if (time_unit_flag == "us") {
     return SetDefaultTimeUnit(kMicrosecond);
-  } else if (time_unit_flag == "ns") {
+  }
+  if (time_unit_flag == "ns") {
     return SetDefaultTimeUnit(kNanosecond);
-  } else if (!time_unit_flag.empty()) {
+  }
+  if (!time_unit_flag.empty()) {
     PrintUsageAndExit();
   }
 }
@@ -676,6 +682,9 @@ void PrintDefaultHelp() {
           "          [--benchmark_out_format=<json|console|csv>]\n"
           "          [--benchmark_color={auto|true|false}]\n"
           "          [--benchmark_counters_tabular={true|false}]\n"
+#if defined HAVE_LIBPFM
+          "          [--benchmark_perf_counters=<counter>,...]\n"
+#endif
           "          [--benchmark_context=<key>=<value>,...]\n"
           "          [--benchmark_time_unit={ns|us|ms|s}]\n"
           "          [--v=<verbosity>]\n");

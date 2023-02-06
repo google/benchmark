@@ -4,8 +4,10 @@
 #include <sstream>
 #include <string>
 #include <utility>
+#include <vector>
 
 #include "benchmark/export.h"
+#include "check.h"
 #include "internal_macros.h"
 
 namespace benchmark {

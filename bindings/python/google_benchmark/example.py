@@ -72,7 +72,7 @@ def manual_timing(state):
 
 @benchmark.register
 def custom_counters(state):
-    """Collect cutom metric using benchmark.Counter."""
+    """Collect custom metric using benchmark.Counter."""
     num_foo = 0.0
     while state:
         # Benchmark some code here

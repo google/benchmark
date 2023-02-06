@@ -1,44 +1,38 @@
+import contextlib
 import os
-import posixpath
 import platform
-import re
 import shutil
-import sys
+import sysconfig
+from pathlib import Path
+from typing import List
 
-from distutils import sysconfig
 import setuptools
 from setuptools.command import build_ext
 
 
-HERE = os.path.dirname(os.path.abspath(__file__))
+PYTHON_INCLUDE_PATH_PLACEHOLDER = "<PYTHON_INCLUDE_PATH>"
+
+IS_WINDOWS = platform.system() == "Windows"
+IS_MAC = platform.system() == "Darwin"
 
 
-IS_WINDOWS = sys.platform.startswith("win")
+def _get_long_description(fp: str) -> str:
+    with open(fp, "r", encoding="utf-8") as f:
+        return f.read()
 
 
-with open("README.md", "r", encoding="utf-8") as fp:
-    long_description = fp.read()
+def _get_version(fp: str) -> str:
+    """Parse a version string from a file."""
+    with open(fp, "r") as f:
+        for line in f:
+            if "__version__" in line:
+                delim = '"'
+                return line.split(delim)[1]
+    raise RuntimeError(f"could not find a version string in file {fp!r}.")
 
 
-def _get_version():
-    """Parse the version string from __init__.py."""
-    with open(
-        os.path.join(HERE, "bindings", "python", "google_benchmark", "__init__.py")
-    ) as init_file:
-        try:
-            version_line = next(
-                line for line in init_file if line.startswith("__version__")
-            )
-        except StopIteration:
-            raise ValueError("__version__ not defined in __init__.py")
-        else:
-            namespace = {}
-            exec(version_line, namespace)  # pylint: disable=exec-used
-            return namespace["__version__"]
-
-
-def _parse_requirements(path):
-    with open(os.path.join(HERE, path)) as requirements:
+def _parse_requirements(fp: str) -> List[str]:
+    with open(fp) as requirements:
         return [
             line.rstrip()
             for line in requirements
@@ -46,15 +40,36 @@ def _parse_requirements(path):
         ]
 
 
+@contextlib.contextmanager
+def temp_fill_include_path(fp: str):
+    """Temporarily set the Python include path in a file."""
+    with open(fp, "r+") as f:
+        try:
+            content = f.read()
+            replaced = content.replace(
+                PYTHON_INCLUDE_PATH_PLACEHOLDER,
+                Path(sysconfig.get_paths()['include']).as_posix(),
+            )
+            f.seek(0)
+            f.write(replaced)
+            f.truncate()
+            yield
+        finally:
+            # revert to the original content after exit
+            f.seek(0)
+            f.write(content)
+            f.truncate()
+
+
 class BazelExtension(setuptools.Extension):
     """A C/C++ extension that is defined as a Bazel BUILD target."""
 
-    def __init__(self, name, bazel_target):
+    def __init__(self, name: str, bazel_target: str):
+        super().__init__(name=name, sources=[])
+
         self.bazel_target = bazel_target
-        self.relpath, self.target_name = posixpath.relpath(bazel_target, "//").split(
-            ":"
-        )
-        setuptools.Extension.__init__(self, name, sources=[])
+        stripped_target = bazel_target.split("//")[-1]
+        self.relpath, self.target_name = stripped_target.split(":")
 
 
 class BuildBazelExtension(build_ext.build_ext):
@@ -65,67 +80,59 @@ class BuildBazelExtension(build_ext.build_ext):
             self.bazel_build(ext)
         build_ext.build_ext.run(self)
 
-    def bazel_build(self, ext):
+    def bazel_build(self, ext: BazelExtension):
         """Runs the bazel build to create the package."""
-        with open("WORKSPACE", "r") as workspace:
-            workspace_contents = workspace.read()
+        with temp_fill_include_path("WORKSPACE"):
+            temp_path = Path(self.build_temp)
 
-        with open("WORKSPACE", "w") as workspace:
-            workspace.write(
-                re.sub(
-                    r'(?<=path = ").*(?=",  # May be overwritten by setup\.py\.)',
-                    sysconfig.get_python_inc().replace(os.path.sep, posixpath.sep),
-                    workspace_contents,
-                )
-            )
+            bazel_argv = [
+                "bazel",
+                "build",
+                ext.bazel_target,
+                f"--symlink_prefix={temp_path / 'bazel-'}",
+                f"--compilation_mode={'dbg' if self.debug else 'opt'}",
+                # C++17 is required by nanobind
+                f"--cxxopt={'/std:c++17' if IS_WINDOWS else '-std=c++17'}",
+            ]
 
-        if not os.path.exists(self.build_temp):
-            os.makedirs(self.build_temp)
+            if IS_WINDOWS:
+                # Link with python*.lib.
+                for library_dir in self.library_dirs:
+                    bazel_argv.append("--linkopt=/LIBPATH:" + library_dir)
+            elif IS_MAC:
+                if platform.machine() == "x86_64":
+                    # C++17 needs macOS 10.14 at minimum
+                    bazel_argv.append("--macos_minimum_os=10.14")
 
-        bazel_argv = [
-            "bazel",
-            "build",
-            ext.bazel_target,
-            "--symlink_prefix=" + os.path.join(self.build_temp, "bazel-"),
-            "--compilation_mode=" + ("dbg" if self.debug else "opt"),
-        ]
+                    # cross-compilation for Mac ARM64 on GitHub Mac x86 runners.
+                    # ARCHFLAGS is set by cibuildwheel before macOS wheel builds.
+                    archflags = os.getenv("ARCHFLAGS", "")
+                    if "arm64" in archflags:
+                        bazel_argv.append("--cpu=darwin_arm64")
+                        bazel_argv.append("--macos_cpus=arm64")
 
-        if IS_WINDOWS:
-            # Link with python*.lib.
-            for library_dir in self.library_dirs:
-                bazel_argv.append("--linkopt=/LIBPATH:" + library_dir)
-        elif sys.platform == "darwin" and platform.machine() == "x86_64":
-            bazel_argv.append("--macos_minimum_os=10.9")
+                elif platform.machine() == "arm64":
+                    bazel_argv.append("--macos_minimum_os=11.0")
 
-            # ARCHFLAGS is always set by cibuildwheel before macOS wheel builds.
-            archflags = os.getenv("ARCHFLAGS", "")
-            if "arm64" in archflags:
-                bazel_argv.append("--cpu=darwin_arm64")
-                bazel_argv.append("--macos_cpus=arm64")
+            self.spawn(bazel_argv)
 
-        self.spawn(bazel_argv)
+            shared_lib_suffix = '.dll' if IS_WINDOWS else '.so'
+            ext_name = ext.target_name + shared_lib_suffix
+            ext_bazel_bin_path = temp_path / 'bazel-bin' / ext.relpath / ext_name
 
-        shared_lib_suffix = '.dll' if IS_WINDOWS else '.so'
-        ext_bazel_bin_path = os.path.join(
-            self.build_temp, 'bazel-bin',
-            ext.relpath, ext.target_name + shared_lib_suffix)
+            ext_dest_path = Path(self.get_ext_fullpath(ext.name))
+            shutil.copyfile(ext_bazel_bin_path, ext_dest_path)
 
-        ext_dest_path = self.get_ext_fullpath(ext.name)
-        ext_dest_dir = os.path.dirname(ext_dest_path)
-        if not os.path.exists(ext_dest_dir):
-            os.makedirs(ext_dest_dir)
-        shutil.copyfile(ext_bazel_bin_path, ext_dest_path)
-
-        # explicitly call `bazel shutdown` for graceful exit
-        self.spawn(["bazel", "shutdown"])
+            # explicitly call `bazel shutdown` for graceful exit
+            self.spawn(["bazel", "shutdown"])
 
 
 setuptools.setup(
     name="google_benchmark",
-    version=_get_version(),
+    version=_get_version("bindings/python/google_benchmark/__init__.py"),
     url="https://github.com/google/benchmark",
     description="A library to benchmark code snippets.",
-    long_description=long_description,
+    long_description=_get_long_description("README.md"),
     long_description_content_type="text/markdown",
     author="Google",
     author_email="benchmark-py@google.com",
@@ -147,9 +154,10 @@ setuptools.setup(
         "Intended Audience :: Developers",
         "Intended Audience :: Science/Research",
         "License :: OSI Approved :: Apache Software License",
-        "Programming Language :: Python :: 3.6",
-        "Programming Language :: Python :: 3.7",
         "Programming Language :: Python :: 3.8",
+        "Programming Language :: Python :: 3.9",
+        "Programming Language :: Python :: 3.10",
+        "Programming Language :: Python :: 3.11",
         "Topic :: Software Development :: Testing",
         "Topic :: System :: Benchmark",
     ],

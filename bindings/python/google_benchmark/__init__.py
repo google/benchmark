@@ -26,6 +26,7 @@ Example usage:
   if __name__ == '__main__':
     benchmark.main()
 """
+import atexit
 
 from absl import app
 from google_benchmark import _benchmark
@@ -68,7 +69,7 @@ __all__ = [
     "State",
 ]
 
-__version__ = "1.7.0"
+__version__ = "1.7.1"
 
 
 class __OptionMaker:
@@ -103,7 +104,7 @@ class __OptionMaker:
                 options = self.make(func_or_options)
                 options.builder_calls.append((builder_name, args, kwargs))
                 # The decorator returns Options so it is not technically a decorator
-                # and needs a final call to @regiser
+                # and needs a final call to @register
                 return options
 
             return __decorator
@@ -158,3 +159,4 @@ def main(argv=None):
 # Methods for use with custom main function.
 initialize = _benchmark.Initialize
 run_benchmarks = _benchmark.RunSpecifiedBenchmarks
+atexit.register(_benchmark.ClearRegisteredBenchmarks)

@@ -1,4 +1,4 @@
-cmake_minimum_required (VERSION 3.5.1)
+cmake_minimum_required (VERSION 3.16.3)
 
 foreach(p
     CMP0048 # OK to clear PROJECT_VERSION on project()
@@ -6,6 +6,7 @@ foreach(p
     CMP0056 # export EXE_LINKER_FLAGS to try_run
     CMP0057 # Support no if() IN_LIST operator
     CMP0063 # Honor visibility properties for all targets
+    CMP0067 # Honor language standard in try_compile() source file signature
     CMP0077 # Allow option() overrides in importing projects
     )
   if(POLICY ${p})
@@ -13,7 +14,7 @@ foreach(p
   endif()
 endforeach()
 
-project (benchmark VERSION 1.7.0 LANGUAGES CXX)
+project (benchmark VERSION 1.7.1 LANGUAGES CXX)
 
 option(BENCHMARK_ENABLE_TESTING "Enable testing of the benchmark library." ON)
 option(BENCHMARK_ENABLE_EXCEPTIONS "Enable the use of exceptions in the benchmark library." ON)
@@ -137,6 +138,20 @@ if (BENCHMARK_BUILD_32_BITS)
   add_required_cxx_compiler_flag(-m32)
 endif()
 
+set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
+
+if (MSVC)
+  set(BENCHMARK_CXX_STANDARD 14)
+else()
+  set(BENCHMARK_CXX_STANDARD 11)
+endif()
+
+set(CMAKE_CXX_STANDARD ${BENCHMARK_CXX_STANDARD})
+set(CMAKE_CXX_STANDARD_REQUIRED YES)
+set(CMAKE_CXX_EXTENSIONS OFF)
+
 if (MSVC)
   # Turn compiler warnings up to 11
   string(REGEX REPLACE "[-/]W[1-4]" "" CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
@@ -169,13 +184,6 @@ if (MSVC)
     set(CMAKE_EXE_LINKER_FLAGS_MINSIZEREL "${CMAKE_EXE_LINKER_FLAGS_MINSIZEREL} /LTCG")
   endif()
 else()
-  # Try and enable C++11. Don't use C++14 because it doesn't work in some
-  # configurations.
-  add_cxx_compiler_flag(-std=c++11)
-  if (NOT HAVE_CXX_FLAG_STD_CXX11)
-    add_cxx_compiler_flag(-std=c++0x)
-  endif()
-
   # Turn compiler warnings up to 11
   add_cxx_compiler_flag(-Wall)
   add_cxx_compiler_flag(-Wextra)
@@ -223,12 +231,12 @@ else()
   add_cxx_compiler_flag(-wd654)
   add_cxx_compiler_flag(-Wthread-safety)
   if (HAVE_CXX_FLAG_WTHREAD_SAFETY)
-    cxx_feature_check(THREAD_SAFETY_ATTRIBUTES)
+    cxx_feature_check(THREAD_SAFETY_ATTRIBUTES "-DINCLUDE_DIRECTORIES=${PROJECT_SOURCE_DIR}/include")
   endif()
 
   # On most UNIX like platforms g++ and clang++ define _GNU_SOURCE as a
   # predefined macro, which turns on all of the wonderful libc extensions.
-  # However g++ doesn't do this in Cygwin so we have to define it ourselfs
+  # However g++ doesn't do this in Cygwin so we have to define it ourselves
   # since we depend on GNU/POSIX/BSD extensions.
   if (CYGWIN)
     add_definitions(-D_GNU_SOURCE=1)

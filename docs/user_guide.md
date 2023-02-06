@@ -58,8 +58,11 @@
 
 [A Faster KeepRunning Loop](#a-faster-keep-running-loop)
 
+## Benchmarking Tips
+
 [Disabling CPU Frequency Scaling](#disabling-cpu-frequency-scaling)
 
+[Reducing Variance in Benchmarks](reducing_variance.md)
 
 <a name="output-formats" />
 
@@ -383,14 +386,17 @@ short-hand. The following macro will pick a few appropriate arguments in the
 product of the two specified ranges and will generate a benchmark for each such
 pair.
 
+<!-- {% raw %} -->
 ```c++
 BENCHMARK(BM_SetInsert)->Ranges({{1<<10, 8<<10}, {128, 512}});
 ```
+<!-- {% endraw %} -->
 
 Some benchmarks may require specific argument values that cannot be expressed
 with `Ranges`. In this case, `ArgsProduct` offers the ability to generate a
 benchmark input for each combination in the product of the supplied vectors.
 
+<!-- {% raw %} -->
 ```c++
 BENCHMARK(BM_SetInsert)
     ->ArgsProduct({{1<<10, 3<<10, 8<<10}, {20, 40, 60, 80}})
@@ -409,6 +415,7 @@ BENCHMARK(BM_SetInsert)
     ->Args({3<<10, 80})
     ->Args({8<<10, 80});
 ```
+<!-- {% endraw %} -->
 
 For the most common scenarios, helper methods for creating a list of
 integers for a given sparse or dense range are provided.
@@ -694,6 +701,7 @@ is 1k a 1000 (default, `benchmark::Counter::OneK::kIs1000`), or 1024
 When you're compiling in C++11 mode or later you can use `insert()` with
 `std::initializer_list`:
 
+<!-- {% raw %} -->
 ```c++
   // With C++11, this can be done:
   state.counters.insert({{"Foo", numFoos}, {"Bar", numBars}, {"Baz", numBazs}});
@@ -702,6 +710,7 @@ When you're compiling in C++11 mode or later you can use `insert()` with
   state.counters["Bar"] = numBars;
   state.counters["Baz"] = numBazs;
 ```
+<!-- {% endraw %} -->
 
 ### Counter Reporting
 
@@ -870,6 +879,7 @@ is measured. But sometimes, it is necessary to do some work inside of
 that loop, every iteration, but without counting that time to the benchmark time.
 That is possible, although it is not recommended, since it has high overhead.
 
+<!-- {% raw %} -->
 ```c++
 static void BM_SetInsert_With_Timer_Control(benchmark::State& state) {
   std::set<int> data;
@@ -884,6 +894,7 @@ static void BM_SetInsert_With_Timer_Control(benchmark::State& state) {
 }
 BENCHMARK(BM_SetInsert_With_Timer_Control)->Ranges({{1<<10, 8<<10}, {128, 512}});
 ```
+<!-- {% endraw %} -->
 
 <a name="manual-timing" />
 
@@ -1243,35 +1254,7 @@ If you see this error:
 ```
 
 you might want to disable the CPU frequency scaling while running the
-benchmark.  Exactly how to do this depends on the Linux distribution,
-desktop environment, and installed programs.  Specific details are a moving
-target, so we will not attempt to exhaustively document them here.
+benchmark, as well as consider other ways to stabilize the performance of
+your system while benchmarking.
 
-One simple option is to use the `cpupower` program to change the
-performance governor to "performance".  This tool is maintained along with
-the Linux kernel and provided by your distribution.
-
-It must be run as root, like this:
-
-```bash
-sudo cpupower frequency-set --governor performance
-```
-
-After this you can verify that all CPUs are using the performance governor
-by running this command:
-
-```bash
-cpupower frequency-info -o proc
-```
-
-The benchmarks you subsequently run will have less variance.
-
-Note that changing the governor in this way will not persist across
-reboots.  To set the governor back, run the first command again with the
-governor your system usually runs with, which varies.
-
-If you find yourself doing this often, there are probably better options
-than running the commands above.  Some approaches allow you to do this
-without root access, or by using a GUI, etc.  The Arch Wiki [Cpu frequency
-scaling](https://wiki.archlinux.org/title/CPU_frequency_scaling) page is a
-good place to start looking for options.
+See [Reducing Variance](reducing_variance.md) for more information.
