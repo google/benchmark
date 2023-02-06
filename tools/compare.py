@@ -9,25 +9,28 @@ import argparse
 from argparse import ArgumentParser
 import json
 import sys
+import os
 import gbench
 from gbench import util, report
-from gbench.util import *
 
 
 def check_inputs(in1, in2, flags):
     """
     Perform checking on the user provided inputs and diagnose any abnormalities
     """
-    in1_kind, in1_err = classify_input_file(in1)
-    in2_kind, in2_err = classify_input_file(in2)
-    output_file = find_benchmark_flag('--benchmark_out=', flags)
-    output_type = find_benchmark_flag('--benchmark_out_format=', flags)
-    if in1_kind == IT_Executable and in2_kind == IT_Executable and output_file:
+    in1_kind, in1_err = util.classify_input_file(in1)
+    in2_kind, in2_err = util.classify_input_file(in2)
+    output_file = util.find_benchmark_flag('--benchmark_out=', flags)
+    output_type = util.find_benchmark_flag('--benchmark_out_format=', flags)
+    if in1_kind == util.IT_Executable and in2_kind == util.IT_Executable and output_file:
         print(("WARNING: '--benchmark_out=%s' will be passed to both "
                "benchmarks causing it to be overwritten") % output_file)
-    if in1_kind == IT_JSON and in2_kind == IT_JSON and len(flags) > 0:
-        print("WARNING: passing optional flags has no effect since both "
-              "inputs are JSON")
+    if in1_kind == util.IT_JSON and in2_kind == util.IT_JSON:
+        # When both sides are JSON the only supported flag is
+        # --benchmark_filter=
+        for flag in util.remove_benchmark_flags('--benchmark_filter=', flags):
+            print("WARNING: passing %s has no effect since both "
+                  "inputs are JSON" % flag)
     if output_type is not None and output_type != 'json':
         print(("ERROR: passing '--benchmark_out_format=%s' to 'compare.py`"
                " is not supported.") % output_type)
