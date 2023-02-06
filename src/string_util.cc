@@ -94,10 +94,10 @@ std::string ExponentToPrefix(int64_t exponent, bool iec) {
 
   const char* array =
       (exponent > 0 ? (iec ? kBigIECUnits : kBigSIUnits) : kSmallSIUnits);
-  if (iec)
+  if (iec) {
     return array[index] + std::string("i");
-  else
-    return std::string(1, array[index]);
+  }
+  return std::string(1, array[index]);
 }
 
 std::string ToBinaryStringFullySpecified(double value, double threshold,

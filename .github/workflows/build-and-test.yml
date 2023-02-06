@@ -17,20 +17,13 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        # ubuntu-18.04 is deprecated but included for best-effort support
-        os: [ubuntu-22.04, ubuntu-20.04, ubuntu-18.04, macos-latest]
+        os: [ubuntu-22.04, ubuntu-20.04, macos-latest]
         build_type: ['Release', 'Debug']
         compiler: [g++, clang++]
         lib: ['shared', 'static']
 
     steps:
       - uses: actions/checkout@v2
-
-      - name: setup cmake
-        if: matrix.os == 'ubuntu-18.04'
-        uses: jwlawson/actions-setup-cmake@v1.9
-        with:
-          cmake-version: '3.16.3'
 
       - name: create build environment
         run: cmake -E make_directory ${{ runner.workspace }}/_build

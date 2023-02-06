@@ -68,7 +68,7 @@ PerfCounters PerfCounters::Create(
       return NoCounters();
     }
     attr.disabled = is_first;
-    // Note: the man page for perf_event_create suggests inerit = true and
+    // Note: the man page for perf_event_create suggests inherit = true and
     // read_format = PERF_FORMAT_GROUP don't work together, but that's not the
     // case.
     attr.inherit = true;

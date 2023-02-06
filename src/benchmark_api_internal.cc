@@ -93,24 +93,24 @@ State BenchmarkInstance::Run(
     IterationCount iters, int thread_id, internal::ThreadTimer* timer,
     internal::ThreadManager* manager,
     internal::PerfCountersMeasurement* perf_counters_measurement) const {
-  State st(iters, args_, thread_id, threads_, timer, manager,
-           perf_counters_measurement);
+  State st(name_.function_name, iters, args_, thread_id, threads_, timer,
+           manager, perf_counters_measurement);
   benchmark_.Run(st);
   return st;
 }
 
 void BenchmarkInstance::Setup() const {
   if (setup_) {
-    State st(/*iters*/ 1, args_, /*thread_id*/ 0, threads_, nullptr, nullptr,
-             nullptr);
+    State st(name_.function_name, /*iters*/ 1, args_, /*thread_id*/ 0, threads_,
+             nullptr, nullptr, nullptr);
     setup_(st);
   }
 }
 
 void BenchmarkInstance::Teardown() const {
   if (teardown_) {
-    State st(/*iters*/ 1, args_, /*thread_id*/ 0, threads_, nullptr, nullptr,
-             nullptr);
+    State st(name_.function_name, /*iters*/ 1, args_, /*thread_id*/ 0, threads_,
+             nullptr, nullptr, nullptr);
     teardown_(st);
   }
 }
