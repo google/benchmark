@@ -386,14 +386,17 @@ short-hand. The following macro will pick a few appropriate arguments in the
 product of the two specified ranges and will generate a benchmark for each such
 pair.
 
+<!-- {% raw %} -->
 ```c++
 BENCHMARK(BM_SetInsert)->Ranges({{1<<10, 8<<10}, {128, 512}});
 ```
+<!-- {% endraw %} -->
 
 Some benchmarks may require specific argument values that cannot be expressed
 with `Ranges`. In this case, `ArgsProduct` offers the ability to generate a
 benchmark input for each combination in the product of the supplied vectors.
 
+<!-- {% raw %} -->
 ```c++
 BENCHMARK(BM_SetInsert)
     ->ArgsProduct({{1<<10, 3<<10, 8<<10}, {20, 40, 60, 80}})
@@ -412,6 +415,7 @@ BENCHMARK(BM_SetInsert)
     ->Args({3<<10, 80})
     ->Args({8<<10, 80});
 ```
+<!-- {% endraw %} -->
 
 For the most common scenarios, helper methods for creating a list of
 integers for a given sparse or dense range are provided.
@@ -697,6 +701,7 @@ is 1k a 1000 (default, `benchmark::Counter::OneK::kIs1000`), or 1024
 When you're compiling in C++11 mode or later you can use `insert()` with
 `std::initializer_list`:
 
+<!-- {% raw %} -->
 ```c++
   // With C++11, this can be done:
   state.counters.insert({{"Foo", numFoos}, {"Bar", numBars}, {"Baz", numBazs}});
@@ -705,6 +710,7 @@ When you're compiling in C++11 mode or later you can use `insert()` with
   state.counters["Bar"] = numBars;
   state.counters["Baz"] = numBazs;
 ```
+<!-- {% endraw %} -->
 
 ### Counter Reporting
 
@@ -873,6 +879,7 @@ is measured. But sometimes, it is necessary to do some work inside of
 that loop, every iteration, but without counting that time to the benchmark time.
 That is possible, although it is not recommended, since it has high overhead.
 
+<!-- {% raw %} -->
 ```c++
 static void BM_SetInsert_With_Timer_Control(benchmark::State& state) {
   std::set<int> data;
@@ -887,6 +894,7 @@ static void BM_SetInsert_With_Timer_Control(benchmark::State& state) {
 }
 BENCHMARK(BM_SetInsert_With_Timer_Control)->Ranges({{1<<10, 8<<10}, {128, 512}});
 ```
+<!-- {% endraw %} -->
 
 <a name="manual-timing" />
 
