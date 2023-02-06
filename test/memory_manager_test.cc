@@ -5,10 +5,10 @@
 #include "output_test.h"
 
 class TestMemoryManager : public benchmark::MemoryManager {
-  void Start() BENCHMARK_OVERRIDE {}
-  void Stop(Result* result) BENCHMARK_OVERRIDE {
-    result->num_allocs = 42;
-    result->max_bytes_used = 42000;
+  void Start() override {}
+  void Stop(Result& result) override {
+    result.num_allocs = 42;
+    result.max_bytes_used = 42000;
   }
 };
 

@@ -58,7 +58,7 @@ def classify_input_file(filename):
     """
     Return a tuple (type, msg) where 'type' specifies the classified type
     of 'filename'. If 'type' is 'IT_Invalid' then 'msg' is a human readable
-    string represeting the error.
+    string representing the error.
     """
     ftype = IT_Invalid
     err_msg = None

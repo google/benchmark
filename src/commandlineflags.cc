@@ -284,14 +284,15 @@ bool IsTruthyFlagValue(const std::string& value) {
     char v = value[0];
     return isalnum(v) &&
            !(v == '0' || v == 'f' || v == 'F' || v == 'n' || v == 'N');
-  } else if (!value.empty()) {
+  }
+  if (!value.empty()) {
     std::string value_lower(value);
     std::transform(value_lower.begin(), value_lower.end(), value_lower.begin(),
                    [](char c) { return static_cast<char>(::tolower(c)); });
     return !(value_lower == "false" || value_lower == "no" ||
              value_lower == "off");
-  } else
-    return true;
+  }
+  return true;
 }
 
 }  // end namespace benchmark
