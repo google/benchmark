@@ -1379,7 +1379,7 @@ class Fixture : public internal::Benchmark {
   BENCHMARK_PRIVATE_DECLARE(_benchmark_) =                           \
       (::benchmark::internal::RegisterBenchmarkInternal(             \
           new ::benchmark::internal::FunctionBenchmark(#__VA_ARGS__, \
-                                                       &__VA_ARGS__)))
+                                                       __VA_ARGS__)))
 #else
 #define BENCHMARK(n)                                     \
   BENCHMARK_PRIVATE_DECLARE(n) =                         \

@@ -5,6 +5,7 @@
 #include <stdint.h>
 
 #include <chrono>
+#include <complex>
 #include <cstdlib>
 #include <iostream>
 #include <limits>
@@ -253,5 +254,17 @@ static void BM_BenchmarkName(benchmark::State& state) {
   assert("BM_BenchmarkName" == state.name());
 }
 BENCHMARK(BM_BenchmarkName);
+
+// regression test for #1446
+template <typename type>
+static void BM_templated_test(benchmark::State& state) {
+  for (auto _ : state) {
+    type created_string;
+    benchmark::DoNotOptimize(created_string);
+  }
+}
+
+static auto BM_templated_test_double = BM_templated_test<std::complex<double>>;
+BENCHMARK(BM_templated_test_double);
 
 BENCHMARK_MAIN();
