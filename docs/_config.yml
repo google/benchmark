@@ -1,1 +1,7 @@
 theme: jekyll-theme-minimal
+defaults:
+  -
+    scope:
+      path: ""
+    values:
+      render_with_liquid: false
