@@ -14,10 +14,10 @@ jobs:
       - name: Check out repo
         uses: actions/checkout@v3
 
-      - name: Install Python 3.9
-        uses: actions/setup-python@v3
+      - name: Install Python 3.11
+        uses: actions/setup-python@v4
         with:
-          python-version: 3.9
+          python-version: 3.11
 
       - name: Build and check sdist
         run: |
@@ -46,11 +46,11 @@ jobs:
           platforms: all
 
       - name: Build wheels on ${{ matrix.os }} using cibuildwheel
-        uses: pypa/cibuildwheel@v2.9.0
+        uses: pypa/cibuildwheel@v2.12.0
         env:
-          CIBW_BUILD: 'cp37-* cp38-* cp39-* cp310-* cp311-*'
-          CIBW_SKIP: "cp37-*-arm64 *-musllinux_*"
-          # TODO: Build ppc64le using some other trick
+          CIBW_BUILD: 'cp38-* cp39-* cp310-* cp311-*'
+          CIBW_SKIP: "*-musllinux_*"
+          CIBW_TEST_SKIP: "*-macosx_arm64"
           CIBW_ARCHS_LINUX: x86_64 aarch64
           CIBW_ARCHS_MACOS: x86_64 arm64
           CIBW_ARCHS_WINDOWS: AMD64
@@ -73,7 +73,7 @@ jobs:
         name: dist
         path: dist
 
-    - uses: pypa/gh-action-pypi-publish@v1.5.0
+    - uses: pypa/gh-action-pypi-publish@v1.6.4
       with:
         user: __token__
         password: ${{ secrets.PYPI_PASSWORD }}

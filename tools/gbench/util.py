@@ -2,10 +2,11 @@
 """
 import json
 import os
-import tempfile
+import re
 import subprocess
 import sys
-import functools
+import tempfile
+
 
 # Input file type enumeration
 IT_Invalid = 0
@@ -111,13 +112,32 @@ def remove_benchmark_flags(prefix, benchmark_flags):
     return [f for f in benchmark_flags if not f.startswith(prefix)]
 
 
-def load_benchmark_results(fname):
+def load_benchmark_results(fname, benchmark_filter):
     """
     Read benchmark output from a file and return the JSON object.
+
+    Apply benchmark_filter, a regular expression, with nearly the same
+    semantics of the --benchmark_filter argument.  May be None.
+    Note: the Python regular expression engine is used instead of the
+    one used by the C++ code, which may produce different results
+    in complex cases.
+
     REQUIRES: 'fname' names a file containing JSON benchmark output.
     """
+    def benchmark_wanted(benchmark):
+        if benchmark_filter is None:
+            return True
+        name = benchmark.get('run_name', None) or benchmark['name']
+        if re.search(benchmark_filter, name):
+            return True
+        return False
+
     with open(fname, 'r') as f:
-        return json.load(f)
+        results = json.load(f)
+        if 'benchmarks' in results:
+            results['benchmarks'] = list(filter(benchmark_wanted,
+                                                results['benchmarks']))
+        return results
 
 
 def sort_benchmark_results(result):
@@ -160,7 +180,7 @@ def run_benchmark(exe_name, benchmark_flags):
     if exitCode != 0:
         print('TEST FAILED...')
         sys.exit(exitCode)
-    json_res = load_benchmark_results(output_name)
+    json_res = load_benchmark_results(output_name, None)
     if is_temp_output:
         os.unlink(output_name)
     return json_res
@@ -175,7 +195,9 @@ def run_or_load_benchmark(filename, benchmark_flags):
     """
     ftype = check_input_file(filename)
     if ftype == IT_JSON:
-        return load_benchmark_results(filename)
+        benchmark_filter = find_benchmark_flag('--benchmark_filter=',
+                                               benchmark_flags)
+        return load_benchmark_results(filename, benchmark_filter)
     if ftype == IT_Executable:
         return run_benchmark(filename, benchmark_flags)
     raise ValueError('Unknown file type %s' % ftype)
