@@ -28,11 +28,14 @@
 
 #include <algorithm>
 #include <atomic>
+#include <climits>
+#include <cmath>
 #include <condition_variable>
 #include <cstdio>
 #include <cstdlib>
 #include <fstream>
 #include <iostream>
+#include <limits>
 #include <memory>
 #include <string>
 #include <thread>
@@ -62,6 +65,8 @@ MemoryManager* memory_manager = nullptr;
 namespace {
 
 static constexpr IterationCount kMaxIterations = 1000000000;
+const double kDefaultMinTime =
+    std::strtod(::benchmark::kDefaultMinTimeStr, /*p_end*/ nullptr);
 
 BenchmarkReporter::Run CreateRunReport(
     const benchmark::internal::BenchmarkInstance& b,
@@ -140,23 +145,100 @@ void RunInThread(const BenchmarkInstance* b, IterationCount iters,
   manager->NotifyThreadComplete();
 }
 
+double ComputeMinTime(const benchmark::internal::BenchmarkInstance& b,
+                      const BenchTimeType& iters_or_time) {
+  if (!IsZero(b.min_time())) return b.min_time();
+  // If the flag was used to specify number of iters, then return the default
+  // min_time.
+  if (iters_or_time.tag == BenchTimeType::ITERS) return kDefaultMinTime;
+
+  return iters_or_time.time;
+}
+
+IterationCount ComputeIters(const benchmark::internal::BenchmarkInstance& b,
+                            const BenchTimeType& iters_or_time) {
+  if (b.iterations() != 0) return b.iterations();
+
+  // We've already concluded that this flag is currently used to pass
+  // iters but do a check here again anyway.
+  BM_CHECK(iters_or_time.tag == BenchTimeType::ITERS);
+  return iters_or_time.iters;
+}
+
 }  // end namespace
+
+BenchTimeType ParseBenchMinTime(const std::string& value) {
+  BenchTimeType ret;
+
+  if (value.empty()) {
+    ret.tag = BenchTimeType::TIME;
+    ret.time = 0.0;
+    return ret;
+  }
+
+  if (value.back() == 'x') {
+    const char* iters_str = value.c_str();
+    char* p_end;
+    // Reset errno before it's changed by strtol.
+    errno = 0;
+    IterationCount num_iters = std::strtol(iters_str, &p_end, 10);
+
+    // After a valid parse, p_end should have been set to
+    // point to the 'x' suffix.
+    BM_CHECK(errno == 0 && p_end != nullptr && *p_end == 'x')
+        << "Malformed iters value passed to --benchmark_min_time: `" << value
+        << "`. Expected --benchmark_min_time=<integer>x.";
+
+    ret.tag = BenchTimeType::ITERS;
+    ret.iters = num_iters;
+    return ret;
+  }
+
+  const char* time_str = value.c_str();
+  bool has_suffix = value.back() == 's';
+  if (!has_suffix) {
+    BM_VLOG(0) << "Value passed to --benchmark_min_time should have a suffix. "
+                  "Eg., `30s` for 30-seconds.";
+  }
+
+  char* p_end;
+  // Reset errno before it's changed by strtod.
+  errno = 0;
+  double min_time = std::strtod(time_str, &p_end);
+
+  // After a successfull parse, p_end should point to the suffix 's'
+  // or the end of the string, if the suffix was omitted.
+  BM_CHECK(errno == 0 && p_end != nullptr &&
+           (has_suffix && *p_end == 's' || *p_end == '\0'))
+      << "Malformed seconds value passed to --benchmark_min_time: `" << value
+      << "`. Expected --benchmark_min_time=<float>x.";
+
+  ret.tag = BenchTimeType::TIME;
+  ret.time = min_time;
+
+  return ret;
+}
 
 BenchmarkRunner::BenchmarkRunner(
     const benchmark::internal::BenchmarkInstance& b_,
     BenchmarkReporter::PerFamilyRunReports* reports_for_family_)
     : b(b_),
       reports_for_family(reports_for_family_),
-      min_time(!IsZero(b.min_time()) ? b.min_time() : FLAGS_benchmark_min_time),
+      parsed_benchtime_flag(ParseBenchMinTime(FLAGS_benchmark_min_time)),
+      min_time(ComputeMinTime(b_, parsed_benchtime_flag)),
       min_warmup_time((!IsZero(b.min_time()) && b.min_warmup_time() > 0.0)
                           ? b.min_warmup_time()
                           : FLAGS_benchmark_min_warmup_time),
       warmup_done(!(min_warmup_time > 0.0)),
       repeats(b.repetitions() != 0 ? b.repetitions()
                                    : FLAGS_benchmark_repetitions),
-      has_explicit_iteration_count(b.iterations() != 0),
+      has_explicit_iteration_count(b.iterations() != 0 ||
+                                   parsed_benchtime_flag.tag ==
+                                       BenchTimeType::ITERS),
       pool(b.threads() - 1),
-      iters(has_explicit_iteration_count ? b.iterations() : 1),
+      iters(has_explicit_iteration_count
+                ? ComputeIters(b_, parsed_benchtime_flag)
+                : 1),
       perf_counters_measurement(StrSplit(FLAGS_benchmark_perf_counters, ',')),
       perf_counters_measurement_ptr(perf_counters_measurement.IsValid()
                                         ? &perf_counters_measurement

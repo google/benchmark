@@ -280,6 +280,9 @@ BENCHMARK(BM_test)->Unit(benchmark::kMillisecond);
 namespace benchmark {
 class BenchmarkReporter;
 
+// Default number of minimum benchmark running time in seconds.
+const char kDefaultMinTimeStr[] = "0.5s";
+
 BENCHMARK_EXPORT void PrintDefaultHelp();
 
 BENCHMARK_EXPORT void Initialize(int* argc, char** argv,
@@ -1099,11 +1102,12 @@ class BENCHMARK_EXPORT Benchmark {
   Benchmark* MinWarmUpTime(double t);
 
   // Specify the amount of iterations that should be run by this benchmark.
+  // This option overrides the `benchmark_min_time` flag.
   // REQUIRES: 'n > 0' and `MinTime` has not been called on this benchmark.
   //
   // NOTE: This function should only be used when *exact* iteration control is
   //   needed and never to control or limit how long a benchmark runs, where
-  // `--benchmark_min_time=N` or `MinTime(...)` should be used instead.
+  // `--benchmark_min_time=<N>s` or `MinTime(...)` should be used instead.
   Benchmark* Iterations(IterationCount n);
 
   // Specify the amount of times to repeat this benchmark. This option overrides
@@ -1738,6 +1742,12 @@ class BENCHMARK_EXPORT BenchmarkReporter {
   // never started if this function returns false, allowing the reporter
   // to skip runs based on the context information.
   virtual bool ReportContext(const Context& context) = 0;
+
+  // Called once for each group of benchmark runs, gives information about
+  // the configurations of the runs.
+  virtual void ReportRunsConfig(double /*min_time*/,
+                                bool /*has_explicit_iters*/,
+                                IterationCount /*iters*/) {}
 
   // Called once for each group of benchmark runs, gives information about
   // cpu-time and heap memory usage during the benchmark run. If the group
