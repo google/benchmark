@@ -48,6 +48,7 @@ jobs:
     - name: fine-tune asan options
       # in clang+asan we get an error from std::regex. ignore it.
       if: matrix.sanitizer == 'asan' && matrix.compiler == 'clang'
+      run: |
         echo "ASAN_OPTIONS=alloc_dealloc_mismatch=0" >> $GITHUB_ENV
 
     - name: setup clang
