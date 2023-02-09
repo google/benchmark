@@ -45,6 +45,12 @@ jobs:
         echo "EXTRA_FLAGS=-g -O2 -fno-omit-frame-pointer -fsanitize=thread -fno-sanitize-recover=all" >> $GITHUB_ENV
         echo "LIBCXX_SANITIZER=Thread" >> $GITHUB_ENV
 
+    - name: fine-tune asan options
+      # in clang+asan we get an error from std::regex. ignore it.
+      if: matrix.sanitizer == 'asan' && matrix.compiler == 'clang'
+      run: |
+        echo "ASAN_OPTIONS=alloc_dealloc_mismatch=0" >> $GITHUB_ENV
+
     - name: setup clang
       if: matrix.compiler == 'clang'
       uses: egor-tensin/setup-clang@v1
@@ -68,7 +74,7 @@ jobs:
     - name: install llvm stuff
       if: matrix.compiler == 'clang'
       run: |
-        "${GITHUB_WORKSPACE}/.github/.libcxx-setup.sh"
+        "${GITHUB_WORKSPACE}/.github/libcxx-setup.sh"
         echo "EXTRA_CXX_FLAGS=\"-stdlib=libc++\"" >> $GITHUB_ENV
 
     - name: create build environment
