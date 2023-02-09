@@ -14,10 +14,10 @@ jobs:
         os: [ubuntu-latest, macos-latest, windows-2022]
 
     steps:
-    - uses: actions/checkout@v1
+    - uses: actions/checkout@v3
 
     - name: mount bazel cache
-      uses: actions/cache@v2.0.0
+      uses: actions/cache@v3
       env:
         cache-name: bazel-cache
       with:
