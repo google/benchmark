@@ -58,7 +58,7 @@ int main(int argc, char** argv) {
   assert(returned_count == 1);
 
   // Check the executed iters.
-  const std::vector<int> iters = test_reporter.GetIters();
+  const std::vector<benchmark::IterationCount> iters = test_reporter.GetIters();
   assert(!iters.empty() && iters[0] == 4);
 
   delete[] fake_argv;
