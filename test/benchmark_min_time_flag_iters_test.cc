@@ -13,8 +13,6 @@ namespace {
 
 class TestReporter : public benchmark::ConsoleReporter {
  public:
-  using benchmark::Counter::IterationCount IterationCount;
-
   virtual bool ReportContext(const Context& context) BENCHMARK_OVERRIDE {
     return ConsoleReporter::ReportContext(context);
   };
@@ -29,10 +27,10 @@ class TestReporter : public benchmark::ConsoleReporter {
 
   virtual ~TestReporter() {}
 
-  const std::vector<IterationCount>& GetIters() const { return iter_nums_; }
+  const std::vector<benchmark::IterationCount>& GetIters() const { return iter_nums_; }
 
  private:
-  std::vector<IterationCount> iter_nums_;
+  std::vector<benchmark::IterationCount> iter_nums_;
 };
 
 }  // end namespace
