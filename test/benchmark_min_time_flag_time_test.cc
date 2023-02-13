@@ -28,8 +28,8 @@ class TestReporter : public benchmark::ConsoleReporter {
     ConsoleReporter::ReportRuns(report);
   };
 
-  virtual void ReportRunsConfig(double min_time, bool has_explicit_iters,
-                                IterationCount iters) BENCHMARK_OVERRIDE {
+  virtual void ReportRunsConfig(double min_time, bool /* has_explicit_iters */,
+                                IterationCount /* iters */) BENCHMARK_OVERRIDE {
     min_times_.push_back(min_time);
   }
 
