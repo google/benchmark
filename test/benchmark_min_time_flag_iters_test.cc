@@ -27,7 +27,9 @@ class TestReporter : public benchmark::ConsoleReporter {
 
   virtual ~TestReporter() {}
 
-  const std::vector<benchmark::IterationCount>& GetIters() const { return iter_nums_; }
+  const std::vector<benchmark::IterationCount>& GetIters() const {
+    return iter_nums_;
+  }
 
  private:
   std::vector<benchmark::IterationCount> iter_nums_;
