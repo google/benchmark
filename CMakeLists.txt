@@ -1,18 +1,5 @@
-cmake_minimum_required (VERSION 3.16.3)
-
-foreach(p
-    CMP0048 # OK to clear PROJECT_VERSION on project()
-    CMP0054 # CMake 3.1
-    CMP0056 # export EXE_LINKER_FLAGS to try_run
-    CMP0057 # Support no if() IN_LIST operator
-    CMP0063 # Honor visibility properties for all targets
-    CMP0067 # Honor language standard in try_compile() source file signature
-    CMP0077 # Allow option() overrides in importing projects
-    )
-  if(POLICY ${p})
-    cmake_policy(SET ${p} NEW)
-  endif()
-endforeach()
+# Require CMake 3.10. If available, use the policies up to CMake 3.22.
+cmake_minimum_required (VERSION 3.10...3.22)
 
 project (benchmark VERSION 1.7.1 LANGUAGES CXX)
 
