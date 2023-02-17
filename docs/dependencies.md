@@ -1,18 +1,16 @@
 # Build tool dependency policy
 
-To ensure the broadest compatibility when building the benchmark library, but
-still allow forward progress, we require any build tooling to be available for:
+We follow the [Foundational C++ support policy] for our build tools. In
+particular the "Build Systems" [section].
 
-* Debian stable _and_
-* The last two Ubuntu LTS releases
+## CMake
 
-Currently, this means using build tool versions that are available for Ubuntu
-Ubuntu 20.04 (Focal Fossa), Ubuntu 22.04 (Jammy Jellyfish) and Debian 11.4 (bullseye).
+The current supported version is CMake 3.10 as of 2023-08-10. Most modern
+distributions include newer versions, for example:
 
-## cmake
-The current supported version is cmake 3.16.3 as of 2022-08-10.
+* Ubuntu 20.04 provides CMake 3.16.3
+* Debian 11.4 provides CMake 3.18.4
+* Ubuntu 22.04 provides CMake 3.22.1
 
-* 3.16.3 (ubuntu 20.04)
-* 3.18.4 (debian 11.4)
-* 3.22.1 (ubuntu 22.04)
-
+[Foundational C++ support policy]: https://opensource.google/documentation/policies/cplusplus-support
+[Foundational C++ support policy]: https://opensource.google/documentation/policies/cplusplus-support#build-systems
