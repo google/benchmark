@@ -1,0 +1,27 @@
+name: cmake
+
+on:
+  push: {}
+  pull_request: {}
+
+jobs:
+  job:
+    name: cmake.${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - uses: lukka/get-cmake@latest
+      with:
+        cmakeVersion: 3.10.0
+
+    - name: configure
+      run: cmake -H. -Bbuild -GNinja -DBENCHMARK_DOWNLOAD_DEPENDENCIES=ON -DCMAKE_BUILD_TYPE=Release
+
+    - name: build
+      run: cmake --build build
