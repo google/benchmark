@@ -34,6 +34,34 @@ if (HAVE_LIBPFM)
   target_compile_definitions(benchmark PRIVATE -DHAVE_LIBPFM)
 endif()
 
+# pthread affinity, if available
+include(CheckCXXSourceCompiles)
+check_cxx_source_compiles(
+"
+#ifndef _GNU_SOURCE
+#define _GNU_SOURCE
+#endif
+#include <pthread.h>
+int main() {
+  cpu_set_t set;
+  CPU_ZERO(&set);
+  CPU_SET(0, &set);
+  CPU_CLR(0, &set);
+  pthread_t self = pthread_self();
+  int ret;
+  ret = pthread_getaffinity_np(self, sizeof(set), &set);
+  ret = pthread_setaffinity_np(self, sizeof(set), &set);
+  (void)ret;
+  return 0;
+}"
+
+HAVE_PTHREAD_AFFINITY
+)
+
+if(HAVE_PTHREAD_AFFINITY)
+  target_compile_definitions(benchmark PRIVATE -DBENCHMARK_HAS_PTHREAD_AFFINITY)
+endif()
+
 # Link threads.
 target_link_libraries(benchmark PRIVATE Threads::Threads)
 
