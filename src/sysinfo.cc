@@ -47,9 +47,6 @@
 #include <qurt.h>
 #endif
 #if defined(BENCHMARK_HAS_PTHREAD_AFFINITY)
-#ifndef _GNU_SOURCE
-#define _GNU_SOURCE
-#endif
 #include <pthread.h>
 #endif
 
@@ -555,42 +552,7 @@ int GetNumCPUs() {
 
 class ThreadAffinityGuard final {
  public:
-  ThreadAffinityGuard() {
-    reset_affinity = [this] {
-#if defined(BENCHMARK_HAS_PTHREAD_AFFINITY)
-      int ret;
-      self = pthread_self();
-      ret = pthread_getaffinity_np(self, sizeof(previous_affinity),
-                                   &previous_affinity);
-      if (ret != 0) return false;
-
-      cpu_set_t affinity;
-      memcpy(&affinity, &previous_affinity, sizeof(affinity));
-
-      bool is_first_cpu = true;
-
-      for (int i = 0; i < CPU_SETSIZE; ++i)
-        if (CPU_ISSET(i, &affinity)) {
-          if (is_first_cpu)
-            is_first_cpu = false;
-          else
-            CPU_CLR(i, &affinity);
-        }
-
-      if (is_first_cpu) return false;
-
-      ret = pthread_setaffinity_np(self, sizeof(affinity), &affinity);
-      return ret == 0;
-#elif defined(BENCHMARK_OS_WINDOWS_WIN32)
-      self = GetCurrentThread();
-      DWORD_PTR mask = static_cast<DWORD_PTR>(1) << GetCurrentProcessorNumber();
-      previous_affinity = SetThreadAffinityMask(self, mask);
-      return previous_affinity != 0;
-#else
-      return false;
-#endif
-    }();
-
+  ThreadAffinityGuard() : reset_affinity(SetAffinity()) {
     if (!reset_affinity)
       std::cerr << "***WARNING*** Failed to set thread affinity. Estimated CPU "
                    "frequency may be incorrect."
@@ -607,7 +569,7 @@ class ThreadAffinityGuard final {
 #elif defined(BENCHMARK_OS_WINDOWS_WIN32)
     DWORD_PTR ret = SetThreadAffinityMask(self, previous_affinity);
     if (ret != 0) return;
-#endif
+#endif  // def BENCHMARK_HAS_PTHREAD_AFFINITY
     PrintErrorAndDie("Failed to reset thread affinity");
   }
 
@@ -617,13 +579,48 @@ class ThreadAffinityGuard final {
   ThreadAffinityGuard& operator=(const ThreadAffinityGuard&) = delete;
 
  private:
+  bool SetAffinity() {
+#if defined(BENCHMARK_HAS_PTHREAD_AFFINITY)
+    int ret;
+    self = pthread_self();
+    ret = pthread_getaffinity_np(self, sizeof(previous_affinity),
+                                 &previous_affinity);
+    if (ret != 0) return false;
+
+    cpu_set_t affinity;
+    memcpy(&affinity, &previous_affinity, sizeof(affinity));
+
+    bool is_first_cpu = true;
+
+    for (int i = 0; i < CPU_SETSIZE; ++i)
+      if (CPU_ISSET(i, &affinity)) {
+        if (is_first_cpu)
+          is_first_cpu = false;
+        else
+          CPU_CLR(i, &affinity);
+      }
+
+    if (is_first_cpu) return false;
+
+    ret = pthread_setaffinity_np(self, sizeof(affinity), &affinity);
+    return ret == 0;
+#elif defined(BENCHMARK_OS_WINDOWS_WIN32)
+    self = GetCurrentThread();
+    DWORD_PTR mask = static_cast<DWORD_PTR>(1) << GetCurrentProcessorNumber();
+    previous_affinity = SetThreadAffinityMask(self, mask);
+    return previous_affinity != 0;
+#else
+    return false;
+#endif  // def BENCHMARK_HAS_PTHREAD_AFFINITY
+  }
+
 #if defined(BENCHMARK_HAS_PTHREAD_AFFINITY)
   pthread_t self;
   cpu_set_t previous_affinity;
 #elif defined(BENCHMARK_OS_WINDOWS_WIN32)
   HANDLE self;
   DWORD_PTR previous_affinity;
-#endif
+#endif  // def BENCHMARK_HAS_PTHREAD_AFFINITY
   bool reset_affinity;
 };
 
