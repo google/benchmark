@@ -20,15 +20,6 @@
 #include <versionhelpers.h>
 #include <windows.h>
 
-// WINAPI_FAMILY_PARTITION is defined in winapifamily.h
-#if defined(WINAPI_FAMILY_PARTITION)
-#if WINAPI_FAMILY_PARTITION(WINAPI_PARTITION_DESKTOP)
-#define BENCHMARK_OS_WINDOWS_WIN32 1
-#elif WINAPI_FAMILY_PARTITION(WINAPI_PARTITION_APP)
-#define BENCHMARK_OS_WINDOWS_RT 1
-#endif
-#endif  // def WINAPI_FAMILY_PARTITION
-
 #include <codecvt>
 #else
 #include <fcntl.h>
