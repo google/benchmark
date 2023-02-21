@@ -74,7 +74,6 @@
 #include "cycleclock.h"
 #include "internal_macros.h"
 #include "log.h"
-#include "sleep.h"
 #include "string_util.h"
 #include "timers.h"
 
