@@ -44,39 +44,3 @@ jobs:
         shell: bash
         working-directory: ${{ runner.workspace }}/_build
         run: cmake --build .
-
-  msvc:
-    name: ${{ matrix.os }}.${{ matrix.msvc }}.min-cmake
-    runs-on: ${{ matrix.os }}
-    defaults:
-        run:
-            shell: powershell
-    strategy:
-      fail-fast: false
-      matrix:
-        msvc:
-          - VS-15-2017
-        arch:
-          - x64
-        include:
-          - msvc: VS-15-2017
-            os: windows-2017
-            generator: 'Visual Studio 15 2017'
-
-    steps:
-      - uses: actions/checkout@v2
-
-      - uses: lukka/get-cmake@latest
-        with:
-          cmakeVersion: 3.10.0
-
-      - name: configure cmake
-        run: >
-          cmake -S . -B _build/
-          -A ${{ matrix.arch }}
-          -G "${{ matrix.generator }}"
-          -DBENCHMARK_DOWNLOAD_DEPENDENCIES=ON
-
-      - name: build
-        run: cmake --build _build/
-
