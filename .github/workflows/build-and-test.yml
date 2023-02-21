@@ -88,11 +88,16 @@ jobs:
 
       - uses: lukka/get-cmake@latest
         with:
-          cmakeVersion: 3.25.2
+          cmakeVersion: 3.10.0
+
+      # With cmake 3.10 on Windows, we can't use the nicer -S or -H flags to
+      # cmake, so we create the build dir and run the build from within there.
+      - name: creating the cmake build dir
+        run: cmake -E make_directory _build
 
       - name: configure cmake
         run: >
-          cmake -S . -B _build/
+          cmake -E chdir _build cmake ..
           -A ${{ matrix.arch }}
           -G "${{ matrix.generator }}"
           -DBENCHMARK_DOWNLOAD_DEPENDENCIES=ON
