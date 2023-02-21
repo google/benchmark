@@ -34,6 +34,11 @@ if (HAVE_LIBPFM)
   target_compile_definitions(benchmark PRIVATE -DHAVE_LIBPFM)
 endif()
 
+# pthread affinity, if available
+if(HAVE_PTHREAD_AFFINITY)
+  target_compile_definitions(benchmark PRIVATE -DBENCHMARK_HAS_PTHREAD_AFFINITY)
+endif()
+
 # Link threads.
 target_link_libraries(benchmark PRIVATE Threads::Threads)
 

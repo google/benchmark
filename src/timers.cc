@@ -59,7 +59,6 @@
 
 #include "check.h"
 #include "log.h"
-#include "sleep.h"
 #include "string_util.h"
 
 namespace benchmark {

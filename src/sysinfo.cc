@@ -46,6 +46,9 @@
 #if defined(BENCHMARK_OS_QURT)
 #include <qurt.h>
 #endif
+#if defined(BENCHMARK_HAS_PTHREAD_AFFINITY)
+#include <pthread.h>
+#endif
 
 #include <algorithm>
 #include <array>
@@ -62,15 +65,17 @@
 #include <limits>
 #include <locale>
 #include <memory>
+#include <random>
 #include <sstream>
 #include <utility>
 
+#include "benchmark/benchmark.h"
 #include "check.h"
 #include "cycleclock.h"
 #include "internal_macros.h"
 #include "log.h"
-#include "sleep.h"
 #include "string_util.h"
+#include "timers.h"
 
 namespace benchmark {
 namespace {
@@ -544,6 +549,80 @@ int GetNumCPUs() {
   BENCHMARK_UNREACHABLE();
 }
 
+class ThreadAffinityGuard final {
+ public:
+  ThreadAffinityGuard() : reset_affinity(SetAffinity()) {
+    if (!reset_affinity)
+      std::cerr << "***WARNING*** Failed to set thread affinity. Estimated CPU "
+                   "frequency may be incorrect."
+                << std::endl;
+  }
+
+  ~ThreadAffinityGuard() {
+    if (!reset_affinity) return;
+
+#if defined(BENCHMARK_HAS_PTHREAD_AFFINITY)
+    int ret = pthread_setaffinity_np(self, sizeof(previous_affinity),
+                                     &previous_affinity);
+    if (ret == 0) return;
+#elif defined(BENCHMARK_OS_WINDOWS_WIN32)
+    DWORD_PTR ret = SetThreadAffinityMask(self, previous_affinity);
+    if (ret != 0) return;
+#endif  // def BENCHMARK_HAS_PTHREAD_AFFINITY
+    PrintErrorAndDie("Failed to reset thread affinity");
+  }
+
+  ThreadAffinityGuard(ThreadAffinityGuard&&) = delete;
+  ThreadAffinityGuard(const ThreadAffinityGuard&) = delete;
+  ThreadAffinityGuard& operator=(ThreadAffinityGuard&&) = delete;
+  ThreadAffinityGuard& operator=(const ThreadAffinityGuard&) = delete;
+
+ private:
+  bool SetAffinity() {
+#if defined(BENCHMARK_HAS_PTHREAD_AFFINITY)
+    int ret;
+    self = pthread_self();
+    ret = pthread_getaffinity_np(self, sizeof(previous_affinity),
+                                 &previous_affinity);
+    if (ret != 0) return false;
+
+    cpu_set_t affinity;
+    memcpy(&affinity, &previous_affinity, sizeof(affinity));
+
+    bool is_first_cpu = true;
+
+    for (int i = 0; i < CPU_SETSIZE; ++i)
+      if (CPU_ISSET(i, &affinity)) {
+        if (is_first_cpu)
+          is_first_cpu = false;
+        else
+          CPU_CLR(i, &affinity);
+      }
+
+    if (is_first_cpu) return false;
+
+    ret = pthread_setaffinity_np(self, sizeof(affinity), &affinity);
+    return ret == 0;
+#elif defined(BENCHMARK_OS_WINDOWS_WIN32)
+    self = GetCurrentThread();
+    DWORD_PTR mask = static_cast<DWORD_PTR>(1) << GetCurrentProcessorNumber();
+    previous_affinity = SetThreadAffinityMask(self, mask);
+    return previous_affinity != 0;
+#else
+    return false;
+#endif  // def BENCHMARK_HAS_PTHREAD_AFFINITY
+  }
+
+#if defined(BENCHMARK_HAS_PTHREAD_AFFINITY)
+  pthread_t self;
+  cpu_set_t previous_affinity;
+#elif defined(BENCHMARK_OS_WINDOWS_WIN32)
+  HANDLE self;
+  DWORD_PTR previous_affinity;
+#endif  // def BENCHMARK_HAS_PTHREAD_AFFINITY
+  bool reset_affinity;
+};
+
 double GetCPUCyclesPerSecond(CPUInfo::Scaling scaling) {
   // Currently, scaling is only used on linux path here,
   // suppress diagnostics about it being unused on other paths.
@@ -699,10 +778,39 @@ double GetCPUCyclesPerSecond(CPUInfo::Scaling scaling) {
   return 1000000000;
 #endif
   // If we've fallen through, attempt to roughly estimate the CPU clock rate.
-  static constexpr int estimate_time_ms = 1000;
+
+  // Make sure to use the same cycle counter when starting and stopping the
+  // cycle timer. We just pin the current thread to a cpu in the previous
+  // affinity set.
+  ThreadAffinityGuard affinity_guard;
+
+  static constexpr double estimate_time_s = 1.0;
+  const double start_time = ChronoClockNow();
   const auto start_ticks = cycleclock::Now();
-  SleepForMilliseconds(estimate_time_ms);
-  return static_cast<double>(cycleclock::Now() - start_ticks);
+
+  // Impose load instead of calling sleep() to make sure the cycle counter
+  // works.
+  using PRNG = std::minstd_rand;
+  using Result = PRNG::result_type;
+  PRNG rng(static_cast<Result>(start_ticks));
+
+  Result state = 0;
+
+  do {
+    static constexpr size_t batch_size = 10000;
+    rng.discard(batch_size);
+    state += rng();
+
+  } while (ChronoClockNow() - start_time < estimate_time_s);
+
+  DoNotOptimize(state);
+
+  const auto end_ticks = cycleclock::Now();
+  const double end_time = ChronoClockNow();
+
+  return static_cast<double>(end_ticks - start_ticks) / (end_time - start_time);
+  // Reset the affinity of current thread when the lifetime of affinity_guard
+  // ends.
 }
 
 std::vector<double> GetLoadAvg() {
