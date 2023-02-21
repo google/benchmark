@@ -44,6 +44,7 @@
   #define BENCHMARK_OS_WINDOWS 1
   // WINAPI_FAMILY_PARTITION is defined in winapifamily.h.
   // We include windows.h which implicitly includes winapifamily.h for compatibility.
+  #define NOMINMAX
   #include <windows.h>
   #if defined(WINAPI_FAMILY_PARTITION)
     #if WINAPI_FAMILY_PARTITION(WINAPI_PARTITION_DESKTOP)
