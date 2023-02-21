@@ -86,6 +86,10 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
+      - uses: lukka/get-cmake@latest
+        with:
+          cmakeVersion: 3.25.2
+
       - name: configure cmake
         run: >
           cmake -S . -B _build/
