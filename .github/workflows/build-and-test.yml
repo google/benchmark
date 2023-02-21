@@ -19,33 +19,13 @@ jobs:
       matrix:
         os: [ubuntu-22.04, ubuntu-20.04, macos-latest]
         build_type: ['Release', 'Debug']
-        compiler: ['gcc', 'clang']
+        compiler: ['g++', 'clang++']
         lib: ['shared', 'static']
 
     steps:
       - uses: actions/checkout@v3
 
       - uses: lukka/get-cmake@latest
-
-      - name: setup clang
-        if: matrix.compiler == 'clang'
-        uses: egor-tensin/setup-clang@v1
-        with:
-          version: latest
-          platform: x64
-
-      - name: configure clang
-        if: matrix.compiler == 'clang'
-        run: |
-          echo "CC=cc" >> $GITHUB_ENV
-          echo "CXX=c++" >> $GITHUB_ENV
-
-      - name: configure gcc
-        if: matrix.compiler == 'gcc'
-        run: |
-          sudo apt update && sudo apt -y install gcc-10 g++-10
-          echo "CC=gcc-10" >> $GITHUB_ENV
-          echo "CXX=g++-10" >> $GITHUB_ENV
 
       - name: create build environment
         run: cmake -E make_directory ${{ runner.workspace }}/_build
@@ -64,7 +44,6 @@ jobs:
           -DBENCHMARK_DOWNLOAD_DEPENDENCIES=ON
           -DBUILD_SHARED_LIBS=${{ matrix.lib == 'shared' }}
           -DCMAKE_BUILD_TYPE=${{ matrix.build_type }}
-          -DCMAKE_C_COMPILER=${{ env.CC }}
           -DCMAKE_CXX_COMPILER=${{ env.CXX }}
           -DCMAKE_CXX_VISIBILITY_PRESET=hidden
           -DCMAKE_VISIBILITY_INLINES_HIDDEN=ON
