@@ -17,6 +17,7 @@
 
 #include <array>
 #include <cstdint>
+#include <cstring>
 #include <memory>
 #include <vector>
 
@@ -53,9 +54,12 @@ class PerfCounterValues {
     BM_CHECK_LE(nr_counters_, kMaxCounters);
   }
 
-  uint64_t operator[](size_t pos) const { return values_[kPadding + pos]; }
+  // We are reading correctly now so the values don't need to skip padding
+  uint64_t operator[](size_t pos) const { return values_[pos]; }
 
-  static constexpr size_t kMaxCounters = 3;
+  // Increased the maximum to 32 only since the buffer
+  // is std::array<> backed
+  static constexpr size_t kMaxCounters = 32;
 
  private:
   friend class PerfCounters;
@@ -66,7 +70,38 @@ class PerfCounterValues {
             sizeof(uint64_t) * (kPadding + nr_counters_)};
   }
 
-  static constexpr size_t kPadding = 1;
+  // This reading is complex and as the goal of this class is to
+  // abstract away the intrincacies of the reading process, this is
+  // a better place for it
+  size_t Read(const std::vector<int>& leaders) {
+    // Create a pointer for multiple reads
+    const size_t bufsize = values_.size() * sizeof(values_[0]);
+    char* ptr = reinterpret_cast<char*>(values_.data());
+    size_t size = bufsize;
+    for (int lead : leaders) {
+      auto read_bytes = ::read(lead, ptr, size);
+      if (read_bytes >= ssize_t(sizeof(uint64_t))) {
+        // Actual data bytes are all bytes minus initial padding
+        std::size_t data_bytes = read_bytes - sizeof(uint64_t);
+        // This should be very cheap since it's in hot cache
+        std::memmove(ptr, ptr + sizeof(uint64_t), data_bytes);
+        // Increment our counters
+        ptr += data_bytes;
+        size -= data_bytes;
+      } else {
+        int err = errno;
+        GetErrorLogInstance()
+            << "Error reading lead " << lead << " errno:" << err << " "
+            << ::strerror(err) << "\n";
+        return 0;
+      }
+    }
+    return (bufsize - size) / sizeof(uint64_t);
+  }
+
+  // Move the padding to 2 due to the reading algorithm (1st padding plus a
+  // current read padding)
+  static constexpr size_t kPadding = 2;
   std::array<uint64_t, kPadding + kMaxCounters> values_;
   const size_t nr_counters_;
 };
@@ -92,6 +127,10 @@ class BENCHMARK_EXPORT PerfCounters final {
   // initialization here.
   static bool Initialize();
 
+  // Check if the given counter is supported, if the app wants to
+  // check before passing
+  static bool IsCounterSupported(const std::string& name);
+
   // Return a PerfCounters object ready to read the counters with the names
   // specified. The values are user-mode only. The counter name format is
   // implementation and OS specific.
@@ -106,9 +145,7 @@ class BENCHMARK_EXPORT PerfCounters final {
 #ifndef BENCHMARK_OS_WINDOWS
     assert(values != nullptr);
     assert(IsValid());
-    auto buffer = values->get_data_buffer();
-    auto read_bytes = ::read(counter_ids_[0], buffer.first, buffer.second);
-    return static_cast<size_t>(read_bytes) == buffer.second;
+    return values->Read(leader_ids_) == counter_ids_.size();
 #else
     (void)values;
     return false;
@@ -120,13 +157,16 @@ class BENCHMARK_EXPORT PerfCounters final {
 
  private:
   PerfCounters(const std::vector<std::string>& counter_names,
-               std::vector<int>&& counter_ids)
-      : counter_ids_(std::move(counter_ids)), counter_names_(counter_names) {}
+               std::vector<int>&& counter_ids, std::vector<int>&& leader_ids)
+      : counter_ids_(std::move(counter_ids)),
+        leader_ids_(std::move(leader_ids)),
+        counter_names_(counter_names) {}
   PerfCounters() = default;
 
   void CloseCounters() const;
 
   std::vector<int> counter_ids_;
+  std::vector<int> leader_ids_;
   std::vector<std::string> counter_names_;
 };
 

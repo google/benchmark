@@ -33,6 +33,18 @@ const bool PerfCounters::kSupported = true;
 
 bool PerfCounters::Initialize() { return pfm_initialize() == PFM_SUCCESS; }
 
+bool PerfCounters::IsCounterSupported(const std::string& name) {
+  perf_event_attr_t attr;
+  std::memset(&attr, 0, sizeof(attr));
+  pfm_perf_encode_arg_t arg;
+  std::memset(&arg, 0, sizeof(arg));
+  arg.attr = &attr;
+  const int mode = PFM_PLM3;  // user mode only
+  int ret = pfm_get_os_event_encoding(name.c_str(), mode, PFM_OS_PERF_EVENT_EXT,
+                                      &arg);
+  return (ret == PFM_SUCCESS);
+}
+
 PerfCounters PerfCounters::Create(
     const std::vector<std::string>& counter_names) {
   if (counter_names.empty()) {
@@ -46,13 +58,14 @@ PerfCounters PerfCounters::Create(
     return NoCounters();
   }
   std::vector<int> counter_ids(counter_names.size());
+  std::vector<int> leader_ids;
 
   const int mode = PFM_PLM3;  // user mode only
+  int group_id = -1;
   for (size_t i = 0; i < counter_names.size(); ++i) {
-    const bool is_first = i == 0;
+    const bool is_first = (group_id < 0);
     struct perf_event_attr attr {};
     attr.size = sizeof(attr);
-    const int group_id = !is_first ? counter_ids[0] : -1;
     const auto& name = counter_names[i];
     if (name.empty()) {
       GetErrorLogInstance() << "A counter name was the empty string\n";
@@ -80,13 +93,25 @@ PerfCounters PerfCounters::Create(
     attr.read_format = PERF_FORMAT_GROUP;
 
     int id = -1;
-    static constexpr size_t kNrOfSyscallRetries = 5;
-    // Retry syscall as it was interrupted often (b/64774091).
-    for (size_t num_retries = 0; num_retries < kNrOfSyscallRetries;
-         ++num_retries) {
-      id = perf_event_open(&attr, 0, -1, group_id, 0);
-      if (id >= 0 || errno != EINTR) {
-        break;
+    while (id < 0) {
+      static constexpr size_t kNrOfSyscallRetries = 5;
+      // Retry syscall as it was interrupted often (b/64774091).
+      for (size_t num_retries = 0; num_retries < kNrOfSyscallRetries;
+           ++num_retries) {
+        id = perf_event_open(&attr, 0, -1, group_id, 0);
+        if (id >= 0 || errno != EINTR) {
+          break;
+        }
+      }
+      if (id < 0) {
+        // We reached a limit perhaps?
+        if (group_id >= 0) {
+          // Create a new group
+          group_id = -1;
+        } else {
+          // Give up, there is nothing else to try
+          break;
+        }
       }
     }
     if (id < 0) {
@@ -94,22 +119,31 @@ PerfCounters PerfCounters::Create(
           << "Failed to get a file descriptor for " << name << "\n";
       return NoCounters();
     }
-
+    if (group_id < 0) {
+      // This is a leader, store and assign it
+      leader_ids.push_back(id);
+      group_id = id;
+    }
     counter_ids[i] = id;
   }
-  if (ioctl(counter_ids[0], PERF_EVENT_IOC_ENABLE) != 0) {
-    GetErrorLogInstance() << "Failed to start counters\n";
-    return NoCounters();
+  for (int lead : leader_ids) {
+    if (ioctl(lead, PERF_EVENT_IOC_ENABLE) != 0) {
+      GetErrorLogInstance() << "Failed to start counters\n";
+      return NoCounters();
+    }
   }
 
-  return PerfCounters(counter_names, std::move(counter_ids));
+  return PerfCounters(counter_names, std::move(counter_ids),
+                      std::move(leader_ids));
 }
 
 void PerfCounters::CloseCounters() const {
   if (counter_ids_.empty()) {
     return;
   }
-  ioctl(counter_ids_[0], PERF_EVENT_IOC_DISABLE);
+  for (int lead : leader_ids_) {
+    ioctl(lead, PERF_EVENT_IOC_DISABLE);
+  }
   for (int fd : counter_ids_) {
     close(fd);
   }
@@ -162,6 +196,7 @@ PerfCounters& PerfCounters::operator=(PerfCounters&& other) noexcept {
     CloseCounters();
 
     counter_ids_ = std::move(other.counter_ids_);
+    leader_ids_ = std::move(other.leader_ids_);
     counter_names_ = std::move(other.counter_names_);
   }
   return *this;

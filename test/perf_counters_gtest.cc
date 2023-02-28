@@ -190,4 +190,55 @@ TEST(PerfCountersTest, MultiThreaded) {
   EXPECT_GE(D2[0], 1.9 * D1[0]);
   EXPECT_GE(D2[1], 1.9 * D1[1]);
 }
+
+TEST(PerfCountersTest, HardwareLimits) {
+  // The test works (i.e. causes read to fail) for the assumptions
+  // about hardware capabilities (i.e. small number (3-4) hardware
+  // counters) at this date,
+  // the same as previous test ReopenExistingCounters.
+  if (!PerfCounters::kSupported) {
+    GTEST_SKIP() << "Test skipped because libpfm is not supported.\n";
+  }
+  EXPECT_TRUE(PerfCounters::Initialize());
+
+  // Taken straight from `perf list` on x86-64
+  // Got all hardware names since these are the problematic ones
+  std::vector<std::string> counter_names{"cycles",  // leader
+                                         "instructions",
+                                         "branches",
+                                         "L1-dcache-loads",
+                                         "L1-dcache-load-misses",
+                                         "L1-dcache-prefetches",
+                                         "L1-icache-load-misses",  // leader
+                                         "L1-icache-loads",
+                                         "branch-load-misses",
+                                         "branch-loads",
+                                         "dTLB-load-misses",
+                                         "dTLB-loads",
+                                         "iTLB-load-misses",  // leader
+                                         "iTLB-loads",
+                                         "branch-instructions",
+                                         "branch-misses",
+                                         "cache-misses",
+                                         "cache-references",
+                                         "stalled-cycles-backend",  // leader
+                                         "stalled-cycles-frontend"};
+
+  // In the off-chance that some of these values are not supported,
+  // we filter them out so the test will complete without failure
+  // albeit it might not actually test the grouping on that platform
+  std::vector<std::string> valid_names;
+  for (std::string name : counter_names) {
+    if (PerfCounters::IsCounterSupported(name)) {
+      valid_names.push_back(name);
+    }
+  }
+  PerfCountersMeasurement counter(valid_names);
+
+  std::vector<std::pair<std::string, double>> measurements;
+
+  counter.Start();
+  EXPECT_TRUE(counter.Stop(measurements));
+}
+
 }  // namespace
