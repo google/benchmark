@@ -19,6 +19,8 @@
 #include <vector>
 
 #if defined HAVE_LIBPFM
+#include <unordered_map>
+
 #include "perfmon/pfmlib.h"
 #include "perfmon/pfmlib_perf_event.h"
 #endif
@@ -26,9 +28,123 @@
 namespace benchmark {
 namespace internal {
 
-constexpr size_t PerfCounterValues::kMaxCounters;
-
 #if defined HAVE_LIBPFM
+
+class SinglePMURegistry {
+ public:
+  ~SinglePMURegistry() = default;
+  SinglePMURegistry(SinglePMURegistry&&) = default;
+  SinglePMURegistry(const SinglePMURegistry&) = delete;
+  SinglePMURegistry& operator=(SinglePMURegistry&&) noexcept;
+  SinglePMURegistry& operator=(const SinglePMURegistry&) = delete;
+
+  SinglePMURegistry(pfm_pmu_t pmu_id)
+      : pmu_id_(pmu_id), available_counters_(0), available_fixed_counters_(0) {
+    pfm_pmu_info_t pmu_info{};
+    const auto pfm_pmu = pfm_get_pmu_info(pmu_id, &pmu_info);
+
+    if (pfm_pmu != PFM_SUCCESS) {
+      GetErrorLogInstance() << "Unknown pmu: " << pmu_id << "\n";
+      return;
+    }
+
+    name_ = pmu_info.name;
+    desc_ = pmu_info.desc;
+    available_counters_ = pmu_info.num_cntrs;
+    available_fixed_counters_ = pmu_info.num_fixed_cntrs;
+
+    BM_VLOG(1) << "PMU: " << pmu_id << " " << name_ << " " << desc_ << "\n";
+    BM_VLOG(1) << "     counters: " << available_counters_
+               << " fixed: " << available_fixed_counters_ << "\n";
+  }
+
+  const char* name() const { return name_; }
+
+  bool AddCounter(int event_id) {
+    pfm_event_info_t info{};
+    const auto pfm_event_info =
+        pfm_get_event_info(event_id, PFM_OS_PERF_EVENT, &info);
+
+    if (pfm_event_info != PFM_SUCCESS) {
+      GetErrorLogInstance() << "Unknown event id: " << event_id << "\n";
+      return false;
+    }
+
+    assert(info.pmu == pmu_id_);
+
+    if (counter_ids_.find(event_id) != counter_ids_.end()) return true;
+
+    assert(std::numeric_limits<int>::max() > counter_ids_.size());
+    if (static_cast<int>(counter_ids_.size()) >= available_counters_ - 1) {
+      GetErrorLogInstance() << "Maximal number of counters for PMU " << name_
+                            << " (" << available_counters_ << ") reached.\n";
+      return false;
+    }
+
+    counter_ids_.emplace(event_id, info.code);
+
+    BM_VLOG(2) << "Registered counter: " << event_id << " (" << info.name
+               << " - " << info.desc << ") in pmu " << name_ << " ("
+               << counter_ids_.size() << "/" << available_counters_ << "\n";
+
+    return true;
+  }
+
+ private:
+  pfm_pmu_t pmu_id_;
+  const char* name_;
+  const char* desc_;
+  std::unordered_map<int, uint64_t> counter_ids_;
+  std::unordered_map<int, uint64_t> fixed_counter_ids_;
+  int available_counters_;
+  int available_fixed_counters_;
+};
+
+class PMURegistry {
+ public:
+  ~PMURegistry() = default;
+  PMURegistry(PMURegistry&&) = default;
+  PMURegistry(const PMURegistry&) = delete;
+  PMURegistry& operator=(PMURegistry&&) noexcept;
+  PMURegistry& operator=(const PMURegistry&) = delete;
+  PMURegistry() {}
+
+  bool EnlistCounter(const std::string& name,
+                     struct perf_event_attr& attr_base) {
+    attr_base.size = sizeof(attr_base);
+    pfm_perf_encode_arg_t encoding{};
+    encoding.attr = &attr_base;
+
+    const auto pfm_get = pfm_get_os_event_encoding(
+        name.c_str(), PFM_PLM3, PFM_OS_PERF_EVENT, &encoding);
+    if (pfm_get != PFM_SUCCESS) {
+      GetErrorLogInstance() << "Unknown counter name: " << name << "\n";
+      return false;
+    }
+
+    pfm_event_info_t info{};
+    const auto pfm_info =
+        pfm_get_event_info(encoding.idx, PFM_OS_PERF_EVENT, &info);
+    if (pfm_info != PFM_SUCCESS) {
+      GetErrorLogInstance()
+          << "Unknown counter idx: " << encoding.idx << "(" << name << ")\n";
+      return false;
+    }
+
+    // Spin-up a new per-PMU sub-registry if needed
+    if (pmu_registry_.find(info.pmu) == pmu_registry_.end()) {
+      pmu_registry_.emplace(info.pmu, SinglePMURegistry(info.pmu));
+    }
+
+    auto& single_pmu = pmu_registry_.find(info.pmu)->second;
+
+    return single_pmu.AddCounter(info.idx);
+  }
+
+ private:
+  std::unordered_map<pfm_pmu_t, SinglePMURegistry> pmu_registry_;
+};
+
 const bool PerfCounters::kSupported = true;
 
 bool PerfCounters::Initialize() { return pfm_initialize() == PFM_SUCCESS; }
@@ -38,35 +154,28 @@ PerfCounters PerfCounters::Create(
   if (counter_names.empty()) {
     return NoCounters();
   }
-  if (counter_names.size() > PerfCounterValues::kMaxCounters) {
-    GetErrorLogInstance()
-        << counter_names.size()
-        << " counters were requested. The minimum is 1, the maximum is "
-        << PerfCounterValues::kMaxCounters << "\n";
-    return NoCounters();
-  }
-  std::vector<int> counter_ids(counter_names.size());
 
-  const int mode = PFM_PLM3;  // user mode only
+  std::vector<int> counter_ids(counter_names.size());
+  PMURegistry registry{};
+
   for (size_t i = 0; i < counter_names.size(); ++i) {
-    const bool is_first = i == 0;
-    struct perf_event_attr attr {};
-    attr.size = sizeof(attr);
-    const int group_id = !is_first ? counter_ids[0] : -1;
     const auto& name = counter_names[i];
     if (name.empty()) {
       GetErrorLogInstance() << "A counter name was the empty string\n";
       return NoCounters();
     }
-    pfm_perf_encode_arg_t arg{};
-    arg.attr = &attr;
 
-    const int pfm_get =
-        pfm_get_os_event_encoding(name.c_str(), mode, PFM_OS_PERF_EVENT, &arg);
-    if (pfm_get != PFM_SUCCESS) {
-      GetErrorLogInstance() << "Unknown counter name: " << name << "\n";
+    struct perf_event_attr attr {};
+    auto ok = registry.EnlistCounter(name, attr);
+
+    if (!ok) {
+      GetErrorLogInstance() << "Failed to register counter: " << name << "\n";
       return NoCounters();
     }
+
+    const bool is_first = i == 0;
+    const int group_id = !is_first ? counter_ids[0] : -1;
+
     attr.disabled = is_first;
     // Note: the man page for perf_event_create suggests inherit = true and
     // read_format = PERF_FORMAT_GROUP don't work together, but that's not the

@@ -50,12 +50,11 @@ namespace internal {
 class PerfCounterValues {
  public:
   explicit PerfCounterValues(size_t nr_counters) : nr_counters_(nr_counters) {
-    BM_CHECK_LE(nr_counters_, kMaxCounters);
+    BM_CHECK_LE(nr_counters_, kMaxPreAllocatedCounters);
   }
-
   uint64_t operator[](size_t pos) const { return values_[kPadding + pos]; }
 
-  static constexpr size_t kMaxCounters = 3;
+  static constexpr size_t kMaxPreAllocatedCounters = 63;
 
  private:
   friend class PerfCounters;
@@ -67,7 +66,7 @@ class PerfCounterValues {
   }
 
   static constexpr size_t kPadding = 1;
-  std::array<uint64_t, kPadding + kMaxCounters> values_;
+  std::array<uint64_t, kPadding + kMaxPreAllocatedCounters> values_;
   const size_t nr_counters_;
 };
 
