@@ -181,6 +181,8 @@ const bool PerfCounters::kSupported = false;
 
 bool PerfCounters::Initialize() { return false; }
 
+bool PerfCounters::IsCounterSupported(const std::string& name) { return false; }
+
 PerfCounters PerfCounters::Create(
     const std::vector<std::string>& counter_names) {
   if (!counter_names.empty()) {
