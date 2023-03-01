@@ -73,31 +73,7 @@ class PerfCounterValues {
   // This reading is complex and as the goal of this class is to
   // abstract away the intrincacies of the reading process, this is
   // a better place for it
-  size_t Read(const std::vector<int>& leaders) {
-    // Create a pointer for multiple reads
-    const size_t bufsize = values_.size() * sizeof(values_[0]);
-    char* ptr = reinterpret_cast<char*>(values_.data());
-    size_t size = bufsize;
-    for (int lead : leaders) {
-      auto read_bytes = ::read(lead, ptr, size);
-      if (read_bytes >= ssize_t(sizeof(uint64_t))) {
-        // Actual data bytes are all bytes minus initial padding
-        std::size_t data_bytes = read_bytes - sizeof(uint64_t);
-        // This should be very cheap since it's in hot cache
-        std::memmove(ptr, ptr + sizeof(uint64_t), data_bytes);
-        // Increment our counters
-        ptr += data_bytes;
-        size -= data_bytes;
-      } else {
-        int err = errno;
-        GetErrorLogInstance()
-            << "Error reading lead " << lead << " errno:" << err << " "
-            << ::strerror(err) << "\n";
-        return 0;
-      }
-    }
-    return (bufsize - size) / sizeof(uint64_t);
-  }
+  size_t Read(const std::vector<int>& leaders);
 
   // Move the padding to 2 due to the reading algorithm (1st padding plus a
   // current read padding)
