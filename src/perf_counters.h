@@ -48,7 +48,7 @@ namespace internal {
 // to Snapshot(). The Read() method relocates individual reads, discarding
 // the initial padding from each group leader in the values buffer such that
 // all user accesses through the [] operator are correct.
-class PerfCounterValues {
+class BENCHMARK_EXPORT PerfCounterValues {
  public:
   explicit PerfCounterValues(size_t nr_counters) : nr_counters_(nr_counters) {
     BM_CHECK_LE(nr_counters_, kMaxCounters);
