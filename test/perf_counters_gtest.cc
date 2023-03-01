@@ -40,26 +40,40 @@ TEST(PerfCountersTest, NegativeTest) {
   EXPECT_FALSE(PerfCounters::Create({}).IsValid());
   EXPECT_FALSE(PerfCounters::Create({""}).IsValid());
   EXPECT_FALSE(PerfCounters::Create({"not a counter name"}).IsValid());
+  EXPECT_TRUE(PerfCounters::Create(
+                  {kGenericPerfEvent1, kGenericPerfEvent2, kGenericPerfEvent3})
+                  .IsValid());
+  {
+    auto counter =
+        PerfCounters::Create({kGenericPerfEvent2, "", kGenericPerfEvent1});
+    EXPECT_TRUE(counter.IsValid());
+    EXPECT_EQ(counter.num_counters(), 2);
+    EXPECT_EQ(counter.names(), std::vector<std::string>(
+                                   {kGenericPerfEvent2, kGenericPerfEvent1}));
+  }
+  {
+    auto counter = PerfCounters::Create(
+        {kGenericPerfEvent3, "not a counter name", kGenericPerfEvent1});
+    EXPECT_TRUE(counter.IsValid());
+    EXPECT_EQ(counter.num_counters(), 2);
+    EXPECT_EQ(counter.names(), std::vector<std::string>(
+                                   {kGenericPerfEvent3, kGenericPerfEvent1}));
+  }
   {
     EXPECT_TRUE(PerfCounters::Create({kGenericPerfEvent1, kGenericPerfEvent2,
                                       kGenericPerfEvent3})
                     .IsValid());
   }
-  EXPECT_FALSE(
-      PerfCounters::Create({kGenericPerfEvent2, "", kGenericPerfEvent1})
-          .IsValid());
-  EXPECT_FALSE(PerfCounters::Create({kGenericPerfEvent3, "not a counter name",
-                                     kGenericPerfEvent1})
-                   .IsValid());
   {
-    EXPECT_TRUE(PerfCounters::Create({kGenericPerfEvent1, kGenericPerfEvent2,
-                                      kGenericPerfEvent3})
-                    .IsValid());
+    auto counter = PerfCounters::Create({kGenericPerfEvent1, kGenericPerfEvent2,
+                                         kGenericPerfEvent3,
+                                         "MISPREDICTED_BRANCH_RETIRED"});
+    EXPECT_TRUE(counter.IsValid());
+    EXPECT_EQ(counter.num_counters(), 3);
+    EXPECT_EQ(counter.names(),
+              std::vector<std::string>({kGenericPerfEvent1, kGenericPerfEvent2,
+                                        kGenericPerfEvent3}));
   }
-  EXPECT_FALSE(
-      PerfCounters::Create({kGenericPerfEvent1, kGenericPerfEvent2,
-                            kGenericPerfEvent3, "MISPREDICTED_BRANCH_RETIRED"})
-          .IsValid());
 }
 
 TEST(PerfCountersTest, Read1Counter) {
@@ -157,9 +171,9 @@ void measure(size_t threadcount, PerfCounterValues* values1,
   auto work = [&]() { BM_CHECK(do_work() > 1000); };
 
   // We need to first set up the counters, then start the threads, so the
-  // threads would inherit the counters. But later, we need to first destroy the
-  // thread pool (so all the work finishes), then measure the counters. So the
-  // scopes overlap, and we need to explicitly control the scope of the
+  // threads would inherit the counters. But later, we need to first destroy
+  // the thread pool (so all the work finishes), then measure the counters. So
+  // the scopes overlap, and we need to explicitly control the scope of the
   // threadpool.
   auto counters =
       PerfCounters::Create({kGenericPerfEvent1, kGenericPerfEvent3});

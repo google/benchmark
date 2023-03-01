@@ -87,6 +87,9 @@ class BENCHMARK_EXPORT PerfCounterValues {
 // called, to obtain the object, until the object's destructor is called.
 class BENCHMARK_EXPORT PerfCounters final {
  public:
+  // A handy type helper
+  using ResultType = std::vector<std::pair<std::string, double>>;
+
   // True iff this platform supports performance counters.
   static const bool kSupported;
 
