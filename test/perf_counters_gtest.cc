@@ -228,7 +228,7 @@ TEST(PerfCountersTest, HardwareLimits) {
   // we filter them out so the test will complete without failure
   // albeit it might not actually test the grouping on that platform
   std::vector<std::string> valid_names;
-  for (std::string name : counter_names) {
+  for (const std::string& name : counter_names) {
     if (PerfCounters::IsCounterSupported(name)) {
       valid_names.push_back(name);
     }
