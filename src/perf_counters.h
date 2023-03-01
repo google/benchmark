@@ -45,9 +45,9 @@ namespace internal {
 // The implementation ensures the storage is inlined, and allows 0-based
 // indexing into the counter values.
 // The object is used in conjunction with a PerfCounters object, by passing it
-// to Snapshot(). The values are populated such that
-// perfCounters->names()[i]'s value is obtained at position i (as given by
-// operator[]) of this object.
+// to Snapshot(). The Read() method relocates individual reads, discarding
+// the initial padding from each group leader in the values buffer such that
+// all user accesses through the [] operator are correct.
 class PerfCounterValues {
  public:
   explicit PerfCounterValues(size_t nr_counters) : nr_counters_(nr_counters) {
