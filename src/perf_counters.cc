@@ -175,13 +175,13 @@ void PerfCounters::CloseCounters() const {
   }
 }
 #else   // defined HAVE_LIBPFM
-size_t PerfCounterValues::Read(const std::vector<int>& leaders) { return 0; }
+size_t PerfCounterValues::Read(const std::vector<int>&) { return 0; }
 
 const bool PerfCounters::kSupported = false;
 
 bool PerfCounters::Initialize() { return false; }
 
-bool PerfCounters::IsCounterSupported(const std::string& name) { return false; }
+bool PerfCounters::IsCounterSupported(const std::string&) { return false; }
 
 PerfCounters PerfCounters::Create(
     const std::vector<std::string>& counter_names) {
