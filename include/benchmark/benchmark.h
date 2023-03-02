@@ -218,6 +218,26 @@ BENCHMARK(BM_test)->Unit(benchmark::kMillisecond);
 #define BENCHMARK_UNUSED
 #endif
 
+#if defined(__ICC) || defined(_WIN32)
+// Because of MSVC we had to use this two-macro setup instead of
+// a single function attribute but MSVC does not support them
+#define BENCHMARK_DONT_OPTIMIZE_BEGIN __pragma(optimize("", off));
+#define BENCHMARK_DONT_OPTIMIZE_END __pragma(optimize("", on));
+#elif defined(__clang__)
+// I am afraid that this _Pragma() form although standard might
+// break newer compilers
+#define BENCHMARK_DONT_OPTIMIZE_BEGIN _Pragma("clang optimize off");
+#define BENCHMARK_DONT_OPTIMIZE_END _Pragma("clang optimize on");
+#elif defined(__GNUC__) || defined(__GNUG__)
+#define BENCHMARK_DONT_OPTIMIZE_BEGIN \
+  _Pragma("GCC push_options");        \
+  _Pragma("GCC optimize(\"0\")");
+#define BENCHMARK_DONT_OPTIMIZE_END _Pragma("GCC pop_options");
+#else
+#define BENCHMARK_DONT_OPTIMIZE_BEGIN
+#define BENCHMARK_DONT_OPTIMIZE_END
+#endif
+
 #if defined(__GNUC__) || defined(__clang__)
 #define BENCHMARK_ALWAYS_INLINE __attribute__((always_inline))
 #elif defined(_MSC_VER) && !defined(__clang__)
@@ -586,7 +606,7 @@ class Counter {
   Counter(double v = 0., Flags f = kDefaults, OneK k = kIs1000)
       : value(v), flags(f), oneK(k) {}
 
-  BENCHMARK_ALWAYS_INLINE operator double const &() const { return value; }
+  BENCHMARK_ALWAYS_INLINE operator double const&() const { return value; }
   BENCHMARK_ALWAYS_INLINE operator double&() { return value; }
 };
 

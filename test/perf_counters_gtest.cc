@@ -163,21 +163,14 @@ TEST(PerfCountersTest, CreateExistingMeasurements) {
   }
 }
 
-// This probably should go into include/benchmark.h together with
-// BENCHMARK_ALWAYS_INLINE and friends
-#if defined(__clang__)
-#define BENCHMARK_DONT_OPTIMIZE __attribute__((optnone))
-#elif defined(__GNUC__) || defined(__GNUG__)
-#define BENCHMARK_DONT_OPTIMIZE __attribute__((optimize(0)))
-#else
-#define BENCHMARK_DONT_OPTIMIZE
-#endif
-
 // We try to do some meaningful work here but the compiler
 // insists in optimizing away our loop so we had to add a
 // no-optimize macro. In case it fails, we added some entropy
 // to this pool as well.
-BENCHMARK_DONT_OPTIMIZE size_t do_work() {
+
+// Could not get the __pragma(optimize("",off)) to work...
+BENCHMARK_DONT_OPTIMIZE_BEGIN
+size_t do_work() {
   static std::mt19937 rd{std::random_device{}()};
   static std::uniform_int_distribution<size_t> mrand(0, 10);
   const size_t kNumLoops = 1000000;
@@ -188,6 +181,7 @@ BENCHMARK_DONT_OPTIMIZE size_t do_work() {
   benchmark::DoNotOptimize(sum);
   return sum;
 }
+BENCHMARK_DONT_OPTIMIZE_END
 
 void measure(size_t threadcount, PerfCounterValues* before,
              PerfCounterValues* after) {
