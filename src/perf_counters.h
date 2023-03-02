@@ -93,9 +93,7 @@ class BENCHMARK_EXPORT PerfCounters final {
   bool IsValid() const { return !counter_names_.empty(); }
 
   // Returns an empty object
-  static std::shared_ptr<PerfCounters> NoCounters() {
-    return std::shared_ptr<PerfCounters>();
-  }
+  static PerfCounters NoCounters() { return PerfCounters(); }
 
   ~PerfCounters() { CloseCounters(); }
   PerfCounters() = default;
@@ -117,8 +115,7 @@ class BENCHMARK_EXPORT PerfCounters final {
   // implementation and OS specific.
   // TODO: once we move to C++-17, this should be a std::optional, and then the
   // IsValid() boolean can be dropped.
-  static std::shared_ptr<PerfCounters> Create(
-      const std::vector<std::string>& counter_names);
+  static PerfCounters Create(const std::vector<std::string>& counter_names);
 
   // Take a snapshot of the current value of the counters into the provided
   // valid PerfCounterValues storage. The values are populated such that:
@@ -155,47 +152,44 @@ class BENCHMARK_EXPORT PerfCounters final {
 class BENCHMARK_EXPORT PerfCountersMeasurement final {
  public:
   PerfCountersMeasurement(const std::vector<std::string>& counter_names);
+  PerfCountersMeasurement(PerfCountersMeasurement&&) = default;
   ~PerfCountersMeasurement();
 
-  size_t num_counters() const {
-    return counters_ ? counters_->num_counters() : 0;
-  }
+  size_t num_counters() const { return counters_.num_counters(); }
 
-  std::vector<std::string> names() const {
-    return counters_ ? counters_->names() : std::vector<std::string>();
-  }
+  std::vector<std::string> names() const { return counters_.names(); }
 
-  bool IsValid() const { return bool(counters_); }
+  bool IsValid() const { return counters_.IsValid(); }
 
   BENCHMARK_ALWAYS_INLINE void Start() {
-    if (!counters_) return;
+    if (!counters_.IsValid()) return;
     // Tell the compiler to not move instructions above/below where we take
     // the snapshot.
     ClobberMemory();
-    valid_read_ &= counters_->Snapshot(&start_values_);
+    valid_read_ &= counters_.Snapshot(&start_values_);
     ClobberMemory();
   }
 
   BENCHMARK_ALWAYS_INLINE bool Stop(
       std::vector<std::pair<std::string, double>>& measurements) {
-    if (!counters_) return false;
+    if (!counters_.IsValid()) return false;
     // Tell the compiler to not move instructions above/below where we take
     // the snapshot.
     ClobberMemory();
-    valid_read_ &= counters_->Snapshot(&end_values_);
+    valid_read_ &= counters_.Snapshot(&end_values_);
     ClobberMemory();
 
-    for (size_t i = 0; i < counters_->names().size(); ++i) {
+    for (size_t i = 0; i < counters_.names().size(); ++i) {
       double measurement = static_cast<double>(end_values_[i]) -
                            static_cast<double>(start_values_[i]);
-      measurements.push_back({counters_->names()[i], measurement});
+      measurements.push_back({counters_.names()[i], measurement});
     }
 
     return valid_read_;
   }
 
  private:
-  std::shared_ptr<PerfCounters> counters_;
+  PerfCounters counters_;
   bool valid_read_ = true;
   PerfCounterValues start_values_;
   PerfCounterValues end_values_;

@@ -1,3 +1,4 @@
+#include <random>
 #include <thread>
 
 #include "../src/perf_counters.h"
@@ -29,7 +30,7 @@ TEST(PerfCountersTest, OneCounter) {
     GTEST_SKIP() << "Performance counters not supported.\n";
   }
   EXPECT_TRUE(PerfCounters::Initialize());
-  EXPECT_TRUE(PerfCounters::Create({kGenericPerfEvent1}));
+  EXPECT_TRUE(PerfCounters::Create({kGenericPerfEvent1}).IsValid());
 }
 
 TEST(PerfCountersTest, NegativeTest) {
@@ -38,24 +39,29 @@ TEST(PerfCountersTest, NegativeTest) {
     return;
   }
   EXPECT_TRUE(PerfCounters::Initialize());
-  EXPECT_FALSE(PerfCounters::Create({}));
-  EXPECT_FALSE(PerfCounters::Create({""}));
-  EXPECT_FALSE(PerfCounters::Create({"not a counter name"}));
+  EXPECT_FALSE(PerfCounters::Create({}).IsValid());
+  EXPECT_FALSE(PerfCounters::Create({""}).IsValid());
+  EXPECT_FALSE(PerfCounters::Create({"not a counter name"}).IsValid());
   {
-    EXPECT_TRUE(PerfCounters::Create(
-        {kGenericPerfEvent1, kGenericPerfEvent2, kGenericPerfEvent3}));
+    EXPECT_TRUE(PerfCounters::Create({kGenericPerfEvent1, kGenericPerfEvent2,
+                                      kGenericPerfEvent3})
+                    .IsValid());
   }
   EXPECT_FALSE(
-      PerfCounters::Create({kGenericPerfEvent2, "", kGenericPerfEvent1}));
-  EXPECT_FALSE(PerfCounters::Create(
-      {kGenericPerfEvent3, "not a counter name", kGenericPerfEvent1}));
+      PerfCounters::Create({kGenericPerfEvent2, "", kGenericPerfEvent1})
+          .IsValid());
+  EXPECT_FALSE(PerfCounters::Create({kGenericPerfEvent3, "not a counter name",
+                                     kGenericPerfEvent1})
+                   .IsValid());
   {
-    EXPECT_TRUE(PerfCounters::Create(
-        {kGenericPerfEvent1, kGenericPerfEvent2, kGenericPerfEvent3}));
+    EXPECT_TRUE(PerfCounters::Create({kGenericPerfEvent1, kGenericPerfEvent2,
+                                      kGenericPerfEvent3})
+                    .IsValid());
   }
-  EXPECT_FALSE(PerfCounters::Create({kGenericPerfEvent1, kGenericPerfEvent2,
-                                     kGenericPerfEvent3,
-                                     "MISPREDICTED_BRANCH_RETIRED"}));
+  EXPECT_FALSE(
+      PerfCounters::Create({kGenericPerfEvent1, kGenericPerfEvent2,
+                            kGenericPerfEvent3, "MISPREDICTED_BRANCH_RETIRED"})
+          .IsValid());
 }
 
 TEST(PerfCountersTest, Read1Counter) {
@@ -64,12 +70,12 @@ TEST(PerfCountersTest, Read1Counter) {
   }
   EXPECT_TRUE(PerfCounters::Initialize());
   auto counters = PerfCounters::Create({kGenericPerfEvent1});
-  EXPECT_TRUE(counters);
+  EXPECT_TRUE(counters.IsValid());
   PerfCounterValues values1(1);
-  EXPECT_TRUE(counters->Snapshot(&values1));
+  EXPECT_TRUE(counters.Snapshot(&values1));
   EXPECT_GT(values1[0], 0);
   PerfCounterValues values2(1);
-  EXPECT_TRUE(counters->Snapshot(&values2));
+  EXPECT_TRUE(counters.Snapshot(&values2));
   EXPECT_GT(values2[0], 0);
   EXPECT_GT(values2[0], values1[0]);
 }
@@ -81,13 +87,13 @@ TEST(PerfCountersTest, Read2Counters) {
   EXPECT_TRUE(PerfCounters::Initialize());
   auto counters =
       PerfCounters::Create({kGenericPerfEvent1, kGenericPerfEvent2});
-  EXPECT_TRUE(counters);
+  EXPECT_TRUE(counters.IsValid());
   PerfCounterValues values1(2);
-  EXPECT_TRUE(counters->Snapshot(&values1));
+  EXPECT_TRUE(counters.Snapshot(&values1));
   EXPECT_GT(values1[0], 0);
   EXPECT_GT(values1[1], 0);
   PerfCounterValues values2(2);
-  EXPECT_TRUE(counters->Snapshot(&values2));
+  EXPECT_TRUE(counters.Snapshot(&values2));
   EXPECT_GT(values2[0], 0);
   EXPECT_GT(values2[1], 0);
 }
@@ -99,14 +105,15 @@ TEST(PerfCountersTest, ReopenExistingCounters) {
     GTEST_SKIP() << "Test skipped because libpfm is not supported.\n";
   }
   EXPECT_TRUE(PerfCounters::Initialize());
-  std::vector<std::shared_ptr<PerfCounters>> counters;
-  counters.reserve(6);
-  for (int i = 0; i < 6; i++)
-    counters.push_back(PerfCounters::Create({kGenericPerfEvent1}));
+  std::vector<std::string> kMetrics({kGenericPerfEvent1});
+  std::vector<PerfCounters> counters(6);
+  for (auto& counter : counters) {
+    counter = PerfCounters::Create(kMetrics);
+  }
   PerfCounterValues values(1);
-  EXPECT_TRUE(counters[0]->Snapshot(&values));
-  EXPECT_TRUE(counters[4]->Snapshot(&values));
-  EXPECT_TRUE(counters[5]->Snapshot(&values));
+  EXPECT_TRUE(counters[0].Snapshot(&values));
+  EXPECT_TRUE(counters[4].Snapshot(&values));
+  EXPECT_TRUE(counters[5].Snapshot(&values));
 }
 
 TEST(PerfCountersTest, CreateExistingMeasurements) {
@@ -118,8 +125,12 @@ TEST(PerfCountersTest, CreateExistingMeasurements) {
   const int kMaxCounters = 1;
   const std::vector<std::string> kMetrics{"cycles"};
 
-  std::vector<PerfCountersMeasurement> perf_counter_measurements(kMaxCounters,
-                                                                 kMetrics);
+  std::vector<PerfCountersMeasurement> perf_counter_measurements;
+  perf_counter_measurements.reserve(kMaxCounters);
+  for (int j = 0; j < kMaxCounters; ++j) {
+    perf_counter_measurements.emplace_back(PerfCountersMeasurement(kMetrics));
+  }
+
   std::vector<std::pair<std::string, double>> measurements;
 
   // Start all together
@@ -152,20 +163,30 @@ TEST(PerfCountersTest, CreateExistingMeasurements) {
   }
 }
 
-using benchmark::ChronoClockNow;
+// This probably should go into include/benchmark.h together with
+// BENCHMARK_ALWAYS_INLINE and friends
+#if defined(__clang__)
+#define BENCHMARK_DONT_OPTIMIZE __attribute__((optnone))
+#elif defined(__GNUC__) || defined(__GNUG__)
+#define BENCHMARK_DONT_OPTIMIZE __attribute__((optimize(0)))
+#else
+#define BENCHMARK_DONT_OPTIMIZE
+#endif
 
-size_t do_work() {
-  const double kMinimumElapsedSeconds = 0.25;
-  double now = ChronoClockNow();
-  double finish = now + kMinimumElapsedSeconds;
-  size_t res = 0;
-  size_t counter = 0;
-  do {
-    now = ChronoClockNow();
-    counter++;
-    res += counter * counter;
-  } while (now < finish);
-  return res;
+// We try to do some meaningful work here but the compiler
+// insists in optimizing away our loop so we had to add a
+// no-optimize macro. In case it fails, we added some entropy
+// to this pool as well.
+BENCHMARK_DONT_OPTIMIZE size_t do_work() {
+  static std::mt19937 rd{std::random_device{}()};
+  static std::uniform_int_distribution<size_t> mrand(0, 10);
+  const size_t kNumLoops = 1000000;
+  size_t sum = 0;
+  for (size_t j = 0; j < kNumLoops; ++j) {
+    sum += mrand(rd);
+  }
+  benchmark::DoNotOptimize(sum);
+  return sum;
 }
 
 void measure(size_t threadcount, PerfCounterValues* before,
@@ -183,9 +204,9 @@ void measure(size_t threadcount, PerfCounterValues* before,
   auto counters =
       PerfCounters::Create({kGenericPerfEvent1, kGenericPerfEvent3});
   for (auto& t : threads) t = std::thread(work);
-  counters->Snapshot(before);
+  counters.Snapshot(before);
   for (auto& t : threads) t.join();
-  counters->Snapshot(after);
+  counters.Snapshot(after);
 }
 
 TEST(PerfCountersTest, MultiThreaded) {

@@ -71,7 +71,7 @@ bool PerfCounters::IsCounterSupported(const std::string& name) {
   return (ret == PFM_SUCCESS);
 }
 
-std::shared_ptr<PerfCounters> PerfCounters::Create(
+PerfCounters PerfCounters::Create(
     const std::vector<std::string>& counter_names) {
   if (counter_names.empty()) {
     return NoCounters();
@@ -159,8 +159,8 @@ std::shared_ptr<PerfCounters> PerfCounters::Create(
     }
   }
 
-  return std::shared_ptr<PerfCounters>(new PerfCounters(
-      counter_names, std::move(counter_ids), std::move(leader_ids)));
+  return PerfCounters(counter_names, std::move(counter_ids),
+                      std::move(leader_ids));
 }
 
 void PerfCounters::CloseCounters() const {
@@ -183,7 +183,7 @@ bool PerfCounters::Initialize() { return false; }
 
 bool PerfCounters::IsCounterSupported(const std::string&) { return false; }
 
-std::shared_ptr<PerfCounters> PerfCounters::Create(
+PerfCounters PerfCounters::Create(
     const std::vector<std::string>& counter_names) {
   if (!counter_names.empty()) {
     GetErrorLogInstance() << "Performance counters not supported.";
@@ -194,16 +194,13 @@ std::shared_ptr<PerfCounters> PerfCounters::Create(
 void PerfCounters::CloseCounters() const {}
 #endif  // defined HAVE_LIBPFM
 
-// int PerfCountersMeasurement::ref_count_ = 0;
-// PerfCounters PerfCountersMeasurement::counters_ = PerfCounters::NoCounters();
-
 PerfCountersMeasurement::PerfCountersMeasurement(
     const std::vector<std::string>& counter_names)
     : start_values_(counter_names.size()), end_values_(counter_names.size()) {
   counters_ = PerfCounters::Create(counter_names);
 }
 
-PerfCountersMeasurement::~PerfCountersMeasurement() { counters_.reset(); }
+PerfCountersMeasurement::~PerfCountersMeasurement() {}
 
 PerfCounters& PerfCounters::operator=(PerfCounters&& other) noexcept {
   if (this != &other) {
