@@ -91,9 +91,14 @@ class BENCHMARK_EXPORT PerfCounters final {
   static const bool kSupported;
 
   bool IsValid() const { return !counter_names_.empty(); }
-  static PerfCounters NoCounters() { return PerfCounters(); }
+
+  // Returns an empty object
+  static std::shared_ptr<PerfCounters> NoCounters() {
+    return std::shared_ptr<PerfCounters>();
+  }
 
   ~PerfCounters() { CloseCounters(); }
+  PerfCounters() = default;
   PerfCounters(PerfCounters&&) = default;
   PerfCounters(const PerfCounters&) = delete;
   PerfCounters& operator=(PerfCounters&&) noexcept;
@@ -112,7 +117,8 @@ class BENCHMARK_EXPORT PerfCounters final {
   // implementation and OS specific.
   // TODO: once we move to C++-17, this should be a std::optional, and then the
   // IsValid() boolean can be dropped.
-  static PerfCounters Create(const std::vector<std::string>& counter_names);
+  static std::shared_ptr<PerfCounters> Create(
+      const std::vector<std::string>& counter_names);
 
   // Take a snapshot of the current value of the counters into the provided
   // valid PerfCounterValues storage. The values are populated such that:
@@ -137,7 +143,6 @@ class BENCHMARK_EXPORT PerfCounters final {
       : counter_ids_(std::move(counter_ids)),
         leader_ids_(std::move(leader_ids)),
         counter_names_(counter_names) {}
-  PerfCounters() = default;
 
   void CloseCounters() const;
 
@@ -152,50 +157,45 @@ class BENCHMARK_EXPORT PerfCountersMeasurement final {
   PerfCountersMeasurement(const std::vector<std::string>& counter_names);
   ~PerfCountersMeasurement();
 
-  // The only way to get to `counters_` is after ctor-ing a
-  // `PerfCountersMeasurement`, which means that `counters_`'s state is, here,
-  // decided (either invalid or valid) and won't change again even if a ctor is
-  // concurrently running with this. This is preferring efficiency to
-  // maintainability, because the address of the static can be known at compile
-  // time.
-  bool IsValid() const {
-    MutexLock l(mutex_);
-    return counters_.IsValid();
+  size_t num_counters() const {
+    return counters_ ? counters_->num_counters() : 0;
   }
 
+  std::vector<std::string> names() const {
+    return counters_ ? counters_->names() : std::vector<std::string>();
+  }
+
+  bool IsValid() const { return bool(counters_); }
+
   BENCHMARK_ALWAYS_INLINE void Start() {
-    assert(IsValid());
-    MutexLock l(mutex_);
+    if (!counters_) return;
     // Tell the compiler to not move instructions above/below where we take
     // the snapshot.
     ClobberMemory();
-    valid_read_ &= counters_.Snapshot(&start_values_);
+    valid_read_ &= counters_->Snapshot(&start_values_);
     ClobberMemory();
   }
 
   BENCHMARK_ALWAYS_INLINE bool Stop(
       std::vector<std::pair<std::string, double>>& measurements) {
-    assert(IsValid());
-    MutexLock l(mutex_);
+    if (!counters_) return false;
     // Tell the compiler to not move instructions above/below where we take
     // the snapshot.
     ClobberMemory();
-    valid_read_ &= counters_.Snapshot(&end_values_);
+    valid_read_ &= counters_->Snapshot(&end_values_);
     ClobberMemory();
 
-    for (size_t i = 0; i < counters_.names().size(); ++i) {
+    for (size_t i = 0; i < counters_->names().size(); ++i) {
       double measurement = static_cast<double>(end_values_[i]) -
                            static_cast<double>(start_values_[i]);
-      measurements.push_back({counters_.names()[i], measurement});
+      measurements.push_back({counters_->names()[i], measurement});
     }
 
     return valid_read_;
   }
 
  private:
-  static Mutex mutex_;
-  GUARDED_BY(mutex_) static int ref_count_;
-  GUARDED_BY(mutex_) static PerfCounters counters_;
+  std::shared_ptr<PerfCounters> counters_;
   bool valid_read_ = true;
   PerfCounterValues start_values_;
   PerfCounterValues end_values_;

@@ -71,7 +71,7 @@ bool PerfCounters::IsCounterSupported(const std::string& name) {
   return (ret == PFM_SUCCESS);
 }
 
-PerfCounters PerfCounters::Create(
+std::shared_ptr<PerfCounters> PerfCounters::Create(
     const std::vector<std::string>& counter_names) {
   if (counter_names.empty()) {
     return NoCounters();
@@ -159,8 +159,8 @@ PerfCounters PerfCounters::Create(
     }
   }
 
-  return PerfCounters(counter_names, std::move(counter_ids),
-                      std::move(leader_ids));
+  return std::shared_ptr<PerfCounters>(new PerfCounters(
+      counter_names, std::move(counter_ids), std::move(leader_ids)));
 }
 
 void PerfCounters::CloseCounters() const {
@@ -183,7 +183,7 @@ bool PerfCounters::Initialize() { return false; }
 
 bool PerfCounters::IsCounterSupported(const std::string&) { return false; }
 
-PerfCounters PerfCounters::Create(
+std::shared_ptr<PerfCounters> PerfCounters::Create(
     const std::vector<std::string>& counter_names) {
   if (!counter_names.empty()) {
     GetErrorLogInstance() << "Performance counters not supported.";
@@ -194,32 +194,16 @@ PerfCounters PerfCounters::Create(
 void PerfCounters::CloseCounters() const {}
 #endif  // defined HAVE_LIBPFM
 
-Mutex PerfCountersMeasurement::mutex_;
-int PerfCountersMeasurement::ref_count_ = 0;
-PerfCounters PerfCountersMeasurement::counters_ = PerfCounters::NoCounters();
+// int PerfCountersMeasurement::ref_count_ = 0;
+// PerfCounters PerfCountersMeasurement::counters_ = PerfCounters::NoCounters();
 
 PerfCountersMeasurement::PerfCountersMeasurement(
     const std::vector<std::string>& counter_names)
     : start_values_(counter_names.size()), end_values_(counter_names.size()) {
-  MutexLock l(mutex_);
-  if (ref_count_ == 0) {
-    counters_ = PerfCounters::Create(counter_names);
-  }
-  // We chose to increment it even if `counters_` ends up invalid,
-  // so that we don't keep trying to create, and also since the dtor
-  // will decrement regardless of `counters_`'s validity
-  ++ref_count_;
-
-  BM_CHECK(!counters_.IsValid() || counters_.names() == counter_names);
+  counters_ = PerfCounters::Create(counter_names);
 }
 
-PerfCountersMeasurement::~PerfCountersMeasurement() {
-  MutexLock l(mutex_);
-  --ref_count_;
-  if (ref_count_ == 0) {
-    counters_ = PerfCounters::NoCounters();
-  }
-}
+PerfCountersMeasurement::~PerfCountersMeasurement() { counters_.reset(); }
 
 PerfCounters& PerfCounters::operator=(PerfCounters&& other) noexcept {
   if (this != &other) {

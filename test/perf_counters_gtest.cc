@@ -1,6 +1,7 @@
 #include <thread>
 
 #include "../src/perf_counters.h"
+#include "../src/timers.h"
 #include "gtest/gtest.h"
 
 #ifndef GTEST_SKIP
@@ -28,7 +29,7 @@ TEST(PerfCountersTest, OneCounter) {
     GTEST_SKIP() << "Performance counters not supported.\n";
   }
   EXPECT_TRUE(PerfCounters::Initialize());
-  EXPECT_TRUE(PerfCounters::Create({kGenericPerfEvent1}).IsValid());
+  EXPECT_TRUE(PerfCounters::Create({kGenericPerfEvent1}));
 }
 
 TEST(PerfCountersTest, NegativeTest) {
@@ -37,29 +38,24 @@ TEST(PerfCountersTest, NegativeTest) {
     return;
   }
   EXPECT_TRUE(PerfCounters::Initialize());
-  EXPECT_FALSE(PerfCounters::Create({}).IsValid());
-  EXPECT_FALSE(PerfCounters::Create({""}).IsValid());
-  EXPECT_FALSE(PerfCounters::Create({"not a counter name"}).IsValid());
+  EXPECT_FALSE(PerfCounters::Create({}));
+  EXPECT_FALSE(PerfCounters::Create({""}));
+  EXPECT_FALSE(PerfCounters::Create({"not a counter name"}));
   {
-    EXPECT_TRUE(PerfCounters::Create({kGenericPerfEvent1, kGenericPerfEvent2,
-                                      kGenericPerfEvent3})
-                    .IsValid());
+    EXPECT_TRUE(PerfCounters::Create(
+        {kGenericPerfEvent1, kGenericPerfEvent2, kGenericPerfEvent3}));
   }
   EXPECT_FALSE(
-      PerfCounters::Create({kGenericPerfEvent2, "", kGenericPerfEvent1})
-          .IsValid());
-  EXPECT_FALSE(PerfCounters::Create({kGenericPerfEvent3, "not a counter name",
-                                     kGenericPerfEvent1})
-                   .IsValid());
+      PerfCounters::Create({kGenericPerfEvent2, "", kGenericPerfEvent1}));
+  EXPECT_FALSE(PerfCounters::Create(
+      {kGenericPerfEvent3, "not a counter name", kGenericPerfEvent1}));
   {
-    EXPECT_TRUE(PerfCounters::Create({kGenericPerfEvent1, kGenericPerfEvent2,
-                                      kGenericPerfEvent3})
-                    .IsValid());
+    EXPECT_TRUE(PerfCounters::Create(
+        {kGenericPerfEvent1, kGenericPerfEvent2, kGenericPerfEvent3}));
   }
-  EXPECT_FALSE(
-      PerfCounters::Create({kGenericPerfEvent1, kGenericPerfEvent2,
-                            kGenericPerfEvent3, "MISPREDICTED_BRANCH_RETIRED"})
-          .IsValid());
+  EXPECT_FALSE(PerfCounters::Create({kGenericPerfEvent1, kGenericPerfEvent2,
+                                     kGenericPerfEvent3,
+                                     "MISPREDICTED_BRANCH_RETIRED"}));
 }
 
 TEST(PerfCountersTest, Read1Counter) {
@@ -68,12 +64,12 @@ TEST(PerfCountersTest, Read1Counter) {
   }
   EXPECT_TRUE(PerfCounters::Initialize());
   auto counters = PerfCounters::Create({kGenericPerfEvent1});
-  EXPECT_TRUE(counters.IsValid());
+  EXPECT_TRUE(counters);
   PerfCounterValues values1(1);
-  EXPECT_TRUE(counters.Snapshot(&values1));
+  EXPECT_TRUE(counters->Snapshot(&values1));
   EXPECT_GT(values1[0], 0);
   PerfCounterValues values2(1);
-  EXPECT_TRUE(counters.Snapshot(&values2));
+  EXPECT_TRUE(counters->Snapshot(&values2));
   EXPECT_GT(values2[0], 0);
   EXPECT_GT(values2[0], values1[0]);
 }
@@ -85,88 +81,111 @@ TEST(PerfCountersTest, Read2Counters) {
   EXPECT_TRUE(PerfCounters::Initialize());
   auto counters =
       PerfCounters::Create({kGenericPerfEvent1, kGenericPerfEvent2});
-  EXPECT_TRUE(counters.IsValid());
+  EXPECT_TRUE(counters);
   PerfCounterValues values1(2);
-  EXPECT_TRUE(counters.Snapshot(&values1));
+  EXPECT_TRUE(counters->Snapshot(&values1));
   EXPECT_GT(values1[0], 0);
   EXPECT_GT(values1[1], 0);
   PerfCounterValues values2(2);
-  EXPECT_TRUE(counters.Snapshot(&values2));
+  EXPECT_TRUE(counters->Snapshot(&values2));
   EXPECT_GT(values2[0], 0);
   EXPECT_GT(values2[1], 0);
 }
 
 TEST(PerfCountersTest, ReopenExistingCounters) {
-  // The test works (i.e. causes read to fail) for the assumptions
-  // about hardware capabilities (i.e. small number (3-4) hardware
-  // counters) at this date.
+  // This test works as you can have multiple repeated counters
+  // in different performance counter groups
   if (!PerfCounters::kSupported) {
     GTEST_SKIP() << "Test skipped because libpfm is not supported.\n";
   }
   EXPECT_TRUE(PerfCounters::Initialize());
-  std::vector<PerfCounters> counters;
+  std::vector<std::shared_ptr<PerfCounters>> counters;
   counters.reserve(6);
   for (int i = 0; i < 6; i++)
     counters.push_back(PerfCounters::Create({kGenericPerfEvent1}));
   PerfCounterValues values(1);
-  EXPECT_TRUE(counters[0].Snapshot(&values));
-  EXPECT_FALSE(counters[4].Snapshot(&values));
-  EXPECT_FALSE(counters[5].Snapshot(&values));
+  EXPECT_TRUE(counters[0]->Snapshot(&values));
+  EXPECT_TRUE(counters[4]->Snapshot(&values));
+  EXPECT_TRUE(counters[5]->Snapshot(&values));
 }
 
 TEST(PerfCountersTest, CreateExistingMeasurements) {
-  // The test works (i.e. causes read to fail) for the assumptions
-  // about hardware capabilities (i.e. small number (3-4) hardware
-  // counters) at this date,
-  // the same as previous test ReopenExistingCounters.
   if (!PerfCounters::kSupported) {
     GTEST_SKIP() << "Test skipped because libpfm is not supported.\n";
   }
   EXPECT_TRUE(PerfCounters::Initialize());
-  std::vector<PerfCountersMeasurement> perf_counter_measurements;
+
+  const int kMaxCounters = 1;
+  const std::vector<std::string> kMetrics{"cycles"};
+
+  std::vector<PerfCountersMeasurement> perf_counter_measurements(kMaxCounters,
+                                                                 kMetrics);
   std::vector<std::pair<std::string, double>> measurements;
 
-  perf_counter_measurements.reserve(10);
-  for (int i = 0; i < 10; i++)
-    perf_counter_measurements.emplace_back(
-        std::vector<std::string>{kGenericPerfEvent1});
+  // Start all together
+  int max_counters = kMaxCounters;
+  for (int i = 0; i < kMaxCounters; ++i) {
+    PerfCountersMeasurement& counter(perf_counter_measurements[i]);
+    EXPECT_TRUE(counter.IsValid());
+    EXPECT_EQ(counter.num_counters(), 1);
+    if (!counter.IsValid()) {
+      max_counters = i;
+      break;
+    }
+    counter.Start();
+  }
 
-  perf_counter_measurements[0].Start();
-  EXPECT_TRUE(perf_counter_measurements[0].Stop(measurements));
+  ASSERT_GE(max_counters, 1);
 
-  measurements.clear();
-  perf_counter_measurements[8].Start();
-  EXPECT_FALSE(perf_counter_measurements[8].Stop(measurements));
+  // Start all together
+  for (int i = 0; i < max_counters; ++i) {
+    PerfCountersMeasurement& counter(perf_counter_measurements[i]);
+    EXPECT_TRUE(counter.Stop(measurements));
+  }
 
-  measurements.clear();
-  perf_counter_measurements[9].Start();
-  EXPECT_FALSE(perf_counter_measurements[9].Stop(measurements));
+  // Start/stop individually
+  for (int i = 0; i < max_counters; ++i) {
+    PerfCountersMeasurement& counter(perf_counter_measurements[i]);
+    measurements.clear();
+    counter.Start();
+    EXPECT_TRUE(counter.Stop(measurements));
+  }
 }
 
+using benchmark::ChronoClockNow;
+
 size_t do_work() {
+  const double kMinimumElapsedSeconds = 0.25;
+  double now = ChronoClockNow();
+  double finish = now + kMinimumElapsedSeconds;
   size_t res = 0;
-  for (size_t i = 0; i < 100000000; ++i) res += i * i;
+  size_t counter = 0;
+  do {
+    now = ChronoClockNow();
+    counter++;
+    res += counter * counter;
+  } while (now < finish);
   return res;
 }
 
-void measure(size_t threadcount, PerfCounterValues* values1,
-             PerfCounterValues* values2) {
-  BM_CHECK_NE(values1, nullptr);
-  BM_CHECK_NE(values2, nullptr);
+void measure(size_t threadcount, PerfCounterValues* before,
+             PerfCounterValues* after) {
+  BM_CHECK_NE(before, nullptr);
+  BM_CHECK_NE(after, nullptr);
   std::vector<std::thread> threads(threadcount);
   auto work = [&]() { BM_CHECK(do_work() > 1000); };
 
   // We need to first set up the counters, then start the threads, so the
-  // threads would inherit the counters. But later, we need to first destroy the
-  // thread pool (so all the work finishes), then measure the counters. So the
-  // scopes overlap, and we need to explicitly control the scope of the
+  // threads would inherit the counters. But later, we need to first destroy
+  // the thread pool (so all the work finishes), then measure the counters. So
+  // the scopes overlap, and we need to explicitly control the scope of the
   // threadpool.
   auto counters =
       PerfCounters::Create({kGenericPerfEvent1, kGenericPerfEvent3});
   for (auto& t : threads) t = std::thread(work);
-  counters.Snapshot(values1);
+  counters->Snapshot(before);
   for (auto& t : threads) t.join();
-  counters.Snapshot(values2);
+  counters->Snapshot(after);
 }
 
 TEST(PerfCountersTest, MultiThreaded) {
@@ -174,21 +193,23 @@ TEST(PerfCountersTest, MultiThreaded) {
     GTEST_SKIP() << "Test skipped because libpfm is not supported.";
   }
   EXPECT_TRUE(PerfCounters::Initialize());
-  PerfCounterValues values1(2);
-  PerfCounterValues values2(2);
+  PerfCounterValues before(2);
+  PerfCounterValues after(2);
 
-  measure(2, &values1, &values2);
-  std::vector<double> D1{static_cast<double>(values2[0] - values1[0]),
-                         static_cast<double>(values2[1] - values1[1])};
+  measure(2, &before, &after);
+  std::vector<double> Elapsed2Threads{
+      static_cast<double>(after[0] - before[0]),
+      static_cast<double>(after[1] - before[1])};
 
-  measure(4, &values1, &values2);
-  std::vector<double> D2{static_cast<double>(values2[0] - values1[0]),
-                         static_cast<double>(values2[1] - values1[1])};
+  measure(4, &before, &after);
+  std::vector<double> Elapsed4Threads{
+      static_cast<double>(after[0] - before[0]),
+      static_cast<double>(after[1] - before[1])};
 
   // Some extra work will happen on the main thread - like joining the threads
   // - so the ratio won't be quite 2.0, but very close.
-  EXPECT_GE(D2[0], 1.9 * D1[0]);
-  EXPECT_GE(D2[1], 1.9 * D1[1]);
+  EXPECT_GE(Elapsed4Threads[0], 1.9 * Elapsed2Threads[0]);
+  EXPECT_GE(Elapsed4Threads[1], 1.9 * Elapsed2Threads[1]);
 }
 
 TEST(PerfCountersTest, HardwareLimits) {
