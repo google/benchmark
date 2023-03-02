@@ -71,32 +71,61 @@ bool PerfCounters::IsCounterSupported(const std::string& name) {
   return (ret == PFM_SUCCESS);
 }
 
+// Validates all counter names passed, returning only the valid ones
+static std::vector<std::string> validateCounters(
+    const std::vector<std::string>& counter_names) {
+  // All valid names to be returned
+  std::vector<std::string> valid_names;
+
+  // Loop through all the given names
+  int invalid_counter = 0;
+  for (const std::string& name : counter_names) {
+    // Check trivial empty
+    if (name.empty()) {
+      GetErrorLogInstance() << "A counter name was the empty string\n";
+      invalid_counter++;
+      continue;
+    }
+    if (PerfCounters::IsCounterSupported(name)) {
+      // we are about to push into the valid names vector
+      // check if we did not reach the maximum
+      if (valid_names.size() == PerfCounterValues::kMaxCounters) {
+        GetErrorLogInstance()
+            << counter_names.size()
+            << " counters were requested. The maximum is "
+            << PerfCounterValues::kMaxCounters << " and "
+            << counter_names.size() - invalid_counter - valid_names.size()
+            << " will be ignored\n";
+        // stop the loop and return what we have already
+        break;
+      }
+      valid_names.push_back(name);
+    } else {
+      GetErrorLogInstance() << "Performance counter " << name
+                            << " incorrect or not supported on this platform\n";
+      invalid_counter++;
+    }
+  }
+  // RVO should take care of this
+  return valid_names;
+}
+
 PerfCounters PerfCounters::Create(
     const std::vector<std::string>& counter_names) {
-  if (counter_names.empty()) {
+  std::vector<std::string> valid_names = validateCounters(counter_names);
+  if (valid_names.empty()) {
     return NoCounters();
   }
-  if (counter_names.size() > PerfCounterValues::kMaxCounters) {
-    GetErrorLogInstance()
-        << counter_names.size()
-        << " counters were requested. The minimum is 1, the maximum is "
-        << PerfCounterValues::kMaxCounters << "\n";
-    return NoCounters();
-  }
-  std::vector<int> counter_ids(counter_names.size());
+  std::vector<int> counter_ids(valid_names.size());
   std::vector<int> leader_ids;
 
   const int mode = PFM_PLM3;  // user mode only
   int group_id = -1;
-  for (size_t i = 0; i < counter_names.size(); ++i) {
+  for (size_t i = 0; i < valid_names.size(); ++i) {
     const bool is_first = (group_id < 0);
     struct perf_event_attr attr {};
     attr.size = sizeof(attr);
-    const auto& name = counter_names[i];
-    if (name.empty()) {
-      GetErrorLogInstance() << "A counter name was the empty string\n";
-      return NoCounters();
-    }
+    const auto& name = valid_names[i];
     pfm_perf_encode_arg_t arg{};
     arg.attr = &attr;
 
@@ -159,7 +188,7 @@ PerfCounters PerfCounters::Create(
     }
   }
 
-  return PerfCounters(counter_names, std::move(counter_ids),
+  return PerfCounters(valid_names, std::move(counter_ids),
                       std::move(leader_ids));
 }
 
@@ -198,6 +227,9 @@ Mutex PerfCountersMeasurement::mutex_;
 int PerfCountersMeasurement::ref_count_ = 0;
 PerfCounters PerfCountersMeasurement::counters_ = PerfCounters::NoCounters();
 
+// The validation in PerfCounter::Create will create less counters than passed
+// so it should be okay to initialize start_values_ and end_values_ with the
+// upper bound as passed
 PerfCountersMeasurement::PerfCountersMeasurement(
     const std::vector<std::string>& counter_names)
     : start_values_(counter_names.size()), end_values_(counter_names.size()) {
