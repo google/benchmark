@@ -83,28 +83,41 @@ PerfCounters PerfCounters::Create(
         << PerfCounterValues::kMaxCounters << "\n";
     return NoCounters();
   }
-  std::vector<int> counter_ids(counter_names.size());
+
+  // Valid counters will populate these arrays
+  std::vector<std::string> valid_names;
+  std::vector<int> counter_ids;
   std::vector<int> leader_ids;
+
+  valid_names.reserve(counter_names.size());
+  counter_ids.reserve(counter_names.size());
 
   const int mode = PFM_PLM3;  // user mode only
   int group_id = -1;
   for (size_t i = 0; i < counter_names.size(); ++i) {
+    const auto& name = counter_names[i];
+
+    // These two tests should never happen since we already validate
+    // the names for null and validity prior to calling this method
+    // However they are here for safety.
+    if (name.empty()) {
+      GetErrorLogInstance()
+          << "A performance counter name was the empty string\n";
+      continue;
+    }
+
     const bool is_first = (group_id < 0);
     struct perf_event_attr attr {};
     attr.size = sizeof(attr);
-    const auto& name = counter_names[i];
-    if (name.empty()) {
-      GetErrorLogInstance() << "A counter name was the empty string\n";
-      return NoCounters();
-    }
     pfm_perf_encode_arg_t arg{};
     arg.attr = &attr;
 
     const int pfm_get =
         pfm_get_os_event_encoding(name.c_str(), mode, PFM_OS_PERF_EVENT, &arg);
     if (pfm_get != PFM_SUCCESS) {
-      GetErrorLogInstance() << "Unknown counter name: " << name << "\n";
-      return NoCounters();
+      GetErrorLogInstance()
+          << "Unknown performance counter name: " << name << "\n";
+      continue;
     }
     attr.disabled = is_first;
     // Note: the man page for perf_event_create suggests inherit = true and
@@ -141,25 +154,29 @@ PerfCounters PerfCounters::Create(
       }
     }
     if (id < 0) {
-      GetErrorLogInstance()
-          << "Failed to get a file descriptor for " << name << "\n";
-      return NoCounters();
+      GetErrorLogInstance() << "***WARNING** Failed to get a file descriptor "
+                               "for performance counter "
+                            << name << ". Ignoring\n";
+      continue;
     }
     if (group_id < 0) {
       // This is a leader, store and assign it
       leader_ids.push_back(id);
       group_id = id;
     }
-    counter_ids[i] = id;
+    // This is a valid counter, add it
+    counter_ids.push_back(id);
+    valid_names.push_back(name);
   }
   for (int lead : leader_ids) {
     if (ioctl(lead, PERF_EVENT_IOC_ENABLE) != 0) {
-      GetErrorLogInstance() << "Failed to start counters\n";
+      GetErrorLogInstance() << "***WARNING*** Failed to start counters. "
+                               "Claring out all counters.\n";
       return NoCounters();
     }
   }
 
-  return PerfCounters(counter_names, std::move(counter_ids),
+  return PerfCounters(std::move(valid_names), std::move(counter_ids),
                       std::move(leader_ids));
 }
 
