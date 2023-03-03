@@ -175,9 +175,7 @@ TEST(PerfCountersTest, CreateExistingMeasurements) {
 // no-optimize macro. In case it fails, we added some entropy
 // to this pool as well.
 
-// Could not get the __pragma(optimize("",off)) to work...
-BENCHMARK_DONT_OPTIMIZE_BEGIN
-size_t do_work() {
+BENCHMARK_DONT_OPTIMIZE size_t do_work() {
   static std::mt19937 rd{std::random_device{}()};
   static std::uniform_int_distribution<size_t> mrand(0, 10);
   const size_t kNumLoops = 1000000;
@@ -188,7 +186,6 @@ size_t do_work() {
   benchmark::DoNotOptimize(sum);
   return sum;
 }
-BENCHMARK_DONT_OPTIMIZE_END
 
 void measure(size_t threadcount, PerfCounterValues* before,
              PerfCounterValues* after) {

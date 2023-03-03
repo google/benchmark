@@ -218,24 +218,15 @@ BENCHMARK(BM_test)->Unit(benchmark::kMillisecond);
 #define BENCHMARK_UNUSED
 #endif
 
-#if defined(__ICC) || defined(_WIN32)
-// Because of MSVC we had to use this two-macro setup instead of
-// a single function attribute but MSVC does not support them
-#define BENCHMARK_DONT_OPTIMIZE_BEGIN __pragma(optimize("", off));
-#define BENCHMARK_DONT_OPTIMIZE_END __pragma(optimize("", on));
-#elif defined(__clang__)
-// I am afraid that this _Pragma() form although standard might
-// break newer compilers
-#define BENCHMARK_DONT_OPTIMIZE_BEGIN _Pragma("clang optimize off");
-#define BENCHMARK_DONT_OPTIMIZE_END _Pragma("clang optimize on");
+// Used to annotate functions, methods and classes so they
+// are not optimized by the compiler. Useful for tests
+// where you expect loops to stay in place churning cycles
+#if defined(__clang__)
+#define BENCHMARK_DONT_OPTIMIZE __attribute__((optnone))
 #elif defined(__GNUC__) || defined(__GNUG__)
-#define BENCHMARK_DONT_OPTIMIZE_BEGIN \
-  _Pragma("GCC push_options");        \
-  _Pragma("GCC optimize(\"0\")");
-#define BENCHMARK_DONT_OPTIMIZE_END _Pragma("GCC pop_options");
+#define BENCHMARK_DONT_OPTIMIZE __attribute__((optimize(0)))
 #else
-#define BENCHMARK_DONT_OPTIMIZE_BEGIN
-#define BENCHMARK_DONT_OPTIMIZE_END
+#define BENCHMARK_DONT_OPTIMIZE
 #endif
 
 #if defined(__GNUC__) || defined(__clang__)
