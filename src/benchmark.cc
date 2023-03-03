@@ -357,10 +357,14 @@ void RunBenchmarks(const std::vector<BenchmarkInstance>& benchmarks,
     std::vector<internal::BenchmarkRunner> runners;
     runners.reserve(benchmarks.size());
 
+    int benchmarks_with_threads = 0;
     for (const BenchmarkInstance& benchmark : benchmarks) {
       BenchmarkReporter::PerFamilyRunReports* reports_for_family = nullptr;
       if (benchmark.complexity() != oNone)
         reports_for_family = &per_family_reports[benchmark.family_index()];
+      if (benchmark.threads() > 0) {
+        benchmarks_with_threads++;
+      }
 
       runners.emplace_back(benchmark, &perfcounters, reports_for_family);
       int num_repeats_of_this_instance = runners.back().GetNumRepeats();
@@ -369,6 +373,14 @@ void RunBenchmarks(const std::vector<BenchmarkInstance>& benchmarks,
         reports_for_family->num_runs_total += num_repeats_of_this_instance;
     }
     assert(runners.size() == benchmarks.size() && "Unexpected runner count.");
+    if ((benchmarks_with_threads > 0) && (perfcounters.num_counters() > 0)) {
+      GetErrorLogInstance()
+          << "***WARNING*** There are " << benchmarks_with_threads
+          << " benchmarks with threads and " << perfcounters.num_counters()
+          << " performance counters were requested. Beware counters will "
+             "reflect the combined usage across all "
+             "threads.\n";
+    }
 
     std::vector<size_t> repetition_indices;
     repetition_indices.reserve(num_repetitions_total);
