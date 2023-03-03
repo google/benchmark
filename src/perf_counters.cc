@@ -73,17 +73,6 @@ bool PerfCounters::IsCounterSupported(const std::string& name) {
 
 PerfCounters PerfCounters::Create(
     const std::vector<std::string>& counter_names) {
-  if (counter_names.empty()) {
-    return NoCounters();
-  }
-  if (counter_names.size() > PerfCounterValues::kMaxCounters) {
-    GetErrorLogInstance()
-        << counter_names.size()
-        << " counters were requested. The minimum is 1, the maximum is "
-        << PerfCounterValues::kMaxCounters << "\n";
-    return NoCounters();
-  }
-
   // Valid counters will populate these arrays
   std::vector<std::string> valid_names;
   std::vector<int> counter_ids;
@@ -95,11 +84,22 @@ PerfCounters PerfCounters::Create(
   const int mode = PFM_PLM3;  // user mode only
   int group_id = -1;
   for (size_t i = 0; i < counter_names.size(); ++i) {
-    const auto& name = counter_names[i];
+    // we are about to push into the valid names vector
+    // check if we did not reach the maximum
+    if (valid_names.size() == PerfCounterValues::kMaxCounters) {
+      // Log a message
+      GetErrorLogInstance()
+          << counter_names.size() << " counters were requested. The maximum is "
+          << PerfCounterValues::kMaxCounters << " and " << valid_names.size()
+          << " were already added. All remaining counters will be ignored\n";
+      // stop the loop and return what we have already
+      break;
+    }
 
     // These two tests should never happen since we already validate
     // the names for null and validity prior to calling this method
     // However they are here for safety.
+    const auto& name = counter_names[i];
     if (name.empty()) {
       GetErrorLogInstance()
           << "A performance counter name was the empty string\n";
@@ -119,6 +119,7 @@ PerfCounters PerfCounters::Create(
           << "Unknown performance counter name: " << name << "\n";
       continue;
     }
+
     attr.disabled = is_first;
     // Note: the man page for perf_event_create suggests inherit = true and
     // read_format = PERF_FORMAT_GROUP don't work together, but that's not the
@@ -172,6 +173,9 @@ PerfCounters PerfCounters::Create(
     if (ioctl(lead, PERF_EVENT_IOC_ENABLE) != 0) {
       GetErrorLogInstance() << "***WARNING*** Failed to start counters. "
                                "Claring out all counters.\n";
+      for (int id : counter_ids) {
+        ::close(id);
+      }
       return NoCounters();
     }
   }
@@ -215,6 +219,9 @@ Mutex PerfCountersMeasurement::mutex_;
 int PerfCountersMeasurement::ref_count_ = 0;
 PerfCounters PerfCountersMeasurement::counters_ = PerfCounters::NoCounters();
 
+// The validation in PerfCounter::Create will create less counters than passed
+// so it should be okay to initialize start_values_ and end_values_ with the
+// upper bound as passed
 PerfCountersMeasurement::PerfCountersMeasurement(
     const std::vector<std::string>& counter_names)
     : start_values_(counter_names.size()), end_values_(counter_names.size()) {
