@@ -348,16 +348,21 @@ void RunBenchmarks(const std::vector<BenchmarkInstance>& benchmarks,
 
     size_t num_repetitions_total = 0;
 
-    auto perfcounters = std::make_shared<PerfCountersMeasurement>(
+    // This perfcounters object needs to be created before the runners vector
+    // below so it outlasts their lifetime.
+    PerfCountersMeasurement perfcounters(
         StrSplit(FLAGS_benchmark_perf_counters, ','));
+
+    // Vector of benchmarks to run
     std::vector<internal::BenchmarkRunner> runners;
     runners.reserve(benchmarks.size());
+
     for (const BenchmarkInstance& benchmark : benchmarks) {
       BenchmarkReporter::PerFamilyRunReports* reports_for_family = nullptr;
       if (benchmark.complexity() != oNone)
         reports_for_family = &per_family_reports[benchmark.family_index()];
 
-      runners.emplace_back(benchmark, perfcounters, reports_for_family);
+      runners.emplace_back(benchmark, &perfcounters, reports_for_family);
       int num_repeats_of_this_instance = runners.back().GetNumRepeats();
       num_repetitions_total += num_repeats_of_this_instance;
       if (reports_for_family)

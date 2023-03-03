@@ -125,12 +125,16 @@ TEST(PerfCountersTest, CreateExistingMeasurements) {
   const int kMinValidCounters = 3;
   const std::vector<std::string> kMetrics{"cycles"};
 
-  std::vector<std::shared_ptr<PerfCountersMeasurement>>
+  // Cannot create a vector of actual objects because the
+  // copy constructor of PerfCounters is deleted - and so is
+  // implicitly deleted on PerfCountersMeasurement too
+  std::vector<std::unique_ptr<PerfCountersMeasurement>>
       perf_counter_measurements;
+
   perf_counter_measurements.reserve(kMaxCounters);
   for (int j = 0; j < kMaxCounters; ++j) {
     perf_counter_measurements.emplace_back(
-        std::make_shared<PerfCountersMeasurement>(kMetrics));
+        new PerfCountersMeasurement(kMetrics));
   }
 
   std::vector<std::pair<std::string, double>> measurements;
