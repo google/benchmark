@@ -47,8 +47,9 @@ size_t PerfCounterValues::Read(const std::vector<int>& leaders) {
       size -= data_bytes;
     } else {
       int err = errno;
-      GetErrorLogInstance() << "Error reading lead " << lead << " errno:" << err
-                            << " " << ::strerror(err) << "\n";
+      GetErrorLogInstance()
+          << "PerfCounterValues: error reading fd:" << lead << " errno:" << err
+          << " " << ::strerror(err) << "\n";
       return 0;
     }
   }

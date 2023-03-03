@@ -221,6 +221,7 @@ BenchTimeType ParseBenchMinTime(const std::string& value) {
 
 BenchmarkRunner::BenchmarkRunner(
     const benchmark::internal::BenchmarkInstance& b_,
+    const std::shared_ptr<PerfCountersMeasurement>& pcm_,
     BenchmarkReporter::PerFamilyRunReports* reports_for_family_)
     : b(b_),
       reports_for_family(reports_for_family_),
@@ -239,10 +240,7 @@ BenchmarkRunner::BenchmarkRunner(
       iters(has_explicit_iteration_count
                 ? ComputeIters(b_, parsed_benchtime_flag)
                 : 1),
-      perf_counters_measurement(StrSplit(FLAGS_benchmark_perf_counters, ',')),
-      perf_counters_measurement_ptr(perf_counters_measurement.IsValid()
-                                        ? &perf_counters_measurement
-                                        : nullptr) {
+      perf_counters_measurement_ptr(pcm_) {
   run_results.display_report_aggregates_only =
       (FLAGS_benchmark_report_aggregates_only ||
        FLAGS_benchmark_display_aggregates_only);
@@ -255,7 +253,7 @@ BenchmarkRunner::BenchmarkRunner(
     run_results.file_report_aggregates_only =
         (b.aggregation_report_mode() & internal::ARM_FileReportAggregatesOnly);
     BM_CHECK(FLAGS_benchmark_perf_counters.empty() ||
-             perf_counters_measurement.IsValid())
+             perf_counters_measurement_ptr->IsValid())
         << "Perf counters were requested but could not be set up.";
   }
 }
@@ -269,12 +267,12 @@ BenchmarkRunner::IterationResults BenchmarkRunner::DoNIterations() {
   // Run all but one thread in separate threads
   for (std::size_t ti = 0; ti < pool.size(); ++ti) {
     pool[ti] = std::thread(&RunInThread, &b, iters, static_cast<int>(ti + 1),
-                           manager.get(), perf_counters_measurement_ptr);
+                           manager.get(), perf_counters_measurement_ptr.get());
   }
   // And run one thread here directly.
   // (If we were asked to run just one thread, we don't create new threads.)
   // Yes, we need to do this here *after* we start the separate threads.
-  RunInThread(&b, iters, 0, manager.get(), perf_counters_measurement_ptr);
+  RunInThread(&b, iters, 0, manager.get(), perf_counters_measurement_ptr.get());
 
   // The main thread has finished. Now let's wait for the other threads.
   manager->WaitForAllThreads();
@@ -465,7 +463,7 @@ void BenchmarkRunner::DoOneRepetition() {
     manager.reset(new internal::ThreadManager(1));
     b.Setup();
     RunInThread(&b, memory_iterations, 0, manager.get(),
-                perf_counters_measurement_ptr);
+                perf_counters_measurement_ptr.get());
     manager->WaitForAllThreads();
     manager.reset();
     b.Teardown();

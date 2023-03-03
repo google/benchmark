@@ -39,26 +39,25 @@ TEST(PerfCountersTest, NegativeTest) {
     return;
   }
   EXPECT_TRUE(PerfCounters::Initialize());
-  EXPECT_FALSE(PerfCounters::Create({}).IsValid());
-  EXPECT_FALSE(PerfCounters::Create({""}).IsValid());
-  EXPECT_FALSE(PerfCounters::Create({"not a counter name"}).IsValid());
+  EXPECT_TRUE(PerfCounters::Create({}).IsValid());
+  EXPECT_TRUE(PerfCounters::Create({""}).IsValid());
+  EXPECT_TRUE(PerfCounters::Create({"not a counter name"}).IsValid());
   {
     EXPECT_TRUE(PerfCounters::Create({kGenericPerfEvent1, kGenericPerfEvent2,
                                       kGenericPerfEvent3})
                     .IsValid());
   }
-  EXPECT_FALSE(
-      PerfCounters::Create({kGenericPerfEvent2, "", kGenericPerfEvent1})
-          .IsValid());
-  EXPECT_FALSE(PerfCounters::Create({kGenericPerfEvent3, "not a counter name",
-                                     kGenericPerfEvent1})
-                   .IsValid());
+  EXPECT_TRUE(PerfCounters::Create({kGenericPerfEvent2, "", kGenericPerfEvent1})
+                  .IsValid());
+  EXPECT_TRUE(PerfCounters::Create({kGenericPerfEvent3, "not a counter name",
+                                    kGenericPerfEvent1})
+                  .IsValid());
   {
     EXPECT_TRUE(PerfCounters::Create({kGenericPerfEvent1, kGenericPerfEvent2,
                                       kGenericPerfEvent3})
                     .IsValid());
   }
-  EXPECT_FALSE(
+  EXPECT_TRUE(
       PerfCounters::Create({kGenericPerfEvent1, kGenericPerfEvent2,
                             kGenericPerfEvent3, "MISPREDICTED_BRANCH_RETIRED"})
           .IsValid());
@@ -122,13 +121,16 @@ TEST(PerfCountersTest, CreateExistingMeasurements) {
   }
   EXPECT_TRUE(PerfCounters::Initialize());
 
-  const int kMaxCounters = 1;
+  const int kMaxCounters = 10;
+  const int kMinValidCounters = 3;
   const std::vector<std::string> kMetrics{"cycles"};
 
-  std::vector<PerfCountersMeasurement> perf_counter_measurements;
+  std::vector<std::shared_ptr<PerfCountersMeasurement>>
+      perf_counter_measurements;
   perf_counter_measurements.reserve(kMaxCounters);
   for (int j = 0; j < kMaxCounters; ++j) {
-    perf_counter_measurements.emplace_back(PerfCountersMeasurement(kMetrics));
+    perf_counter_measurements.emplace_back(
+        std::make_shared<PerfCountersMeasurement>(kMetrics));
   }
 
   std::vector<std::pair<std::string, double>> measurements;
@@ -136,7 +138,7 @@ TEST(PerfCountersTest, CreateExistingMeasurements) {
   // Start all together
   int max_counters = kMaxCounters;
   for (int i = 0; i < kMaxCounters; ++i) {
-    PerfCountersMeasurement& counter(perf_counter_measurements[i]);
+    auto& counter(*perf_counter_measurements[i]);
     EXPECT_TRUE(counter.IsValid());
     EXPECT_EQ(counter.num_counters(), 1);
     if (!counter.IsValid()) {
@@ -144,22 +146,23 @@ TEST(PerfCountersTest, CreateExistingMeasurements) {
       break;
     }
     counter.Start();
+    EXPECT_TRUE(counter.IsValid());
   }
 
   ASSERT_GE(max_counters, 1);
 
   // Start all together
   for (int i = 0; i < max_counters; ++i) {
-    PerfCountersMeasurement& counter(perf_counter_measurements[i]);
-    EXPECT_TRUE(counter.Stop(measurements));
+    auto& counter(*perf_counter_measurements[i]);
+    EXPECT_TRUE(counter.Stop(measurements) || (i >= kMinValidCounters));
   }
 
   // Start/stop individually
   for (int i = 0; i < max_counters; ++i) {
-    PerfCountersMeasurement& counter(perf_counter_measurements[i]);
+    auto& counter(*perf_counter_measurements[i]);
     measurements.clear();
     counter.Start();
-    EXPECT_TRUE(counter.Stop(measurements));
+    EXPECT_TRUE(counter.Stop(measurements) || (i >= kMinValidCounters));
   }
 }
 

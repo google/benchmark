@@ -90,7 +90,7 @@ class BENCHMARK_EXPORT PerfCounters final {
   // True iff this platform supports performance counters.
   static const bool kSupported;
 
-  bool IsValid() const { return !counter_names_.empty(); }
+  bool IsValid() const { return counter_ids_.size() == counter_names_.size(); }
 
   // Returns an empty object
   static PerfCounters NoCounters() { return PerfCounters(); }
@@ -124,7 +124,8 @@ class BENCHMARK_EXPORT PerfCounters final {
 #ifndef BENCHMARK_OS_WINDOWS
     assert(values != nullptr);
     assert(IsValid());
-    return values->Read(leader_ids_) == counter_ids_.size();
+    auto num_read = values->Read(leader_ids_);
+    return (num_read == counter_ids_.size());
 #else
     (void)values;
     return false;
@@ -152,7 +153,7 @@ class BENCHMARK_EXPORT PerfCounters final {
 class BENCHMARK_EXPORT PerfCountersMeasurement final {
  public:
   PerfCountersMeasurement(const std::vector<std::string>& counter_names);
-  PerfCountersMeasurement(PerfCountersMeasurement&&) = default;
+  // PerfCountersMeasurement(PerfCountersMeasurement&&) = default;
   ~PerfCountersMeasurement();
 
   size_t num_counters() const { return counters_.num_counters(); }
