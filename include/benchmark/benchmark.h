@@ -218,6 +218,18 @@ BENCHMARK(BM_test)->Unit(benchmark::kMillisecond);
 #define BENCHMARK_UNUSED
 #endif
 
+// Used to annotate functions, methods and classes so they
+// are not optimized by the compiler. Useful for tests
+// where you expect loops to stay in place churning cycles
+#if defined(__clang__)
+#define BENCHMARK_DONT_OPTIMIZE __attribute__((optnone))
+#elif defined(__GNUC__) || defined(__GNUG__)
+#define BENCHMARK_DONT_OPTIMIZE __attribute__((optimize(0)))
+#else
+// MSVC & Intel do not have a no-optimize attribute, only line pragmas
+#define BENCHMARK_DONT_OPTIMIZE
+#endif
+
 #if defined(__GNUC__) || defined(__clang__)
 #define BENCHMARK_ALWAYS_INLINE __attribute__((always_inline))
 #elif defined(_MSC_VER) && !defined(__clang__)
@@ -586,7 +598,7 @@ class Counter {
   Counter(double v = 0., Flags f = kDefaults, OneK k = kIs1000)
       : value(v), flags(f), oneK(k) {}
 
-  BENCHMARK_ALWAYS_INLINE operator double const &() const { return value; }
+  BENCHMARK_ALWAYS_INLINE operator double const&() const { return value; }
   BENCHMARK_ALWAYS_INLINE operator double&() { return value; }
 };
 
