@@ -153,8 +153,6 @@ class BENCHMARK_EXPORT PerfCounters final {
 class BENCHMARK_EXPORT PerfCountersMeasurement final {
  public:
   PerfCountersMeasurement(const std::vector<std::string>& counter_names);
-  // PerfCountersMeasurement(PerfCountersMeasurement&&) = default;
-  ~PerfCountersMeasurement();
 
   size_t num_counters() const { return counters_.num_counters(); }
 

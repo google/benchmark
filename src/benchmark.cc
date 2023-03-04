@@ -362,10 +362,7 @@ void RunBenchmarks(const std::vector<BenchmarkInstance>& benchmarks,
       BenchmarkReporter::PerFamilyRunReports* reports_for_family = nullptr;
       if (benchmark.complexity() != oNone)
         reports_for_family = &per_family_reports[benchmark.family_index()];
-      if (benchmark.threads() > 0) {
-        benchmarks_with_threads++;
-      }
-
+      benchmarks_with_threads += (benchmark.threads() > 0);
       runners.emplace_back(benchmark, &perfcounters, reports_for_family);
       int num_repeats_of_this_instance = runners.back().GetNumRepeats();
       num_repetitions_total += num_repeats_of_this_instance;

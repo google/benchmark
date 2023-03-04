@@ -104,7 +104,7 @@ class BenchmarkRunner {
   // So only the first repetition has to find/calculate it,
   // the other repetitions will just use that precomputed iteration count.
 
-  PerfCountersMeasurement* perf_counters_measurement_ptr;
+  PerfCountersMeasurement* const perf_counters_measurement_ptr = nullptr;
 
   struct IterationResults {
     internal::ThreadManager::Result results;

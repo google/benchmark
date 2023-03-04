@@ -201,8 +201,6 @@ PerfCountersMeasurement::PerfCountersMeasurement(
   counters_ = PerfCounters::Create(counter_names);
 }
 
-PerfCountersMeasurement::~PerfCountersMeasurement() {}
-
 PerfCounters& PerfCounters::operator=(PerfCounters&& other) noexcept {
   if (this != &other) {
     CloseCounters();
