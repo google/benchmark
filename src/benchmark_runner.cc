@@ -209,7 +209,7 @@ BenchTimeType ParseBenchMinTime(const std::string& value) {
   // After a successfull parse, p_end should point to the suffix 's'
   // or the end of the string, if the suffix was omitted.
   BM_CHECK(errno == 0 && p_end != nullptr &&
-           (has_suffix && *p_end == 's' || *p_end == '\0'))
+           ((has_suffix && *p_end == 's') || *p_end == '\0'))
       << "Malformed seconds value passed to --benchmark_min_time: `" << value
       << "`. Expected --benchmark_min_time=<float>x.";
 
