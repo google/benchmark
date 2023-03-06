@@ -24,7 +24,8 @@ static void BM_MapLookup(benchmark::State& state) {
     m = ConstructRandomMap(size);
     state.ResumeTiming();
     for (int i = 0; i < size; ++i) {
-      benchmark::DoNotOptimize(m.find(std::rand() % size));
+      auto it = m.find(std::rand() % size);
+      benchmark::DoNotOptimize(it);
     }
   }
   state.SetItemsProcessed(state.iterations() * size);
@@ -47,7 +48,8 @@ BENCHMARK_DEFINE_F(MapFixture, Lookup)(benchmark::State& state) {
   const int size = static_cast<int>(state.range(0));
   for (auto _ : state) {
     for (int i = 0; i < size; ++i) {
-      benchmark::DoNotOptimize(m.find(std::rand() % size));
+      auto it = m.find(std::rand() % size);
+      benchmark::DoNotOptimize(it);
     }
   }
   state.SetItemsProcessed(state.iterations() * size);

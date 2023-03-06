@@ -7,7 +7,8 @@
 
 static void BM_Simple(benchmark::State& state) {
   for (auto _ : state) {
-    benchmark::DoNotOptimize(state.iterations());
+    auto iterations = state.iterations();
+    benchmark::DoNotOptimize(iterations);
   }
 }
 BENCHMARK(BM_Simple);
