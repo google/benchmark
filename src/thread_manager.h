@@ -43,8 +43,9 @@ class ThreadManager {
     double manual_time_used = 0;
     int64_t complexity_n = 0;
     std::string report_label_;
-    std::string error_message_;
-    bool has_error_ = false;
+    std::string skip_message_;
+    bool skipped_ = false;
+    bool skip_is_error_ = false;
     UserCounters counters;
   };
   GUARDED_BY(GetBenchmarkMutex()) Result results;

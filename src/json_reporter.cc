@@ -254,9 +254,14 @@ void JSONReporter::PrintRunData(Run const& run) {
       BENCHMARK_UNREACHABLE();
     }()) << ",\n";
   }
-  if (run.error_occurred) {
-    out << indent << FormatKV("error_occurred", run.error_occurred) << ",\n";
-    out << indent << FormatKV("error_message", run.error_message) << ",\n";
+  if (run.skipped) {
+    if (run.skip_is_error) {
+      out << indent << FormatKV("error_occurred", run.skip_is_error) << ",\n";
+      out << indent << FormatKV("error_message", run.skip_message) << ",\n";
+    } else {
+      out << indent << FormatKV("skipped", run.skipped) << ",\n";
+      out << indent << FormatKV("skip_message", run.skip_message) << ",\n";
+    }
   }
   if (!run.report_big_o && !run.report_rms) {
     out << indent << FormatKV("iterations", run.iterations) << ",\n";

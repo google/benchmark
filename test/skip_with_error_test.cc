@@ -35,8 +35,8 @@ struct TestCase {
   void CheckRun(Run const& run) const {
     BM_CHECK(name == run.benchmark_name())
         << "expected " << name << " got " << run.benchmark_name();
-    BM_CHECK(error_occurred == run.error_occurred);
-    BM_CHECK(error_message == run.error_message);
+    BM_CHECK(error_occurred == run.skip_is_error);
+    BM_CHECK(error_message == run.skip_message);
     if (error_occurred) {
       // BM_CHECK(run.iterations == 0);
     } else {
