@@ -30,8 +30,8 @@ cc_library(
         "src/nb_func.cpp",
         "src/nb_internals.cpp",
         "src/nb_internals.h",
+        "src/nb_ndarray.cpp",
         "src/nb_type.cpp",
-        "src/tensor.cpp",
         "src/trampoline.cpp",
     ],
     copts = select({
@@ -43,7 +43,11 @@ cc_library(
         ],
     }),
     linkopts = select({
-        "@com_github_google_benchmark//:macos": ["-undefined suppress", "-flat_namespace"],
+        "@com_github_google_benchmark//:macos": [
+        "-undefined dynamic_lookup",
+        "-Wl,-no_fixup_chains",
+        "-Wl,-dead_strip",
+        ],
         "//conditions:default": [],
     }),
     includes = ["include", "ext/robin_map/include"],
