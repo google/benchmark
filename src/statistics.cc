@@ -89,9 +89,8 @@ std::vector<BenchmarkReporter::Run> ComputeStats(
   typedef BenchmarkReporter::Run Run;
   std::vector<Run> results;
 
-  auto error_count =
-      std::count_if(reports.begin(), reports.end(),
-                    [](Run const& run) { return run.skipped; });
+  auto error_count = std::count_if(reports.begin(), reports.end(),
+                                   [](Run const& run) { return run.skipped; });
 
   if (reports.size() - error_count < 2) {
     // We don't report aggregated data if there was a single run.

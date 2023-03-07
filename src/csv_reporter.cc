@@ -111,7 +111,7 @@ void CSVReporter::PrintRunData(const Run& run) {
   Out << CsvEscape(run.benchmark_name()) << ",";
   if (run.skipped) {
     Out << std::string(elements.size() - 3, ',');
-    Out << std::boolalpha << run.skip_is_error << ",";
+    Out << std::boolalpha << (internal::SkippedWithError == run.skipped) << ",";
     Out << CsvEscape(run.skip_message) << "\n";
     return;
   }

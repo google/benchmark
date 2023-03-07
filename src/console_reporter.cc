@@ -135,14 +135,14 @@ void ConsoleReporter::PrintRunData(const Run& result) {
   printer(Out, name_color, "%-*s ", name_field_width_,
           result.benchmark_name().c_str());
 
-  if (result.skipped) {
-    if (result.skip_is_error) {
-      printer(Out, COLOR_RED, "ERROR OCCURRED: \'%s\'",
-              result.skip_message.c_str());
-    } else {
-      printer(Out, COLOR_WHITE, "SKIPPED: \'%s\'",
-              result.skip_message.c_str());
-    }
+  if (internal::SkippedWithError == result.skipped) {
+    printer(Out, COLOR_RED, "ERROR OCCURRED: \'%s\'",
+            result.skip_message.c_str());
+    printer(Out, COLOR_DEFAULT, "\n");
+    return;
+  } else if (internal::SkippedWithMessage == result.skipped) {
+    printer(Out, COLOR_WHITE, "SKIPPED: \'%s\'",
+        result.skip_message.c_str());
     printer(Out, COLOR_DEFAULT, "\n");
     return;
   }

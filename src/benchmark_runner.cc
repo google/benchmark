@@ -81,7 +81,6 @@ BenchmarkReporter::Run CreateRunReport(
   report.family_index = b.family_index();
   report.per_family_instance_index = b.per_family_instance_index();
   report.skipped = results.skipped_;
-  report.skip_is_error = results.skip_is_error_;
   report.skip_message = results.skip_message_;
   report.report_label = results.report_label_;
   // This is the total iterations across all threads.

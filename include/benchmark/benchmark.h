@@ -655,6 +655,17 @@ enum AggregationReportMode
       ARM_FileReportAggregatesOnly | ARM_DisplayReportAggregatesOnly
 };
 
+enum Skipped
+#if defined(BENCHMARK_HAS_CXX11)
+    : unsigned
+#else
+#endif
+{
+  NotSkipped = 0,
+  SkippedWithMessage,
+  SkippedWithError,
+};
+
 }  // namespace internal
 
 // State is passed to a running Benchmark and contains state for the
@@ -761,10 +772,10 @@ class BENCHMARK_EXPORT State {
   void SkipWithError(const char* msg);
 
   // Returns true if 'SkipWithMessage(...)' or 'SkipWithError(...)' was called.
-  bool skipped() const { return skipped_; }
+  bool skipped() const { return internal::NotSkipped != skipped_; }
 
   // Returns true if an error has been reported with 'SkipWithError(...)'.
-  bool error_occurred() const { return skip_is_error_; }
+  bool error_occurred() const { return internal::SkippedWithError == skipped_; }
 
   // REQUIRES: called exactly once per iteration of the benchmarking loop.
   // Set the manually measured time for this benchmark iteration, which
@@ -890,8 +901,7 @@ class BENCHMARK_EXPORT State {
  private:
   bool started_;
   bool finished_;
-  bool skipped_;
-  bool skip_is_error_;
+  internal::Skipped skipped_;
 
   // items we don't need on the first cache line
   std::vector<int64_t> range_;
@@ -946,7 +956,7 @@ inline BENCHMARK_ALWAYS_INLINE bool State::KeepRunningInternal(IterationCount n,
   }
   if (!started_) {
     StartKeepRunning();
-    if (!skipped_ && total_iterations_ >= n) {
+    if (!skipped() && total_iterations_ >= n) {
       total_iterations_ -= n;
       return true;
     }
@@ -976,7 +986,7 @@ struct State::StateIterator {
 
   BENCHMARK_ALWAYS_INLINE
   explicit StateIterator(State* st)
-      : cached_(st->skipped_ ? 0 : st->max_iterations), parent_(st) {}
+      : cached_(st->skipped() ? 0 : st->max_iterations), parent_(st) {}
 
  public:
   BENCHMARK_ALWAYS_INLINE
@@ -1675,8 +1685,7 @@ class BENCHMARK_EXPORT BenchmarkReporter {
     Run()
         : run_type(RT_Iteration),
           aggregate_unit(kTime),
-          skipped(false),
-          skip_is_error(false),
+          skipped(internal::NotSkipped),
           iterations(1),
           threads(1),
           time_unit(GetDefaultTimeUnit()),
@@ -1699,8 +1708,7 @@ class BENCHMARK_EXPORT BenchmarkReporter {
     std::string aggregate_name;
     StatisticUnit aggregate_unit;
     std::string report_label;  // Empty if not set by benchmark.
-    bool skipped;
-    bool skip_is_error;
+    internal::Skipped skipped;
     std::string skip_message;
 
     IterationCount iterations;

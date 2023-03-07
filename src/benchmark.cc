@@ -166,8 +166,7 @@ State::State(std::string name, IterationCount max_iters,
       max_iterations(max_iters),
       started_(false),
       finished_(false),
-      skipped_(false),
-      skip_is_error_(false),
+      skipped_(internal::NotSkipped),
       range_(ranges),
       complexity_n_(0),
       name_(std::move(name)),
@@ -199,8 +198,8 @@ State::State(std::string name, IterationCount max_iters,
 #endif
   // Offset tests to ensure commonly accessed data is on the first cache line.
   const int cache_line_size = 64;
-  static_assert(offsetof(State, skip_is_error_) <=
-                    (cache_line_size - sizeof(skip_is_error_)),
+  static_assert(offsetof(State, skipped_) <=
+                    (cache_line_size - sizeof(skipped_)),
                 "");
 #if defined(__INTEL_COMPILER)
 #pragma warning pop
@@ -214,7 +213,7 @@ State::State(std::string name, IterationCount max_iters,
 
 void State::PauseTiming() {
   // Add in time accumulated so far
-  BM_CHECK(started_ && !finished_ && !skipped_);
+  BM_CHECK(started_ && !finished_ && !skipped());
   timer_->StopTimer();
   if (perf_counters_measurement_) {
     std::vector<std::pair<std::string, double>> measurements;
@@ -231,7 +230,7 @@ void State::PauseTiming() {
 }
 
 void State::ResumeTiming() {
-  BM_CHECK(started_ && !finished_ && !skipped_);
+  BM_CHECK(started_ && !finished_ && !skipped());
   timer_->StartTimer();
   if (perf_counters_measurement_) {
     perf_counters_measurement_->Start();
@@ -240,12 +239,12 @@ void State::ResumeTiming() {
 
 void State::SkipWithMessage(const char* msg) {
   BM_CHECK(msg);
-  skipped_ = true;
+  skipped_ = internal::SkippedWithMessage;
   {
     MutexLock l(manager_->GetBenchmarkMutex());
-    if (manager_->results.skipped_ == false) {
+    if (internal::NotSkipped == manager_->results.skipped_) {
       manager_->results.skip_message_ = msg;
-      manager_->results.skipped_ = true;
+      manager_->results.skipped_ = skipped_;
     }
   }
   total_iterations_ = 0;
@@ -254,14 +253,12 @@ void State::SkipWithMessage(const char* msg) {
 
 void State::SkipWithError(const char* msg) {
   BM_CHECK(msg);
-  skipped_ = true;
-  skip_is_error_ = true;
+  skipped_ = internal::SkippedWithError;
   {
     MutexLock l(manager_->GetBenchmarkMutex());
-    if (manager_->results.skipped_ == false) {
+    if (internal::NotSkipped == manager_->results.skipped_) {
       manager_->results.skip_message_ = msg;
-      manager_->results.skipped_ = true;
-      manager_->results.skip_is_error_ = true;
+      manager_->results.skipped_ = skipped_;
     }
   }
   total_iterations_ = 0;
@@ -280,14 +277,14 @@ void State::SetLabel(const char* label) {
 void State::StartKeepRunning() {
   BM_CHECK(!started_ && !finished_);
   started_ = true;
-  total_iterations_ = skipped_ ? 0 : max_iterations;
+  total_iterations_ = skipped() ? 0 : max_iterations;
   manager_->StartStopBarrier();
-  if (!skipped_) ResumeTiming();
+  if (!skipped()) ResumeTiming();
 }
 
 void State::FinishKeepRunning() {
-  BM_CHECK(started_ && (!finished_ || skipped_));
-  if (!skipped_) {
+  BM_CHECK(started_ && (!finished_ || skipped()));
+  if (!skipped()) {
     PauseTiming();
   }
   // Total iterations has now wrapped around past 0. Fix this.
