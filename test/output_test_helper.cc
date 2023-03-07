@@ -394,7 +394,7 @@ void RunOutputTests(int argc, char* argv[]) {
   benchmark::JSONReporter JR;
   benchmark::CSVReporter CSVR;
   struct ReporterTest {
-    const std::string& name;
+    std::string name;
     std::vector<TestCase>& output_cases;
     std::vector<TestCase>& error_cases;
     benchmark::BenchmarkReporter& reporter;
@@ -409,12 +409,12 @@ void RunOutputTests(int argc, char* argv[]) {
       reporter.SetErrorStream(&err_stream);
     }
   } TestCases[] = {
-      {"ConsoleReporter", GetTestCaseList(TC_ConsoleOut),
+      {std::string("ConsoleReporter"), GetTestCaseList(TC_ConsoleOut),
        GetTestCaseList(TC_ConsoleErr), CR},
-      {"JSONReporter", GetTestCaseList(TC_JSONOut), GetTestCaseList(TC_JSONErr),
-       JR},
-      {"CSVReporter", GetTestCaseList(TC_CSVOut), GetTestCaseList(TC_CSVErr),
-       CSVR},
+      {std::string("JSONReporter"), GetTestCaseList(TC_JSONOut),
+       GetTestCaseList(TC_JSONErr), JR},
+      {std::string("CSVReporter"), GetTestCaseList(TC_CSVOut),
+       GetTestCaseList(TC_CSVErr), CSVR},
   };
 
   // Create the test reporter and run the benchmarks.
@@ -423,7 +423,8 @@ void RunOutputTests(int argc, char* argv[]) {
   benchmark::RunSpecifiedBenchmarks(&test_rep);
 
   for (auto& rep_test : TestCases) {
-    std::string msg = std::string("\nTesting ") + rep_test.name + " Output\n";
+    std::string msg =
+        std::string("\nTesting ") + rep_test.name + std::string(" Output\n");
     std::string banner(msg.size() - 1, '-');
     std::cout << banner << msg << banner << "\n";
 
