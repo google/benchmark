@@ -19,11 +19,11 @@ class TestReporter : public benchmark::ConsoleReporter {
 };
 
 struct TestCase {
-  std::string name;
-  const char* label;
+  const std::string name;
+  const std::string label;
   // Note: not explicit as we rely on it being converted through ADD_CASES.
-  TestCase(const char* xname) : TestCase(xname, nullptr) {}
-  TestCase(const char* xname, const char* xlabel)
+  TestCase(const std::string& xname) : TestCase(xname, "") {}
+  TestCase(const std::string& xname, const std::string& xlabel)
       : name(xname), label(xlabel) {}
 
   typedef benchmark::BenchmarkReporter::Run Run;
@@ -32,7 +32,7 @@ struct TestCase {
     // clang-format off
     BM_CHECK(name == run.benchmark_name()) << "expected " << name << " got "
                                       << run.benchmark_name();
-    if (label) {
+    if (!label.empty()) {
       BM_CHECK(run.report_label == label) << "expected " << label << " got "
                                        << run.report_label;
     } else {
@@ -123,7 +123,7 @@ void TestRegistrationAtRuntime() {
   {
     CustomFixture fx;
     benchmark::RegisterBenchmark("custom_fixture", fx);
-    AddCases({"custom_fixture"});
+    AddCases({std::string("custom_fixture")});
   }
 #endif
 #ifndef BENCHMARK_HAS_NO_VARIADIC_REGISTER_BENCHMARK

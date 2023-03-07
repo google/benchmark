@@ -1142,7 +1142,7 @@ int main(int argc, char** argv) {
 
 When errors caused by external influences, such as file I/O and network
 communication, occur within a benchmark the
-`State::SkipWithError(const char* msg)` function can be used to skip that run
+`State::SkipWithError(const std::string& msg)` function can be used to skip that run
 of benchmark and report the error. Note that only future iterations of the
 `KeepRunning()` are skipped. For the ranged-for version of the benchmark loop
 Users must explicitly exit the loop, otherwise all iterations will be performed.

@@ -858,11 +858,7 @@ class BENCHMARK_EXPORT State {
   //  BM_Compress   50         50   14115038  compress:27.3%
   //
   // REQUIRES: a benchmark has exited its benchmarking loop.
-  void SetLabel(const char* label);
-
-  void BENCHMARK_ALWAYS_INLINE SetLabel(const std::string& str) {
-    this->SetLabel(str.c_str());
-  }
+  void SetLabel(const std::string& label);
 
   // Range arguments for this run. CHECKs if the argument has been set.
   BENCHMARK_ALWAYS_INLINE
@@ -1242,8 +1238,8 @@ class BENCHMARK_EXPORT Benchmark {
   TimeUnit GetTimeUnit() const;
 
  protected:
-  explicit Benchmark(const char* name);
-  void SetName(const char* name);
+  explicit Benchmark(const std::string& name);
+  void SetName(const std::string& name);
 
  public:
   const char* GetName() const;
@@ -1298,12 +1294,12 @@ class BENCHMARK_EXPORT Benchmark {
 // the specified functor 'fn'.
 //
 // RETURNS: A pointer to the registered benchmark.
-internal::Benchmark* RegisterBenchmark(const char* name,
+internal::Benchmark* RegisterBenchmark(const std::string& name,
                                        internal::Function* fn);
 
 #if defined(BENCHMARK_HAS_CXX11)
 template <class Lambda>
-internal::Benchmark* RegisterBenchmark(const char* name, Lambda&& fn);
+internal::Benchmark* RegisterBenchmark(const std::string& name, Lambda&& fn);
 #endif
 
 // Remove all registered benchmarks. All pointers to previously registered
@@ -1315,7 +1311,7 @@ namespace internal {
 // (ie those created using the BENCHMARK(...) macros.
 class BENCHMARK_EXPORT FunctionBenchmark : public Benchmark {
  public:
-  FunctionBenchmark(const char* name, Function* func)
+  FunctionBenchmark(const std::string& name, Function* func)
       : Benchmark(name), func_(func) {}
 
   void Run(State& st) BENCHMARK_OVERRIDE;
@@ -1332,20 +1328,20 @@ class LambdaBenchmark : public Benchmark {
 
  private:
   template <class OLambda>
-  LambdaBenchmark(const char* name, OLambda&& lam)
+  LambdaBenchmark(const std::string& name, OLambda&& lam)
       : Benchmark(name), lambda_(std::forward<OLambda>(lam)) {}
 
   LambdaBenchmark(LambdaBenchmark const&) = delete;
 
   template <class Lam>  // NOLINTNEXTLINE(readability-redundant-declaration)
-  friend Benchmark* ::benchmark::RegisterBenchmark(const char*, Lam&&);
+  friend Benchmark* ::benchmark::RegisterBenchmark(const std::string&, Lam&&);
 
   Lambda lambda_;
 };
 #endif
 }  // namespace internal
 
-inline internal::Benchmark* RegisterBenchmark(const char* name,
+inline internal::Benchmark* RegisterBenchmark(const std::string& name,
                                               internal::Function* fn) {
   return internal::RegisterBenchmarkInternal(
       ::new internal::FunctionBenchmark(name, fn));
@@ -1353,7 +1349,7 @@ inline internal::Benchmark* RegisterBenchmark(const char* name,
 
 #ifdef BENCHMARK_HAS_CXX11
 template <class Lambda>
-internal::Benchmark* RegisterBenchmark(const char* name, Lambda&& fn) {
+internal::Benchmark* RegisterBenchmark(const std::string& name, Lambda&& fn) {
   using BenchType =
       internal::LambdaBenchmark<typename std::decay<Lambda>::type>;
   return internal::RegisterBenchmarkInternal(
@@ -1364,7 +1360,7 @@ internal::Benchmark* RegisterBenchmark(const char* name, Lambda&& fn) {
 #if defined(BENCHMARK_HAS_CXX11) && \
     (!defined(BENCHMARK_GCC_VERSION) || BENCHMARK_GCC_VERSION >= 409)
 template <class Lambda, class... Args>
-internal::Benchmark* RegisterBenchmark(const char* name, Lambda&& fn,
+internal::Benchmark* RegisterBenchmark(const std::string& name, Lambda&& fn,
                                        Args&&... args) {
   return benchmark::RegisterBenchmark(
       name, [=](benchmark::State& st) { fn(st, args...); });

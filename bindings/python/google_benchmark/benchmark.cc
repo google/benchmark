@@ -34,7 +34,7 @@ std::vector<std::string> Initialize(const std::vector<std::string>& argv) {
   return remaining_argv;
 }
 
-benchmark::internal::Benchmark* RegisterBenchmark(const char* name,
+benchmark::internal::Benchmark* RegisterBenchmark(const std::string& name,
                                                   nb::callable f) {
   return benchmark::RegisterBenchmark(
       name, [f](benchmark::State& state) { f(&state); });

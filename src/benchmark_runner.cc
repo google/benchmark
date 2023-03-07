@@ -177,11 +177,10 @@ BenchTimeType ParseBenchMinTime(const std::string& value) {
   }
 
   if (value.back() == 'x') {
-    const char* iters_str = value.c_str();
     char* p_end;
     // Reset errno before it's changed by strtol.
     errno = 0;
-    IterationCount num_iters = std::strtol(iters_str, &p_end, 10);
+    IterationCount num_iters = std::strtol(value.c_str(), &p_end, 10);
 
     // After a valid parse, p_end should have been set to
     // point to the 'x' suffix.
@@ -194,7 +193,6 @@ BenchTimeType ParseBenchMinTime(const std::string& value) {
     return ret;
   }
 
-  const char* time_str = value.c_str();
   bool has_suffix = value.back() == 's';
   if (!has_suffix) {
     BM_VLOG(0) << "Value passed to --benchmark_min_time should have a suffix. "
@@ -204,7 +202,7 @@ BenchTimeType ParseBenchMinTime(const std::string& value) {
   char* p_end;
   // Reset errno before it's changed by strtod.
   errno = 0;
-  double min_time = std::strtod(time_str, &p_end);
+  double min_time = std::strtod(value.c_str(), &p_end);
 
   // After a successful parse, p_end should point to the suffix 's',
   // or the end of the string if the suffix was omitted.

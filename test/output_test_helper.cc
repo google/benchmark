@@ -299,7 +299,7 @@ std::vector<std::string> ResultsChecker::SplitCsv_(const std::string& line) {
 
 }  // end namespace internal
 
-size_t AddChecker(const char* bm_name, const ResultsCheckFn& fn) {
+size_t AddChecker(const std::string& bm_name, const ResultsCheckFn& fn) {
   auto& rc = internal::GetResultsChecker();
   rc.Add(bm_name, fn);
   return rc.results.size();
@@ -394,14 +394,14 @@ void RunOutputTests(int argc, char* argv[]) {
   benchmark::JSONReporter JR;
   benchmark::CSVReporter CSVR;
   struct ReporterTest {
-    const char* name;
+    const std::string& name;
     std::vector<TestCase>& output_cases;
     std::vector<TestCase>& error_cases;
     benchmark::BenchmarkReporter& reporter;
     std::stringstream out_stream;
     std::stringstream err_stream;
 
-    ReporterTest(const char* n, std::vector<TestCase>& out_tc,
+    ReporterTest(const std::string& n, std::vector<TestCase>& out_tc,
                  std::vector<TestCase>& err_tc,
                  benchmark::BenchmarkReporter& br)
         : name(n), output_cases(out_tc), error_cases(err_tc), reporter(br) {
@@ -440,7 +440,7 @@ void RunOutputTests(int argc, char* argv[]) {
   // the checks to subscribees.
   auto& csv = TestCases[2];
   // would use == but gcc spits a warning
-  BM_CHECK(std::strcmp(csv.name, "CSVReporter") == 0);
+  BM_CHECK(csv.name == std::string("CSVReporter"));
   internal::GetResultsChecker().CheckResults(csv.out_stream);
 }
 
