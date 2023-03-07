@@ -142,9 +142,9 @@ NB_MODULE(_benchmark, m) {
            nb::arg("value") = 0., nb::arg("flags") = Counter::kDefaults,
            nb::arg("k") = Counter::kIs1000)
       .def("__init__", ([](Counter *c, double value) { new (c) Counter(value); }))
-      .def_readwrite("value", &Counter::value)
-      .def_readwrite("flags", &Counter::flags)
-      .def_readwrite("oneK", &Counter::oneK)
+      .def_rw("value", &Counter::value)
+      .def_rw("flags", &Counter::flags)
+      .def_rw("oneK", &Counter::oneK)
       .def(nb::init_implicit<double>());
 
   nb::implicitly_convertible<nb::int_, Counter>();
@@ -154,25 +154,25 @@ NB_MODULE(_benchmark, m) {
   using benchmark::State;
   nb::class_<State>(m, "State")
       .def("__bool__", &State::KeepRunning)
-      .def_property_readonly("keep_running", &State::KeepRunning)
+      .def_prop_ro("keep_running", &State::KeepRunning)
       .def("pause_timing", &State::PauseTiming)
       .def("resume_timing", &State::ResumeTiming)
       .def("skip_with_error", &State::SkipWithError)
-      .def_property_readonly("error_occurred", &State::error_occurred)
+      .def_prop_ro("error_occurred", &State::error_occurred)
       .def("set_iteration_time", &State::SetIterationTime)
-      .def_property("bytes_processed", &State::bytes_processed,
+      .def_prop_rw("bytes_processed", &State::bytes_processed,
                     &State::SetBytesProcessed)
-      .def_property("complexity_n", &State::complexity_length_n,
+      .def_prop_rw("complexity_n", &State::complexity_length_n,
                     &State::SetComplexityN)
-      .def_property("items_processed", &State::items_processed,
+      .def_prop_rw("items_processed", &State::items_processed,
                     &State::SetItemsProcessed)
       .def("set_label", (void (State::*)(const char*)) & State::SetLabel)
       .def("range", &State::range, nb::arg("pos") = 0)
-      .def_property_readonly("iterations", &State::iterations)
-      .def_property_readonly("name", &State::name)
-      .def_readwrite("counters", &State::counters)
-      .def_property_readonly("thread_index", &State::thread_index)
-      .def_property_readonly("threads", &State::threads);
+      .def_prop_ro("iterations", &State::iterations)
+      .def_prop_ro("name", &State::name)
+      .def_rw("counters", &State::counters)
+      .def_prop_ro("thread_index", &State::thread_index)
+      .def_prop_ro("threads", &State::threads);
 
   m.def("Initialize", Initialize);
   m.def("RegisterBenchmark", RegisterBenchmark,
