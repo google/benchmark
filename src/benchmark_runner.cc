@@ -80,8 +80,8 @@ BenchmarkReporter::Run CreateRunReport(
   report.run_name = b.name();
   report.family_index = b.family_index();
   report.per_family_instance_index = b.per_family_instance_index();
-  report.error_occurred = results.has_error_;
-  report.error_message = results.error_message_;
+  report.skipped = results.skipped_;
+  report.skip_message = results.skip_message_;
   report.report_label = results.report_label_;
   // This is the total iterations across all threads.
   report.iterations = results.iterations;
@@ -90,7 +90,7 @@ BenchmarkReporter::Run CreateRunReport(
   report.repetition_index = repetition_index;
   report.repetitions = repeats;
 
-  if (!report.error_occurred) {
+  if (!report.skipped) {
     if (b.use_manual_time()) {
       report.real_accumulated_time = results.manual_time_used;
     } else {
@@ -130,7 +130,7 @@ void RunInThread(const BenchmarkInstance* b, IterationCount iters,
 
   State st =
       b->Run(iters, thread_id, &timer, manager, perf_counters_measurement);
-  BM_CHECK(st.error_occurred() || st.iterations() >= st.max_iterations)
+  BM_CHECK(st.skipped() || st.iterations() >= st.max_iterations)
       << "Benchmark returned before State::KeepRunning() returned false!";
   {
     MutexLock l(manager->GetBenchmarkMutex());
@@ -341,7 +341,7 @@ bool BenchmarkRunner::ShouldReportIterationResults(
   // Determine if this run should be reported;
   // Either it has run for a sufficient amount of time
   // or because an error was reported.
-  return i.results.has_error_ ||
+  return i.results.skipped_ ||
          i.iters >= kMaxIterations ||  // Too many iterations already.
          i.seconds >=
              GetMinTimeToApply() ||  // The elapsed time is large enough.
@@ -477,7 +477,7 @@ void BenchmarkRunner::DoOneRepetition() {
 
   if (reports_for_family) {
     ++reports_for_family->num_runs_done;
-    if (!report.error_occurred) reports_for_family->Runs.push_back(report);
+    if (!report.skipped) reports_for_family->Runs.push_back(report);
   }
 
   run_results.non_aggregates.push_back(report);

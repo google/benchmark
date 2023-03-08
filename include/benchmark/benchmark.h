@@ -667,6 +667,16 @@ enum AggregationReportMode
       ARM_FileReportAggregatesOnly | ARM_DisplayReportAggregatesOnly
 };
 
+enum Skipped
+#if defined(BENCHMARK_HAS_CXX11)
+    : unsigned
+#endif
+{
+  NotSkipped = 0,
+  SkippedWithMessage,
+  SkippedWithError
+};
+
 }  // namespace internal
 
 // State is passed to a running Benchmark and contains state for the
@@ -703,8 +713,8 @@ class BENCHMARK_EXPORT State {
   //   }
   bool KeepRunningBatch(IterationCount n);
 
-  // REQUIRES: timer is running and 'SkipWithError(...)' has not been called
-  //           by the current thread.
+  // REQUIRES: timer is running and 'SkipWithMessage(...)' or
+  //   'SkipWithError(...)' has not been called by the current thread.
   // Stop the benchmark timer.  If not called, the timer will be
   // automatically stopped after the last iteration of the benchmark loop.
   //
@@ -719,8 +729,8 @@ class BENCHMARK_EXPORT State {
   // within each benchmark iteration, if possible.
   void PauseTiming();
 
-  // REQUIRES: timer is not running and 'SkipWithError(...)' has not been called
-  //           by the current thread.
+  // REQUIRES: timer is not running and 'SkipWithMessage(...)' or
+  //   'SkipWithError(...)' has not been called by the current thread.
   // Start the benchmark timer.  The timer is NOT running on entrance to the
   // benchmark function. It begins running after control flow enters the
   // benchmark loop.
@@ -730,8 +740,30 @@ class BENCHMARK_EXPORT State {
   // within each benchmark iteration, if possible.
   void ResumeTiming();
 
-  // REQUIRES: 'SkipWithError(...)' has not been called previously by the
-  //            current thread.
+  // REQUIRES: 'SkipWithMessage(...)' or 'SkipWithError(...)' has not been
+  //            called previously by the current thread.
+  // Report the benchmark as resulting in being skipped with the specified
+  // 'msg'.
+  // After this call the user may explicitly 'return' from the benchmark.
+  //
+  // If the ranged-for style of benchmark loop is used, the user must explicitly
+  // break from the loop, otherwise all future iterations will be run.
+  // If the 'KeepRunning()' loop is used the current thread will automatically
+  // exit the loop at the end of the current iteration.
+  //
+  // For threaded benchmarks only the current thread stops executing and future
+  // calls to `KeepRunning()` will block until all threads have completed
+  // the `KeepRunning()` loop. If multiple threads report being skipped only the
+  // first skip message is used.
+  //
+  // NOTE: Calling 'SkipWithMessage(...)' does not cause the benchmark to exit
+  // the current scope immediately. If the function is called from within
+  // the 'KeepRunning()' loop the current iteration will finish. It is the users
+  // responsibility to exit the scope as needed.
+  void SkipWithMessage(const char* msg);
+
+  // REQUIRES: 'SkipWithMessage(...)' or 'SkipWithError(...)' has not been
+  //            called previously by the current thread.
   // Report the benchmark as resulting in an error with the specified 'msg'.
   // After this call the user may explicitly 'return' from the benchmark.
   //
@@ -751,8 +783,11 @@ class BENCHMARK_EXPORT State {
   // responsibility to exit the scope as needed.
   void SkipWithError(const char* msg);
 
+  // Returns true if 'SkipWithMessage(...)' or 'SkipWithError(...)' was called.
+  bool skipped() const { return internal::NotSkipped != skipped_; }
+
   // Returns true if an error has been reported with 'SkipWithError(...)'.
-  bool error_occurred() const { return error_occurred_; }
+  bool error_occurred() const { return internal::SkippedWithError == skipped_; }
 
   // REQUIRES: called exactly once per iteration of the benchmarking loop.
   // Set the manually measured time for this benchmark iteration, which
@@ -878,7 +913,7 @@ class BENCHMARK_EXPORT State {
  private:
   bool started_;
   bool finished_;
-  bool error_occurred_;
+  internal::Skipped skipped_;
 
   // items we don't need on the first cache line
   std::vector<int64_t> range_;
@@ -933,7 +968,7 @@ inline BENCHMARK_ALWAYS_INLINE bool State::KeepRunningInternal(IterationCount n,
   }
   if (!started_) {
     StartKeepRunning();
-    if (!error_occurred_ && total_iterations_ >= n) {
+    if (!skipped() && total_iterations_ >= n) {
       total_iterations_ -= n;
       return true;
     }
@@ -963,7 +998,7 @@ struct State::StateIterator {
 
   BENCHMARK_ALWAYS_INLINE
   explicit StateIterator(State* st)
-      : cached_(st->error_occurred_ ? 0 : st->max_iterations), parent_(st) {}
+      : cached_(st->skipped() ? 0 : st->max_iterations), parent_(st) {}
 
  public:
   BENCHMARK_ALWAYS_INLINE
@@ -1662,7 +1697,7 @@ class BENCHMARK_EXPORT BenchmarkReporter {
     Run()
         : run_type(RT_Iteration),
           aggregate_unit(kTime),
-          error_occurred(false),
+          skipped(internal::NotSkipped),
           iterations(1),
           threads(1),
           time_unit(GetDefaultTimeUnit()),
@@ -1685,8 +1720,8 @@ class BENCHMARK_EXPORT BenchmarkReporter {
     std::string aggregate_name;
     StatisticUnit aggregate_unit;
     std::string report_label;  // Empty if not set by benchmark.
-    bool error_occurred;
-    std::string error_message;
+    internal::Skipped skipped;
+    std::string skip_message;
 
     IterationCount iterations;
     int64_t threads;
