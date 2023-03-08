@@ -179,6 +179,7 @@ BENCHMARK(BM_test)->Unit(benchmark::kMillisecond);
 #include <algorithm>
 #include <cassert>
 #include <cstddef>
+#include <functional>
 #include <iosfwd>
 #include <limits>
 #include <map>
@@ -1328,8 +1329,10 @@ internal::Benchmark* RegisterBenchmark(const char* name, Lambda&& fn) {
 template <class Lambda, class... Args>
 internal::Benchmark* RegisterBenchmark(const char* name, Lambda&& fn,
                                        Args&&... args) {
-  return benchmark::RegisterBenchmark(
-      name, [=](benchmark::State& st) { fn(st, args...); });
+  auto func = std::bind(std::forward<Lambda>(fn), std::placeholders::_1,
+                        std::forward<Args>(args)...);
+  return benchmark::RegisterBenchmark(name,
+                                      [=](benchmark::State& st) { func(st); });
 }
 #else
 #define BENCHMARK_HAS_NO_VARIADIC_REGISTER_BENCHMARK
