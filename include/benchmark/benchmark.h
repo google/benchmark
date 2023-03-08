@@ -701,8 +701,8 @@ class BENCHMARK_EXPORT State {
   //   }
   bool KeepRunningBatch(IterationCount n);
 
-  // REQUIRES: timer is running and 'SkipWithMessage(...)' or 'SkipWithError(...)'
-  //           has not been called by the current thread.
+  // REQUIRES: timer is running and 'SkipWithMessage(...)' or
+  //   'SkipWithError(...)' has not been called by the current thread.
   // Stop the benchmark timer.  If not called, the timer will be
   // automatically stopped after the last iteration of the benchmark loop.
   //
@@ -717,8 +717,8 @@ class BENCHMARK_EXPORT State {
   // within each benchmark iteration, if possible.
   void PauseTiming();
 
-  // REQUIRES: timer is not running and 'SkipWithMessage(...)' or 'SkipWithError(...)'
-  //            has not been called by the current thread.
+  // REQUIRES: timer is not running and 'SkipWithMessage(...)' or
+  //   'SkipWithError(...)' has not been called by the current thread.
   // Start the benchmark timer.  The timer is NOT running on entrance to the
   // benchmark function. It begins running after control flow enters the
   // benchmark loop.
@@ -730,7 +730,8 @@ class BENCHMARK_EXPORT State {
 
   // REQUIRES: 'SkipWithMessage(...)' or 'SkipWithError(...)' has not been
   //            called previously by the current thread.
-  // Report the benchmark as resulting in being skipped with the specified 'msg'.
+  // Report the benchmark as resulting in being skipped with the specified
+  // 'msg'.
   // After this call the user may explicitly 'return' from the benchmark.
   //
   // If the ranged-for style of benchmark loop is used, the user must explicitly
@@ -749,7 +750,7 @@ class BENCHMARK_EXPORT State {
   // responsibility to exit the scope as needed.
   void SkipWithMessage(const char* msg);
 
-  // REQUIRES: 'SkipWithMessage(...)' or 'SkipWithError(...)' has not been 
+  // REQUIRES: 'SkipWithMessage(...)' or 'SkipWithError(...)' has not been
   //            called previously by the current thread.
   // Report the benchmark as resulting in an error with the specified 'msg'.
   // After this call the user may explicitly 'return' from the benchmark.

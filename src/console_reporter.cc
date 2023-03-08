@@ -141,8 +141,7 @@ void ConsoleReporter::PrintRunData(const Run& result) {
     printer(Out, COLOR_DEFAULT, "\n");
     return;
   } else if (internal::SkippedWithMessage == result.skipped) {
-    printer(Out, COLOR_WHITE, "SKIPPED: \'%s\'",
-        result.skip_message.c_str());
+    printer(Out, COLOR_WHITE, "SKIPPED: \'%s\'", result.skip_message.c_str());
     printer(Out, COLOR_DEFAULT, "\n");
     return;
   }
