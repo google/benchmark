@@ -58,6 +58,7 @@ BenchTimeType ParseBenchMinTime(const std::string& value);
 class BenchmarkRunner {
  public:
   BenchmarkRunner(const benchmark::internal::BenchmarkInstance& b_,
+                  benchmark::internal::PerfCountersMeasurement* pmc_,
                   BenchmarkReporter::PerFamilyRunReports* reports_for_family);
 
   int GetNumRepeats() const { return repeats; }
@@ -103,8 +104,7 @@ class BenchmarkRunner {
   // So only the first repetition has to find/calculate it,
   // the other repetitions will just use that precomputed iteration count.
 
-  PerfCountersMeasurement perf_counters_measurement;
-  PerfCountersMeasurement* const perf_counters_measurement_ptr;
+  PerfCountersMeasurement* const perf_counters_measurement_ptr = nullptr;
 
   struct IterationResults {
     internal::ThreadManager::Result results;

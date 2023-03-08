@@ -1,3 +1,4 @@
+#include <random>
 #include <thread>
 
 #include "../src/perf_counters.h"
@@ -28,7 +29,7 @@ TEST(PerfCountersTest, OneCounter) {
     GTEST_SKIP() << "Performance counters not supported.\n";
   }
   EXPECT_TRUE(PerfCounters::Initialize());
-  EXPECT_TRUE(PerfCounters::Create({kGenericPerfEvent1}).IsValid());
+  EXPECT_EQ(PerfCounters::Create({kGenericPerfEvent1}).num_counters(), 1);
 }
 
 TEST(PerfCountersTest, NegativeTest) {
@@ -37,38 +38,42 @@ TEST(PerfCountersTest, NegativeTest) {
     return;
   }
   EXPECT_TRUE(PerfCounters::Initialize());
-  EXPECT_FALSE(PerfCounters::Create({}).IsValid());
-  EXPECT_FALSE(PerfCounters::Create({""}).IsValid());
-  EXPECT_FALSE(PerfCounters::Create({"not a counter name"}).IsValid());
-  EXPECT_TRUE(PerfCounters::Create(
-                  {kGenericPerfEvent1, kGenericPerfEvent2, kGenericPerfEvent3})
-                  .IsValid());
+  // Sanity checks
+  // Create() will always create a valid object, even if passed no or
+  // wrong arguments as the new behavior is to warn and drop unsupported
+  // counters
+  EXPECT_EQ(PerfCounters::Create({}).num_counters(), 0);
+  EXPECT_EQ(PerfCounters::Create({""}).num_counters(), 0);
+  EXPECT_EQ(PerfCounters::Create({"not a counter name"}).num_counters(), 0);
   {
+    // Try sneaking in a bad egg to see if it is filtered out. The
+    // number of counters has to be two, not zero
     auto counter =
         PerfCounters::Create({kGenericPerfEvent2, "", kGenericPerfEvent1});
-    EXPECT_TRUE(counter.IsValid());
     EXPECT_EQ(counter.num_counters(), 2);
     EXPECT_EQ(counter.names(), std::vector<std::string>(
                                    {kGenericPerfEvent2, kGenericPerfEvent1}));
   }
   {
+    // Try sneaking in an outrageous counter, like a fat finger mistake
     auto counter = PerfCounters::Create(
         {kGenericPerfEvent3, "not a counter name", kGenericPerfEvent1});
-    EXPECT_TRUE(counter.IsValid());
     EXPECT_EQ(counter.num_counters(), 2);
     EXPECT_EQ(counter.names(), std::vector<std::string>(
                                    {kGenericPerfEvent3, kGenericPerfEvent1}));
   }
   {
-    EXPECT_TRUE(PerfCounters::Create({kGenericPerfEvent1, kGenericPerfEvent2,
-                                      kGenericPerfEvent3})
-                    .IsValid());
+    // Finally try a golden input - it should like all them
+    EXPECT_EQ(PerfCounters::Create(
+                  {kGenericPerfEvent1, kGenericPerfEvent2, kGenericPerfEvent3})
+                  .num_counters(),
+              3);
   }
   {
+    // Add a bad apple in the end of the chain to check the edges
     auto counter = PerfCounters::Create({kGenericPerfEvent1, kGenericPerfEvent2,
                                          kGenericPerfEvent3,
                                          "MISPREDICTED_BRANCH_RETIRED"});
-    EXPECT_TRUE(counter.IsValid());
     EXPECT_EQ(counter.num_counters(), 3);
     EXPECT_EQ(counter.names(),
               std::vector<std::string>({kGenericPerfEvent1, kGenericPerfEvent2,
@@ -82,7 +87,7 @@ TEST(PerfCountersTest, Read1Counter) {
   }
   EXPECT_TRUE(PerfCounters::Initialize());
   auto counters = PerfCounters::Create({kGenericPerfEvent1});
-  EXPECT_TRUE(counters.IsValid());
+  EXPECT_EQ(counters.num_counters(), 1);
   PerfCounterValues values1(1);
   EXPECT_TRUE(counters.Snapshot(&values1));
   EXPECT_GT(values1[0], 0);
@@ -99,7 +104,7 @@ TEST(PerfCountersTest, Read2Counters) {
   EXPECT_TRUE(PerfCounters::Initialize());
   auto counters =
       PerfCounters::Create({kGenericPerfEvent1, kGenericPerfEvent2});
-  EXPECT_TRUE(counters.IsValid());
+  EXPECT_EQ(counters.num_counters(), 2);
   PerfCounterValues values1(2);
   EXPECT_TRUE(counters.Snapshot(&values1));
   EXPECT_GT(values1[0], 0);
@@ -111,62 +116,107 @@ TEST(PerfCountersTest, Read2Counters) {
 }
 
 TEST(PerfCountersTest, ReopenExistingCounters) {
-  // The test works (i.e. causes read to fail) for the assumptions
-  // about hardware capabilities (i.e. small number (3-4) hardware
-  // counters) at this date.
+  // This test works in recent and old Intel hardware
+  // However we cannot make assumptions beyond 3 HW counters
   if (!PerfCounters::kSupported) {
     GTEST_SKIP() << "Test skipped because libpfm is not supported.\n";
   }
   EXPECT_TRUE(PerfCounters::Initialize());
-  std::vector<PerfCounters> counters;
-  counters.reserve(6);
-  for (int i = 0; i < 6; i++)
-    counters.push_back(PerfCounters::Create({kGenericPerfEvent1}));
+  std::vector<std::string> kMetrics({kGenericPerfEvent1});
+  std::vector<PerfCounters> counters(3);
+  for (auto& counter : counters) {
+    counter = PerfCounters::Create(kMetrics);
+  }
   PerfCounterValues values(1);
   EXPECT_TRUE(counters[0].Snapshot(&values));
-  EXPECT_FALSE(counters[4].Snapshot(&values));
-  EXPECT_FALSE(counters[5].Snapshot(&values));
+  EXPECT_TRUE(counters[1].Snapshot(&values));
+  EXPECT_TRUE(counters[2].Snapshot(&values));
 }
 
 TEST(PerfCountersTest, CreateExistingMeasurements) {
   // The test works (i.e. causes read to fail) for the assumptions
-  // about hardware capabilities (i.e. small number (3-4) hardware
+  // about hardware capabilities (i.e. small number (3) hardware
   // counters) at this date,
   // the same as previous test ReopenExistingCounters.
   if (!PerfCounters::kSupported) {
     GTEST_SKIP() << "Test skipped because libpfm is not supported.\n";
   }
   EXPECT_TRUE(PerfCounters::Initialize());
-  std::vector<PerfCountersMeasurement> perf_counter_measurements;
+
+  // This means we will try 10 counters but we can only guarantee
+  // for sure at this time that only 3 will work. Perhaps in the future
+  // we could use libpfm to query for the hardware limits on this
+  // particular platform.
+  const int kMaxCounters = 10;
+  const int kMinValidCounters = 3;
+
+  // Let's use a ubiquitous counter that is guaranteed to work
+  // on all platforms
+  const std::vector<std::string> kMetrics{"cycles"};
+
+  // Cannot create a vector of actual objects because the
+  // copy constructor of PerfCounters is deleted - and so is
+  // implicitly deleted on PerfCountersMeasurement too
+  std::vector<std::unique_ptr<PerfCountersMeasurement>>
+      perf_counter_measurements;
+
+  perf_counter_measurements.reserve(kMaxCounters);
+  for (int j = 0; j < kMaxCounters; ++j) {
+    perf_counter_measurements.emplace_back(
+        new PerfCountersMeasurement(kMetrics));
+  }
+
   std::vector<std::pair<std::string, double>> measurements;
 
-  perf_counter_measurements.reserve(10);
-  for (int i = 0; i < 10; i++)
-    perf_counter_measurements.emplace_back(
-        std::vector<std::string>{kGenericPerfEvent1});
+  // Start all counters together to see if they hold
+  int max_counters = kMaxCounters;
+  for (int i = 0; i < kMaxCounters; ++i) {
+    auto& counter(*perf_counter_measurements[i]);
+    EXPECT_EQ(counter.num_counters(), 1);
+    if (!counter.Start()) {
+      max_counters = i;
+      break;
+    };
+  }
 
-  perf_counter_measurements[0].Start();
-  EXPECT_TRUE(perf_counter_measurements[0].Stop(measurements));
+  ASSERT_GE(max_counters, kMinValidCounters);
 
-  measurements.clear();
-  perf_counter_measurements[8].Start();
-  EXPECT_FALSE(perf_counter_measurements[8].Stop(measurements));
+  // Start all together
+  for (int i = 0; i < max_counters; ++i) {
+    auto& counter(*perf_counter_measurements[i]);
+    EXPECT_TRUE(counter.Stop(measurements) || (i >= kMinValidCounters));
+  }
 
-  measurements.clear();
-  perf_counter_measurements[9].Start();
-  EXPECT_FALSE(perf_counter_measurements[9].Stop(measurements));
+  // Start/stop individually
+  for (int i = 0; i < max_counters; ++i) {
+    auto& counter(*perf_counter_measurements[i]);
+    measurements.clear();
+    counter.Start();
+    EXPECT_TRUE(counter.Stop(measurements) || (i >= kMinValidCounters));
+  }
 }
 
-size_t do_work() {
-  size_t res = 0;
-  for (size_t i = 0; i < 100000000; ++i) res += i * i;
-  return res;
+// We try to do some meaningful work here but the compiler
+// insists in optimizing away our loop so we had to add a
+// no-optimize macro. In case it fails, we added some entropy
+// to this pool as well.
+
+BENCHMARK_DONT_OPTIMIZE size_t do_work() {
+  static std::mt19937 rd{std::random_device{}()};
+  static std::uniform_int_distribution<size_t> mrand(0, 10);
+  const size_t kNumLoops = 1000000;
+  size_t sum = 0;
+  for (size_t j = 0; j < kNumLoops; ++j) {
+    sum += mrand(rd);
+  }
+  benchmark::DoNotOptimize(sum);
+  return sum;
 }
 
-void measure(size_t threadcount, PerfCounterValues* values1,
-             PerfCounterValues* values2) {
-  BM_CHECK_NE(values1, nullptr);
-  BM_CHECK_NE(values2, nullptr);
+void measure(size_t threadcount, PerfCounterValues* before,
+             PerfCounterValues* after) {
+  BM_CHECK_NE(before, nullptr);
+  BM_CHECK_NE(after, nullptr);
   std::vector<std::thread> threads(threadcount);
   auto work = [&]() { BM_CHECK(do_work() > 1000); };
 
@@ -178,9 +228,9 @@ void measure(size_t threadcount, PerfCounterValues* values1,
   auto counters =
       PerfCounters::Create({kGenericPerfEvent1, kGenericPerfEvent3});
   for (auto& t : threads) t = std::thread(work);
-  counters.Snapshot(values1);
+  counters.Snapshot(before);
   for (auto& t : threads) t.join();
-  counters.Snapshot(values2);
+  counters.Snapshot(after);
 }
 
 TEST(PerfCountersTest, MultiThreaded) {
@@ -188,21 +238,29 @@ TEST(PerfCountersTest, MultiThreaded) {
     GTEST_SKIP() << "Test skipped because libpfm is not supported.";
   }
   EXPECT_TRUE(PerfCounters::Initialize());
-  PerfCounterValues values1(2);
-  PerfCounterValues values2(2);
+  PerfCounterValues before(2);
+  PerfCounterValues after(2);
 
-  measure(2, &values1, &values2);
-  std::vector<double> D1{static_cast<double>(values2[0] - values1[0]),
-                         static_cast<double>(values2[1] - values1[1])};
+  // Notice that this test will work even if we taskset it to a single CPU
+  // In this case the threads will run sequentially
+  // Start two threads and measure the number of combined cycles and
+  // instructions
+  measure(2, &before, &after);
+  std::vector<double> Elapsed2Threads{
+      static_cast<double>(after[0] - before[0]),
+      static_cast<double>(after[1] - before[1])};
 
-  measure(4, &values1, &values2);
-  std::vector<double> D2{static_cast<double>(values2[0] - values1[0]),
-                         static_cast<double>(values2[1] - values1[1])};
+  // Start four threads and measure the number of combined cycles and
+  // instructions
+  measure(4, &before, &after);
+  std::vector<double> Elapsed4Threads{
+      static_cast<double>(after[0] - before[0]),
+      static_cast<double>(after[1] - before[1])};
 
   // Some extra work will happen on the main thread - like joining the threads
   // - so the ratio won't be quite 2.0, but very close.
-  EXPECT_GE(D2[0], 1.9 * D1[0]);
-  EXPECT_GE(D2[1], 1.9 * D1[1]);
+  EXPECT_GE(Elapsed4Threads[0], 1.9 * Elapsed2Threads[0]);
+  EXPECT_GE(Elapsed4Threads[1], 1.9 * Elapsed2Threads[1]);
 }
 
 TEST(PerfCountersTest, HardwareLimits) {

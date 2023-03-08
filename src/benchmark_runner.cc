@@ -221,6 +221,7 @@ BenchTimeType ParseBenchMinTime(const std::string& value) {
 
 BenchmarkRunner::BenchmarkRunner(
     const benchmark::internal::BenchmarkInstance& b_,
+    PerfCountersMeasurement* pcm_,
     BenchmarkReporter::PerFamilyRunReports* reports_for_family_)
     : b(b_),
       reports_for_family(reports_for_family_),
@@ -239,10 +240,7 @@ BenchmarkRunner::BenchmarkRunner(
       iters(has_explicit_iteration_count
                 ? ComputeIters(b_, parsed_benchtime_flag)
                 : 1),
-      perf_counters_measurement(StrSplit(FLAGS_benchmark_perf_counters, ',')),
-      perf_counters_measurement_ptr(perf_counters_measurement.IsValid()
-                                        ? &perf_counters_measurement
-                                        : nullptr) {
+      perf_counters_measurement_ptr(pcm_) {
   run_results.display_report_aggregates_only =
       (FLAGS_benchmark_report_aggregates_only ||
        FLAGS_benchmark_display_aggregates_only);
@@ -255,7 +253,7 @@ BenchmarkRunner::BenchmarkRunner(
     run_results.file_report_aggregates_only =
         (b.aggregation_report_mode() & internal::ARM_FileReportAggregatesOnly);
     BM_CHECK(FLAGS_benchmark_perf_counters.empty() ||
-             perf_counters_measurement.IsValid())
+             (perf_counters_measurement_ptr->num_counters() == 0))
         << "Perf counters were requested but could not be set up.";
   }
 }
