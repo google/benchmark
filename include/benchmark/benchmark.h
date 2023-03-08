@@ -1198,7 +1198,7 @@ class BENCHMARK_EXPORT Benchmark {
   explicit Benchmark(const char* name);
   void SetName(const char* name);
 
-public:
+ public:
   const char* GetName() const;
   int ArgsCnt() const;
   const char* GetArgName(int arg) const;
