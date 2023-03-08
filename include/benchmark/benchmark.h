@@ -760,7 +760,7 @@ class BENCHMARK_EXPORT State {
   // the current scope immediately. If the function is called from within
   // the 'KeepRunning()' loop the current iteration will finish. It is the users
   // responsibility to exit the scope as needed.
-  void SkipWithMessage(const char* msg);
+  void SkipWithMessage(const std::string& msg);
 
   // REQUIRES: 'SkipWithMessage(...)' or 'SkipWithError(...)' has not been
   //            called previously by the current thread.
@@ -781,7 +781,7 @@ class BENCHMARK_EXPORT State {
   // the current scope immediately. If the function is called from within
   // the 'KeepRunning()' loop the current iteration will finish. It is the users
   // responsibility to exit the scope as needed.
-  void SkipWithError(const char* msg);
+  void SkipWithError(const std::string& msg);
 
   // Returns true if 'SkipWithMessage(...)' or 'SkipWithError(...)' was called.
   bool skipped() const { return internal::NotSkipped != skipped_; }

@@ -236,8 +236,7 @@ void State::ResumeTiming() {
   }
 }
 
-void State::SkipWithMessage(const char* msg) {
-  BM_CHECK(msg);
+void State::SkipWithMessage(const std::string& msg) {
   skipped_ = internal::SkippedWithMessage;
   {
     MutexLock l(manager_->GetBenchmarkMutex());
@@ -250,8 +249,7 @@ void State::SkipWithMessage(const char* msg) {
   if (timer_->running()) timer_->StopTimer();
 }
 
-void State::SkipWithError(const char* msg) {
-  BM_CHECK(msg);
+void State::SkipWithError(const std::string& msg) {
   skipped_ = internal::SkippedWithError;
   {
     MutexLock l(manager_->GetBenchmarkMutex());
