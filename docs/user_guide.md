@@ -346,7 +346,8 @@ the performance of `std::vector` initialization for uniformly increasing sizes.
 static void BM_DenseRange(benchmark::State& state) {
   for(auto _ : state) {
     std::vector<int> v(state.range(0), state.range(0));
-    benchmark::DoNotOptimize(v.data());
+    auto data = v.data();
+    benchmark::DoNotOptimize(data);
     benchmark::ClobberMemory();
   }
 }
@@ -492,7 +493,8 @@ static void BM_StringCompare(benchmark::State& state) {
   std::string s1(state.range(0), '-');
   std::string s2(state.range(0), '-');
   for (auto _ : state) {
-    benchmark::DoNotOptimize(s1.compare(s2));
+    auto comparison_result = s1.compare(s2);
+    benchmark::DoNotOptimize(comparison_result);
   }
   state.SetComplexityN(state.range(0));
 }
@@ -1005,7 +1007,8 @@ static void BM_vector_push_back(benchmark::State& state) {
   for (auto _ : state) {
     std::vector<int> v;
     v.reserve(1);
-    benchmark::DoNotOptimize(v.data()); // Allow v.data() to be clobbered.
+    auto data = v.data();           // Allow v.data() to be clobbered. Pass as non-const
+    benchmark::DoNotOptimize(data); // lvalue to avoid undesired compiler optimizations
     v.push_back(42);
     benchmark::ClobberMemory(); // Force 42 to be written to memory.
   }

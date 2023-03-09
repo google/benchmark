@@ -89,9 +89,8 @@ std::vector<BenchmarkReporter::Run> ComputeStats(
   typedef BenchmarkReporter::Run Run;
   std::vector<Run> results;
 
-  auto error_count =
-      std::count_if(reports.begin(), reports.end(),
-                    [](Run const& run) { return run.error_occurred; });
+  auto error_count = std::count_if(reports.begin(), reports.end(),
+                                   [](Run const& run) { return run.skipped; });
 
   if (reports.size() - error_count < 2) {
     // We don't report aggregated data if there was a single run.
@@ -133,7 +132,7 @@ std::vector<BenchmarkReporter::Run> ComputeStats(
   for (Run const& run : reports) {
     BM_CHECK_EQ(reports[0].benchmark_name(), run.benchmark_name());
     BM_CHECK_EQ(run_iterations, run.iterations);
-    if (run.error_occurred) continue;
+    if (run.skipped) continue;
     real_accumulated_time_stat.emplace_back(run.real_accumulated_time);
     cpu_accumulated_time_stat.emplace_back(run.cpu_accumulated_time);
     // user counters

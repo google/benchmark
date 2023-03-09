@@ -166,7 +166,7 @@ State::State(std::string name, IterationCount max_iters,
       max_iterations(max_iters),
       started_(false),
       finished_(false),
-      error_occurred_(false),
+      skipped_(internal::NotSkipped),
       range_(ranges),
       complexity_n_(0),
       name_(std::move(name)),
@@ -198,9 +198,8 @@ State::State(std::string name, IterationCount max_iters,
 #endif
   // Offset tests to ensure commonly accessed data is on the first cache line.
   const int cache_line_size = 64;
-  static_assert(offsetof(State, error_occurred_) <=
-                    (cache_line_size - sizeof(error_occurred_)),
-                "");
+  static_assert(
+      offsetof(State, skipped_) <= (cache_line_size - sizeof(skipped_)), "");
 #if defined(__INTEL_COMPILER)
 #pragma warning pop
 #elif defined(__GNUC__)
@@ -213,7 +212,7 @@ State::State(std::string name, IterationCount max_iters,
 
 void State::PauseTiming() {
   // Add in time accumulated so far
-  BM_CHECK(started_ && !finished_ && !error_occurred_);
+  BM_CHECK(started_ && !finished_ && !skipped());
   timer_->StopTimer();
   if (perf_counters_measurement_) {
     std::vector<std::pair<std::string, double>> measurements;
@@ -230,21 +229,33 @@ void State::PauseTiming() {
 }
 
 void State::ResumeTiming() {
-  BM_CHECK(started_ && !finished_ && !error_occurred_);
+  BM_CHECK(started_ && !finished_ && !skipped());
   timer_->StartTimer();
   if (perf_counters_measurement_) {
     perf_counters_measurement_->Start();
   }
 }
 
-void State::SkipWithError(const char* msg) {
-  BM_CHECK(msg);
-  error_occurred_ = true;
+void State::SkipWithMessage(const std::string& msg) {
+  skipped_ = internal::SkippedWithMessage;
   {
     MutexLock l(manager_->GetBenchmarkMutex());
-    if (manager_->results.has_error_ == false) {
-      manager_->results.error_message_ = msg;
-      manager_->results.has_error_ = true;
+    if (internal::NotSkipped == manager_->results.skipped_) {
+      manager_->results.skip_message_ = msg;
+      manager_->results.skipped_ = skipped_;
+    }
+  }
+  total_iterations_ = 0;
+  if (timer_->running()) timer_->StopTimer();
+}
+
+void State::SkipWithError(const std::string& msg) {
+  skipped_ = internal::SkippedWithError;
+  {
+    MutexLock l(manager_->GetBenchmarkMutex());
+    if (internal::NotSkipped == manager_->results.skipped_) {
+      manager_->results.skip_message_ = msg;
+      manager_->results.skipped_ = skipped_;
     }
   }
   total_iterations_ = 0;
@@ -263,14 +274,14 @@ void State::SetLabel(const char* label) {
 void State::StartKeepRunning() {
   BM_CHECK(!started_ && !finished_);
   started_ = true;
-  total_iterations_ = error_occurred_ ? 0 : max_iterations;
+  total_iterations_ = skipped() ? 0 : max_iterations;
   manager_->StartStopBarrier();
-  if (!error_occurred_) ResumeTiming();
+  if (!skipped()) ResumeTiming();
 }
 
 void State::FinishKeepRunning() {
-  BM_CHECK(started_ && (!finished_ || error_occurred_));
-  if (!error_occurred_) {
+  BM_CHECK(started_ && (!finished_ || skipped()));
+  if (!skipped()) {
     PauseTiming();
   }
   // Total iterations has now wrapped around past 0. Fix this.
@@ -348,20 +359,43 @@ void RunBenchmarks(const std::vector<BenchmarkInstance>& benchmarks,
 
     size_t num_repetitions_total = 0;
 
+    // This perfcounters object needs to be created before the runners vector
+    // below so it outlasts their lifetime.
+    PerfCountersMeasurement perfcounters(
+        StrSplit(FLAGS_benchmark_perf_counters, ','));
+
+    // Vector of benchmarks to run
     std::vector<internal::BenchmarkRunner> runners;
     runners.reserve(benchmarks.size());
+
+    // Count the number of benchmarks with threads to warn the user in case
+    // performance counters are used.
+    int benchmarks_with_threads = 0;
+
+    // Loop through all benchmarks
     for (const BenchmarkInstance& benchmark : benchmarks) {
       BenchmarkReporter::PerFamilyRunReports* reports_for_family = nullptr;
       if (benchmark.complexity() != oNone)
         reports_for_family = &per_family_reports[benchmark.family_index()];
-
-      runners.emplace_back(benchmark, reports_for_family);
+      benchmarks_with_threads += (benchmark.threads() > 0);
+      runners.emplace_back(benchmark, &perfcounters, reports_for_family);
       int num_repeats_of_this_instance = runners.back().GetNumRepeats();
       num_repetitions_total += num_repeats_of_this_instance;
       if (reports_for_family)
         reports_for_family->num_runs_total += num_repeats_of_this_instance;
     }
     assert(runners.size() == benchmarks.size() && "Unexpected runner count.");
+
+    // The use of performance counters with threads would be unintuitive for
+    // the average user so we need to warn them about this case
+    if ((benchmarks_with_threads > 0) && (perfcounters.num_counters() > 0)) {
+      GetErrorLogInstance()
+          << "***WARNING*** There are " << benchmarks_with_threads
+          << " benchmarks with threads and " << perfcounters.num_counters()
+          << " performance counters were requested. Beware counters will "
+             "reflect the combined usage across all "
+             "threads.\n";
+    }
 
     std::vector<size_t> repetition_indices;
     repetition_indices.reserve(num_repetitions_total);

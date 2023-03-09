@@ -90,10 +90,11 @@ class BENCHMARK_EXPORT PerfCounters final {
   // True iff this platform supports performance counters.
   static const bool kSupported;
 
-  bool IsValid() const { return !counter_names_.empty(); }
+  // Returns an empty object
   static PerfCounters NoCounters() { return PerfCounters(); }
 
   ~PerfCounters() { CloseCounters(); }
+  PerfCounters() = default;
   PerfCounters(PerfCounters&&) = default;
   PerfCounters(const PerfCounters&) = delete;
   PerfCounters& operator=(PerfCounters&&) noexcept;
@@ -110,8 +111,8 @@ class BENCHMARK_EXPORT PerfCounters final {
   // Return a PerfCounters object ready to read the counters with the names
   // specified. The values are user-mode only. The counter name format is
   // implementation and OS specific.
-  // TODO: once we move to C++-17, this should be a std::optional, and then the
-  // IsValid() boolean can be dropped.
+  // In case of failure, this method will in the worst case return an
+  // empty object whose state will still be valid.
   static PerfCounters Create(const std::vector<std::string>& counter_names);
 
   // Take a snapshot of the current value of the counters into the provided
@@ -120,7 +121,6 @@ class BENCHMARK_EXPORT PerfCounters final {
   BENCHMARK_ALWAYS_INLINE bool Snapshot(PerfCounterValues* values) const {
 #ifndef BENCHMARK_OS_WINDOWS
     assert(values != nullptr);
-    assert(IsValid());
     return values->Read(leader_ids_) == counter_ids_.size();
 #else
     (void)values;
@@ -137,7 +137,6 @@ class BENCHMARK_EXPORT PerfCounters final {
       : counter_ids_(std::move(counter_ids)),
         leader_ids_(std::move(leader_ids)),
         counter_names_(counter_names) {}
-  PerfCounters() = default;
 
   void CloseCounters() const;
 
@@ -150,33 +149,25 @@ class BENCHMARK_EXPORT PerfCounters final {
 class BENCHMARK_EXPORT PerfCountersMeasurement final {
  public:
   PerfCountersMeasurement(const std::vector<std::string>& counter_names);
-  ~PerfCountersMeasurement();
 
-  // The only way to get to `counters_` is after ctor-ing a
-  // `PerfCountersMeasurement`, which means that `counters_`'s state is, here,
-  // decided (either invalid or valid) and won't change again even if a ctor is
-  // concurrently running with this. This is preferring efficiency to
-  // maintainability, because the address of the static can be known at compile
-  // time.
-  bool IsValid() const {
-    MutexLock l(mutex_);
-    return counters_.IsValid();
-  }
+  size_t num_counters() const { return counters_.num_counters(); }
 
-  BENCHMARK_ALWAYS_INLINE void Start() {
-    assert(IsValid());
-    MutexLock l(mutex_);
+  std::vector<std::string> names() const { return counters_.names(); }
+
+  BENCHMARK_ALWAYS_INLINE bool Start() {
+    if (num_counters() == 0) return true;
     // Tell the compiler to not move instructions above/below where we take
     // the snapshot.
     ClobberMemory();
     valid_read_ &= counters_.Snapshot(&start_values_);
     ClobberMemory();
+
+    return valid_read_;
   }
 
   BENCHMARK_ALWAYS_INLINE bool Stop(
       std::vector<std::pair<std::string, double>>& measurements) {
-    assert(IsValid());
-    MutexLock l(mutex_);
+    if (num_counters() == 0) return true;
     // Tell the compiler to not move instructions above/below where we take
     // the snapshot.
     ClobberMemory();
@@ -193,9 +184,7 @@ class BENCHMARK_EXPORT PerfCountersMeasurement final {
   }
 
  private:
-  static Mutex mutex_;
-  GUARDED_BY(mutex_) static int ref_count_;
-  GUARDED_BY(mutex_) static PerfCounters counters_;
+  PerfCounters counters_;
   bool valid_read_ = true;
   PerfCounterValues start_values_;
   PerfCounterValues end_values_;

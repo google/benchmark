@@ -80,8 +80,8 @@ BenchmarkReporter::Run CreateRunReport(
   report.run_name = b.name();
   report.family_index = b.family_index();
   report.per_family_instance_index = b.per_family_instance_index();
-  report.error_occurred = results.has_error_;
-  report.error_message = results.error_message_;
+  report.skipped = results.skipped_;
+  report.skip_message = results.skip_message_;
   report.report_label = results.report_label_;
   // This is the total iterations across all threads.
   report.iterations = results.iterations;
@@ -90,7 +90,7 @@ BenchmarkReporter::Run CreateRunReport(
   report.repetition_index = repetition_index;
   report.repetitions = repeats;
 
-  if (!report.error_occurred) {
+  if (!report.skipped) {
     if (b.use_manual_time()) {
       report.real_accumulated_time = results.manual_time_used;
     } else {
@@ -130,7 +130,7 @@ void RunInThread(const BenchmarkInstance* b, IterationCount iters,
 
   State st =
       b->Run(iters, thread_id, &timer, manager, perf_counters_measurement);
-  BM_CHECK(st.error_occurred() || st.iterations() >= st.max_iterations)
+  BM_CHECK(st.skipped() || st.iterations() >= st.max_iterations)
       << "Benchmark returned before State::KeepRunning() returned false!";
   {
     MutexLock l(manager->GetBenchmarkMutex());
@@ -221,6 +221,7 @@ BenchTimeType ParseBenchMinTime(const std::string& value) {
 
 BenchmarkRunner::BenchmarkRunner(
     const benchmark::internal::BenchmarkInstance& b_,
+    PerfCountersMeasurement* pcm_,
     BenchmarkReporter::PerFamilyRunReports* reports_for_family_)
     : b(b_),
       reports_for_family(reports_for_family_),
@@ -239,10 +240,7 @@ BenchmarkRunner::BenchmarkRunner(
       iters(has_explicit_iteration_count
                 ? ComputeIters(b_, parsed_benchtime_flag)
                 : 1),
-      perf_counters_measurement(StrSplit(FLAGS_benchmark_perf_counters, ',')),
-      perf_counters_measurement_ptr(perf_counters_measurement.IsValid()
-                                        ? &perf_counters_measurement
-                                        : nullptr) {
+      perf_counters_measurement_ptr(pcm_) {
   run_results.display_report_aggregates_only =
       (FLAGS_benchmark_report_aggregates_only ||
        FLAGS_benchmark_display_aggregates_only);
@@ -255,7 +253,7 @@ BenchmarkRunner::BenchmarkRunner(
     run_results.file_report_aggregates_only =
         (b.aggregation_report_mode() & internal::ARM_FileReportAggregatesOnly);
     BM_CHECK(FLAGS_benchmark_perf_counters.empty() ||
-             perf_counters_measurement.IsValid())
+             (perf_counters_measurement_ptr->num_counters() == 0))
         << "Perf counters were requested but could not be set up.";
   }
 }
@@ -343,7 +341,7 @@ bool BenchmarkRunner::ShouldReportIterationResults(
   // Determine if this run should be reported;
   // Either it has run for a sufficient amount of time
   // or because an error was reported.
-  return i.results.has_error_ ||
+  return i.results.skipped_ ||
          i.iters >= kMaxIterations ||  // Too many iterations already.
          i.seconds >=
              GetMinTimeToApply() ||  // The elapsed time is large enough.
@@ -479,7 +477,7 @@ void BenchmarkRunner::DoOneRepetition() {
 
   if (reports_for_family) {
     ++reports_for_family->num_runs_done;
-    if (!report.error_occurred) reports_for_family->Runs.push_back(report);
+    if (!report.skipped) reports_for_family->Runs.push_back(report);
   }
 
   run_results.non_aggregates.push_back(report);

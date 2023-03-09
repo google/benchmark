@@ -71,80 +71,78 @@ bool PerfCounters::IsCounterSupported(const std::string& name) {
   return (ret == PFM_SUCCESS);
 }
 
-// Validates all counter names passed, returning only the valid ones
-static std::vector<std::string> validateCounters(
-    const std::vector<std::string>& counter_names) {
-  // All valid names to be returned
-  std::vector<std::string> valid_names;
-
-  // Loop through all the given names
-  int invalid_counter = 0;
-  for (const std::string& name : counter_names) {
-    // Check trivial empty
-    if (name.empty()) {
-      GetErrorLogInstance() << "A counter name was the empty string\n";
-      invalid_counter++;
-      continue;
-    }
-    if (PerfCounters::IsCounterSupported(name)) {
-      // we are about to push into the valid names vector
-      // check if we did not reach the maximum
-      if (valid_names.size() == PerfCounterValues::kMaxCounters) {
-        GetErrorLogInstance()
-            << counter_names.size()
-            << " counters were requested. The maximum is "
-            << PerfCounterValues::kMaxCounters << " and "
-            << counter_names.size() - invalid_counter - valid_names.size()
-            << " will be ignored\n";
-        // stop the loop and return what we have already
-        break;
-      }
-      valid_names.push_back(name);
-    } else {
-      GetErrorLogInstance() << "Performance counter " << name
-                            << " incorrect or not supported on this platform\n";
-      invalid_counter++;
-    }
-  }
-  // RVO should take care of this
-  return valid_names;
-}
-
 PerfCounters PerfCounters::Create(
     const std::vector<std::string>& counter_names) {
-  std::vector<std::string> valid_names = validateCounters(counter_names);
-  if (valid_names.empty()) {
-    return NoCounters();
-  }
-  std::vector<int> counter_ids(valid_names.size());
+  // Valid counters will populate these arrays but we start empty
+  std::vector<std::string> valid_names;
+  std::vector<int> counter_ids;
   std::vector<int> leader_ids;
 
-  const int mode = PFM_PLM3;  // user mode only
+  // Resize to the maximum possible
+  valid_names.reserve(counter_names.size());
+  counter_ids.reserve(counter_names.size());
+
+  const int kCounterMode = PFM_PLM3;  // user mode only
+
+  // Group leads will be assigned on demand. The idea is that once we cannot
+  // create a counter descriptor, the reason is that this group has maxed out
+  // so we set the group_id again to -1 and retry - giving the algorithm a
+  // chance to create a new group leader to hold the next set of counters.
   int group_id = -1;
-  for (size_t i = 0; i < valid_names.size(); ++i) {
+
+  // Loop through all performance counters
+  for (size_t i = 0; i < counter_names.size(); ++i) {
+    // we are about to push into the valid names vector
+    // check if we did not reach the maximum
+    if (valid_names.size() == PerfCounterValues::kMaxCounters) {
+      // Log a message if we maxed out and stop adding
+      GetErrorLogInstance()
+          << counter_names.size() << " counters were requested. The maximum is "
+          << PerfCounterValues::kMaxCounters << " and " << valid_names.size()
+          << " were already added. All remaining counters will be ignored\n";
+      // stop the loop and return what we have already
+      break;
+    }
+
+    // Check if this name is empty
+    const auto& name = counter_names[i];
+    if (name.empty()) {
+      GetErrorLogInstance()
+          << "A performance counter name was the empty string\n";
+      continue;
+    }
+
+    // Here first means first in group, ie the group leader
     const bool is_first = (group_id < 0);
+
+    // This struct will be populated by libpfm from the counter string
+    // and then fed into the syscall perf_event_open
     struct perf_event_attr attr {};
     attr.size = sizeof(attr);
-    const auto& name = valid_names[i];
+
+    // This is the input struct to libpfm.
     pfm_perf_encode_arg_t arg{};
     arg.attr = &attr;
-
-    const int pfm_get =
-        pfm_get_os_event_encoding(name.c_str(), mode, PFM_OS_PERF_EVENT, &arg);
+    const int pfm_get = pfm_get_os_event_encoding(name.c_str(), kCounterMode,
+                                                  PFM_OS_PERF_EVENT, &arg);
     if (pfm_get != PFM_SUCCESS) {
-      GetErrorLogInstance() << "Unknown counter name: " << name << "\n";
-      return NoCounters();
+      GetErrorLogInstance()
+          << "Unknown performance counter name: " << name << "\n";
+      continue;
     }
-    attr.disabled = is_first;
+
+    // We then proceed to populate the remaining fields in our attribute struct
     // Note: the man page for perf_event_create suggests inherit = true and
     // read_format = PERF_FORMAT_GROUP don't work together, but that's not the
     // case.
+    attr.disabled = is_first;
     attr.inherit = true;
     attr.pinned = is_first;
     attr.exclude_kernel = true;
     attr.exclude_user = false;
     attr.exclude_hv = true;
-    // Read all counters in one read.
+
+    // Read all counters in a group in one read.
     attr.read_format = PERF_FORMAT_GROUP;
 
     int id = -1;
@@ -159,36 +157,64 @@ PerfCounters PerfCounters::Create(
         }
       }
       if (id < 0) {
-        // We reached a limit perhaps?
+        // If the file descriptor is negative we might have reached a limit
+        // in the current group. Set the group_id to -1 and retry
         if (group_id >= 0) {
           // Create a new group
           group_id = -1;
         } else {
-          // Give up, there is nothing else to try
+          // At this point we have already retried to set a new group id and
+          // failed. We then give up.
           break;
         }
       }
     }
+
+    // We failed to get a new file descriptor. We might have reached a hard
+    // hardware limit that cannot be resolved even with group multiplexing
     if (id < 0) {
-      GetErrorLogInstance()
-          << "Failed to get a file descriptor for " << name << "\n";
-      return NoCounters();
+      GetErrorLogInstance() << "***WARNING** Failed to get a file descriptor "
+                               "for performance counter "
+                            << name << ". Ignoring\n";
+
+      // We give up on this counter but try to keep going
+      // as the others would be fine
+      continue;
     }
     if (group_id < 0) {
-      // This is a leader, store and assign it
+      // This is a leader, store and assign it to the current file descriptor
       leader_ids.push_back(id);
       group_id = id;
     }
-    counter_ids[i] = id;
+    // This is a valid counter, add it to our descriptor's list
+    counter_ids.push_back(id);
+    valid_names.push_back(name);
   }
+
+  // Loop through all group leaders activating them
+  // There is another option of starting ALL counters in a process but
+  // that would be far reaching an intrusion. If the user is using PMCs
+  // by themselves then this would have a side effect on them. It is
+  // friendlier to loop through all groups individually.
   for (int lead : leader_ids) {
     if (ioctl(lead, PERF_EVENT_IOC_ENABLE) != 0) {
-      GetErrorLogInstance() << "Failed to start counters\n";
+      // This should never happen but if it does, we give up on the
+      // entire batch as recovery would be a mess.
+      GetErrorLogInstance() << "***WARNING*** Failed to start counters. "
+                               "Claring out all counters.\n";
+
+      // Close all peformance counters
+      for (int id : counter_ids) {
+        ::close(id);
+      }
+
+      // Return an empty object so our internal state is still good and
+      // the process can continue normally without impact
       return NoCounters();
     }
   }
 
-  return PerfCounters(valid_names, std::move(counter_ids),
+  return PerfCounters(std::move(valid_names), std::move(counter_ids),
                       std::move(leader_ids));
 }
 
@@ -223,34 +249,10 @@ PerfCounters PerfCounters::Create(
 void PerfCounters::CloseCounters() const {}
 #endif  // defined HAVE_LIBPFM
 
-Mutex PerfCountersMeasurement::mutex_;
-int PerfCountersMeasurement::ref_count_ = 0;
-PerfCounters PerfCountersMeasurement::counters_ = PerfCounters::NoCounters();
-
-// The validation in PerfCounter::Create will create less counters than passed
-// so it should be okay to initialize start_values_ and end_values_ with the
-// upper bound as passed
 PerfCountersMeasurement::PerfCountersMeasurement(
     const std::vector<std::string>& counter_names)
     : start_values_(counter_names.size()), end_values_(counter_names.size()) {
-  MutexLock l(mutex_);
-  if (ref_count_ == 0) {
-    counters_ = PerfCounters::Create(counter_names);
-  }
-  // We chose to increment it even if `counters_` ends up invalid,
-  // so that we don't keep trying to create, and also since the dtor
-  // will decrement regardless of `counters_`'s validity
-  ++ref_count_;
-
-  BM_CHECK(!counters_.IsValid() || counters_.names() == counter_names);
-}
-
-PerfCountersMeasurement::~PerfCountersMeasurement() {
-  MutexLock l(mutex_);
-  --ref_count_;
-  if (ref_count_ == 0) {
-    counters_ = PerfCounters::NoCounters();
-  }
+  counters_ = PerfCounters::Create(counter_names);
 }
 
 PerfCounters& PerfCounters::operator=(PerfCounters&& other) noexcept {
