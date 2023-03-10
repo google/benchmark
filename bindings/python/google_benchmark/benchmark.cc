@@ -165,8 +165,8 @@ NB_MODULE(_benchmark, m) {
       .def_prop_rw("complexity_n", &State::complexity_length_n,
                     &State::SetComplexityN)
       .def_prop_rw("items_processed", &State::items_processed,
-                    &State::SetItemsProcessed)
-      .def("set_label", (void (State::*)(const char*)) & State::SetLabel)
+                   &State::SetItemsProcessed)
+      .def("set_label", &State::SetLabel)
       .def("range", &State::range, nb::arg("pos") = 0)
       .def_prop_ro("iterations", &State::iterations)
       .def_prop_ro("name", &State::name)
