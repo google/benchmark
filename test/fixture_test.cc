@@ -14,8 +14,22 @@ class FIXTURE_BECHMARK_NAME : public ::benchmark::Fixture {
       data.reset(new int(42));
     }
   }
+  // Added for completeness - compiler warns about partial override
+  void SetUp(::benchmark::State& state) override {
+    if (state.thread_index() == 0) {
+      assert(data.get() == nullptr);
+      data.reset(new int(42));
+    }
+  }
 
   void TearDown(const ::benchmark::State& state) override {
+    if (state.thread_index() == 0) {
+      assert(data.get() != nullptr);
+      data.reset();
+    }
+  }
+  // Added for completeness - compiler warns about partial override
+  void TearDown(::benchmark::State& state) override {
     if (state.thread_index() == 0) {
       assert(data.get() != nullptr);
       data.reset();

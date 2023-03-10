@@ -31,6 +31,15 @@ class ArgsProductFixture : public ::benchmark::Fixture {
 
     actualValues.insert(ranges);
   }
+  // Added for completeness - compiler warns about partial override
+  void SetUp(::benchmark::State& state) override {
+    std::vector<int64_t> ranges = {state.range(0), state.range(1),
+                                   state.range(2), state.range(3)};
+
+    assert(expectedValues.find(ranges) != expectedValues.end());
+
+    actualValues.insert(ranges);
+  }
 
   // NOTE: This is not TearDown as we want to check after _all_ runs are
   // complete.

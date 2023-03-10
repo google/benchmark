@@ -38,8 +38,14 @@ class MapFixture : public ::benchmark::Fixture {
   void SetUp(const ::benchmark::State& st) override {
     m = ConstructRandomMap(static_cast<int>(st.range(0)));
   }
+  // Added for completeness - compiler warns about partial override
+  void SetUp(::benchmark::State& st) override {
+    m = ConstructRandomMap(static_cast<int>(st.range(0)));
+  }
 
   void TearDown(const ::benchmark::State&) override { m.clear(); }
+  // Added for completeness - compiler warns about partial override
+  void TearDown(::benchmark::State&) override { m.clear(); }
 
   std::map<int, int> m;
 };
