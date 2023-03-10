@@ -470,12 +470,20 @@ Benchmark* Benchmark::ThreadPerCpu() {
 
 void Benchmark::SetName(const char* name) { name_ = name; }
 
+const char* Benchmark::GetName() const { return name_.c_str(); }
+
 int Benchmark::ArgsCnt() const {
   if (args_.empty()) {
     if (arg_names_.empty()) return -1;
     return static_cast<int>(arg_names_.size());
   }
   return static_cast<int>(args_.front().size());
+}
+
+const char* Benchmark::GetArgName(int arg) const {
+  BM_CHECK_GE(arg, 0);
+  BM_CHECK_LT(arg, static_cast<int>(arg_names_.size()));
+  return arg_names_[arg].c_str();
 }
 
 TimeUnit Benchmark::GetTimeUnit() const {
