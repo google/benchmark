@@ -83,10 +83,6 @@ class FIXTURE_BECHMARK_NAME : public ::benchmark::Fixture {
   void SetUp(const ::benchmark::State&) override {
     fixture_interaction::fixture_setup++;
   }
-  // Added for completeness - compiler was complaining about partial override
-  void SetUp(::benchmark::State&) override {
-    fixture_interaction::fixture_setup++;
-  }
 
   ~FIXTURE_BECHMARK_NAME() override {}
 };
