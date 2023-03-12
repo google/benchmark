@@ -38,24 +38,28 @@ const ExtraLarge ConstExtraLargeObj{};
 // CHECK-LABEL: test_with_rvalue:
 extern "C" void test_with_rvalue() {
   benchmark::DoNotOptimize(Add42(0));
-  // CHECK: movl $42, %eax
-  // CHECK: ret
+  // CHECK-CLANG: mov 2a,REG
+  // CHECK-CLANG: ret
 }
 
 // CHECK-LABEL: test_with_large_rvalue:
 extern "C" void test_with_large_rvalue() {
   benchmark::DoNotOptimize(Large{ExternInt, {ExternInt, ExternInt}});
-  // CHECK: ExternInt(%rip)
-  // CHECK: movl %eax, -{{[0-9]+}}(%[[REG:[a-z]+]]
-  // CHECK: movl %eax, -{{[0-9]+}}(%[[REG]])
-  // CHECK: movl %eax, -{{[0-9]+}}(%[[REG]])
+  // CHECK: mov OFFSET(RIP),REG
+  // CHECK-NVHPC: mov (REG),REG
+  // CHECK: mov REG,OFFSET(REG)
+  // CHECK: mov REG,OFFSET(REG)
+  // CHECK: mov REG,OFFSET(REG)
   // CHECK: ret
 }
 
 // CHECK-LABEL: test_with_non_trivial_rvalue:
 extern "C" void test_with_non_trivial_rvalue() {
   benchmark::DoNotOptimize(NotTriviallyCopyable(ExternInt));
-  // CHECK: mov{{l|q}} ExternInt(%rip)
+  // CHECK: mov OFFSET(RIP),REG
+  // CHECK-NVHPC: mov (REG),REG
+  // CHECK-NVHPC: mov REG,OFFSET(REG)
+  // CHECK-GNU:   mov REG,OFFSET(REG)
   // CHECK: ret
 }
 
@@ -63,8 +67,7 @@ extern "C" void test_with_non_trivial_rvalue() {
 extern "C" void test_with_lvalue() {
   int x = 101;
   benchmark::DoNotOptimize(x);
-  // CHECK-GNU: movl $101, %eax
-  // CHECK-CLANG: movl $101, -{{[0-9]+}}(%[[REG:[a-z]+]])
+  // CHECK: mov 65,{{REG|OFFSET\(REG\)}}
   // CHECK: ret
 }
 
@@ -72,10 +75,11 @@ extern "C" void test_with_lvalue() {
 extern "C" void test_with_large_lvalue() {
   Large L{ExternInt, {ExternInt, ExternInt}};
   benchmark::DoNotOptimize(L);
-  // CHECK: ExternInt(%rip)
-  // CHECK: movl %eax, -{{[0-9]+}}(%[[REG:[a-z]+]])
-  // CHECK: movl %eax, -{{[0-9]+}}(%[[REG]])
-  // CHECK: movl %eax, -{{[0-9]+}}(%[[REG]])
+  // CHECK: mov OFFSET(RIP),REG
+  // CHECK-NVHPC: mov (REG),REG
+  // CHECK: mov REG,OFFSET(REG)
+  // CHECK: mov REG,OFFSET(REG)
+  // CHECK: mov REG,OFFSET(REG)
   // CHECK: ret
 }
 
@@ -83,7 +87,10 @@ extern "C" void test_with_large_lvalue() {
 extern "C" void test_with_extra_large_lvalue_with_op() {
   ExtraLargeObj.arr[16] = 42;
   benchmark::DoNotOptimize(ExtraLargeObj);
-  // CHECK: movl $42, ExtraLargeObj+64(%rip)
+  // CHECK-NVHPC: mov OFFSET(RIP),REG
+  // CHECK-NVHPC: mov 2a,OFFSET(REG)
+  // CHECK-CLANG: mov 2a,OFFSET(REG)
+  // CHECK-GNU: mov 2a,OFFSET(RIP)
   // CHECK: ret
 }
 
@@ -91,7 +98,10 @@ extern "C" void test_with_extra_large_lvalue_with_op() {
 extern "C" void test_with_big_array_with_op() {
   BigArray[16] = 42;
   benchmark::DoNotOptimize(BigArray);
-  // CHECK: movl $42, BigArray+64(%rip)
+  // CHECK-NVHPC: mov OFFSET(RIP),REG
+  // CHECK-NVHPC: mov 2a,OFFSET(REG)
+  // CHECK-CLANG: mov 2a,OFFSET(REG)
+  // CHECK-GNU:   mov 2a,OFFSET(RIP)
   // CHECK: ret
 }
 
@@ -99,8 +109,9 @@ extern "C" void test_with_big_array_with_op() {
 extern "C" void test_with_non_trivial_lvalue() {
   NotTriviallyCopyable NTC(ExternInt);
   benchmark::DoNotOptimize(NTC);
-  // CHECK: ExternInt(%rip)
-  // CHECK: movl %eax, -{{[0-9]+}}(%[[REG:[a-z]+]])
+  // CHECK: mov OFFSET(RIP),REG
+  // CHECK-NVHPC: mov (REG),REG
+  // CHECK: mov REG,OFFSET(REG)
   // CHECK: ret
 }
 
@@ -108,7 +119,7 @@ extern "C" void test_with_non_trivial_lvalue() {
 extern "C" void test_with_const_lvalue() {
   const int x = 123;
   benchmark::DoNotOptimize(x);
-  // CHECK: movl $123, %eax
+  // CHECK: mov 7b,REG
   // CHECK: ret
 }
 
@@ -116,10 +127,11 @@ extern "C" void test_with_const_lvalue() {
 extern "C" void test_with_large_const_lvalue() {
   const Large L{ExternInt, {ExternInt, ExternInt}};
   benchmark::DoNotOptimize(L);
-  // CHECK: ExternInt(%rip)
-  // CHECK: movl %eax, -{{[0-9]+}}(%[[REG:[a-z]+]])
-  // CHECK: movl %eax, -{{[0-9]+}}(%[[REG]])
-  // CHECK: movl %eax, -{{[0-9]+}}(%[[REG]])
+  // CHECK: mov OFFSET(RIP),REG
+  // CHECK-NVHPC: mov (REG),REG
+  // CHECK: mov REG,OFFSET(REG)
+  // CHECK: mov REG,OFFSET(REG)
+  // CHECK: mov REG,OFFSET(REG)
   // CHECK: ret
 }
 
@@ -132,6 +144,8 @@ extern "C" void test_with_const_extra_large_obj() {
 // CHECK-LABEL: test_with_const_big_array
 extern "C" void test_with_const_big_array() {
   benchmark::DoNotOptimize(ConstBigArray);
+  // CHECK-CLANG: lea OFFSET(RIP),REG
+  // CHECK-CLANG: mov REG,OFFSET(REG)
   // CHECK: ret
 }
 
@@ -139,7 +153,9 @@ extern "C" void test_with_const_big_array() {
 extern "C" void test_with_non_trivial_const_lvalue() {
   const NotTriviallyCopyable Obj(ExternInt);
   benchmark::DoNotOptimize(Obj);
-  // CHECK: mov{{q|l}} ExternInt(%rip)
+  // CHECK: mov OFFSET(RIP),REG
+  // CHECK-NVHPC: mov (REG),REG
+  // CHECK-NVHPC: mov REG,OFFSET(REG)
   // CHECK: ret
 }
 
@@ -148,8 +164,10 @@ extern "C" int test_div_by_two(int input) {
   int divisor = 2;
   benchmark::DoNotOptimize(divisor);
   return input / divisor;
-  // CHECK: movl $2, [[DEST:.*]]
-  // CHECK: idivl [[DEST]]
+  // CHECK: mov REG,REG
+  // CHECK: mov 2,{{REG|OFFSET\(REG\)}}
+  // CHECK: cltd
+  // CHECK: idiv {{REG|OFFSET\(REG\)}}
   // CHECK: ret
 }
 
@@ -157,21 +175,21 @@ extern "C" int test_div_by_two(int input) {
 extern "C" int test_inc_integer() {
   int x = 0;
   for (int i = 0; i < 5; ++i) benchmark::DoNotOptimize(++x);
-  // CHECK: movl $1, [[DEST:.*]]
-  // CHECK: {{(addl \$1,|incl)}} [[DEST]]
-  // CHECK: {{(addl \$1,|incl)}} [[DEST]]
-  // CHECK: {{(addl \$1,|incl)}} [[DEST]]
-  // CHECK: {{(addl \$1,|incl)}} [[DEST]]
-  // CHECK-CLANG: movl [[DEST]], %eax
+  // CHECK:   mov 1,{{REG|OFFSET\(REG\)}}
+  // CHECK:   {{inc |add 1,}}{{REG|OFFSET\(REG\)}}
+  // CHECK:   {{inc |add 1,}}{{REG|OFFSET\(REG\)}}
+  // CHECK:   {{inc |add 1,}}{{REG|OFFSET\(REG\)}}
+  // CHECK:   {{inc |add 1,}}{{REG|OFFSET\(REG\)}}
   // CHECK: ret
   return x;
 }
 
 // CHECK-LABEL: test_pointer_rvalue
 extern "C" void test_pointer_rvalue() {
-  // CHECK: movl $42, [[DEST:.*]]
-  // CHECK: leaq [[DEST]], %rax
-  // CHECK-CLANG: movq %rax, -{{[0-9]+}}(%[[REG:[a-z]+]])
+  // CHECK-DAG: lea OFFSET(REG),REG
+  // CHECK-DAG: mov 2a,OFFSET(REG)
+  // CHECK-NVHPC: mov REG,OFFSET(REG)
+  // CHECK-CLANG: mov REG,OFFSET(REG)
   // CHECK: ret
   int x = 42;
   benchmark::DoNotOptimize(&x);
@@ -179,9 +197,10 @@ extern "C" void test_pointer_rvalue() {
 
 // CHECK-LABEL: test_pointer_const_lvalue:
 extern "C" void test_pointer_const_lvalue() {
-  // CHECK: movl $42, [[DEST:.*]]
-  // CHECK: leaq [[DEST]], %rax
-  // CHECK-CLANG: movq %rax, -{{[0-9]+}}(%[[REG:[a-z]+]])
+  // CHECK-DAG: mov 2a,OFFSET(REG)
+  // CHECK-DAG: lea OFFSET(REG),REG
+  // CHECK-NVHPC: mov REG,OFFSET(REG)
+  // CHECK-CLANG: mov REG,OFFSET(REG)
   // CHECK: ret
   int x = 42;
   int *const xp = &x;
@@ -190,9 +209,10 @@ extern "C" void test_pointer_const_lvalue() {
 
 // CHECK-LABEL: test_pointer_lvalue:
 extern "C" void test_pointer_lvalue() {
-  // CHECK: movl $42, [[DEST:.*]]
-  // CHECK: leaq [[DEST]], %rax
-  // CHECK-CLANG: movq %rax, -{{[0-9]+}}(%[[REG:[a-z+]+]])
+  // CHECK-DAG: mov 2a,OFFSET(REG)
+  // CHECK-DAG: lea OFFSET(REG),REG
+  // CHECK-NVHPC: mov REG,OFFSET(REG)
+  // CHECK-CLANG: mov REG,OFFSET(REG)
   // CHECK: ret
   int x = 42;
   int *xp = &x;
