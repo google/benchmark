@@ -38,8 +38,8 @@ const ExtraLarge ConstExtraLargeObj{};
 // CHECK-LABEL: test_with_rvalue:
 extern "C" void test_with_rvalue() {
   benchmark::DoNotOptimize(Add42(0));
-  // CHECK-CLANG: mov 2a,REG
-  // CHECK-CLANG: ret
+  // CHECK: mov 2a,REG
+  // CHECK: ret
 }
 
 // CHECK-LABEL: test_with_large_rvalue:
