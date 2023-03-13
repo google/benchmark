@@ -1,8 +1,11 @@
 # strip addresses
 s/^\s*[0-9a-f]+:(.*)$/\1/                      
 
+# make relative path
+s/^\/.*\/.*:([0-9]+)$/---- code \1/
+
 # strip labels
-s/^\s*[0-9a-f]+\s*<([0-9a-zA-Z_]+)>:\s*$/\1:/  
+s/^\s*[0-9a-f]+\s*<(.+)>:\s*$/\1:/  
 
 # strip comments
 s/^(.*)#.*$/\1/                                
