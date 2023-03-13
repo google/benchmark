@@ -54,6 +54,8 @@ string(REPLACE "." "_" ASM_TEST_COMPILER_VERSION "${CMAKE_CXX_COMPILER_VERSION}"
 # Create a compiler + major version to match against in tests
 string(REGEX MATCH "^[0-9]+" ASM_TEST_COMPILER_VER1 "${ASM_TEST_COMPILER_VERSION}")
 
+# Find objdump in the current host
+find_program( OBJDUMP objdump )
 
 macro(add_filecheck_test name)
   cmake_parse_arguments(ARG "" "" "CHECK_PREFIXES" ${ARGV})
@@ -68,25 +70,28 @@ macro(add_filecheck_test name)
       BYPRODUCTS ${ASM_OUTPUT_FILE})
       add_dependencies(copy_${name} ${name})
 
-  # The main problem here is that the -S flag does not work as clang/gcc in other 
-  # compilers like nvc++ so just add the necessary flags
-  add_library(${name}_normalized OBJECT ${name}.cc)
-  target_link_libraries(${name}_normalized PRIVATE benchmark::benchmark)
-  set_target_properties(${name}_normalized PROPERTIES COMPILE_FLAGS "${ASM_TEST_FLAGS}")
-        
-  # Add a normalized version with objdump + sed script
-  add_custom_target(
-      assembly_${name} ALL
-      COMMAND 
-        objdump -dClG --no-show-raw-insn --section=.text -M att $<TARGET_OBJECTS:${name}_normalized> | 
-        sed -E -f ${PROJECT_SOURCE_DIR}/tools/strip_asm.sed 
-        > ${ASM_OUTPUT_FILE}.normalized 
-      DEPENDS
-        ${name}
-      BYPRODUCTS 
-        ${ASM_OUTPUT_FILE}.normalized
-       )
-  add_dependencies(assembly_${name} ${name}_normalized)
+  if ( DEFINED OBJDUMP )
+    # The main problem here is that the -S flag does not work as clang/gcc in other 
+    # compilers like nvc++ so just add the necessary flags
+    add_library(${name}_normalized OBJECT ${name}.cc)
+    target_link_libraries(${name}_normalized PRIVATE benchmark::benchmark)
+    set_target_properties(${name}_normalized PROPERTIES COMPILE_FLAGS "${ASM_TEST_FLAGS}")
+          
+    # Add a normalized version with objdump + sed script
+    add_custom_target(
+        assembly_${name} ALL
+        COMMAND 
+          ${OBJDUMP} -dClG --no-show-raw-insn --section=.text -M att 
+            $<TARGET_OBJECTS:${name}_normalized> | 
+          sed -E -f ${PROJECT_SOURCE_DIR}/tools/strip_asm.sed 
+          > ${ASM_OUTPUT_FILE}.normalized 
+        DEPENDS
+          ${name}
+        BYPRODUCTS 
+          ${ASM_OUTPUT_FILE}.normalized
+          )
+    add_dependencies(assembly_${name} ${name}_normalized)
+  endif()
   if (NOT ARG_CHECK_PREFIXES)
     set(ARG_CHECK_PREFIXES "CHECK")
   endif()
@@ -102,14 +107,16 @@ macro(add_filecheck_test name)
       WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
     endforeach()
   endif()
-  # Add new test with normalized names
-  add_test(NAME run_normalized_${name}
-      COMMAND
-        ${LLVM_FILECHECK_EXE} ${name}.cc
-        --dump-input=always
-        --allow-unused-prefixes 
-        --input-file=${ASM_OUTPUT_FILE}.normalized
-        --check-prefixes=NORM,NORM-${ASM_TEST_COMPILER},NORM-${ASM_TEST_COMPILER}-${ASM_TEST_COMPILER_VERSION},NORM-${ASM_TEST_COMPILER}-${ASM_TEST_COMPILER_VER1},NORM-${ASM_TEST_COMPILER}-${ASM_TEST_COMPILER_VER2}      
-      WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
+  if ( DEFINED OBJDUMP ) 
+    # Add new test with normalized names
+    add_test(NAME run_normalized_${name}
+        COMMAND
+          ${LLVM_FILECHECK_EXE} ${name}.cc
+          --dump-input=always
+          --allow-unused-prefixes 
+          --input-file=${ASM_OUTPUT_FILE}.normalized
+          --check-prefixes=NORM,NORM-${ASM_TEST_COMPILER},NORM-${ASM_TEST_COMPILER}-${ASM_TEST_COMPILER_VERSION},NORM-${ASM_TEST_COMPILER}-${ASM_TEST_COMPILER_VER1},NORM-${ASM_TEST_COMPILER}-${ASM_TEST_COMPILER_VER2}      
+        WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
+  endif()
 endmacro()
 
