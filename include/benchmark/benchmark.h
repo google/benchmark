@@ -243,13 +243,20 @@ BENCHMARK(BM_test)->Unit(benchmark::kMillisecond);
 #define BENCHMARK_INTERNAL_TOSTRING(x) BENCHMARK_INTERNAL_TOSTRING2(x)
 
 // clang-format off
-#if defined(__GNUC__) && !defined(__NVCC__) || defined(__clang__)
+#if (defined(__GNUC__) && !defined(__NVCC__) && !defined(__NVCOMPILER)) || defined(__clang__)
 #define BENCHMARK_BUILTIN_EXPECT(x, y) __builtin_expect(x, y)
 #define BENCHMARK_DEPRECATED_MSG(msg) __attribute__((deprecated(msg)))
 #define BENCHMARK_DISABLE_DEPRECATED_WARNING \
   _Pragma("GCC diagnostic push")             \
   _Pragma("GCC diagnostic ignored \"-Wdeprecated-declarations\"")
 #define BENCHMARK_RESTORE_DEPRECATED_WARNING _Pragma("GCC diagnostic pop")
+#elif defined(__NVCOMPILER)
+#define BENCHMARK_BUILTIN_EXPECT(x, y) __builtin_expect(x, y)
+#define BENCHMARK_DEPRECATED_MSG(msg) __attribute__((deprecated(msg)))
+#define BENCHMARK_DISABLE_DEPRECATED_WARNING \
+  _Pragma("diagnostic push") \
+  _Pragma("diag_suppress deprecated_entity_with_custom_message")
+#define BENCHMARK_RESTORE_DEPRECATED_WARNING _Pragma("diagnostic pop")
 #else
 #define BENCHMARK_BUILTIN_EXPECT(x, y) x
 #define BENCHMARK_DEPRECATED_MSG(msg)
