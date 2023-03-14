@@ -297,7 +297,8 @@ void JSONReporter::PrintRunData(Run const& run) {
     out << ",\n"
         << indent << FormatKV("max_bytes_used", memory_result.max_bytes_used);
 
-    auto report_if_present = [&out, &indent](const char* label, int64_t val) {
+    auto report_if_present = [&out, &indent](const std::string& label,
+                                             int64_t val) {
       if (val != MemoryManager::TombstoneValue)
         out << ",\n" << indent << FormatKV(label, val);
     };

@@ -273,7 +273,7 @@ void State::SetIterationTime(double seconds) {
   timer_->SetIterationTime(seconds);
 }
 
-void State::SetLabel(const char* label) {
+void State::SetLabel(const std::string& label) {
   MutexLock l(manager_->GetBenchmarkMutex());
   manager_->results.report_label_ = label;
 }
