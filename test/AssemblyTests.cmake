@@ -56,6 +56,7 @@ string(REGEX MATCH "^[0-9]+" ASM_TEST_COMPILER_VER1 "${ASM_TEST_COMPILER_VERSION
 
 # Find objdump in the current host
 find_program( OBJDUMP objdump )
+find_program( SED sed )
 
 macro(add_filecheck_test name)
   cmake_parse_arguments(ARG "" "" "CHECK_PREFIXES" ${ARGV})
@@ -70,7 +71,7 @@ macro(add_filecheck_test name)
       BYPRODUCTS ${ASM_OUTPUT_FILE})
       add_dependencies(copy_${name} ${name})
 
-  if ( DEFINED OBJDUMP )
+  if ( DEFINED OBJDUMP AND DEFINED SED )
     # The main problem here is that the -S flag does not work as clang/gcc in other 
     # compilers like nvc++ so just add the necessary flags
     add_library(${name}_normalized OBJECT ${name}.cc)
@@ -81,14 +82,16 @@ macro(add_filecheck_test name)
     add_custom_target(
         assembly_${name} ALL
         COMMAND 
-          ${OBJDUMP} -dClG --no-show-raw-insn --section=.text -M att 
+          ${OBJDUMP} --disassemble --demangle --line-numbers  
+            --no-show-raw-insn --section=.text --disassembler-options=att 
             $<TARGET_OBJECTS:${name}_normalized> | 
-          sed -E -f ${PROJECT_SOURCE_DIR}/tools/strip_asm.sed 
-          > ${ASM_OUTPUT_FILE}.normalized 
+          ${SED} -E -f ${PROJECT_SOURCE_DIR}/tools/strip_asm.sed
+          > ${ASM_OUTPUT_FILE}.normalized.s
         DEPENDS
           ${name}
+          ${PROJECT_SOURCE_DIR}/tools/strip_asm.sed
         BYPRODUCTS 
-          ${ASM_OUTPUT_FILE}.normalized
+          ${ASM_OUTPUT_FILE}.normalized.s
           )
     add_dependencies(assembly_${name} ${name}_normalized)
   endif()
@@ -107,14 +110,14 @@ macro(add_filecheck_test name)
       WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
     endforeach()
   endif()
-  if ( DEFINED OBJDUMP ) 
+  if ( DEFINED OBJDUMP AND DEFINED SED ) 
     # Add new test with normalized names
     add_test(NAME run_normalized_${name}
         COMMAND
           ${LLVM_FILECHECK_EXE} ${name}.cc
           --dump-input=always
           --allow-unused-prefixes 
-          --input-file=${ASM_OUTPUT_FILE}.normalized
+          --input-file=${ASM_OUTPUT_FILE}.normalized.s
           --check-prefixes=NORM,NORM-${ASM_TEST_COMPILER},NORM-${ASM_TEST_COMPILER}-${ASM_TEST_COMPILER_VERSION},NORM-${ASM_TEST_COMPILER}-${ASM_TEST_COMPILER_VER1},NORM-${ASM_TEST_COMPILER}-${ASM_TEST_COMPILER_VER2}      
         WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
   endif()

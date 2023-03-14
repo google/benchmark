@@ -20,6 +20,10 @@ extern "C" void test_basic() {
   // CHECK: leaq [[DEST:[^,]+]], %rax
   // CHECK: movl $101, [[DEST]]
   // CHECK: ret
+  // NORM: test_basic():
+  // NORM: lea STACK:-[[#%x,OFF:]],REG
+  // NORM: mov 65,STACK:-[[#OFF]]
+  // NORM: ret
 }
 
 // CHECK-LABEL: test_redundant_store:
@@ -30,6 +34,9 @@ extern "C" void test_redundant_store() {
   // CHECK-DAG: ExternInt
   // CHECK-DAG: movl $3
   // CHECK: movl $51
+  // NORM: mov 3,{{.*}}
+  // NORM: mov 33,{{.*}}
+  // NORM: ret
 }
 
 // CHECK-LABEL: test_redundant_read:
@@ -44,6 +51,11 @@ extern "C" void test_redundant_read() {
   // CHECK: movl %eax, [[DEST]]
   // CHECK-NOT: ExternInt2
   // CHECK: ret
+  // NORM: test_redundant_read():
+  // NORM: lea    STACK:-[[#%x,OFF:]],REG
+  // NORM: mov    STATICVAR:0,REG
+  // NORM: mov    REG,STACK:-[[#OFF]]
+  // NORM: ret
 }
 
 // CHECK-LABEL: test_redundant_read2:
@@ -60,4 +72,11 @@ extern "C" void test_redundant_read2() {
   // CHECK: ExternInt2(%rip)
   // CHECK: movl %eax, [[DEST]]
   // CHECK: ret
+  // NORM: test_redundant_read2():
+  // NORM: lea    STACK:-[[#%x,OFF]],REG
+  // NORM: mov    STATICVAR:[[#%x,OFF2:]],REG
+  // NORM: mov    REG,STACK:-[[#OFF]]
+  // NORM: mov    STATICVAR:[[#OFF2]],REG
+  // NORM: mov    REG,STACK:-[[#OFF]]
+  // NORM: ret
 }

@@ -21,12 +21,17 @@ extern "C" int test_for_auto_loop() {
   // CHECK: 	[[CALL:call(q)*]]	_ZN9benchmark5State16StartKeepRunningEv
   // CHECK-NEXT: testq %rbx, %rbx
   // CHECK-NEXT: je [[LOOP_END:.*]]
+  // The loop structure adopted by modern compilers is really complex,
+  // not even based on counters but on (believe me) call/ret for each
+  // loop. Thereś not much of a point on checking the asm result
+  // NORM: call test_for_auto_loop
 
   for (auto _ : S) {
     // CHECK: .L[[LOOP_HEAD:[a-zA-Z0-9_]+]]:
     // CHECK-GNU-NEXT: subq $1, %rbx
     // CHECK-CLANG-NEXT: {{(addq \$1, %rax|incq %rax|addq \$-1, %rbx)}}
     // CHECK-NEXT: jne .L[[LOOP_HEAD]]
+    // NORM: test REG,REG
     benchmark::DoNotOptimize(x);
   }
   // CHECK: [[LOOP_END]]:
@@ -34,6 +39,8 @@ extern "C" int test_for_auto_loop() {
 
   // CHECK: movl $101, %eax
   // CHECK: ret
+  // NORM: mov 65,REG
+  // NORM: ret
   return 101;
 }
 
@@ -64,5 +71,7 @@ extern "C" int test_while_loop() {
 
   // CHECK: movl $101, %eax
   // CHECK: ret
+  // NORM: mov 65,REG
+  // NORM: ret
   return 101;
 }

@@ -54,11 +54,11 @@ extern "C" void test_with_large_rvalue() {
   // CHECK: movl %eax, -{{[0-9]+}}(%[[REG]])
   // CHECK: ret
   // NORM: test_with_large_rvalue():
-  // NORM: mov OFFSET(RIP),REG
+  // NORM: mov STATICVAR:0,REG
   // NORM-NVHPC: mov (REG),REG
-  // NORM: mov REG,OFFSET(REG)
-  // NORM: mov REG,OFFSET(REG)
-  // NORM: mov REG,OFFSET(REG)
+  // NORM: mov REG,STACK
+  // NORM: mov REG,STACK
+  // NORM: mov REG,STACK
   // NORM: ret
 }
 
@@ -68,10 +68,8 @@ extern "C" void test_with_non_trivial_rvalue() {
   // CHECK: mov{{l|q}} ExternInt(%rip)
   // CHECK: ret
   // NORM: test_with_non_trivial_rvalue():
-  // NORM: mov OFFSET(RIP),REG
-  // NORM-NVHPC: mov (REG),REG
-  // NORM-NVHPC: mov REG,OFFSET(REG)
-  // NORM-GNU:   mov REG,OFFSET(REG)
+  // NORM: mov STATICVAR:0,REG
+  // NORM: mov {{REG|\(REG\)}},{{REG|STACK}}
   // NORM: ret
 }
 
@@ -83,7 +81,7 @@ extern "C" void test_with_lvalue() {
   // CHECK-CLANG: movl $101, -{{[0-9]+}}(%[[REG:[a-z]+]])
   // CHECK: ret
   // NORM: test_with_lvalue():
-  // NORM: mov 65,{{REG|OFFSET\(REG\)}}
+  // NORM: mov 65,{{REG|STACK}}
   // NORM: ret
 }
 
@@ -97,11 +95,10 @@ extern "C" void test_with_large_lvalue() {
   // CHECK: movl %eax, -{{[0-9]+}}(%[[REG]])
   // CHECK: ret
   // NORM: test_with_large_lvalue():
-  // NORM: mov OFFSET(RIP),REG
-  // NORM-NVHPC: mov (REG),REG
-  // NORM: mov REG,OFFSET(REG)
-  // NORM: mov REG,OFFSET(REG)
-  // NORM: mov REG,OFFSET(REG)
+  // NORM: mov STATICVAR:0,REG
+  // NORM: mov REG,STACK
+  // NORM: mov REG,STACK
+  // NORM: mov REG,STACK
   // NORM: ret
 }
 
@@ -112,10 +109,11 @@ extern "C" void test_with_extra_large_lvalue_with_op() {
   // CHECK: movl $42, ExtraLargeObj+64(%rip)
   // CHECK: ret
   // NORM: test_with_extra_large_lvalue_with_op():
-  // NORM-NVHPC: mov OFFSET(RIP),REG
-  // NORM-NVHPC: mov 2a,OFFSET(REG)
-  // NORM-CLANG: mov 2a,OFFSET(REG)
-  // NORM-GNU: mov 2a,OFFSET(RIP)
+  // NORM-NVHPC: mov STATICVAR:0,REG
+  // NORM-NVHPC: mov 2a,40(REG)
+  // NORM-CLANG: mov STATICVAR:0,REG
+  // NORM-CLANG: mov 2a,40(REG)
+  // NORM-GNU: mov 2a,STATICVAR:0
   // NORM: ret
 }
 
@@ -126,10 +124,11 @@ extern "C" void test_with_big_array_with_op() {
   // CHECK: movl $42, BigArray+64(%rip)
   // CHECK: ret
   // NORM: test_with_big_array_with_op():
-  // NORM-NVHPC: mov OFFSET(RIP),REG
-  // NORM-NVHPC: mov 2a,OFFSET(REG)
-  // NORM-CLANG: mov 2a,OFFSET(REG)
-  // NORM-GNU:   mov 2a,OFFSET(RIP)
+  // NORM-NVHPC: mov STATICVAR:0,REG
+  // NORM-NVHPC: mov 2a,40(REG)
+  // NORM-CLANG: mov STATICVAR:0,REG
+  // NORM-CLANG: mov 2a,40(REG)
+  // NORM-GNU:   mov 2a,STATICVAR:0
   // NORM: ret
 }
 
@@ -141,9 +140,9 @@ extern "C" void test_with_non_trivial_lvalue() {
   // CHECK: movl %eax, -{{[0-9]+}}(%[[REG:[a-z]+]])
   // CHECK: ret
   // NORM: test_with_non_trivial_lvalue():
-  // NORM: mov OFFSET(RIP),REG
+  // NORM: mov STATICVAR:0,REG
   // NORM-NVHPC: mov (REG),REG
-  // NORM: mov REG,OFFSET(REG)
+  // NORM: mov REG,STACK:-4
   // NORM: ret
 }
 
@@ -168,11 +167,11 @@ extern "C" void test_with_large_const_lvalue() {
   // CHECK: movl %eax, -{{[0-9]+}}(%[[REG]])
   // CHECK: ret
   // NORM: test_with_large_const_lvalue():
-  // NORM: mov OFFSET(RIP),REG
+  // NORM: mov STATICVAR:0,REG
   // NORM-NVHPC: mov (REG),REG
-  // NORM: mov REG,OFFSET(REG)
-  // NORM: mov REG,OFFSET(REG)
-  // NORM: mov REG,OFFSET(REG)
+  // NORM: mov REG,STACK
+  // NORM: mov REG,STACK
+  // NORM: mov REG,STACK
   // NORM: ret
 }
 
@@ -189,8 +188,8 @@ extern "C" void test_with_const_big_array() {
   benchmark::DoNotOptimize(ConstBigArray);
   // CHECK: ret
   // NORM:  test_with_const_big_array():
-  // NORM-CLANG: lea OFFSET(RIP),REG
-  // NORM-CLANG: mov REG,OFFSET(REG)
+  // NORM-CLANG: lea STATICVAR:0,REG
+  // NORM-CLANG: mov REG,STACK:-8
   // NORM: ret
 }
 
@@ -201,9 +200,9 @@ extern "C" void test_with_non_trivial_const_lvalue() {
   // CHECK: mov{{q|l}} ExternInt(%rip)
   // CHECK: ret
   // NORM: test_with_non_trivial_const_lvalue():
-  // NORM: mov OFFSET(RIP),REG
+  // NORM: mov STATICVAR:0,REG
   // NORM-NVHPC: mov (REG),REG
-  // NORM-NVHPC: mov REG,OFFSET(REG)
+  // NORM-NVHPC: mov REG,STACK
   // NORM: ret
 }
 
@@ -217,9 +216,9 @@ extern "C" int test_div_by_two(int input) {
   // CHECK: ret
   // NORM: test_div_by_two():
   // NORM: mov REG,REG
-  // NORM: mov 2,{{REG|OFFSET\(REG\)}}
+  // NORM: mov 2,{{REG|STACK}}
   // NORM: cltd
-  // NORM: idiv {{REG|OFFSET\(REG\)}}
+  // NORM: idiv {{REG|STACK}}
   // NORM: ret
 }
 
@@ -235,13 +234,13 @@ extern "C" int test_inc_integer() {
   // CHECK-CLANG: movl [[DEST]], %eax
   // CHECK: ret
   // NORM: test_inc_integer():
-  // NORM:   mov 1,{{REG|OFFSET\(REG\)}}
-  // NORM:   {{inc |add 1,}}{{REG|OFFSET\(REG\)}}
-  // NORM:   {{inc |add 1,}}{{REG|OFFSET\(REG\)}}
-  // NORM:   {{inc |add 1,}}{{REG|OFFSET\(REG\)}}
-  // NORM:   {{inc |add 1,}}{{REG|OFFSET\(REG\)}}
-  // NORM-CLANG:   mov OFFSET(REG),REG
-  // NORM-NVHPC:   mov OFFSET(REG),REG
+  // NORM:   mov 1,{{REG|STACK}}
+  // NORM:   {{inc |add 1,}}{{REG|STACK}}
+  // NORM:   {{inc |add 1,}}{{REG|STACK}}
+  // NORM:   {{inc |add 1,}}{{REG|STACK}}
+  // NORM:   {{inc |add 1,}}{{REG|STACK}}
+  // NORM-CLANG:   mov STACK:-4,REG
+  // NORM-NVHPC:   mov STACK:-4,REG
   // NORM: ret
   return x;
 }
@@ -253,10 +252,10 @@ extern "C" void test_pointer_rvalue() {
   // CHECK-CLANG: movq %rax, -{{[0-9]+}}(%[[REG:[a-z]+]])
   // CHECK: ret
   // NORM:  test_pointer_rvalue():
-  // NORM-DAG: lea OFFSET(REG),REG
-  // NORM-DAG: mov 2a,OFFSET(REG)
-  // NORM-NVHPC: mov REG,OFFSET(REG)
-  // NORM-CLANG: mov REG,OFFSET(REG)
+  // NORM-DAG: lea STACK:-[[#%x,OFF:]],REG
+  // NORM-DAG: mov 2a,STACK:-[[#OFF]]
+  // NORM-NVHPC: mov REG,STACK
+  // NORM-CLANG: mov REG,STACK
   // NORM: ret
   int x = 42;
   benchmark::DoNotOptimize(&x);
@@ -268,10 +267,10 @@ extern "C" void test_pointer_const_lvalue() {
   // CHECK: leaq [[DEST]], %rax
   // CHECK-CLANG: movq %rax, -{{[0-9]+}}(%[[REG:[a-z]+]])
   // CHECK: ret
-  // NORM-DAG: mov 2a,OFFSET(REG)
-  // NORM-DAG: lea OFFSET(REG),REG
-  // NORM-NVHPC: mov REG,OFFSET(REG)
-  // NORM-CLANG: mov REG,OFFSET(REG)
+  // NORM-DAG: mov 2a,STACK
+  // NORM-DAG: lea STACK:-[[#%x,OFF:]],REG
+  // NORM-NVHPC: mov REG,STACK
+  // NORM-CLANG: mov REG,STACK
   // NORM: ret
   int x = 42;
   int *const xp = &x;
@@ -284,10 +283,10 @@ extern "C" void test_pointer_lvalue() {
   // CHECK: leaq [[DEST]], %rax
   // CHECK-CLANG: movq %rax, -{{[0-9]+}}(%[[REG:[a-z+]+]])
   // CHECK: ret
-  // NORM-DAG: mov 2a,OFFSET(REG)
-  // NORM-DAG: lea OFFSET(REG),REG
-  // NORM-NVHPC: mov REG,OFFSET(REG)
-  // NORM-CLANG: mov REG,OFFSET(REG)
+  // NORM-DAG: mov 2a,STACK
+  // NORM-DAG: lea STACK:-[[#%x,OFF:]],REG
+  // NORM-NVHPC: mov REG,STACK
+  // NORM-CLANG: mov REG,STACK
   // NORM: ret
   int x = 42;
   int *xp = &x;
