@@ -67,6 +67,9 @@ namespace benchmark {
 #if defined(__GNUC__)
 #pragma GCC diagnostic ignored "-Wunused-function"
 #endif
+#if defined(__NVCOMPILER)
+#pragma diag_suppress declared_but_not_referenced
+#endif
 
 namespace {
 #if defined(BENCHMARK_OS_WINDOWS)

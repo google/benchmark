@@ -45,7 +45,10 @@ target_link_libraries(output_test_helper PRIVATE benchmark::benchmark)
 
 macro(compile_benchmark_test name)
   add_executable(${name} "${name}.cc")
-  target_link_libraries(${name} benchmark::benchmark_main ${CMAKE_THREAD_LIBS_INIT})
+  target_link_libraries(${name} benchmark::benchmark ${CMAKE_THREAD_LIBS_INIT})
+  if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "NVHPC")
+  target_compile_options( ${name} PRIVATE --diag_suppress partial_override )
+  endif()
 endmacro(compile_benchmark_test)
 
 macro(compile_benchmark_test_with_main name)

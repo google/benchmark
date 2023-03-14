@@ -299,7 +299,7 @@ std::vector<std::string> ResultsChecker::SplitCsv_(const std::string& line) {
 
 }  // end namespace internal
 
-size_t AddChecker(const char* bm_name, const ResultsCheckFn& fn) {
+size_t AddChecker(const std::string& bm_name, const ResultsCheckFn& fn) {
   auto& rc = internal::GetResultsChecker();
   rc.Add(bm_name, fn);
   return rc.results.size();
@@ -394,14 +394,14 @@ void RunOutputTests(int argc, char* argv[]) {
   benchmark::JSONReporter JR;
   benchmark::CSVReporter CSVR;
   struct ReporterTest {
-    const char* name;
+    std::string name;
     std::vector<TestCase>& output_cases;
     std::vector<TestCase>& error_cases;
     benchmark::BenchmarkReporter& reporter;
     std::stringstream out_stream;
     std::stringstream err_stream;
 
-    ReporterTest(const char* n, std::vector<TestCase>& out_tc,
+    ReporterTest(const std::string& n, std::vector<TestCase>& out_tc,
                  std::vector<TestCase>& err_tc,
                  benchmark::BenchmarkReporter& br)
         : name(n), output_cases(out_tc), error_cases(err_tc), reporter(br) {
@@ -409,12 +409,12 @@ void RunOutputTests(int argc, char* argv[]) {
       reporter.SetErrorStream(&err_stream);
     }
   } TestCases[] = {
-      {"ConsoleReporter", GetTestCaseList(TC_ConsoleOut),
+      {std::string("ConsoleReporter"), GetTestCaseList(TC_ConsoleOut),
        GetTestCaseList(TC_ConsoleErr), CR},
-      {"JSONReporter", GetTestCaseList(TC_JSONOut), GetTestCaseList(TC_JSONErr),
-       JR},
-      {"CSVReporter", GetTestCaseList(TC_CSVOut), GetTestCaseList(TC_CSVErr),
-       CSVR},
+      {std::string("JSONReporter"), GetTestCaseList(TC_JSONOut),
+       GetTestCaseList(TC_JSONErr), JR},
+      {std::string("CSVReporter"), GetTestCaseList(TC_CSVOut),
+       GetTestCaseList(TC_CSVErr), CSVR},
   };
 
   // Create the test reporter and run the benchmarks.
@@ -423,7 +423,8 @@ void RunOutputTests(int argc, char* argv[]) {
   benchmark::RunSpecifiedBenchmarks(&test_rep);
 
   for (auto& rep_test : TestCases) {
-    std::string msg = std::string("\nTesting ") + rep_test.name + " Output\n";
+    std::string msg =
+        std::string("\nTesting ") + rep_test.name + std::string(" Output\n");
     std::string banner(msg.size() - 1, '-');
     std::cout << banner << msg << banner << "\n";
 
@@ -440,7 +441,7 @@ void RunOutputTests(int argc, char* argv[]) {
   // the checks to subscribees.
   auto& csv = TestCases[2];
   // would use == but gcc spits a warning
-  BM_CHECK(std::strcmp(csv.name, "CSVReporter") == 0);
+  BM_CHECK(csv.name == std::string("CSVReporter"));
   internal::GetResultsChecker().CheckResults(csv.out_stream);
 }
 

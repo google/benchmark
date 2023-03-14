@@ -48,7 +48,8 @@ struct TestCase {
 
 std::vector<TestCase> ExpectedResults;
 
-int AddCases(const char* base_name, std::initializer_list<TestCase> const& v) {
+int AddCases(const std::string& base_name,
+             std::initializer_list<TestCase> const& v) {
   for (auto TC : v) {
     TC.name = base_name + TC.name;
     ExpectedResults.push_back(std::move(TC));

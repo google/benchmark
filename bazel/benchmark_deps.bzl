@@ -58,7 +58,7 @@ def benchmark_deps():
         # Downloaded from v4.9.0 tag at https://sourceforge.net/p/perfmon2/libpfm4/ref/master/tags/
         http_archive(
             name = "libpfm",
-            build_file = "//tools:libpfm.BUILD.bazel",
+            build_file = "@//tools:libpfm.BUILD.bazel",
             sha256 = "5da5f8872bde14b3634c9688d980f68bda28b510268723cc12973eedbab9fecc",
             type = "tar.gz",
             strip_prefix = "libpfm-4.11.0",

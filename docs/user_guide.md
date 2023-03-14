@@ -56,7 +56,7 @@
 
 [Exiting with an Error](#exiting-with-an-error)
 
-[A Faster KeepRunning Loop](#a-faster-keep-running-loop)
+[A Faster `KeepRunning` Loop](#a-faster-keep-running-loop)
 
 ## Benchmarking Tips
 
@@ -271,10 +271,12 @@ information about the machine on which the benchmarks are run.
 Global setup/teardown specific to each benchmark can be done by
 passing a callback to Setup/Teardown:
 
-The setup/teardown callbacks will be invoked once for each benchmark.
-If the benchmark is multi-threaded (will run in k threads), they will be invoked exactly once before
-each run with k threads.
-If the benchmark uses different size groups of threads, the above will be true for each size group.
+The setup/teardown callbacks will be invoked once for each benchmark. If the
+benchmark is multi-threaded (will run in k threads), they will be invoked
+exactly once before each run with k threads.
+
+If the benchmark uses different size groups of threads, the above will be true
+for each size group.
 
 Eg.,
 
@@ -1142,7 +1144,7 @@ int main(int argc, char** argv) {
 
 When errors caused by external influences, such as file I/O and network
 communication, occur within a benchmark the
-`State::SkipWithError(const char* msg)` function can be used to skip that run
+`State::SkipWithError(const std::string& msg)` function can be used to skip that run
 of benchmark and report the error. Note that only future iterations of the
 `KeepRunning()` are skipped. For the ranged-for version of the benchmark loop
 Users must explicitly exit the loop, otherwise all iterations will be performed.
@@ -1253,7 +1255,8 @@ the benchmark loop should be preferred.
 If you see this error:
 
 ```
-***WARNING*** CPU scaling is enabled, the benchmark real time measurements may be noisy and will incur extra overhead.
+***WARNING*** CPU scaling is enabled, the benchmark real time measurements may
+be noisy and will incur extra overhead.
 ```
 
 you might want to disable the CPU frequency scaling while running the
