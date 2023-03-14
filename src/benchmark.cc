@@ -196,6 +196,10 @@ State::State(std::string name, IterationCount max_iters,
 #pragma nv_diagnostic push
 #pragma nv_diag_suppress 1427
 #endif
+#if defined(__NVCOMPILER)
+#pragma diagnostic push
+#pragma diag_suppress offset_in_non_POD_nonstandard
+#endif
   // Offset tests to ensure commonly accessed data is on the first cache line.
   const int cache_line_size = 64;
   static_assert(
@@ -207,6 +211,9 @@ State::State(std::string name, IterationCount max_iters,
 #endif
 #if defined(__NVCC__)
 #pragma nv_diagnostic pop
+#endif
+#if defined(__NVCOMPILER)
+#pragma diagnostic pop
 #endif
 }
 
@@ -266,7 +273,7 @@ void State::SetIterationTime(double seconds) {
   timer_->SetIterationTime(seconds);
 }
 
-void State::SetLabel(const char* label) {
+void State::SetLabel(const std::string& label) {
   MutexLock l(manager_->GetBenchmarkMutex());
   manager_->results.report_label_ = label;
 }
