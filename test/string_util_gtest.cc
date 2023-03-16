@@ -2,6 +2,8 @@
 // statistics_test - Unit tests for src/statistics.cc
 //===---------------------------------------------------------------------===//
 
+#include <tuple>
+
 #include "../src/internal_macros.h"
 #include "../src/string_util.h"
 #include "gtest/gtest.h"
@@ -63,7 +65,10 @@ TEST(StringUtilTest, stoul) {
     EXPECT_EQ(4ul, pos);
   }
 #ifndef BENCHMARK_HAS_NO_EXCEPTIONS
-  { ASSERT_THROW(benchmark::stoul("this is a test"), std::invalid_argument); }
+  {
+    ASSERT_THROW(std::ignore = benchmark::stoul("this is a test"),
+                 std::invalid_argument);
+  }
 #endif
 }
 
@@ -107,7 +112,10 @@ EXPECT_EQ(1ul, pos);
   EXPECT_EQ(4ul, pos);
 }
 #ifndef BENCHMARK_HAS_NO_EXCEPTIONS
-{ ASSERT_THROW(benchmark::stoi("this is a test"), std::invalid_argument); }
+{
+  ASSERT_THROW(std::ignore = benchmark::stoi("this is a test"),
+               std::invalid_argument);
+}
 #endif
 }
 
@@ -137,7 +145,10 @@ EXPECT_EQ(1ul, pos);
   EXPECT_EQ(8ul, pos);
 }
 #ifndef BENCHMARK_HAS_NO_EXCEPTIONS
-{ ASSERT_THROW(benchmark::stod("this is a test"), std::invalid_argument); }
+{
+  ASSERT_THROW(std::ignore = benchmark::stod("this is a test"),
+               std::invalid_argument);
+}
 #endif
 }
 
