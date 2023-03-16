@@ -14,6 +14,7 @@ make(
     lib_name = "libpfm",
     copts = [
         "-Wno-format-truncation",
+        "-Wno-use-after-free",
     ],
     visibility = [
         "//visibility:public",
