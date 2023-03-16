@@ -1,5 +1,5 @@
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
-load("@bazel_tools//tools/build_defs/repo:git.bzl", "git_repository")
+load("@bazel_tools//tools/build_defs/repo:git.bzl", "new_git_repository")
 
 def benchmark_deps():
     """Loads dependencies required to build Google Benchmark."""
@@ -38,14 +38,14 @@ def benchmark_deps():
         )
 
     if "com_google_googletest" not in native.existing_rules():
-        git_repository(
+        new_git_repository(
             name = "com_google_googletest",
             remote = "https://github.com/google/googletest.git",
             tag = "release-1.11.0",
         )
 
     if "nanobind" not in native.existing_rules():
-        git_repository(
+        new_git_repository(
             name = "nanobind",
             remote = "https://github.com/wjakob/nanobind.git",
             commit = "1ffbfe836c9dac599496a170274ee0075094a607", # v0.2.0
@@ -58,7 +58,7 @@ def benchmark_deps():
         # Downloaded from v4.9.0 tag at https://sourceforge.net/p/perfmon2/libpfm4/ref/master/tags/
         http_archive(
             name = "libpfm",
-            build_file = "@//tools:libpfm.BUILD.bazel",
+            build_file = str(Label("@//tools:libpfm.BUILD.bazel")),
             sha256 = "5da5f8872bde14b3634c9688d980f68bda28b510268723cc12973eedbab9fecc",
             type = "tar.gz",
             strip_prefix = "libpfm-4.11.0",
