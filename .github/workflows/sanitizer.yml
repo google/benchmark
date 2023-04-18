@@ -21,12 +21,6 @@ jobs:
     steps:
     - uses: actions/checkout@v3
 
-    - name: configure msan env
-      if: matrix.sanitizer == 'msan'
-      run: |
-        echo "EXTRA_FLAGS=-g -O2 -fno-omit-frame-pointer -fsanitize=memory -fsanitize-memory-track-origins" >> $GITHUB_ENV
-        echo "LIBCXX_SANITIZER=MemoryWithOrigins" >> $GITHUB_ENV
-
     - name: configure ubsan env
       if: matrix.sanitizer == 'ubsan'
       run: |
