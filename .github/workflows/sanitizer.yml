@@ -17,6 +17,10 @@ jobs:
         build_type: ['Debug', 'RelWithDebInfo']
         sanitizer: ['asan', 'ubsan', 'tsan', 'msan']
         compiler: ['clang', 'gcc']
+        exclude:
+          # MSAN and gcc don't mix
+          - sanitizer: 'msan'
+            compiler: 'gcc'
     steps:
     - uses: actions/checkout@v3
 
