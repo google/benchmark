@@ -15,9 +15,8 @@ jobs:
       fail-fast: false
       matrix:
         build_type: ['Debug', 'RelWithDebInfo']
-        sanitizer: ['asan', 'ubsan', 'tsan']
+        sanitizer: ['asan', 'ubsan', 'tsan', 'msan']
         compiler: ['clang', 'gcc']
-        # TODO: add 'msan' above. currently failing and needs investigation.
     steps:
     - uses: actions/checkout@v3
 
