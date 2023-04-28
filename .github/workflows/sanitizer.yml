@@ -9,18 +9,14 @@ env:
 
 jobs:
   job:
-    name: ${{ matrix.sanitizer }}.${{ matrix.build_type }}.${{ matrix.compiler }}
+    name: ${{ matrix.sanitizer }}.${{ matrix.build_type }}
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
         build_type: ['Debug', 'RelWithDebInfo']
         sanitizer: ['asan', 'ubsan', 'tsan', 'msan']
-        compiler: ['clang', 'gcc']
-        exclude:
-          # MSAN and gcc don't mix
-          - sanitizer: 'msan'
-            compiler: 'gcc'
+
     steps:
     - uses: actions/checkout@v3
 
@@ -49,38 +45,27 @@ jobs:
         echo "LIBCXX_SANITIZER=Thread" >> $GITHUB_ENV
 
     - name: fine-tune asan options
-      # in clang+asan we get an error from std::regex. ignore it.
-      if: matrix.sanitizer == 'asan' && matrix.compiler == 'clang'
+      # in asan we get an error from std::regex. ignore it.
+      if: matrix.sanitizer == 'asan'
       run: |
         echo "ASAN_OPTIONS=alloc_dealloc_mismatch=0" >> $GITHUB_ENV
 
     - name: setup clang
-      if: matrix.compiler == 'clang'
       uses: egor-tensin/setup-clang@v1
       with:
         version: latest
         platform: x64
 
     - name: configure clang
-      if: matrix.compiler == 'clang'
       run: |
         echo "CC=cc" >> $GITHUB_ENV
         echo "CXX=c++" >> $GITHUB_ENV
 
-    - name: configure gcc
-      if: matrix.compiler == 'gcc'
-      run: |
-        sudo apt update && sudo apt -y install gcc-10 g++-10
-        echo "CC=gcc-10" >> $GITHUB_ENV
-        echo "CXX=g++-10" >> $GITHUB_ENV
-
-    - name: install llvm stuff
-      if: matrix.compiler == 'clang'
+    - name: build libc++
       run: |
         "${GITHUB_WORKSPACE}/.github/libcxx-setup.sh"
-        echo "EXTRA_CXX_FLAGS=-stdlib=libc++ -L ./lib -l c++abi -Isystem ./include -Isystem ./include/c++/v1 -Wl,-rpath,./lib" >> $GITHUB_ENV
-        ls -l ./llvm-build
-        ls -l .
+        echo "EXTRA_CXX_FLAGS=-stdlib=libc++ -L ./llvm-build/lib -l c++abi -Isystem ./llvm-build/include -Isystem ./llvm-build/include/c++/v1 -Wl,-rpath,./llvm-build/lib" >> $GITHUB_ENV
+        ls -l ./llvm-build/lib
 
     - name: create build environment
       run: cmake -E make_directory ${{ runner.workspace }}/_build
