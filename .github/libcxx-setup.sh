@@ -23,8 +23,4 @@ cmake -DCMAKE_C_COMPILER=${CC}                  \
       -G "Unix Makefiles" \
       ../llvm-project/runtimes/
 make -j cxx cxxabi unwind
-sudo make install-cxx install-cxxabi install-unwind
 cd ..
-
-#sudo apt update
-#sudo apt -y install libc++-dev libc++abi-dev

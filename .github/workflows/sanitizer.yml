@@ -78,7 +78,7 @@ jobs:
       if: matrix.compiler == 'clang'
       run: |
         "${GITHUB_WORKSPACE}/.github/libcxx-setup.sh"
-        echo "EXTRA_CXX_FLAGS=\"-stdlib=libc++\"" >> $GITHUB_ENV
+        echo "EXTRA_CXX_FLAGS=-stdlib=libc++ -L ./llvm-build/lib -l c++abi -Isystem ./llvm-build/include -Isystem ./llvm-build/include/c++/v1 -Wl,-rpath,./llvm-build/lib" >> $GITHUB_ENV
 
     - name: create build environment
       run: cmake -E make_directory ${{ runner.workspace }}/_build
