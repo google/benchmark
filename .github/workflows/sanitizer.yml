@@ -48,7 +48,7 @@ jobs:
       # in asan we get an error from std::regex. ignore it.
       if: matrix.sanitizer == 'asan'
       run: |
-        echo "ASAN_OPTIONS=alloc_dealloc_mismatch=0" >> $GITHUB_ENV
+        echo "ASAN_OPTIONS=alloc_dealloc_mismatch=0:suppressions=${GITHUB_WORKSPACE}/.github/asan.supp" >> $GITHUB_ENV
 
     - name: setup clang
       uses: egor-tensin/setup-clang@v1
