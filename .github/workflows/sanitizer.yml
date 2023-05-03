@@ -23,7 +23,7 @@ jobs:
     - name: configure msan env
       if: matrix.sanitizer == 'msan'
       run: |
-        echo "EXTRA_FLAGS=-g -O2 -fno-omit-frame-pointer -fsanitize=memory -fsanitize-memory-track-origins" >> $GITHUB_ENV
+        echo "EXTRA_FLAGS=-g -O2 -fno-omit-frame-pointer -fsanitize=memory -fsanitize-memory-track-origins -fsanitize-address-use-odr-indicator" >> $GITHUB_ENV
         echo "LIBCXX_SANITIZER=MemoryWithOrigins" >> $GITHUB_ENV
 
     - name: configure ubsan env
@@ -64,7 +64,7 @@ jobs:
     - name: build libc++
       run: |
         "${GITHUB_WORKSPACE}/.github/libcxx-setup.sh"
-        echo "EXTRA_CXX_FLAGS=-nostdlib++ -stdlib=libc++ -L ${GITHUB_WORKSPACE}/llvm-build/lib -lc++abi -Isystem${GITHUB_WORKSPACE}/llvm-build/include -Isystem${GITHUB_WORKSPACE}/llvm-build/include/c++/v1 -Wl,-rpath,${GITHUB_WORKSPACE}/llvm-build/lib" >> $GITHUB_ENV
+        echo "EXTRA_CXX_FLAGS=-nostdlib++ -stdlib=libc++ -L${GITHUB_WORKSPACE}/llvm-build/lib -lc++abi -Isystem${GITHUB_WORKSPACE}/llvm-build/include -Isystem${GITHUB_WORKSPACE}/llvm-build/include/c++/v1 -Wl,-rpath,${GITHUB_WORKSPACE}/llvm-build/lib" >> $GITHUB_ENV
         pwd
 
     - name: create build environment
