@@ -23,7 +23,7 @@ jobs:
     - name: configure msan env
       if: matrix.sanitizer == 'msan'
       run: |
-        echo "EXTRA_FLAGS=-g -O2 -fno-omit-frame-pointer -fsanitize=memory -fsanitize-memory-track-origins -fsanitize-address-use-odr-indicator" >> $GITHUB_ENV
+        echo "EXTRA_FLAGS=-g -O2 -fno-omit-frame-pointer -fsanitize=memory -fsanitize-memory-track-origins" >> $GITHUB_ENV
         echo "LIBCXX_SANITIZER=MemoryWithOrigins" >> $GITHUB_ENV
 
     - name: configure ubsan env
@@ -35,7 +35,7 @@ jobs:
     - name: configure asan env
       if: matrix.sanitizer == 'asan'
       run: |
-        echo "EXTRA_FLAGS=-g -O2 -fno-omit-frame-pointer -fsanitize=address -fno-sanitize-recover=all" >> $GITHUB_ENV
+        echo "EXTRA_FLAGS=-g -O2 -fno-omit-frame-pointer -fsanitize=address -fno-sanitize-recover=all -fsanitize-address-use-odr-indicator" >> $GITHUB_ENV
         echo "LIBCXX_SANITIZER=Address" >> $GITHUB_ENV
 
     - name: configure tsan env
@@ -49,12 +49,6 @@ jobs:
       if: matrix.sanitizer == 'asan'
       run: |
         echo "ASAN_OPTIONS=alloc_dealloc_mismatch=0" >> $GITHUB_ENV
-
-    - name: fine-tune msan options
-      # in msan we get an error from libcxx. ignore it.
-      if: matrix.sanitizer == 'msan'
-      run: |
-        echo "MSAN_OPTIONS=detect_odr_violation=0" >> $GITHUB_ENV
 
     - name: setup clang
       uses: egor-tensin/setup-clang@v1
