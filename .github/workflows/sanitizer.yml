@@ -23,25 +23,25 @@ jobs:
     - name: configure msan env
       if: matrix.sanitizer == 'msan'
       run: |
-        echo "EXTRA_FLAGS=-nostdlib++ -g -O2 -fno-omit-frame-pointer -fsanitize=memory -fsanitize-memory-track-origins" >> $GITHUB_ENV
+        echo "EXTRA_FLAGS=-g -O2 -fno-omit-frame-pointer -fsanitize=memory -fsanitize-memory-track-origins" >> $GITHUB_ENV
         echo "LIBCXX_SANITIZER=MemoryWithOrigins" >> $GITHUB_ENV
 
     - name: configure ubsan env
       if: matrix.sanitizer == 'ubsan'
       run: |
-        echo "EXTRA_FLAGS=-nostdlib++ -g -O2 -fno-omit-frame-pointer -fsanitize=undefined -fno-sanitize-recover=all" >> $GITHUB_ENV
+        echo "EXTRA_FLAGS=-g -O2 -fno-omit-frame-pointer -fsanitize=undefined -fno-sanitize-recover=all" >> $GITHUB_ENV
         echo "LIBCXX_SANITIZER=Undefined" >> $GITHUB_ENV
 
     - name: configure asan env
       if: matrix.sanitizer == 'asan'
       run: |
-        echo "EXTRA_FLAGS=-nostdlib++ -g -O2 -fno-omit-frame-pointer -fsanitize=address -fno-sanitize-recover=all" >> $GITHUB_ENV
+        echo "EXTRA_FLAGS=-g -O2 -fno-omit-frame-pointer -fsanitize=address -fno-sanitize-recover=all" >> $GITHUB_ENV
         echo "LIBCXX_SANITIZER=Address" >> $GITHUB_ENV
 
     - name: configure tsan env
       if: matrix.sanitizer == 'tsan'
       run: |
-        echo "EXTRA_FLAGS=-nostdlib++ -g -O2 -fno-omit-frame-pointer -fsanitize=thread -fno-sanitize-recover=all" >> $GITHUB_ENV
+        echo "EXTRA_FLAGS=-g -O2 -fno-omit-frame-pointer -fsanitize=thread -fno-sanitize-recover=all" >> $GITHUB_ENV
         echo "LIBCXX_SANITIZER=Thread" >> $GITHUB_ENV
 
     - name: fine-tune asan options
