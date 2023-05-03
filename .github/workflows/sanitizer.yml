@@ -51,7 +51,7 @@ jobs:
         echo "ASAN_OPTIONS=alloc_dealloc_mismatch=0" >> $GITHUB_ENV
 
     - name: fine-tune msan options
-      # in asan we get an error from std::regex. ignore it.
+      # in msan we get an error from libcxx. ignore it.
       if: matrix.sanitizer == 'msan'
       run: |
         echo "MSAN_OPTIONS=detect_odr_violation=0" >> $GITHUB_ENV
@@ -70,7 +70,7 @@ jobs:
     - name: build libc++
       run: |
         "${GITHUB_WORKSPACE}/.github/libcxx-setup.sh"
-        echo "EXTRA_CXX_FLAGS=-nostdlib++ -stdlib=libc++ -L${GITHUB_WORKSPACE}/llvm-build/lib -lc++abi -Isystem${GITHUB_WORKSPACE}/llvm-build/include -Isystem${GITHUB_WORKSPACE}/llvm-build/include/c++/v1 -Wl,-rpath,${GITHUB_WORKSPACE}/llvm-build/lib" >> $GITHUB_ENV
+        echo "EXTRA_CXX_FLAGS=-nostdlib++ -stdlib=libc++ -L ${GITHUB_WORKSPACE}/llvm-build/lib -lc++abi -Isystem${GITHUB_WORKSPACE}/llvm-build/include -Isystem${GITHUB_WORKSPACE}/llvm-build/include/c++/v1 -Wl,-rpath,${GITHUB_WORKSPACE}/llvm-build/lib" >> $GITHUB_ENV
         pwd
 
     - name: create build environment
