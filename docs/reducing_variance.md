@@ -67,7 +67,7 @@ program.
 Reducing sources of variance is OS and architecture dependent, which is one
 reason some companies maintain machines dedicated to performance testing.
 
-Some of the easier and and effective ways of reducing variance on a typical
+Some of the easier and effective ways of reducing variance on a typical
 Linux workstation are:
 
 1. Use the performance governor as [discussed
