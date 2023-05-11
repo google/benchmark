@@ -12,7 +12,7 @@ py_library(
 py_binary(
     name = "compare",
     srcs = ["compare.py"],
-    python_version = "PY2",
+    python_version = "PY3",
     deps = [
         ":gbench",
     ],
