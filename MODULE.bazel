@@ -7,27 +7,25 @@ bazel_dep(name = "rules_cc", version = "0.0.6")
 bazel_dep(name = "rules_python", version = "0.20.0")
 bazel_dep(name = "abseil-cpp", version = "20230125.1")
 bazel_dep(name = "googletest", version = "1.12.1", repo_name = "com_google_googletest")
+bazel_dep(name = "nanobind", version = "0.2.0",)
+bazel_dep(name = "perfmon2", version = "4.11.0",)
 
 # Prepare Python deps using pip
 
 pip = use_extension("@rules_python//python:extensions.bzl", "pip")
-
 pip.parse(
     name = "py_deps",
     requirements_lock = "//:requirements.txt",
 )
-
 use_repo(pip, "py_deps")
 
 # Register a toolchain for Python 3.10
 
 python = use_extension("@rules_python//python:extensions.bzl", "python")
-
 python.toolchain(
     name = "python3_10",
     python_version = "3.10",
 )
-
 use_repo(python, "python3_10_toolchains")
 
 register_toolchains(
