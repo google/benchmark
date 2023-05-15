@@ -861,7 +861,7 @@ BENCHMARK(BM_OpenMP)->Range(8, 8<<10);
 
 // Measure the user-visible time, the wall clock (literally, the time that
 // has passed on the clock on the wall), use it to decide for how long to
-// run the benchmark loop. This will always be meaningful, an will match the
+// run the benchmark loop. This will always be meaningful, and will match the
 // time spent by the main thread in single-threaded case, in general decreasing
 // with the number of internal threads doing the work.
 BENCHMARK(BM_OpenMP)->Range(8, 8<<10)->UseRealTime();
