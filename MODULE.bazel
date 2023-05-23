@@ -27,3 +27,5 @@ python.toolchain(
     python_version = "3.8",
 )
 use_repo(python, "python3_8_toolchains")
+
+register_toolchains("@python3_8_toolchains//:all", dev_dependency=True)
