@@ -110,7 +110,7 @@ else()
   set(VERSION "${GIT_VERSION}")
 endif()
 # Tell the user what versions we are using
-message(STATUS "Version: ${VERSION}")
+message(STATUS "Google Benchmark version: ${VERSION}")
 
 # The version of the libraries
 set(GENERIC_LIB_VERSION ${VERSION})
