@@ -1,6 +1,8 @@
 #ifndef BENCHMARK_API_INTERNAL_H
 #define BENCHMARK_API_INTERNAL_H
 
+#include <array>
+#include <cinttypes>
 #include <cmath>
 #include <iosfwd>
 #include <limits>

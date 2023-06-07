@@ -185,6 +185,57 @@ BM_memcpy/32          12 ns         12 ns   54687500
 BM_memcpy/32k       1834 ns       1837 ns     357143
 ```
 
+<a name="running-with-human-readable-format" />
+
+## Human Readable Format
+
+The `--benchmark_human_readable={true|false}` option can be used to display 
+args in a more human friendly format. Meaning numbers that are power of 2
+will be formatted as `2^x`. Furthermore, for numbers that are the power of 
+10 special formatting abbreviations are used. For instance, `1000` will be
+formatted to `1k`, `32000` to `32k`, `1000000` to `1m` and so on. 
+
+By default `benchmark_human_readable` is disabled. 
+
+
+```bash
+$ ./run_benchmarks.x
+Run on (1 X 2300 MHz CPU )
+2016-06-25 19:34:24
+BM_base_two_args/1                2.22 ns         2.22 ns      6280843
+BM_base_two_args/2                2.20 ns         2.20 ns      6278027
+BM_base_two_args/64               2.14 ns         2.14 ns      6263982
+BM_base_two_args/128              2.22 ns         2.22 ns      6286484
+BM_base_ten_args/1                2.25 ns         2.25 ns      6349206
+BM_base_ten_args/10               2.18 ns         2.18 ns      6241641
+BM_base_ten_args/100              2.24 ns         2.24 ns      6167401
+BM_base_ten_args/1000             2.25 ns         2.25 ns      6137659
+BM_base_ten_args/10000            2.24 ns         2.24 ns      6068487
+BM_base_ten_args/32000            2.26 ns         2.26 ns      6063231
+BM_base_ten_args/100000           2.25 ns         2.25 ns      6105539
+BM_base_ten_args/1000000          2.21 ns         2.21 ns      6766554
+BM_base_ten_args/1000000000       2.23 ns         2.23 ns      6233304
+```
+
+```bash
+$ ./run_benchmarks.x --benchmark_human_readable
+Run on (1 X 2300 MHz CPU )
+2016-06-25 19:34:24
+BM_base_two_args/1              2.18 ns         2.18 ns      6222222
+BM_base_two_args/2^1            2.24 ns         2.24 ns      6208426
+BM_base_two_args/2^6            2.24 ns         2.24 ns      6159261
+BM_base_two_args/2^7            2.25 ns         2.25 ns      6337709
+BM_base_ten_args/1              2.27 ns         2.27 ns      6071119
+BM_base_ten_args/10             2.32 ns         2.32 ns      6278027
+BM_base_ten_args/100            2.28 ns         2.27 ns      6029285
+BM_base_ten_args/1k             2.27 ns         2.26 ns      5845511
+BM_base_ten_args/10k            2.27 ns         2.26 ns      6252791
+BM_base_ten_args/32k            2.27 ns         2.26 ns      6208426
+BM_base_ten_args/100k           2.27 ns         2.26 ns      6129597
+BM_base_ten_args/1M             2.28 ns         2.28 ns      5988024
+BM_base_ten_args/1B             2.25 ns         2.25 ns      6211180
+```
+
 ## Disabling Benchmarks
 
 It is possible to temporarily disable benchmarks by renaming the benchmark

@@ -144,6 +144,9 @@ BM_DEFINE_string(benchmark_time_unit, "");
 // The level of verbose logging to output
 BM_DEFINE_int32(v, 0);
 
+// defines whether to use human-readable format or not
+BM_DEFINE_bool(benchmark_human_readable, false);
+
 namespace internal {
 
 std::map<std::string, std::string>* global_context = nullptr;
@@ -691,7 +694,9 @@ void ParseCommandLineFlags(int* argc, char** argv) {
                           &FLAGS_benchmark_context) ||
         ParseStringFlag(argv[i], "benchmark_time_unit",
                         &FLAGS_benchmark_time_unit) ||
-        ParseInt32Flag(argv[i], "v", &FLAGS_v)) {
+        ParseInt32Flag(argv[i], "v", &FLAGS_v) ||
+        ParseBoolFlag(argv[i], "benchmark_human_readable",
+                      &FLAGS_benchmark_human_readable)) {
       for (int j = i; j != *argc - 1; ++j) argv[j] = argv[j + 1];
 
       --(*argc);
@@ -743,6 +748,7 @@ void PrintDefaultHelp() {
 #endif
           "          [--benchmark_context=<key>=<value>,...]\n"
           "          [--benchmark_time_unit={ns|us|ms|s}]\n"
+          "          [--benchmark_human_readable={true|false}]\n"
           "          [--v=<verbosity>]\n");
 }
 

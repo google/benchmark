@@ -1,6 +1,7 @@
 #include "string_util.h"
 
 #include <array>
+#include <cinttypes>
 #ifdef BENCHMARK_STL_ANDROID_GNUSTL
 #include <cerrno>
 #endif
@@ -14,6 +15,11 @@
 
 namespace benchmark {
 namespace {
+
+// Thousands, Millions, Billions, Trillions, Quadrillions, Quintillions,
+// Sextillions, Septillions.
+const std::array<std::string, 8> base10Units = {"k", "M",  "B",  "T",
+                                                "Q", "Qi", "Sx", "Sp"};
 
 // kilo, Mega, Giga, Tera, Peta, Exa, Zetta, Yotta.
 const char kBigSIUnits[] = "kMGTPEZY";
@@ -32,7 +38,8 @@ static const int64_t kUnitsSize = arraysize(kBigSIUnits);
 
 void ToExponentAndMantissa(double val, double thresh, int precision,
                            double one_k, std::string* mantissa,
-                           int64_t* exponent) {
+                           int64_t* exponent,
+                           bool inclusiveBigThreshhold = false) {
   std::stringstream mantissa_stream;
 
   if (val < 0) {
@@ -44,7 +51,13 @@ void ToExponentAndMantissa(double val, double thresh, int precision,
   // in 'precision' digits.
   const double adjusted_threshold =
       std::max(thresh, 1.0 / std::pow(10.0, precision));
-  const double big_threshold = adjusted_threshold * one_k;
+
+  // used to make the big_threshold inclusive or not. By subtracting 1 from
+  // big_threshold we make the range inclusive
+  const double big_threshold_slide = inclusiveBigThreshhold ? 1.0 : 0.0;
+  const double big_threshold =
+      (adjusted_threshold * one_k) - big_threshold_slide;
+
   const double small_threshold = adjusted_threshold;
   // Values in ]simple_threshold,small_threshold[ will be printed as-is
   const double simple_threshold = 0.01;
@@ -261,5 +274,40 @@ double stod(const std::string& str, size_t* pos) {
   return result;
 }
 #endif
+
+std::string ExponentToBase10Prefix(int64_t exponent) {
+  if (exponent == 0) return "";
+
+  const int64_t index = (exponent > 0 ? exponent - 1 : -exponent - 1);
+  if (index >= kUnitsSize) return "";
+
+  return base10Units[index];
+}
+
+std::string Base10HumanReadableFormat(const int64_t& arg) {
+  std::string mantissa;
+  int64_t exponent;
+  ToExponentAndMantissa(arg, 1, 1, 1000, &mantissa, &exponent, true);
+  return mantissa + ExponentToBase10Prefix(exponent);
+}
+
+/**
+ * Check whether the given value is a power of two or not.
+ * @param val the value to check
+ */
+bool IsPowerOfTwo(const int64_t& val) {
+  return (val & (val - 1)) == 0 && (val > 1);
+}
+
+std::string Base2HumanReadableFormat(const int64_t& arg) {
+  return StrFormat("2^%.0f", std::log2(arg));
+}
+
+std::string FormatHumanReadable(const int64_t& arg) {
+  if (IsPowerOfTwo(arg)) {
+    return Base2HumanReadableFormat(arg);
+  }
+  return Base10HumanReadableFormat(arg);
+}
 
 }  // end namespace benchmark
