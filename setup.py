@@ -88,8 +88,6 @@ class BuildBazelExtension(build_ext.build_ext):
             bazel_argv = [
                 "bazel",
                 "build",
-                "--enable_bzlmod",
-                "--registry=file:///usr/local/google/home/achristiansen/code/google-bazel-central-registry",
                 ext.bazel_target,
                 f"--symlink_prefix={temp_path / 'bazel-'}",
                 f"--compilation_mode={'dbg' if self.debug else 'opt'}",

@@ -57,7 +57,7 @@ def benchmark_deps():
     if "libpfm" not in native.existing_rules():
         # Downloaded from v4.9.0 tag at https://sourceforge.net/p/perfmon2/libpfm4/ref/master/tags/
         http_archive(
-            name = "perfmon2",
+            name = "libpfm",
             build_file = str(Label("//tools:libpfm.BUILD.bazel")),
             sha256 = "5da5f8872bde14b3634c9688d980f68bda28b510268723cc12973eedbab9fecc",
             type = "tar.gz",
