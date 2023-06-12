@@ -450,12 +450,19 @@ inline BENCHMARK_ALWAYS_INLINE void ClobberMemory() {
 }
 #endif
 
+#ifdef BENCHMARK_HAS_CXX11
+#define BENCHMARK_UNIVERSAL_REF(X) X&&
+#else
+#define BENCHMARK_UNIVERSAL_REF(X) X&
+#endif
+
 // The DoNotOptimize(...) function can be used to prevent a value or
 // expression from being optimized away by the compiler. This function is
 // intended to add little to no overhead.
 // See: https://youtu.be/nXaxk27zwlk?t=2441
 #ifndef BENCHMARK_HAS_NO_INLINE_ASSEMBLY
 #if !defined(__GNUC__) || defined(__llvm__) || defined(__INTEL_COMPILER)
+  
 template <class Tp>
 BENCHMARK_DEPRECATED_MSG(
     "The const-ref version of this method can permit "
@@ -465,7 +472,7 @@ inline BENCHMARK_ALWAYS_INLINE void DoNotOptimize(Tp const& value) {
 }
 
 template <class Tp>
-inline BENCHMARK_ALWAYS_INLINE void DoNotOptimize(Tp&& value) {
+inline BENCHMARK_ALWAYS_INLINE void DoNotOptimize(BENCHMARK_UNIVERSAL_REF(Tp) value) {
 #if defined(__clang__)
   asm volatile("" : "+r,m"(value) : : "memory");
 #else
@@ -501,7 +508,7 @@ template <class Tp>
 inline BENCHMARK_ALWAYS_INLINE
     typename std::enable_if<std::is_trivially_copyable<Tp>::value &&
                             (sizeof(Tp) <= sizeof(Tp*))>::type
-    DoNotOptimize(Tp&& value) {
+    DoNotOptimize(BENCHMARK_UNIVERSAL_REF(Tp) value) {
   asm volatile("" : "+m,r"(value) : : "memory");
 }
 
@@ -509,7 +516,7 @@ template <class Tp>
 inline BENCHMARK_ALWAYS_INLINE
     typename std::enable_if<!std::is_trivially_copyable<Tp>::value ||
                             (sizeof(Tp) > sizeof(Tp*))>::type
-    DoNotOptimize(Tp&& value) {
+    DoNotOptimize(BENCHMARK_UNIVERSAL_REF(Tp) value) {
   asm volatile("" : "+m"(value) : : "memory");
 }
 
@@ -526,7 +533,7 @@ inline BENCHMARK_ALWAYS_INLINE void DoNotOptimize(Tp const& value) {
 }
 
 template <class Tp>
-inline BENCHMARK_ALWAYS_INLINE void DoNotOptimize(Tp&& value) {
+inline BENCHMARK_ALWAYS_INLINE void DoNotOptimize(BENCHMARK_UNIVERSAL_REF(Tp) value) {
   asm volatile("" : "+m"(value) : : "memory");
 }
 #endif
