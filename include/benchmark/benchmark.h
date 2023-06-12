@@ -534,9 +534,9 @@ inline BENCHMARK_ALWAYS_INLINE void DoNotOptimize(Tp const& value) {
 template <class Tp>
 inline BENCHMARK_ALWAYS_INLINE void DoNotOptimize(
 #ifdef BENCHMARK_HAS_CXX11
-      Tp&& value
+    Tp&& value
 #else
-      Tp& value
+    Tp& value
 #endif
 ) {
   asm volatile("" : "+m"(value) : : "memory");
