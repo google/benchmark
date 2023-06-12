@@ -465,7 +465,7 @@ inline BENCHMARK_ALWAYS_INLINE void DoNotOptimize(Tp const& value) {
 }
 
 template <class Tp>
-inline BENCHMARK_ALWAYS_INLINE void DoNotOptimize(Tp& value) {
+inline BENCHMARK_ALWAYS_INLINE void DoNotOptimize(Tp&& value) {
 #if defined(__clang__)
   asm volatile("" : "+r,m"(value) : : "memory");
 #else
@@ -501,7 +501,7 @@ template <class Tp>
 inline BENCHMARK_ALWAYS_INLINE
     typename std::enable_if<std::is_trivially_copyable<Tp>::value &&
                             (sizeof(Tp) <= sizeof(Tp*))>::type
-    DoNotOptimize(Tp& value) {
+    DoNotOptimize(Tp&& value) {
   asm volatile("" : "+m,r"(value) : : "memory");
 }
 
@@ -509,7 +509,7 @@ template <class Tp>
 inline BENCHMARK_ALWAYS_INLINE
     typename std::enable_if<!std::is_trivially_copyable<Tp>::value ||
                             (sizeof(Tp) > sizeof(Tp*))>::type
-    DoNotOptimize(Tp& value) {
+    DoNotOptimize(Tp&& value) {
   asm volatile("" : "+m"(value) : : "memory");
 }
 
@@ -526,7 +526,7 @@ inline BENCHMARK_ALWAYS_INLINE void DoNotOptimize(Tp const& value) {
 }
 
 template <class Tp>
-inline BENCHMARK_ALWAYS_INLINE void DoNotOptimize(Tp& value) {
+inline BENCHMARK_ALWAYS_INLINE void DoNotOptimize(Tp&& value) {
   asm volatile("" : "+m"(value) : : "memory");
 }
 #endif
