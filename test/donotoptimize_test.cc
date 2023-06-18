@@ -61,4 +61,9 @@ int main(int, char*[]) {
   // These tests are to e
   BitRef lval = BitRef::Make();
   benchmark::DoNotOptimize(lval);
+
+#ifdef BENCHMARK_HAS_CXX11
+  // Check that accept rvalue.
+  benchmark::DoNotOptimize(BitRef::Make());
+#endif
 }
