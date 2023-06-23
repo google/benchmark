@@ -11,8 +11,8 @@ rules_foreign_cc_dependencies()
 load("@rules_python//python:pip.bzl", pip3_install="pip_install")
 
 pip3_install(
-   name = "py_deps",
-   requirements = "//:requirements.txt",
+   name = "tools_pip_deps",
+   requirements = "//tools:requirements.txt",
 )
 
 new_local_repository(
