@@ -49,6 +49,10 @@ cc_library(
         ":windows": ["-DEFAULTLIB:shlwapi.lib"],
         "//conditions:default": ["-pthread"],
     }),
+    copts = select({
+        ":windows": [],
+        "//conditions:default": ["-Werror=old-style-cast"],
+    }),
     strip_include_prefix = "include",
     visibility = ["//visibility:public"],
     # Only static linking is allowed; no .so will be produced.
