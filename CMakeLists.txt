@@ -110,7 +110,7 @@ else()
   set(VERSION "${GIT_VERSION}")
 endif()
 # Tell the user what versions we are using
-message(STATUS "Version: ${VERSION}")
+message(STATUS "Google Benchmark version: ${VERSION}")
 
 # The version of the libraries
 set(GENERIC_LIB_VERSION ${VERSION})
@@ -175,6 +175,7 @@ else()
   add_cxx_compiler_flag(-Wextra)
   add_cxx_compiler_flag(-Wshadow)
   add_cxx_compiler_flag(-Wfloat-equal)
+  add_cxx_compiler_flag(-Wold-style-cast)
   if(BENCHMARK_ENABLE_WERROR)
       add_cxx_compiler_flag(-Werror)
   endif()

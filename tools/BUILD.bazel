@@ -1,4 +1,4 @@
-load("@py_deps//:requirements.bzl", "requirement")
+load("@tools_pip_deps//:requirements.bzl", "requirement")
 
 py_library(
     name = "gbench",
@@ -12,7 +12,7 @@ py_library(
 py_binary(
     name = "compare",
     srcs = ["compare.py"],
-    python_version = "PY2",
+    python_version = "PY3",
     deps = [
         ":gbench",
     ],

@@ -169,8 +169,8 @@ TEST(PerfCountersTest, CreateExistingMeasurements) {
   std::vector<std::pair<std::string, double>> measurements;
 
   // Start all counters together to see if they hold
-  int max_counters = kMaxCounters;
-  for (int i = 0; i < kMaxCounters; ++i) {
+  size_t max_counters = kMaxCounters;
+  for (size_t i = 0; i < kMaxCounters; ++i) {
     auto& counter(*perf_counter_measurements[i]);
     EXPECT_EQ(counter.num_counters(), 1);
     if (!counter.Start()) {
@@ -182,13 +182,13 @@ TEST(PerfCountersTest, CreateExistingMeasurements) {
   ASSERT_GE(max_counters, kMinValidCounters);
 
   // Start all together
-  for (int i = 0; i < max_counters; ++i) {
+  for (size_t i = 0; i < max_counters; ++i) {
     auto& counter(*perf_counter_measurements[i]);
     EXPECT_TRUE(counter.Stop(measurements) || (i >= kMinValidCounters));
   }
 
   // Start/stop individually
-  for (int i = 0; i < max_counters; ++i) {
+  for (size_t i = 0; i < max_counters; ++i) {
     auto& counter(*perf_counter_measurements[i]);
     measurements.clear();
     counter.Start();

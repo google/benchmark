@@ -5,14 +5,14 @@ on:
   pull_request: {}
 
 jobs:
-  job:
-    name: bazel.${{ matrix.os }}
+  build_and_test_default:
+    name: bazel.${{ matrix.os }}.${{ matrix.bzlmod && 'bzlmod' || 'no_bzlmod' }}
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
         os: [ubuntu-latest, macos-latest, windows-2022]
-
+        bzlmod: [false, true]
     steps:
     - uses: actions/checkout@v3
 
@@ -28,8 +28,8 @@ jobs:
 
     - name: build
       run: |
-        bazel build //:benchmark //:benchmark_main //test/...
+        bazel build ${{ matrix.bzlmod && '--enable_bzlmod' || '--noenable_bzlmod' }} //:benchmark //:benchmark_main //test/...
 
     - name: test
       run: |
-        bazel test --test_output=all //test/...
+        bazel test ${{ matrix.bzlmod && '--enable_bzlmod' || '--noenable_bzlmod' }} --test_output=all //test/...
