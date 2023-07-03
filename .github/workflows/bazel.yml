@@ -12,6 +12,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest, macos-latest, windows-2022]
+        flags: [-c opt, -c opt --enable_bzlmod]
 
     steps:
     - uses: actions/checkout@v3
@@ -28,37 +29,8 @@ jobs:
 
     - name: build
       run: |
-        bazel build //:benchmark //:benchmark_main //test/...
+        bazel build ${{ matrix.flags }} //:benchmark //:benchmark_main //test/...
 
     - name: test
       run: |
-        bazel test --test_output=all //test/...
-
-  build_and_test_bzlmod:
-    name: bazel_with_bzlmod
-    runs-on: ${{ matrix.os }}
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [ubuntu-latest, macos-latest, windows-2022]
-
-    steps:
-    - uses: actions/checkout@v3
-
-    - name: mount bazel cache
-      uses: actions/cache@v3
-      env:
-        cache-name: bazel-cache
-      with:
-        path: "~/.cache/bazel"
-        key: ${{ env.cache-name }}-${{ matrix.os }}-${{ github.ref }}
-        restore-keys: |
-          ${{ env.cache-name }}-${{ matrix.os }}-main
-
-    - name: build
-      run: |
-        bazel build --enable_bzlmod //:benchmark //:benchmark_main //test/...
-
-    - name: test
-      run: |
-        bazel test --enable_bzlmod --test_output=all //test/...
+        bazel test ${{ matrix.flags }}  --test_output=all //test/...
