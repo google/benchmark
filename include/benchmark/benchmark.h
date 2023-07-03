@@ -1362,6 +1362,8 @@ class LambdaBenchmark : public Benchmark {
 
 inline internal::Benchmark* RegisterBenchmark(const std::string& name,
                                               internal::Function* fn) {
+  // FIXME: this should be a `std::make_unique<>()` but we don't have C++14.
+  // codechecker_intentional [cplusplus.NewDeleteLeaks]
   return internal::RegisterBenchmarkInternal(
       ::new internal::FunctionBenchmark(name, fn));
 }
@@ -1371,6 +1373,8 @@ template <class Lambda>
 internal::Benchmark* RegisterBenchmark(const std::string& name, Lambda&& fn) {
   using BenchType =
       internal::LambdaBenchmark<typename std::decay<Lambda>::type>;
+  // FIXME: this should be a `std::make_unique<>()` but we don't have C++14.
+  // codechecker_intentional [cplusplus.NewDeleteLeaks]
   return internal::RegisterBenchmarkInternal(
       ::new BenchType(name, std::forward<Lambda>(fn)));
 }
