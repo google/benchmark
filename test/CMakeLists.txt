@@ -122,6 +122,11 @@ compile_benchmark_test(skip_with_error_test)
 add_test(NAME skip_with_error_test COMMAND skip_with_error_test --benchmark_min_time=0.01s)
 
 compile_benchmark_test(donotoptimize_test)
+# Enable errors for deprecated deprecations (DoNotOptimize(Tp const& value)).
+check_cxx_compiler_flag(-Werror=deprecated-declarations BENCHMARK_HAS_DEPRECATED_DECLARATIONS_FLAG)
+if (BENCHMARK_HAS_DEPRECATED_DECLARATIONS_FLAG)
+  target_compile_options (donotoptimize_test PRIVATE "-Werror=deprecated-declarations")
+endif()
 # Some of the issues with DoNotOptimize only occur when optimization is enabled
 check_cxx_compiler_flag(-O3 BENCHMARK_HAS_O3_FLAG)
 if (BENCHMARK_HAS_O3_FLAG)

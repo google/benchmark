@@ -465,19 +465,24 @@ inline BENCHMARK_ALWAYS_INLINE void DoNotOptimize(Tp const& value) {
 }
 
 template <class Tp>
-inline BENCHMARK_ALWAYS_INLINE void DoNotOptimize(
-#ifdef BENCHMARK_HAS_CXX11
-    Tp&& value
-#else
-    Tp& value
-#endif
-) {
+inline BENCHMARK_ALWAYS_INLINE void DoNotOptimize(Tp& value) {
 #if defined(__clang__)
   asm volatile("" : "+r,m"(value) : : "memory");
 #else
   asm volatile("" : "+m,r"(value) : : "memory");
 #endif
 }
+
+#ifdef BENCHMARK_HAS_CXX11
+template <class Tp>
+inline BENCHMARK_ALWAYS_INLINE void DoNotOptimize(Tp&& value) {
+#if defined(__clang__)
+  asm volatile("" : "+r,m"(value) : : "memory");
+#else
+  asm volatile("" : "+m,r"(value) : : "memory");
+#endif
+}
+#endif
 #elif defined(BENCHMARK_HAS_CXX11) && (__GNUC__ >= 5)
 // Workaround for a bug with full argument copy overhead with GCC.
 // See: #1340 and https://gcc.gnu.org/bugzilla/show_bug.cgi?id=105519
@@ -501,6 +506,22 @@ inline BENCHMARK_ALWAYS_INLINE
                             (sizeof(Tp) > sizeof(Tp*))>::type
     DoNotOptimize(Tp const& value) {
   asm volatile("" : : "m"(value) : "memory");
+}
+
+template <class Tp>
+inline BENCHMARK_ALWAYS_INLINE
+    typename std::enable_if<std::is_trivially_copyable<Tp>::value &&
+                            (sizeof(Tp) <= sizeof(Tp*))>::type
+    DoNotOptimize(Tp& value) {
+  asm volatile("" : "+m,r"(value) : : "memory");
+}
+
+template <class Tp>
+inline BENCHMARK_ALWAYS_INLINE
+    typename std::enable_if<!std::is_trivially_copyable<Tp>::value ||
+                            (sizeof(Tp) > sizeof(Tp*))>::type
+    DoNotOptimize(Tp& value) {
+  asm volatile("" : "+m"(value) : : "memory");
 }
 
 template <class Tp>
@@ -532,15 +553,16 @@ inline BENCHMARK_ALWAYS_INLINE void DoNotOptimize(Tp const& value) {
 }
 
 template <class Tp>
-inline BENCHMARK_ALWAYS_INLINE void DoNotOptimize(
-#ifdef BENCHMARK_HAS_CXX11
-    Tp&& value
-#else
-    Tp& value
-#endif
-) {
+inline BENCHMARK_ALWAYS_INLINE void DoNotOptimize(Tp& value) {
   asm volatile("" : "+m"(value) : : "memory");
 }
+
+#ifdef BENCHMARK_HAS_CXX11
+template <class Tp>
+inline BENCHMARK_ALWAYS_INLINE void DoNotOptimize(Tp&& value) {
+  asm volatile("" : "+m"(value) : : "memory");
+}
+#endif
 #endif
 
 #ifndef BENCHMARK_HAS_CXX11
