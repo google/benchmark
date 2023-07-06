@@ -186,6 +186,35 @@ Benchmark                               Time             CPU      Time Old      
 This is a mix of the previous two modes, two (potentially different) benchmark binaries are run, and a different filter is applied to each one.
 As you can note, the values in `Time` and `CPU` columns are calculated as `(new - old) / |old|`.
 
+## Note: Interpreting the output
+
+When comparing benchmarks, `compare.py` uses statistical tests to determine whether the performance has significantly changed. 
+This is communicated through color coding:
+```diff
++ Green:
+```
+  The benchmarks are _**statistically different**_. This could mean the performance has either **significantly improved** or **significantly deteriorated**. You should look at the actual performance numbers to see which is the case.
+```diff
+- Red:
+```
+  The benchmarks are _**statistically similar**_. This means the performance hasn't significantly changed.
+
+In statistical terms, **'green'** means we reject the null hypothesis that there's no difference in performance, and **'red'** means we fail to reject the null hypothesis. 
+This might seem counter-intuitive if you're expecting 'green' to mean 'improved performance' and 'red' to mean 'worsened performance'. 
+```
+  But remember, in this context:
+
+    'Success' means 'successfully finding a difference'.
+    'Failure' means 'failing to find a difference'.
+```
+A statistically significant difference is determined by a **p-value**, which is a measure of the probability that the observed difference could have occurred just by random chance. A smaller p-value indicates stronger evidence against the null hypothesis. 
+
+**Therefore:**
+  1. If the p-value is less than the chosen significance level (alpha), we reject the null hypothesis and conclude the benchmarks are significantly different.
+  2. If the p-value is greater than or equal to alpha, we fail to reject the null hypothesis and treat the two benchmarks as similar.
+
+
+
 ### U test
 
 If there is a sufficient repetition count of the benchmarks, the tool can do
