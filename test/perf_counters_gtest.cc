@@ -268,9 +268,6 @@ TEST(PerfCountersTest, MultiThreaded) {
   // do not differ too much in general (one is not more than 10x than the other).
   EXPECT_THAT(Elapsed4Threads[0] / Elapsed2Threads[0], AllOf(Gt(0.1), Lt(10)));
   EXPECT_THAT(Elapsed4Threads[1] / Elapsed2Threads[1], AllOf(Gt(0.1), Lt(10)));
-
-  // EXPECT_GE(Elapsed4Threads[0], 1.9 * Elapsed2Threads[0]);
-  // EXPECT_GE(Elapsed4Threads[1], 1.9 * Elapsed2Threads[1]);
 }
 
 TEST(PerfCountersTest, HardwareLimits) {
