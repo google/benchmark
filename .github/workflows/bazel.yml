@@ -6,19 +6,13 @@ on:
 
 jobs:
   build_and_test_default:
-    name: bazel.${{ matrix.os }}.${{ matrix.bzlmod && 'bzlmod' || 'no_bzlmod' }}.${{ matrix.pfm && 'pfm' || 'no_pfm' }}
+    name: bazel.${{ matrix.os }}.${{ matrix.bzlmod && 'bzlmod' || 'no_bzlmod' }}
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
         os: [ubuntu-latest, macos-latest, windows-2022]
         bzlmod: [false, true]
-        pfm: [0, 1]
-        exclude:
-          - pfm: 1
-            os: macos-latest
-          - pfm: 1
-            os: windows-2022
     steps:
     - uses: actions/checkout@v3
 
@@ -34,8 +28,8 @@ jobs:
 
     - name: build
       run: |
-        bazel build ${{ matrix.bzlmod && '--enable_bzlmod' || '--noenable_bzlmod' }} ${{ format('--define pfm={0}', matrix.pfm) }}  //:benchmark //:benchmark_main //test/...
+        bazel build ${{ matrix.bzlmod && '--enable_bzlmod' || '--noenable_bzlmod' }} //:benchmark //:benchmark_main //test/...
 
     - name: test
       run: |
-        bazel test ${{ matrix.bzlmod && '--enable_bzlmod' || '--noenable_bzlmod' }}  ${{ format('--define pfm={0}', matrix.pfm) }} --test_output=all //test/...
+        bazel test ${{ matrix.bzlmod && '--enable_bzlmod' || '--noenable_bzlmod' }} --test_output=all //test/...
