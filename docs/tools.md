@@ -241,6 +241,8 @@ A statistically significant difference is determined by a **p-value**, which is 
   1. If the p-value is less than the chosen significance level (alpha), we reject the null hypothesis and conclude the benchmarks are significantly different.
   2. If the p-value is greater than or equal to alpha, we fail to reject the null hypothesis and treat the two benchmarks as similar.
 
+Also please note that **even if** we determine that there **is** a statistically-significant difference between the two measurements, it does not _necessarily_ mean that the actual benchmarks that were measured **are** different, or vice versa, even if we determine that there is **no** statistically-significant difference between the two measurements, it does not necessarily mean that the actual benchmarks that were measured **are not** different.
+
 
 
 ### U test
