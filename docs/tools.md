@@ -188,6 +188,34 @@ As you can note, the values in `Time` and `CPU` columns are calculated as `(new 
 
 ## Note: Interpreting the output
 
+Performance measurements are an art, and performance comparisons are doubly so.
+Results are often noisy and don't necessarily have large absolute differences to them,
+so just by visual inspection, it is not at all apparent if two measurements are actually showing
+a performance change or not. It is even more confusing with multiple benchmark repetitions.
+
+Thankfully, what we can do, is use statistical tests on the results
+to determine whether the performance has statistically significantly changed.
+`compare.py` uses [Mann–Whitney U test](https://en.wikipedia.org/wiki/Mann%E2%80%93Whitney_U_test),
+with a null hypothesis being that there's no difference in performance.
+
+
+Let's first try to see what the different columns represent in the above `compare.py` benchmarking output:
+
+  1. **Benchmark:** The name of the function being benchmarked, along with the size of the input (after the slash).
+
+  2. **Time:** The average time per operation, across all iterations.
+
+  3. **CPU:** The average CPU time per operation, across all iterations.
+
+  4. **Iterations:** The number of iterations the benchmark was run to get a stable estimate.
+
+  5. **Time Old and Time New:** These represent the average time it takes for a function to run in two different scenarios or versions. For example, you might be comparing how fast a function runs before and after you make some changes to it.
+
+  6. **CPU Old and CPU New:** These show the average amount of CPU time that the function uses in two different scenarios or versions. This is similar to Time Old and Time New, but focuses on CPU usage instead of overall time.
+
+
+In the comparison section, the relative differences in both time and CPU time are displayed for each input size.
+
 When comparing benchmarks, `compare.py` uses statistical tests to determine whether the performance has significantly changed. 
 This is communicated through color coding:
 ```diff
