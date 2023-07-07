@@ -285,11 +285,12 @@ TEST(PerfCountersTest, HardwareLimits) {
   // listed in the first command not reported in the second seem to not work.
   // This is sad as we don't really get to test the grouping here (groups can
   // contain up to 6 members)...
-  std::vector<std::string> counter_names{"cycles",         // leader
-                                         "instructions",   //
-                                         "branches",       //
-                                         "branch-misses",  //
-                                         "cache-misses",   //
+  std::vector<std::string> counter_names{
+    "cycles",         // leader
+    "instructions",   //
+    "branches",       //
+    "branch-misses",  //
+    "cache-misses",   //
   };
 
   // In the off-chance that some of these values are not supported,
