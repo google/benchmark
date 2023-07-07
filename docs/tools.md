@@ -216,8 +216,8 @@ Let's first try to see what the different columns represent in the above `compar
 
 In the comparison section, the relative differences in both time and CPU time are displayed for each input size.
 
-When comparing benchmarks, `compare.py` uses statistical tests to determine whether the performance has significantly changed. 
-This is communicated through color coding:
+When comparing benchmarks, `compare.py` uses statistical tests to determine whether there is a statistically-significant difference between the measurements being compared.
+The result of said the statistical test is additionally communicated through color coding:
 ```diff
 + Green:
 ```
