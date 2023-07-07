@@ -186,7 +186,7 @@ Benchmark                               Time             CPU      Time Old      
 This is a mix of the previous two modes, two (potentially different) benchmark binaries are run, and a different filter is applied to each one.
 As you can note, the values in `Time` and `CPU` columns are calculated as `(new - old) / |old|`.
 
-## Note: Interpreting the output
+### Note: Interpreting the output
 
 Performance measurements are an art, and performance comparisons are doubly so.
 Results are often noisy and don't necessarily have large absolute differences to them,
@@ -194,7 +194,7 @@ so just by visual inspection, it is not at all apparent if two measurements are 
 a performance change or not. It is even more confusing with multiple benchmark repetitions.
 
 Thankfully, what we can do, is use statistical tests on the results
-to determine whether the performance has statistically significantly changed.
+to determine whether the performance has statistically-significantly changed.
 `compare.py` uses [Mann–Whitney U test](https://en.wikipedia.org/wiki/Mann%E2%80%93Whitney_U_test),
 with a null hypothesis being that there's no difference in performance.
 
@@ -213,8 +213,15 @@ Let's first try to see what the different columns represent in the above `compar
 
   6. **CPU Old and CPU New:** These show the average amount of CPU time that the function uses in two different scenarios or versions. This is similar to Time Old and Time New, but focuses on CPU usage instead of overall time.
 
-
 In the comparison section, the relative differences in both time and CPU time are displayed for each input size.
+
+
+A statistically-significant difference is determined by a **p-value**, which is a measure of the probability that the observed difference could have occurred just by random chance. A smaller p-value indicates stronger evidence against the null hypothesis. 
+
+**Therefore:**
+  1. If the p-value is less than the chosen significance level (alpha), we reject the null hypothesis and conclude the benchmarks are significantly different.
+  2. If the p-value is greater than or equal to alpha, we fail to reject the null hypothesis and treat the two benchmarks as similar.
+
 
 When comparing benchmarks, `compare.py` uses statistical tests to determine whether there is a statistically-significant difference between the measurements being compared.
 The result of said the statistical test is additionally communicated through color coding:
@@ -225,23 +232,19 @@ The result of said the statistical test is additionally communicated through col
 ```diff
 - Red:
 ```
-  The benchmarks are _**statistically similar**_. This means the performance hasn't significantly changed.
+  The benchmarks are _**statistically similar**_. This means the performance **hasn't significantly changed**.
 
 In statistical terms, **'green'** means we reject the null hypothesis that there's no difference in performance, and **'red'** means we fail to reject the null hypothesis. 
 This might seem counter-intuitive if you're expecting 'green' to mean 'improved performance' and 'red' to mean 'worsened performance'. 
-```
+```bash
   But remember, in this context:
 
     'Success' means 'successfully finding a difference'.
     'Failure' means 'failing to find a difference'.
 ```
-A statistically significant difference is determined by a **p-value**, which is a measure of the probability that the observed difference could have occurred just by random chance. A smaller p-value indicates stronger evidence against the null hypothesis. 
 
-**Therefore:**
-  1. If the p-value is less than the chosen significance level (alpha), we reject the null hypothesis and conclude the benchmarks are significantly different.
-  2. If the p-value is greater than or equal to alpha, we fail to reject the null hypothesis and treat the two benchmarks as similar.
 
-Also please note that **even if** we determine that there **is** a statistically-significant difference between the two measurements, it does not _necessarily_ mean that the actual benchmarks that were measured **are** different, or vice versa, even if we determine that there is **no** statistically-significant difference between the two measurements, it does not necessarily mean that the actual benchmarks that were measured **are not** different.
+Also, please note that **even if** we determine that there **is** a statistically-significant difference between the two measurements, it does not _necessarily_ mean that the actual benchmarks that were measured **are** different, or vice versa, even if we determine that there is **no** statistically-significant difference between the two measurements, it does not necessarily mean that the actual benchmarks that were measured **are not** different.
 
 
 
