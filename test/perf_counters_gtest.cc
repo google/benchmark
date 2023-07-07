@@ -2,8 +2,8 @@
 #include <thread>
 
 #include "../src/perf_counters.h"
-#include "gtest/gtest.h"
 #include "gmock/gmock.h"
+#include "gtest/gtest.h"
 
 #ifndef GTEST_SKIP
 struct MsgHandler {
@@ -76,8 +76,7 @@ TEST(PerfCountersTest, NegativeTest) {
   {
     // Add a bad apple in the end of the chain to check the edges
     auto counter = PerfCounters::Create({kGenericPerfEvent1, kGenericPerfEvent2,
-                                         kGenericPerfEvent3,
-                                         "bad event name"});
+                                         kGenericPerfEvent3, "bad event name"});
     EXPECT_EQ(counter.num_counters(), 3);
     EXPECT_EQ(counter.names(),
               std::vector<std::string>({kGenericPerfEvent1, kGenericPerfEvent2,
@@ -262,10 +261,11 @@ TEST(PerfCountersTest, MultiThreaded) {
       static_cast<double>(after[1] - before[1])};
 
   // The following expectations fail (at least on a beefy workstation with lots
-  // of cpus) - it seems that in some circumstances the runtime of 4 threads 
+  // of cpus) - it seems that in some circumstances the runtime of 4 threads
   // can even be better than with 2.
   // So instead of expecting 4 threads to be slower, let's just make sure they
-  // do not differ too much in general (one is not more than 10x than the other).
+  // do not differ too much in general (one is not more than 10x than the
+  // other).
   EXPECT_THAT(Elapsed4Threads[0] / Elapsed2Threads[0], AllOf(Gt(0.1), Lt(10)));
   EXPECT_THAT(Elapsed4Threads[1] / Elapsed2Threads[1], AllOf(Gt(0.1), Lt(10)));
 }
@@ -285,11 +285,11 @@ TEST(PerfCountersTest, HardwareLimits) {
   // listed in the first command not reported in the second seem to not work.
   // This is sad as we don't really get to test the grouping here (groups can
   // contain up to 6 members)...
-  std::vector<std::string> counter_names{"cycles",  // leader
-                                         "instructions",
-                                         "branches",
-                                         "branch-misses",
-                                         "cache-misses",
+  std::vector<std::string> counter_names{"cycles",         // leader
+                                         "instructions",   //
+                                         "branches",       //
+                                         "branch-misses",  //
+                                         "cache-misses",   //
   };
 
   // In the off-chance that some of these values are not supported,

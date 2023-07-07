@@ -1,13 +1,13 @@
 #undef NDEBUG
 
 #include "../src/perf_counters.h"
-#include "../src/commandlineflags.h"
 
+#include "../src/commandlineflags.h"
 #include "benchmark/benchmark.h"
 #include "output_test.h"
 
 namespace benchmark {
-  
+
 BM_DECLARE_string(benchmark_perf_counters);
 
 }  // namespace benchmark
