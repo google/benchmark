@@ -186,9 +186,22 @@ Benchmark                               Time             CPU      Time Old      
 This is a mix of the previous two modes, two (potentially different) benchmark binaries are run, and a different filter is applied to each one.
 As you can note, the values in `Time` and `CPU` columns are calculated as `(new - old) / |old|`.
 
+### Note: Interpreting the output
 
-4. The below output is a summary of a benchmark comparison with statistics
-provided for a multi-threaded process.
+Performance measurements are an art, and performance comparisons are doubly so.
+Results are often noisy and don't necessarily have large absolute differences to
+them, so just by visual inspection, it is not at all apparent if two
+measurements are actually showing a performance change or not. It is even more
+confusing with multiple benchmark repetitions.
+
+Thankfully, what we can do, is use statistical tests on the results to determine
+whether the performance has statistically-significantly changed. `compare.py`
+uses [Mann–Whitney U
+test](https://en.wikipedia.org/wiki/Mann%E2%80%93Whitney_U_test), with a null
+hypothesis being that there's no difference in performance.
+ 
+**The below output is a summary of a benchmark comparison with statistics
+provided for a multi-threaded process.**
 ```
 Benchmark                                               Time        CPU    Time Old      Time New       CPU Old       CPU New
 -----------------------------------------------------------------------------------------------------------------------------
@@ -199,7 +212,7 @@ benchmark/threads:1/process_time/real_time_stddev    +0.3974    +0.3933         
 benchmark/threads:1/process_time/real_time_cv        +0.6329    +0.6280           0             0             0             0
 OVERALL_GEOMEAN                                      -0.1442    -0.1442           0             0             0             0
 ```
-
+--------------------------------------------
 Here's a breakdown of each row:
 
 **benchmark/threads:1/process_time/real_time_pvalue**: This shows the _p-value_ for
@@ -233,21 +246,8 @@ less influenced by outliers. The negative value indicates a general improvement
 in the new process. However, given the values are all zero for the old and new
 times, this seems to be a mistake or placeholder in the output.
 
+-----------------------------------------
 
-
-### Note: Interpreting the output
-
-Performance measurements are an art, and performance comparisons are doubly so.
-Results are often noisy and don't necessarily have large absolute differences to
-them, so just by visual inspection, it is not at all apparent if two
-measurements are actually showing a performance change or not. It is even more
-confusing with multiple benchmark repetitions.
-
-Thankfully, what we can do, is use statistical tests on the results to determine
-whether the performance has statistically-significantly changed. `compare.py`
-uses [Mann–Whitney U
-test](https://en.wikipedia.org/wiki/Mann%E2%80%93Whitney_U_test), with a null
-hypothesis being that there's no difference in performance.
 
 
 Let's first try to see what the different columns represent in the above
