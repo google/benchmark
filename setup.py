@@ -4,7 +4,6 @@ import platform
 import shutil
 import sysconfig
 from pathlib import Path
-from typing import List
 
 import setuptools
 from setuptools.command import build_ext
@@ -14,30 +13,6 @@ PYTHON_INCLUDE_PATH_PLACEHOLDER = "<PYTHON_INCLUDE_PATH>"
 
 IS_WINDOWS = platform.system() == "Windows"
 IS_MAC = platform.system() == "Darwin"
-
-
-def _get_long_description(fp: str) -> str:
-    with open(fp, "r", encoding="utf-8") as f:
-        return f.read()
-
-
-def _get_version(fp: str) -> str:
-    """Parse a version string from a file."""
-    with open(fp, "r") as f:
-        for line in f:
-            if "__version__" in line:
-                delim = '"'
-                return line.split(delim)[1]
-    raise RuntimeError(f"could not find a version string in file {fp!r}.")
-
-
-def _parse_requirements(fp: str) -> List[str]:
-    with open(fp) as requirements:
-        return [
-            line.rstrip()
-            for line in requirements
-            if not (line.isspace() or line.startswith("#"))
-        ]
 
 
 @contextlib.contextmanager
@@ -128,39 +103,11 @@ class BuildBazelExtension(build_ext.build_ext):
 
 
 setuptools.setup(
-    name="google_benchmark",
-    version=_get_version("bindings/python/google_benchmark/__init__.py"),
-    url="https://github.com/google/benchmark",
-    description="A library to benchmark code snippets.",
-    long_description=_get_long_description("README.md"),
-    long_description_content_type="text/markdown",
-    author="Google",
-    author_email="benchmark-py@google.com",
-    # Contained modules and scripts.
-    package_dir={"": "bindings/python"},
-    packages=setuptools.find_packages("bindings/python"),
-    install_requires=_parse_requirements("bindings/python/requirements.txt"),
     cmdclass=dict(build_ext=BuildBazelExtension),
     ext_modules=[
         BazelExtension(
-            "google_benchmark._benchmark",
-            "//bindings/python/google_benchmark:_benchmark",
+            name="google_benchmark._benchmark",
+            bazel_target="//bindings/python/google_benchmark:_benchmark",
         )
     ],
-    zip_safe=False,
-    # PyPI package information.
-    classifiers=[
-        "Development Status :: 4 - Beta",
-        "Intended Audience :: Developers",
-        "Intended Audience :: Science/Research",
-        "License :: OSI Approved :: Apache Software License",
-        "Programming Language :: Python :: 3.8",
-        "Programming Language :: Python :: 3.9",
-        "Programming Language :: Python :: 3.10",
-        "Programming Language :: Python :: 3.11",
-        "Topic :: Software Development :: Testing",
-        "Topic :: System :: Benchmark",
-    ],
-    license="Apache 2.0",
-    keywords="benchmark",
 )
