@@ -186,6 +186,55 @@ Benchmark                               Time             CPU      Time Old      
 This is a mix of the previous two modes, two (potentially different) benchmark binaries are run, and a different filter is applied to each one.
 As you can note, the values in `Time` and `CPU` columns are calculated as `(new - old) / |old|`.
 
+
+4. The below output is a summary of a benchmark comparison with statistics
+provided for a multi-threaded process.
+```
+Benchmark                                               Time        CPU    Time Old      Time New       CPU Old       CPU New
+-----------------------------------------------------------------------------------------------------------------------------
+benchmark/threads:1/process_time/real_time_pvalue     0.0000     0.0000    U Test, Repetitions: 27 vs 27
+benchmark/threads:1/process_time/real_time_mean      -0.1442    -0.1442          90            77            90            77
+benchmark/threads:1/process_time/real_time_median    -0.1444    -0.1444          90            77            90            77
+benchmark/threads:1/process_time/real_time_stddev    +0.3974    +0.3933           0             0             0             0
+benchmark/threads:1/process_time/real_time_cv        +0.6329    +0.6280           0             0             0             0
+OVERALL_GEOMEAN                                      -0.1442    -0.1442           0             0             0             0
+```
+
+Here's a breakdown of each row:
+
+**benchmark/threads:1/process_time/real_time_pvalue**: This shows the _p-value_ for
+the statistical test comparing the performance of the process running with one
+thread. A value of 0.0000 suggests a statistically significant difference in
+performance. The comparison was conducted using the U Test (Mann-Whitney
+U Test) with 27 repetitions for each case.
+
+**benchmark/threads:1/process_time/real_time_mean**: This shows the relative
+difference in mean execution time between two different cases. The negative
+value (-0.1442) implies that the new process is faster by about 14.42%. The old
+time was 90 units, while the new time is 77 units.
+
+**benchmark/threads:1/process_time/real_time_median**: Similarly, this shows the
+relative difference in the median execution time. Again, the new process is
+faster by 14.44%.
+
+**benchmark/threads:1/process_time/real_time_stddev**: This is the relative
+difference in the standard deviation of the execution time, which is a measure
+of how much variation or dispersion there is from the mean. A positive value
+(+0.3974) implies there is more variance in the execution time in the new
+process.
+
+**benchmark/threads:1/process_time/real_time_cv**: CV stands for Coefficient of
+Variation. It is the ratio of the standard deviation to the mean. It provides a
+standardized measure of dispersion. An increase (+0.6329) indicates more
+relative variability in the new process.
+
+**OVERALL_GEOMEAN**: Geomean stands for geometric mean, a type of average that is
+less influenced by outliers. The negative value indicates a general improvement
+in the new process. However, given the values are all zero for the old and new
+times, this seems to be a mistake or placeholder in the output.
+
+
+
 ### Note: Interpreting the output
 
 Performance measurements are an art, and performance comparisons are doubly so.
