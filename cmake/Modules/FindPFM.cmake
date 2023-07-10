@@ -7,6 +7,11 @@
 
 include(FindPackageHandleStandardArgs)
 
+set_package_properties(PFM PROPERTIES
+                       URL http://perfmon2.sourceforge.net/
+                       DESCRIPTION "A helper library to develop monitoring tools"
+                       PURPOSE "Used to program specific performance monitoring events")
+
 find_library(PFM_LIBRARY NAMES pfm)
 find_path(PFM_INCLUDE_DIR NAMES perfmon/pfmlib.h)
 
