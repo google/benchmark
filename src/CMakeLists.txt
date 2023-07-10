@@ -29,8 +29,8 @@ target_include_directories(benchmark PUBLIC
 )
 
 # libpfm, if available
-if (HAVE_LIBPFM)
-  target_link_libraries(benchmark PRIVATE pfm)
+if (PFM_FOUND)
+  target_link_libraries(benchmark PRIVATE PFM::libpfm)
   target_compile_definitions(benchmark PRIVATE -DHAVE_LIBPFM)
 endif()
 
