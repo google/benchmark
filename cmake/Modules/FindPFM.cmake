@@ -5,6 +5,7 @@
 # the following target will be defined:
 # PFM::libpfm
 
+include(FeatureSummary)
 include(FindPackageHandleStandardArgs)
 
 set_package_properties(PFM PROPERTIES
