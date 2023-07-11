@@ -15,11 +15,11 @@ namespace benchmark {
 namespace {
 
 // kilo, Mega, Giga, Tera, Peta, Exa, Zetta, Yotta.
-const std::string kBigSIUnits[] = {"k", "M", "G", "T", "P", "E", "Z", "Y"};
+const char* const kBigSIUnits[] = {"k", "M", "G", "T", "P", "E", "Z", "Y"};
 // Kibi, Mebi, Gibi, Tebi, Pebi, Exbi, Zebi, Yobi.
-const std::string kBigIECUnits[] = {"Ki", "Mi", "Gi", "Ti", "Pi", "Ei", "Zi", "Yi"};
+const char* const kBigIECUnits[] = {"Ki", "Mi", "Gi", "Ti", "Pi", "Ei", "Zi", "Yi"};
 // milli, micro, nano, pico, femto, atto, zepto, yocto.
-const std::string kSmallSIUnits[] = {"m", "u", "n", "p", "f", "a", "z", "y"};
+const char* const kSmallSIUnits[] = {"m", "u", "n", "p", "f", "a", "z", "y"};
 
 // We require that all three arrays have the same size.
 static_assert(arraysize(kBigSIUnits) == arraysize(kBigIECUnits),
@@ -91,24 +91,20 @@ std::string ExponentToPrefix(int64_t exponent, bool iec) {
   const int64_t index = (exponent > 0 ? exponent - 1 : -exponent - 1);
   if (index >= kUnitsSize) return "";
 
-  const std::string* array =
+ const char* const* array =
       (exponent > 0 ? (iec ? kBigIECUnits : kBigSIUnits) : kSmallSIUnits);
-  if (iec) {
-    return array[index] + "i";
-  }
-  return array[index];
+
+  return std::string(array[index]);
 }
 
 std::string ToBinaryStringFullySpecified(double value, double threshold,
-                                         int precision, benchmark::Counter::OneK one_k = benchmark::Counter::kIs1024) {
+                                         int precision, Counter::OneK one_k = Counter::kIs1024) {
   std::string mantissa;
   int64_t exponent;
   ToExponentAndMantissa(value, threshold, precision, one_k, &mantissa,
                         &exponent);
-  // Determine whether to use IEC units
-  bool use_iec = (one_k == benchmark::Counter::kIs1024);
 
-  return mantissa + ExponentToPrefix(exponent, use_iec);
+  return mantissa + ExponentToPrefix(exponent, one_k == Counter::kIs1024);
 }
 
 }  // end namespace
