@@ -624,6 +624,13 @@ class Counter {
     kInvert = 1 << 31
   };
 
+  enum OneK {
+    // 1'000 items per 1k
+    kIs1000 = 1000,
+    // 1'024 items per 1k
+    kIs1024 = 1024
+  };
+
   double value;
   Flags flags;
   OneK oneK;
@@ -840,7 +847,7 @@ class BENCHMARK_EXPORT State {
   BENCHMARK_ALWAYS_INLINE
   void SetBytesProcessed(int64_t bytes) {
     counters["bytes_per_second"] =
-        Counter(static_cast<double>(bytes), Counter::kIsRate, kIs1024);
+        Counter(static_cast<double>(bytes), Counter::kIsRate, Counter::kIs1024);
   }
 
   BENCHMARK_ALWAYS_INLINE
