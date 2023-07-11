@@ -1,4 +1,5 @@
 #include "string_util.h"
+
 #include <array>
 #ifdef BENCHMARK_STL_ANDROID_GNUSTL
 #include <cerrno>
@@ -17,7 +18,8 @@ namespace {
 // kilo, Mega, Giga, Tera, Peta, Exa, Zetta, Yotta.
 const char* const kBigSIUnits[] = {"k", "M", "G", "T", "P", "E", "Z", "Y"};
 // Kibi, Mebi, Gibi, Tebi, Pebi, Exbi, Zebi, Yobi.
-const char* const kBigIECUnits[] = {"Ki", "Mi", "Gi", "Ti", "Pi", "Ei", "Zi", "Yi"};
+const char* const kBigIECUnits[] = {"Ki", "Mi", "Gi", "Ti",
+                                    "Pi", "Ei", "Zi", "Yi"};
 // milli, micro, nano, pico, femto, atto, zepto, yocto.
 const char* const kSmallSIUnits[] = {"m", "u", "n", "p", "f", "a", "z", "y"};
 
@@ -91,14 +93,15 @@ std::string ExponentToPrefix(int64_t exponent, bool iec) {
   const int64_t index = (exponent > 0 ? exponent - 1 : -exponent - 1);
   if (index >= kUnitsSize) return "";
 
- const char* const* array =
+  const char* const* array =
       (exponent > 0 ? (iec ? kBigIECUnits : kBigSIUnits) : kSmallSIUnits);
 
   return std::string(array[index]);
 }
 
-std::string ToBinaryStringFullySpecified(double value, double threshold,
-                                         int precision, Counter::OneK one_k = Counter::kIs1024) {
+std::string ToBinaryStringFullySpecified(
+    double value, double threshold, int precision,
+    Counter::OneK one_k = Counter::kIs1024) {
   std::string mantissa;
   int64_t exponent;
   ToExponentAndMantissa(value, threshold, precision, one_k, &mantissa,

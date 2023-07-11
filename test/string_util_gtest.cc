@@ -1,10 +1,11 @@
 //===---------------------------------------------------------------------===//
-// statistics_test - Unit tests for src/statistics.cc
+// string_util_test - Unit tests for src/string_util.cc
 //===---------------------------------------------------------------------===//
 
 #include <tuple>
 
 #include "../src/internal_macros.h"
+#include "../src/string_util.cc"
 #include "../src/string_util.h"
 #include "gtest/gtest.h"
 
@@ -158,6 +159,82 @@ TEST(StringUtilTest, StrSplit) {
             std::vector<std::string>({"hello"}));
   EXPECT_EQ(benchmark::StrSplit("hello,there,is,more", ','),
             std::vector<std::string>({"hello", "there", "is", "more"}));
+}
+
+TEST(StringUtilTest, ExponentToPrefix) {
+  EXPECT_EQ("", benchmark::ExponentToPrefix(0, true));
+  EXPECT_EQ("", benchmark::ExponentToPrefix(0, false));
+
+  EXPECT_EQ("k", benchmark::ExponentToPrefix(1, true));
+  EXPECT_EQ("K", benchmark::ExponentToPrefix(1, false));
+
+  EXPECT_EQ("Mi", benchmark::ExponentToPrefix(2, true));
+  EXPECT_EQ("M", benchmark::ExponentToPrefix(2, false));
+
+  EXPECT_EQ("Gi", benchmark::ExponentToPrefix(3, true));
+  EXPECT_EQ("G", benchmark::ExponentToPrefix(3, false));
+
+  EXPECT_EQ("m", benchmark::ExponentToPrefix(-1, true));
+  EXPECT_EQ("m", benchmark::ExponentToPrefix(-1, false));
+
+  EXPECT_EQ("u", benchmark::ExponentToPrefix(-2, true));
+  EXPECT_EQ("u", benchmark::ExponentToPrefix(-2, false));
+
+  EXPECT_EQ("n", benchmark::ExponentToPrefix(-3, true));
+  EXPECT_EQ("n", benchmark::ExponentToPrefix(-3, false));
+}
+
+TEST(StringUtilTest, ToBinaryStringFullySpecified) {
+  // Test with Counter::kIs1024
+  EXPECT_EQ("1.00", benchmark::ToBinaryStringFullySpecified(1.0, 1.0, 2));
+  EXPECT_EQ("1.23k", benchmark::ToBinaryStringFullySpecified(1234.0, 1.0, 2));
+  EXPECT_EQ("1.00M", benchmark::ToBinaryStringFullySpecified(1.0e6, 1.0, 2));
+  EXPECT_EQ("1.00G", benchmark::ToBinaryStringFullySpecified(1.0e9, 1.0, 2));
+
+  // Test with Counter::kIs1000
+  EXPECT_EQ("1.00", benchmark::ToBinaryStringFullySpecified(
+                        1.0, 1.0, 2, benchmark::Counter::kIs1000));
+  EXPECT_EQ("1.23k", benchmark::ToBinaryStringFullySpecified(
+                         1234.0, 1.0, 2, benchmark::Counter::kIs1000));
+  EXPECT_EQ("1.00M", benchmark::ToBinaryStringFullySpecified(
+                         1.0e6, 1.0, 2, benchmark::Counter::kIs1000));
+  EXPECT_EQ("1.00G", benchmark::ToBinaryStringFullySpecified(
+                         1.0e9, 1.0, 2, benchmark::Counter::kIs1000));
+}
+
+TEST(StringUtilTest, AppendHumanReadable) {
+  std::string str;
+
+  benchmark::AppendHumanReadable(0, &str);
+  EXPECT_EQ("0", str);
+
+  benchmark::AppendHumanReadable(999, &str);
+  EXPECT_EQ("999", str);
+
+  benchmark::AppendHumanReadable(1000, &str);
+  EXPECT_EQ("1.00k", str);
+
+  benchmark::AppendHumanReadable(1000000, &str);
+  EXPECT_EQ("1.00M", str);
+
+  benchmark::AppendHumanReadable(1000000000, &str);
+  EXPECT_EQ("1.00G", str);
+}
+
+TEST(StringUtilTest, HumanReadableNumber) {
+  EXPECT_EQ("1.00", benchmark::HumanReadableNumber(1.0));
+  EXPECT_EQ("1.23k", benchmark::HumanReadableNumber(1234.0));
+  EXPECT_EQ("1.00M", benchmark::HumanReadableNumber(1.0e6));
+  EXPECT_EQ("1.00G", benchmark::HumanReadableNumber(1.0e9));
+
+  EXPECT_EQ("1.00",
+            benchmark::HumanReadableNumber(1.0, benchmark::Counter::kIs1000));
+  EXPECT_EQ("1.23k", benchmark::HumanReadableNumber(
+                         1234.0, benchmark::Counter::kIs1000));
+  EXPECT_EQ("1.00M",
+            benchmark::HumanReadableNumber(1.0e6, benchmark::Counter::kIs1000));
+  EXPECT_EQ("1.00G",
+            benchmark::HumanReadableNumber(1.0e9, benchmark::Counter::kIs1000));
 }
 
 }  // end namespace

@@ -15,7 +15,8 @@ namespace benchmark {
 
 void AppendHumanReadable(int n, std::string* str);
 
-std::string HumanReadableNumber(double n, Counter::OneK one_k = Counter::kIs1024);
+std::string HumanReadableNumber(double n,
+                                Counter::OneK one_k = Counter::kIs1024);
 
 BENCHMARK_EXPORT
 #if defined(__MINGW32__)
