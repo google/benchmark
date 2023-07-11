@@ -1,5 +1,4 @@
 #include "string_util.h"
-
 #include <array>
 #ifdef BENCHMARK_STL_ANDROID_GNUSTL
 #include <cerrno>
@@ -16,11 +15,11 @@ namespace benchmark {
 namespace {
 
 // kilo, Mega, Giga, Tera, Peta, Exa, Zetta, Yotta.
-const char kBigSIUnits[] = "kMGTPEZY";
+const std::string kBigSIUnits[] = {"k", "M", "G", "T", "P", "E", "Z", "Y"};
 // Kibi, Mebi, Gibi, Tebi, Pebi, Exbi, Zebi, Yobi.
-const char kBigIECUnits[] = "KMGTPEZY";
+const std::string kBigIECUnits[] = {"Ki", "Mi", "Gi", "Ti", "Pi", "Ei", "Zi", "Yi"};
 // milli, micro, nano, pico, femto, atto, zepto, yocto.
-const char kSmallSIUnits[] = "munpfazy";
+const std::string kSmallSIUnits[] = {"m", "u", "n", "p", "f", "a", "z", "y"};
 
 // We require that all three arrays have the same size.
 static_assert(arraysize(kBigSIUnits) == arraysize(kBigIECUnits),
@@ -92,21 +91,24 @@ std::string ExponentToPrefix(int64_t exponent, bool iec) {
   const int64_t index = (exponent > 0 ? exponent - 1 : -exponent - 1);
   if (index >= kUnitsSize) return "";
 
-  const char* array =
+  const std::string* array =
       (exponent > 0 ? (iec ? kBigIECUnits : kBigSIUnits) : kSmallSIUnits);
   if (iec) {
-    return array[index] + std::string("i");
+    return array[index] + "i";
   }
-  return std::string(1, array[index]);
+  return array[index];
 }
 
 std::string ToBinaryStringFullySpecified(double value, double threshold,
-                                         int precision, double one_k = 1024.0) {
+                                         int precision, benchmark::Counter::OneK one_k = benchmark::Counter::kIs1024) {
   std::string mantissa;
   int64_t exponent;
   ToExponentAndMantissa(value, threshold, precision, one_k, &mantissa,
                         &exponent);
-  return mantissa + ExponentToPrefix(exponent, false);
+  // Determine whether to use IEC units
+  bool use_iec = (one_k == benchmark::Counter::kIs1024);
+
+  return mantissa + ExponentToPrefix(exponent, use_iec);
 }
 
 }  // end namespace
@@ -118,7 +120,7 @@ void AppendHumanReadable(int n, std::string* str) {
   *str += ss.str();
 }
 
-std::string HumanReadableNumber(double n, double one_k) {
+std::string HumanReadableNumber(double n, benchmark::Counter::OneK one_k) {
   // 1.1 means that figures up to 1.1k should be shown with the next unit down;
   // this softens edge effects.
   // 1 means that we should show one decimal place of precision.
