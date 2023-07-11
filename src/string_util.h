@@ -12,10 +12,16 @@
 #include "internal_macros.h"
 
 namespace benchmark {
+    enum OneK {
+    // 1'000 items per 1k
+    kIs1000 = 1000,
+    // 1'024 items per 1k
+    kIs1024 = 1024
+  };
 
 void AppendHumanReadable(int n, std::string* str);
 
-std::string HumanReadableNumber(double n, benchmark::Counter::OneK one_k = benchmark::Counter::kIs1024);
+std::string HumanReadableNumber(double n, OneK one_k = kIs1024);
 
 BENCHMARK_EXPORT
 #if defined(__MINGW32__)

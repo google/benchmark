@@ -98,13 +98,13 @@ std::string ExponentToPrefix(int64_t exponent, bool iec) {
 }
 
 std::string ToBinaryStringFullySpecified(double value, double threshold,
-                                         int precision, Counter::OneK one_k = Counter::kIs1024) {
+                                         int precision, OneK one_k = kIs1024) {
   std::string mantissa;
   int64_t exponent;
   ToExponentAndMantissa(value, threshold, precision, one_k, &mantissa,
                         &exponent);
 
-  return mantissa + ExponentToPrefix(exponent, one_k == Counter::kIs1024);
+  return mantissa + ExponentToPrefix(exponent, one_k == kIs1024);
 }
 
 }  // end namespace
@@ -116,7 +116,7 @@ void AppendHumanReadable(int n, std::string* str) {
   *str += ss.str();
 }
 
-std::string HumanReadableNumber(double n, benchmark::Counter::OneK one_k) {
+std::string HumanReadableNumber(double n, OneK one_k) {
   // 1.1 means that figures up to 1.1k should be shown with the next unit down;
   // this softens edge effects.
   // 1 means that we should show one decimal place of precision.
