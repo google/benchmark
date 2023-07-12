@@ -11,7 +11,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, macos-latest, windows-2022]
+        os: [ubuntu-latest, macos-latest, windows-2019]
         bzlmod: [false, true]
     steps:
     - uses: actions/checkout@v3
