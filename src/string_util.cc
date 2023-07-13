@@ -7,6 +7,7 @@
 #include <cmath>
 #include <cstdarg>
 #include <cstdio>
+#include <iomanip>
 #include <memory>
 #include <sstream>
 
@@ -57,13 +58,13 @@ void ToExponentAndMantissa(double val, double thresh, int precision,
     for (size_t i = 0; i < arraysize(kBigSIUnits); ++i) {
       scaled /= which_one_k;
       if (scaled < big_threshold) {
-        mantissa_stream << scaled;
+        mantissa_stream << std::fixed << std::setprecision(precision) << scaled;
         *exponent = i + 1;
         *mantissa = mantissa_stream.str();
         return;
       }
     }
-    mantissa_stream << val;
+    mantissa_stream << std::fixed << std::setprecision(precision) << val;
     *exponent = 0;
   } else if (val < small_threshold) {
     // Negative powers
@@ -72,18 +73,25 @@ void ToExponentAndMantissa(double val, double thresh, int precision,
       for (size_t i = 0; i < arraysize(kSmallSIUnits); ++i) {
         scaled *= which_one_k;
         if (scaled >= small_threshold) {
-          mantissa_stream << scaled;
+          mantissa_stream << std::fixed << std::setprecision(precision)
+                          << scaled;
           *exponent = -static_cast<int64_t>(i + 1);
           *mantissa = mantissa_stream.str();
           return;
         }
       }
     }
-    mantissa_stream << val;
+    mantissa_stream << std::fixed << std::setprecision(precision) << val;
     *exponent = 0;
   } else {
-    mantissa_stream << val;
-    *exponent = 0;
+    double scaled = val;
+    size_t i = 0;
+    while (scaled >= which_one_k && i < arraysize(kBigSIUnits)) {
+      scaled /= which_one_k;
+      i++;
+    }
+    mantissa_stream << std::fixed << std::setprecision(precision) << scaled;
+    *exponent = i;
   }
   *mantissa = mantissa_stream.str();
 }
@@ -107,7 +115,6 @@ std::string ToBinaryStringFullySpecified(
   int64_t exponent;
   ToExponentAndMantissa(value, threshold, precision, one_k, &mantissa,
                         &exponent);
-
   return mantissa + ExponentToPrefix(exponent, one_k == Counter::kIs1024);
 }
 

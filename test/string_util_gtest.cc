@@ -194,9 +194,9 @@ TEST(StringUtilTest, HumanReadableNumber) {
             benchmark::HumanReadableNumber(1.0, benchmark::Counter::kIs1000));
   EXPECT_EQ("1.2k", benchmark::HumanReadableNumber(
                         1234.0, benchmark::Counter::kIs1000));
-  EXPECT_EQ("1M",
+  EXPECT_EQ("1.0M",
             benchmark::HumanReadableNumber(1.0e6, benchmark::Counter::kIs1000));
-  EXPECT_EQ("1G",
+  EXPECT_EQ("1.0G",
             benchmark::HumanReadableNumber(1.0e9, benchmark::Counter::kIs1000));
 }
 
