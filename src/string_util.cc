@@ -32,7 +32,7 @@ static_assert(arraysize(kSmallSIUnits) == arraysize(kBigSIUnits),
 static const int64_t kUnitsSize = arraysize(kBigSIUnits);
 
 void ToExponentAndMantissa(double val, double thresh, int precision,
-                           double one_k, std::string* mantissa,
+                           Counter::OneK one_k, std::string* mantissa,
                            int64_t* exponent) {
   std::stringstream mantissa_stream;
 
@@ -45,7 +45,8 @@ void ToExponentAndMantissa(double val, double thresh, int precision,
   // in 'precision' digits.
   const double adjusted_threshold =
       std::max(thresh, 1.0 / std::pow(10.0, precision));
-  const double big_threshold = adjusted_threshold * one_k;
+  const double which_one_k = (one_k == Counter::kIs1024 ? 1024.0 : 1000.0);
+  const double big_threshold = adjusted_threshold * which_one_k;
   const double small_threshold = adjusted_threshold;
   // Values in ]simple_threshold,small_threshold[ will be printed as-is
   const double simple_threshold = 0.01;
@@ -54,8 +55,8 @@ void ToExponentAndMantissa(double val, double thresh, int precision,
     // Positive powers
     double scaled = val;
     for (size_t i = 0; i < arraysize(kBigSIUnits); ++i) {
-      scaled /= one_k;
-      if (scaled <= big_threshold) {
+      scaled /= which_one_k;
+      if (scaled < big_threshold) {
         mantissa_stream << scaled;
         *exponent = i + 1;
         *mantissa = mantissa_stream.str();
@@ -69,7 +70,7 @@ void ToExponentAndMantissa(double val, double thresh, int precision,
     if (val < simple_threshold) {
       double scaled = val;
       for (size_t i = 0; i < arraysize(kSmallSIUnits); ++i) {
-        scaled *= one_k;
+        scaled *= which_one_k;
         if (scaled >= small_threshold) {
           mantissa_stream << scaled;
           *exponent = -static_cast<int64_t>(i + 1);
@@ -115,7 +116,7 @@ std::string ToBinaryStringFullySpecified(
 void AppendHumanReadable(int n, std::string* str) {
   std::stringstream ss;
   // Round down to the nearest SI prefix.
-  ss << ToBinaryStringFullySpecified(n, 1.0, 0);
+  ss << ToBinaryStringFullySpecified(n, 1.0, 0, Counter::kIs1000);
   *str += ss.str();
 }
 

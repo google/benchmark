@@ -165,33 +165,38 @@ TEST(StringUtilTest, AppendHumanReadable) {
 
   benchmark::AppendHumanReadable(0, &str);
   EXPECT_EQ("0", str);
+  str.clear();
 
   benchmark::AppendHumanReadable(999, &str);
   EXPECT_EQ("999", str);
+  str.clear();
 
   benchmark::AppendHumanReadable(1000, &str);
-  EXPECT_EQ("1.00k", str);
+  EXPECT_EQ("1k", str);
+  str.clear();
 
   benchmark::AppendHumanReadable(1000000, &str);
-  EXPECT_EQ("1.00M", str);
+  EXPECT_EQ("1M", str);
+  str.clear();
 
   benchmark::AppendHumanReadable(1000000000, &str);
-  EXPECT_EQ("1.00G", str);
+  EXPECT_EQ("1G", str);
+  str.clear();
 }
 
 TEST(StringUtilTest, HumanReadableNumber) {
-  EXPECT_EQ("1.00", benchmark::HumanReadableNumber(1.0));
-  EXPECT_EQ("1.23Ki", benchmark::HumanReadableNumber(1234.0));
-  EXPECT_EQ("1.00Mi", benchmark::HumanReadableNumber(1.0e6));
-  EXPECT_EQ("1.00Gi", benchmark::HumanReadableNumber(1.0e9));
+  EXPECT_EQ("1.0", benchmark::HumanReadableNumber(1.0));
+  EXPECT_EQ("1.2Ki", benchmark::HumanReadableNumber(1234.0));
+  EXPECT_EQ("976.6Ki", benchmark::HumanReadableNumber(1.0e6));
+  EXPECT_EQ("953.7Mi", benchmark::HumanReadableNumber(1.0e9));
 
-  EXPECT_EQ("1.00",
+  EXPECT_EQ("1.0",
             benchmark::HumanReadableNumber(1.0, benchmark::Counter::kIs1000));
-  EXPECT_EQ("1.23k", benchmark::HumanReadableNumber(
-                         1234.0, benchmark::Counter::kIs1000));
-  EXPECT_EQ("1000M",
+  EXPECT_EQ("1.2k", benchmark::HumanReadableNumber(
+                        1234.0, benchmark::Counter::kIs1000));
+  EXPECT_EQ("1M",
             benchmark::HumanReadableNumber(1.0e6, benchmark::Counter::kIs1000));
-  EXPECT_EQ("1000G",
+  EXPECT_EQ("1G",
             benchmark::HumanReadableNumber(1.0e9, benchmark::Counter::kIs1000));
 }
 
