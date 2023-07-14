@@ -65,6 +65,29 @@ using std::stoul;  // NOLINT(misc-unused-using-decls)
 #endif
 // NOLINTEND
 
+/**
+ * Gets the human readable format for a given base10 value.
+ * In other words converts 1_000 to 1k, 40_000_000 to 40m etc
+ * @param arg the positive value to convert
+ * @return human readable formatted string
+ */
+std::string Base10HumanReadableFormat(const int64_t& arg);
+
+/**
+ * Gets the human readable format for a given base2 value.
+ * In other words converts 64 to 2^6, 1024 to 2^10 etc
+ * @param arg the positive value to convert
+ * @return human readable formatted string
+ */
+std::string Base2HumanReadableFormat(const int64_t& arg);
+
+/**
+ * Formats an argument into a human readable format.
+ * @param arg the argument to format
+ * @return the argument formatted as human readable
+ */
+std::string FormatHumanReadable(const int64_t& arg);
+
 }  // end namespace benchmark
 
 #endif  // BENCHMARK_STRING_UTIL_H_

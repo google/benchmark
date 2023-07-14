@@ -5,6 +5,9 @@
 #include "string_util.h"
 
 namespace benchmark {
+
+BM_DECLARE_bool(benchmark_human_readable);
+
 namespace internal {
 
 BenchmarkInstance::BenchmarkInstance(Benchmark* benchmark, int family_idx,
@@ -43,7 +46,13 @@ BenchmarkInstance::BenchmarkInstance(Benchmark* benchmark, int family_idx,
       }
     }
 
-    name_.args += StrFormat("%" PRId64, arg);
+    // formatting args either in default mode or in human-readable
+    if (FLAGS_benchmark_human_readable) {
+      name_.args += FormatHumanReadable(arg);
+    } else {
+      name_.args += StrFormat("%" PRId64, arg);
+    }
+
     ++arg_i;
   }
 
@@ -114,5 +123,6 @@ void BenchmarkInstance::Teardown() const {
     teardown_(st);
   }
 }
+
 }  // namespace internal
 }  // namespace benchmark

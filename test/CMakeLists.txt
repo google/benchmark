@@ -182,6 +182,12 @@ add_test(NAME user_counters_thousands_test COMMAND user_counters_thousands_test 
 compile_output_test(memory_manager_test)
 add_test(NAME memory_manager_test COMMAND memory_manager_test --benchmark_min_time=0.01s)
 
+compile_benchmark_test(human_readable_formatting_test)
+add_test(NAME human_readable_formatting_test COMMAND human_readable_formatting_test --benchmark_min_time=0.01s --benchmark_human_readable)
+
+compile_benchmark_test(non_human_readable_formatting_test)
+add_test(NAME non_human_readable_formatting_test COMMAND non_human_readable_formatting_test --benchmark_min_time=0.01s --benchmark_human_readable=false)
+
 # MSVC does not allow to set the language standard to C++98/03.
 if(NOT CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
   compile_benchmark_test(cxx03_test)
@@ -242,6 +248,7 @@ if (BENCHMARK_ENABLE_GTEST_TESTS)
   add_gtest(perf_counters_gtest)
   add_gtest(time_unit_gtest)
   add_gtest(min_time_parse_gtest)
+  add_gtest(human_readable_gtest)
 endif(BENCHMARK_ENABLE_GTEST_TESTS)
 
 ###############################################################################
