@@ -7,7 +7,6 @@
 #include <cmath>
 #include <cstdarg>
 #include <cstdio>
-#include <iomanip>
 #include <memory>
 #include <sstream>
 
@@ -16,7 +15,6 @@
 
 namespace benchmark {
 namespace {
-
 // kilo, Mega, Giga, Tera, Peta, Exa, Zetta, Yotta.
 const char* const kBigSIUnits[] = {"k", "M", "G", "T", "P", "E", "Z", "Y"};
 // Kibi, Mebi, Gibi, Tebi, Pebi, Exbi, Zebi, Yobi.
@@ -56,14 +54,14 @@ void ToExponentAndMantissa(double val, int precision, double one_k,
     double scaled = val;
     for (size_t i = 0; i < arraysize(kBigSIUnits); ++i) {
       scaled /= one_k;
-      if (scaled < big_threshold) {
-        mantissa_stream << std::fixed << std::setprecision(precision) << scaled;
+      if (scaled <= big_threshold) {
+        mantissa_stream << scaled;
         *exponent = i + 1;
         *mantissa = mantissa_stream.str();
         return;
       }
     }
-    mantissa_stream << std::fixed << std::setprecision(precision) << val;
+    mantissa_stream << val;
     *exponent = 0;
   } else if (val < small_threshold) {
     // Negative powers
@@ -72,25 +70,18 @@ void ToExponentAndMantissa(double val, int precision, double one_k,
       for (size_t i = 0; i < arraysize(kSmallSIUnits); ++i) {
         scaled *= one_k;
         if (scaled >= small_threshold) {
-          mantissa_stream << std::fixed << std::setprecision(precision)
-                          << scaled;
+          mantissa_stream << scaled;
           *exponent = -static_cast<int64_t>(i + 1);
           *mantissa = mantissa_stream.str();
           return;
         }
       }
     }
-    mantissa_stream << std::fixed << std::setprecision(precision) << val;
+    mantissa_stream << val;
     *exponent = 0;
   } else {
-    double scaled = val;
-    size_t i = 0;
-    while (scaled >= one_k && i < arraysize(kBigSIUnits)) {
-      scaled /= one_k;
-      i++;
-    }
-    mantissa_stream << std::fixed << std::setprecision(precision) << scaled;
-    *exponent = i;
+    mantissa_stream << val;
+    *exponent = 0;
   }
   *mantissa = mantissa_stream.str();
 }
@@ -114,23 +105,7 @@ std::string ToBinaryStringFullySpecified(
   ToExponentAndMantissa(value, precision,
                         one_k == Counter::kIs1024 ? 1024.0 : 1000.0, &mantissa,
                         &exponent);
-  return mantissa + ExponentToPrefix(exponent, false);
-}
-
-}  // end namespace
-
-void AppendHumanReadable(int n, std::string* str) {
-  std::stringstream ss;
-  // Round down to the nearest SI prefix.
-  ss << ToBinaryStringFullySpecified(n, 0);
-  *str += ss.str();
-}
-
-std::string HumanReadableNumber(double n, double one_k) {
-  // 1.1 means that figures up to 1.1k should be shown with the next unit down;
-  // this softens edge effects.
-  // 1 means that we should show one decimal place of precision.
-  return ToBinaryStringFullySpecified(n, 1);
+  return mantissa + ExponentToPrefix(exponent, one_k == Counter::kIs1024);
 }
 
 std::string StrFormatImp(const char* msg, va_list args) {
@@ -163,12 +138,23 @@ std::string StrFormatImp(const char* msg, va_list args) {
   return std::string(buff_ptr.get());
 }
 
-}  // namespace benchmark
+}  // end namespace
+
+void AppendHumanReadable(int n, std::string* str) {
+  std::stringstream ss;
+  // Round down to the nearest SI prefix.
+  ss << ToBinaryStringFullySpecified(n, 0, Counter::kIs1000);
+  *str += ss.str();
+}
+
+std::string HumanReadableNumber(double n, Counter::OneK one_k) {
+  return ToBinaryStringFullySpecified(n, 1, one_k);
+}
 
 std::string StrFormat(const char* format, ...) {
   va_list args;
   va_start(args, format);
-  std::string tmp = StrFormat(format, args);
+  std::string tmp = StrFormatImp(format, args);
   va_end(args);
   return tmp;
 }
@@ -272,4 +258,4 @@ double stod(const std::string& str, size_t* pos) {
 }
 #endif
 
-// end namespace benchmark
+}  // end namespace benchmark

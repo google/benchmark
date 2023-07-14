@@ -1,5 +1,5 @@
 //===---------------------------------------------------------------------===//
-// string_util_test - Unit tests for src/string_util.cc
+// statistics_test - Unit tests for src/statistics.cc
 //===---------------------------------------------------------------------===//
 
 #include <tuple>
@@ -167,11 +167,10 @@ using AppendHumanReadableFixture =
 INSTANTIATE_TEST_SUITE_P(
     AppendHumanReadableTests, AppendHumanReadableFixture,
     ::testing::Values(std::make_tuple(0, "0"), std::make_tuple(999, "999"),
-                      std::make_tuple(1000, "1000"),
-                      std::make_tuple(1024, "1Ki"),
-                      std::make_tuple(1000 * 1000, "976\\.56.Ki"),
+                      std::make_tuple(1000, "1k"), std::make_tuple(1024, "1Ki"),
+                      std::make_tuple(1000 * 1000, "1M"),
                       std::make_tuple(1024 * 1024, "1Mi"),
-                      std::make_tuple(1000 * 1000 * 1000, "953\\.674Mi"),
+                      std::make_tuple(1000 * 1000 * 1000, "1G"),
                       std::make_tuple(1024 * 1024 * 1024, "1Gi")));
 
 TEST_P(AppendHumanReadableFixture, AppendHumanReadable) {
