@@ -274,4 +274,4 @@ double stod(const std::string& str, size_t* pos) {
 }
 #endif
 
-}  // end namespace benchmark
+// end namespace benchmark
