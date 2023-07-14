@@ -160,4 +160,57 @@ TEST(StringUtilTest, StrSplit) {
             std::vector<std::string>({"hello", "there", "is", "more"}));
 }
 
+using AppendHumanReadableFixture =
+    ::testing::TestWithParam<std::tuple<int, std::string>>;
+
+INSTANTIATE_TEST_SUITE_P(
+    AppendHumanReadableTests, AppendHumanReadableFixture,
+    ::testing::Values(std::make_tuple(0, "0"), std::make_tuple(999, "999"),
+                      std::make_tuple(1000, "1000"),
+                      std::make_tuple(1024, "1Ki"),
+                      std::make_tuple(1000 * 1000, "976.562Ki"),
+                      std::make_tuple(1024 * 1024, "1Mi"),
+                      std::make_tuple(1000 * 1000 * 1000, "953.674Mi"),
+                      std::make_tuple(1024 * 1024 * 1024, "1Gi")));
+
+TEST_P(AppendHumanReadableFixture, AppendHumanReadable) {
+  std::string str;
+  benchmark::AppendHumanReadable(std::get<0>(GetParam()), &str);
+  ASSERT_EQ(std::get<1>(GetParam()), str);
+}
+
+using HumanReadableFixture = ::testing::TestWithParam<
+    std::tuple<double, benchmark::Counter::OneK, std::string>>;
+
+INSTANTIATE_TEST_SUITE_P(
+    HumanReadableTests, HumanReadableFixture,
+    ::testing::Values(
+        std::make_tuple(0.0, benchmark::Counter::kIs1024, "0"),
+        std::make_tuple(999.0, benchmark::Counter::kIs1024, "999"),
+        std::make_tuple(1000.0, benchmark::Counter::kIs1024, "1000"),
+        std::make_tuple(1024.0, benchmark::Counter::kIs1024, "1Ki"),
+        std::make_tuple(1000 * 1000.0, benchmark::Counter::kIs1024,
+                        "976.562Ki"),
+        std::make_tuple(1024 * 1024.0, benchmark::Counter::kIs1024, "1Mi"),
+        std::make_tuple(1000 * 1000 * 1000.0, benchmark::Counter::kIs1024,
+                        "953.674Mi"),
+        std::make_tuple(1024 * 1024 * 1024.0, benchmark::Counter::kIs1024,
+                        "1Gi"),
+        std::make_tuple(0.0, benchmark::Counter::kIs1000, "0"),
+        std::make_tuple(999.0, benchmark::Counter::kIs1000, "999"),
+        std::make_tuple(1000.0, benchmark::Counter::kIs1000, "1k"),
+        std::make_tuple(1024.0, benchmark::Counter::kIs1000, "1.024k"),
+        std::make_tuple(1000 * 1000.0, benchmark::Counter::kIs1000, "1M"),
+        std::make_tuple(1024 * 1024.0, benchmark::Counter::kIs1000, "1.04858M"),
+        std::make_tuple(1000 * 1000 * 1000.0, benchmark::Counter::kIs1000,
+                        "1G"),
+        std::make_tuple(1024 * 1024 * 1024.0, benchmark::Counter::kIs1000,
+                        "1.07374G")));
+
+TEST_P(HumanReadableFixture, HumanReadableNumber) {
+  std::string str = benchmark::HumanReadableNumber(std::get<0>(GetParam()),
+                                                   std::get<1>(GetParam()));
+  ASSERT_EQ(std::get<2>(GetParam()), str);
+}
+
 }  // end namespace
