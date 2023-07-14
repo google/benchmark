@@ -163,9 +163,7 @@ std::string StrFormatImp(const char* msg, va_list args) {
   return std::string(buff_ptr.get());
 }
 
-}  // end namespace
-
-
+}  // namespace benchmark
 
 std::string StrFormat(const char* format, ...) {
   va_list args;
