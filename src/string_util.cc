@@ -12,6 +12,7 @@
 #include <sstream>
 
 #include "arraysize.h"
+#include "benchmark/benchmark.h"
 
 namespace benchmark {
 namespace {
@@ -32,9 +33,8 @@ static_assert(arraysize(kSmallSIUnits) == arraysize(kBigSIUnits),
 
 static const int64_t kUnitsSize = arraysize(kBigSIUnits);
 
-void ToExponentAndMantissa(double val, double thresh, int precision,
-                           Counter::OneK one_k, std::string* mantissa,
-                           int64_t* exponent) {
+void ToExponentAndMantissa(double val, int precision, double one_k,
+                           std::string* mantissa, int64_t* exponent) {
   std::stringstream mantissa_stream;
 
   if (val < 0) {
@@ -45,9 +45,8 @@ void ToExponentAndMantissa(double val, double thresh, int precision,
   // Adjust threshold so that it never excludes things which can't be rendered
   // in 'precision' digits.
   const double adjusted_threshold =
-      std::max(thresh, 1.0 / std::pow(10.0, precision));
-  const double which_one_k = (one_k == Counter::kIs1024 ? 1024.0 : 1000.0);
-  const double big_threshold = adjusted_threshold * which_one_k;
+      std::max(1.0, 1.0 / std::pow(10.0, precision));
+  const double big_threshold = (adjusted_threshold * one_k) - 1;
   const double small_threshold = adjusted_threshold;
   // Values in ]simple_threshold,small_threshold[ will be printed as-is
   const double simple_threshold = 0.01;
@@ -56,7 +55,7 @@ void ToExponentAndMantissa(double val, double thresh, int precision,
     // Positive powers
     double scaled = val;
     for (size_t i = 0; i < arraysize(kBigSIUnits); ++i) {
-      scaled /= which_one_k;
+      scaled /= one_k;
       if (scaled < big_threshold) {
         mantissa_stream << std::fixed << std::setprecision(precision) << scaled;
         *exponent = i + 1;
@@ -71,7 +70,7 @@ void ToExponentAndMantissa(double val, double thresh, int precision,
     if (val < simple_threshold) {
       double scaled = val;
       for (size_t i = 0; i < arraysize(kSmallSIUnits); ++i) {
-        scaled *= which_one_k;
+        scaled *= one_k;
         if (scaled >= small_threshold) {
           mantissa_stream << std::fixed << std::setprecision(precision)
                           << scaled;
@@ -86,8 +85,8 @@ void ToExponentAndMantissa(double val, double thresh, int precision,
   } else {
     double scaled = val;
     size_t i = 0;
-    while (scaled >= which_one_k && i < arraysize(kBigSIUnits)) {
-      scaled /= which_one_k;
+    while (scaled >= one_k && i < arraysize(kBigSIUnits)) {
+      scaled /= one_k;
       i++;
     }
     mantissa_stream << std::fixed << std::setprecision(precision) << scaled;
@@ -109,13 +108,13 @@ std::string ExponentToPrefix(int64_t exponent, bool iec) {
 }
 
 std::string ToBinaryStringFullySpecified(
-    double value, double threshold, int precision,
-    Counter::OneK one_k = Counter::kIs1024) {
+    double value, int precision, Counter::OneK one_k = Counter::kIs1024) {
   std::string mantissa;
   int64_t exponent;
-  ToExponentAndMantissa(value, threshold, precision, one_k, &mantissa,
+  ToExponentAndMantissa(value, precision,
+                        one_k == Counter::kIs1024 ? 1024.0 : 1000.0, &mantissa,
                         &exponent);
-  return mantissa + ExponentToPrefix(exponent, one_k == Counter::kIs1024);
+  return mantissa + ExponentToPrefix(exponent, false);
 }
 
 }  // end namespace
@@ -123,15 +122,15 @@ std::string ToBinaryStringFullySpecified(
 void AppendHumanReadable(int n, std::string* str) {
   std::stringstream ss;
   // Round down to the nearest SI prefix.
-  ss << ToBinaryStringFullySpecified(n, 1.0, 0, Counter::kIs1000);
+  ss << ToBinaryStringFullySpecified(n, 0);
   *str += ss.str();
 }
 
-std::string HumanReadableNumber(double n, Counter::OneK one_k) {
+std::string HumanReadableNumber(double n, double one_k) {
   // 1.1 means that figures up to 1.1k should be shown with the next unit down;
   // this softens edge effects.
   // 1 means that we should show one decimal place of precision.
-  return ToBinaryStringFullySpecified(n, 1.1, 1, one_k);
+  return ToBinaryStringFullySpecified(n, 1);
 }
 
 std::string StrFormatImp(const char* msg, va_list args) {
@@ -164,10 +163,14 @@ std::string StrFormatImp(const char* msg, va_list args) {
   return std::string(buff_ptr.get());
 }
 
+}  // end namespace
+
+
+
 std::string StrFormat(const char* format, ...) {
   va_list args;
   va_start(args, format);
-  std::string tmp = StrFormatImp(format, args);
+  std::string tmp = StrFormat(format, args);
   va_end(args);
   return tmp;
 }
