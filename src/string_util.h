@@ -6,15 +6,18 @@
 #include <utility>
 #include <vector>
 
+#include "benchmark/benchmark.h"
 #include "benchmark/export.h"
 #include "check.h"
 #include "internal_macros.h"
 
 namespace benchmark {
 
+BENCHMARK_EXPORT
 void AppendHumanReadable(int n, std::string* str);
 
-std::string HumanReadableNumber(double n, double one_k = 1024.0);
+BENCHMARK_EXPORT
+std::string HumanReadableNumber(double n, Counter::OneK one_k);
 
 BENCHMARK_EXPORT
 #if defined(__MINGW32__)
