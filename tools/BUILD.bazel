@@ -1,4 +1,4 @@
-load("@py_deps//:requirements.bzl", "requirement")
+load("@tools_pip_deps//:requirements.bzl", "requirement")
 
 py_library(
     name = "gbench",

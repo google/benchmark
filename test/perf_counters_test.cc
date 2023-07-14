@@ -2,8 +2,15 @@
 
 #include "../src/perf_counters.h"
 
+#include "../src/commandlineflags.h"
 #include "benchmark/benchmark.h"
 #include "output_test.h"
+
+namespace benchmark {
+
+BM_DECLARE_string(benchmark_perf_counters);
+
+}  // namespace benchmark
 
 static void BM_Simple(benchmark::State& state) {
   for (auto _ : state) {
@@ -24,5 +31,7 @@ int main(int argc, char* argv[]) {
   if (!benchmark::internal::PerfCounters::kSupported) {
     return 0;
   }
+  benchmark::FLAGS_benchmark_perf_counters = "CYCLES,BRANCHES";
+  benchmark::internal::PerfCounters::Initialize();
   RunOutputTests(argc, argv);
 }

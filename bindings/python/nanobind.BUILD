@@ -31,6 +31,7 @@ cc_library(
         "src/nb_internals.cpp",
         "src/nb_internals.h",
         "src/nb_ndarray.cpp",
+        "src/nb_static_property.cpp",
         "src/nb_type.cpp",
         "src/trampoline.cpp",
     ],
