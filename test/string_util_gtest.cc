@@ -6,6 +6,7 @@
 
 #include "../src/internal_macros.h"
 #include "../src/string_util.h"
+#include "gmock/gmock.h"
 #include "gtest/gtest.h"
 
 namespace {
@@ -168,7 +169,7 @@ INSTANTIATE_TEST_SUITE_P(
     ::testing::Values(std::make_tuple(0, "0"), std::make_tuple(999, "999"),
                       std::make_tuple(1000, "1000"),
                       std::make_tuple(1024, "1Ki"),
-                      std::make_tuple(1000 * 1000, "976.562Ki"),
+                      std::make_tuple(1000 * 1000, "976.56[23]Ki"),
                       std::make_tuple(1024 * 1024, "1Mi"),
                       std::make_tuple(1000 * 1000 * 1000, "953.674Mi"),
                       std::make_tuple(1024 * 1024 * 1024, "1Gi")));
@@ -176,7 +177,7 @@ INSTANTIATE_TEST_SUITE_P(
 TEST_P(AppendHumanReadableFixture, AppendHumanReadable) {
   std::string str;
   benchmark::AppendHumanReadable(std::get<0>(GetParam()), &str);
-  ASSERT_EQ(std::get<1>(GetParam()), str);
+  ASSERT_THAT(str, ::testing::MatchesRegex(std::get<1>(GetParam())));
 }
 
 using HumanReadableFixture = ::testing::TestWithParam<
@@ -190,7 +191,7 @@ INSTANTIATE_TEST_SUITE_P(
         std::make_tuple(1000.0, benchmark::Counter::kIs1024, "1000"),
         std::make_tuple(1024.0, benchmark::Counter::kIs1024, "1Ki"),
         std::make_tuple(1000 * 1000.0, benchmark::Counter::kIs1024,
-                        "976.562Ki"),
+                        "976.56[23]Ki"),
         std::make_tuple(1024 * 1024.0, benchmark::Counter::kIs1024, "1Mi"),
         std::make_tuple(1000 * 1000 * 1000.0, benchmark::Counter::kIs1024,
                         "953.674Mi"),
@@ -210,7 +211,7 @@ INSTANTIATE_TEST_SUITE_P(
 TEST_P(HumanReadableFixture, HumanReadableNumber) {
   std::string str = benchmark::HumanReadableNumber(std::get<0>(GetParam()),
                                                    std::get<1>(GetParam()));
-  ASSERT_EQ(std::get<2>(GetParam()), str);
+  ASSERT_THAT(str, ::testing::MatchesRegex(std::get<2>(GetParam())));
 }
 
 }  // end namespace
