@@ -150,9 +150,6 @@ void AppendHumanReadable(int n, std::string* str) {
 }
 
 std::string HumanReadableNumber(double n, Counter::OneK one_k) {
-  // 1.1 means that figures up to 1.1k should be shown with the next unit down;
-  // this softens edge effects.
-  // 1 means that we should show one decimal place of precision.
   return ToBinaryStringFullySpecified(n, 1, one_k);
 }
 
