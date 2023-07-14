@@ -110,22 +110,6 @@ std::string ToBinaryStringFullySpecified(
   return mantissa + ExponentToPrefix(exponent, one_k == Counter::kIs1024);
 }
 
-}  // end namespace
-
-void AppendHumanReadable(int n, std::string* str) {
-  std::stringstream ss;
-  // Round down to the nearest SI prefix.
-  ss << ToBinaryStringFullySpecified(n, 0);
-  *str += ss.str();
-}
-
-std::string HumanReadableNumber(double n, Counter::OneK one_k) {
-  // 1.1 means that figures up to 1.1k should be shown with the next unit down;
-  // this softens edge effects.
-  // 1 means that we should show one decimal place of precision.
-  return ToBinaryStringFullySpecified(n, 1, one_k);
-}
-
 std::string StrFormatImp(const char* msg, va_list args) {
   // we might need a second shot at this, so pre-emptivly make a copy
   va_list args_cp;
@@ -154,6 +138,22 @@ std::string StrFormatImp(const char* msg, va_list args) {
   // in the android-ndk
   vsnprintf(buff_ptr.get(), size, msg, args);
   return std::string(buff_ptr.get());
+}
+
+}  // end namespace
+
+void AppendHumanReadable(int n, std::string* str) {
+  std::stringstream ss;
+  // Round down to the nearest SI prefix.
+  ss << ToBinaryStringFullySpecified(n, 0);
+  *str += ss.str();
+}
+
+std::string HumanReadableNumber(double n, Counter::OneK one_k) {
+  // 1.1 means that figures up to 1.1k should be shown with the next unit down;
+  // this softens edge effects.
+  // 1 means that we should show one decimal place of precision.
+  return ToBinaryStringFullySpecified(n, 1, one_k);
 }
 
 std::string StrFormat(const char* format, ...) {

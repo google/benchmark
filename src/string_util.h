@@ -13,8 +13,10 @@
 
 namespace benchmark {
 
+BENCHMARK_EXPORT
 void AppendHumanReadable(int n, std::string* str);
 
+BENCHMARK_EXPORT
 std::string HumanReadableNumber(double n, Counter::OneK one_k);
 
 BENCHMARK_EXPORT
