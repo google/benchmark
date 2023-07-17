@@ -167,11 +167,13 @@ using AppendHumanReadableFixture =
 INSTANTIATE_TEST_SUITE_P(
     AppendHumanReadableTests, AppendHumanReadableFixture,
     ::testing::Values(std::make_tuple(0, "0"), std::make_tuple(999, "999"),
-                      std::make_tuple(1000, "1k"), std::make_tuple(1024, "1Ki"),
+                      std::make_tuple(1000, "1k"),
+                      std::make_tuple(1024, "1.024k"),
                       std::make_tuple(1000 * 1000, "1M"),
-                      std::make_tuple(1024 * 1024, "1Mi"),
+                      std::make_tuple(1234 * 1000, "1.234M"),
+                      std::make_tuple(1024 * 1024, "1.04858M"),
                       std::make_tuple(1000 * 1000 * 1000, "1G"),
-                      std::make_tuple(1024 * 1024 * 1024, "1Gi")));
+                      std::make_tuple(1024 * 1024 * 1024, "1.07374G")));
 
 TEST_P(AppendHumanReadableFixture, AppendHumanReadable) {
   std::string str;
