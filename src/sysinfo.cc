@@ -328,7 +328,7 @@ std::vector<CPUInfo::CacheInfo> GetCacheSizesWindows() {
 
   using UPtr = std::unique_ptr<PInfo, decltype(&std::free)>;
   GetLogicalProcessorInformation(nullptr, &buffer_size);
-  UPtr buff((PInfo*)malloc(buffer_size), &std::free);
+  UPtr buff(static_cast<PInfo*>(std::malloc(buffer_size), &std::free));
   if (!GetLogicalProcessorInformation(buff.get(), &buffer_size))
     PrintErrorAndDie("Failed during call to GetLogicalProcessorInformation: ",
                      GetLastError());
@@ -738,8 +738,8 @@ double GetCPUCyclesPerSecond(CPUInfo::Scaling scaling) {
           SHGetValueA(HKEY_LOCAL_MACHINE,
                       "HARDWARE\\DESCRIPTION\\System\\CentralProcessor\\0",
                       "~MHz", nullptr, &data, &data_size)))
-    return static_cast<double>((int64_t)data *
-                               (int64_t)(1000 * 1000));  // was mhz
+    return static_cast<double>(static_cast<int64_t>(data) *
+                               static_cast<int64_t>(1000 * 1000));  // was mhz
 #elif defined(BENCHMARK_OS_SOLARIS)
   kstat_ctl_t* kc = kstat_open();
   if (!kc) {
