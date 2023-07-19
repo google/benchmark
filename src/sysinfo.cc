@@ -328,7 +328,7 @@ std::vector<CPUInfo::CacheInfo> GetCacheSizesWindows() {
 
   using UPtr = std::unique_ptr<PInfo, decltype(&std::free)>;
   GetLogicalProcessorInformation(nullptr, &buffer_size);
-  UPtr buff(static_cast<PInfo*>(std::malloc(buffer_size), &std::free));
+  UPtr buff(static_cast<PInfo*>(std::malloc(buffer_size)), &std::free);
   if (!GetLogicalProcessorInformation(buff.get(), &buffer_size))
     PrintErrorAndDie("Failed during call to GetLogicalProcessorInformation: ",
                      GetLastError());
