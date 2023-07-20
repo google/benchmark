@@ -1,5 +1,5 @@
 //===---------------------------------------------------------------------===//
-// statistics_test - Unit tests for src/statistics.cc
+// string_util_test - Unit tests for src/string_util.cc
 //===---------------------------------------------------------------------===//
 
 #include <tuple>
@@ -159,26 +159,6 @@ TEST(StringUtilTest, StrSplit) {
             std::vector<std::string>({"hello"}));
   EXPECT_EQ(benchmark::StrSplit("hello,there,is,more", ','),
             std::vector<std::string>({"hello", "there", "is", "more"}));
-}
-
-using AppendHumanReadableFixture =
-    ::testing::TestWithParam<std::tuple<int, std::string>>;
-
-INSTANTIATE_TEST_SUITE_P(
-    AppendHumanReadableTests, AppendHumanReadableFixture,
-    ::testing::Values(std::make_tuple(0, "0"), std::make_tuple(999, "999"),
-                      std::make_tuple(1000, "1k"),
-                      std::make_tuple(1024, "1.024k"),
-                      std::make_tuple(1000 * 1000, "1M"),
-                      std::make_tuple(1234 * 1000, "1.234M"),
-                      std::make_tuple(1024 * 1024, "1.04858M"),
-                      std::make_tuple(1000 * 1000 * 1000, "1G"),
-                      std::make_tuple(1024 * 1024 * 1024, "1.07374G")));
-
-TEST_P(AppendHumanReadableFixture, AppendHumanReadable) {
-  std::string str;
-  benchmark::AppendHumanReadable(std::get<0>(GetParam()), &str);
-  ASSERT_THAT(str, ::testing::MatchesRegex(std::get<1>(GetParam())));
 }
 
 using HumanReadableFixture = ::testing::TestWithParam<

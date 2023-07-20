@@ -99,7 +99,7 @@ std::string ExponentToPrefix(int64_t exponent, bool iec) {
 }
 
 std::string ToBinaryStringFullySpecified(
-    double value, int precision, Counter::OneK one_k = Counter::kIs1024) {
+    double value, int precision, Counter::OneK one_k) {
   std::string mantissa;
   int64_t exponent;
   ToExponentAndMantissa(value, precision,
@@ -139,13 +139,6 @@ std::string StrFormatImp(const char* msg, va_list args) {
 }
 
 }  // end namespace
-
-void AppendHumanReadable(int n, std::string* str) {
-  std::stringstream ss;
-  // Round down to the nearest SI prefix.
-  ss << ToBinaryStringFullySpecified(n, 0, Counter::kIs1000);
-  *str += ss.str();
-}
 
 std::string HumanReadableNumber(double n, Counter::OneK one_k) {
   return ToBinaryStringFullySpecified(n, 1, one_k);
