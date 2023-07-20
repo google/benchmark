@@ -98,8 +98,8 @@ std::string ExponentToPrefix(int64_t exponent, bool iec) {
   return std::string(array[index]);
 }
 
-std::string ToBinaryStringFullySpecified(
-    double value, int precision, Counter::OneK one_k) {
+std::string ToBinaryStringFullySpecified(double value, int precision,
+                                         Counter::OneK one_k) {
   std::string mantissa;
   int64_t exponent;
   ToExponentAndMantissa(value, precision,
