@@ -4,8 +4,8 @@ bazel_dep(name = "bazel_skylib", version = "1.4.1")
 bazel_dep(name = "platforms", version = "0.0.6")
 bazel_dep(name = "rules_foreign_cc", version = "0.9.0")
 bazel_dep(name = "rules_cc", version = "0.0.6")
-bazel_dep(name = "rules_python", version = "0.23.1")
-bazel_dep(name = "googletest", version = "1.12.1", repo_name = "com_google_googletest")
+bazel_dep(name = "rules_python", version = "0.23.1", dev_dependency = True)
+bazel_dep(name = "googletest", version = "1.12.1", repo_name = "com_google_googletest", dev_dependency = True)
 bazel_dep(name = "libpfm", version = "4.11.0")
 
 # Register a toolchain for Python 3.9 to be able to build numpy. Python
@@ -13,19 +13,19 @@ bazel_dep(name = "libpfm", version = "4.11.0")
 # A second reason for this is to be able to build Python hermetically instead
 # of relying on the changing default version from rules_python.
 
-python = use_extension("@rules_python//python/extensions:python.bzl", "python")
+python = use_extension("@rules_python//python/extensions:python.bzl", "python", dev_dependency = True)
 python.toolchain(python_version = "3.9")
 
 # Extract the interpreter from the hermetic toolchain above, so we can use that
-# instead of the system interpreter for the pip compiplation step below.
-interpreter = use_extension("@rules_python//python/extensions:interpreter.bzl", "interpreter")
+# instead of the system interpreter for the pip compilation step below.
+interpreter = use_extension("@rules_python//python/extensions:interpreter.bzl", "interpreter", dev_dependency = True)
 interpreter.install(
     name = "interpreter",
     python_name = "python_3_9",
 )
 use_repo(interpreter, "interpreter")
 
-pip = use_extension("@rules_python//python/extensions:pip.bzl", "pip")
+pip = use_extension("@rules_python//python/extensions:pip.bzl", "pip", dev_dependency = True)
 pip.parse(
     name="tools_pip_deps",
     incompatible_generate_aliases = True,
