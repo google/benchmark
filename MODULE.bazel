@@ -1,10 +1,10 @@
-module(name = "com_github_google_benchmark", version="1.8.0")
+module(name = "google_benchmark", version="1.8.2")
 
 bazel_dep(name = "bazel_skylib", version = "1.4.1")
 bazel_dep(name = "platforms", version = "0.0.6")
 bazel_dep(name = "rules_foreign_cc", version = "0.9.0")
 bazel_dep(name = "rules_cc", version = "0.0.6")
-bazel_dep(name = "rules_python", version = "0.23.1", dev_dependency = True)
+bazel_dep(name = "rules_python", version = "0.24.0", dev_dependency = True)
 bazel_dep(name = "googletest", version = "1.12.1", repo_name = "com_google_googletest", dev_dependency = True)
 bazel_dep(name = "libpfm", version = "4.11.0")
 
@@ -16,19 +16,9 @@ bazel_dep(name = "libpfm", version = "4.11.0")
 python = use_extension("@rules_python//python/extensions:python.bzl", "python", dev_dependency = True)
 python.toolchain(python_version = "3.9")
 
-# Extract the interpreter from the hermetic toolchain above, so we can use that
-# instead of the system interpreter for the pip compilation step below.
-interpreter = use_extension("@rules_python//python/extensions:interpreter.bzl", "interpreter", dev_dependency = True)
-interpreter.install(
-    name = "interpreter",
-    python_name = "python_3_9",
-)
-use_repo(interpreter, "interpreter")
-
 pip = use_extension("@rules_python//python/extensions:pip.bzl", "pip", dev_dependency = True)
 pip.parse(
-    name="tools_pip_deps",
-    incompatible_generate_aliases = True,
-    python_interpreter_target="@interpreter//:python",
+    hub_name="tools_pip_deps",
+    python_version = "3.9",
     requirements_lock="//tools:requirements.txt")
 use_repo(pip, "tools_pip_deps")
