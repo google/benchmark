@@ -195,5 +195,4 @@ TEST_P(HumanReadableFixture, HumanReadableNumber) {
                                                    std::get<1>(GetParam()));
   ASSERT_THAT(str, ::testing::MatchesRegex(std::get<2>(GetParam())));
 }
-
 }  // end namespace
