@@ -66,4 +66,5 @@ using std::stoul;  // NOLINT(misc-unused-using-decls)
 // NOLINTEND
 
 }  // end namespace benchmark
+
 #endif  // BENCHMARK_STRING_UTIL_H_
