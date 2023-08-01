@@ -15,13 +15,13 @@
 
 namespace benchmark {
 namespace {
-
 // kilo, Mega, Giga, Tera, Peta, Exa, Zetta, Yotta.
-const char kBigSIUnits[] = "kMGTPEZY";
+const char* const kBigSIUnits[] = {"k", "M", "G", "T", "P", "E", "Z", "Y"};
 // Kibi, Mebi, Gibi, Tebi, Pebi, Exbi, Zebi, Yobi.
-const char kBigIECUnits[] = "KMGTPEZY";
+const char* const kBigIECUnits[] = {"Ki", "Mi", "Gi", "Ti",
+                                    "Pi", "Ei", "Zi", "Yi"};
 // milli, micro, nano, pico, femto, atto, zepto, yocto.
-const char kSmallSIUnits[] = "munpfazy";
+const char* const kSmallSIUnits[] = {"m", "u", "n", "p", "f", "a", "z", "y"};
 
 // We require that all three arrays have the same size.
 static_assert(arraysize(kBigSIUnits) == arraysize(kBigIECUnits),
@@ -92,16 +92,14 @@ std::string ExponentToPrefix(int64_t exponent, bool iec) {
   const int64_t index = (exponent > 0 ? exponent - 1 : -exponent - 1);
   if (index >= kUnitsSize) return "";
 
-  const char* array =
+  const char* const* array =
       (exponent > 0 ? (iec ? kBigIECUnits : kBigSIUnits) : kSmallSIUnits);
-  if (iec) {
-    return array[index] + std::string("i");
-  }
-  return std::string(1, array[index]);
+
+  return std::string(array[index]);
 }
 
-std::string ToBinaryStringFullySpecified(
-    double value, int precision, Counter::OneK one_k = Counter::kIs1024) {
+std::string ToBinaryStringFullySpecified(double value, int precision,
+                                         Counter::OneK one_k) {
   std::string mantissa;
   int64_t exponent;
   ToExponentAndMantissa(value, precision,
@@ -141,13 +139,6 @@ std::string StrFormatImp(const char* msg, va_list args) {
 }
 
 }  // end namespace
-
-void AppendHumanReadable(int n, std::string* str) {
-  std::stringstream ss;
-  // Round down to the nearest SI prefix.
-  ss << ToBinaryStringFullySpecified(n, 0);
-  *str += ss.str();
-}
 
 std::string HumanReadableNumber(double n, Counter::OneK one_k) {
   return ToBinaryStringFullySpecified(n, 1, one_k);
