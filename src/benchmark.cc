@@ -230,7 +230,7 @@ void State::PauseTiming() {
       auto name = name_and_measurement.first;
       auto measurement = name_and_measurement.second;
       BM_CHECK_EQ(std::fpclassify(double{counters[name]}), FP_ZERO);
-      counters[name] = Counter(measurement, Counter::kAvgIterations);
+      counters[name] += Counter(measurement, Counter::kAvgIterations);
     }
   }
 }
