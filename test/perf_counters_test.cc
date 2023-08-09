@@ -1,9 +1,8 @@
 #include <cstdarg>
 #undef NDEBUG
 
-#include "../src/perf_counters.h"
-
 #include "../src/commandlineflags.h"
+#include "../src/perf_counters.h"
 #include "benchmark/benchmark.h"
 #include "output_test.h"
 
