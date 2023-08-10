@@ -195,6 +195,8 @@ else()
     # warning no. 1786 must be explicitly disabled.
     # See #631 for rationale.
     add_cxx_compiler_flag(-wd1786)
+  endif()
+  if (CMAKE_CXX_COMPILEL_ID STREQUAL "IntelLLVM")
     add_cxx_compiler_flag(-fno-finite-math-only)
   endif()
   # Disable deprecation warnings for release builds (when -Werror is enabled).
