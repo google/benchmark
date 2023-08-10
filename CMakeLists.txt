@@ -190,14 +190,11 @@ else()
   # Disable warnings regarding deprecated parts of the library while building
   # and testing those parts of the library.
   add_cxx_compiler_flag(-Wno-deprecated-declarations)
-  if (CMAKE_CXX_COMPILER_ID STREQUAL "Intel")
+  if (CMAKE_CXX_COMPILER_ID STREQUAL "Intel" OR CMAKE_CXX_COMPILEL_ID STREQUAL "IntelLLVM")
     # Intel silently ignores '-Wno-deprecated-declarations',
     # warning no. 1786 must be explicitly disabled.
     # See #631 for rationale.
     add_cxx_compiler_flag(-wd1786)
-  endif()
-  if (CMAKE_CXX_COMPILEL_ID STREQUAL "IntelLLVM")
-    add_cxx_compiler_flag(-fno-finite-math-only)
   endif()
   # Disable deprecation warnings for release builds (when -Werror is enabled).
   if(BENCHMARK_ENABLE_WERROR)
@@ -208,7 +205,7 @@ else()
   endif()
 
   if (HAVE_CXX_FLAG_FSTRICT_ALIASING)
-    if (NOT CMAKE_CXX_COMPILER_ID STREQUAL "Intel") #ICC17u2: Many false positives for Wstrict-aliasing
+    if (NOT CMAKE_CXX_COMPILER_ID STREQUAL "Intel" OR CMAKE_CXX_COMPILEL_ID STREQUAL "IntelLLVM") #ICC17u2: Many false positives for Wstrict-aliasing
       add_cxx_compiler_flag(-Wstrict-aliasing)
     endif()
   endif()
@@ -273,7 +270,8 @@ if (BENCHMARK_USE_LIBCXX)
   if ("${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang")
     add_cxx_compiler_flag(-stdlib=libc++)
   elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU" OR
-          "${CMAKE_CXX_COMPILER_ID}" STREQUAL "Intel")
+          "${CMAKE_CXX_COMPILER_ID}" STREQUAL "Intel" OR
+          "${CMAKE_CXX_COMPILER_ID}" STREQUAL "IntelLLVM")
     add_cxx_compiler_flag(-nostdinc++)
     message(WARNING "libc++ header path must be manually specified using CMAKE_CXX_FLAGS")
     # Adding -nodefaultlibs directly to CMAKE_<TYPE>_LINKER_FLAGS will break
