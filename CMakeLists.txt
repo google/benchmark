@@ -195,6 +195,7 @@ else()
     # warning no. 1786 must be explicitly disabled.
     # See #631 for rationale.
     add_cxx_compiler_flag(-wd1786)
+    add_cxx_compiler_flag(-fno-finite-math-only)
   endif()
   # Disable deprecation warnings for release builds (when -Werror is enabled).
   if(BENCHMARK_ENABLE_WERROR)
