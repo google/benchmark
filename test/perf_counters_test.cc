@@ -64,13 +64,25 @@ static void CheckSimple(Results const& e) {
   CHECK_COUNTER_VALUE(e, double, "BRANCHES", GT, 0.0);
 }
 
-static void CheckInstrCount(Results const& e) {
-  CHECK_COUNTER_VALUE(e, double, "INSTRUCTIONS", GT, kIters);
+double withoutPauseResumeInstrCount = 0.0;
+double withPauseResumeInstrCount = 0.0;
+
+static void CheckInstrCount(double* counter, Results const& e) {
+  BM_CHECK_GT(e.NumIterations(), 0);
+  *counter = e.GetAs<double>("INSTRUCTIONS") / e.NumIterations();
+}
+
+static void CheckInstrCountWithoutResume(Results const& e) {
+  CheckInstrCount(&withoutPauseResumeInstrCount, e);
+}
+
+static void CheckInstrCountWithResume(Results const& e) {
+  CheckInstrCount(&withPauseResumeInstrCount, e);
 }
 
 CHECK_BENCHMARK_RESULTS("BM_Simple", &CheckSimple);
-CHECK_BENCHMARK_RESULTS("BM_WithoutPauseResume", &CheckInstrCount);
-CHECK_BENCHMARK_RESULTS("BM_WithPauseResume", &CheckInstrCount);
+CHECK_BENCHMARK_RESULTS("BM_WithoutPauseResume", &CheckInstrCountWithoutResume);
+CHECK_BENCHMARK_RESULTS("BM_WithPauseResume", &CheckInstrCountWithResume);
 
 int main(int argc, char* argv[]) {
   if (!benchmark::internal::PerfCounters::kSupported) {
@@ -79,4 +91,8 @@ int main(int argc, char* argv[]) {
   benchmark::FLAGS_benchmark_perf_counters = "CYCLES,BRANCHES,INSTRUCTIONS";
   benchmark::internal::PerfCounters::Initialize();
   RunOutputTests(argc, argv);
+
+  BM_CHECK_GT(withPauseResumeInstrCount, kIters);
+  BM_CHECK_GT(withoutPauseResumeInstrCount, kIters);
+  BM_CHECK_LT(withPauseResumeInstrCount, 1.5 * withoutPauseResumeInstrCount);
 }
