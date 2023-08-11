@@ -574,8 +574,14 @@ size_t RunSpecifiedBenchmarks(BenchmarkReporter* display_reporter,
       std::exit(1);
     }
     if (!file_reporter) {
-      default_file_reporter = internal::CreateReporter(
-          FLAGS_benchmark_out_format, ConsoleReporter::OO_None);
+      if (FLAGS_benchmark_out_format == "console" &&
+          FLAGS_benchmark_counters_tabular) {
+        default_file_reporter = internal::CreateReporter(
+            FLAGS_benchmark_out_format, ConsoleReporter::OO_Tabular);
+      } else {
+        default_file_reporter = internal::CreateReporter(
+            FLAGS_benchmark_out_format, ConsoleReporter::OO_None);
+      }
       file_reporter = default_file_reporter.get();
     }
     file_reporter->SetOutputStream(&output_file);
