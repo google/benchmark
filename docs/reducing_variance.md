@@ -14,8 +14,6 @@ you might want to disable the CPU frequency scaling while running the
 benchmark, as well as consider other ways to stabilize the performance of
 your system while benchmarking.
 
-See [Reducing Variance](reducing_variance.md) for more information.
-
 Exactly how to do this depends on the Linux distribution,
 desktop environment, and installed programs.  Specific details are a moving
 target, so we will not attempt to exhaustively document them here.
