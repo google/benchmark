@@ -317,4 +317,18 @@ void JSONReporter::PrintRunData(Run const& run) {
 const int64_t MemoryManager::TombstoneValue =
     std::numeric_limits<int64_t>::max();
 
+void JSONReporter::List(
+    const std::vector<internal::BenchmarkInstance>& benchmarks) {
+  std::ostream& Out = GetOutputStream();
+  Out << "[";
+  for (size_t i = 0; i < benchmarks.size(); ++i) {
+    const auto& benchmark = benchmarks[i];
+    Out << "{ \"name\": \"" << benchmark.name().str() << "\" }";
+    if (i != benchmarks.size() - 1) {
+      Out << ", ";
+    }
+  }
+  Out << "]";
+}
+
 }  // end namespace benchmark

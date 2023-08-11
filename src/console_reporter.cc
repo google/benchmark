@@ -203,4 +203,13 @@ void ConsoleReporter::PrintRunData(const Run& result) {
   printer(Out, COLOR_DEFAULT, "\n");
 }
 
+BENCHMARK_EXPORT
+void ConsoleReporter::List(
+    const std::vector<internal::BenchmarkInstance>& benchmarks) {
+  std::ostream& Out = GetOutputStream();
+  for (auto const& benchmark : benchmarks) {
+    Out << benchmark.name().str() << "\n";
+  }
+}
+
 }  // end namespace benchmark

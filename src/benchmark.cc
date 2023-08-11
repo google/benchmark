@@ -593,8 +593,12 @@ size_t RunSpecifiedBenchmarks(BenchmarkReporter* display_reporter,
   }
 
   if (FLAGS_benchmark_list_tests) {
-    for (auto const& benchmark : benchmarks)
-      Out << benchmark.name().str() << "\n";
+    if (FLAGS_benchmark_format == "json") {
+      dynamic_cast<JSONReporter*>(display_reporter)->List(benchmarks);
+        } else {
+      //ConsoleReporter::List(benchmarks);
+      dynamic_cast<ConsoleReporter*>(display_reporter)->List(benchmarks);
+    }
   } else {
     internal::RunBenchmarks(benchmarks, display_reporter, file_reporter);
   }

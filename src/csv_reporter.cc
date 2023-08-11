@@ -158,4 +158,10 @@ void CSVReporter::PrintRunData(const Run& run) {
   Out << '\n';
 }
 
+void CSVReporter::List(
+    const std::vector<internal::BenchmarkInstance>& benchmarks) {
+  std::ostream& err = GetErrorStream();
+  err << "List() method is not implemented for CSVReporter.\n";
+}
+
 }  // end namespace benchmark
