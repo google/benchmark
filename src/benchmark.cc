@@ -574,7 +574,9 @@ size_t RunSpecifiedBenchmarks(BenchmarkReporter* display_reporter,
     }
     if (!file_reporter) {
       default_file_reporter = internal::CreateReporter(
-          FLAGS_benchmark_out_format, ConsoleReporter::OO_None);
+          FLAGS_benchmark_out_format, FLAGS_benchmark_counters_tabular
+                                          ? ConsoleReporter::OO_Tabular
+                                          : ConsoleReporter::OO_None);
       file_reporter = default_file_reporter.get();
     }
     file_reporter->SetOutputStream(&output_file);
