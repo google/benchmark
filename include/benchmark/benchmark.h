@@ -712,9 +712,11 @@ enum Skipped
 #if defined(BENCHMARK_HAS_CXX11)
     : unsigned
 #endif
-{ NotSkipped = 0,
+{ 
+  NotSkipped = 0,
   SkippedWithMessage,
-  SkippedWithError };
+  SkippedWithError 
+};
 
 }  // namespace internal
 
