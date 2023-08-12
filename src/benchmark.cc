@@ -556,7 +556,6 @@ size_t RunSpecifiedBenchmarks(BenchmarkReporter* display_reporter,
     default_display_reporter.reset(CreateDefaultDisplayReporter());
     display_reporter = default_display_reporter.get();
   }
-  auto& Out = display_reporter->GetOutputStream();
   auto& Err = display_reporter->GetErrorStream();
 
   std::string const& fname = FLAGS_benchmark_out;
