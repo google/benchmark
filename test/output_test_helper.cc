@@ -164,6 +164,17 @@ class TestReporter : public benchmark::BenchmarkReporter {
     for (auto rep : reporters_) rep->Finalize();
   }
 
+  void List(const std::vector<benchmark::internal::BenchmarkInstance>&
+                benchmarks) override {
+    // providing summary of bechmarks as of now
+    int total = benchmarks.size();
+    int flaggedCount =
+        std::count_if(benchmarks.begin(), benchmarks.end(),
+                      [](const auto& b) { return b.isFlagSet(); });
+    std::cout << "Total benchmarks: " << total << ", Flagged: " << flaggedCount
+              << std::endl;
+  }
+
  private:
   std::vector<benchmark::BenchmarkReporter*> reporters_;
 };
