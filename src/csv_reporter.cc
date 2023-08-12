@@ -160,6 +160,7 @@ void CSVReporter::PrintRunData(const Run& run) {
 
 void CSVReporter::List(
     const std::vector<internal::BenchmarkInstance>& benchmarks) {
+  (void)benchmarks;  // Suppress unused parameter warning
   std::ostream& err = GetErrorStream();
   err << "List() method is not implemented for CSVReporter.\n";
 }
