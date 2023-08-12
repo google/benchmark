@@ -1911,7 +1911,7 @@ class BENCHMARK_EXPORT ConsoleReporter : public BenchmarkReporter {
 
   bool ReportContext(const Context& context) BENCHMARK_OVERRIDE;
   void ReportRuns(const std::vector<Run>& reports) BENCHMARK_OVERRIDE;
-  void List(const std::vector<internal::BenchmarkInstance>& benchmarks);
+  void List(const std::vector<internal::BenchmarkInstance>& benchmarks) BENCHMARK_OVERRIDE;
 
  protected:
   virtual void PrintRunData(const Run& report);
@@ -1929,7 +1929,7 @@ class BENCHMARK_EXPORT JSONReporter : public BenchmarkReporter {
   bool ReportContext(const Context& context) BENCHMARK_OVERRIDE;
   void ReportRuns(const std::vector<Run>& reports) BENCHMARK_OVERRIDE;
   void Finalize() BENCHMARK_OVERRIDE;
-  void List(const std::vector<internal::BenchmarkInstance>& benchmarks);
+  void List(const std::vector<internal::BenchmarkInstance>& benchmarks) BENCHMARK_OVERRIDE;
 
  private:
   void PrintRunData(const Run& report);
@@ -1944,7 +1944,7 @@ class BENCHMARK_EXPORT BENCHMARK_DEPRECATED_MSG(
   CSVReporter() : printed_header_(false) {}
   bool ReportContext(const Context& context) BENCHMARK_OVERRIDE;
   void ReportRuns(const std::vector<Run>& reports) BENCHMARK_OVERRIDE;
-  void List(const std::vector<internal::BenchmarkInstance>& benchmarks);
+  void List(const std::vector<internal::BenchmarkInstance>& benchmarks) BENCHMARK_OVERRIDE;
 
  private:
   void PrintRunData(const Run& report);
