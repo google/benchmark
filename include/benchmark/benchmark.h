@@ -639,7 +639,7 @@ class Counter {
   Counter(double v = 0., Flags f = kDefaults, OneK k = kIs1000)
       : value(v), flags(f), oneK(k) {}
 
-  BENCHMARK_ALWAYS_INLINE operator double const&() const { return value; }
+  BENCHMARK_ALWAYS_INLINE operator double const &() const { return value; }
   BENCHMARK_ALWAYS_INLINE operator double&() { return value; }
 };
 
@@ -712,11 +712,9 @@ enum Skipped
 #if defined(BENCHMARK_HAS_CXX11)
     : unsigned
 #endif
-{
-  NotSkipped = 0,
+{ NotSkipped = 0,
   SkippedWithMessage,
-  SkippedWithError
-};
+  SkippedWithError };
 
 }  // namespace internal
 
@@ -1881,7 +1879,7 @@ class BENCHMARK_EXPORT BenchmarkReporter {
   /**
    * @brief Lists and describes the provided benchmarks.
    *
-   * This static method is intended to be overridden by derived classes
+   * This virtual method is intended to be overridden by derived classes
    * to provide specific implementations for listing benchmarks.
    * It can be used for outputting, logging, or any other operation
    * needed to handle or display the benchmarks' names and metadata.
@@ -1889,7 +1887,8 @@ class BENCHMARK_EXPORT BenchmarkReporter {
    * @param benchmarks A vector containing names and details of benchmarks
    *                   that need to be listed or processed.
    */
-  static void List(const std::vector<internal::BenchmarkInstance>& benchmarks);
+  virtual void List(
+      const std::vector<internal::BenchmarkInstance>& benchmarks) = 0;
 
  private:
   std::ostream* output_stream_;
@@ -1912,7 +1911,7 @@ class BENCHMARK_EXPORT ConsoleReporter : public BenchmarkReporter {
 
   bool ReportContext(const Context& context) BENCHMARK_OVERRIDE;
   void ReportRuns(const std::vector<Run>& reports) BENCHMARK_OVERRIDE;
-  static void List(const std::vector<internal::BenchmarkInstance>& benchmarks);
+  void List(const std::vector<internal::BenchmarkInstance>& benchmarks);
 
  protected:
   virtual void PrintRunData(const Run& report);
@@ -1930,7 +1929,7 @@ class BENCHMARK_EXPORT JSONReporter : public BenchmarkReporter {
   bool ReportContext(const Context& context) BENCHMARK_OVERRIDE;
   void ReportRuns(const std::vector<Run>& reports) BENCHMARK_OVERRIDE;
   void Finalize() BENCHMARK_OVERRIDE;
-  static void List(const std::vector<internal::BenchmarkInstance>& benchmarks);
+  void List(const std::vector<internal::BenchmarkInstance>& benchmarks);
 
  private:
   void PrintRunData(const Run& report);
@@ -1945,7 +1944,7 @@ class BENCHMARK_EXPORT BENCHMARK_DEPRECATED_MSG(
   CSVReporter() : printed_header_(false) {}
   bool ReportContext(const Context& context) BENCHMARK_OVERRIDE;
   void ReportRuns(const std::vector<Run>& reports) BENCHMARK_OVERRIDE;
-  static void List(const std::vector<internal::BenchmarkInstance>& benchmarks);
+  void List(const std::vector<internal::BenchmarkInstance>& benchmarks);
 
  private:
   void PrintRunData(const Run& report);
