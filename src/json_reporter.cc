@@ -323,7 +323,7 @@ void JSONReporter::List(
   Out << "[";
   for (size_t i = 0; i < benchmarks.size(); ++i) {
     const auto& benchmark = benchmarks[i];
-    Out << "{ \"name\": \"" << benchmark.name().str() << "\" }";
+    Out << "{" << FormatKV("name", benchmark.name().str()) << "}";
     if (i != benchmarks.size() - 1) {
       Out << ", ";
     }
