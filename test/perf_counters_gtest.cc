@@ -77,7 +77,7 @@ TEST(PerfCountersTest, NegativeTest) {
         {kGenericPerfEvent1, kGenericPerfEvent2, "bad event name"});
     EXPECT_EQ(counter.num_counters(), 2);
     EXPECT_EQ(counter.names(), std::vector<std::string>(
-        {kGenericPerfEvent1, kGenericPerfEvent2}));
+                                   {kGenericPerfEvent1, kGenericPerfEvent2}));
   }
 }
 
