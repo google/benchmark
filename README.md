@@ -1,4 +1,4 @@
-![logo](assets/images/icon.png)
+![logo](docs/assets/images/icon.png)
 # Benchmark
 
 [![build-and-test](https://github.com/google/benchmark/workflows/build-and-test/badge.svg)](https://github.com/google/benchmark/actions?query=workflow%3Abuild-and-test)
