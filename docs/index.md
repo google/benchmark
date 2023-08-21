@@ -1,3 +1,4 @@
+![logo](assets/images/icon.png)
 # Benchmark
 
 * [Assembly Tests](AssemblyTests.md)
