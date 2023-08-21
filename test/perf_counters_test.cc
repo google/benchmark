@@ -61,7 +61,6 @@ ADD_CASES(TC_JSONOut, {{"\"name\": \"BM_WithPauseResume\",$"}});
 
 static void CheckSimple(Results const& e) {
   CHECK_COUNTER_VALUE(e, double, "CYCLES", GT, 0);
-  CHECK_COUNTER_VALUE(e, double, "BRANCHES", GT, 0.0);
 }
 
 double withoutPauseResumeInstrCount = 0.0;
@@ -83,7 +82,7 @@ int main(int argc, char* argv[]) {
   if (!benchmark::internal::PerfCounters::kSupported) {
     return 0;
   }
-  benchmark::FLAGS_benchmark_perf_counters = "CYCLES,BRANCHES,INSTRUCTIONS";
+  benchmark::FLAGS_benchmark_perf_counters = "CYCLES,INSTRUCTIONS";
   benchmark::internal::PerfCounters::Initialize();
   RunOutputTests(argc, argv);
 
