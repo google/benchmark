@@ -67,22 +67,17 @@ static void CheckSimple(Results const& e) {
 double withoutPauseResumeInstrCount = 0.0;
 double withPauseResumeInstrCount = 0.0;
 
-static void CheckInstrCount(double* counter, Results const& e) {
-  BM_CHECK_GT(e.NumIterations(), 0);
-  *counter = e.GetAs<double>("INSTRUCTIONS") / e.NumIterations();
+static void SaveInstrCountWithoutResume(Results const& e) {
+  withoutPauseResumeInstrCount = e.GetAs<double>("INSTRUCTIONS");
 }
 
-static void CheckInstrCountWithoutResume(Results const& e) {
-  CheckInstrCount(&withoutPauseResumeInstrCount, e);
-}
-
-static void CheckInstrCountWithResume(Results const& e) {
-  CheckInstrCount(&withPauseResumeInstrCount, e);
+static void SaveInstrCountWithResume(Results const& e) {
+  withPauseResumeInstrCount = e.GetAs<double>("INSTRUCTIONS");
 }
 
 CHECK_BENCHMARK_RESULTS("BM_Simple", &CheckSimple);
-CHECK_BENCHMARK_RESULTS("BM_WithoutPauseResume", &CheckInstrCountWithoutResume);
-CHECK_BENCHMARK_RESULTS("BM_WithPauseResume", &CheckInstrCountWithResume);
+CHECK_BENCHMARK_RESULTS("BM_WithoutPauseResume", &SaveInstrCountWithoutResume);
+CHECK_BENCHMARK_RESULTS("BM_WithPauseResume", &SaveInstrCountWithResume);
 
 int main(int argc, char* argv[]) {
   if (!benchmark::internal::PerfCounters::kSupported) {
