@@ -184,8 +184,8 @@ State::State(std::string name, IterationCount max_iters,
   // won't have the flag.  Inserting them now also reduces the allocations
   // during the benchmark.
   if (perf_counters_measurement_) {
-    for (const std::string& name : perf_counters_measurement_->names()) {
-      counters[name] = Counter(0.0, Counter::kAvgIterations);
+    for (const std::string& counter_name : perf_counters_measurement_->names()) {
+      counters[counter_name] = Counter(0.0, Counter::kAvgIterations);
     }
   }
 
