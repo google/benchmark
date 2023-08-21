@@ -179,6 +179,16 @@ State::State(std::string name, IterationCount max_iters,
   BM_CHECK_LT(thread_index_, threads_)
       << "thread_index must be less than threads";
 
+  // Add counters with correct flag now.  If added with `counters[name]` in
+  // `PauseTiming`, a new `Counter` will be inserted the first time, which
+  // won't have the flag.  Inserting them now also reduces the allocations
+  // during the benchmark.
+  if (perf_counters_measurement_) {
+    for (const std::string& name : perf_counters_measurement_->names()) {
+      counters[name] = Counter(0.0, Counter::kAvgIterations);
+    }
+  }
+
   // Note: The use of offsetof below is technically undefined until C++17
   // because State is not a standard layout type. However, all compilers
   // currently provide well-defined behavior as an extension (which is
@@ -227,9 +237,11 @@ void State::PauseTiming() {
       BM_CHECK(false) << "Perf counters read the value failed.";
     }
     for (const auto& name_and_measurement : measurements) {
-      auto name = name_and_measurement.first;
-      auto measurement = name_and_measurement.second;
-      counters[name] += Counter(measurement, Counter::kAvgIterations);
+      const std::string& name = name_and_measurement.first;
+      const double measurement = name_and_measurement.second;
+      // Counter was inserted with `kAvgIterations` flag by the constructor.
+      assert(counters.find(name) != counters.end());
+      counters[name].value += measurement;
     }
   }
 }
