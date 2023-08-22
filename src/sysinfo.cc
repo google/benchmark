@@ -158,7 +158,7 @@ ValueUnion GetSysctlImp(std::string const& name) {
       mib[1] = HW_CPUSPEED;
     }
 
-    if (sysctl(mib, 2, buff.data(), &buff.Size, nullptr, 0) == -1) {
+    if (sysctl(mib, 2, buff.data(), &buff.size, nullptr, 0) == -1) {
       return ValueUnion();
     }
     return buff;
