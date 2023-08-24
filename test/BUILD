@@ -69,7 +69,7 @@ cc_library(
     for test_src in glob(["*_gtest.cc"])
 ]
 
-# Tests that do not gtest.  These have their own `main` defined.
+# Tests that do not use gtest.  These have their own `main` defined.
 [
     cc_test(
         name = test_src[:-len(".cc")],
