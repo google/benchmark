@@ -49,7 +49,7 @@ cc_library(
     ],
 )
 
-# Tests that use gunit.  These rely on `gunit_main`.
+# Tests that use gtest.  These rely on `gtest_main`.
 [
     cc_test(
         name = test_src[:-len(".cc")],
@@ -69,7 +69,7 @@ cc_library(
     for test_src in glob(["*_gtest.cc"])
 ]
 
-# Tests that do not gunit.  These have their own `main` defined.
+# Tests that do not gtest.  These have their own `main` defined.
 [
     cc_test(
         name = test_src[:-len(".cc")],
