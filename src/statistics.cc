@@ -42,13 +42,12 @@ double StatisticsMedian(const std::vector<double>& v) {
   auto center = copy.begin() + v.size() / 2;
   std::nth_element(copy.begin(), center, copy.end());
 
-  // did we have an odd number of samples?
-  // if yes, then center is the median
-  // it no, then we are looking for the average between center and the value
-  // before
+  // Did we have an odd number of samples?  If yes, then center is the median.
+  // If not, then we are looking for the average between center and the value
+  // before.  Instead of resorting, we just look for the max value before it.
+  // (Since `copy` is partially sorted.)
   if (v.size() % 2 == 1) return *center;
-  auto center2 = copy.begin() + v.size() / 2 - 1;
-  std::nth_element(copy.begin(), center2, copy.end());
+  auto center2 = std::max_element(copy.begin(), center);
   return (*center + *center2) / 2.0;
 }
 
