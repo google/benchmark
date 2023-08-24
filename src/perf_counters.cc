@@ -61,7 +61,9 @@ const bool PerfCounters::kSupported = true;
 // initialization was successful
 static bool InitLibPfmOnce() {
   // Function-scope static gets initialized only once on first call.
-  static bool success = []() { return pfm_initialize() == PFM_SUCCESS; }();
+  static const bool success = []() {
+    return pfm_initialize() == PFM_SUCCESS;
+  }();
   return success;
 }
 
