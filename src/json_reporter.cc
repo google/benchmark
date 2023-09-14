@@ -269,7 +269,7 @@ void JSONReporter::PrintRunData(Run const& run) {
           << ",\n";
       out << indent << FormatKV("cpu_time", run.GetAdjustedCPUTime());
       out << ",\n"
-        << indent << FormatKV("time_unit", GetTimeUnitString(run.time_unit));
+          << indent << FormatKV("time_unit", GetTimeUnitString(run.time_unit));
     } else {
       assert(run.aggregate_unit == StatisticUnit::kPercentage);
       out << indent << FormatKV("real_time", run.real_accumulated_time)
