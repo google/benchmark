@@ -197,7 +197,6 @@ ADD_CASES(TC_JSONOut,
            {"\"iterations\": %int,$", MR_Next},
            {"\"real_time\": %float,$", MR_Next},
            {"\"cpu_time\": %float,$", MR_Next},
-           {"\"time_unit\": \"ns\",$", MR_Next},
            {"\"Bar\": %float,$", MR_Next},
            {"\"Bat\": %float,$", MR_Next},
            {"\"Baz\": %float,$", MR_Next},
@@ -306,7 +305,6 @@ ADD_CASES(TC_JSONOut,
            {"\"iterations\": %int,$", MR_Next},
            {"\"real_time\": %float,$", MR_Next},
            {"\"cpu_time\": %float,$", MR_Next},
-           {"\"time_unit\": \"ns\",$", MR_Next},
            {"\"Bar\": %float,$", MR_Next},
            {"\"Bat\": %float,$", MR_Next},
            {"\"Baz\": %float,$", MR_Next},
@@ -330,7 +328,7 @@ ADD_CASES(TC_CSVOut,
           {{"^\"BM_Counters_Tabular/repeats:2/threads:1_stddev\",%csv_report,"
             "%float,%float,%float,%float,%float,%float$"}});
 ADD_CASES(TC_CSVOut,
-          {{"^\"BM_Counters_Tabular/repeats:2/threads:1_cv\",%csv_report,"
+          {{"^\"BM_Counters_Tabular/repeats:2/threads:1_cv\",%csv_cv_report,"
             "%float,%float,%float,%float,%float,%float$"}});
 ADD_CASES(TC_CSVOut,
           {{"^\"BM_Counters_Tabular/repeats:2/threads:2\",%csv_report,"
@@ -348,7 +346,7 @@ ADD_CASES(TC_CSVOut,
           {{"^\"BM_Counters_Tabular/repeats:2/threads:2_stddev\",%csv_report,"
             "%float,%float,%float,%float,%float,%float$"}});
 ADD_CASES(TC_CSVOut,
-          {{"^\"BM_Counters_Tabular/repeats:2/threads:2_cv\",%csv_report,"
+          {{"^\"BM_Counters_Tabular/repeats:2/threads:2_cv\",%csv_cv_report,"
             "%float,%float,%float,%float,%float,%float$"}});
 // VS2013 does not allow this function to be passed as a lambda argument
 // to CHECK_BENCHMARK_RESULTS()
