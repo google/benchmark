@@ -10,7 +10,7 @@ namespace {
 
 class TestReporter : public benchmark::ConsoleReporter {
  public:
-  virtual void ReportRuns(const std::vector<Run>& report) {
+  void ReportRuns(const std::vector<Run>& report) override {
     all_runs_.insert(all_runs_.end(), begin(report), end(report));
     ConsoleReporter::ReportRuns(report);
   }
@@ -19,24 +19,24 @@ class TestReporter : public benchmark::ConsoleReporter {
 };
 
 struct TestCase {
-  std::string name;
-  const char* label;
+  const std::string name;
+  const std::string label;
   // Note: not explicit as we rely on it being converted through ADD_CASES.
-  TestCase(const char* xname) : TestCase(xname, nullptr) {}
-  TestCase(const char* xname, const char* xlabel)
+  TestCase(const std::string& xname) : TestCase(xname, "") {}
+  TestCase(const std::string& xname, const std::string& xlabel)
       : name(xname), label(xlabel) {}
 
   typedef benchmark::BenchmarkReporter::Run Run;
 
   void CheckRun(Run const& run) const {
     // clang-format off
-    CHECK(name == run.benchmark_name()) << "expected " << name << " got "
+    BM_CHECK(name == run.benchmark_name()) << "expected " << name << " got "
                                       << run.benchmark_name();
-    if (label) {
-      CHECK(run.report_label == label) << "expected " << label << " got "
+    if (!label.empty()) {
+      BM_CHECK(run.report_label == label) << "expected " << label << " got "
                                        << run.report_label;
     } else {
-      CHECK(run.report_label == "");
+      BM_CHECK(run.report_label.empty());
     }
     // clang-format on
   }
@@ -45,7 +45,7 @@ struct TestCase {
 std::vector<TestCase> ExpectedResults;
 
 int AddCases(std::initializer_list<TestCase> const& v) {
-  for (auto N : v) {
+  for (const auto& N : v) {
     ExpectedResults.push_back(N);
   }
   return 0;
@@ -96,6 +96,18 @@ ADD_CASES({"test1", "One"}, {"test2", "Two"}, {"test3", "Three"});
 #endif  // BENCHMARK_HAS_NO_VARIADIC_REGISTER_BENCHMARK
 
 //----------------------------------------------------------------------------//
+// Test RegisterBenchmark with DISABLED_ benchmark
+//----------------------------------------------------------------------------//
+void DISABLED_BM_function(benchmark::State& state) {
+  for (auto _ : state) {
+  }
+}
+BENCHMARK(DISABLED_BM_function);
+ReturnVal dummy3 = benchmark::RegisterBenchmark("DISABLED_BM_function_manual",
+                                                DISABLED_BM_function);
+// No need to add cases because we don't expect them to run.
+
+//----------------------------------------------------------------------------//
 // Test RegisterBenchmark with different callable types
 //----------------------------------------------------------------------------//
 
@@ -111,7 +123,7 @@ void TestRegistrationAtRuntime() {
   {
     CustomFixture fx;
     benchmark::RegisterBenchmark("custom_fixture", fx);
-    AddCases({"custom_fixture"});
+    AddCases({std::string("custom_fixture")});
   }
 #endif
 #ifndef BENCHMARK_HAS_NO_VARIADIC_REGISTER_BENCHMARK

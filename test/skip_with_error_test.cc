@@ -10,17 +10,17 @@ namespace {
 
 class TestReporter : public benchmark::ConsoleReporter {
  public:
-  virtual bool ReportContext(const Context& context) {
+  bool ReportContext(const Context& context) override {
     return ConsoleReporter::ReportContext(context);
   };
 
-  virtual void ReportRuns(const std::vector<Run>& report) {
+  void ReportRuns(const std::vector<Run>& report) override {
     all_runs_.insert(all_runs_.end(), begin(report), end(report));
     ConsoleReporter::ReportRuns(report);
   }
 
   TestReporter() {}
-  virtual ~TestReporter() {}
+  ~TestReporter() override {}
 
   mutable std::vector<Run> all_runs_;
 };
@@ -33,21 +33,23 @@ struct TestCase {
   typedef benchmark::BenchmarkReporter::Run Run;
 
   void CheckRun(Run const& run) const {
-    CHECK(name == run.benchmark_name())
+    BM_CHECK(name == run.benchmark_name())
         << "expected " << name << " got " << run.benchmark_name();
-    CHECK(error_occurred == run.error_occurred);
-    CHECK(error_message == run.error_message);
+    BM_CHECK_EQ(error_occurred,
+                benchmark::internal::SkippedWithError == run.skipped);
+    BM_CHECK(error_message == run.skip_message);
     if (error_occurred) {
-      // CHECK(run.iterations == 0);
+      // BM_CHECK(run.iterations == 0);
     } else {
-      CHECK(run.iterations != 0);
+      BM_CHECK(run.iterations != 0);
     }
   }
 };
 
 std::vector<TestCase> ExpectedResults;
 
-int AddCases(const char* base_name, std::initializer_list<TestCase> const& v) {
+int AddCases(const std::string& base_name,
+             std::initializer_list<TestCase> const& v) {
   for (auto TC : v) {
     TC.name = base_name + TC.name;
     ExpectedResults.push_back(std::move(TC));
@@ -97,7 +99,7 @@ ADD_CASES("BM_error_before_running_range_for", {{"", true, "error message"}});
 void BM_error_during_running(benchmark::State& state) {
   int first_iter = true;
   while (state.KeepRunning()) {
-    if (state.range(0) == 1 && state.thread_index <= (state.threads / 2)) {
+    if (state.range(0) == 1 && state.thread_index() <= (state.threads() / 2)) {
       assert(first_iter);
       first_iter = false;
       state.SkipWithError("error message");
@@ -119,12 +121,13 @@ ADD_CASES("BM_error_during_running", {{"/1/threads:1", true, "error message"},
 
 void BM_error_during_running_ranged_for(benchmark::State& state) {
   assert(state.max_iterations > 3 && "test requires at least a few iterations");
-  int first_iter = true;
+  bool first_iter = true;
   // NOTE: Users should not write the for loop explicitly.
   for (auto It = state.begin(), End = state.end(); It != End; ++It) {
     if (state.range(0) == 1) {
       assert(first_iter);
       first_iter = false;
+      (void)first_iter;
       state.SkipWithError("error message");
       // Test the unfortunate but documented behavior that the ranged-for loop
       // doesn't automatically terminate when SkipWithError is set.
@@ -140,9 +143,10 @@ ADD_CASES("BM_error_during_running_ranged_for",
 
 void BM_error_after_running(benchmark::State& state) {
   for (auto _ : state) {
-    benchmark::DoNotOptimize(state.iterations());
+    auto iterations = state.iterations();
+    benchmark::DoNotOptimize(iterations);
   }
-  if (state.thread_index <= (state.threads / 2))
+  if (state.thread_index() <= (state.threads() / 2))
     state.SkipWithError("error message");
 }
 BENCHMARK(BM_error_after_running)->ThreadRange(1, 8);
@@ -154,7 +158,7 @@ ADD_CASES("BM_error_after_running", {{"/threads:1", true, "error message"},
 void BM_error_while_paused(benchmark::State& state) {
   bool first_iter = true;
   while (state.KeepRunning()) {
-    if (state.range(0) == 1 && state.thread_index <= (state.threads / 2)) {
+    if (state.range(0) == 1 && state.thread_index() <= (state.threads() / 2)) {
       assert(first_iter);
       first_iter = false;
       state.PauseTiming();

@@ -15,12 +15,13 @@
 // Source project : https://github.com/ismaelJimenez/cpp.leastsq
 // Adapted to be used with google benchmark
 
-#include "benchmark/benchmark.h"
+#include "complexity.h"
 
 #include <algorithm>
 #include <cmath>
+
+#include "benchmark/benchmark.h"
 #include "check.h"
-#include "complexity.h"
 
 namespace benchmark {
 
@@ -82,7 +83,6 @@ std::string GetBigOString(BigO complexity) {
 LeastSq MinimalLeastSq(const std::vector<int64_t>& n,
                        const std::vector<double>& time,
                        BigOFunc* fitting_curve) {
-  double sigma_gn = 0.0;
   double sigma_gn_squared = 0.0;
   double sigma_time = 0.0;
   double sigma_time_gn = 0.0;
@@ -90,7 +90,6 @@ LeastSq MinimalLeastSq(const std::vector<int64_t>& n,
   // Calculate least square fitting parameter
   for (size_t i = 0; i < n.size(); ++i) {
     double gn_i = fitting_curve(n[i]);
-    sigma_gn += gn_i;
     sigma_gn_squared += gn_i * gn_i;
     sigma_time += time[i];
     sigma_time_gn += time[i] * gn_i;
@@ -125,10 +124,10 @@ LeastSq MinimalLeastSq(const std::vector<int64_t>& n,
 //                  fitting curve.
 LeastSq MinimalLeastSq(const std::vector<int64_t>& n,
                        const std::vector<double>& time, const BigO complexity) {
-  CHECK_EQ(n.size(), time.size());
-  CHECK_GE(n.size(), 2);  // Do not compute fitting curve is less than two
-                          // benchmark runs are given
-  CHECK_NE(complexity, oNone);
+  BM_CHECK_EQ(n.size(), time.size());
+  BM_CHECK_GE(n.size(), 2);  // Do not compute fitting curve is less than two
+                             // benchmark runs are given
+  BM_CHECK_NE(complexity, oNone);
 
   LeastSq best_fit;
 
@@ -169,7 +168,8 @@ std::vector<BenchmarkReporter::Run> ComputeBigO(
 
   // Populate the accumulators.
   for (const Run& run : reports) {
-    CHECK_GT(run.complexity_n, 0) << "Did you forget to call SetComplexityN?";
+    BM_CHECK_GT(run.complexity_n, 0)
+        << "Did you forget to call SetComplexityN?";
     n.push_back(run.complexity_n);
     real_time.push_back(run.real_accumulated_time / run.iterations);
     cpu_time.push_back(run.cpu_accumulated_time / run.iterations);
@@ -193,11 +193,14 @@ std::vector<BenchmarkReporter::Run> ComputeBigO(
   // Get the data from the accumulator to BenchmarkReporter::Run's.
   Run big_o;
   big_o.run_name = run_name;
+  big_o.family_index = reports[0].family_index;
+  big_o.per_family_instance_index = reports[0].per_family_instance_index;
   big_o.run_type = BenchmarkReporter::Run::RT_Aggregate;
   big_o.repetitions = reports[0].repetitions;
   big_o.repetition_index = Run::no_repetition_index;
   big_o.threads = reports[0].threads;
   big_o.aggregate_name = "BigO";
+  big_o.aggregate_unit = StatisticUnit::kTime;
   big_o.report_label = reports[0].report_label;
   big_o.iterations = 0;
   big_o.real_accumulated_time = result_real.coef;
@@ -215,8 +218,11 @@ std::vector<BenchmarkReporter::Run> ComputeBigO(
   // Only add label to mean/stddev if it is same for all runs
   Run rms;
   rms.run_name = run_name;
+  rms.family_index = reports[0].family_index;
+  rms.per_family_instance_index = reports[0].per_family_instance_index;
   rms.run_type = BenchmarkReporter::Run::RT_Aggregate;
   rms.aggregate_name = "RMS";
+  rms.aggregate_unit = StatisticUnit::kPercentage;
   rms.report_label = big_o.report_label;
   rms.iterations = 0;
   rms.repetition_index = Run::no_repetition_index;

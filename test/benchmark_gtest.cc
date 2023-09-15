@@ -1,11 +1,15 @@
+#include <map>
+#include <string>
 #include <vector>
 
 #include "../src/benchmark_register.h"
+#include "benchmark/benchmark.h"
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
 
 namespace benchmark {
 namespace internal {
+
 namespace {
 
 TEST(AddRangeTest, Simple) {
@@ -34,8 +38,9 @@ TEST(AddRangeTest, Advanced64) {
 
 TEST(AddRangeTest, FullRange8) {
   std::vector<int8_t> dst;
-  AddRange(&dst, int8_t{1}, std::numeric_limits<int8_t>::max(), 8);
-  EXPECT_THAT(dst, testing::ElementsAre(1, 8, 64, 127));
+  AddRange(&dst, int8_t{1}, std::numeric_limits<int8_t>::max(), int8_t{8});
+  EXPECT_THAT(
+      dst, testing::ElementsAre(int8_t{1}, int8_t{8}, int8_t{64}, int8_t{127}));
 }
 
 TEST(AddRangeTest, FullRange64) {
@@ -90,6 +95,12 @@ TEST(AddRangeTest, ZeroOnlyRange) {
   EXPECT_THAT(dst, testing::ElementsAre(0));
 }
 
+TEST(AddRangeTest, ZeroStartingRange) {
+  std::vector<int> dst;
+  AddRange(&dst, 0, 2, 2);
+  EXPECT_THAT(dst, testing::ElementsAre(0, 1, 2));
+}
+
 TEST(AddRangeTest, NegativeRange64) {
   std::vector<int64_t> dst;
   AddRange<int64_t>(&dst, -4, 4, 2);
@@ -119,8 +130,38 @@ TEST(AddRangeTest, FullNegativeRange64) {
 
 TEST(AddRangeTest, Simple8) {
   std::vector<int8_t> dst;
-  AddRange<int8_t>(&dst, 1, 8, 2);
-  EXPECT_THAT(dst, testing::ElementsAre(1, 2, 4, 8));
+  AddRange<int8_t>(&dst, int8_t{1}, int8_t{8}, int8_t{2});
+  EXPECT_THAT(dst,
+              testing::ElementsAre(int8_t{1}, int8_t{2}, int8_t{4}, int8_t{8}));
+}
+
+TEST(AddCustomContext, Simple) {
+  std::map<std::string, std::string> *&global_context = GetGlobalContext();
+  EXPECT_THAT(global_context, nullptr);
+
+  AddCustomContext("foo", "bar");
+  AddCustomContext("baz", "qux");
+
+  EXPECT_THAT(*global_context,
+              testing::UnorderedElementsAre(testing::Pair("foo", "bar"),
+                                            testing::Pair("baz", "qux")));
+
+  delete global_context;
+  global_context = nullptr;
+}
+
+TEST(AddCustomContext, DuplicateKey) {
+  std::map<std::string, std::string> *&global_context = GetGlobalContext();
+  EXPECT_THAT(global_context, nullptr);
+
+  AddCustomContext("foo", "bar");
+  AddCustomContext("foo", "qux");
+
+  EXPECT_THAT(*global_context,
+              testing::UnorderedElementsAre(testing::Pair("foo", "bar")));
+
+  delete global_context;
+  global_context = nullptr;
 }
 
 }  // namespace

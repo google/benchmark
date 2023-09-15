@@ -36,7 +36,8 @@
 // declarations of some other intrinsics, breaking compilation.
 // Therefore, we simply declare __rdtsc ourselves. See also
 // http://connect.microsoft.com/VisualStudio/feedback/details/262047
-#if defined(COMPILER_MSVC) && !defined(_M_IX86)
+#if defined(COMPILER_MSVC) && !defined(_M_IX86) && !defined(_M_ARM64) && \
+    !defined(_M_ARM64EC)
 extern "C" uint64_t __rdtsc();
 #pragma intrinsic(__rdtsc)
 #endif
@@ -92,7 +93,7 @@ inline BENCHMARK_ALWAYS_INLINE int64_t Now() {
   uint32_t tbl, tbu0, tbu1;
   asm volatile(
       "mftbu %0\n"
-      "mftbl %1\n"
+      "mftb %1\n"
       "mftbu %2"
       : "=r"(tbu0), "=r"(tbl), "=r"(tbu1));
   tbl &= -static_cast<int32_t>(tbu0 == tbu1);
@@ -114,6 +115,12 @@ inline BENCHMARK_ALWAYS_INLINE int64_t Now() {
   // when I know it will work.  Otherwise, I'll use __rdtsc and hope
   // the code is being compiled with a non-ancient compiler.
   _asm rdtsc
+#elif defined(COMPILER_MSVC) && (defined(_M_ARM64) || defined(_M_ARM64EC))
+  // See // https://docs.microsoft.com/en-us/cpp/intrinsics/arm64-intrinsics
+  // and https://reviews.llvm.org/D53115
+  int64_t virtual_timer_value;
+  virtual_timer_value = _ReadStatusReg(ARM64_CNTVCT);
+  return virtual_timer_value;
 #elif defined(COMPILER_MSVC)
   return __rdtsc();
 #elif defined(BENCHMARK_OS_NACL)
@@ -126,7 +133,7 @@ inline BENCHMARK_ALWAYS_INLINE int64_t Now() {
 
   // Native Client does not provide any API to access cycle counter.
   // Use clock_gettime(CLOCK_MONOTONIC, ...) instead of gettimeofday
-  // because is provides nanosecond resolution (which is noticable at
+  // because is provides nanosecond resolution (which is noticeable at
   // least for PNaCl modules running on x86 Mac & Linux).
   // Initialize to always return 0 if clock_gettime fails.
   struct timespec ts = {0, 0};
@@ -161,18 +168,27 @@ inline BENCHMARK_ALWAYS_INLINE int64_t Now() {
   struct timeval tv;
   gettimeofday(&tv, nullptr);
   return static_cast<int64_t>(tv.tv_sec) * 1000000 + tv.tv_usec;
-#elif defined(__mips__)
+#elif defined(__mips__) || defined(__m68k__)
   // mips apparently only allows rdtsc for superusers, so we fall
   // back to gettimeofday.  It's possible clock_gettime would be better.
+  struct timeval tv;
+  gettimeofday(&tv, nullptr);
+  return static_cast<int64_t>(tv.tv_sec) * 1000000 + tv.tv_usec;
+#elif defined(__loongarch__) || defined(__csky__)
   struct timeval tv;
   gettimeofday(&tv, nullptr);
   return static_cast<int64_t>(tv.tv_sec) * 1000000 + tv.tv_usec;
 #elif defined(__s390__)  // Covers both s390 and s390x.
   // Return the CPU clock.
   uint64_t tsc;
+#if defined(BENCHMARK_OS_ZOS) && defined(COMPILER_IBMXL)
+  // z/OS XL compiler HLASM syntax.
+  asm(" stck %0" : "=m"(tsc) : : "cc");
+#else
   asm("stck %0" : "=Q"(tsc) : : "cc");
+#endif
   return tsc;
-#elif defined(__riscv) // RISC-V
+#elif defined(__riscv)  // RISC-V
   // Use RDCYCLE (and RDCYCLEH on riscv32)
 #if __riscv_xlen == 32
   uint32_t cycles_lo, cycles_hi0, cycles_hi1;
@@ -193,6 +209,14 @@ inline BENCHMARK_ALWAYS_INLINE int64_t Now() {
   asm volatile("rdcycle %0" : "=r"(cycles));
   return cycles;
 #endif
+#elif defined(__e2k__) || defined(__elbrus__)
+  struct timeval tv;
+  gettimeofday(&tv, nullptr);
+  return static_cast<int64_t>(tv.tv_sec) * 1000000 + tv.tv_usec;
+#elif defined(__hexagon__)
+  uint64_t pcycle;
+  asm volatile("%0 = C15:14" : "=r"(pcycle));
+  return static_cast<double>(pcycle);
 #else
 // The soft failover to a generic implementation is automatic only for ARM.
 // For other platforms the developer is expected to make an attempt to create
