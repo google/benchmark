@@ -58,8 +58,8 @@ BENCHMARK_EXPORT
 void ConsoleReporter::PrintHeader(const Run& run) {
   std::string str =
       FormatString("%-*s %13s %15s %*s",
-                   static_cast<int>(name_field_width_), "Benchmark",
-                   "Time", "CPU",
+                   FormatString("%-*s %13s %15s %*s", static_cast<int>(name_field_width_),
+                   "Benchmark", "Time", "CPU",
                    static_cast<int>(iterations_field_width_) + 2, "Iterations");
   if (!run.counters.empty()) {
     if (output_options_ & OO_Tabular) {
@@ -79,11 +79,10 @@ void ConsoleReporter::ReportRuns(const std::vector<Run>& reports) {
   auto max_iterations = std::max_element(reports.begin(), reports.end(),
                                          [](const Run& a, const Run& b) {
                                            return a.iterations > b.iterations;
-                                         })->iterations;
+                                         })
+                            ->iterations;
   auto cur_iterations_field_width = std::max(
-    std::to_string(max_iterations).length(),
-    iterations_field_width_
-  );
+    std::to_string(max_iterations).length(), iterations_field_width_);
 
   for (const auto& run : reports) {
     // print the header:
@@ -93,8 +92,8 @@ void ConsoleReporter::ReportRuns(const std::vector<Run>& reports) {
     //     has different fields from the prev header
     print_header |= (output_options_ & OO_Tabular) &&
                     (!internal::SameNames(run.counters, prev_counters_));
-	// --- or if the width of the iterations field has increased
-	print_header |= (cur_iterations_field_width > iterations_field_width_);
+    // --- or if the width of the iterations field has increased
+    print_header |= (cur_iterations_field_width > iterations_field_width_);
     if (print_header) {
       printed_header_ = true;
       prev_counters_ = run.counters;
