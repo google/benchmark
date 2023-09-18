@@ -82,7 +82,7 @@ void ConsoleReporter::ReportRuns(const std::vector<Run>& reports) {
                                          })
                             ->iterations;
   auto cur_iterations_field_width = std::max(
-    std::to_string(max_iterations).length(), iterations_field_width_);
+      std::to_string(max_iterations).length(), iterations_field_width_);
 
   for (const auto& run : reports) {
     // print the header:
