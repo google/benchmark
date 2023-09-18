@@ -57,8 +57,7 @@ bool ConsoleReporter::ReportContext(const Context& context) {
 BENCHMARK_EXPORT
 void ConsoleReporter::PrintHeader(const Run& run) {
   std::string str =
-      FormatString("%-*s %13s %15s %*s",
-                   FormatString("%-*s %13s %15s %*s", static_cast<int>(name_field_width_),
+      FormatString("%-*s %13s %15s %*s", static_cast<int>(name_field_width_),
                    "Benchmark", "Time", "CPU",
                    static_cast<int>(iterations_field_width_) + 2, "Iterations");
   if (!run.counters.empty()) {
