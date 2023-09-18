@@ -1895,7 +1895,10 @@ class BENCHMARK_EXPORT ConsoleReporter : public BenchmarkReporter {
     OO_Defaults = OO_ColorTabular
   };
   explicit ConsoleReporter(OutputOptions opts_ = OO_Defaults)
-      : output_options_(opts_), name_field_width_(0), printed_header_(false) {}
+      : output_options_(opts_),
+        name_field_width_(0),
+        iterations_field_width_(0),
+        printed_header_(false) {}
 
   bool ReportContext(const Context& context) BENCHMARK_OVERRIDE;
   void ReportRuns(const std::vector<Run>& reports) BENCHMARK_OVERRIDE;
@@ -1907,6 +1910,7 @@ class BENCHMARK_EXPORT ConsoleReporter : public BenchmarkReporter {
   OutputOptions output_options_;
   size_t name_field_width_;
   UserCounters prev_counters_;
+  size_t iterations_field_width_;
   bool printed_header_;
 };
 

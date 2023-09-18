@@ -38,6 +38,7 @@ bool ConsoleReporter::ReportContext(const Context& context) {
   name_field_width_ = context.name_field_width;
   printed_header_ = false;
   prev_counters_.clear();
+  iterations_field_width_ = std::string("Iterations").length();
 
   PrintBasicContext(&GetErrorStream(), context);
 
@@ -56,8 +57,10 @@ bool ConsoleReporter::ReportContext(const Context& context) {
 BENCHMARK_EXPORT
 void ConsoleReporter::PrintHeader(const Run& run) {
   std::string str =
-      FormatString("%-*s %13s %15s %15s", static_cast<int>(name_field_width_),
-                   "Benchmark", "Time", "CPU", "Iterations");
+      FormatString("%-*s %13s %15s %*s",
+                   static_cast<int>(name_field_width_), "Benchmark",
+                   "Time", "CPU",
+                   static_cast<int>(iterations_field_width_) + 2, "Iterations");
   if (!run.counters.empty()) {
     if (output_options_ & OO_Tabular) {
       for (auto const& c : run.counters) {
@@ -73,6 +76,15 @@ void ConsoleReporter::PrintHeader(const Run& run) {
 
 BENCHMARK_EXPORT
 void ConsoleReporter::ReportRuns(const std::vector<Run>& reports) {
+  auto max_iterations = std::max_element(reports.begin(), reports.end(),
+                                         [](const Run& a, const Run& b) {
+                                           return a.iterations > b.iterations;
+                                         })->iterations;
+  auto cur_iterations_field_width = std::max(
+    std::to_string(max_iterations).length(),
+    iterations_field_width_
+  );
+
   for (const auto& run : reports) {
     // print the header:
     // --- if none was printed yet
@@ -81,9 +93,12 @@ void ConsoleReporter::ReportRuns(const std::vector<Run>& reports) {
     //     has different fields from the prev header
     print_header |= (output_options_ & OO_Tabular) &&
                     (!internal::SameNames(run.counters, prev_counters_));
+	// --- or if the width of the iterations field has increased
+	print_header |= (cur_iterations_field_width > iterations_field_width_);
     if (print_header) {
       printed_header_ = true;
       prev_counters_ = run.counters;
+      iterations_field_width_ = cur_iterations_field_width;
       PrintHeader(run);
     }
     // As an alternative to printing the headers like this, we could sort
@@ -171,7 +186,8 @@ void ConsoleReporter::PrintRunData(const Run& result) {
   }
 
   if (!result.report_big_o && !result.report_rms) {
-    printer(Out, COLOR_CYAN, "%13lld", result.iterations);
+    printer(Out, COLOR_CYAN, "%*lld", static_cast<int>(iterations_field_width_),
+            result.iterations);
   }
 
   for (auto& c : result.counters) {
