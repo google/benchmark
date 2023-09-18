@@ -38,9 +38,6 @@ ADD_CASES(TC_ConsoleOut,
     {"^BM_CounterSet0_Tabular/threads:%int %console_report [ ]*%hrfloat [ ]*%hrfloat [ ]*%hrfloat$", MR_Next},
     {"^BM_CounterSet0_Tabular/threads:%int %console_report [ ]*%hrfloat [ ]*%hrfloat [ ]*%hrfloat$", MR_Next},
     {"^BM_CounterSet0_Tabular/threads:%int %console_report [ ]*%hrfloat [ ]*%hrfloat [ ]*%hrfloat$", MR_Next},
-    {"^[-]+$", MR_Next},
-    {"^Benchmark %s Time %s CPU %s Iterations %s Bar %s Baz %s Foo$", MR_Next},
-    {"^[-]+$", MR_Next},
     {"^BM_CounterSet0_Tabular/threads:%int %console_report [ ]*%hrfloat [ ]*%hrfloat [ ]*%hrfloat$", MR_Next},
     {"^BM_CounterSet1_Tabular/threads:%int %console_report [ ]*%hrfloat [ ]*%hrfloat [ ]*%hrfloat$", MR_Next},
     {"^BM_CounterSet1_Tabular/threads:%int %console_report [ ]*%hrfloat [ ]*%hrfloat [ ]*%hrfloat$", MR_Next},
@@ -66,6 +63,9 @@ ADD_CASES(TC_CSVOut, {{"%csv_header,"
 
 void BM_Counters_Tabular(benchmark::State& state) {
   for (auto _ : state) {
+    // This test requires a non-zero CPU time to avoid divide-by-zero
+    auto iterations = state.iterations();
+    benchmark::DoNotOptimize(iterations);
   }
   namespace bm = benchmark;
   state.counters.insert({
@@ -433,6 +433,9 @@ CHECK_BENCHMARK_RESULTS("BM_CounterRates_Tabular/threads:%int",
 // set only some of the counters
 void BM_CounterSet0_Tabular(benchmark::State& state) {
   for (auto _ : state) {
+    // This test requires a non-zero CPU time to avoid divide-by-zero
+    auto iterations = state.iterations();
+    benchmark::DoNotOptimize(iterations);
   }
   namespace bm = benchmark;
   state.counters.insert({
@@ -473,6 +476,9 @@ CHECK_BENCHMARK_RESULTS("BM_CounterSet0_Tabular", &CheckSet0);
 // again.
 void BM_CounterSet1_Tabular(benchmark::State& state) {
   for (auto _ : state) {
+    // This test requires a non-zero CPU time to avoid divide-by-zero
+    auto iterations = state.iterations();
+    benchmark::DoNotOptimize(iterations);
   }
   namespace bm = benchmark;
   state.counters.insert({
@@ -517,6 +523,9 @@ CHECK_BENCHMARK_RESULTS("BM_CounterSet1_Tabular/threads:%int", &CheckSet1);
 // set only some of the counters, different set now.
 void BM_CounterSet2_Tabular(benchmark::State& state) {
   for (auto _ : state) {
+    // This test requires a non-zero CPU time to avoid divide-by-zero
+    auto iterations = state.iterations();
+    benchmark::DoNotOptimize(iterations);
   }
   namespace bm = benchmark;
   state.counters.insert({
