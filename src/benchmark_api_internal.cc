@@ -2,7 +2,10 @@
 
 #include <cinttypes>
 
+#include "counter.h"
 #include "string_util.h"
+#include "thread_manager.h"
+#include "thread_timer.h"
 
 namespace benchmark {
 namespace internal {
@@ -27,7 +30,9 @@ BenchmarkInstance::BenchmarkInstance(Benchmark* benchmark, int family_idx,
       min_time_(benchmark_.min_time_),
       min_warmup_time_(benchmark_.min_warmup_time_),
       iterations_(benchmark_.iterations_),
-      threads_(thread_count) {
+      threads_(thread_count),
+      manual_threading_(benchmark_.manual_threading_),
+      explicit_threading_(benchmark_.GetExplicitThreading()) {
   name_.function_name = benchmark_.name_;
 
   size_t arg_i = 0;
@@ -113,6 +118,17 @@ void BenchmarkInstance::Teardown() const {
              nullptr, nullptr, nullptr);
     teardown_(st);
   }
+}
+
+void MergeResults(const State& st, const ThreadTimer* timer,
+                  ThreadManager* manager) {
+  ThreadManager::Result& results = manager->results;
+  results.iterations += st.iterations();
+  results.cpu_time_used += timer->cpu_time_used();
+  results.real_time_used += timer->real_time_used();
+  results.manual_time_used += timer->manual_time_used();
+  results.complexity_n += st.complexity_length_n();
+  Increment(&results.counters, st.counters);
 }
 }  // namespace internal
 }  // namespace benchmark
