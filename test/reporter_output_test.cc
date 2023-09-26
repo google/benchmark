@@ -1088,7 +1088,7 @@ ADD_CASES(TC_CSVOut, {{"^\"BM_UserPercentStats/iterations:5/repeats:3/"
                       {"^\"BM_UserPercentStats/iterations:5/repeats:3/"
                        "manual_time_stddev\",%csv_report$"},
                       {"^\"BM_UserPercentStats/iterations:5/repeats:3/"
-                       "manual_time_\",%csv_report$"}});
+                       "manual_time_\",%csv_cv_report$"}});
 
 // ========================================================================= //
 // ------------------------- Testing StrEscape JSON ------------------------ //
