@@ -57,9 +57,18 @@ size_t PerfCounterValues::Read(const std::vector<int>& leaders) {
 
 const bool PerfCounters::kSupported = true;
 
-bool PerfCounters::Initialize() { return pfm_initialize() == PFM_SUCCESS; }
+// Initializes libpfm only on the first call.  Returns whether that single
+// initialization was successful.
+bool PerfCounters::Initialize() {
+  // Function-scope static gets initialized only once on first call.
+  static const bool success = []() {
+    return pfm_initialize() == PFM_SUCCESS;
+  }();
+  return success;
+}
 
 bool PerfCounters::IsCounterSupported(const std::string& name) {
+  Initialize();
   perf_event_attr_t attr;
   std::memset(&attr, 0, sizeof(attr));
   pfm_perf_encode_arg_t arg;
@@ -73,6 +82,10 @@ bool PerfCounters::IsCounterSupported(const std::string& name) {
 
 PerfCounters PerfCounters::Create(
     const std::vector<std::string>& counter_names) {
+  if (!counter_names.empty()) {
+    Initialize();
+  }
+
   // Valid counters will populate these arrays but we start empty
   std::vector<std::string> valid_names;
   std::vector<int> counter_ids;

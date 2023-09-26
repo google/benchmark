@@ -1,7 +1,7 @@
 # Require CMake 3.10. If available, use the policies up to CMake 3.22.
 cmake_minimum_required (VERSION 3.10...3.22)
 
-project (benchmark VERSION 1.8.2 LANGUAGES CXX)
+project (benchmark VERSION 1.8.3 LANGUAGES CXX)
 
 option(BENCHMARK_ENABLE_TESTING "Enable testing of the benchmark library." ON)
 option(BENCHMARK_ENABLE_EXCEPTIONS "Enable the use of exceptions in the benchmark library." ON)
@@ -21,7 +21,7 @@ if(BENCHMARK_FORCE_WERROR)
   set(BENCHMARK_ENABLE_WERROR ON)
 endif(BENCHMARK_FORCE_WERROR)
 
-if(NOT MSVC)
+if(NOT (MSVC OR CMAKE_CXX_SIMULATE_ID STREQUAL "MSVC"))
   option(BENCHMARK_BUILD_32_BITS "Build a 32 bit version of the library." OFF)
 else()
   set(BENCHMARK_BUILD_32_BITS OFF CACHE BOOL "Build a 32 bit version of the library - unsupported when using MSVC)" FORCE)
@@ -45,7 +45,7 @@ option(BENCHMARK_ENABLE_LIBPFM "Enable performance counters provided by libpfm" 
 set(CMAKE_CXX_VISIBILITY_PRESET hidden)
 set(CMAKE_VISIBILITY_INLINES_HIDDEN ON)
 
-if(MSVC)
+if(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
     # As of CMake 3.18, CMAKE_SYSTEM_PROCESSOR is not set properly for MSVC and
     # cross-compilation (e.g. Host=x86_64, target=aarch64) requires using the
     # undocumented, but working variable.
@@ -66,7 +66,7 @@ function(should_enable_assembly_tests)
       return()
     endif()
   endif()
-  if (MSVC)
+  if (MSVC OR CMAKE_CXX_SIMULATE_ID STREQUAL "MSVC")
     return()
   elseif(NOT CMAKE_SYSTEM_PROCESSOR MATCHES "x86_64")
     return()
@@ -128,7 +128,7 @@ if (BENCHMARK_BUILD_32_BITS)
   add_required_cxx_compiler_flag(-m32)
 endif()
 
-if (MSVC)
+if (MSVC OR CMAKE_CXX_SIMULATE_ID STREQUAL "MSVC")
   set(BENCHMARK_CXX_STANDARD 14)
 else()
   set(BENCHMARK_CXX_STANDARD 11)

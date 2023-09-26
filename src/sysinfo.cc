@@ -817,7 +817,7 @@ std::vector<double> GetLoadAvg() {
 #if (defined BENCHMARK_OS_FREEBSD || defined(BENCHMARK_OS_LINUX) ||     \
      defined BENCHMARK_OS_MACOSX || defined BENCHMARK_OS_NETBSD ||      \
      defined BENCHMARK_OS_OPENBSD || defined BENCHMARK_OS_DRAGONFLY) && \
-    !defined(__ANDROID__)
+    !(defined(__ANDROID__) && __ANDROID_API__ < 29)
   static constexpr int kMaxSamples = 3;
   std::vector<double> res(kMaxSamples, 0.0);
   const int nelem = getloadavg(res.data(), kMaxSamples);

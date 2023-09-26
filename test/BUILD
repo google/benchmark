@@ -49,6 +49,27 @@ cc_library(
     ],
 )
 
+# Tests that use gtest.  These rely on `gtest_main`.
+[
+    cc_test(
+        name = test_src[:-len(".cc")],
+        size = "small",
+        srcs = [test_src],
+        copts = select({
+            "//:windows": [],
+            "//conditions:default": TEST_COPTS,
+        }) + PER_SRC_COPTS.get(test_src, []),
+        deps = [
+            "//:benchmark",
+            "//:benchmark_internal_headers",
+            "@com_google_googletest//:gtest",
+            "@com_google_googletest//:gtest_main",
+        ],
+    )
+    for test_src in glob(["*_gtest.cc"])
+]
+
+# Tests that do not use gtest.  These have their own `main` defined.
 [
     cc_test(
         name = test_src[:-len(".cc")],
@@ -63,15 +84,13 @@ cc_library(
             ":output_test_helper",
             "//:benchmark",
             "//:benchmark_internal_headers",
-            "@com_google_googletest//:gtest",
-            "@com_google_googletest//:gtest_main",
         ],
         # FIXME: Add support for assembly tests to bazel.
         # See Issue #556
         # https://github.com/google/benchmark/issues/556
     )
     for test_src in glob(
-        ["*test.cc"],
+        ["*_test.cc"],
         exclude = [
             "*_assembly_test.cc",
             "cxx03_test.cc",
@@ -93,8 +112,6 @@ cc_test(
         ":output_test_helper",
         "//:benchmark",
         "//:benchmark_internal_headers",
-        "@com_google_googletest//:gtest",
-        "@com_google_googletest//:gtest_main",
     ],
 )
 

@@ -179,6 +179,17 @@ State::State(std::string name, IterationCount max_iters,
   BM_CHECK_LT(thread_index_, threads_)
       << "thread_index must be less than threads";
 
+  // Add counters with correct flag now.  If added with `counters[name]` in
+  // `PauseTiming`, a new `Counter` will be inserted the first time, which
+  // won't have the flag.  Inserting them now also reduces the allocations
+  // during the benchmark.
+  if (perf_counters_measurement_) {
+    for (const std::string& counter_name :
+         perf_counters_measurement_->names()) {
+      counters[counter_name] = Counter(0.0, Counter::kAvgIterations);
+    }
+  }
+
   // Note: The use of offsetof below is technically undefined until C++17
   // because State is not a standard layout type. However, all compilers
   // currently provide well-defined behavior as an extension (which is
@@ -227,9 +238,11 @@ void State::PauseTiming() {
       BM_CHECK(false) << "Perf counters read the value failed.";
     }
     for (const auto& name_and_measurement : measurements) {
-      auto name = name_and_measurement.first;
-      auto measurement = name_and_measurement.second;
-      counters[name] += Counter(measurement, Counter::kAvgIterations);
+      const std::string& name = name_and_measurement.first;
+      const double measurement = name_and_measurement.second;
+      // Counter was inserted with `kAvgIterations` flag by the constructor.
+      assert(counters.find(name) != counters.end());
+      counters[name].value += measurement;
     }
   }
 }
@@ -383,7 +396,7 @@ void RunBenchmarks(const std::vector<BenchmarkInstance>& benchmarks,
       BenchmarkReporter::PerFamilyRunReports* reports_for_family = nullptr;
       if (benchmark.complexity() != oNone)
         reports_for_family = &per_family_reports[benchmark.family_index()];
-      benchmarks_with_threads += (benchmark.threads() > 0);
+      benchmarks_with_threads += (benchmark.threads() > 1);
       runners.emplace_back(benchmark, &perfcounters, reports_for_family);
       int num_repeats_of_this_instance = runners.back().GetNumRepeats();
       num_repetitions_total += num_repeats_of_this_instance;
