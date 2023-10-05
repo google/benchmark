@@ -930,7 +930,7 @@ class BENCHMARK_EXPORT State {
     return max_iterations - total_iterations_ + batch_leftover_;
   }
 
- BENCHMARK_ALWAYS_INLINE
+  BENCHMARK_ALWAYS_INLINE
   int GetNumThreadStates() const { return num_thread_states_; }
 
   BENCHMARK_ALWAYS_INLINE
@@ -998,6 +998,7 @@ class BENCHMARK_EXPORT ThreadState : public State {
  public:
   explicit ThreadState(State& s);
   ~ThreadState();
+
  private:
   State* parent_;
 
@@ -1294,8 +1295,12 @@ class BENCHMARK_EXPORT Benchmark {
   // Equivalent to ThreadRange(NumCPUs(), NumCPUs())
   Benchmark* ThreadPerCpu();
 
-  // Don't create threads. Let the user evaluate state.threads and/or use ThreadState.
-  Benchmark* ManualThreading() { manual_threading_ = true; return this; }
+  // Don't create threads. Let the user evaluate state.threads and/or use
+  // ThreadState.
+  Benchmark* ManualThreading() {
+    manual_threading_ = true;
+    return this;
+  }
 
   virtual void Run(State& state) = 0;
 

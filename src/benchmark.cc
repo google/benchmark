@@ -333,8 +333,11 @@ ThreadState::ThreadState(State& s) : State(s), parent_(&s) {
   BM_CHECK(!started())
       << "Don't create a ThreadState object after measurement has started";
   timer_ = new internal::ThreadTimer(*timer_);
-  perf_counters_measurement_ = new internal::PerfCountersMeasurement(
-      perf_counters_measurement_->names());
+  if (perf_counters_measurement_)
+  {
+      perf_counters_measurement_ = new internal::PerfCountersMeasurement(
+          perf_counters_measurement_->names());
+  }
 }
 
 ThreadState::~ThreadState() {
@@ -342,6 +345,7 @@ ThreadState::~ThreadState() {
       << "Benchmark returned before ThreadState::KeepRunning() returned false!";
   MergeThreadStateToParent(*parent_);
   delete timer_;
+  delete perf_counters_measurement_;
 }
 
 namespace internal {

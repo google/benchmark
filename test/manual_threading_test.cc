@@ -2,8 +2,8 @@
 #undef NDEBUG
 
 #include <chrono>
-#include <thread>
 #include <future>
+#include <thread>
 
 #include "../src/timers.h"
 #include "benchmark/benchmark.h"
@@ -30,7 +30,7 @@ void MyBusySpinwait() {
   }
 }
 
-}
+}  // namespace
 
 // ========================================================================= //
 // --------------------------- TEST CASES BEGIN ---------------------------- //
@@ -42,17 +42,15 @@ void MyBusySpinwait() {
 
 void BM_ManualThreadingInLoop(benchmark::State& state) {
   int numWorkerThreads = state.threads() - 1;
-  std::vector<std::thread> pool (numWorkerThreads);
+  std::vector<std::thread> pool(numWorkerThreads);
 
   for (auto _ : state) {
 
-    for (int i = 0; i < numWorkerThreads; ++i)
-    {
+    for (int i = 0; i < numWorkerThreads; ++i) {
       pool[i] = std::thread(MyBusySpinwait);
     }
     MyBusySpinwait();
-    for (int i = 0; i < numWorkerThreads; ++i)
-    {
+    for (int i = 0; i < numWorkerThreads; ++i) {
       pool[i].join();
     }
     state.SetIterationTime(time_frame_in_sec);
@@ -61,10 +59,25 @@ void BM_ManualThreadingInLoop(benchmark::State& state) {
       benchmark::Counter{1, benchmark::Counter::kIsRate};
 }
 
-BENCHMARK(BM_ManualThreadingInLoop)->Iterations(1)->ManualThreading()->Threads(1);
-BENCHMARK(BM_ManualThreadingInLoop)->Iterations(1)->ManualThreading()->Threads(1)->UseRealTime();
-BENCHMARK(BM_ManualThreadingInLoop)->Iterations(1)->ManualThreading()->Threads(1)->UseManualTime();
-BENCHMARK(BM_ManualThreadingInLoop)->Iterations(1)->ManualThreading()->Threads(1)->MeasureProcessCPUTime();
+BENCHMARK(BM_ManualThreadingInLoop)
+    ->Iterations(1)
+    ->ManualThreading()
+    ->Threads(1);
+BENCHMARK(BM_ManualThreadingInLoop)
+    ->Iterations(1)
+    ->ManualThreading()
+    ->Threads(1)
+    ->UseRealTime();
+BENCHMARK(BM_ManualThreadingInLoop)
+    ->Iterations(1)
+    ->ManualThreading()
+    ->Threads(1)
+    ->UseManualTime();
+BENCHMARK(BM_ManualThreadingInLoop)
+    ->Iterations(1)
+    ->ManualThreading()
+    ->Threads(1)
+    ->MeasureProcessCPUTime();
 BENCHMARK(BM_ManualThreadingInLoop)
     ->Iterations(1)
     ->ManualThreading()
@@ -78,10 +91,25 @@ BENCHMARK(BM_ManualThreadingInLoop)
     ->MeasureProcessCPUTime()
     ->UseManualTime();
 
-BENCHMARK(BM_ManualThreadingInLoop)->Iterations(1)->ManualThreading()->Threads(2);
-BENCHMARK(BM_ManualThreadingInLoop)->Iterations(1)->ManualThreading()->Threads(2)->UseRealTime();
-BENCHMARK(BM_ManualThreadingInLoop)->Iterations(1)->ManualThreading()->Threads(2)->UseManualTime();
-BENCHMARK(BM_ManualThreadingInLoop)->Iterations(1)->ManualThreading()->Threads(2)->MeasureProcessCPUTime();
+BENCHMARK(BM_ManualThreadingInLoop)
+    ->Iterations(1)
+    ->ManualThreading()
+    ->Threads(2);
+BENCHMARK(BM_ManualThreadingInLoop)
+    ->Iterations(1)
+    ->ManualThreading()
+    ->Threads(2)
+    ->UseRealTime();
+BENCHMARK(BM_ManualThreadingInLoop)
+    ->Iterations(1)
+    ->ManualThreading()
+    ->Threads(2)
+    ->UseManualTime();
+BENCHMARK(BM_ManualThreadingInLoop)
+    ->Iterations(1)
+    ->ManualThreading()
+    ->Threads(2)
+    ->MeasureProcessCPUTime();
 BENCHMARK(BM_ManualThreadingInLoop)
     ->Iterations(1)
     ->ManualThreading()
@@ -97,10 +125,10 @@ BENCHMARK(BM_ManualThreadingInLoop)
 
 // ========================================================================= //
 // BM_ManualThreadingBeforeLoop
-// Creation of threads is done before the start of the measurement, joining after the finish of the measurement.
+// Creation of threads is done before the start of the measurement,
+// joining after the finish of the measurement.
 
 void BM_ManualThreadingBeforeLoop(benchmark::State& state) {
-
   std::promise<void> thread_starter;
   auto starter_future = thread_starter.get_future();
 
@@ -113,14 +141,12 @@ void BM_ManualThreadingBeforeLoop(benchmark::State& state) {
     }
   };
 
-  std::vector<std::thread> pool (state.threads());
-  for (int i = 0; i < state.threads(); ++i)
-  {
+  std::vector<std::thread> pool(state.threads());
+  for (int i = 0; i < state.threads(); ++i) {
     pool[i] = std::thread(threadedLoop);
   }
   thread_starter.set_value();
-  for (int i = 0; i < state.threads(); ++i)
-  {
+  for (int i = 0; i < state.threads(); ++i) {
     pool[i].join();
   }
 
@@ -128,10 +154,25 @@ void BM_ManualThreadingBeforeLoop(benchmark::State& state) {
       benchmark::Counter{1, benchmark::Counter::kIsRate};
 }
 
-BENCHMARK(BM_ManualThreadingBeforeLoop)->Iterations(1)->ManualThreading()->Threads(1);
-BENCHMARK(BM_ManualThreadingBeforeLoop)->Iterations(1)->ManualThreading()->Threads(1)->UseRealTime();
-BENCHMARK(BM_ManualThreadingBeforeLoop)->Iterations(1)->ManualThreading()->Threads(1)->UseManualTime();
-BENCHMARK(BM_ManualThreadingBeforeLoop)->Iterations(1)->ManualThreading()->Threads(1)->MeasureProcessCPUTime();
+BENCHMARK(BM_ManualThreadingBeforeLoop)
+    ->Iterations(1)
+    ->ManualThreading()
+    ->Threads(1);
+BENCHMARK(BM_ManualThreadingBeforeLoop)
+    ->Iterations(1)
+    ->ManualThreading()
+    ->Threads(1)
+    ->UseRealTime();
+BENCHMARK(BM_ManualThreadingBeforeLoop)
+    ->Iterations(1)
+    ->ManualThreading()
+    ->Threads(1)
+    ->UseManualTime();
+BENCHMARK(BM_ManualThreadingBeforeLoop)
+    ->Iterations(1)
+    ->ManualThreading()
+    ->Threads(1)
+    ->MeasureProcessCPUTime();
 BENCHMARK(BM_ManualThreadingBeforeLoop)
     ->Iterations(1)
     ->ManualThreading()
@@ -145,10 +186,25 @@ BENCHMARK(BM_ManualThreadingBeforeLoop)
     ->MeasureProcessCPUTime()
     ->UseManualTime();
 
-BENCHMARK(BM_ManualThreadingBeforeLoop)->Iterations(1)->ManualThreading()->Threads(2);
-BENCHMARK(BM_ManualThreadingBeforeLoop)->Iterations(1)->ManualThreading()->Threads(2)->UseRealTime();
-BENCHMARK(BM_ManualThreadingBeforeLoop)->Iterations(1)->ManualThreading()->Threads(2)->UseManualTime();
-BENCHMARK(BM_ManualThreadingBeforeLoop)->Iterations(1)->ManualThreading()->Threads(2)->MeasureProcessCPUTime();
+BENCHMARK(BM_ManualThreadingBeforeLoop)
+    ->Iterations(1)
+    ->ManualThreading()
+    ->Threads(2);
+BENCHMARK(BM_ManualThreadingBeforeLoop)
+    ->Iterations(1)
+    ->ManualThreading()
+    ->Threads(2)
+    ->UseRealTime();
+BENCHMARK(BM_ManualThreadingBeforeLoop)
+    ->Iterations(1)
+    ->ManualThreading()
+    ->Threads(2)
+    ->UseManualTime();
+BENCHMARK(BM_ManualThreadingBeforeLoop)
+    ->Iterations(1)
+    ->ManualThreading()
+    ->Threads(2)
+    ->MeasureProcessCPUTime();
 BENCHMARK(BM_ManualThreadingBeforeLoop)
     ->Iterations(1)
     ->ManualThreading()
