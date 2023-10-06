@@ -984,6 +984,7 @@ class BENCHMARK_EXPORT State {
   internal::ThreadManager* const manager_;
 
   friend class internal::BenchmarkInstance;
+  friend class ThreadState;
 
  protected:
   void MergeThreadStateToParent(State& parent) const;

@@ -329,15 +329,16 @@ void State::MergeThreadStateToParent(State& parent) const {
   parent.num_thread_states_++;
 }
 
-ThreadState::ThreadState(State& s) : State(s), parent_(&s) {
-  BM_CHECK(!started())
-      << "Don't create a ThreadState object after measurement has started";
-  timer_ = new internal::ThreadTimer(*timer_);
-  if (perf_counters_measurement_) {
-      perf_counters_measurement_ = new internal::PerfCountersMeasurement(
-          perf_counters_measurement_->names());
-  }
-}
+ThreadState::ThreadState(State& s)
+    : State(s.name(), s.max_iterations, s.range_, s.thread_index(), s.threads(),
+            new internal::ThreadTimer(
+                internal::ThreadTimer::CreateFromTimer(*s.timer_)),
+            s.manager_,
+            s.perf_counters_measurement_
+                ? new internal::PerfCountersMeasurement(
+                      s.perf_counters_measurement_->names())
+                : 0),
+      parent_(&s) {}
 
 ThreadState::~ThreadState() {
   BM_CHECK(error_occurred() || iterations() >= max_iterations)

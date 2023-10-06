@@ -18,6 +18,9 @@ class ThreadTimer {
   static ThreadTimer CreateProcessCpuTime() {
     return ThreadTimer(/*measure_process_cpu_time_=*/true);
   }
+  static ThreadTimer CreateFromTimer(const ThreadTimer& timer) {
+    return ThreadTimer(timer.measure_process_cpu_time);
+  }
 
   // Called by each thread
   void StartTimer() {
