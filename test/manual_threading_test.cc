@@ -45,7 +45,6 @@ void BM_ManualThreadingInLoop(benchmark::State& state) {
   std::vector<std::thread> pool(numWorkerThreads);
 
   for (auto _ : state) {
-
     for (int i = 0; i < numWorkerThreads; ++i) {
       pool[i] = std::thread(MyBusySpinwait);
     }

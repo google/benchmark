@@ -333,8 +333,7 @@ ThreadState::ThreadState(State& s) : State(s), parent_(&s) {
   BM_CHECK(!started())
       << "Don't create a ThreadState object after measurement has started";
   timer_ = new internal::ThreadTimer(*timer_);
-  if (perf_counters_measurement_)
-  {
+  if (perf_counters_measurement_) {
       perf_counters_measurement_ = new internal::PerfCountersMeasurement(
           perf_counters_measurement_->names());
   }
