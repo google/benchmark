@@ -10,6 +10,7 @@
 
 #include "benchmark/benchmark.h"
 #include "commandlineflags.h"
+#include "mutex.h"
 
 namespace benchmark {
 namespace internal {
@@ -83,8 +84,8 @@ bool FindBenchmarksInternal(const std::string& re,
 
 bool IsZero(double n);
 
-void MergeResults(const State& st, const ThreadTimer* timer,
-                  ThreadManager* manager);
+void MergeResults(const State& st, const ThreadTimer* timer,    // only call while holding benchmark_mutex_
+                  ThreadManager* manager) NO_THREAD_SAFETY_ANALYSIS;
 
 BENCHMARK_EXPORT
 ConsoleReporter::OutputOptions GetOutputOptions(bool force_no_color = false);

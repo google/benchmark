@@ -994,7 +994,7 @@ class BENCHMARK_EXPORT State {
 };
 
 // ThreadState can be used in a manually multithreaded benchmark loop.
-class ThreadState : public State {
+class BENCHMARK_EXPORT ThreadState : public State {
  public:
   explicit ThreadState(State& s);
   ~ThreadState();
