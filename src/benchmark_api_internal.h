@@ -84,7 +84,8 @@ bool FindBenchmarksInternal(const std::string& re,
 
 bool IsZero(double n);
 
-void MergeResults(const State& st, const ThreadTimer* timer,    // only call while holding benchmark_mutex_
+// only call while holding benchmark_mutex_:
+void MergeResults(const State& st, const ThreadTimer* timer,
                   ThreadManager* manager) NO_THREAD_SAFETY_ANALYSIS;
 
 BENCHMARK_EXPORT
