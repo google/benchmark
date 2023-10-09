@@ -41,6 +41,8 @@ class BenchmarkInstance {
   int threads() const { return threads_; }
   void Setup() const;
   void Teardown() const;
+  bool explicit_threading() const { return explicit_threading_; }
+  bool manual_threading() const { return manual_threading_; }
 
   State Run(IterationCount iters, int thread_id, internal::ThreadTimer* timer,
             internal::ThreadManager* manager,
@@ -66,6 +68,9 @@ class BenchmarkInstance {
   double min_warmup_time_;
   IterationCount iterations_;
   int threads_;  // Number of concurrent threads to us
+  bool manual_threading_;
+  bool explicit_threading_;  // true: Number of threads come from a Threads()
+                             // call
 
   typedef void (*callback_function)(const benchmark::State&);
   callback_function setup_ = nullptr;
@@ -77,6 +82,9 @@ bool FindBenchmarksInternal(const std::string& re,
                             std::ostream* Err);
 
 bool IsZero(double n);
+
+void MergeResults(const State& st, const ThreadTimer* timer,
+                  ThreadManager* manager);
 
 BENCHMARK_EXPORT
 ConsoleReporter::OutputOptions GetOutputOptions(bool force_no_color = false);

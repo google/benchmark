@@ -930,6 +930,9 @@ class BENCHMARK_EXPORT State {
     return max_iterations - total_iterations_ + batch_leftover_;
   }
 
+ BENCHMARK_ALWAYS_INLINE
+  int GetNumThreadStates() const { return num_thread_states_; }
+
   BENCHMARK_ALWAYS_INLINE
   std::string name() const { return name_; }
 
@@ -976,12 +979,29 @@ class BENCHMARK_EXPORT State {
   const std::string name_;
   const int thread_index_;
   const int threads_;
+  int num_thread_states_;
 
-  internal::ThreadTimer* const timer_;
   internal::ThreadManager* const manager_;
-  internal::PerfCountersMeasurement* const perf_counters_measurement_;
 
   friend class internal::BenchmarkInstance;
+
+ protected:
+  void MergeThreadStateToParent(State& parent) const;
+  bool started() const { return started_; }
+
+  internal::ThreadTimer* timer_;
+  internal::PerfCountersMeasurement* perf_counters_measurement_;
+};
+
+// ThreadState can be used in a manually multithreaded benchmark loop.
+class ThreadState : public State {
+ public:
+  explicit ThreadState(State& s);
+  ~ThreadState();
+ private:
+  State* parent_;
+
+  ThreadState(const ThreadState&);
 };
 
 inline BENCHMARK_ALWAYS_INLINE bool State::KeepRunning() {
@@ -1274,6 +1294,9 @@ class BENCHMARK_EXPORT Benchmark {
   // Equivalent to ThreadRange(NumCPUs(), NumCPUs())
   Benchmark* ThreadPerCpu();
 
+  // Don't create threads. Let the user evaluate state.threads and/or use ThreadState.
+  Benchmark* ManualThreading() { manual_threading_ = true; return this; }
+
   virtual void Run(State& state) = 0;
 
   TimeUnit GetTimeUnit() const;
@@ -1286,6 +1309,7 @@ class BENCHMARK_EXPORT Benchmark {
   const char* GetName() const;
   int ArgsCnt() const;
   const char* GetArgName(int arg) const;
+  bool GetExplicitThreading() const { return !thread_counts_.empty(); }
 
  private:
   friend class BenchmarkFamilies;
@@ -1307,6 +1331,7 @@ class BENCHMARK_EXPORT Benchmark {
   bool measure_process_cpu_time_;
   bool use_real_time_;
   bool use_manual_time_;
+  bool manual_threading_;
   BigO complexity_;
   BigOFunc* complexity_lambda_;
   std::vector<Statistics> statistics_;

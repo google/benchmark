@@ -830,6 +830,64 @@ BENCHMARK(BM_test)->Range(8, 8<<10)->UseRealTime();
 
 Without `UseRealTime`, CPU time is used by default.
 
+### Manual Multithreaded Benchmarks
+
+Google/benchmark uses `std::thread` as multithreading environment per default.
+If you want to use another multithreading environment (e.g. OpenMP), you can
+turn off the automatic creation of threads using the `ManualThreading` function.
+```c++
+static void BM_MultiThreaded(benchmark::State& state) {
+  // Setup code here.
+  for (auto _ : state) {
+#pragma omp parallel num_threads(state.threads)
+    // Run the multithreaded test.
+  }
+  // Teardown code here.
+}
+
+BENCHMARK(BM_MultiThreaded)->ManualThreading()->Threads(1)->Threads(2)->Threads(4);
+```
+The above example creates a parallel region in each iteration.
+This includes the setup and teardown of the parallel region in the time measurement, and it
+adds an implicit barrier at the end of each iteration.
+You can avoid these effects, if you run the whole loop in parallel.
+Then you must not use the `state` object directly, but create a `ThreadState` object in each thread.
+```c++
+static void BM_MultiThreaded(benchmark::State& state) {
+  // Setup code (shared objects) here.
+#pragma omp parallel num_threads(state.threads)
+  {
+    // Thread-local setup code here.
+    for (auto _ : benchmark::ThreadState(state)) {
+      // Run the multithreaded test.
+    }
+  }
+  // Teardown code here.
+}
+
+BENCHMARK(BM_MultiThreaded)->ManualThreading()->Threads(1)->Threads(2)->Threads(4);
+```
+If you use the `ThreadState` object and explicitly specify the number of threads, then you must
+use `ManualThreading` and the number of created `ThreadState` objects must match the number of specified threads.
+However, if you use `ThreadState` without explicitly specifying the number of threads,
+then the number of threads is determined by the number of created `ThreadState` objects.
+Specifying `ManualThreading` is optional in this case.
+```c++
+static void BM_MultiThreaded(benchmark::State& state) {
+  // Setup code (shared objects) here.
+#pragma omp parallel
+  {
+    // Thread-local setup code here.
+    for (auto _ : benchmark::ThreadState(state)) {
+      // Run the multithreaded test.
+    }
+  }
+  // Teardown code here.
+}
+
+BENCHMARK(BM_MultiThreaded);  // measures omp_get_max_threads number of threads.
+```
+
 <a name="cpu-timers" />
 
 ## CPU Timers

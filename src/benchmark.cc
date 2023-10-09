@@ -172,8 +172,9 @@ State::State(std::string name, IterationCount max_iters,
       name_(std::move(name)),
       thread_index_(thread_i),
       threads_(n_threads),
-      timer_(timer),
+      num_thread_states_(0),
       manager_(manager),
+      timer_(timer),
       perf_counters_measurement_(perf_counters_measurement) {
   BM_CHECK(max_iterations != 0) << "At least one iteration must be run";
   BM_CHECK_LT(thread_index_, threads_)
@@ -307,6 +308,40 @@ void State::FinishKeepRunning() {
   total_iterations_ = 0;
   finished_ = true;
   manager_->StartStopBarrier();
+}
+
+void State::MergeThreadStateToParent(State& parent) const {
+  MutexLock l(manager_->GetBenchmarkMutex());
+  internal::MergeResults(*this, timer_, manager_);
+  assert(parent.total_iterations_ == 0 ||
+         parent.total_iterations_ == total_iterations_);
+  assert(parent.batch_leftover_ == 0 ||
+         parent.batch_leftover_ == batch_leftover_);
+  parent.total_iterations_ = total_iterations_;
+  parent.batch_leftover_ = batch_leftover_;
+  parent.started_ = parent.started_ || started_;
+  parent.finished_ = parent.finished_ || finished_;
+  parent.skipped_ =
+      (parent.error_occurred() || error_occurred())
+          ? internal::SkippedWithError
+          : (parent.skipped() || skipped() ? internal::SkippedWithMessage
+                                           : internal::NotSkipped);
+  parent.num_thread_states_++;
+}
+
+ThreadState::ThreadState(State& s) : State(s), parent_(&s) {
+  BM_CHECK(!started())
+      << "Don't create a ThreadState object after measurement has started";
+  timer_ = new internal::ThreadTimer(*timer_);
+  perf_counters_measurement_ = new internal::PerfCountersMeasurement(
+      perf_counters_measurement_->names());
+}
+
+ThreadState::~ThreadState() {
+  BM_CHECK(error_occurred() || iterations() >= max_iterations)
+      << "Benchmark returned before ThreadState::KeepRunning() returned false!";
+  MergeThreadStateToParent(*parent_);
+  delete timer_;
 }
 
 namespace internal {
