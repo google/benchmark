@@ -111,4 +111,44 @@ jobs:
       - name: test
         run: ctest --test-dir _build/ -C ${{ matrix.build_type }} -VV
 
+  # enable warnings as errors to try to stop leaking
+  strict:
+    name: strict.${{ matrix.os }}.${{ matrix.compiler }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest]
+        compiler: ['g++', 'clang++']
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - uses: lukka/get-cmake@latest
+
+      - name: create build environment
+        run: cmake -E make_directory ${{ runner.workspace }}/_build
+
+      - name: setup cmake initial cache
+        run: touch compiler-cache.cmake
+
+      - name: configure cmake
+        env:
+          CXX: ${{ matrix.compiler }}
+        shell: bash
+        working-directory: ${{ runner.workspace }}/_build
+        run: >
+          cmake -C ${{ github.workspace }}/compiler-cache.cmake
+          $GITHUB_WORKSPACE
+          -DBENCHMARK_DOWNLOAD_DEPENDENCIES=ON
+          -DBENCHMARK_ENABLE_WERROR=ON
+          -DCMAKE_BUILD_TYPE=Debug
+          -DCMAKE_CXX_COMPILER=${{ env.CXX }}
+          -DCMAKE_CXX_VISIBILITY_PRESET=hidden
+          -DCMAKE_VISIBILITY_INLINES_HIDDEN=ON
+
+      - name: build
+        shell: bash
+        working-directory: ${{ runner.workspace }}/_build
+        run: cmake --build . --config "Debug"
 
