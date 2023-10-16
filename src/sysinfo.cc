@@ -429,10 +429,10 @@ std::string GetSystemName() {
   str = std::string(hostname, DWCOUNT);
 #else
   // `WideCharToMultiByte` returns `0` when conversion fails.
-  int len = WideCharToMultiByte(CP_UTF8, WC_ERR_INVALID_CHARS, hostname,
+  int len = WideCharToMultiByte(CP_UTF8, MB_ERR_INVALID_CHARS, hostname,
                                 DWCOUNT, NULL, 0, NULL, NULL);
   str.resize(len);
-  WideCharToMultiByte(CP_UTF8, WC_ERR_INVALID_CHARS, hostname, DWCOUNT, &str[0],
+  WideCharToMultiByte(CP_UTF8, MB_ERR_INVALID_CHARS, hostname, DWCOUNT, &str[0],
                       str.size(), NULL, NULL);
 #endif
   return str;
