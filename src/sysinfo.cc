@@ -15,6 +15,10 @@
 #include "internal_macros.h"
 
 #ifdef BENCHMARK_OS_WINDOWS
+#if !defined(WINVER) || WINVER < 0x0600
+#undef WINVER
+#define WINVER 0x0600
+#endif // WINVER handling
 #include <shlwapi.h>
 #undef StrCat  // Don't let StrCat in string_util.h be renamed to lstrcatA
 #include <versionhelpers.h>
@@ -428,9 +432,6 @@ std::string GetSystemName() {
 #ifndef UNICODE
   str = std::string(hostname, DWCOUNT);
 #else
-#ifndef WC_ERR_INVALID_CHARS
-#define WC_ERR_INVALID_CHARS 0x00000080
-#endif
   // `WideCharToMultiByte` returns `0` when conversion fails.
   int len = WideCharToMultiByte(CP_UTF8, WC_ERR_INVALID_CHARS, hostname,
                                 DWCOUNT, NULL, 0, NULL, NULL);
