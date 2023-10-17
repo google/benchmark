@@ -341,7 +341,7 @@ BENCHMARK_EXPORT BenchmarkReporter* CreateDefaultDisplayReporter();
 // The second and third overload use the specified 'display_reporter' and
 //  'file_reporter' respectively. 'file_reporter' will write to the file
 //  specified
-//   by '--benchmark_output'. If '--benchmark_output' is not given the
+//   by '--benchmark_out'. If '--benchmark_out' is not given the
 //  'file_reporter' is ignored.
 //
 // RETURNS: The number of matching benchmarks.
