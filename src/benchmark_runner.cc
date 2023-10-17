@@ -326,7 +326,7 @@ IterationCount BenchmarkRunner::PredictNumItersNeeded(
   // So what seems to be the sufficiently-large iteration count? Round up.
   const IterationCount max_next_iters = static_cast<IterationCount>(
       std::llround(std::max(multiplier * static_cast<double>(i.iters),
-                           static_cast<double>(i.iters) + 1.0)));
+                            static_cast<double>(i.iters) + 1.0)));
   // But we do have *some* limits though..
   const IterationCount next_iters = std::min(max_next_iters, kMaxIterations);
 
