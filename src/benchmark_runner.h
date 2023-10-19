@@ -93,6 +93,7 @@ class BenchmarkRunner {
   bool warmup_done;
   const int repeats;
   const bool has_explicit_iteration_count;
+  const int num_managed_threads;  // must be before pool
 
   int num_repetitions_done = 0;
 
