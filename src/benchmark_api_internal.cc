@@ -121,7 +121,7 @@ void BenchmarkInstance::Teardown() const {
 }
 
 void MergeResults(const State& st, const ThreadTimer* timer,
-                  ThreadManager* manager) REQUIRES(manager->benchmark_mutex_) {
+                  ThreadManager* manager) NO_THREAD_SAFETY_ANALYSIS {
   ThreadManager::Result& results = manager->results;
   results.iterations += st.iterations();
   results.cpu_time_used += timer->cpu_time_used();
