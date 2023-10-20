@@ -18,6 +18,9 @@ TEST_COPTS = [
     #    "-Wshorten-64-to-32",
     "-Wfloat-equal",
     "-fstrict-aliasing",
+    ## assert() are used a lot in tests upstream, which may be optimised out leading to
+    ## unused-variable warning.
+    "-Wno-unused-variable",
 ]
 
 # Some of the issues with DoNotOptimize only occur when optimization is enabled
