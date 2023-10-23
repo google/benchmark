@@ -5,6 +5,8 @@ set(THREADS_PREFER_PTHREAD_FLAG ON)
 find_package(Threads REQUIRED)
 include(CheckCXXCompilerFlag)
 
+add_cxx_compiler_flag(-Wno-unused-variable)
+
 # NOTE: Some tests use `<cassert>` to perform the test. Therefore we must
 # strip -DNDEBUG from the default CMake flags in DEBUG mode.
 string(TOUPPER "${CMAKE_BUILD_TYPE}" uppercase_CMAKE_BUILD_TYPE)
