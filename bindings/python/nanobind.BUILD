@@ -21,8 +21,10 @@ cc_library(
             "/EHsc",  # exceptions
             "/Os",  # size optimizations
         ],
+        # these should work on both clang and gcc.
         "//conditions:default": [
             "-fexceptions",
+            "-flto",
             "-Os",
         ],
     }),
