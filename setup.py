@@ -53,7 +53,9 @@ class BuildBazelExtension(build_ext.build_ext):
     def run(self):
         for ext in self.extensions:
             self.bazel_build(ext)
-        build_ext.build_ext.run(self)
+        super().run()
+        # explicitly call `bazel shutdown` for graceful exit
+        self.spawn(["bazel", "shutdown"])
 
     def bazel_build(self, ext: BazelExtension):
         """Runs the bazel build to create the package."""
@@ -97,9 +99,6 @@ class BuildBazelExtension(build_ext.build_ext):
 
             ext_dest_path = Path(self.get_ext_fullpath(ext.name))
             shutil.copyfile(ext_bazel_bin_path, ext_dest_path)
-
-            # explicitly call `bazel shutdown` for graceful exit
-            self.spawn(["bazel", "shutdown"])
 
 
 setuptools.setup(
