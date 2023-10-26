@@ -44,8 +44,8 @@ cc_library(
         "include",
     ],
     linkopts = select({
-        ":winplusmsvc": ["/LTGC"],  # allows other compilers on Windows than just MSVC.
-        "@platforms//os:macos": ["-Wl,@$(location :cmake/darwin-ld-cpython.sym)"],
+        ":winplusmsvc": ["/LTGC"],  # Windows + MSVC.
+        "@platforms//os:macos": ["-Wl,@$(location :cmake/darwin-ld-cpython.sym)"],  # Apple.
         "//conditions:default": [],
     }),
     textual_hdrs = glob(
