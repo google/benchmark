@@ -1,4 +1,4 @@
-name: Run google-benchmark pre-commit checks
+name: Run Python and Bazel google-benchmark pre-commit checks
 
 on:
   push:
@@ -7,7 +7,7 @@ on:
     branches: [ main ]
 
 jobs:
-  lint:
+  pre-commit:
     runs-on: ubuntu-latest
     env:
       MYPY_CACHE_DIR: "${{ github.workspace }}/.cache/mypy"
