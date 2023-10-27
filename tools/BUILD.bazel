@@ -4,8 +4,8 @@ py_library(
     name = "gbench",
     srcs = glob(["gbench/*.py"]),
     deps = [
-      requirement("numpy"),
-      requirement("scipy"),
+        requirement("numpy"),
+        requirement("scipy"),
     ],
 )
 
