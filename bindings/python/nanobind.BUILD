@@ -2,9 +2,19 @@ licenses(["notice"])
 
 package(default_visibility = ["//visibility:public"])
 
+load("@bazel_skylib//lib:selects.bzl", "selects")
+
 config_setting(
     name = "msvc_compiler",
     flag_values = {"@bazel_tools//tools/cpp:compiler": "msvc-cl"},
+)
+
+selects.config_setting_group(
+    name = "winplusmsvc",
+    match_all = [
+        "@platforms//os:windows",
+        ":msvc_compiler",
+    ],
 )
 
 cc_library(
@@ -20,6 +30,7 @@ cc_library(
         ":msvc_compiler": [
             "/EHsc",  # exceptions
             "/Os",  # size optimizations
+            "/GL",  # LTO / whole program optimization
         ],
         # these should work on both clang and gcc.
         "//conditions:default": [
@@ -33,7 +44,8 @@ cc_library(
         "include",
     ],
     linkopts = select({
-        "@platforms//os:macos": ["-Wl,@$(location :cmake/darwin-ld-cpython.sym)"],
+        ":winplusmsvc": ["/LTGC"],  # Windows + MSVC.
+        "@platforms//os:macos": ["-Wl,@$(location :cmake/darwin-ld-cpython.sym)"],  # Apple.
         "//conditions:default": [],
     }),
     textual_hdrs = glob(
