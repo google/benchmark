@@ -8,7 +8,6 @@ from pathlib import Path
 import setuptools
 from setuptools.command import build_ext
 
-
 PYTHON_INCLUDE_PATH_PLACEHOLDER = "<PYTHON_INCLUDE_PATH>"
 
 IS_WINDOWS = platform.system() == "Windows"
@@ -23,7 +22,7 @@ def temp_fill_include_path(fp: str):
             content = f.read()
             replaced = content.replace(
                 PYTHON_INCLUDE_PATH_PLACEHOLDER,
-                Path(sysconfig.get_paths()['include']).as_posix(),
+                Path(sysconfig.get_paths()["include"]).as_posix(),
             )
             f.seek(0)
             f.write(replaced)
@@ -93,9 +92,9 @@ class BuildBazelExtension(build_ext.build_ext):
 
             self.spawn(bazel_argv)
 
-            shared_lib_suffix = '.dll' if IS_WINDOWS else '.so'
+            shared_lib_suffix = ".dll" if IS_WINDOWS else ".so"
             ext_name = ext.target_name + shared_lib_suffix
-            ext_bazel_bin_path = temp_path / 'bazel-bin' / ext.relpath / ext_name
+            ext_bazel_bin_path = temp_path / "bazel-bin" / ext.relpath / ext_name
 
             ext_dest_path = Path(self.get_ext_fullpath(ext.name))
             shutil.copyfile(ext_bazel_bin_path, ext_dest_path)
