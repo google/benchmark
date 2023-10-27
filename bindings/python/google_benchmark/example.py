@@ -86,7 +86,9 @@ def custom_counters(state):
     # Set a counter as a rate.
     state.counters["foo_rate"] = Counter(num_foo, Counter.kIsRate)
     #  Set a counter as an inverse of rate.
-    state.counters["foo_inv_rate"] = Counter(num_foo, Counter.kIsRate | Counter.kInvert)
+    state.counters["foo_inv_rate"] = Counter(
+        num_foo, Counter.kIsRate | Counter.kInvert
+    )
     # Set a counter as a thread-average quantity.
     state.counters["foo_avg"] = Counter(num_foo, Counter.kAvgThreads)
     # There's also a combined flag:

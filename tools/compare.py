@@ -1,4 +1,7 @@
 #!/usr/bin/env python3
+
+# type: ignore
+
 """
 compare.py - versatile benchmark output compare tool
 """
@@ -39,7 +42,8 @@ def check_inputs(in1, in2, flags):
         # --benchmark_filter=
         for flag in util.remove_benchmark_flags("--benchmark_filter=", flags):
             print(
-                "WARNING: passing %s has no effect since both " "inputs are JSON" % flag
+                "WARNING: passing %s has no effect since both "
+                "inputs are JSON" % flag
             )
     if output_type is not None and output_type != "json":
         print(
@@ -53,7 +57,9 @@ def check_inputs(in1, in2, flags):
 
 
 def create_parser():
-    parser = ArgumentParser(description="versatile benchmark output compare tool")
+    parser = ArgumentParser(
+        description="versatile benchmark output compare tool"
+    )
 
     parser.add_argument(
         "-a",
@@ -299,7 +305,9 @@ def main():
     # Now, filter the benchmarks so that the difference report can work
     if filter_baseline and filter_contender:
         replacement = "[%s vs. %s]" % (filter_baseline, filter_contender)
-        json1 = gbench.report.filter_benchmark(json1_orig, filter_baseline, replacement)
+        json1 = gbench.report.filter_benchmark(
+            json1_orig, filter_baseline, replacement
+        )
         json2 = gbench.report.filter_benchmark(
             json2_orig, filter_contender, replacement
         )
@@ -428,7 +436,9 @@ class TestParser(unittest.TestCase):
         self.assertFalse(parsed.benchmark_options)
 
     def test_filters_with_remainder(self):
-        parsed = self.parser.parse_args(["filters", self.testInput0, "c", "d", "e"])
+        parsed = self.parser.parse_args(
+            ["filters", self.testInput0, "c", "d", "e"]
+        )
         self.assertFalse(parsed.display_aggregates_only)
         self.assertTrue(parsed.utest)
         self.assertEqual(parsed.mode, "filters")
@@ -464,7 +474,14 @@ class TestParser(unittest.TestCase):
 
     def test_benchmarksfiltered_with_remainder(self):
         parsed = self.parser.parse_args(
-            ["benchmarksfiltered", self.testInput0, "c", self.testInput1, "e", "f"]
+            [
+                "benchmarksfiltered",
+                self.testInput0,
+                "c",
+                self.testInput1,
+                "e",
+                "f",
+            ]
         )
         self.assertFalse(parsed.display_aggregates_only)
         self.assertTrue(parsed.utest)

@@ -12,7 +12,7 @@ from argparse import ArgumentParser
 
 def find_used_labels(asm):
     found = set()
-    label_re = re.compile("\s*j[a-z]+\s+\.L([a-zA-Z0-9][a-zA-Z0-9_]*)")
+    label_re = re.compile(r"\s*j[a-z]+\s+\.L([a-zA-Z0-9][a-zA-Z0-9_]*)")
     for line in asm.splitlines():
         m = label_re.match(line)
         if m:
@@ -33,7 +33,7 @@ def normalize_labels(asm):
     if not needs_dot:
         return asm
     for ld in decls:
-        asm = re.sub("(^|\s+)" + ld + "(?=:|\s)", "\\1." + ld, asm)
+        asm = re.sub(r"(^|\s+)" + ld + r"(?=:|\s)", "\\1." + ld, asm)
     return asm
 
 
@@ -41,7 +41,7 @@ def transform_labels(asm):
     asm = normalize_labels(asm)
     used_decls = find_used_labels(asm)
     new_asm = ""
-    label_decl = re.compile("^\.L([a-zA-Z0-9][a-zA-Z0-9_]*)(?=:)")
+    label_decl = re.compile(r"^\.L([a-zA-Z0-9][a-zA-Z0-9_]*)(?=:)")
     for line in asm.splitlines():
         m = label_decl.match(line)
         if not m or m.group(0) in used_decls:
@@ -77,7 +77,10 @@ def process_identifiers(line):
             if tk.startswith("__Z"):
                 tk = tk[1:]
             elif (
-                tk.startswith("_") and len(tk) > 1 and tk[1].isalpha() and tk[1] != "Z"
+                tk.startswith("_")
+                and len(tk) > 1
+                and tk[1].isalpha()
+                and tk[1] != "Z"
             ):
                 tk = tk[1:]
         new_line += tk
@@ -93,15 +96,17 @@ def process_asm(asm):
 
     # TODO: Add more things we want to remove
     discard_regexes = [
-        re.compile("\s+\..*$"),  # directive
-        re.compile("\s*#(NO_APP|APP)$"),  # inline ASM
-        re.compile("\s*#.*$"),  # comment line
-        re.compile("\s*\.globa?l\s*([.a-zA-Z_][a-zA-Z0-9$_.]*)"),  # global directive
+        re.compile(r"\s+\..*$"),  # directive
+        re.compile(r"\s*#(NO_APP|APP)$"),  # inline ASM
+        re.compile(r"\s*#.*$"),  # comment line
         re.compile(
-            "\s*\.(string|asciz|ascii|[1248]?byte|short|word|long|quad|value|zero)"
+            r"\s*\.globa?l\s*([.a-zA-Z_][a-zA-Z0-9$_.]*)"
+        ),  # global directive
+        re.compile(
+            r"\s*\.(string|asciz|ascii|[1248]?byte|short|word|long|quad|value|zero)"
         ),
     ]
-    keep_regexes = []
+    keep_regexes: list[re.Pattern] = []
     fn_label_def = re.compile("^[a-zA-Z_][a-zA-Z0-9_.]*:")
     for line in asm.splitlines():
         # Remove Mach-O attribute
@@ -127,7 +132,11 @@ def process_asm(asm):
 def main():
     parser = ArgumentParser(description="generate a stripped assembly file")
     parser.add_argument(
-        "input", metavar="input", type=str, nargs=1, help="An input assembly file"
+        "input",
+        metavar="input",
+        type=str,
+        nargs=1,
+        help="An input assembly file",
     )
     parser.add_argument(
         "out", metavar="output", type=str, nargs=1, help="The output file"

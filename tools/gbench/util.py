@@ -72,7 +72,8 @@ def classify_input_file(filename):
         ftype = IT_JSON
     else:
         err_msg = (
-            "'%s' does not name a valid benchmark executable or JSON file" % filename
+            "'%s' does not name a valid benchmark executable or JSON file"
+            % filename
         )
     return ftype, err_msg
 
@@ -189,7 +190,9 @@ def run_benchmark(exe_name, benchmark_flags):
         is_temp_output = True
         thandle, output_name = tempfile.mkstemp()
         os.close(thandle)
-        benchmark_flags = list(benchmark_flags) + ["--benchmark_out=%s" % output_name]
+        benchmark_flags = list(benchmark_flags) + [
+            "--benchmark_out=%s" % output_name
+        ]
 
     cmd = [exe_name] + benchmark_flags
     print("RUNNING: %s" % " ".join(cmd))
@@ -212,7 +215,9 @@ def run_or_load_benchmark(filename, benchmark_flags):
     """
     ftype = check_input_file(filename)
     if ftype == IT_JSON:
-        benchmark_filter = find_benchmark_flag("--benchmark_filter=", benchmark_flags)
+        benchmark_filter = find_benchmark_flag(
+            "--benchmark_filter=", benchmark_flags
+        )
         return load_benchmark_results(filename, benchmark_filter)
     if ftype == IT_Executable:
         return run_benchmark(filename, benchmark_flags)

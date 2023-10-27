@@ -4,6 +4,7 @@ import platform
 import shutil
 import sysconfig
 from pathlib import Path
+from typing import Generator
 
 import setuptools
 from setuptools.command import build_ext
@@ -15,7 +16,7 @@ IS_MAC = platform.system() == "Darwin"
 
 
 @contextlib.contextmanager
-def temp_fill_include_path(fp: str):
+def temp_fill_include_path(fp: str) -> Generator[None, None, None]:
     """Temporarily set the Python include path in a file."""
     with open(fp, "r+") as f:
         try:
@@ -56,7 +57,7 @@ class BuildBazelExtension(build_ext.build_ext):
         # explicitly call `bazel shutdown` for graceful exit
         self.spawn(["bazel", "shutdown"])
 
-    def bazel_build(self, ext: BazelExtension):
+    def bazel_build(self, ext: BazelExtension) -> None:
         """Runs the bazel build to create the package."""
         with temp_fill_include_path("WORKSPACE"):
             temp_path = Path(self.build_temp)
@@ -94,7 +95,9 @@ class BuildBazelExtension(build_ext.build_ext):
 
             shared_lib_suffix = ".dll" if IS_WINDOWS else ".so"
             ext_name = ext.target_name + shared_lib_suffix
-            ext_bazel_bin_path = temp_path / "bazel-bin" / ext.relpath / ext_name
+            ext_bazel_bin_path = (
+                temp_path / "bazel-bin" / ext.relpath / ext_name
+            )
 
             ext_dest_path = Path(self.get_ext_fullpath(ext.name))
             shutil.copyfile(ext_bazel_bin_path, ext_dest_path)

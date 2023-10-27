@@ -1,4 +1,7 @@
-"""report.py - Utilities for reporting statistics about benchmark results
+# type: ignore
+
+"""
+report.py - Utilities for reporting statistics about benchmark results
 """
 
 import copy
@@ -58,7 +61,10 @@ def color_format(use_color, fmt_str, *args, **kwargs):
     """
     assert use_color is True or use_color is False
     if not use_color:
-        args = [arg if not isinstance(arg, BenchmarkColor) else BC_NONE for arg in args]
+        args = [
+            arg if not isinstance(arg, BenchmarkColor) else BC_NONE
+            for arg in args
+        ]
         kwargs = {
             key: arg if not isinstance(arg, BenchmarkColor) else BC_NONE
             for key, arg in kwargs.items()
@@ -293,8 +299,12 @@ def get_difference_report(json1, json2, utest=False):
                     "cpu_time": bn["cpu_time"],
                     "real_time_other": other_bench["real_time"],
                     "cpu_time_other": other_bench["cpu_time"],
-                    "time": calculate_change(bn["real_time"], other_bench["real_time"]),
-                    "cpu": calculate_change(bn["cpu_time"], other_bench["cpu_time"]),
+                    "time": calculate_change(
+                        bn["real_time"], other_bench["real_time"]
+                    ),
+                    "cpu": calculate_change(
+                        bn["cpu_time"], other_bench["cpu_time"]
+                    ),
                 }
             )
 
@@ -320,11 +330,14 @@ def get_difference_report(json1, json2, utest=False):
         # benchmark suite.
         if measurements:
             run_type = (
-                partition[0][0]["run_type"] if "run_type" in partition[0][0] else ""
+                partition[0][0]["run_type"]
+                if "run_type" in partition[0][0]
+                else ""
             )
             aggregate_name = (
                 partition[0][0]["aggregate_name"]
-                if run_type == "aggregate" and "aggregate_name" in partition[0][0]
+                if run_type == "aggregate"
+                and "aggregate_name" in partition[0][0]
                 else ""
             )
             diff_report.append(
@@ -447,7 +460,9 @@ class TestGetUniqueBenchmarkNames(unittest.TestCase):
     def load_results(self):
         import json
 
-        testInputs = os.path.join(os.path.dirname(os.path.realpath(__file__)), "Inputs")
+        testInputs = os.path.join(
+            os.path.dirname(os.path.realpath(__file__)), "Inputs"
+        )
         testOutput = os.path.join(testInputs, "test3_run0.json")
         with open(testOutput, "r") as f:
             json = json.load(f)
@@ -494,13 +509,69 @@ class TestReportDifference(unittest.TestCase):
             ["BM_SameTimes", "+0.0000", "+0.0000", "10", "10", "10", "10"],
             ["BM_2xFaster", "-0.5000", "-0.5000", "50", "25", "50", "25"],
             ["BM_2xSlower", "+1.0000", "+1.0000", "50", "100", "50", "100"],
-            ["BM_1PercentFaster", "-0.0100", "-0.0100", "100", "99", "100", "99"],
-            ["BM_1PercentSlower", "+0.0100", "+0.0100", "100", "101", "100", "101"],
-            ["BM_10PercentFaster", "-0.1000", "-0.1000", "100", "90", "100", "90"],
-            ["BM_10PercentSlower", "+0.1000", "+0.1000", "100", "110", "100", "110"],
-            ["BM_100xSlower", "+99.0000", "+99.0000", "100", "10000", "100", "10000"],
-            ["BM_100xFaster", "-0.9900", "-0.9900", "10000", "100", "10000", "100"],
-            ["BM_10PercentCPUToTime", "+0.1000", "-0.1000", "100", "110", "100", "90"],
+            [
+                "BM_1PercentFaster",
+                "-0.0100",
+                "-0.0100",
+                "100",
+                "99",
+                "100",
+                "99",
+            ],
+            [
+                "BM_1PercentSlower",
+                "+0.0100",
+                "+0.0100",
+                "100",
+                "101",
+                "100",
+                "101",
+            ],
+            [
+                "BM_10PercentFaster",
+                "-0.1000",
+                "-0.1000",
+                "100",
+                "90",
+                "100",
+                "90",
+            ],
+            [
+                "BM_10PercentSlower",
+                "+0.1000",
+                "+0.1000",
+                "100",
+                "110",
+                "100",
+                "110",
+            ],
+            [
+                "BM_100xSlower",
+                "+99.0000",
+                "+99.0000",
+                "100",
+                "10000",
+                "100",
+                "10000",
+            ],
+            [
+                "BM_100xFaster",
+                "-0.9900",
+                "-0.9900",
+                "10000",
+                "100",
+                "10000",
+                "100",
+            ],
+            [
+                "BM_10PercentCPUToTime",
+                "+0.1000",
+                "-0.1000",
+                "100",
+                "110",
+                "100",
+                "90",
+            ],
             ["BM_ThirdFaster", "-0.3333", "-0.3334", "100", "67", "100", "67"],
             ["BM_NotBadTimeUnit", "-0.9000", "+0.2000", "0", "0", "0", "1"],
             ["BM_hasLabel", "+0.0000", "+0.0000", "1", "1", "1", "1"],
@@ -1126,7 +1197,9 @@ class TestReportDifferenceWithUTest(unittest.TestCase):
             assert_measurements(self, out, expected)
 
 
-class TestReportDifferenceWithUTestWhileDisplayingAggregatesOnly(unittest.TestCase):
+class TestReportDifferenceWithUTestWhileDisplayingAggregatesOnly(
+    unittest.TestCase
+):
     @classmethod
     def setUpClass(cls):
         def load_results():
@@ -1409,7 +1482,9 @@ class TestReportSorting(unittest.TestCase):
 
         for n in range(len(self.json["benchmarks"]) ** 2):
             random.shuffle(self.json["benchmarks"])
-            sorted_benchmarks = util.sort_benchmark_results(self.json)["benchmarks"]
+            sorted_benchmarks = util.sort_benchmark_results(self.json)[
+                "benchmarks"
+            ]
             self.assertEqual(len(expected_names), len(sorted_benchmarks))
             for out, expected in zip(sorted_benchmarks, expected_names):
                 self.assertEqual(out["name"], expected)
