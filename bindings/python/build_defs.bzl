@@ -1,3 +1,7 @@
+"""
+This file contains some build definitions for C++ extensions used in the Google Benchmark Python bindings.
+"""
+
 _SHARED_LIB_SUFFIX = {
     "//conditions:default": ".so",
     "//:windows": ".dll",
