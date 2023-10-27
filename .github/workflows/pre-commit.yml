@@ -1,4 +1,4 @@
-name: Run Python and Bazel google-benchmark pre-commit checks
+name: python + Bazel pre-commit checks
 
 on:
   push:
@@ -37,7 +37,3 @@ jobs:
     - name: Run pre-commit checks
       run: |
         pre-commit run --all-files --verbose --show-diff-on-failure
-
-    - name: Run pylint
-      run: |
-        pylint `find . -name '*.py'|xargs` || pylint-exit $?
