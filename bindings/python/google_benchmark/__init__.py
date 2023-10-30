@@ -32,22 +32,21 @@ from absl import app
 from google_benchmark import _benchmark
 from google_benchmark._benchmark import (
     Counter,
-    kNanosecond,
+    State,
     kMicrosecond,
     kMillisecond,
+    kNanosecond,
     kSecond,
-    oNone,
     o1,
-    oN,
-    oNSquared,
-    oNCubed,
-    oLogN,
-    oNLogN,
     oAuto,
     oLambda,
-    State,
+    oLogN,
+    oN,
+    oNCubed,
+    oNLogN,
+    oNone,
+    oNSquared,
 )
-
 
 __all__ = [
     "register",
@@ -97,7 +96,6 @@ class __OptionMaker:
 
         # The function that get returned on @option.range(start=0, limit=1<<5).
         def __builder_method(*args, **kwargs):
-
             # The decorator that get called, either with the benchmared function
             # or the previous Options
             def __decorator(func_or_options):

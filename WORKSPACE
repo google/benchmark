@@ -8,11 +8,11 @@ load("@rules_foreign_cc//foreign_cc:repositories.bzl", "rules_foreign_cc_depende
 
 rules_foreign_cc_dependencies()
 
-load("@rules_python//python:pip.bzl", pip3_install="pip_install")
+load("@rules_python//python:pip.bzl", pip3_install = "pip_install")
 
 pip3_install(
-   name = "tools_pip_deps",
-   requirements = "//tools:requirements.txt",
+    name = "tools_pip_deps",
+    requirements = "//tools:requirements.txt",
 )
 
 new_local_repository(

@@ -33,6 +33,11 @@ dependencies = [
     "absl-py>=0.7.1",
 ]
 
+[project.optional-dependencies]
+dev = [
+    "pre-commit>=3.3.3",
+]
+
 [project.urls]
 Homepage = "https://github.com/google/benchmark"
 Documentation = "https://github.com/google/benchmark/tree/main/docs"
@@ -49,3 +54,37 @@ where = ["bindings/python"]
 [tool.setuptools.dynamic]
 version = { attr = "google_benchmark.__version__" }
 readme = { file = "README.md", content-type = "text/markdown" }
+
+[tool.black]
+# Source https://github.com/psf/black#configuration-format
+include = "\\.pyi?$"
+line-length = 80
+target-version = ["py311"]
+
+# Black-compatible settings for isort
+# See https://black.readthedocs.io/en/stable/
+[tool.isort]
+line_length = "80"
+profile = "black"
+
+[tool.mypy]
+check_untyped_defs = true
+disallow_incomplete_defs = true
+pretty = true
+python_version = "3.11"
+strict_optional = false
+warn_unreachable = true
+
+[[tool.mypy.overrides]]
+module = ["yaml"]
+ignore_missing_imports = true
+
+[tool.ruff]
+# Enable pycodestyle (`E`) and Pyflakes (`F`) codes by default.
+select = ["E", "F", "W"]
+ignore = [
+    # whitespace before colon (:), rely on black for formatting (in particular, allow spaces before ":" in list/array slices)
+    "E203",
+    # line too long, rely on black for reformatting of these, since sometimes URLs or comments can be longer
+    "E501",
+]

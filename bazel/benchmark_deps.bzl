@@ -1,5 +1,9 @@
-load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
+"""
+This file contains the Bazel build dependencies for Google Benchmark (both C++ source and Python bindings).
+"""
+
 load("@bazel_tools//tools/build_defs/repo:git.bzl", "new_git_repository")
+load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 
 def benchmark_deps():
     """Loads dependencies required to build Google Benchmark."""

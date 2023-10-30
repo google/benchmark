@@ -1,8 +1,8 @@
+load("@bazel_skylib//lib:selects.bzl", "selects")
+
 licenses(["notice"])
 
 package(default_visibility = ["//visibility:public"])
-
-load("@bazel_skylib//lib:selects.bzl", "selects")
 
 config_setting(
     name = "msvc_compiler",
