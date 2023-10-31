@@ -61,12 +61,6 @@ include = "\\.pyi?$"
 line-length = 80
 target-version = ["py311"]
 
-# Black-compatible settings for isort
-# See https://black.readthedocs.io/en/stable/
-[tool.isort]
-line_length = "80"
-profile = "black"
-
 [tool.mypy]
 check_untyped_defs = true
 disallow_incomplete_defs = true
@@ -80,11 +74,14 @@ module = ["yaml"]
 ignore_missing_imports = true
 
 [tool.ruff]
-# Enable pycodestyle (`E`) and Pyflakes (`F`) codes by default.
-select = ["E", "F", "W"]
+# explicitly tell ruff the source directory to correctly identify first-party package.
+src = ["bindings/python"]
+line-length = 80
+# Enable pycodestyle (`E`, `W`), Pyflakes (`F`), and isort (`I`) codes by default.
+select = ["E", "F", "I", "W"]
 ignore = [
-    # whitespace before colon (:), rely on black for formatting (in particular, allow spaces before ":" in list/array slices)
+    # whitespace before colon (:), rely on black for formatting.
     "E203",
-    # line too long, rely on black for reformatting of these, since sometimes URLs or comments can be longer
+    # line too long, rely on black for formatting.
     "E501",
 ]
