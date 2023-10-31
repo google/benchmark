@@ -29,6 +29,7 @@ Example usage:
 import atexit
 
 from absl import app
+
 from google_benchmark import _benchmark
 from google_benchmark._benchmark import (
     Counter,
