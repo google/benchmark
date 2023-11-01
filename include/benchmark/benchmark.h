@@ -584,6 +584,12 @@ inline BENCHMARK_ALWAYS_INLINE void DoNotOptimize(Tp const& value) {
 inline BENCHMARK_ALWAYS_INLINE void ClobberMemory() { _ReadWriteBarrier(); }
 #endif
 #else
+#ifdef BENCHMARK_HAS_CXX11
+template <class Tp>
+inline BENCHMARK_ALWAYS_INLINE void DoNotOptimize(Tp&& value) {
+  internal::UseCharPointer(&reinterpret_cast<char const volatile&>(value));
+}
+#else
 template <class Tp>
 BENCHMARK_DEPRECATED_MSG(
     "The const-ref version of this method can permit "
@@ -591,6 +597,12 @@ BENCHMARK_DEPRECATED_MSG(
 inline BENCHMARK_ALWAYS_INLINE void DoNotOptimize(Tp const& value) {
   internal::UseCharPointer(&reinterpret_cast<char const volatile&>(value));
 }
+
+template <class Tp>
+inline BENCHMARK_ALWAYS_INLINE void DoNotOptimize(Tp& value) {
+  internal::UseCharPointer(&reinterpret_cast<char const volatile&>(value));
+}
+#endif
 // FIXME Add ClobberMemory() for non-gnu and non-msvc compilers, before C++11.
 #endif
 
