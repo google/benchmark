@@ -1,5 +1,5 @@
 [build-system]
-requires = ["setuptools", "wheel"]
+requires = ["setuptools>=64", "setuptools-scm[toml]>=8"]
 build-backend = "setuptools.build_meta"
 
 [project]
@@ -52,8 +52,9 @@ zip-safe = false
 where = ["bindings/python"]
 
 [tool.setuptools.dynamic]
-version = { attr = "google_benchmark.__version__" }
 readme = { file = "README.md", content-type = "text/markdown" }
+
+[tool.setuptools_scm]
 
 [tool.black]
 # Source https://github.com/psf/black#configuration-format
@@ -85,3 +86,6 @@ ignore = [
     # line too long, rely on black for formatting.
     "E501",
 ]
+
+[tool.ruff.isort]
+combine-as-imports = true
