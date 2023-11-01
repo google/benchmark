@@ -32,44 +32,23 @@ from absl import app
 
 from google_benchmark import _benchmark
 from google_benchmark._benchmark import (
-    Counter,
-    State,
-    kMicrosecond,
-    kMillisecond,
-    kNanosecond,
-    kSecond,
-    o1,
-    oAuto,
-    oLambda,
-    oLogN,
-    oN,
-    oNCubed,
-    oNLogN,
-    oNone,
-    oNSquared,
+    Counter as Counter,
+    State as State,
+    kMicrosecond as kMicrosecond,
+    kMillisecond as kMillisecond,
+    kNanosecond as kNanosecond,
+    kSecond as kSecond,
+    o1 as o1,
+    oAuto as oAuto,
+    oLambda as oLambda,
+    oLogN as oLogN,
+    oN as oN,
+    oNCubed as oNCubed,
+    oNLogN as oNLogN,
+    oNone as oNone,
+    oNSquared as oNSquared,
 )
-
-__all__ = [
-    "register",
-    "main",
-    "Counter",
-    "kNanosecond",
-    "kMicrosecond",
-    "kMillisecond",
-    "kSecond",
-    "oNone",
-    "o1",
-    "oN",
-    "oNSquared",
-    "oNCubed",
-    "oLogN",
-    "oNLogN",
-    "oAuto",
-    "oLambda",
-    "State",
-]
-
-__version__ = "1.8.3"
+from google_benchmark.version import __version__ as __version__
 
 
 class __OptionMaker:
