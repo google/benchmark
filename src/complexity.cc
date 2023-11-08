@@ -38,11 +38,11 @@ BigOFunc* FittingCurve(BigO complexity) {
     case oLogN:
       /* Note: can't use log2 because Android's GNU STL lacks it */
       return
-          [](IterationCount n) { return kLog2E * log(static_cast<double>(n)); };
+          [](IterationCount n) { return kLog2E * std::log(static_cast<double>(n)); };
     case oNLogN:
       /* Note: can't use log2 because Android's GNU STL lacks it */
       return [](IterationCount n) {
-        return kLog2E * n * log(static_cast<double>(n));
+        return kLog2E * static_cast<double>(n) * std::log(static_cast<double>(n));
       };
     case o1:
     default:
@@ -105,12 +105,12 @@ LeastSq MinimalLeastSq(const std::vector<int64_t>& n,
   double rms = 0.0;
   for (size_t i = 0; i < n.size(); ++i) {
     double fit = result.coef * fitting_curve(n[i]);
-    rms += pow((time[i] - fit), 2);
+    rms += std::pow((time[i] - fit), 2);
   }
 
   // Normalized RMS by the mean of the observed values
-  double mean = sigma_time / n.size();
-  result.rms = sqrt(rms / n.size()) / mean;
+  double mean = sigma_time / static_cast<double>(n.size());
+  result.rms = std::sqrt(rms / static_cast<double>(n.size())) / mean;
 
   return result;
 }
@@ -171,8 +171,8 @@ std::vector<BenchmarkReporter::Run> ComputeBigO(
     BM_CHECK_GT(run.complexity_n, 0)
         << "Did you forget to call SetComplexityN?";
     n.push_back(run.complexity_n);
-    real_time.push_back(run.real_accumulated_time / run.iterations);
-    cpu_time.push_back(run.cpu_accumulated_time / run.iterations);
+    real_time.push_back(run.real_accumulated_time / static_cast<double>(run.iterations));
+    cpu_time.push_back(run.cpu_accumulated_time / static_cast<double>(run.iterations));
   }
 
   LeastSq result_cpu;

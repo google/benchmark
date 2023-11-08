@@ -32,7 +32,7 @@ auto StatisticsSum = [](const std::vector<double>& v) {
 
 double StatisticsMean(const std::vector<double>& v) {
   if (v.empty()) return 0.0;
-  return StatisticsSum(v) * (1.0 / v.size());
+  return StatisticsSum(v) * (1.0 / static_cast<double>(v.size()));
 }
 
 double StatisticsMedian(const std::vector<double>& v) {
@@ -71,8 +71,8 @@ double StatisticsStdDev(const std::vector<double>& v) {
   // Sample standard deviation is undefined for n = 1
   if (v.size() == 1) return 0.0;
 
-  const double avg_squares = SumSquares(v) * (1.0 / v.size());
-  return Sqrt(v.size() / (v.size() - 1.0) * (avg_squares - Sqr(mean)));
+  const double avg_squares = SumSquares(v) * (1.0 / static_cast<double>(v.size()));
+  return Sqrt(static_cast<double>(v.size()) / (static_cast<double>(v.size()) - 1.0) * (avg_squares - Sqr(mean)));
 }
 
 double StatisticsCV(const std::vector<double>& v) {

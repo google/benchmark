@@ -108,7 +108,7 @@ BenchmarkReporter::Run CreateRunReport(
       report.memory_result = memory_result;
       report.allocs_per_iter =
           memory_iterations ? static_cast<double>(memory_result->num_allocs) /
-                                  memory_iterations
+                              static_cast<double>(memory_iterations)
                             : 0;
     }
 
