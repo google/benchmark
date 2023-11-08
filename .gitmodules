@@ -1,0 +1,4 @@
+[submodule "submodules/quickMSBuild"]
+	path = submodules/quickMSBuild
+	url = ../quickMSBuild.git
+	ignore = dirty

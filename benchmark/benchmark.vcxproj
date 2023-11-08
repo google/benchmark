@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{2b8a8daf-b3e6-401b-89f7-3f7c3fd4b76f}</ProjectGuid>
+  </PropertyGroup>
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="WSL_Debug|x64">
+      <Configuration>WSL_Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="WSL_Release|x64">
+      <Configuration>WSL_Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="quickMSBuild" Condition="'$(Configuration)'=='Debug'">
+    <CompilerFlavour>MSVC</CompilerFlavour>
+    <BuildMethod>native</BuildMethod>
+    <UseDebugLibraries>true</UseDebugLibraries>
+  </PropertyGroup>
+  <PropertyGroup Label="quickMSBuild" Condition="'$(Configuration)'=='Release'">
+    <CompilerFlavour>MSVC</CompilerFlavour>
+    <BuildMethod>native</BuildMethod>
+    <UseDebugLibraries>false</UseDebugLibraries>
+  </PropertyGroup>
+  <PropertyGroup Label="quickMSBuild" Condition="'$(Configuration)'=='WSL_Debug'">
+    <CompilerFlavour>g++</CompilerFlavour>
+    <BuildMethod>WSL</BuildMethod>
+    <UseDebugLibraries>true</UseDebugLibraries>
+  </PropertyGroup>
+  <PropertyGroup Label="quickMSBuild" Condition="'$(Configuration)'=='WSL_Release'">
+    <CompilerFlavour>g++</CompilerFlavour>
+    <BuildMethod>WSL</BuildMethod>
+    <UseDebugLibraries>false</UseDebugLibraries>
+  </PropertyGroup>
+  <PropertyGroup Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+  </PropertyGroup>
+  <ImportGroup Label="PropertySheets">
+    <Import Project="$(SolutionDir)locations.props" />
+    <Import Project="$(quickMSBuildPath)default.cpp.props" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <ItemDefinitionGroup>
+    <ClCompile>
+      <AdditionalIncludeDirectories>$(ProjectDir)..\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ClCompile>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <None Include="benchmark.import.props" />
+    <None Include="benchmark.include.props" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\include\benchmark\benchmark.h" />
+    <ClInclude Include="..\include\benchmark\export.h" />
+    <ClInclude Include="..\src\arraysize.h" />
+    <ClInclude Include="..\src\benchmark_api_internal.h" />
+    <ClInclude Include="..\src\benchmark_register.h" />
+    <ClInclude Include="..\src\benchmark_runner.h" />
+    <ClInclude Include="..\src\check.h" />
+    <ClInclude Include="..\src\colorprint.h" />
+    <ClInclude Include="..\src\commandlineflags.h" />
+    <ClInclude Include="..\src\complexity.h" />
+    <ClInclude Include="..\src\counter.h" />
+    <ClInclude Include="..\src\cycleclock.h" />
+    <ClInclude Include="..\src\internal_macros.h" />
+    <ClInclude Include="..\src\log.h" />
+    <ClInclude Include="..\src\mutex.h" />
+    <ClInclude Include="..\src\perf_counters.h" />
+    <ClInclude Include="..\src\re.h" />
+    <ClInclude Include="..\src\statistics.h" />
+    <ClInclude Include="..\src\string_util.h" />
+    <ClInclude Include="..\src\thread_manager.h" />
+    <ClInclude Include="..\src\thread_timer.h" />
+    <ClInclude Include="..\src\timers.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\src\benchmark.cc" />
+    <ClCompile Include="..\src\benchmark_api_internal.cc" />
+    <ClCompile Include="..\src\benchmark_main.cc" />
+    <ClCompile Include="..\src\benchmark_name.cc" />
+    <ClCompile Include="..\src\benchmark_register.cc" />
+    <ClCompile Include="..\src\benchmark_runner.cc" />
+    <ClCompile Include="..\src\check.cc" />
+    <ClCompile Include="..\src\colorprint.cc" />
+    <ClCompile Include="..\src\commandlineflags.cc" />
+    <ClCompile Include="..\src\complexity.cc" />
+    <ClCompile Include="..\src\console_reporter.cc" />
+    <ClCompile Include="..\src\counter.cc" />
+    <ClCompile Include="..\src\csv_reporter.cc" />
+    <ClCompile Include="..\src\json_reporter.cc" />
+    <ClCompile Include="..\src\perf_counters.cc" />
+    <ClCompile Include="..\src\reporter.cc" />
+    <ClCompile Include="..\src\statistics.cc" />
+    <ClCompile Include="..\src\string_util.cc" />
+    <ClCompile Include="..\src\sysinfo.cc" />
+    <ClCompile Include="..\src\timers.cc" />
+  </ItemGroup>
+  <Import Project="$(quickMSBuildPath)default.cpp.targets" />
+</Project>

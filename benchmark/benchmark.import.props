@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+	<ItemGroup>
+		<ProjectReference Include="$(MSBuildThisFileDirectory)benchmark.vcxproj">
+			<Project>{2b8a8daf-b3e6-401b-89f7-3f7c3fd4b76f}</Project>
+		</ProjectReference>
+	</ItemGroup>
+	<ItemDefinitionGroup>
+		<Link>
+			<AdditionalDependencies Condition="'$(TargetOS)'=='Windows'">Shlwapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
+			<LibraryDependencies Condition="'$(TargetOS)'=='Linux'">pthread;%(LibraryDependencies)</LibraryDependencies>
+		</Link>
+	</ItemDefinitionGroup>
+	<ImportGroup Label="PropertySheets">
+		<Import Project="$(MSBuildThisFileDirectory)benchmark.include.props" />
+	</ImportGroup>
+</Project>

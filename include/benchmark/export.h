@@ -13,6 +13,8 @@
 #define DEPRECATE_ATTR __attribute__((__deprecated__))
 #endif  // _WIN32
 
+#define BENCHMARK_STATIC_DEFINE
+
 #ifdef BENCHMARK_STATIC_DEFINE
 #define BENCHMARK_EXPORT
 #define BENCHMARK_NO_EXPORT
