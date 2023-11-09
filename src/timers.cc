@@ -102,7 +102,8 @@ double MakeTime(thread_basic_info_data_t const& info) {
 #endif
 #if defined(CLOCK_PROCESS_CPUTIME_ID) || defined(CLOCK_THREAD_CPUTIME_ID)
 double MakeTime(struct timespec const& ts) {
-  return static_cast<double>(ts.tv_sec) + (static_cast<double>(ts.tv_nsec) * 1e-9);
+  return static_cast<double>(ts.tv_sec) +
+         (static_cast<double>(ts.tv_nsec) * 1e-9);
 }
 #endif
 
