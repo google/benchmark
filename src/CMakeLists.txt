@@ -1,4 +1,4 @@
-# Allow the source files to find headers in src /
+# Allow the source files to find headers in src/
 include(GNUInstallDirs)
 include_directories(${PROJECT_SOURCE_DIR}/src)
 
