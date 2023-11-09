@@ -218,9 +218,10 @@ inline BENCHMARK_ALWAYS_INLINE int64_t Now() {
   asm volatile("%0 = C15:14" : "=r"(pcycle));
   return static_cast<double>(pcycle);
 #else
-// The soft failover to a generic implementation is automatic only for ARM.
-// For other platforms the developer is expected to make an attempt to create
-// a fast implementation and use generic version if nothing better is available.
+  // The soft failover to a generic implementation is automatic only for ARM.
+  // For other platforms the developer is expected to make an attempt to create
+  // a fast implementation and use generic version if nothing better is
+  // available.
 #error You need to define CycleTimer for your OS and CPU
 #endif
 }
