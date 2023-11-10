@@ -56,12 +56,6 @@ readme = { file = "README.md", content-type = "text/markdown" }
 
 [tool.setuptools_scm]
 
-[tool.black]
-# Source https://github.com/psf/black#configuration-format
-include = "\\.pyi?$"
-line-length = 80
-target-version = ["py311"]
-
 [tool.mypy]
 check_untyped_defs = true
 disallow_incomplete_defs = true
@@ -78,6 +72,7 @@ ignore_missing_imports = true
 # explicitly tell ruff the source directory to correctly identify first-party package.
 src = ["bindings/python"]
 line-length = 80
+target-version = "py311"
 # Enable pycodestyle (`E`, `W`), Pyflakes (`F`), and isort (`I`) codes by default.
 select = ["E", "F", "I", "W"]
 ignore = [

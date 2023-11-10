@@ -10,12 +10,9 @@ repos:
       - id: mypy
         types_or: [ python, pyi ]
         args: [ "--ignore-missing-imports", "--scripts-are-modules" ]
-  - repo: https://github.com/psf/black
-    rev: 23.10.1
-    hooks:
-      - id: black
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.1.3
+    rev: v0.1.5
     hooks:
       - id: ruff
         args: [ --fix, --exit-non-zero-on-fix ]
+      - id: ruff-format
