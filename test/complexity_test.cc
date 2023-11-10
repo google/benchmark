@@ -175,7 +175,7 @@ BENCHMARK(BM_Complexity_O_N_log_N)
     ->RangeMultiplier(2)
     ->Range(1 << 10, 1 << 16)
     ->Complexity([](benchmark::IterationCount n) {
-      return kLog2E * static_cast<double>(n) * log(static_cast<double>(n));
+      return kLog2E * static_cast<double>(n) * std::log(static_cast<double>(n));
     });
 BENCHMARK(BM_Complexity_O_N_log_N)
     ->RangeMultiplier(2)
