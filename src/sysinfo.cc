@@ -655,7 +655,7 @@ double GetCPUCyclesPerSecond(CPUInfo::Scaling scaling) {
                       &freq)) {
     // The value is in kHz (as the file name suggests).  For example, on a
     // 2GHz warpstation, the file contains the value "2000000".
-    return freq * 1000.0;
+    return static_cast<double>(freq) * 1000.0;
   }
 
   const double error_value = -1;
