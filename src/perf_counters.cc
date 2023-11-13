@@ -254,7 +254,7 @@ bool PerfCounters::IsCounterSupported(const std::string&) { return false; }
 PerfCounters PerfCounters::Create(
     const std::vector<std::string>& counter_names) {
   if (!counter_names.empty()) {
-    GetErrorLogInstance() << "Performance counters not supported.";
+    GetErrorLogInstance() << "Performance counters not supported.\n";
   }
   return NoCounters();
 }
