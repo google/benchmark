@@ -164,7 +164,7 @@ compile_output_test(user_counters_test)
 add_test(NAME user_counters_test COMMAND user_counters_test --benchmark_min_time=0.01s)
 
 compile_output_test(perf_counters_test)
-add_test(NAME perf_counters_test COMMAND perf_counters_test --benchmark_min_time=0.01s --benchmark_perf_counters=CYCLES,BRANCHES)
+add_test(NAME perf_counters_test COMMAND perf_counters_test --benchmark_min_time=0.01s --benchmark_perf_counters=CYCLES,INSTRUCTIONS)
 
 compile_output_test(internal_threading_test)
 add_test(NAME internal_threading_test COMMAND internal_threading_test --benchmark_min_time=0.01s)
