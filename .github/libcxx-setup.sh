@@ -3,7 +3,7 @@
 set -e
 
 # Checkout LLVM sources
-git clone --depth=1 https://github.com/llvm/llvm-project.git llvm-project
+git clone --depth=1 --branch llvmorg-16.0.6 https://github.com/llvm/llvm-project.git llvm-project
 
 ## Setup libc++ options
 if [ -z "$BUILD_32_BITS" ]; then
