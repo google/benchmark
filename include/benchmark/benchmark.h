@@ -746,13 +746,13 @@ class BENCHMARK_EXPORT State {
   // have been called previously.
   //
   // NOTE: KeepRunning may not be used after calling either of these functions.
-  BENCHMARK_ALWAYS_INLINE StateIterator begin();
-  BENCHMARK_ALWAYS_INLINE StateIterator end();
+  inline BENCHMARK_ALWAYS_INLINE StateIterator begin();
+  inline BENCHMARK_ALWAYS_INLINE StateIterator end();
 
   // Returns true if the benchmark should continue through another iteration.
   // NOTE: A benchmark may not return from the test until KeepRunning() has
   // returned false.
-  bool KeepRunning();
+  inline bool KeepRunning();
 
   // Returns true iff the benchmark should run n more iterations.
   // REQUIRES: 'n' > 0.
@@ -764,7 +764,7 @@ class BENCHMARK_EXPORT State {
   //   while (state.KeepRunningBatch(1000)) {
   //     // process 1000 elements
   //   }
-  bool KeepRunningBatch(IterationCount n);
+  inline bool KeepRunningBatch(IterationCount n);
 
   // REQUIRES: timer is running and 'SkipWithMessage(...)' or
   //   'SkipWithError(...)' has not been called by the current thread.
