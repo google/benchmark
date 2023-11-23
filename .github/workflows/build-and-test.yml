@@ -111,4 +111,57 @@ jobs:
       - name: test
         run: ctest --test-dir _build/ -C ${{ matrix.build_type }} -VV
 
+  msys2:
+    name: ${{ matrix.os }}.${{ matrix.build_type }}.${{ matrix.lib }}.${{ matrix.msys2.msystem }}
+    runs-on: ${{ matrix.os }}
+    defaults:
+        run:
+            shell: msys2 {0}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ windows-latest ]
+        msys2:
+          - { msystem: MINGW64,    arch: x86_64,  family: GNU,  compiler: g++ }
+          - { msystem: MINGW32,    arch: i686,    family: GNU,  compiler: g++ }
+          - { msystem: CLANG64,    arch: x86_64,  family: LLVM, compiler: clang++ }
+          - { msystem: CLANG32,    arch: i686,    family: LLVM, compiler: clang++ }
+          - { msystem: UCRT64,     arch: x86_64,  family: GNU,  compiler: g++ }
+        build_type:
+          - Debug
+          - Release
+        lib:
+          - shared
+          - static
 
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Install Base Dependencies
+        uses: msys2/setup-msys2@v2
+        with:
+          cache: false
+          msystem: ${{ matrix.msys2.msystem }}
+          update: true
+          install: >-
+            git
+            base-devel
+          pacboy: >-
+            cc:p
+            cmake:p
+            ninja:p
+
+      - name: configure cmake
+        env:
+          CXX: ${{ matrix.msys2.compiler }}
+        run: >
+          cmake -S . -B _build/
+          -GNinja
+          -DBENCHMARK_DOWNLOAD_DEPENDENCIES=ON
+          -DBUILD_SHARED_LIBS=${{ matrix.lib == 'shared' }}
+
+      - name: build
+        run: cmake --build _build/ --config ${{ matrix.build_type }}
+
+      - name: test
+        run: ctest --test-dir _build/ -C ${{ matrix.build_type }} -VV
