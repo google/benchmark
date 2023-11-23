@@ -982,7 +982,7 @@ class BENCHMARK_EXPORT State {
   void StartKeepRunning();
   // Implementation of KeepRunning() and KeepRunningBatch().
   // is_batch must be true unless n is 1.
-  bool KeepRunningInternal(IterationCount n, bool is_batch);
+  inline bool KeepRunningInternal(IterationCount n, bool is_batch);
   void FinishKeepRunning();
 
   const std::string name_;
