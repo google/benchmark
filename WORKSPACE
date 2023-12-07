@@ -8,12 +8,20 @@ load("@rules_foreign_cc//foreign_cc:repositories.bzl", "rules_foreign_cc_depende
 
 rules_foreign_cc_dependencies()
 
-load("@rules_python//python:pip.bzl", pip3_install = "pip_install")
+load("@rules_python//python:repositories.bzl", "py_repositories")
 
-pip3_install(
+py_repositories()
+
+load("@rules_python//python:pip.bzl", "pip_parse")
+
+pip_parse(
     name = "tools_pip_deps",
-    requirements = "//tools:requirements.txt",
+    requirements_lock = "//tools:requirements.txt",
 )
+
+load("@tools_pip_deps//:requirements.bzl", "install_deps")
+
+install_deps()
 
 new_local_repository(
     name = "python_headers",
