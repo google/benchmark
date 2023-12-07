@@ -77,12 +77,12 @@ std::string GetBigOString(BigO complexity) {
 // given by the lambda expression.
 //   - n             : Vector containing the size of the benchmark tests.
 //   - time          : Vector containing the times for the benchmark tests.
-//   - fitting_curve : lambda expression (e.g. [](int64_t n) {return n; };).
+//   - fitting_curve : lambda expression (e.g. [](ComplexityN n) {return n; };).
 
 // For a deeper explanation on the algorithm logic, please refer to
 // https://en.wikipedia.org/wiki/Least_squares#Least_squares,_regression_analysis_and_statistics
 
-LeastSq MinimalLeastSq(const std::vector<int64_t>& n,
+LeastSq MinimalLeastSq(const std::vector<ComplexityN>& n,
                        const std::vector<double>& time,
                        BigOFunc* fitting_curve) {
   double sigma_gn_squared = 0.0;
@@ -124,7 +124,7 @@ LeastSq MinimalLeastSq(const std::vector<int64_t>& n,
 //   - complexity : If different than oAuto, the fitting curve will stick to
 //                  this one. If it is oAuto, it will be calculated the best
 //                  fitting curve.
-LeastSq MinimalLeastSq(const std::vector<int64_t>& n,
+LeastSq MinimalLeastSq(const std::vector<ComplexityN>& n,
                        const std::vector<double>& time, const BigO complexity) {
   BM_CHECK_EQ(n.size(), time.size());
   BM_CHECK_GE(n.size(), 2);  // Do not compute fitting curve is less than two
@@ -164,7 +164,7 @@ std::vector<BenchmarkReporter::Run> ComputeBigO(
   if (reports.size() < 2) return results;
 
   // Accumulators.
-  std::vector<int64_t> n;
+  std::vector<ComplexityN> n;
   std::vector<double> real_time;
   std::vector<double> cpu_time;
 
