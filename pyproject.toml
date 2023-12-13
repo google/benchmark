@@ -76,9 +76,9 @@ target-version = "py311"
 # Enable pycodestyle (`E`, `W`), Pyflakes (`F`), and isort (`I`) codes by default.
 select = ["E", "F", "I", "W"]
 ignore = [
-    # whitespace before colon (:), rely on black for formatting.
+    # whitespace before colon (:)
     "E203",
-    # line too long, rely on black for formatting.
+    # line too long
     "E501",
 ]
 
