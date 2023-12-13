@@ -74,6 +74,7 @@ class BuildBazelExtension(build_ext.build_ext):
                 "bazel",
                 "build",
                 ext.bazel_target,
+                "--enable_bzlmod=false",
                 f"--symlink_prefix={temp_path / 'bazel-'}",
                 f"--compilation_mode={'dbg' if self.debug else 'opt'}",
                 # C++17 is required by nanobind
