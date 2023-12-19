@@ -13,17 +13,16 @@ jobs:
     steps:
       - name: Check out repo
         uses: actions/checkout@v4
-
+        with:
+          fetch-depth: 0
       - name: Install Python 3.11
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: 3.11
-
-      - name: Build and check sdist
-        run: |
-          python setup.py sdist
-      - name: Upload sdist
-        uses: actions/upload-artifact@v3
+      - run: python -m pip install build
+      - name: Build sdist
+        run: python -m build --sdist
+      - uses: actions/upload-artifact@v3
         with:
           name: dist
           path: dist/*.tar.gz
@@ -38,10 +37,12 @@ jobs:
     steps:
       - name: Check out Google Benchmark
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Set up QEMU
         if: runner.os == 'Linux'
-        uses: docker/setup-qemu-action@v2
+        uses: docker/setup-qemu-action@v3
         with:
           platforms: all
 
@@ -61,7 +62,7 @@ jobs:
         uses: actions/upload-artifact@v3
         with:
           name: dist
-          path: ./wheelhouse/*.whl
+          path: wheelhouse/*.whl
 
   pypi_upload:
     name: Publish google-benchmark wheels to PyPI
@@ -74,4 +75,4 @@ jobs:
       with:
         name: dist
         path: dist
-    - uses: pypa/gh-action-pypi-publish@v1.8.10
+    - uses: pypa/gh-action-pypi-publish@v1.8.11
