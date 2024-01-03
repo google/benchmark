@@ -189,15 +189,16 @@ inline BENCHMARK_ALWAYS_INLINE int64_t Now() {
 #endif
   return tsc;
 #elif defined(__riscv)  // RISC-V
-  // Use RDCYCLE (and RDCYCLEH on riscv32)
+  // Use RDTIME (and RDTIMEH on riscv32).
+  // RDCYCLE is a privileged instruction since Linux 6.6.
 #if __riscv_xlen == 32
   uint32_t cycles_lo, cycles_hi0, cycles_hi1;
   // This asm also includes the PowerPC overflow handling strategy, as above.
   // Implemented in assembly because Clang insisted on branching.
   asm volatile(
-      "rdcycleh %0\n"
-      "rdcycle %1\n"
-      "rdcycleh %2\n"
+      "rdtimeh %0\n"
+      "rdtime %1\n"
+      "rdtimeh %2\n"
       "sub %0, %0, %2\n"
       "seqz %0, %0\n"
       "sub %0, zero, %0\n"
@@ -206,7 +207,7 @@ inline BENCHMARK_ALWAYS_INLINE int64_t Now() {
   return (static_cast<uint64_t>(cycles_hi1) << 32) | cycles_lo;
 #else
   uint64_t cycles;
-  asm volatile("rdcycle %0" : "=r"(cycles));
+  asm volatile("rdtime %0" : "=r"(cycles));
   return cycles;
 #endif
 #elif defined(__e2k__) || defined(__elbrus__)
