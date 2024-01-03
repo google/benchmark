@@ -51,6 +51,10 @@ cc_library(
     }),
     defines = [
         "BENCHMARK_STATIC_DEFINE",
+	# Large-file Support
+	"_FILE_OFFSET_BITS=64",
+	"_LARGEFILE64_SOURCE",
+	"_LARGEFILE_SOURCE",
     ] + select({
         ":perfcounters": ["HAVE_LIBPFM"],
         "//conditions:default": [],
