@@ -51,10 +51,6 @@ cc_library(
     }),
     defines = [
         "BENCHMARK_STATIC_DEFINE",
-        # Turn on Large-file Support
-        "_FILE_OFFSET_BITS=64",
-        "_LARGEFILE64_SOURCE",
-        "_LARGEFILE_SOURCE",
     ] + select({
         ":perfcounters": ["HAVE_LIBPFM"],
         "//conditions:default": [],
@@ -67,6 +63,12 @@ cc_library(
     # Using `defines` (i.e. not `local_defines`) means that no
     # dependent rules need to bother about defining the macro.
     linkstatic = True,
+    local_defines = [
+        # Turn on Large-file Support
+        "_FILE_OFFSET_BITS=64",
+        "_LARGEFILE64_SOURCE",
+        "_LARGEFILE_SOURCE",
+    ],
     strip_include_prefix = "include",
     visibility = ["//visibility:public"],
     deps = select({
