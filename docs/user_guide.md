@@ -591,10 +591,10 @@ For Example:
 ```c++
 class MyFixture : public benchmark::Fixture {
 public:
-  void SetUp(const ::benchmark::State& state) {
+  void SetUp(::benchmark::State& state) {
   }
 
-  void TearDown(const ::benchmark::State& state) {
+  void TearDown(::benchmark::State& state) {
   }
 };
 
