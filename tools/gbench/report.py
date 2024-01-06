@@ -315,7 +315,7 @@ def get_difference_report(json1, json2, utest=False):
             have_optimal_repetitions, cpu_pvalue, time_pvalue = calc_utest(
                 timings_cpu, timings_time
             )
-            if cpu_pvalue and time_pvalue:
+            if cpu_pvalue is not None and time_pvalue is not None:
                 utest_results = {
                     "have_optimal_repetitions": have_optimal_repetitions,
                     "cpu_pvalue": cpu_pvalue,
@@ -1518,7 +1518,6 @@ class TestReportDifferenceWithUTestWhileDisplayingAggregatesOnly2(
         json1, json2 = load_results()
         cls.json_diff_report = get_difference_report(json1, json2, utest=True)
 
-    @unittest.expectedFailure
     def test_json_diff_report_pretty_printing(self):
         expect_line = [
             "BM_ManyRepetitions_pvalue",
@@ -1543,7 +1542,6 @@ class TestReportDifferenceWithUTestWhileDisplayingAggregatesOnly2(
                 break
         self.assertTrue(found)
 
-    @unittest.expectedFailure
     def test_json_diff_report(self):
         expected_output = [
             {
