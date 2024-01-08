@@ -327,7 +327,7 @@ def main():
     # Optionally, diff and output to JSON
     if args.dump_to_json is not None:
         with open(args.dump_to_json, "w") as f_json:
-            json.dump(diff_report, f_json)
+            json.dump(diff_report, f_json, indent=1)
 
 
 class TestParser(unittest.TestCase):
