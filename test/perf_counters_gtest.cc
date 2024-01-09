@@ -41,7 +41,7 @@ TEST(PerfCountersTest, NegativeTest) {
     return;
   }
   EXPECT_TRUE(PerfCounters::Initialize());
-  // Sanity checks
+  // Safety checks
   // Create() will always create a valid object, even if passed no or
   // wrong arguments as the new behavior is to warn and drop unsupported
   // counters

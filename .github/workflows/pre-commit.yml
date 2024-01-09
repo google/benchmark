@@ -16,16 +16,16 @@ jobs:
 
     steps:
     - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
     - name: Set up Python
-      uses: actions/setup-python@v4
+      uses: actions/setup-python@v5
       with:
         python-version: 3.11
-        cache: 'pip'
+        cache: pip
         cache-dependency-path: pyproject.toml
     - name: Install dependencies
-      run: |
-        python -m pip install --upgrade pip
-        pip install -e ".[dev]"
+      run: python -m pip install ".[dev]"
     - name: Cache pre-commit tools
       uses: actions/cache@v3
       with:
@@ -35,5 +35,4 @@ jobs:
           ${{ env.PRE_COMMIT_HOME }}
         key: ${{ runner.os }}-${{ hashFiles('.pre-commit-config.yaml') }}-linter-cache
     - name: Run pre-commit checks
-      run: |
-        pre-commit run --all-files --verbose --show-diff-on-failure
+      run: pre-commit run --all-files --verbose --show-diff-on-failure

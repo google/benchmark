@@ -1,5 +1,5 @@
 [build-system]
-requires = ["setuptools>=64", "setuptools-scm[toml]>=8"]
+requires = ["setuptools", "setuptools-scm[toml]", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
@@ -71,15 +71,14 @@ ignore_missing_imports = true
 [tool.ruff]
 # explicitly tell ruff the source directory to correctly identify first-party package.
 src = ["bindings/python"]
+
 line-length = 80
 target-version = "py311"
+
 # Enable pycodestyle (`E`, `W`), Pyflakes (`F`), and isort (`I`) codes by default.
 select = ["E", "F", "I", "W"]
 ignore = [
-    # whitespace before colon (:), rely on black for formatting.
-    "E203",
-    # line too long, rely on black for formatting.
-    "E501",
+    "E501", # line too long
 ]
 
 [tool.ruff.isort]

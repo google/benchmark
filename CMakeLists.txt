@@ -170,6 +170,10 @@ if (MSVC)
     set(CMAKE_EXE_LINKER_FLAGS_MINSIZEREL "${CMAKE_EXE_LINKER_FLAGS_MINSIZEREL} /LTCG")
   endif()
 else()
+  # Turn on Large-file Support
+  add_definitions(-D_FILE_OFFSET_BITS=64)
+  add_definitions(-D_LARGEFILE64_SOURCE)
+  add_definitions(-D_LARGEFILE_SOURCE)
   # Turn compiler warnings up to 11
   add_cxx_compiler_flag(-Wall)
   add_cxx_compiler_flag(-Wextra)

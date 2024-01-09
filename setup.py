@@ -57,6 +57,14 @@ class BuildBazelExtension(build_ext.build_ext):
         # explicitly call `bazel shutdown` for graceful exit
         self.spawn(["bazel", "shutdown"])
 
+    def copy_extensions_to_source(self):
+        """
+        Copy generated extensions into the source tree.
+        This is done in the ``bazel_build`` method, so it's not necessary to
+        do again in the `build_ext` base class.
+        """
+        pass
+
     def bazel_build(self, ext: BazelExtension) -> None:
         """Runs the bazel build to create the package."""
         with temp_fill_include_path("WORKSPACE"):
@@ -66,6 +74,7 @@ class BuildBazelExtension(build_ext.build_ext):
                 "bazel",
                 "build",
                 ext.bazel_target,
+                "--enable_bzlmod=false",
                 f"--symlink_prefix={temp_path / 'bazel-'}",
                 f"--compilation_mode={'dbg' if self.debug else 'opt'}",
                 # C++17 is required by nanobind
