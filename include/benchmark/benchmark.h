@@ -672,13 +672,15 @@ typedef std::map<std::string, Counter> UserCounters;
 // calculated automatically to the best fit.
 enum BigO { oNone, o1, oN, oNSquared, oNCubed, oLogN, oNLogN, oAuto, oLambda };
 
+typedef int64_t ComplexityN;
+
 typedef int64_t IterationCount;
 
 enum StatisticUnit { kTime, kPercentage };
 
 // BigOFunc is passed to a benchmark in order to specify the asymptotic
 // computational complexity for the benchmark.
-typedef double(BigOFunc)(IterationCount);
+typedef double(BigOFunc)(ComplexityN);
 
 // StatisticsFunc is passed to a benchmark in order to compute some descriptive
 // statistics over all the measurements of some type
@@ -875,10 +877,12 @@ class BENCHMARK_EXPORT State {
   // and complexity_n will
   // represent the length of N.
   BENCHMARK_ALWAYS_INLINE
-  void SetComplexityN(int64_t complexity_n) { complexity_n_ = complexity_n; }
+  void SetComplexityN(ComplexityN complexity_n) {
+    complexity_n_ = complexity_n;
+  }
 
   BENCHMARK_ALWAYS_INLINE
-  int64_t complexity_length_n() const { return complexity_n_; }
+  ComplexityN complexity_length_n() const { return complexity_n_; }
 
   // If this routine is called with items > 0, then an items/s
   // label is printed on the benchmark report line for the currently
@@ -967,7 +971,7 @@ class BENCHMARK_EXPORT State {
   // items we don't need on the first cache line
   std::vector<int64_t> range_;
 
-  int64_t complexity_n_;
+  ComplexityN complexity_n_;
 
  public:
   // Container for user-defined counters.
@@ -1805,7 +1809,7 @@ class BENCHMARK_EXPORT BenchmarkReporter {
     // Keep track of arguments to compute asymptotic complexity
     BigO complexity;
     BigOFunc* complexity_lambda;
-    int64_t complexity_n;
+    ComplexityN complexity_n;
 
     // what statistics to compute from the measurements
     const std::vector<internal::Statistics>* statistics;

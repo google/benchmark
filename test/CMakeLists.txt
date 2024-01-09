@@ -70,7 +70,7 @@ macro(benchmark_add_test)
     cmake_parse_arguments(TEST "" "NAME" "" ${ARGN})
     set_tests_properties(${TEST_NAME} PROPERTIES ENVIRONMENT_MODIFICATION "PATH=path_list_prepend:$<TARGET_FILE_DIR:benchmark::benchmark>")
   endif()
-endmacro(compile_output_test)
+endmacro(benchmark_add_test)
 
 # Demonstration executable
 compile_benchmark_test(benchmark_test)

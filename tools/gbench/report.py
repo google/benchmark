@@ -315,7 +315,7 @@ def get_difference_report(json1, json2, utest=False):
             have_optimal_repetitions, cpu_pvalue, time_pvalue = calc_utest(
                 timings_cpu, timings_time
             )
-            if cpu_pvalue and time_pvalue:
+            if cpu_pvalue is not None and time_pvalue is not None:
                 utest_results = {
                     "have_optimal_repetitions": have_optimal_repetitions,
                     "cpu_pvalue": cpu_pvalue,
@@ -1488,6 +1488,100 @@ class TestReportSorting(unittest.TestCase):
             self.assertEqual(len(expected_names), len(sorted_benchmarks))
             for out, expected in zip(sorted_benchmarks, expected_names):
                 self.assertEqual(out["name"], expected)
+
+
+class TestReportDifferenceWithUTestWhileDisplayingAggregatesOnly2(
+    unittest.TestCase
+):
+    @classmethod
+    def setUpClass(cls):
+        def load_results():
+            import json
+
+            testInputs = os.path.join(
+                os.path.dirname(os.path.realpath(__file__)), "Inputs"
+            )
+            testOutput1 = os.path.join(testInputs, "test5_run0.json")
+            testOutput2 = os.path.join(testInputs, "test5_run1.json")
+            with open(testOutput1, "r") as f:
+                json1 = json.load(f)
+                json1["benchmarks"] = [
+                    json1["benchmarks"][0] for i in range(1000)
+                ]
+            with open(testOutput2, "r") as f:
+                json2 = json.load(f)
+                json2["benchmarks"] = [
+                    json2["benchmarks"][0] for i in range(1000)
+                ]
+            return json1, json2
+
+        json1, json2 = load_results()
+        cls.json_diff_report = get_difference_report(json1, json2, utest=True)
+
+    def test_json_diff_report_pretty_printing(self):
+        expect_line = [
+            "BM_ManyRepetitions_pvalue",
+            "0.0000",
+            "0.0000",
+            "U",
+            "Test,",
+            "Repetitions:",
+            "1000",
+            "vs",
+            "1000",
+        ]
+        output_lines_with_header = print_difference_report(
+            self.json_diff_report, utest=True, utest_alpha=0.05, use_color=False
+        )
+        output_lines = output_lines_with_header[2:]
+        found = False
+        for i in range(0, len(output_lines)):
+            parts = [x for x in output_lines[i].split(" ") if x]
+            found = expect_line == parts
+            if found:
+                break
+        self.assertTrue(found)
+
+    def test_json_diff_report(self):
+        expected_output = [
+            {
+                "name": "BM_ManyRepetitions",
+                "label": "",
+                "time_unit": "s",
+                "run_type": "",
+                "aggregate_name": "",
+                "utest": {
+                    "have_optimal_repetitions": True,
+                    "cpu_pvalue": 0.0,
+                    "time_pvalue": 0.0,
+                    "nr_of_repetitions": 1000,
+                    "nr_of_repetitions_other": 1000,
+                },
+            },
+            {
+                "name": "OVERALL_GEOMEAN",
+                "label": "",
+                "measurements": [
+                    {
+                        "real_time": 1.0,
+                        "cpu_time": 1000.000000000069,
+                        "real_time_other": 1000.000000000069,
+                        "cpu_time_other": 1.0,
+                        "time": 999.000000000069,
+                        "cpu": -0.9990000000000001,
+                    }
+                ],
+                "time_unit": "s",
+                "run_type": "aggregate",
+                "aggregate_name": "geomean",
+                "utest": {},
+            },
+        ]
+        self.assertEqual(len(self.json_diff_report), len(expected_output))
+        for out, expected in zip(self.json_diff_report, expected_output):
+            self.assertEqual(out["name"], expected["name"])
+            self.assertEqual(out["time_unit"], expected["time_unit"])
+            assert_utest(self, out, expected)
 
 
 def assert_utest(unittest_instance, lhs, rhs):

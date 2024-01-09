@@ -84,6 +84,8 @@ double StatisticsCV(const std::vector<double>& v) {
   const auto stddev = StatisticsStdDev(v);
   const auto mean = StatisticsMean(v);
 
+  if (std::fpclassify(mean) == FP_ZERO) return 0.0;
+
   return stddev / mean;
 }
 
