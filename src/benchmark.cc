@@ -577,6 +577,7 @@ size_t RunSpecifiedBenchmarks(BenchmarkReporter* display_reporter,
     Err << "A custom file reporter was provided but "
            "--benchmark_out=<file> was not specified."
         << std::endl;
+    Out.flush();
     Err.flush();
     std::exit(1);
   }
@@ -584,6 +585,7 @@ size_t RunSpecifiedBenchmarks(BenchmarkReporter* display_reporter,
     output_file.open(fname);
     if (!output_file.is_open()) {
       Err << "invalid file name: '" << fname << "'" << std::endl;
+      Out.flush();
       Err.flush();
       std::exit(1);
     }
@@ -607,6 +609,7 @@ size_t RunSpecifiedBenchmarks(BenchmarkReporter* display_reporter,
 
   if (benchmarks.empty()) {
     Err << "Failed to match any benchmarks against regex: " << spec << "\n";
+    Out.flush();
     Err.flush();
     return 0;
   }
@@ -615,10 +618,13 @@ size_t RunSpecifiedBenchmarks(BenchmarkReporter* display_reporter,
     for (auto const& benchmark : benchmarks)
       Out << benchmark.name().str() << "\n";
     Out.flush();
+    Err.flush();
   } else {
     internal::RunBenchmarks(benchmarks, display_reporter, file_reporter);
   }
 
+  Out.flush();
+  Err.flush();
   return benchmarks.size();
 }
 
