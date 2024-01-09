@@ -316,7 +316,7 @@ find_package(Threads REQUIRED)
 cxx_feature_check(PTHREAD_AFFINITY)
 
 if (BENCHMARK_ENABLE_LIBPFM)
-  find_package(PFM)
+  find_package(PFM REQUIRED)
 endif()
 
 # Set up directories
