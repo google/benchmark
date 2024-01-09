@@ -617,8 +617,6 @@ size_t RunSpecifiedBenchmarks(BenchmarkReporter* display_reporter,
   if (FLAGS_benchmark_list_tests) {
     for (auto const& benchmark : benchmarks)
       Out << benchmark.name().str() << "\n";
-    Out.flush();
-    Err.flush();
   } else {
     internal::RunBenchmarks(benchmarks, display_reporter, file_reporter);
   }
