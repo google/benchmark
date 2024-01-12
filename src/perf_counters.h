@@ -71,7 +71,7 @@ class BENCHMARK_EXPORT PerfCounterValues {
   }
 
   // This reading is complex and as the goal of this class is to
-  // abstract away the intrincacies of the reading process, this is
+  // abstract away the intricacies of the reading process, this is
   // a better place for it
   size_t Read(const std::vector<int>& leaders);
 
