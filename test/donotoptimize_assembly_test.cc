@@ -199,3 +199,51 @@ extern "C" void test_pointer_lvalue() {
   int *xp = &x;
   benchmark::DoNotOptimize(xp);
 }
+
+#if ((defined __clang__) || (defined __GNUC__)) && \
+    (defined __has_attribute) && (defined __x86_64__)
+#if __has_attribute(ext_vector_type)
+typedef float float4 __attribute__((ext_vector_type(4)));
+typedef float float8 __attribute__((ext_vector_type(8)));
+typedef float float16 __attribute__((ext_vector_type(16)));
+// CHECK-LABEL: test_pointer_f4_rvalue
+extern "C" void test_pointer_f4_rvalue() {
+  // CHECK: {{.*}}%xmm{{[0-9]+}}{{.*}}{{.*}}
+  // CHECK: ret
+  benchmark::DoNotOptimize(float4{});
+}
+// CHECK-LABEL: test_pointer_f8_rvalue
+extern "C" void test_pointer_f8_rvalue() {
+  // CHECK: {{.*}}%xmm{{[0-9]+}}{{.*}}{{.*}}
+  // CHECK: ret
+  benchmark::DoNotOptimize(float8{});
+}
+// CHECK-LABEL: test_pointer_f16_rvalue
+extern "C" void test_pointer_f16_rvalue() {
+  // CHECK: {{.*}}%xmm{{[0-9]+}}{{.*}}{{.*}}
+  // CHECK: ret
+  benchmark::DoNotOptimize(float16{});
+}
+// CHECK-LABEL: test_pointer_f4_lvalue
+extern "C" void test_pointer_f4_lvalue() {
+  // CHECK: {{.*}}%xmm{{[0-9]+}}{{.*}}{{.*}}
+  // CHECK: ret
+  float4 f4 = float4{};
+  benchmark::DoNotOptimize(f4);
+}
+// CHECK-LABEL: test_pointer_f8_lvalue
+extern "C" void test_pointer_f8_lvalue() {
+  // CHECK: {{.*}}%xmm{{[0-9]+}}{{.*}}{{.*}}
+  // CHECK: ret
+  float8 f8 = float8{};
+  benchmark::DoNotOptimize(f8);
+}
+// CHECK-LABEL: test_pointer_f16_lvalue
+extern "C" void test_pointer_f16_lvalue() {
+  // CHECK: {{.*}}%xmm{{[0-9]+}}{{.*}}{{.*}}
+  // CHECK: ret
+  float16 f16 = float16{};
+  benchmark::DoNotOptimize(f16);
+}
+#endif
+#endif
