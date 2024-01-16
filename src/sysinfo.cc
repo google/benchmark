@@ -777,8 +777,9 @@ double GetCPUCyclesPerSecond(CPUInfo::Scaling scaling) {
   kstat_close(kc);
   return clock_hz;
 #elif defined(BENCHMARK_OS_QNX)
-  return static_cast<double>((int64_t)(SYSPAGE_ENTRY(cpuinfo)->speed) *
-                             (int64_t)(1000 * 1000));
+  return static_cast<double>(
+      static_cast<int64_t>(SYSPAGE_ENTRY(cpuinfo)->speed) *
+      static_cast<int64_t>(1000 * 1000));
 #elif defined(BENCHMARK_OS_QURT)
   // QuRT doesn't provide any API to query Hexagon frequency.
   return 1000000000;
