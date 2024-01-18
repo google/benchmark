@@ -131,9 +131,7 @@ def load_benchmark_results(fname, benchmark_filter):
         if benchmark_filter is None:
             return True
         name = benchmark.get("run_name", None) or benchmark["name"]
-        if re.search(benchmark_filter, name):
-            return True
-        return False
+        return re.search(benchmark_filter, name) is not None
 
     with open(fname, "r") as f:
         results = json.load(f)
