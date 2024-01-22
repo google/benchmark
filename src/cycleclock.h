@@ -58,6 +58,20 @@ namespace benchmark {
 // with modifications by m3b.  See also
 //    https://setisvn.ssl.berkeley.edu/svn/lib/fftw-3.0.1/kernel/cycle.h
 namespace cycleclock {
+#if defined(__aarch64__) || (defined(__ARM_ARCH) && (__ARM_ARCH >= 6))
+inline BENCHMARK_ALWAYS_INLINE bool is_ARM_PMU_EN() {
+#if defined(__aarch64__)
+  uint64_t pmuseren;
+  asm volatile("MRS %0, pmuserenr_el0" : "=r" (pmuseren));
+  return (1 == (pmuseren & 1));
+#else
+   uint32_t pmuseren;
+   asm volatile("mrc p15, 0, %0, c9, c14, 0" : "=r"(pmuseren));
+   return (1 == (pmuseren & 1));
+#endif
+}
+#endif
+
 // This should return the number of cycles since power-on.  Thread-safe.
 inline BENCHMARK_ALWAYS_INLINE int64_t Now() {
 #if defined(BENCHMARK_OS_MACOSX)
@@ -140,13 +154,22 @@ inline BENCHMARK_ALWAYS_INLINE int64_t Now() {
   clock_gettime(CLOCK_MONOTONIC, &ts);
   return static_cast<int64_t>(ts.tv_sec) * 1000000000 + ts.tv_nsec;
 #elif defined(__aarch64__)
-  // System timer of ARMv8 runs at a different frequency than the CPU's.
-  // The frequency is fixed, typically in the range 1-50MHz.  It can be
-  // read at CNTFRQ special register.  We assume the OS has set up
-  // the virtual timer properly.
-  int64_t virtual_timer_value;
-  asm volatile("mrs %0, cntvct_el0" : "=r"(virtual_timer_value));
-  return virtual_timer_value;
+  uint64_t pmuseren;
+  asm volatile("MRS %0, pmuserenr_el0" : "=r" (pmuseren));
+  if (pmuseren & 1) {
+    // Use PMU counters if allows reading PMU counters for user mode code
+    int64_t pmccntr;
+    asm volatile("MRS %0, pmccntr_el0" : "=r" (pmccntr));
+    return pmccntr;
+  } else {
+    // System timer of ARMv8 runs at a different frequency than the CPU's.
+    // The frequency is fixed, typically in the range 1-50MHz.  It can be
+    // read at CNTFRQ special register.  We assume the OS has set up
+    // the virtual timer properly.
+    int64_t virtual_timer_value;
+    asm volatile("mrs %0, cntvct_el0" : "=r"(virtual_timer_value));
+    return virtual_timer_value;
+  }
 #elif defined(__ARM_ARCH)
   // V6 is the earliest arch that has a standard cyclecount
   // Native Client validator doesn't allow MRC instructions.
