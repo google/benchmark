@@ -62,12 +62,12 @@ namespace cycleclock {
 inline BENCHMARK_ALWAYS_INLINE bool is_ARM_PMU_EN() {
 #if defined(__aarch64__)
   uint64_t pmuseren;
-  asm volatile("MRS %0, pmuserenr_el0" : "=r" (pmuseren));
+  asm volatile("MRS %0, pmuserenr_el0" : "=r"(pmuseren));
   return (1 == (pmuseren & 1));
 #else
-   uint32_t pmuseren;
-   asm volatile("mrc p15, 0, %0, c9, c14, 0" : "=r"(pmuseren));
-   return (1 == (pmuseren & 1));
+  uint32_t pmuseren;
+  asm volatile("mrc p15, 0, %0, c9, c14, 0" : "=r"(pmuseren));
+  return (1 == (pmuseren & 1));
 #endif
 }
 #endif
@@ -155,11 +155,11 @@ inline BENCHMARK_ALWAYS_INLINE int64_t Now() {
   return static_cast<int64_t>(ts.tv_sec) * 1000000000 + ts.tv_nsec;
 #elif defined(__aarch64__)
   uint64_t pmuseren;
-  asm volatile("MRS %0, pmuserenr_el0" : "=r" (pmuseren));
+  asm volatile("MRS %0, pmuserenr_el0" : "=r"(pmuseren));
   if (pmuseren & 1) {
     // Use PMU counters if allows reading PMU counters for user mode code
     int64_t pmccntr;
-    asm volatile("MRS %0, pmccntr_el0" : "=r" (pmccntr));
+    asm volatile("MRS %0, pmccntr_el0" : "=r"(pmccntr));
     return pmccntr;
   } else {
     // System timer of ARMv8 runs at a different frequency than the CPU's.
