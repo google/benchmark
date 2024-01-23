@@ -654,7 +654,7 @@ class Counter {
   Counter(double v = 0., Flags f = kDefaults, OneK k = kIs1000)
       : value(v), flags(f), oneK(k) {}
 
-  BENCHMARK_ALWAYS_INLINE operator double const &() const { return value; }
+  BENCHMARK_ALWAYS_INLINE operator double const&() const { return value; }
   BENCHMARK_ALWAYS_INLINE operator double&() { return value; }
 };
 
@@ -926,9 +926,7 @@ class BENCHMARK_EXPORT State {
     assert(range_.size() > pos);
     return range_[pos];
   }
-  size_t argn() const {
-    return range_.size();
-  }
+  size_t argn() const { return range_.size(); }
   BENCHMARK_DEPRECATED_MSG("use 'range(0)' instead")
   int64_t range_x() const { return range(0); }
 
@@ -1680,7 +1678,7 @@ class Fixture : public internal::Benchmark {
     ::benchmark::RunSpecifiedBenchmarks();                              \
     ::benchmark::Shutdown();                                            \
     return 0;                                                           \
-  }                                                                     \
+  }
 
 // ------------------------------------------------------
 // Benchmark Reporters
