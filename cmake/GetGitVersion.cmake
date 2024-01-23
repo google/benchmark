@@ -23,22 +23,13 @@ function(get_git_version var)
       execute_process(COMMAND ${GIT_EXECUTABLE} describe --tags --match "v[0-9]*.[0-9]*.[0-9]*" --abbrev=8 --dirty
           WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
           RESULT_VARIABLE status
-          OUTPUT_VARIABLE GIT_DESCRIBE_VERSION
+          OUTPUT_VARIABLE GIT_VERSION
           ERROR_QUIET)
       if(status)
-          set(GIT_DESCRIBE_VERSION "v0.0.0")
+          set(GIT_VERSION "v0.0.0")
       endif()
-      
-      string(STRIP ${GIT_DESCRIBE_VERSION} GIT_DESCRIBE_VERSION)
-      if(GIT_DESCRIBE_VERSION MATCHES v[^-]*-) 
-         string(REGEX REPLACE "v([^-]*)-([0-9]+)-.*" "\\1.\\2"  GIT_VERSION ${GIT_DESCRIBE_VERSION})
-      else()
-         string(REGEX REPLACE "v(.*)" "\\1" GIT_VERSION ${GIT_DESCRIBE_VERSION})
-      endif()
-
-      message(STATUS "git version: ${GIT_DESCRIBE_VERSION} normalized to ${GIT_VERSION}")
   else()
-      set(GIT_VERSION "0.0.0")
+      set(GIT_VERSION "v0.0.0")
   endif()
 
   set(${var} ${GIT_VERSION} PARENT_SCOPE)
