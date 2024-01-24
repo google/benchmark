@@ -302,6 +302,9 @@ class BenchmarkReporter;
 // Default number of minimum benchmark running time in seconds.
 const char kDefaultMinTimeStr[] = "0.5s";
 
+// Returns the version of the library.
+BENCHMARK_EXPORT std::string GetBenchmarkVersiom();
+
 BENCHMARK_EXPORT void PrintDefaultHelp();
 
 BENCHMARK_EXPORT void Initialize(int* argc, char** argv,

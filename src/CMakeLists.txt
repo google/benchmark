@@ -29,7 +29,7 @@ target_include_directories(benchmark PUBLIC
 )
 
 set_property(
-  SOURCE json_reporter.cc
+  SOURCE benchmark.cc
   APPEND
   PROPERTY COMPILE_DEFINITIONS
   BENCHMARK_VERSION="${VERSION}"
