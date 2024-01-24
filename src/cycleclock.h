@@ -29,6 +29,11 @@
 #if defined(BENCHMARK_OS_MACOSX)
 #include <mach/mach_time.h>
 #endif
+
+#if defined(BENCHMARK_MACOS_AARCH64)
+#include "macOS_aarch64_cpmu.h"
+#endif
+
 // For MSVC, we want to use '_asm rdtsc' when possible (since it works
 // with even ancient MSVC compilers), and when not possible the
 // __rdtsc intrinsic, declared in <intrin.h>.  Unfortunately, in some
@@ -74,7 +79,9 @@ inline BENCHMARK_ALWAYS_INLINE bool is_ARM_PMU_EN() {
 
 // This should return the number of cycles since power-on.  Thread-safe.
 inline BENCHMARK_ALWAYS_INLINE int64_t Now() {
-#if defined(BENCHMARK_OS_MACOSX)
+#if defined(BENCHMARK_MACOS_AARCH64)
+  return macOS_rdtsc();
+#elif defined(BENCHMARK_OS_MACOSX)
   // this goes at the top because we need ALL Macs, regardless of
   // architecture, to return the number of "mach time units" that
   // have passed since startup.  See sysinfo.cc where

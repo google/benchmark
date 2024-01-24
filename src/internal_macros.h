@@ -110,6 +110,11 @@
   #define BENCHMARK_MAYBE_UNUSED
 #endif
 
+#if defined(__APPLE__) && defined(__MACH__) && defined(__aarch64__)
+// macOS, aarch64
+  #define BENCHMARK_MACOS_AARCH64
+#endif
+
 // clang-format on
 
 #endif  // BENCHMARK_INTERNAL_MACROS_H_
