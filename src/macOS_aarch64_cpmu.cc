@@ -13,7 +13,6 @@
 #ifdef BENCHMARK_MACOS_AARCH64
 
 #include <dlfcn.h>
-#include <pthread.h>
 
 #define KPERF_LIST                             \
   /*  ret, name, params */                     \
