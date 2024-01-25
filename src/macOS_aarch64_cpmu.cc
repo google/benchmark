@@ -1,6 +1,5 @@
 // WARNING: must be run as root on an M1 device
 // WARNING: fragile, uses private apple APIs
-// currently no command line interface, see variables at top of main
 
 /*
   Based on https://github.com/travisdowns/robsize

@@ -1,6 +1,5 @@
 // WARNING: must be run as root on an M1 device
 // WARNING: fragile, uses private apple APIs
-// currently no command line interface, see variables at top of main
 
 /*
   Based on https://github.com/travisdowns/robsize
@@ -16,10 +15,23 @@
 
 #ifdef BENCHMARK_MACOS_AARCH64
 
+/*
+  Configure the counter. Such as clock cycles, etc.
+  Return false if it failed to configure, otherwise return true.
+ */
 bool configure_macOS_rdtsc();
 
+/*
+  Initialise and configure the rdtsc counter modules.
+  Return false if it failed to initialise or failed to configure,
+  otherwise return true.
+ */
 bool init_macOS_rdtsc();
 
+/*
+  Return the counter value.
+  Return 0 if it is failed to get the counter value.
+ */
 unsigned long long int macOS_rdtsc();
 
 #endif  // BENCHMARK_MACOS_AARCH64
