@@ -123,6 +123,12 @@ class BenchmarkRunner {
 
   double GetMinTimeToApply() const;
 
+  double GetRelAccuracy(const IterationResults& i) const;
+
+  bool HasSufficientTimeToApply(const IterationResults& i) const;
+
+  bool HasSufficientRelAccuracy(const IterationResults& i) const;
+
   void FinishWarmUp(const IterationCount& i);
 
   void RunWarmUp();
