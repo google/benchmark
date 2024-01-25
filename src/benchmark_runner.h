@@ -71,6 +71,8 @@ class BenchmarkRunner {
 
   double GetMinTime() const { return min_time; }
 
+  double GetMinRelAccuracy() const { return min_rel_accuracy; }
+
   bool HasExplicitIters() const { return has_explicit_iteration_count; }
 
   IterationCount GetIters() const { return iters; }
@@ -83,6 +85,7 @@ class BenchmarkRunner {
 
   BenchTimeType parsed_benchtime_flag;
   const double min_time;
+  const double min_rel_accuracy;
   const double min_warmup_time;
   bool warmup_done;
   const int repeats;
@@ -102,6 +105,7 @@ class BenchmarkRunner {
     internal::ThreadManager::Result results;
     IterationCount iters;
     double seconds;
+    double seconds_pow2;
   };
   IterationResults DoNIterations();
 
@@ -114,6 +118,12 @@ class BenchmarkRunner {
   bool ShouldReportIterationResults(const IterationResults& i) const;
 
   double GetMinTimeToApply() const;
+
+  double GetRelAccuracy(const IterationResults& i) const;
+
+  bool HasSufficientTimeToApply(const IterationResults& i) const;
+
+  bool HasSufficientRelAccuracy(const IterationResults& i) const;
 
   void FinishWarmUp(const IterationCount& i);
 
