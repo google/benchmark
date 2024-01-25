@@ -1195,6 +1195,8 @@ class BENCHMARK_EXPORT Benchmark {
   // REQUIRES: `t > 0` and `Iterations` has not been called on this benchmark.
   Benchmark* MinTime(double t);
 
+  Benchmark* MinRelAccuracy(double r);
+
   // Set the minimum amount of time to run the benchmark before taking runtimes
   // of this benchmark into account. This
   // option overrides the `benchmark_min_warmup_time` flag.
@@ -1317,6 +1319,7 @@ class BENCHMARK_EXPORT Benchmark {
 
   int range_multiplier_;
   double min_time_;
+  double min_rel_accuracy_;
   double min_warmup_time_;
   IterationCount iterations_;
   int repetitions_;
@@ -1723,6 +1726,7 @@ struct BENCHMARK_EXPORT BenchmarkName {
   std::string function_name;
   std::string args;
   std::string min_time;
+  std::string min_rel_accuracy;
   std::string min_warmup_time;
   std::string iterations;
   std::string repetitions;
