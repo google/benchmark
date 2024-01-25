@@ -140,6 +140,7 @@ void RunInThread(const BenchmarkInstance* b, IterationCount iters,
     results.cpu_time_used += timer.cpu_time_used();
     results.real_time_used += timer.real_time_used();
     results.manual_time_used += timer.manual_time_used();
+    results.manual_time_used2 += timer.manual_time_used2();
     results.complexity_n += st.complexity_length_n();
     internal::Increment(&results.counters, st.counters);
   }
@@ -226,6 +227,7 @@ BenchmarkRunner::BenchmarkRunner(
       reports_for_family(reports_for_family_),
       parsed_benchtime_flag(ParseBenchMinTime(FLAGS_benchmark_min_time)),
       min_time(ComputeMinTime(b_, parsed_benchtime_flag)),
+      min_rel_accuracy(b_min_rel_accuracy()),
       min_warmup_time((!IsZero(b.min_time()) && b.min_warmup_time() > 0.0)
                           ? b.min_warmup_time()
                           : FLAGS_benchmark_min_warmup_time),
@@ -302,8 +304,10 @@ BenchmarkRunner::IterationResults BenchmarkRunner::DoNIterations() {
 
   // Base decisions off of real time if requested by this benchmark.
   i.seconds = i.results.cpu_time_used;
+  i.seconds2 = 0;
   if (b.use_manual_time()) {
     i.seconds = i.results.manual_time_used;
+    i.seconds2 = i.results.manual_time_used2;
   } else if (b.use_real_time()) {
     i.seconds = i.results.real_time_used;
   }
@@ -323,17 +327,9 @@ IterationCount BenchmarkRunner::PredictNumItersNeeded(
   // expansion should be 14x.
   const bool is_significant = (i.seconds / GetMinTimeToApply()) > 0.1;
   multiplier = is_significant ? multiplier : 10.0;
-
-  // So what seems to be the sufficiently-large iteration count? Round up.
-  const IterationCount max_next_iters = static_cast<IterationCount>(
-      std::llround(std::max(multiplier * static_cast<double>(i.iters),
-                            static_cast<double>(i.iters) + 1.0)));
-  // But we do have *some* limits though..
-  const IterationCount next_iters = std::min(max_next_iters, kMaxIterations);
-
-  BM_VLOG(3) << "Next iters: " << next_iters << ", " << multiplier << "\n";
-  return next_iters;  // round up before conversion to integer.
-}
+  if (!IsZero(GetMinRelAccuracy())) {
+    multiplier = std::max(multiplier, std::sqrt(i.seconds2 / i.iters - std::pow(i.seconds / i.iters, 2.)) / (i.seconds / i.iters) / sqrt(i.iters) * 1.4 / GetMinRelAccuracy());
+  }
 
 bool BenchmarkRunner::ShouldReportIterationResults(
     const IterationResults& i) const {
@@ -342,13 +338,13 @@ bool BenchmarkRunner::ShouldReportIterationResults(
   // or because an error was reported.
   return i.results.skipped_ ||
          i.iters >= kMaxIterations ||  // Too many iterations already.
-         i.seconds >=
-             GetMinTimeToApply() ||  // The elapsed time is large enough.
+         (((i.seconds >= GetMinTimeToApply()) &&
+          (b.use_manual_time() && !IsZero(GetMinRelAccuracy()) && (std::sqrt(i.seconds2 / i.iters - std::pow(i.seconds / i.iters, 2.)) / (i.seconds / i.iters) / sqrt(i.iters) <= GetMinRelAccuracy()))) || // The relative accuracy is enough.
          // CPU time is specified but the elapsed real time greatly exceeds
          // the minimum time.
          // Note that user provided timers are except from this test.
          ((i.results.real_time_used >= 5 * GetMinTimeToApply()) &&
-          !b.use_manual_time());
+          !b.use_manual_time())); 
 }
 
 double BenchmarkRunner::GetMinTimeToApply() const {
