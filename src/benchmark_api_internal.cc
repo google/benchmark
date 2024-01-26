@@ -53,7 +53,8 @@ BenchmarkInstance::BenchmarkInstance(Benchmark* benchmark, int family_idx,
   }
 
   if (!IsZero(benchmark->min_rel_accuracy_)) {
-    name_.min_rel_accuracy = StrFormat("min_rel_accuracy:%0.3f", benchmark_.min_rel_accuracy_);
+    name_.min_rel_accuracy =
+        StrFormat("min_rel_accuracy:%0.3f", benchmark_.min_rel_accuracy_);
   }
 
   if (!IsZero(benchmark->min_warmup_time_)) {

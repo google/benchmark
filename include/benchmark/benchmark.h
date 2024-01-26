@@ -126,12 +126,12 @@ template <class Q> int BM_Sequential(benchmark::State& state) {
 }
 BENCHMARK_TEMPLATE(BM_Sequential, WaitQueue<int>)->Range(1<<0, 1<<10);
 
-Use `Benchmark::MinTime(double t)` to set the minimum time used to determine how long 
-to run the benchmark. This option overrides the `benchmark_min_time` flag.
+Use `Benchmark::MinTime(double t)` to set the minimum time used to determine how
+long to run the benchmark. This option overrides the `benchmark_min_time` flag.
 
-If a benchmark measures time manually, use `Benchmark::MinRelAccuracy(double r)` to set
-the required minimum relative accuracy used to determine how long to run the benchmark.
-This option overrides the `benchmark_min_rel_accuracy` flag.
+If a benchmark measures time manually, use `Benchmark::MinRelAccuracy(double r)`
+to set the required minimum relative accuracy used to determine how long to run
+the benchmark. This option overrides the `benchmark_min_rel_accuracy` flag.
 
 void BM_test(benchmark::State& state) {
  ... body ...
@@ -1208,8 +1208,8 @@ class BENCHMARK_EXPORT Benchmark {
   // the `benchmark_min_rel_accuracy` flag.
   // REQUIRES: `r > 0`, `Iterations` has not been called on this benchmark, and
   // time is measured manually, i.e., `UseManualTime` has been called on this
-  // benchmark and each benchmark iteration should call `SetIterationTime(seconds)`
-  // to report the measured time.
+  // benchmark and each benchmark iteration should call
+  // `SetIterationTime(seconds)` to report the measured time.
   Benchmark* MinRelAccuracy(double r);
 
   // Set the minimum amount of time to run the benchmark before taking runtimes
