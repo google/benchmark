@@ -89,8 +89,9 @@ BM_DEFINE_string(benchmark_min_time, kDefaultMinTimeStr);
 // Manual timers provide per-iteration times. The relative accuracy is
 // measured as the standard deviation of these per-iteration times divided by
 // the mean and the square root of the number of iterations. The benchmark is
-// run until the specified minimum time or number of iterations is reached
-// and the measured relative accuracy meets the specified requirement.
+// run until both of the following conditions are fulfilled:
+//   1. the specified minimum time or number of iterations is reached
+//   2. the measured relative accuracy meets the specified requirement
 BM_DEFINE_double(benchmark_min_rel_accuracy, 0.0);
 
 // Minimum number of seconds a benchmark should be run before results should be
