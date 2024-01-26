@@ -1203,9 +1203,9 @@ class BENCHMARK_EXPORT Benchmark {
   // Set the minimum relative accuracy to use to determine the required number
   // of iterations when running this benchmark. This option overrides
   // the `benchmark_min_rel_accuracy` flag.
-  // REQUIRES: `t > 0`, `Iterations` has not been called on this benchmark, and
+  // REQUIRES: `r > 0`, `Iterations` has not been called on this benchmark, and
   // time is measured manually, i.e., `UseManualTime` has been called on this
-  // benchmark and each benchmark iteration should call SetIterationTime(seconds)
+  // benchmark and each benchmark iteration should call `SetIterationTime(seconds)`
   // to report the measured time.
   Benchmark* MinRelAccuracy(double r);
 
