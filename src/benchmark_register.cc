@@ -360,6 +360,7 @@ Benchmark* Benchmark::MinTime(double t) {
 Benchmark* Benchmark::MinRelAccuracy(double r) {
   BM_CHECK(r > 0.0);
   BM_CHECK(iterations_ == 0);
+  BM_CHECK(use_manual_time_);
   min_rel_accuracy_ = r;
   return this;
 }

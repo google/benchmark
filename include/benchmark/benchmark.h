@@ -126,8 +126,12 @@ template <class Q> int BM_Sequential(benchmark::State& state) {
 }
 BENCHMARK_TEMPLATE(BM_Sequential, WaitQueue<int>)->Range(1<<0, 1<<10);
 
-Use `Benchmark::MinTime(double t)` to set the minimum time used to run the
-benchmark. This option overrides the `benchmark_min_time` flag.
+Use `Benchmark::MinTime(double t)` to set the minimum time used to determine how long 
+to run the benchmark. This option overrides the `benchmark_min_time` flag.
+
+If a benchmark measures time manually, use `Benchmark::MinRelAccuracy(double r)` to set
+the required minimum relative accuracy used to determine how long to run the benchmark.
+This option overrides the `benchmark_min_rel_accuracy` flag.
 
 void BM_test(benchmark::State& state) {
  ... body ...
@@ -1193,11 +1197,19 @@ class BENCHMARK_EXPORT Benchmark {
   // multiplier kRangeMultiplier will be used.
   Benchmark* RangeMultiplier(int multiplier);
 
-  // Set the minimum amount of time to use when running this benchmark. This
-  // option overrides the `benchmark_min_time` flag.
+  // Set the minimum amount of time to use to determine the required number
+  // of iterations when running this benchmark. This option overrides
+  // the `benchmark_min_time` flag.
   // REQUIRES: `t > 0` and `Iterations` has not been called on this benchmark.
   Benchmark* MinTime(double t);
 
+  // Set the minimum relative accuracy to use to determine the required number
+  // of iterations when running this benchmark. This option overrides
+  // the `benchmark_min_rel_accuracy` flag.
+  // REQUIRES: `t > 0`, `Iterations` has not been called on this benchmark, and
+  // time is measured manually, i.e., `UseManualTime` has been called on this
+  // benchmark and each benchmark iteration should call SetIterationTime(seconds)
+  // to report the measured time.
   Benchmark* MinRelAccuracy(double r);
 
   // Set the minimum amount of time to run the benchmark before taking runtimes
@@ -1794,6 +1806,7 @@ class BENCHMARK_EXPORT BenchmarkReporter {
           threads(1),
           time_unit(GetDefaultTimeUnit()),
           real_accumulated_time(0),
+          manual_accumulated_time_pow2(0),
           cpu_accumulated_time(0),
           max_heapbytes_used(0),
           use_real_time_for_initial_big_o(false),
@@ -1822,6 +1835,7 @@ class BENCHMARK_EXPORT BenchmarkReporter {
     int64_t repetitions;
     TimeUnit time_unit;
     double real_accumulated_time;
+    double manual_accumulated_time_pow2;
     double cpu_accumulated_time;
 
     // Return a value representing the real time per iteration in the unit

@@ -93,6 +93,7 @@ BenchmarkReporter::Run CreateRunReport(
   if (!report.skipped) {
     if (b.use_manual_time()) {
       report.real_accumulated_time = results.manual_time_used;
+      report.manual_accumulated_time_pow2 = results.manual_time_used_pow2;
     } else {
       report.real_accumulated_time = results.real_time_used;
     }
@@ -140,7 +141,7 @@ void RunInThread(const BenchmarkInstance* b, IterationCount iters,
     results.cpu_time_used += timer.cpu_time_used();
     results.real_time_used += timer.real_time_used();
     results.manual_time_used += timer.manual_time_used();
-    results.manual_time_used2 += timer.manual_time_used2();
+    results.manual_time_used_pow2 += timer.manual_time_used_pow2();
     results.complexity_n += st.complexity_length_n();
     internal::Increment(&results.counters, st.counters);
   }
@@ -226,8 +227,10 @@ BenchmarkRunner::BenchmarkRunner(
     : b(b_),
       reports_for_family(reports_for_family_),
       parsed_benchtime_flag(ParseBenchMinTime(FLAGS_benchmark_min_time)),
-      min_time(ComputeMinTime(b_, parsed_benchtime_flag)),
-      min_rel_accuracy(b_min_rel_accuracy()),
+      min_time(ComputeMinTime(b, parsed_benchtime_flag)),
+      min_rel_accuracy(!IsZero(b.min_rel_accuracy()) 
+                          ? b.min_rel_accuracy()
+                          : FLAGS_benchmark_min_rel_accuracy),
       min_warmup_time((!IsZero(b.min_time()) && b.min_warmup_time() > 0.0)
                           ? b.min_warmup_time()
                           : FLAGS_benchmark_min_warmup_time),
@@ -304,10 +307,10 @@ BenchmarkRunner::IterationResults BenchmarkRunner::DoNIterations() {
 
   // Base decisions off of real time if requested by this benchmark.
   i.seconds = i.results.cpu_time_used;
-  i.seconds2 = 0;
+  i.seconds_pow2 = 0;
   if (b.use_manual_time()) {
     i.seconds = i.results.manual_time_used;
-    i.seconds2 = i.results.manual_time_used2;
+    i.seconds_pow2 = i.results.manual_time_used_pow2;
   } else if (b.use_real_time()) {
     i.seconds = i.results.real_time_used;
   }
@@ -334,8 +337,8 @@ IterationCount BenchmarkRunner::PredictNumItersNeeded(
 
   // So what seems to be the sufficiently-large iteration count? Round up.
   const IterationCount max_next_iters = static_cast<IterationCount>(
-      std::lround(std::max(multiplier * static_cast<double>(i.iters),
-                           static_cast<double>(i.iters) + 1.0)));
+      std::llround(std::max(multiplier * static_cast<double>(i.iters),
+                            static_cast<double>(i.iters) + 1.0)));
   // But we do have *some* limits though..
   const IterationCount next_iters = std::min(max_next_iters, kMaxIterations);
 
@@ -365,8 +368,8 @@ double BenchmarkRunner::GetMinTimeToApply() const {
   return warmup_done ? min_time : min_warmup_time;
 }
 
-double GetRelAccuracy(const IterationResults& i) const {
-  return std::sqrt(i.seconds2 / i.iters - std::pow(i.seconds / i.iters, 2.)) / (i.seconds / i.iters) / sqrt(i.iters);
+double BenchmarkRunner::GetRelAccuracy(const IterationResults& i) const {
+  return std::sqrt(i.seconds_pow2 / i.iters - std::pow(i.seconds / i.iters, 2.)) / (i.seconds / i.iters) / sqrt(i.iters);
 }
 
 bool BenchmarkRunner::HasSufficientTimeToApply(const IterationResults& i) const {
@@ -378,7 +381,7 @@ bool BenchmarkRunner::HasSufficientTimeToApply(const IterationResults& i) const 
 }
 
 bool BenchmarkRunner::HasSufficientRelAccuracy(const IterationResults& i) const {
-  return (!IsZero(GetMinRelAccuracy()) && (GetRelAccuracy(i) <= GetMinRelAccuracy()));
+  return (IsZero(GetMinRelAccuracy()) || (GetRelAccuracy(i) <= GetMinRelAccuracy()));
 }
 
 void BenchmarkRunner::FinishWarmUp(const IterationCount& i) {
