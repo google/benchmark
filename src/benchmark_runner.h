@@ -26,6 +26,7 @@
 namespace benchmark {
 
 BM_DECLARE_string(benchmark_min_time);
+BM_DECLARE_double(benchmark_min_rel_accuracy);
 BM_DECLARE_double(benchmark_min_warmup_time);
 BM_DECLARE_int32(benchmark_repetitions);
 BM_DECLARE_bool(benchmark_report_aggregates_only);
@@ -113,7 +114,7 @@ class BenchmarkRunner {
     internal::ThreadManager::Result results;
     IterationCount iters;
     double seconds;
-    double seconds2;
+    double seconds_pow2;
   };
   IterationResults DoNIterations();
 

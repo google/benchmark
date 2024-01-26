@@ -65,11 +65,11 @@ BM_DEFINE_bool(benchmark_list_tests, false);
 // linked into the binary are run.
 BM_DEFINE_string(benchmark_filter, "");
 
-// Specification of how long to run the benchmark.
+// Specification of either an exact number of iterations (specified as `<integer>x`)
+// or a minimum number of seconds (specified as `<float>s`) used to determine how
+// long to run the benchmark.
 //
-// It can be either an exact number of iterations (specified as `<integer>x`),
-// or a minimum number of seconds (specified as `<float>s`). If the latter
-// format (ie., min seconds) is used, the system may run the benchmark longer
+// If the latter format (ie., min seconds) is used, the system may run the benchmark longer
 // until the results are considered significant.
 //
 // For backward compatibility, the `s` suffix may be omitted, in which case,
@@ -80,6 +80,18 @@ BM_DEFINE_string(benchmark_filter, "");
 // real-time based tests, this is the lower bound on the elapsed time of the
 // benchmark execution, regardless of number of threads.
 BM_DEFINE_string(benchmark_min_time, kDefaultMinTimeStr);
+
+// Specification of required relative accuracy used to determine how
+// long to run the benchmark.
+//
+// REQUIRES: time is measured manually.
+//
+// Manual timers provide per-iteration times. The relative accuracy is
+// measured as the standard deviation of these per-iteration times divided by
+// the mean and the square root of the number of iterations. The benchmark is
+// run until the specified minimum time or number of iterations is reached
+// and the measured relative accuracy meets the specified requirement.
+BM_DEFINE_double(benchmark_min_rel_accuracy, 0.0);
 
 // Minimum number of seconds a benchmark should be run before results should be
 // taken into account. This e.g can be necessary for benchmarks of code which
@@ -694,6 +706,8 @@ void ParseCommandLineFlags(int* argc, char** argv) {
         ParseStringFlag(argv[i], "benchmark_filter", &FLAGS_benchmark_filter) ||
         ParseStringFlag(argv[i], "benchmark_min_time",
                         &FLAGS_benchmark_min_time) ||
+        ParseDoubleFlag(argv[i], "benchmark_min_rel_accuracy",
+                        &FLAGS_benchmark_min_rel_accuracy) ||
         ParseDoubleFlag(argv[i], "benchmark_min_warmup_time",
                         &FLAGS_benchmark_min_warmup_time) ||
         ParseInt32Flag(argv[i], "benchmark_repetitions",
@@ -753,7 +767,8 @@ void PrintDefaultHelp() {
           "benchmark"
           " [--benchmark_list_tests={true|false}]\n"
           "          [--benchmark_filter=<regex>]\n"
-          "          [--benchmark_min_time=`<integer>x` OR `<float>s` ]\n"
+          "          [--benchmark_min_time=`<integer>x` OR `<float>s`]\n"
+          "          [--benchmark_min_rel_accuracy=<min_rel_accuracy>]\n"
           "          [--benchmark_min_warmup_time=<min_warmup_time>]\n"
           "          [--benchmark_repetitions=<num_repetitions>]\n"
           "          [--benchmark_enable_random_interleaving={true|false}]\n"
