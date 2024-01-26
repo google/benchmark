@@ -227,9 +227,9 @@ BenchmarkRunner::BenchmarkRunner(
       reports_for_family(reports_for_family_),
       parsed_benchtime_flag(ParseBenchMinTime(FLAGS_benchmark_min_time)),
       min_time(ComputeMinTime(b, parsed_benchtime_flag)),
-      min_rel_accuracy(!IsZero(b.min_rel_accuracy()) 
-                          ? b.min_rel_accuracy()
-                          : FLAGS_benchmark_min_rel_accuracy),
+      min_rel_accuracy(!IsZero(b.min_rel_accuracy())
+                           ? b.min_rel_accuracy()
+                           : FLAGS_benchmark_min_rel_accuracy),
       min_warmup_time((!IsZero(b.min_time()) && b.min_warmup_time() > 0.0)
                           ? b.min_warmup_time()
                           : FLAGS_benchmark_min_warmup_time),
@@ -331,7 +331,8 @@ IterationCount BenchmarkRunner::PredictNumItersNeeded(
   multiplier = is_significant ? multiplier : 10.0;
 
   if (!IsZero(GetMinRelAccuracy())) {
-    multiplier = std::max(multiplier, GetRelAccuracy(i) * 1.4 / GetMinRelAccuracy());
+    multiplier =
+        std::max(multiplier, GetRelAccuracy(i) * 1.4 / GetMinRelAccuracy());
   }
 
   // So what seems to be the sufficiently-large iteration count? Round up.
@@ -353,9 +354,10 @@ bool BenchmarkRunner::ShouldReportIterationResults(
   return i.results.skipped_ ||
          // Too many iterations already.
          i.iters >= kMaxIterations ||
-         // We have applied for enough time and the relative accuracy is good enough.
-         // Relative accuracy is checked only for user provided timers.
-         (HasSufficientTimeToApply(i) && (!b.use_manual_time() || HasSufficientRelAccuracy(i)));
+         // We have applied for enough time and the relative accuracy is good
+         // enough. Relative accuracy is checked only for user provided timers.
+         (HasSufficientTimeToApply(i) &&
+          (!b.use_manual_time() || HasSufficientRelAccuracy(i)));
 }
 
 double BenchmarkRunner::GetMinTimeToApply() const {
@@ -368,19 +370,25 @@ double BenchmarkRunner::GetMinTimeToApply() const {
 }
 
 double BenchmarkRunner::GetRelAccuracy(const IterationResults& i) const {
-  return std::sqrt(i.seconds_pow2 / i.iters - std::pow(i.seconds / i.iters, 2.)) / (i.seconds / i.iters) / sqrt(i.iters);
+  return std::sqrt(i.seconds_pow2 / i.iters -
+                   std::pow(i.seconds / i.iters, 2.)) /
+         (i.seconds / i.iters) / sqrt(i.iters);
 }
 
-bool BenchmarkRunner::HasSufficientTimeToApply(const IterationResults& i) const {
+bool BenchmarkRunner::HasSufficientTimeToApply(
+    const IterationResults& i) const {
   return i.seconds >= GetMinTimeToApply() ||
          // CPU time is specified but the elapsed real time greatly exceeds
          // the minimum time.
          // Note that user provided timers are except from this test.
-         (!b.use_manual_time() && i.results.real_time_used >= 5 * GetMinTimeToApply());
+         (!b.use_manual_time() &&
+          i.results.real_time_used >= 5 * GetMinTimeToApply());
 }
 
-bool BenchmarkRunner::HasSufficientRelAccuracy(const IterationResults& i) const {
-  return (IsZero(GetMinRelAccuracy()) || (GetRelAccuracy(i) <= GetMinRelAccuracy()));
+bool BenchmarkRunner::HasSufficientRelAccuracy(
+    const IterationResults& i) const {
+  return (IsZero(GetMinRelAccuracy()) ||
+          (GetRelAccuracy(i) <= GetMinRelAccuracy()));
 }
 
 void BenchmarkRunner::FinishWarmUp(const IterationCount& i) {

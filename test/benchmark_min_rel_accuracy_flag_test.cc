@@ -8,8 +8,8 @@
 
 #include "benchmark/benchmark.h"
 
-// Tests that if a benchmark measures time manually, we can specify the required relative accuracy with
-// --benchmark_min_rel_accuracy=<min_rel_accuracy>.
+// Tests that if a benchmark measures time manually, we can specify the required
+// relative accuracy with --benchmark_min_rel_accuracy=<min_rel_accuracy>.
 namespace {
 
 class TestReporter : public benchmark::ConsoleReporter {
@@ -22,7 +22,8 @@ class TestReporter : public benchmark::ConsoleReporter {
     assert(report.size() == 1);
     iters_.push_back(report[0].iterations);
     real_accumulated_times_.push_back(report[0].real_accumulated_time);
-    manual_accumulated_time_pow2s_.push_back(report[0].manual_accumulated_time_pow2);
+    manual_accumulated_time_pow2s_.push_back(
+        report[0].manual_accumulated_time_pow2);
     ConsoleReporter::ReportRuns(report);
   };
 
@@ -61,7 +62,8 @@ static void BM_MyBench(benchmark::State& state) {
 BENCHMARK(BM_MyBench)->UseManualTime();
 
 int main(int argc, char** argv) {
-  // Make a fake argv and append the new --benchmark_min_rel_accuracy=<min_rel_accuracy> to it.
+  // Make a fake argv and append the new
+  // --benchmark_min_rel_accuracy=<min_rel_accuracy> to it.
   int fake_argc = argc + 2;
   const char** fake_argv = new const char*[static_cast<size_t>(fake_argc)];
   for (int i = 0; i < argc; ++i) fake_argv[i] = argv[i];
@@ -77,10 +79,15 @@ int main(int argc, char** argv) {
 
   // Check the executed iters.
   const benchmark::IterationCount iters = test_reporter.GetIters()[0];
-  const double real_accumulated_time = test_reporter.GetRealAccumulatedTimes()[0];
-  const double manual_accumulated_time_pow2 = test_reporter.GetManualAccumulatedTimePow2s()[0];
+  const double real_accumulated_time =
+      test_reporter.GetRealAccumulatedTimes()[0];
+  const double manual_accumulated_time_pow2 =
+      test_reporter.GetManualAccumulatedTimePow2s()[0];
 
-  const double rel_accuracy = std::sqrt(manual_accumulated_time_pow2 / iters - std::pow(real_accumulated_time / iters, 2.)) / (real_accumulated_time / iters) / sqrt(iters);
+  const double rel_accuracy =
+      std::sqrt(manual_accumulated_time_pow2 / iters -
+                std::pow(real_accumulated_time / iters, 2.)) /
+      (real_accumulated_time / iters) / sqrt(iters);
   assert(rel_accuracy <= 0.01);
 
   delete[] fake_argv;

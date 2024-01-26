@@ -39,8 +39,8 @@ class ThreadTimer {
 
   // Called by each thread
   void SetIterationTime(double seconds) {
-      manual_time_used_ += seconds;
-      manual_time_used_pow2_ += std::pow(seconds, 2.);
+    manual_time_used_ += seconds;
+    manual_time_used_pow2_ += std::pow(seconds, 2.);
   }
 
   bool running() const { return running_; }

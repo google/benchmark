@@ -65,12 +65,12 @@ BM_DEFINE_bool(benchmark_list_tests, false);
 // linked into the binary are run.
 BM_DEFINE_string(benchmark_filter, "");
 
-// Specification of either an exact number of iterations (specified as `<integer>x`)
-// or a minimum number of seconds (specified as `<float>s`) used to determine how
-// long to run the benchmark.
+// Specification of either an exact number of iterations (specified as
+// `<integer>x`) or a minimum number of seconds (specified as `<float>s`) used
+// to determine how long to run the benchmark.
 //
-// If the latter format (ie., min seconds) is used, the system may run the benchmark longer
-// until the results are considered significant.
+// If the latter format (ie., min seconds) is used, the system may run
+// the benchmark longer until the results are considered significant.
 //
 // For backward compatibility, the `s` suffix may be omitted, in which case,
 // the specified number is interpreted as the number of seconds.
