@@ -752,7 +752,7 @@ std::string GetBenchmarkVersiom() {
 #if defined(BENCHMARK_VERSION)
   return {BENCHMARK_VERSION};
 #else
-  return "hello, bazel!";
+  return "";
 #endif
 }
 
