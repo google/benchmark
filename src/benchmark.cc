@@ -748,13 +748,7 @@ int InitializeStreams() {
 
 }  // end namespace internal
 
-std::string GetBenchmarkVersiom() {
-#if defined(BENCHMARK_VERSION)
-  return {BENCHMARK_VERSION};
-#else
-  return "hello, bazel!";
-#endif
-}
+std::string GetBenchmarkVersiom() { return {BENCHMARK_VERSION}; }
 
 void PrintDefaultHelp() {
   fprintf(stdout,
