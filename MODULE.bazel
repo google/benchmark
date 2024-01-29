@@ -4,9 +4,9 @@ module(
 )
 
 bazel_dep(name = "bazel_skylib", version = "1.5.0")
-bazel_dep(name = "platforms", version = "0.0.6")
+bazel_dep(name = "platforms", version = "0.0.7")
 bazel_dep(name = "rules_foreign_cc", version = "0.10.1")
-bazel_dep(name = "rules_cc", version = "0.0.6")
+bazel_dep(name = "rules_cc", version = "0.0.9")
 
 bazel_dep(name = "rules_python", version = "0.27.1", dev_dependency = True)
 bazel_dep(name = "googletest", version = "1.12.1", dev_dependency = True, repo_name = "com_google_googletest")
@@ -28,3 +28,5 @@ pip.parse(
     requirements_lock = "//tools:requirements.txt",
 )
 use_repo(pip, "tools_pip_deps")
+
+# -- bazel_dep definitions -- #
