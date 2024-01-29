@@ -135,6 +135,15 @@ def load_benchmark_results(fname, benchmark_filter):
 
     with open(fname, "r") as f:
         results = json.load(f)
+        if "context" in results:
+            if "json_schema_version" in results["context"]:
+                json_schema_version = results["context"]["json_schema_version"]
+                if json_schema_version != 1:
+                    print(
+                        "In %s, got unnsupported JSON schema version: %i, expected 1"
+                        % (fname, json_schema_version)
+                    )
+                    sys.exit(1)
         if "benchmarks" in results:
             results["benchmarks"] = list(
                 filter(benchmark_wanted, results["benchmarks"])

@@ -55,6 +55,9 @@ static int AddContextCases() {
              {{"Load Average: (%float, ){0,2}%float$", MR_Next}});
   }
   AddCases(TC_JSONOut, {{"\"load_avg\": \\[(%float,?){0,3}],$", MR_Next}});
+  AddCases(TC_JSONOut, {{"\"library_version\": \".*\",$", MR_Next}});
+  AddCases(TC_JSONOut, {{"\"library_build_type\": \".*\",$", MR_Next}});
+  AddCases(TC_JSONOut, {{"\"json_schema_version\": 1$", MR_Next}});
   return 0;
 }
 int dummy_register = AddContextCases();
