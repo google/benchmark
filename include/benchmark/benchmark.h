@@ -1523,7 +1523,7 @@ class Fixture : public internal::Benchmark {
 // /* Registers a benchmark named "BM_takes_args/int_string_test` */
 // BENCHMARK_CAPTURE(BM_takes_args, int_string_test, 42, std::string("abc"));
 #define BENCHMARK_CAPTURE(func, test_case_name, ...)     \
-  BENCHMARK_PRIVATE_DECLARE(func) =                      \
+  BENCHMARK_PRIVATE_DECLARE(_benchmark_) =               \
       (::benchmark::internal::RegisterBenchmarkInternal( \
           new ::benchmark::internal::FunctionBenchmark(  \
               #func "/" #test_case_name,                 \
@@ -1559,6 +1559,31 @@ class Fixture : public internal::Benchmark {
 #else
 #define BENCHMARK_TEMPLATE(n, a) BENCHMARK_TEMPLATE1(n, a)
 #endif
+
+#ifdef BENCHMARK_HAS_CXX11
+// This will register a benchmark for a templatized function,
+// with the additional arguments specified by `...`.
+//
+// For example:
+//
+// template <typename T, class ...ExtraArgs>`
+// void BM_takes_args(benchmark::State& state, ExtraArgs&&... extra_args) {
+//  [...]
+//}
+// /* Registers a benchmark named "BM_takes_args<void>/int_string_test` */
+// BENCHMARK_TEMPLATE1_CAPTURE(BM_takes_args, void, int_string_test, 42,
+//                             std::string("abc"));
+#define BENCHMARK_TEMPLATE1_CAPTURE(func, a, test_case_name, ...) \
+  BENCHMARK_CAPTURE(func<a>, test_case_name, __VA_ARGS__)
+
+#define BENCHMARK_TEMPLATE2_CAPTURE(func, a, b, test_case_name, ...) \
+  BENCHMARK_PRIVATE_DECLARE(func) =                                  \
+      (::benchmark::internal::RegisterBenchmarkInternal(             \
+          new ::benchmark::internal::FunctionBenchmark(              \
+              #func "<" #a "," #b ">"                                \
+                    "/" #test_case_name,                             \
+              [](::benchmark::State& st) { func<a, b>(st, __VA_ARGS__); })))
+#endif  // BENCHMARK_HAS_CXX11
 
 #define BENCHMARK_PRIVATE_DECLARE_F(BaseClass, Method)          \
   class BaseClass##_##Method##_Benchmark : public BaseClass {   \
