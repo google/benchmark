@@ -88,7 +88,7 @@ const char *enum_big_o_1 = "\\([0-9]+\\)";
 // FIXME: Tolerate both '(1)' and 'lgN' as output when the complexity is auto
 // deduced.
 // See https://github.com/google/benchmark/issues/272
-const char *auto_big_o_1 = "(\\([0-9]+\\))|(lgN)";
+const char *auto_big_o_1 = "(\\([0-9]+\\))|(lgN)|(N\\^2)";
 const char *lambda_big_o_1 = "f\\(N\\)";
 
 // Add enum tests

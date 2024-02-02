@@ -372,7 +372,7 @@ CHECK_BENCHMARK_RESULTS("BM_Counters_Tabular/repeats:2/threads:2$",
 void BM_CounterRates_Tabular(benchmark::State& state) {
   for (auto _ : state) {
     // This test requires a non-zero CPU time to avoid divide-by-zero
-    auto iterations = state.iterations();
+    auto iterations = double(state.iterations()) * double(state.iterations());
     benchmark::DoNotOptimize(iterations);
   }
   namespace bm = benchmark;
