@@ -218,6 +218,15 @@ inline BENCHMARK_ALWAYS_INLINE int64_t Now() {
   uint64_t pcycle;
   asm volatile("%0 = C15:14" : "=r"(pcycle));
   return static_cast<double>(pcycle);
+#elif defined(__alpha__)
+  // Alpha has a cycle counter, the PCC register, but it is an unsigned 32-bit
+  // integer and thus wraps every ~4s, making using it for tick counts
+  // unreliable beyond this time range.  The real-time clock is low-precision,
+  // roughtly ~1ms, but it is the only option that can reasonable count
+  // indefinitely.
+  struct timeval tv;
+  gettimeofday(&tv, nullptr);
+  return static_cast<int64_t>(tv.tv_sec) * 1000000 + tv.tv_usec;
 #else
   // The soft failover to a generic implementation is automatic only for ARM.
   // For other platforms the developer is expected to make an attempt to create
