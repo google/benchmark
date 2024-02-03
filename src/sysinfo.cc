@@ -513,7 +513,11 @@ int GetNumCPUs() {
     std::cerr << "failed to open /proc/cpuinfo\n";
     return -1;
   }
+#if defined(__alpha__)
+  const std::string Key = "cpus detected";
+#else
   const std::string Key = "processor";
+#endif
   std::string ln;
   while (std::getline(f, ln)) {
     if (ln.empty()) continue;
