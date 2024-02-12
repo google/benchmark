@@ -167,7 +167,7 @@ bool JSONReporter::ReportContext(const Context& context) {
   }
   out << "],\n";
 
-  out << indent << FormatKV("library_version", GetBenchmarkVersiom());
+  out << indent << FormatKV("library_version", GetBenchmarkVersion());
   out << ",\n";
 
 #if defined(NDEBUG)
