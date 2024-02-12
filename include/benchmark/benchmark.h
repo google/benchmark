@@ -303,7 +303,7 @@ class BenchmarkReporter;
 const char kDefaultMinTimeStr[] = "0.5s";
 
 // Returns the version of the library.
-BENCHMARK_EXPORT std::string GetBenchmarkVersiom();
+BENCHMARK_EXPORT std::string GetBenchmarkVersion();
 
 BENCHMARK_EXPORT void PrintDefaultHelp();
 
