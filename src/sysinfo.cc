@@ -474,12 +474,11 @@ std::string GetSystemName() {
 #endif  // Catch-all POSIX block.
 }
 
-int GetNumCPUs() {
+int GetNumCPUsImpl() {
 #ifdef BENCHMARK_HAS_SYSCTL
   int num_cpu = -1;
   if (GetSysctl("hw.ncpu", &num_cpu)) return num_cpu;
-  fprintf(stderr, "Err: %s\n", strerror(errno));
-  std::exit(EXIT_FAILURE);
+  PrintErrorAndDie("Err: ", strerror(errno));
 #elif defined(BENCHMARK_OS_WINDOWS)
   SYSTEM_INFO sysinfo;
   // Use memset as opposed to = {} to avoid GCC missing initializer false
@@ -493,8 +492,8 @@ int GetNumCPUs() {
   // Returns -1 in case of a failure.
   long num_cpu = sysconf(_SC_NPROCESSORS_ONLN);
   if (num_cpu < 0) {
-    fprintf(stderr, "sysconf(_SC_NPROCESSORS_ONLN) failed with error: %s\n",
-            strerror(errno));
+    PrintErrorAndDie("sysconf(_SC_NPROCESSORS_ONLN) failed with error: ",
+                     strerror(errno));
   }
   return (int)num_cpu;
 #elif defined(BENCHMARK_OS_QNX)
@@ -510,8 +509,7 @@ int GetNumCPUs() {
   int max_id = -1;
   std::ifstream f("/proc/cpuinfo");
   if (!f.is_open()) {
-    std::cerr << "failed to open /proc/cpuinfo\n";
-    return -1;
+    PrintErrorAndDie("Failed to open /proc/cpuinfo");
   }
 #if defined(__alpha__)
   const std::string Key = "cpus detected";
@@ -540,12 +538,10 @@ int GetNumCPUs() {
     }
   }
   if (f.bad()) {
-    std::cerr << "Failure reading /proc/cpuinfo\n";
-    return -1;
+    PrintErrorAndDie("Failure reading /proc/cpuinfo");
   }
   if (!f.eof()) {
-    std::cerr << "Failed to read to end of /proc/cpuinfo\n";
-    return -1;
+    PrintErrorAndDie("Failed to read to end of /proc/cpuinfo");
   }
   f.close();
 
@@ -557,6 +553,16 @@ int GetNumCPUs() {
   return num_cpus;
 #endif
   BENCHMARK_UNREACHABLE();
+}
+
+int GetNumCPUs() {
+  const int num_cpus = GetNumCPUsImpl();
+  if (num_cpus < 1) {
+    PrintErrorAndDie(
+        "Unable to extract number of CPUs.  If your platform uses "
+        "/proc/cpuinfo, custom support may need to be added.");
+  }
+  return num_cpus;
 }
 
 class ThreadAffinityGuard final {
