@@ -217,6 +217,7 @@ Benchmark::Benchmark(const std::string& name)
       measure_process_cpu_time_(false),
       use_real_time_(false),
       use_manual_time_(false),
+      manual_threading_(false),
       complexity_(oNone),
       complexity_lambda_(nullptr),
       setup_(nullptr),

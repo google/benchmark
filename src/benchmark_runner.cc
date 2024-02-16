@@ -86,7 +86,7 @@ BenchmarkReporter::Run CreateRunReport(
   // This is the total iterations across all threads.
   report.iterations = results.iterations;
   report.time_unit = b.time_unit();
-  report.threads = b.threads();
+  report.threads = results.thread_count;
   report.repetition_index = repetition_index;
   report.repetitions = repeats;
 
@@ -130,17 +130,36 @@ void RunInThread(const BenchmarkInstance* b, IterationCount iters,
 
   State st =
       b->Run(iters, thread_id, &timer, manager, perf_counters_measurement);
-  BM_CHECK(st.skipped() || st.iterations() >= st.max_iterations)
-      << "Benchmark returned before State::KeepRunning() returned false!";
+
+  assert(b->explicit_threading() || b->threads() == 1);
+
+  if (st.GetNumThreadStates() > 0) {
+    BM_CHECK((!b->explicit_threading()) || b->manual_threading())
+        << "Benchmark " << b->name().str()
+        << " run with managed threading. It must not create ThreadStates!";
+    BM_CHECK((!b->explicit_threading()) ||
+             st.GetNumThreadStates() == b->threads())
+        << "The number of ThreadStates created by Benchmark " << b->name().str()
+        << " doesn't match the number of threads!";
+  } else {
+    BM_CHECK(st.skipped() || st.iterations() >= st.max_iterations)
+        << "Benchmark returned before State::KeepRunning() returned false!";
+  }
+
   {
     MutexLock l(manager->GetBenchmarkMutex());
     internal::ThreadManager::Result& results = manager->results;
-    results.iterations += st.iterations();
-    results.cpu_time_used += timer.cpu_time_used();
-    results.real_time_used += timer.real_time_used();
-    results.manual_time_used += timer.manual_time_used();
-    results.complexity_n += st.complexity_length_n();
-    internal::Increment(&results.counters, st.counters);
+    if (st.GetNumThreadStates() > 0) {
+      // State values as well as thread state values are summed up for
+      // complexity_n and user counters:
+      results.complexity_n += st.complexity_length_n();
+      internal::Increment(&results.counters, st.counters);
+      results.thread_count =
+          b->explicit_threading() ? b->threads() : st.GetNumThreadStates();
+    } else {
+      internal::MergeResults(st, &timer, manager);
+      results.thread_count = b->threads();
+    }
   }
   manager->NotifyThreadComplete();
 }
@@ -234,7 +253,8 @@ BenchmarkRunner::BenchmarkRunner(
       has_explicit_iteration_count(b.iterations() != 0 ||
                                    parsed_benchtime_flag.tag ==
                                        BenchTimeType::ITERS),
-      pool(b.threads() - 1),
+      num_managed_threads(b.manual_threading() ? 1 : b.threads()),
+      pool(num_managed_threads - 1),
       iters(has_explicit_iteration_count
                 ? ComputeIters(b_, parsed_benchtime_flag)
                 : 1),
@@ -260,7 +280,7 @@ BenchmarkRunner::IterationResults BenchmarkRunner::DoNIterations() {
   BM_VLOG(2) << "Running " << b.name().str() << " for " << iters << "\n";
 
   std::unique_ptr<internal::ThreadManager> manager;
-  manager.reset(new internal::ThreadManager(b.threads()));
+  manager.reset(new internal::ThreadManager(num_managed_threads));
 
   // Run all but one thread in separate threads
   for (std::size_t ti = 0; ti < pool.size(); ++ti) {
@@ -287,17 +307,18 @@ BenchmarkRunner::IterationResults BenchmarkRunner::DoNIterations() {
   manager.reset();
 
   // Adjust real/manual time stats since they were reported per thread.
-  i.results.real_time_used /= b.threads();
-  i.results.manual_time_used /= b.threads();
+  i.results.real_time_used /= i.results.thread_count;
+  i.results.manual_time_used /= i.results.thread_count;
   // If we were measuring whole-process CPU usage, adjust the CPU time too.
-  if (b.measure_process_cpu_time()) i.results.cpu_time_used /= b.threads();
+  if (b.measure_process_cpu_time())
+    i.results.cpu_time_used /= i.results.thread_count;
 
   BM_VLOG(2) << "Ran in " << i.results.cpu_time_used << "/"
              << i.results.real_time_used << "\n";
 
   // By using KeepRunningBatch a benchmark can iterate more times than
   // requested, so take the iteration count from i.results.
-  i.iters = i.results.iterations / b.threads();
+  i.iters = i.results.iterations / i.results.thread_count;
 
   // Base decisions off of real time if requested by this benchmark.
   i.seconds = i.results.cpu_time_used;

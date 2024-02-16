@@ -45,6 +45,7 @@ class ThreadManager {
     std::string report_label_;
     std::string skip_message_;
     internal::Skipped skipped_ = internal::NotSkipped;
+    int thread_count = 0;
     UserCounters counters;
   };
   GUARDED_BY(GetBenchmarkMutex()) Result results;
