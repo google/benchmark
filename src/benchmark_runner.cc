@@ -96,6 +96,7 @@ BenchmarkReporter::Run CreateRunReport(
     } else {
       report.real_accumulated_time = results.real_time_used;
     }
+    report.use_real_time_for_initial_big_o = b.use_manual_time();
     report.cpu_accumulated_time = results.cpu_time_used;
     report.complexity_n = results.complexity_n;
     report.complexity = b.complexity();

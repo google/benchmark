@@ -194,18 +194,17 @@ BENCHMARK(BM_Complexity_O_N_log_N)
 const char *n_lg_n_test_name = "BM_Complexity_O_N_log_N/manual_time";
 const char *big_o_n_lg_n_test_name = "BM_Complexity_O_N_log_N/manual_time_BigO";
 const char *rms_o_n_lg_n_test_name = "BM_Complexity_O_N_log_N/manual_time_RMS";
-const char *enum_big_o_n_lg_n = "NlgN";
-const char *auto_big_o_n_lg_n = "lgN";
+const char *enum_auto_big_o_n_lg_n = "NlgN";
 const char *lambda_big_o_n_lg_n = "f\\(N\\)";
 
 // Add enum tests
 ADD_COMPLEXITY_CASES(n_lg_n_test_name, big_o_n_lg_n_test_name,
-                     rms_o_n_lg_n_test_name, enum_big_o_n_lg_n,
+                     rms_o_n_lg_n_test_name, enum_auto_big_o_n_lg_n,
                      /*family_index=*/6);
 
 // NOTE: auto big-o is wron.g
 ADD_COMPLEXITY_CASES(n_lg_n_test_name, big_o_n_lg_n_test_name,
-                     rms_o_n_lg_n_test_name, auto_big_o_n_lg_n,
+                     rms_o_n_lg_n_test_name, enum_auto_big_o_n_lg_n,
                      /*family_index=*/7);
 
 //// Add lambda tests

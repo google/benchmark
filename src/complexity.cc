@@ -186,8 +186,19 @@ std::vector<BenchmarkReporter::Run> ComputeBigO(
     result_cpu = MinimalLeastSq(n, cpu_time, reports[0].complexity_lambda);
     result_real = MinimalLeastSq(n, real_time, reports[0].complexity_lambda);
   } else {
-    result_cpu = MinimalLeastSq(n, cpu_time, reports[0].complexity);
-    result_real = MinimalLeastSq(n, real_time, result_cpu.complexity);
+    const BigO* InitialBigO = &reports[0].complexity;
+    const bool use_real_time_for_initial_big_o =
+        reports[0].use_real_time_for_initial_big_o;
+    if (use_real_time_for_initial_big_o) {
+      result_real = MinimalLeastSq(n, real_time, *InitialBigO);
+      InitialBigO = &result_real.complexity;
+      // The Big-O complexity for CPU time must have the same Big-O function!
+    }
+    result_cpu = MinimalLeastSq(n, cpu_time, *InitialBigO);
+    InitialBigO = &result_cpu.complexity;
+    if (!use_real_time_for_initial_big_o) {
+      result_real = MinimalLeastSq(n, real_time, *InitialBigO);
+    }
   }
 
   // Drop the 'args' when reporting complexity.
