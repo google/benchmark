@@ -5,7 +5,7 @@
 
 void BM_empty(benchmark::State& state) {
   for (auto _ : state) {
-    auto iterations = state.iterations();
+    auto iterations = double(state.iterations()) * double(state.iterations());
     benchmark::DoNotOptimize(iterations);
   }
 }

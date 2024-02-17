@@ -143,7 +143,7 @@ ADD_CASES("BM_error_during_running_ranged_for",
 
 void BM_error_after_running(benchmark::State& state) {
   for (auto _ : state) {
-    auto iterations = state.iterations();
+    auto iterations = double(state.iterations()) * double(state.iterations());
     benchmark::DoNotOptimize(iterations);
   }
   if (state.thread_index() <= (state.threads() / 2))
