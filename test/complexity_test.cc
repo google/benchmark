@@ -70,8 +70,14 @@ int AddComplexityTest(const std::string &test_name,
 void BM_Complexity_O1(benchmark::State &state) {
   for (auto _ : state) {
     // This test requires a non-zero CPU time to avoid divide-by-zero
-    auto iterations = double(state.iterations()) * double(state.iterations());
-    benchmark::DoNotOptimize(iterations);
+    benchmark::DoNotOptimize(state.iterations());
+    double tmp = state.iterations();
+    benchmark::DoNotOptimize(tmp);
+    for (benchmark::IterationCount i = 0; i < state.iterations(); ++i) {
+      benchmark::DoNotOptimize(state.iterations());
+      tmp *= state.iterations();
+      benchmark::DoNotOptimize(tmp);
+    }
 
     // always 1ns per iteration
     state.SetIterationTime(42 * 1e-9);
@@ -113,8 +119,14 @@ ADD_COMPLEXITY_CASES(one_test_name, big_o_1_test_name, rms_o_1_test_name,
 void BM_Complexity_O_N(benchmark::State &state) {
   for (auto _ : state) {
     // This test requires a non-zero CPU time to avoid divide-by-zero
-    auto iterations = double(state.iterations()) * double(state.iterations());
-    benchmark::DoNotOptimize(iterations);
+    benchmark::DoNotOptimize(state.iterations());
+    double tmp = state.iterations();
+    benchmark::DoNotOptimize(tmp);
+    for (benchmark::IterationCount i = 0; i < state.iterations(); ++i) {
+      benchmark::DoNotOptimize(state.iterations());
+      tmp *= state.iterations();
+      benchmark::DoNotOptimize(tmp);
+    }
 
     // 1ns per iteration per entry
     state.SetIterationTime(state.range(0) * 42 * 1e-9);
@@ -165,8 +177,14 @@ static const double kLog2E = 1.44269504088896340736;
 static void BM_Complexity_O_N_log_N(benchmark::State &state) {
   for (auto _ : state) {
     // This test requires a non-zero CPU time to avoid divide-by-zero
-    auto iterations = double(state.iterations()) * double(state.iterations());
-    benchmark::DoNotOptimize(iterations);
+    benchmark::DoNotOptimize(state.iterations());
+    double tmp = state.iterations();
+    benchmark::DoNotOptimize(tmp);
+    for (benchmark::IterationCount i = 0; i < state.iterations(); ++i) {
+      benchmark::DoNotOptimize(state.iterations());
+      tmp *= state.iterations();
+      benchmark::DoNotOptimize(tmp);
+    }
 
     state.SetIterationTime(state.range(0) * kLog2E * std::log(state.range(0)) *
                            42 * 1e-9);
@@ -219,8 +237,14 @@ ADD_COMPLEXITY_CASES(n_lg_n_test_name, big_o_n_lg_n_test_name,
 void BM_ComplexityCaptureArgs(benchmark::State &state, int n) {
   for (auto _ : state) {
     // This test requires a non-zero CPU time to avoid divide-by-zero
-    auto iterations = double(state.iterations()) * double(state.iterations());
-    benchmark::DoNotOptimize(iterations);
+    benchmark::DoNotOptimize(state.iterations());
+    double tmp = state.iterations();
+    benchmark::DoNotOptimize(tmp);
+    for (benchmark::IterationCount i = 0; i < state.iterations(); ++i) {
+      benchmark::DoNotOptimize(state.iterations());
+      tmp *= state.iterations();
+      benchmark::DoNotOptimize(tmp);
+    }
 
     state.SetIterationTime(state.range(0) * 42 * 1e-9);
   }

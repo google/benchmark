@@ -218,14 +218,8 @@ if(NOT (MSVC OR CMAKE_CXX_SIMULATE_ID STREQUAL "MSVC"))
   benchmark_add_test(NAME cxx03 COMMAND cxx03_test --benchmark_min_time=0.01s)
 endif()
 
-# Attempt to work around flaky test failures when running on Appveyor servers.
-if (DEFINED ENV{APPVEYOR})
-  set(COMPLEXITY_MIN_TIME "0.5s")
-else()
-  set(COMPLEXITY_MIN_TIME "0.01s")
-endif()
 compile_output_test(complexity_test)
-benchmark_add_test(NAME complexity_benchmark COMMAND complexity_test --benchmark_min_time=${COMPLEXITY_MIN_TIME})
+benchmark_add_test(NAME complexity_benchmark COMMAND complexity_test --benchmark_min_time=1000000x)
 
 ###############################################################################
 # GoogleTest Unit Tests
