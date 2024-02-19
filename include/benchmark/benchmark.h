@@ -1792,6 +1792,7 @@ class BENCHMARK_EXPORT BenchmarkReporter {
           real_accumulated_time(0),
           cpu_accumulated_time(0),
           max_heapbytes_used(0),
+          use_real_time_for_initial_big_o(false),
           complexity(oNone),
           complexity_lambda(),
           complexity_n(0),
@@ -1833,6 +1834,10 @@ class BENCHMARK_EXPORT BenchmarkReporter {
 
     // This is set to 0.0 if memory tracing is not enabled.
     double max_heapbytes_used;
+
+    // By default Big-O is computed for CPU time, but that is not what you want
+    // to happen when manual time was requested, which is stored as real time.
+    bool use_real_time_for_initial_big_o;
 
     // Keep track of arguments to compute asymptotic complexity
     BigO complexity;
