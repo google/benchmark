@@ -28,6 +28,13 @@ target_include_directories(benchmark PUBLIC
   $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>
 )
 
+set_property(
+  SOURCE benchmark.cc
+  APPEND
+  PROPERTY COMPILE_DEFINITIONS
+  BENCHMARK_VERSION="${VERSION}"
+)
+
 # libpfm, if available
 if (PFM_FOUND)
   target_link_libraries(benchmark PRIVATE PFM::libpfm)

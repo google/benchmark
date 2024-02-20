@@ -102,7 +102,8 @@ double MakeTime(thread_basic_info_data_t const& info) {
 #endif
 #if defined(CLOCK_PROCESS_CPUTIME_ID) || defined(CLOCK_THREAD_CPUTIME_ID)
 double MakeTime(struct timespec const& ts) {
-  return ts.tv_sec + (static_cast<double>(ts.tv_nsec) * 1e-9);
+  return static_cast<double>(ts.tv_sec) +
+         (static_cast<double>(ts.tv_nsec) * 1e-9);
 }
 #endif
 
@@ -180,6 +181,9 @@ double ThreadCPUUsage() {
 #elif defined(BENCHMARK_OS_RTEMS)
   // RTEMS doesn't support CLOCK_THREAD_CPUTIME_ID. See
   // https://github.com/RTEMS/rtems/blob/master/cpukit/posix/src/clockgettime.c
+  return ProcessCPUUsage();
+#elif defined(BENCHMARK_OS_ZOS)
+  // z/OS doesn't support CLOCK_THREAD_CPUTIME_ID.
   return ProcessCPUUsage();
 #elif defined(BENCHMARK_OS_SOLARIS)
   struct rusage ru;

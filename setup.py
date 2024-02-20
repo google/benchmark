@@ -4,10 +4,10 @@ import platform
 import shutil
 import sysconfig
 from pathlib import Path
+from typing import Generator
 
 import setuptools
 from setuptools.command import build_ext
-
 
 PYTHON_INCLUDE_PATH_PLACEHOLDER = "<PYTHON_INCLUDE_PATH>"
 
@@ -16,14 +16,14 @@ IS_MAC = platform.system() == "Darwin"
 
 
 @contextlib.contextmanager
-def temp_fill_include_path(fp: str):
+def temp_fill_include_path(fp: str) -> Generator[None, None, None]:
     """Temporarily set the Python include path in a file."""
     with open(fp, "r+") as f:
         try:
             content = f.read()
             replaced = content.replace(
                 PYTHON_INCLUDE_PATH_PLACEHOLDER,
-                Path(sysconfig.get_paths()['include']).as_posix(),
+                Path(sysconfig.get_paths()["include"]).as_posix(),
             )
             f.seek(0)
             f.write(replaced)
@@ -53,9 +53,19 @@ class BuildBazelExtension(build_ext.build_ext):
     def run(self):
         for ext in self.extensions:
             self.bazel_build(ext)
-        build_ext.build_ext.run(self)
+        super().run()
+        # explicitly call `bazel shutdown` for graceful exit
+        self.spawn(["bazel", "shutdown"])
 
-    def bazel_build(self, ext: BazelExtension):
+    def copy_extensions_to_source(self):
+        """
+        Copy generated extensions into the source tree.
+        This is done in the ``bazel_build`` method, so it's not necessary to
+        do again in the `build_ext` base class.
+        """
+        pass
+
+    def bazel_build(self, ext: BazelExtension) -> None:
         """Runs the bazel build to create the package."""
         with temp_fill_include_path("WORKSPACE"):
             temp_path = Path(self.build_temp)
@@ -64,6 +74,7 @@ class BuildBazelExtension(build_ext.build_ext):
                 "bazel",
                 "build",
                 ext.bazel_target,
+                "--enable_bzlmod=false",
                 f"--symlink_prefix={temp_path / 'bazel-'}",
                 f"--compilation_mode={'dbg' if self.debug else 'opt'}",
                 # C++17 is required by nanobind
@@ -91,15 +102,14 @@ class BuildBazelExtension(build_ext.build_ext):
 
             self.spawn(bazel_argv)
 
-            shared_lib_suffix = '.dll' if IS_WINDOWS else '.so'
+            shared_lib_suffix = ".dll" if IS_WINDOWS else ".so"
             ext_name = ext.target_name + shared_lib_suffix
-            ext_bazel_bin_path = temp_path / 'bazel-bin' / ext.relpath / ext_name
+            ext_bazel_bin_path = (
+                temp_path / "bazel-bin" / ext.relpath / ext_name
+            )
 
             ext_dest_path = Path(self.get_ext_fullpath(ext.name))
             shutil.copyfile(ext_bazel_bin_path, ext_dest_path)
-
-            # explicitly call `bazel shutdown` for graceful exit
-            self.spawn(["bazel", "shutdown"])
 
 
 setuptools.setup(

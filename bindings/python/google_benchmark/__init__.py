@@ -29,47 +29,26 @@ Example usage:
 import atexit
 
 from absl import app
+
 from google_benchmark import _benchmark
 from google_benchmark._benchmark import (
-    Counter,
-    kNanosecond,
-    kMicrosecond,
-    kMillisecond,
-    kSecond,
-    oNone,
-    o1,
-    oN,
-    oNSquared,
-    oNCubed,
-    oLogN,
-    oNLogN,
-    oAuto,
-    oLambda,
-    State,
+    Counter as Counter,
+    State as State,
+    kMicrosecond as kMicrosecond,
+    kMillisecond as kMillisecond,
+    kNanosecond as kNanosecond,
+    kSecond as kSecond,
+    o1 as o1,
+    oAuto as oAuto,
+    oLambda as oLambda,
+    oLogN as oLogN,
+    oN as oN,
+    oNCubed as oNCubed,
+    oNLogN as oNLogN,
+    oNone as oNone,
+    oNSquared as oNSquared,
 )
-
-
-__all__ = [
-    "register",
-    "main",
-    "Counter",
-    "kNanosecond",
-    "kMicrosecond",
-    "kMillisecond",
-    "kSecond",
-    "oNone",
-    "o1",
-    "oN",
-    "oNSquared",
-    "oNCubed",
-    "oLogN",
-    "oNLogN",
-    "oAuto",
-    "oLambda",
-    "State",
-]
-
-__version__ = "1.8.3"
+from google_benchmark.version import __version__ as __version__
 
 
 class __OptionMaker:
@@ -97,7 +76,6 @@ class __OptionMaker:
 
         # The function that get returned on @option.range(start=0, limit=1<<5).
         def __builder_method(*args, **kwargs):
-
             # The decorator that get called, either with the benchmared function
             # or the previous Options
             def __decorator(func_or_options):

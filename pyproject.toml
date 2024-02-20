@@ -1,5 +1,5 @@
 [build-system]
-requires = ["setuptools", "wheel"]
+requires = ["setuptools", "setuptools-scm[toml]", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
@@ -22,6 +22,7 @@ classifiers = [
     "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
     "Topic :: Software Development :: Testing",
     "Topic :: System :: Benchmark",
 ]
@@ -30,6 +31,11 @@ dynamic = ["readme", "version"]
 
 dependencies = [
     "absl-py>=0.7.1",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pre-commit>=3.3.3",
 ]
 
 [project.urls]
@@ -46,5 +52,34 @@ zip-safe = false
 where = ["bindings/python"]
 
 [tool.setuptools.dynamic]
-version = { attr = "google_benchmark.__version__" }
 readme = { file = "README.md", content-type = "text/markdown" }
+
+[tool.setuptools_scm]
+
+[tool.mypy]
+check_untyped_defs = true
+disallow_incomplete_defs = true
+pretty = true
+python_version = "3.11"
+strict_optional = false
+warn_unreachable = true
+
+[[tool.mypy.overrides]]
+module = ["yaml"]
+ignore_missing_imports = true
+
+[tool.ruff]
+# explicitly tell ruff the source directory to correctly identify first-party package.
+src = ["bindings/python"]
+
+line-length = 80
+target-version = "py311"
+
+# Enable pycodestyle (`E`, `W`), Pyflakes (`F`), and isort (`I`) codes by default.
+select = ["E", "F", "I", "W"]
+ignore = [
+    "E501", # line too long
+]
+
+[tool.ruff.isort]
+combine-as-imports = true

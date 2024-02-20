@@ -140,12 +140,12 @@ void ColorPrintf(std::ostream& out, LogColor color, const char* fmt,
   // We need to flush the stream buffers into the console before each
   // SetConsoleTextAttribute call lest it affect the text that is already
   // printed but has not yet reached the console.
-  fflush(stdout);
+  out.flush();
   SetConsoleTextAttribute(stdout_handle,
                           GetPlatformColorCode(color) | FOREGROUND_INTENSITY);
-  vprintf(fmt, args);
+  out << FormatString(fmt, args);
 
-  fflush(stdout);
+  out.flush();
   // Restores the text color.
   SetConsoleTextAttribute(stdout_handle, old_color_attrs);
 #else

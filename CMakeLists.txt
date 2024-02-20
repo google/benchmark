@@ -105,16 +105,26 @@ get_git_version(GIT_VERSION)
 # If no git version can be determined, use the version
 # from the project() command
 if ("${GIT_VERSION}" STREQUAL "0.0.0")
-  set(VERSION "${benchmark_VERSION}")
+  set(VERSION "v${benchmark_VERSION}")
 else()
   set(VERSION "${GIT_VERSION}")
 endif()
+
+# Normalize version: drop "v" prefix, replace first "-" with ".",
+# drop everything after second "-" (including said "-").
+string(STRIP ${VERSION} VERSION)
+if(VERSION MATCHES v[^-]*-)
+   string(REGEX REPLACE "v([^-]*)-([0-9]+)-.*" "\\1.\\2"  NORMALIZED_VERSION ${VERSION})
+else()
+   string(REGEX REPLACE "v(.*)" "\\1" NORMALIZED_VERSION ${VERSION})
+endif()
+
 # Tell the user what versions we are using
-message(STATUS "Google Benchmark version: ${VERSION}")
+message(STATUS "Google Benchmark version: ${VERSION}, normalized to ${NORMALIZED_VERSION}")
 
 # The version of the libraries
-set(GENERIC_LIB_VERSION ${VERSION})
-string(SUBSTRING ${VERSION} 0 1 GENERIC_LIB_SOVERSION)
+set(GENERIC_LIB_VERSION ${NORMALIZED_VERSION})
+string(SUBSTRING ${NORMALIZED_VERSION} 0 1 GENERIC_LIB_SOVERSION)
 
 # Import our CMake modules
 include(AddCXXCompilerFlag)
@@ -170,6 +180,10 @@ if (MSVC)
     set(CMAKE_EXE_LINKER_FLAGS_MINSIZEREL "${CMAKE_EXE_LINKER_FLAGS_MINSIZEREL} /LTCG")
   endif()
 else()
+  # Turn on Large-file Support
+  add_definitions(-D_FILE_OFFSET_BITS=64)
+  add_definitions(-D_LARGEFILE64_SOURCE)
+  add_definitions(-D_LARGEFILE_SOURCE)
   # Turn compiler warnings up to 11
   add_cxx_compiler_flag(-Wall)
   add_cxx_compiler_flag(-Wextra)
@@ -312,7 +326,7 @@ find_package(Threads REQUIRED)
 cxx_feature_check(PTHREAD_AFFINITY)
 
 if (BENCHMARK_ENABLE_LIBPFM)
-  find_package(PFM)
+  find_package(PFM REQUIRED)
 endif()
 
 # Set up directories
