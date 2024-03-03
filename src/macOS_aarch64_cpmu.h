@@ -15,24 +15,30 @@
 
 #ifdef BENCHMARK_MACOS_AARCH64
 
-/*
-  Configure the counter. Such as clock cycles, etc.
-  Return false if it failed to configure, otherwise return true.
- */
-bool configure_macOS_rdtsc();
+namespace benchmark {
+namespace cycleclock {
 
 /*
   Initialise and configure the rdtsc counter modules.
-  Return false if it failed to initialise or failed to configure,
+  Return false if it failed to initialise or to configure,
   otherwise return true.
  */
 bool init_macOS_rdtsc();
 
 /*
-  Return the counter value.
-  Return 0 if it is failed to get the counter value.
+  Configure the counter, such as clock cycles.
+  Return false if it failed to configure, otherwise return true.
+ */
+bool configure_macOS_rdtsc();
+
+/*
+  Return the counter value. It returns 0 in case function failed
+  to get the value.
  */
 unsigned long long int macOS_rdtsc();
+
+}  // namespace cycleclock
+}  // namespace benchmark
 
 #endif  // BENCHMARK_MACOS_AARCH64
 

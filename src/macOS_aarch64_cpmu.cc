@@ -10,6 +10,9 @@
 
 #include "macOS_aarch64_cpmu.h"
 
+namespace benchmark {
+namespace cycleclock {
+
 #ifdef BENCHMARK_MACOS_AARCH64
 
 #include <dlfcn.h>
@@ -89,6 +92,7 @@ bool configure_macOS_rdtsc() {
 }
 
 bool init_macOS_rdtsc() {
+#if 0
   void *kperf = dlopen(
       "/System/Library/PrivateFrameworks/kperf.framework/Versions/A/kperf",
       RTLD_LAZY);
@@ -132,6 +136,8 @@ bool init_macOS_rdtsc() {
   //  g_config[5] = CPMU_SYNC_BR_ANY_MISP | CFGWORD_EL0A64EN_MASK;
 
   return configure_macOS_rdtsc();
+#endif
+  return false;
 }
 
 unsigned long long int macOS_rdtsc() {
@@ -142,3 +148,6 @@ unsigned long long int macOS_rdtsc() {
 }
 
 #endif  // BENCHMARK_MACOS_AARCH64
+
+}  // namespace cycleclock
+}  // namespace benchmark
