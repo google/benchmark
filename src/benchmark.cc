@@ -152,11 +152,12 @@ BENCHMARK_EXPORT std::map<std::string, std::string>*& GetGlobalContext() {
   return global_context;
 }
 
-void const volatile* volatile g_LTO_dump;
+static void const volatile* volatile global_force_escape_pointer;
 
 // FIXME: Verify if LTO still messes this up?
 void UseCharPointer(char const volatile* const v) {
-  g_LTO_dump = reinterpret_cast<void const volatile*>(v);
+  //forces compiler to issue instruction by assigning dummy value to a volatile preventing LTO
+  global_force_escape_pointer = reinterpret_cast<void const volatile*>(v);
 }
 
 }  // namespace internal
