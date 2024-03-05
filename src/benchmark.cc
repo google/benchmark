@@ -152,8 +152,12 @@ BENCHMARK_EXPORT std::map<std::string, std::string>*& GetGlobalContext() {
   return global_context;
 }
 
-// FIXME: wouldn't LTO mess this up?
-void UseCharPointer(char const volatile*) {}
+void const volatile* volatile g_LTO_dump;
+
+// FIXME: Verify if LTO still messes this up?
+void UseCharPointer(char const volatile* const v) {
+  g_LTO_dump = reinterpret_cast<void const volatile*>(v);
+}
 
 }  // namespace internal
 
