@@ -156,7 +156,9 @@ static void const volatile* volatile global_force_escape_pointer;
 
 // FIXME: Verify if LTO still messes this up?
 void UseCharPointer(char const volatile* const v) {
-  //forces compiler to issue instruction by assigning dummy value to a volatile preventing LTO
+  // We want to escape the pointer `v` so that the compiler can not eliminate computations
+  // that produced it. To do that, we escape the pointer by storing it into a volatile variable,
+  // since generally, volatile store, is not something the compiler is allowed to elide.
   global_force_escape_pointer = reinterpret_cast<void const volatile*>(v);
 }
 
