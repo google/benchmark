@@ -82,7 +82,7 @@ inline BENCHMARK_ALWAYS_INLINE int64_t Now() {
 #elif defined(__x86_64__) || defined(__amd64__)
   uint64_t low, high;
   __asm__ volatile("rdtsc" : "=a"(low), "=d"(high));
-  return (high << 32) | low;
+  return static_cast<int64_t>((high << 32) | low);
 #elif defined(__powerpc__) || defined(__ppc__)
   // This returns a time-base, which is not always precisely a cycle-count.
 #if defined(__powerpc64__) || defined(__ppc64__)

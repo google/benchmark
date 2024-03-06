@@ -1304,7 +1304,7 @@ class BENCHMARK_EXPORT Benchmark {
  public:
   const char* GetName() const;
   int ArgsCnt() const;
-  const char* GetArgName(int arg) const;
+  const char* GetArgName(size_t arg) const;
 
  private:
   friend class BenchmarkFamilies;

@@ -480,9 +480,8 @@ int Benchmark::ArgsCnt() const {
   return static_cast<int>(args_.front().size());
 }
 
-const char* Benchmark::GetArgName(int arg) const {
-  BM_CHECK_GE(arg, 0);
-  BM_CHECK_LT(arg, static_cast<int>(arg_names_.size()));
+const char* Benchmark::GetArgName(size_t arg) const {
+  BM_CHECK_LT(arg, arg_names_.size());
   return arg_names_[arg].c_str();
 }
 

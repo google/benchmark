@@ -1,5 +1,22 @@
 licenses(["notice"])
 
+COPTS = [
+    "-pedantic",
+    "-pedantic-errors",
+    "-std=c++11",
+    "-Wall",
+    "-Wconversion",
+    "-Wextra",
+    "-Wshadow",
+    #    "-Wshorten-64-to-32",
+    "-Wfloat-equal",
+    "-fstrict-aliasing",
+    ## assert() are used a lot in tests upstream, which may be optimised out leading to
+    ## unused-variable warning.
+    "-Wno-unused-variable",
+    "-Werror=old-style-cast",
+]
+
 config_setting(
     name = "qnx",
     constraint_values = ["@platforms//os:qnx"],
@@ -47,7 +64,7 @@ cc_library(
     ],
     copts = select({
         ":windows": [],
-        "//conditions:default": ["-Werror=old-style-cast"],
+        "//conditions:default": COPTS,
     }),
     defines = [
         "BENCHMARK_STATIC_DEFINE",

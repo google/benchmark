@@ -120,7 +120,7 @@ struct ValueUnion {
 
   explicit ValueUnion(std::size_t buff_size)
       : size(sizeof(DataT) + buff_size),
-        buff(::new (std::malloc(size)) DataT(), &std::free) {}
+        buff(::new(std::malloc(size)) DataT(), &std::free) {}
 
   ValueUnion(ValueUnion&& other) = default;
 
@@ -837,7 +837,7 @@ std::vector<double> GetLoadAvg() {
     !(defined(__ANDROID__) && __ANDROID_API__ < 29)
   static constexpr int kMaxSamples = 3;
   std::vector<double> res(kMaxSamples, 0.0);
-  const int nelem = getloadavg(res.data(), kMaxSamples);
+  const size_t nelem = static_cast<size_t>(getloadavg(res.data(), kMaxSamples));
   if (nelem < 1) {
     res.clear();
   } else {

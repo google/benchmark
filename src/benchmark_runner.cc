@@ -235,7 +235,7 @@ BenchmarkRunner::BenchmarkRunner(
       has_explicit_iteration_count(b.iterations() != 0 ||
                                    parsed_benchtime_flag.tag ==
                                        BenchTimeType::ITERS),
-      pool(b.threads() - 1),
+      pool(static_cast<size_t>(b.threads() - 1)),
       iters(has_explicit_iteration_count
                 ? ComputeIters(b_, parsed_benchtime_flag)
                 : 1),
