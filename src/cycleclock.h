@@ -70,7 +70,7 @@ inline BENCHMARK_ALWAYS_INLINE int64_t Now() {
   // frequency scaling).  Also note that when the Mac sleeps, this
   // counter pauses; it does not continue counting, nor does it
   // reset to zero.
-  return mach_absolute_time();
+  return static_cast<int64_t>(mach_absolute_time());
 #elif defined(BENCHMARK_OS_EMSCRIPTEN)
   // this goes above x86-specific code because old versions of Emscripten
   // define __x86_64__, although they have nothing to do with it.
