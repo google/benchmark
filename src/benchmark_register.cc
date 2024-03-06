@@ -480,9 +480,11 @@ int Benchmark::ArgsCnt() const {
   return static_cast<int>(args_.front().size());
 }
 
-const char* Benchmark::GetArgName(size_t arg) const {
-  BM_CHECK_LT(arg, arg_names_.size());
-  return arg_names_[arg].c_str();
+const char* Benchmark::GetArgName(int arg) const {
+  BM_CHECK_GE(arg, 0);
+  size_t uarg = static_cast<size_t>(arg);
+  BM_CHECK_LT(uarg, arg_names_.size());
+  return arg_names_[uarg].c_str();
 }
 
 TimeUnit Benchmark::GetTimeUnit() const {
