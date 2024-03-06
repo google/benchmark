@@ -350,7 +350,7 @@ std::vector<CPUInfo::CacheInfo> GetCacheSizesWindows() {
     CPUInfo::CacheInfo C;
     C.num_sharing = static_cast<int>(b.count());
     C.level = cache.Level;
-    C.size = cache.Size;
+    C.size = static_cast<int>(cache.Size);
     C.type = "Unknown";
     switch (cache.Type) {
       case CacheUnified:
@@ -485,9 +485,8 @@ int GetNumCPUsImpl() {
   // positives.
   std::memset(&sysinfo, 0, sizeof(SYSTEM_INFO));
   GetSystemInfo(&sysinfo);
-  return sysinfo.dwNumberOfProcessors;  // number of logical
-                                        // processors in the current
-                                        // group
+  // number of logical processors in the current group
+  return static_cast<int>(sysinfo.dwNumberOfProcessors);
 #elif defined(BENCHMARK_OS_SOLARIS)
   // Returns -1 in case of a failure.
   long num_cpu = sysconf(_SC_NPROCESSORS_ONLN);
