@@ -21,6 +21,7 @@ TEST_COPTS = [
     ## assert() are used a lot in tests upstream, which may be optimised out leading to
     ## unused-variable warning.
     "-Wno-unused-variable",
+    "-Werror=old-style-cast",
 ]
 
 # Some of the issues with DoNotOptimize only occur when optimization is enabled

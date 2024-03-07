@@ -97,7 +97,7 @@ std::vector<BenchmarkReporter::Run> ComputeStats(
   auto error_count = std::count_if(reports.begin(), reports.end(),
                                    [](Run const& run) { return run.skipped; });
 
-  if (reports.size() - error_count < 2) {
+  if (reports.size() - static_cast<size_t>(error_count) < 2) {
     // We don't report aggregated data if there was a single run.
     return results;
   }
@@ -179,7 +179,7 @@ std::vector<BenchmarkReporter::Run> ComputeStats(
     // Similarly, if there are N repetitions with 1 iterations each,
     // an aggregate will be computed over N measurements, not 1.
     // Thus it is best to simply use the count of separate reports.
-    data.iterations = reports.size();
+    data.iterations = static_cast<IterationCount>(reports.size());
 
     data.real_accumulated_time = Stat.compute_(real_accumulated_time_stat);
     data.cpu_accumulated_time = Stat.compute_(cpu_accumulated_time_stat);
