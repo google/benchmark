@@ -245,9 +245,9 @@ std::string LocalDateTimeString() {
       tz_offset_sign = '-';
     }
 
-    tz_len =
+    tz_len = static_cast<size_t>(
         ::snprintf(tz_offset, sizeof(tz_offset), "%c%02li:%02li",
-                   tz_offset_sign, offset_minutes / 100, offset_minutes % 100);
+                   tz_offset_sign, offset_minutes / 100, offset_minutes % 100));
     BM_CHECK(tz_len == kTzOffsetLen);
     ((void)tz_len);  // Prevent unused variable warning in optimized build.
   } else {
