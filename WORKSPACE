@@ -22,9 +22,3 @@ pip_parse(
 load("@tools_pip_deps//:requirements.bzl", "install_deps")
 
 install_deps()
-
-new_local_repository(
-    name = "python_headers",
-    build_file = "@//bindings/python:python_headers.BUILD",
-    path = "<PYTHON_INCLUDE_PATH>",  # May be overwritten by setup.py.
-)
