@@ -1,5 +1,5 @@
-"""util.py - General utilities for running, loading, and processing benchmarks
-"""
+"""util.py - General utilities for running, loading, and processing benchmarks"""
+
 import json
 import os
 import re
@@ -37,7 +37,7 @@ def is_executable_file(filename):
     elif sys.platform.startswith("win"):
         return magic_bytes == b"MZ"
     else:
-        return magic_bytes == b"\x7FELF"
+        return magic_bytes == b"\x7fELF"
 
 
 def is_json_file(filename):
