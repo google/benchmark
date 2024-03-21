@@ -757,7 +757,13 @@ int InitializeStreams() {
 
 }  // end namespace internal
 
-std::string GetBenchmarkVersion() { return {BENCHMARK_VERSION}; }
+std::string GetBenchmarkVersion() {
+#ifdef BENCHMARK_VERSION
+  return {BENCHMARK_VERSION};
+#else
+  return {""};
+#endif
+}
 
 void PrintDefaultHelp() {
   fprintf(stdout,
