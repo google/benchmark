@@ -40,6 +40,8 @@ class NullReporter : public BenchmarkReporter {
  public:
   bool ReportContext(const Context& /*context*/) override { return true; }
   void ReportRuns(const std::vector<Run>& /* report */) override {}
+  void List(
+      const std::vector<benchmark::internal::BenchmarkInstance>&) override {}
 };
 
 class BenchmarkTest : public testing::Test {

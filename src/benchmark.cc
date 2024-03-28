@@ -578,7 +578,6 @@ size_t RunSpecifiedBenchmarks(BenchmarkReporter* display_reporter,
     default_display_reporter.reset(CreateDefaultDisplayReporter());
     display_reporter = default_display_reporter.get();
   }
-  auto& Out = display_reporter->GetOutputStream();
   auto& Err = display_reporter->GetErrorStream();
 
   std::string const& fname = FLAGS_benchmark_out;
@@ -624,8 +623,7 @@ size_t RunSpecifiedBenchmarks(BenchmarkReporter* display_reporter,
   }
 
   if (FLAGS_benchmark_list_tests) {
-    for (auto const& benchmark : benchmarks)
-      Out << benchmark.name().str() << "\n";
+    display_reporter->List(benchmarks);
   } else {
     internal::RunBenchmarks(benchmarks, display_reporter, file_reporter);
   }
