@@ -42,9 +42,4 @@ use_repo(pip, "tools_pip_deps")
 
 # -- bazel_dep definitions -- #
 
-bazel_dep(name = "nanobind_bazel", version = "", dev_dependency = True)
-git_override(
-    module_name = "nanobind_bazel",
-    commit = "97e3db2744d3f5da244a0846a0644ffb074b4880",
-    remote = "https://github.com/nicholasjng/nanobind-bazel",
-)
+bazel_dep(name = "nanobind_bazel", version = "1.0.0", dev_dependency = True)
