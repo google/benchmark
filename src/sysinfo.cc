@@ -736,7 +736,7 @@ double GetCPUCyclesPerSecond(CPUInfo::Scaling scaling) {
 #if defined BENCHMARK_OS_OPENBSD
   if (GetSysctl(freqStr, &hz)) return static_cast<double>(hz * 1000000);
 #else
-  if (GetSysctl(freqStr, &hz)) return hz;
+  if (GetSysctl(freqStr, &hz)) return static_cast<double>(hz);
 #endif
   fprintf(stderr, "Unable to determine clock rate from sysctl: %s: %s\n",
           freqStr, strerror(errno));
