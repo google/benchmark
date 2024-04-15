@@ -1,20 +1,63 @@
+import contextlib
 import os
 import platform
+import re
 import shutil
 from pathlib import Path
-from typing import Any
+from typing import Any, Generator
 
 import setuptools
 from setuptools.command import build_ext
 
 IS_WINDOWS = platform.system() == "Windows"
 IS_MAC = platform.system() == "Darwin"
+IS_LINUX = platform.system() == "Linux"
 
 # hardcoded SABI-related options. Requires that each Python interpreter
 # (hermetic or not) participating is of the same major-minor version.
 version_tuple = tuple(int(i) for i in platform.python_version_tuple())
 py_limited_api = version_tuple >= (3, 12)
 options = {"bdist_wheel": {"py_limited_api": "cp312"}} if py_limited_api else {}
+
+
+def is_cibuildwheel() -> bool:
+    return os.getenv("CIBUILDWHEEL") is not None
+
+
+@contextlib.contextmanager
+def _maybe_patch_toolchains() -> Generator[None, None, None]:
+    """
+    Patch rules_python toolchains to ignore root user error
+    when run in a Docker container on Linux in cibuildwheel.
+    """
+
+    def fmt_toolchain_args(matchobj):
+        suffix = "ignore_root_user_error = True"
+        callargs = matchobj.group(1)
+        # toolchain def is broken over multiple lines
+        if callargs.endswith("\n"):
+            callargs = callargs + "    " + suffix + ",\n"
+        # toolchain def is on one line.
+        else:
+            callargs = callargs + ", " + suffix
+        return "python.toolchain(" + callargs + ")"
+
+    CIBW_LINUX = is_cibuildwheel() and IS_LINUX
+    try:
+        if CIBW_LINUX:
+            module_bazel = Path("MODULE.bazel")
+            content: str = module_bazel.read_text()
+            module_bazel.write_text(
+                re.sub(
+                    r"python.toolchain\(([\w\"\s,.=]*)\)",
+                    fmt_toolchain_args,
+                    content,
+                )
+            )
+        yield
+    finally:
+        if CIBW_LINUX:
+            module_bazel.write_text(content)
 
 
 class BazelExtension(setuptools.Extension):
@@ -73,21 +116,11 @@ class BuildBazelExtension(build_ext.build_ext):
             for library_dir in self.library_dirs:
                 bazel_argv.append("--linkopt=/LIBPATH:" + library_dir)
         elif IS_MAC:
-            if platform.machine() == "x86_64":
-                # C++17 needs macOS 10.14 at minimum
-                bazel_argv.append("--macos_minimum_os=10.14")
+            # C++17 needs macOS 10.14 at minimum
+            bazel_argv.append("--macos_minimum_os=10.14")
 
-                # cross-compilation for Mac ARM64 on GitHub Mac x86 runners.
-                # ARCHFLAGS is set by cibuildwheel before macOS wheel builds.
-                archflags = os.getenv("ARCHFLAGS", "")
-                if "arm64" in archflags:
-                    bazel_argv.append("--cpu=darwin_arm64")
-                    bazel_argv.append("--macos_cpus=arm64")
-
-            elif platform.machine() == "arm64":
-                bazel_argv.append("--macos_minimum_os=11.0")
-
-        self.spawn(bazel_argv)
+        with _maybe_patch_toolchains():
+            self.spawn(bazel_argv)
 
         if IS_WINDOWS:
             suffix = ".pyd"
