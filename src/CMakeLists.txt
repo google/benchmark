@@ -86,6 +86,7 @@ set(generated_dir "${PROJECT_BINARY_DIR}")
 set(version_config "${generated_dir}/${PROJECT_NAME}ConfigVersion.cmake")
 set(project_config "${generated_dir}/${PROJECT_NAME}Config.cmake")
 set(pkg_config "${generated_dir}/${PROJECT_NAME}.pc")
+set(pkg_config_main "${generated_dir}/${PROJECT_NAME}_main.pc")
 set(targets_to_export benchmark benchmark_main)
 set(targets_export_name "${PROJECT_NAME}Targets")
 
@@ -105,6 +106,7 @@ write_basic_package_version_file(
 )
 
 configure_file("${PROJECT_SOURCE_DIR}/cmake/benchmark.pc.in" "${pkg_config}" @ONLY)
+configure_file("${PROJECT_SOURCE_DIR}/cmake/benchmark_main.pc.in" "${pkg_config_main}" @ONLY)
 
 export (
   TARGETS ${targets_to_export}
@@ -133,7 +135,7 @@ if (BENCHMARK_ENABLE_INSTALL)
       DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME}")
 
   install(
-      FILES "${pkg_config}"
+      FILES "${pkg_config}" "${pkg_config_main}"
       DESTINATION "${CMAKE_INSTALL_LIBDIR}/pkgconfig")
 
   install(

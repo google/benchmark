@@ -152,8 +152,16 @@ BENCHMARK_EXPORT std::map<std::string, std::string>*& GetGlobalContext() {
   return global_context;
 }
 
-// FIXME: wouldn't LTO mess this up?
-void UseCharPointer(char const volatile*) {}
+static void const volatile* volatile global_force_escape_pointer;
+
+// FIXME: Verify if LTO still messes this up?
+void UseCharPointer(char const volatile* const v) {
+  // We want to escape the pointer `v` so that the compiler can not eliminate
+  // computations that produced it. To do that, we escape the pointer by storing
+  // it into a volatile variable, since generally, volatile store, is not
+  // something the compiler is allowed to elide.
+  global_force_escape_pointer = reinterpret_cast<void const volatile*>(v);
+}
 
 }  // namespace internal
 
@@ -399,7 +407,8 @@ void RunBenchmarks(const std::vector<BenchmarkInstance>& benchmarks,
       benchmarks_with_threads += (benchmark.threads() > 1);
       runners.emplace_back(benchmark, &perfcounters, reports_for_family);
       int num_repeats_of_this_instance = runners.back().GetNumRepeats();
-      num_repetitions_total += num_repeats_of_this_instance;
+      num_repetitions_total +=
+          static_cast<size_t>(num_repeats_of_this_instance);
       if (reports_for_family)
         reports_for_family->num_runs_total += num_repeats_of_this_instance;
     }
@@ -746,7 +755,13 @@ int InitializeStreams() {
 
 }  // end namespace internal
 
-std::string GetBenchmarkVersion() { return {BENCHMARK_VERSION}; }
+std::string GetBenchmarkVersion() {
+#ifdef BENCHMARK_VERSION
+  return {BENCHMARK_VERSION};
+#else
+  return {""};
+#endif
+}
 
 void PrintDefaultHelp() {
   fprintf(stdout,

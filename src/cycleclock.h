@@ -70,7 +70,7 @@ inline BENCHMARK_ALWAYS_INLINE int64_t Now() {
   // frequency scaling).  Also note that when the Mac sleeps, this
   // counter pauses; it does not continue counting, nor does it
   // reset to zero.
-  return mach_absolute_time();
+  return static_cast<int64_t>(mach_absolute_time());
 #elif defined(BENCHMARK_OS_EMSCRIPTEN)
   // this goes above x86-specific code because old versions of Emscripten
   // define __x86_64__, although they have nothing to do with it.
@@ -82,7 +82,7 @@ inline BENCHMARK_ALWAYS_INLINE int64_t Now() {
 #elif defined(__x86_64__) || defined(__amd64__)
   uint64_t low, high;
   __asm__ volatile("rdtsc" : "=a"(low), "=d"(high));
-  return (high << 32) | low;
+  return static_cast<int64_t>((high << 32) | low);
 #elif defined(__powerpc__) || defined(__ppc__)
   // This returns a time-base, which is not always precisely a cycle-count.
 #if defined(__powerpc64__) || defined(__ppc64__)
@@ -181,10 +181,11 @@ inline BENCHMARK_ALWAYS_INLINE int64_t Now() {
 #elif defined(__s390__)  // Covers both s390 and s390x.
   // Return the CPU clock.
   uint64_t tsc;
-#if defined(BENCHMARK_OS_ZOS) && defined(COMPILER_IBMXL)
-  // z/OS XL compiler HLASM syntax.
+#if defined(BENCHMARK_OS_ZOS)
+  // z/OS HLASM syntax.
   asm(" stck %0" : "=m"(tsc) : : "cc");
 #else
+  // Linux on Z syntax.
   asm("stck %0" : "=Q"(tsc) : : "cc");
 #endif
   return tsc;

@@ -162,7 +162,7 @@ ValueUnion GetSysctlImp(std::string const& name) {
       mib[1] = HW_CPUSPEED;
     }
 
-    if (sysctl(mib, 2, buff.data(), &buff.Size, nullptr, 0) == -1) {
+    if (sysctl(mib, 2, buff.data(), &buff.size, nullptr, 0) == -1) {
       return ValueUnion();
     }
     return buff;
@@ -350,7 +350,7 @@ std::vector<CPUInfo::CacheInfo> GetCacheSizesWindows() {
     CPUInfo::CacheInfo C;
     C.num_sharing = static_cast<int>(b.count());
     C.level = cache.Level;
-    C.size = cache.Size;
+    C.size = static_cast<int>(cache.Size);
     C.type = "Unknown";
     switch (cache.Type) {
       case CacheUnified:
@@ -485,9 +485,8 @@ int GetNumCPUsImpl() {
   // positives.
   std::memset(&sysinfo, 0, sizeof(SYSTEM_INFO));
   GetSystemInfo(&sysinfo);
-  return sysinfo.dwNumberOfProcessors;  // number of logical
-                                        // processors in the current
-                                        // group
+  // number of logical processors in the current group
+  return static_cast<int>(sysinfo.dwNumberOfProcessors);
 #elif defined(BENCHMARK_OS_SOLARIS)
   // Returns -1 in case of a failure.
   long num_cpu = sysconf(_SC_NPROCESSORS_ONLN);
@@ -735,9 +734,9 @@ double GetCPUCyclesPerSecond(CPUInfo::Scaling scaling) {
 #endif
   unsigned long long hz = 0;
 #if defined BENCHMARK_OS_OPENBSD
-  if (GetSysctl(freqStr, &hz)) return hz * 1000000;
+  if (GetSysctl(freqStr, &hz)) return static_cast<double>(hz * 1000000);
 #else
-  if (GetSysctl(freqStr, &hz)) return hz;
+  if (GetSysctl(freqStr, &hz)) return static_cast<double>(hz);
 #endif
   fprintf(stderr, "Unable to determine clock rate from sysctl: %s: %s\n",
           freqStr, strerror(errno));
@@ -837,7 +836,7 @@ std::vector<double> GetLoadAvg() {
     !(defined(__ANDROID__) && __ANDROID_API__ < 29)
   static constexpr int kMaxSamples = 3;
   std::vector<double> res(kMaxSamples, 0.0);
-  const int nelem = getloadavg(res.data(), kMaxSamples);
+  const size_t nelem = static_cast<size_t>(getloadavg(res.data(), kMaxSamples));
   if (nelem < 1) {
     res.clear();
   } else {

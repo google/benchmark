@@ -1,46 +1,70 @@
 import contextlib
 import os
 import platform
+import re
 import shutil
-import sysconfig
 from pathlib import Path
-from typing import Generator
+from typing import Any, Generator
 
 import setuptools
 from setuptools.command import build_ext
 
-PYTHON_INCLUDE_PATH_PLACEHOLDER = "<PYTHON_INCLUDE_PATH>"
-
 IS_WINDOWS = platform.system() == "Windows"
 IS_MAC = platform.system() == "Darwin"
+IS_LINUX = platform.system() == "Linux"
+
+# hardcoded SABI-related options. Requires that each Python interpreter
+# (hermetic or not) participating is of the same major-minor version.
+version_tuple = tuple(int(i) for i in platform.python_version_tuple())
+py_limited_api = version_tuple >= (3, 12)
+options = {"bdist_wheel": {"py_limited_api": "cp312"}} if py_limited_api else {}
+
+
+def is_cibuildwheel() -> bool:
+    return os.getenv("CIBUILDWHEEL") is not None
 
 
 @contextlib.contextmanager
-def temp_fill_include_path(fp: str) -> Generator[None, None, None]:
-    """Temporarily set the Python include path in a file."""
-    with open(fp, "r+") as f:
-        try:
-            content = f.read()
-            replaced = content.replace(
-                PYTHON_INCLUDE_PATH_PLACEHOLDER,
-                Path(sysconfig.get_paths()["include"]).as_posix(),
+def _maybe_patch_toolchains() -> Generator[None, None, None]:
+    """
+    Patch rules_python toolchains to ignore root user error
+    when run in a Docker container on Linux in cibuildwheel.
+    """
+
+    def fmt_toolchain_args(matchobj):
+        suffix = "ignore_root_user_error = True"
+        callargs = matchobj.group(1)
+        # toolchain def is broken over multiple lines
+        if callargs.endswith("\n"):
+            callargs = callargs + "    " + suffix + ",\n"
+        # toolchain def is on one line.
+        else:
+            callargs = callargs + ", " + suffix
+        return "python.toolchain(" + callargs + ")"
+
+    CIBW_LINUX = is_cibuildwheel() and IS_LINUX
+    try:
+        if CIBW_LINUX:
+            module_bazel = Path("MODULE.bazel")
+            content: str = module_bazel.read_text()
+            module_bazel.write_text(
+                re.sub(
+                    r"python.toolchain\(([\w\"\s,.=]*)\)",
+                    fmt_toolchain_args,
+                    content,
+                )
             )
-            f.seek(0)
-            f.write(replaced)
-            f.truncate()
-            yield
-        finally:
-            # revert to the original content after exit
-            f.seek(0)
-            f.write(content)
-            f.truncate()
+        yield
+    finally:
+        if CIBW_LINUX:
+            module_bazel.write_text(content)
 
 
 class BazelExtension(setuptools.Extension):
     """A C/C++ extension that is defined as a Bazel BUILD target."""
 
-    def __init__(self, name: str, bazel_target: str):
-        super().__init__(name=name, sources=[])
+    def __init__(self, name: str, bazel_target: str, **kwargs: Any):
+        super().__init__(name=name, sources=[], **kwargs)
 
         self.bazel_target = bazel_target
         stripped_target = bazel_target.split("//")[-1]
@@ -67,49 +91,48 @@ class BuildBazelExtension(build_ext.build_ext):
 
     def bazel_build(self, ext: BazelExtension) -> None:
         """Runs the bazel build to create the package."""
-        with temp_fill_include_path("WORKSPACE"):
-            temp_path = Path(self.build_temp)
+        temp_path = Path(self.build_temp)
+        # omit the patch version to avoid build errors if the toolchain is not
+        # yet registered in the current @rules_python version.
+        # patch version differences should be fine.
+        python_version = ".".join(platform.python_version_tuple()[:2])
 
-            bazel_argv = [
-                "bazel",
-                "build",
-                ext.bazel_target,
-                "--enable_bzlmod=false",
-                f"--symlink_prefix={temp_path / 'bazel-'}",
-                f"--compilation_mode={'dbg' if self.debug else 'opt'}",
-                # C++17 is required by nanobind
-                f"--cxxopt={'/std:c++17' if IS_WINDOWS else '-std=c++17'}",
-            ]
+        bazel_argv = [
+            "bazel",
+            "build",
+            ext.bazel_target,
+            f"--symlink_prefix={temp_path / 'bazel-'}",
+            f"--compilation_mode={'dbg' if self.debug else 'opt'}",
+            # C++17 is required by nanobind
+            f"--cxxopt={'/std:c++17' if IS_WINDOWS else '-std=c++17'}",
+            f"--@rules_python//python/config_settings:python_version={python_version}",
+        ]
 
-            if IS_WINDOWS:
-                # Link with python*.lib.
-                for library_dir in self.library_dirs:
-                    bazel_argv.append("--linkopt=/LIBPATH:" + library_dir)
-            elif IS_MAC:
-                if platform.machine() == "x86_64":
-                    # C++17 needs macOS 10.14 at minimum
-                    bazel_argv.append("--macos_minimum_os=10.14")
+        if ext.py_limited_api:
+            bazel_argv += ["--@nanobind_bazel//:py-limited-api=cp312"]
 
-                    # cross-compilation for Mac ARM64 on GitHub Mac x86 runners.
-                    # ARCHFLAGS is set by cibuildwheel before macOS wheel builds.
-                    archflags = os.getenv("ARCHFLAGS", "")
-                    if "arm64" in archflags:
-                        bazel_argv.append("--cpu=darwin_arm64")
-                        bazel_argv.append("--macos_cpus=arm64")
+        if IS_WINDOWS:
+            # Link with python*.lib.
+            for library_dir in self.library_dirs:
+                bazel_argv.append("--linkopt=/LIBPATH:" + library_dir)
+        elif IS_MAC:
+            # C++17 needs macOS 10.14 at minimum
+            bazel_argv.append("--macos_minimum_os=10.14")
 
-                elif platform.machine() == "arm64":
-                    bazel_argv.append("--macos_minimum_os=11.0")
-
+        with _maybe_patch_toolchains():
             self.spawn(bazel_argv)
 
-            shared_lib_suffix = ".dll" if IS_WINDOWS else ".so"
-            ext_name = ext.target_name + shared_lib_suffix
-            ext_bazel_bin_path = (
-                temp_path / "bazel-bin" / ext.relpath / ext_name
-            )
+        if IS_WINDOWS:
+            suffix = ".pyd"
+        else:
+            suffix = ".abi3.so" if ext.py_limited_api else ".so"
 
-            ext_dest_path = Path(self.get_ext_fullpath(ext.name))
-            shutil.copyfile(ext_bazel_bin_path, ext_dest_path)
+        ext_name = ext.target_name + suffix
+        ext_bazel_bin_path = temp_path / "bazel-bin" / ext.relpath / ext_name
+        ext_dest_path = Path(self.get_ext_fullpath(ext.name)).with_name(
+            ext_name
+        )
+        shutil.copyfile(ext_bazel_bin_path, ext_dest_path)
 
 
 setuptools.setup(
@@ -118,6 +141,8 @@ setuptools.setup(
         BazelExtension(
             name="google_benchmark._benchmark",
             bazel_target="//bindings/python/google_benchmark:_benchmark",
+            py_limited_api=py_limited_api,
         )
     ],
+    options=options,
 )

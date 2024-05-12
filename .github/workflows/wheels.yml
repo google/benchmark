@@ -15,16 +15,16 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      - name: Install Python 3.11
+      - name: Install Python 3.12
         uses: actions/setup-python@v5
         with:
-          python-version: 3.11
+          python-version: 3.12
       - run: python -m pip install build
       - name: Build sdist
         run: python -m build --sdist
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v4
         with:
-          name: dist
+          name: dist-sdist
           path: dist/*.tar.gz
 
   build_wheels:
@@ -32,7 +32,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ubuntu-latest, macos-latest, windows-latest]
+        os: [ubuntu-latest, macos-13, macos-14, windows-latest]
 
     steps:
       - name: Check out Google Benchmark
@@ -47,32 +47,44 @@ jobs:
           platforms: all
 
       - name: Build wheels on ${{ matrix.os }} using cibuildwheel
-        uses: pypa/cibuildwheel@v2.16.2
+        uses: pypa/cibuildwheel@v2.17
         env:
-          CIBW_BUILD: 'cp38-* cp39-* cp310-* cp311-* cp312-*'
+          CIBW_BUILD: "cp38-* cp39-* cp310-* cp311-* cp312-*"
           CIBW_SKIP: "*-musllinux_*"
-          CIBW_TEST_SKIP: "*-macosx_arm64"
-          CIBW_ARCHS_LINUX: x86_64 aarch64
-          CIBW_ARCHS_MACOS: x86_64 arm64
-          CIBW_ARCHS_WINDOWS: AMD64
+          CIBW_TEST_SKIP: "cp38-macosx_*:arm64"
+          CIBW_ARCHS_LINUX: auto64 aarch64
+          CIBW_ARCHS_WINDOWS: auto64
           CIBW_BEFORE_ALL_LINUX: bash .github/install_bazel.sh
+          # Grab the rootless Bazel installation inside the container.
+          CIBW_ENVIRONMENT_LINUX: PATH=$PATH:$HOME/bin
           CIBW_TEST_COMMAND: python {project}/bindings/python/google_benchmark/example.py
 
       - name: Upload Google Benchmark ${{ matrix.os }} wheels
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
+        with:
+          name: dist-${{ matrix.os }}
+          path: wheelhouse/*.whl
+
+  merge_wheels:
+    name: Merge all built wheels into one artifact
+    runs-on: ubuntu-latest
+    needs: build_wheels
+    steps:
+      - name: Merge wheels
+        uses: actions/upload-artifact/merge@v4
         with:
           name: dist
-          path: wheelhouse/*.whl
+          pattern: dist-*
+          delete-merged: true
 
   pypi_upload:
     name: Publish google-benchmark wheels to PyPI
-    needs: [build_sdist, build_wheels]
+    needs: [merge_wheels]
     runs-on: ubuntu-latest
     permissions:
       id-token: write
     steps:
-    - uses: actions/download-artifact@v3
-      with:
-        name: dist
-        path: dist
-    - uses: pypa/gh-action-pypi-publish@v1.8.11
+      - uses: actions/download-artifact@v4
+        with:
+          path: dist
+      - uses: pypa/gh-action-pypi-publish@v1
