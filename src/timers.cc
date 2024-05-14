@@ -127,7 +127,7 @@ double ProcessCPUUsage() {
   DiagnoseAndExit("GetProccessTimes() failed");
 #elif defined(BENCHMARK_OS_QURT)
   return static_cast<double>(
-             qurt_timer_timetick_to_us(qurt_timer_get_ticks())) *
+             qurt_timer_timetick_to_us(qurt_sysclock_get_hw_ticks())) *
          1.0e-6;
 #elif defined(BENCHMARK_OS_EMSCRIPTEN)
   // clock_gettime(CLOCK_PROCESS_CPUTIME_ID, ...) returns 0 on Emscripten.
@@ -161,7 +161,7 @@ double ThreadCPUUsage() {
   return MakeTime(kernel_time, user_time);
 #elif defined(BENCHMARK_OS_QURT)
   return static_cast<double>(
-             qurt_timer_timetick_to_us(qurt_timer_get_ticks())) *
+             qurt_timer_timetick_to_us(qurt_sysclock_get_hw_ticks())) *
          1.0e-6;
 #elif defined(BENCHMARK_OS_MACOSX)
   // FIXME We want to use clock_gettime, but its not available in MacOS 10.11.
