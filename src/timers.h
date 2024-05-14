@@ -24,7 +24,7 @@ double ThreadCPUUsage();
 // to compute elapsed time, this shouldn't matter.
 inline double ChronoClockNow() {
   unsigned long long count;
-  asm volatile (" %0 = c31:30 " : "=r"(count));
+  asm volatile(" %0 = c31:30 " : "=r"(count));
   return (double)count / 19200000.0;
 }
 
