@@ -23,17 +23,17 @@ double ThreadCPUUsage();
 // return an absolute time, but since ChronoClockNow() is only used
 // to compute elapsed time, this shouldn't matter.
 struct QuRTClock {
-    typedef uint64_t                           rep;
-    typedef std::ratio<1,19200000>             period;
-    typedef std::chrono::duration<rep, period> duration;
-    typedef std::chrono::time_point<QuRTClock> time_point;
-    static const bool is_steady =              false;
+  typedef uint64_t rep;
+  typedef std::ratio<1,19200000> period;
+  typedef std::chrono::duration<rep, period> duration;
+  typedef std::chrono::time_point<QuRTClock> time_point;
+  static const bool is_steady = false;
 
-    static time_point now() {
-      unsigned long long count;
-      asm volatile(" %0 = c31:30 " : "=r"(count));
-      return time_point(static_cast<duration>(count));
-    }
+  static time_point now() {
+    unsigned long long count;
+    asm volatile(" %0 = c31:30 " : "=r"(count));
+    return time_point(static_cast<duration>(count));
+  }
 };
 
 #else
@@ -67,7 +67,6 @@ inline double ChronoClockNow() {
   using FpSeconds = std::chrono::duration<double, std::chrono::seconds::period>;
   return FpSeconds(ClockType::now().time_since_epoch()).count();
 }
-
 
 std::string LocalDateTimeString();
 
