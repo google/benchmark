@@ -24,7 +24,7 @@ double ThreadCPUUsage();
 // to compute elapsed time, this shouldn't matter.
 struct QuRTClock {
   typedef uint64_t rep;
-  typedef std::ratio<1,19200000> period;
+  typedef std::ratio<1, 19200000> period;
   typedef std::chrono::duration<rep, period> duration;
   typedef std::chrono::time_point<QuRTClock> time_point;
   static const bool is_steady = false;
