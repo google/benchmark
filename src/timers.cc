@@ -126,6 +126,10 @@ double ProcessCPUUsage() {
     return MakeTime(kernel_time, user_time);
   DiagnoseAndExit("GetProccessTimes() failed");
 #elif defined(BENCHMARK_OS_QURT)
+  // Note that qurt_timer_get_ticks() is no longer documented as of SDK 5.3.0,
+  // and doesn't appear to work on at least some devices (eg Samsung S22),
+  // so let's use the actually-documented and apparently-equivalent
+  // qurt_sysclock_get_hw_ticks() call instead.
   return static_cast<double>(
              qurt_timer_timetick_to_us(qurt_sysclock_get_hw_ticks())) *
          1.0e-6;
@@ -160,6 +164,10 @@ double ThreadCPUUsage() {
                  &user_time);
   return MakeTime(kernel_time, user_time);
 #elif defined(BENCHMARK_OS_QURT)
+  // Note that qurt_timer_get_ticks() is no longer documented as of SDK 5.3.0,
+  // and doesn't appear to work on at least some devices (eg Samsung S22),
+  // so let's use the actually-documented and apparently-equivalent
+  // qurt_sysclock_get_hw_ticks() call instead.
   return static_cast<double>(
              qurt_timer_timetick_to_us(qurt_sysclock_get_hw_ticks())) *
          1.0e-6;
