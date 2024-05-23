@@ -1,6 +1,6 @@
 module(
     name = "google_benchmark",
-    version = "1.8.3",
+    version = "1.8.4",
 )
 
 bazel_dep(name = "bazel_skylib", version = "1.5.0")
