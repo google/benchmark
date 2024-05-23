@@ -1,3 +1,17 @@
+// Copyright 2015 Google Inc. All rights reserved.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 #include <gtest/gtest.h>
 #include <gmock/gmock.h>
 #include <sstream>
@@ -12,8 +26,16 @@ void RegisterBenchmarks() {
         for (auto _ : state) {}
     });
     benchmark::RegisterBenchmark("BM_complex", [](benchmark::State& state) {
-        for (auto _ : state) {}
+            for (auto _ : state) {
+        // Simulating a complex operation
+        for (int i = 0; i < 1000; ++i) {
+            benchmark::DoNotOptimize(i * i);
+        }
+    }
     });
+    benchmark::RegisterBenchmark("BM_special_chars", [](benchmark::State& state) {
+        for (auto _ : state) {}
+    })->Name("BM_special!@#");
 }
 
 class ReporterListTest : public ::testing::Test {
@@ -63,16 +85,24 @@ TEST_F(ReporterListTest, ListsBenchmarksWithDifferentReporters) {
     RunList(console_reporter);
     EXPECT_THAT(ss.str(), ::testing::HasSubstr("BM_simple"));
     EXPECT_THAT(ss.str(), ::testing::HasSubstr("BM_complex"));
+    EXPECT_THAT(ss.str(), ::testing::HasSubstr("BM_special!@#"));
 
     ss.str("");
     RunList(json_reporter);
     EXPECT_THAT(ss.str(), ::testing::HasSubstr("\"name\": \"BM_simple\""));
     EXPECT_THAT(ss.str(), ::testing::HasSubstr("\"name\": \"BM_complex\""));
+    EXPECT_THAT(ss.str(), ::testing::HasSubstr("\"name\": \"BM_special!@#\""));
+
+    // Check JSON structure
+    std::string json_output = ss.str();
+    EXPECT_THAT(json_output.front(), testing::Eq('['));
+    EXPECT_THAT(json_output.back(), testing::Eq(']'))
 
     ss.str("");
     RunList(csv_reporter);
     EXPECT_THAT(ss.str(), ::testing::HasSubstr("BM_simple"));
     EXPECT_THAT(ss.str(), ::testing::HasSubstr("BM_complex"));
+    EXPECT_THAT(ss.str(), ::testing::HasSubstr("BM_special!@#"));
 }
 
 }  // namespace internal
