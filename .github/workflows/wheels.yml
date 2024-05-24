@@ -87,4 +87,4 @@ jobs:
       - uses: actions/download-artifact@v4
         with:
           path: dist
-      - uses: pypa/gh-action-pypi-publish@v1
+      - uses: pypa/gh-action-pypi-publish@v1.8.14
