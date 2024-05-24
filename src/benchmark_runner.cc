@@ -371,9 +371,7 @@ double BenchmarkRunner::GetMinTimeToApply() const {
 }
 
 double BenchmarkRunner::GetRelAccuracy(const IterationResults& i) const {
-  return std::sqrt(i.seconds_pow2 / i.iters -
-                   std::pow(i.seconds / i.iters, 2.)) /
-         (i.seconds / i.iters) / sqrt(i.iters);
+  return std::sqrt(i.seconds_pow2 - std::pow(i.seconds, 2.) / static_cast<double>(i.iters)) / i.seconds;
 }
 
 bool BenchmarkRunner::HasSufficientTimeToApply(
