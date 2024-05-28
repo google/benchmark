@@ -104,7 +104,7 @@ get_git_version(GIT_VERSION)
 
 # If no git version can be determined, use the version
 # from the project() command
-if ("${GIT_VERSION}" STREQUAL "0.0.0")
+if ("${GIT_VERSION}" STREQUAL "v0.0.0")
   set(VERSION "v${benchmark_VERSION}")
 else()
   set(VERSION "${GIT_VERSION}")
