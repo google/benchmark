@@ -205,7 +205,8 @@ inline BENCHMARK_ALWAYS_INLINE int64_t Now() {
       "sub %0, zero, %0\n"
       "and %1, %1, %0\n"
       : "=r"(cycles_hi0), "=r"(cycles_lo), "=r"(cycles_hi1));
-  return (static_cast<uint64_t>(cycles_hi1) << 32) | cycles_lo;
+  return static_cast<int64_t>((static_cast<uint64_t>(cycles_hi1) << 32) |
+                              cycles_lo);
 #else
   uint64_t cycles;
   asm volatile("rdtime %0" : "=r"(cycles));
