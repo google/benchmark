@@ -167,12 +167,19 @@ bool JSONReporter::ReportContext(const Context& context) {
   }
   out << "],\n";
 
+  out << indent << FormatKV("library_version", GetBenchmarkVersion());
+  out << ",\n";
+
 #if defined(NDEBUG)
   const char build_type[] = "release";
 #else
   const char build_type[] = "debug";
 #endif
   out << indent << FormatKV("library_build_type", build_type);
+  out << ",\n";
+
+  // NOTE: our json schema is not strictly tied to the library version!
+  out << indent << FormatKV("json_schema_version", int64_t(1));
 
   std::map<std::string, std::string>* global_context =
       internal::GetGlobalContext();

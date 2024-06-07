@@ -190,8 +190,6 @@ class BENCHMARK_EXPORT PerfCountersMeasurement final {
   PerfCounterValues end_values_;
 };
 
-BENCHMARK_UNUSED static bool perf_init_anchor = PerfCounters::Initialize();
-
 }  // namespace internal
 }  // namespace benchmark
 

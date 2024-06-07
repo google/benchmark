@@ -16,6 +16,7 @@
 #include <sstream>
 #include <string>
 #include <thread>
+#include <type_traits>
 #include <utility>
 #include <vector>
 
@@ -225,6 +226,31 @@ void BM_non_template_args(benchmark::State& state, int, double) {
   }
 }
 BENCHMARK_CAPTURE(BM_non_template_args, basic_test, 0, 0);
+
+template <class T, class U, class... ExtraArgs>
+void BM_template2_capture(benchmark::State& state, ExtraArgs&&... extra_args) {
+  static_assert(std::is_same<T, void>::value, "");
+  static_assert(std::is_same<U, char*>::value, "");
+  static_assert(std::is_same<ExtraArgs..., unsigned int>::value, "");
+  unsigned int dummy[sizeof...(ExtraArgs)] = {extra_args...};
+  assert(dummy[0] == 42);
+  for (auto _ : state) {
+  }
+}
+BENCHMARK_TEMPLATE2_CAPTURE(BM_template2_capture, void, char*, foo, 42U);
+BENCHMARK_CAPTURE((BM_template2_capture<void, char*>), foo, 42U);
+
+template <class T, class... ExtraArgs>
+void BM_template1_capture(benchmark::State& state, ExtraArgs&&... extra_args) {
+  static_assert(std::is_same<T, void>::value, "");
+  static_assert(std::is_same<ExtraArgs..., unsigned long>::value, "");
+  unsigned long dummy[sizeof...(ExtraArgs)] = {extra_args...};
+  assert(dummy[0] == 24);
+  for (auto _ : state) {
+  }
+}
+BENCHMARK_TEMPLATE1_CAPTURE(BM_template1_capture, void, foo, 24UL);
+BENCHMARK_CAPTURE(BM_template1_capture<void>, foo, 24UL);
 
 #endif  // BENCHMARK_HAS_CXX11
 

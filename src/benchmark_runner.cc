@@ -64,7 +64,7 @@ MemoryManager* memory_manager = nullptr;
 
 namespace {
 
-static constexpr IterationCount kMaxIterations = 1000000000;
+static constexpr IterationCount kMaxIterations = 1000000000000;
 const double kDefaultMinTime =
     std::strtod(::benchmark::kDefaultMinTimeStr, /*p_end*/ nullptr);
 
@@ -96,6 +96,7 @@ BenchmarkReporter::Run CreateRunReport(
     } else {
       report.real_accumulated_time = results.real_time_used;
     }
+    report.use_real_time_for_initial_big_o = b.use_manual_time();
     report.cpu_accumulated_time = results.cpu_time_used;
     report.complexity_n = results.complexity_n;
     report.complexity = b.complexity();
@@ -108,7 +109,7 @@ BenchmarkReporter::Run CreateRunReport(
       report.memory_result = memory_result;
       report.allocs_per_iter =
           memory_iterations ? static_cast<double>(memory_result->num_allocs) /
-                                  memory_iterations
+                                  static_cast<double>(memory_iterations)
                             : 0;
     }
 
@@ -234,7 +235,7 @@ BenchmarkRunner::BenchmarkRunner(
       has_explicit_iteration_count(b.iterations() != 0 ||
                                    parsed_benchtime_flag.tag ==
                                        BenchTimeType::ITERS),
-      pool(b.threads() - 1),
+      pool(static_cast<size_t>(b.threads() - 1)),
       iters(has_explicit_iteration_count
                 ? ComputeIters(b_, parsed_benchtime_flag)
                 : 1),
@@ -325,8 +326,8 @@ IterationCount BenchmarkRunner::PredictNumItersNeeded(
 
   // So what seems to be the sufficiently-large iteration count? Round up.
   const IterationCount max_next_iters = static_cast<IterationCount>(
-      std::lround(std::max(multiplier * static_cast<double>(i.iters),
-                           static_cast<double>(i.iters) + 1.0)));
+      std::llround(std::max(multiplier * static_cast<double>(i.iters),
+                            static_cast<double>(i.iters) + 1.0)));
   // But we do have *some* limits though..
   const IterationCount next_iters = std::min(max_next_iters, kMaxIterations);
 

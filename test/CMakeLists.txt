@@ -5,6 +5,8 @@ set(THREADS_PREFER_PTHREAD_FLAG ON)
 find_package(Threads REQUIRED)
 include(CheckCXXCompilerFlag)
 
+add_cxx_compiler_flag(-Wno-unused-variable)
+
 # NOTE: Some tests use `<cassert>` to perform the test. Therefore we must
 # strip -DNDEBUG from the default CMake flags in DEBUG mode.
 string(TOUPPER "${CMAKE_BUILD_TYPE}" uppercase_CMAKE_BUILD_TYPE)
@@ -62,30 +64,38 @@ macro(compile_output_test name)
           ${BENCHMARK_CXX_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
 endmacro(compile_output_test)
 
+macro(benchmark_add_test)
+  add_test(${ARGV})
+  if(WIN32 AND BUILD_SHARED_LIBS)
+    cmake_parse_arguments(TEST "" "NAME" "" ${ARGN})
+    set_tests_properties(${TEST_NAME} PROPERTIES ENVIRONMENT_MODIFICATION "PATH=path_list_prepend:$<TARGET_FILE_DIR:benchmark::benchmark>")
+  endif()
+endmacro(benchmark_add_test)
+
 # Demonstration executable
 compile_benchmark_test(benchmark_test)
-add_test(NAME benchmark COMMAND benchmark_test --benchmark_min_time=0.01s)
+benchmark_add_test(NAME benchmark COMMAND benchmark_test --benchmark_min_time=0.01s)
 
 compile_benchmark_test(spec_arg_test)
-add_test(NAME spec_arg COMMAND spec_arg_test --benchmark_filter=BM_NotChosen)
+benchmark_add_test(NAME spec_arg COMMAND spec_arg_test --benchmark_filter=BM_NotChosen)
 
 compile_benchmark_test(spec_arg_verbosity_test)
-add_test(NAME spec_arg_verbosity COMMAND spec_arg_verbosity_test --v=42)
+benchmark_add_test(NAME spec_arg_verbosity COMMAND spec_arg_verbosity_test --v=42)
 
 compile_benchmark_test(benchmark_setup_teardown_test)
-add_test(NAME benchmark_setup_teardown COMMAND benchmark_setup_teardown_test)
+benchmark_add_test(NAME benchmark_setup_teardown COMMAND benchmark_setup_teardown_test)
 
 compile_benchmark_test(filter_test)
 macro(add_filter_test name filter expect)
-  add_test(NAME ${name} COMMAND filter_test --benchmark_min_time=0.01s --benchmark_filter=${filter} ${expect})
-  add_test(NAME ${name}_list_only COMMAND filter_test --benchmark_list_tests --benchmark_filter=${filter} ${expect})
+  benchmark_add_test(NAME ${name} COMMAND filter_test --benchmark_min_time=0.01s --benchmark_filter=${filter} ${expect})
+  benchmark_add_test(NAME ${name}_list_only COMMAND filter_test --benchmark_list_tests --benchmark_filter=${filter} ${expect})
 endmacro(add_filter_test)
 
 compile_benchmark_test(benchmark_min_time_flag_time_test)
-add_test(NAME min_time_flag_time COMMAND benchmark_min_time_flag_time_test)
+benchmark_add_test(NAME min_time_flag_time COMMAND benchmark_min_time_flag_time_test)
 
 compile_benchmark_test(benchmark_min_time_flag_iters_test)
-add_test(NAME min_time_flag_iters COMMAND benchmark_min_time_flag_iters_test)
+benchmark_add_test(NAME min_time_flag_iters COMMAND benchmark_min_time_flag_iters_test)
 
 add_filter_test(filter_simple "Foo" 3)
 add_filter_test(filter_simple_negative "-Foo" 2)
@@ -107,19 +117,19 @@ add_filter_test(filter_regex_end ".*Ba$" 1)
 add_filter_test(filter_regex_end_negative "-.*Ba$" 4)
 
 compile_benchmark_test(options_test)
-add_test(NAME options_benchmarks COMMAND options_test --benchmark_min_time=0.01s)
+benchmark_add_test(NAME options_benchmarks COMMAND options_test --benchmark_min_time=0.01s)
 
 compile_benchmark_test(basic_test)
-add_test(NAME basic_benchmark COMMAND basic_test --benchmark_min_time=0.01s)
+benchmark_add_test(NAME basic_benchmark COMMAND basic_test --benchmark_min_time=0.01s)
 
 compile_output_test(repetitions_test)
-add_test(NAME repetitions_benchmark COMMAND repetitions_test --benchmark_min_time=0.01s --benchmark_repetitions=3)
+benchmark_add_test(NAME repetitions_benchmark COMMAND repetitions_test --benchmark_min_time=0.01s --benchmark_repetitions=3)
 
 compile_benchmark_test(diagnostics_test)
-add_test(NAME diagnostics_test COMMAND diagnostics_test --benchmark_min_time=0.01s)
+benchmark_add_test(NAME diagnostics_test COMMAND diagnostics_test --benchmark_min_time=0.01s)
 
 compile_benchmark_test(skip_with_error_test)
-add_test(NAME skip_with_error_test COMMAND skip_with_error_test --benchmark_min_time=0.01s)
+benchmark_add_test(NAME skip_with_error_test COMMAND skip_with_error_test --benchmark_min_time=0.01s)
 
 compile_benchmark_test(donotoptimize_test)
 # Enable errors for deprecated deprecations (DoNotOptimize(Tp const& value)).
@@ -132,58 +142,58 @@ check_cxx_compiler_flag(-O3 BENCHMARK_HAS_O3_FLAG)
 if (BENCHMARK_HAS_O3_FLAG)
   set_target_properties(donotoptimize_test PROPERTIES COMPILE_FLAGS "-O3")
 endif()
-add_test(NAME donotoptimize_test COMMAND donotoptimize_test --benchmark_min_time=0.01s)
+benchmark_add_test(NAME donotoptimize_test COMMAND donotoptimize_test --benchmark_min_time=0.01s)
 
 compile_benchmark_test(fixture_test)
-add_test(NAME fixture_test COMMAND fixture_test --benchmark_min_time=0.01s)
+benchmark_add_test(NAME fixture_test COMMAND fixture_test --benchmark_min_time=0.01s)
 
 compile_benchmark_test(register_benchmark_test)
-add_test(NAME register_benchmark_test COMMAND register_benchmark_test --benchmark_min_time=0.01s)
+benchmark_add_test(NAME register_benchmark_test COMMAND register_benchmark_test --benchmark_min_time=0.01s)
 
 compile_benchmark_test(map_test)
-add_test(NAME map_test COMMAND map_test --benchmark_min_time=0.01s)
+benchmark_add_test(NAME map_test COMMAND map_test --benchmark_min_time=0.01s)
 
 compile_benchmark_test(multiple_ranges_test)
-add_test(NAME multiple_ranges_test COMMAND multiple_ranges_test --benchmark_min_time=0.01s)
+benchmark_add_test(NAME multiple_ranges_test COMMAND multiple_ranges_test --benchmark_min_time=0.01s)
 
 compile_benchmark_test(args_product_test)
-add_test(NAME args_product_test COMMAND args_product_test --benchmark_min_time=0.01s)
+benchmark_add_test(NAME args_product_test COMMAND args_product_test --benchmark_min_time=0.01s)
 
 compile_benchmark_test_with_main(link_main_test)
-add_test(NAME link_main_test COMMAND link_main_test --benchmark_min_time=0.01s)
+benchmark_add_test(NAME link_main_test COMMAND link_main_test --benchmark_min_time=0.01s)
 
 compile_output_test(reporter_output_test)
-add_test(NAME reporter_output_test COMMAND reporter_output_test --benchmark_min_time=0.01s)
+benchmark_add_test(NAME reporter_output_test COMMAND reporter_output_test --benchmark_min_time=0.01s)
 
 compile_output_test(templated_fixture_test)
-add_test(NAME templated_fixture_test COMMAND templated_fixture_test --benchmark_min_time=0.01s)
+benchmark_add_test(NAME templated_fixture_test COMMAND templated_fixture_test --benchmark_min_time=0.01s)
 
 compile_output_test(user_counters_test)
-add_test(NAME user_counters_test COMMAND user_counters_test --benchmark_min_time=0.01s)
+benchmark_add_test(NAME user_counters_test COMMAND user_counters_test --benchmark_min_time=0.01s)
 
 compile_output_test(perf_counters_test)
-add_test(NAME perf_counters_test COMMAND perf_counters_test --benchmark_min_time=0.01s --benchmark_perf_counters=CYCLES,BRANCHES)
+benchmark_add_test(NAME perf_counters_test COMMAND perf_counters_test --benchmark_min_time=0.01s --benchmark_perf_counters=CYCLES,INSTRUCTIONS)
 
 compile_output_test(internal_threading_test)
-add_test(NAME internal_threading_test COMMAND internal_threading_test --benchmark_min_time=0.01s)
+benchmark_add_test(NAME internal_threading_test COMMAND internal_threading_test --benchmark_min_time=0.01s)
 
 compile_output_test(report_aggregates_only_test)
-add_test(NAME report_aggregates_only_test COMMAND report_aggregates_only_test --benchmark_min_time=0.01s)
+benchmark_add_test(NAME report_aggregates_only_test COMMAND report_aggregates_only_test --benchmark_min_time=0.01s)
 
 compile_output_test(display_aggregates_only_test)
-add_test(NAME display_aggregates_only_test COMMAND display_aggregates_only_test --benchmark_min_time=0.01s)
+benchmark_add_test(NAME display_aggregates_only_test COMMAND display_aggregates_only_test --benchmark_min_time=0.01s)
 
 compile_output_test(user_counters_tabular_test)
-add_test(NAME user_counters_tabular_test COMMAND user_counters_tabular_test --benchmark_counters_tabular=true --benchmark_min_time=0.01s)
+benchmark_add_test(NAME user_counters_tabular_test COMMAND user_counters_tabular_test --benchmark_counters_tabular=true --benchmark_min_time=0.01s)
 
 compile_output_test(user_counters_thousands_test)
-add_test(NAME user_counters_thousands_test COMMAND user_counters_thousands_test --benchmark_min_time=0.01s)
+benchmark_add_test(NAME user_counters_thousands_test COMMAND user_counters_thousands_test --benchmark_min_time=0.01s)
 
 compile_output_test(memory_manager_test)
-add_test(NAME memory_manager_test COMMAND memory_manager_test --benchmark_min_time=0.01s)
+benchmark_add_test(NAME memory_manager_test COMMAND memory_manager_test --benchmark_min_time=0.01s)
 
 # MSVC does not allow to set the language standard to C++98/03.
-if(NOT CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
+if(NOT (MSVC OR CMAKE_CXX_SIMULATE_ID STREQUAL "MSVC"))
   compile_benchmark_test(cxx03_test)
   set_target_properties(cxx03_test
       PROPERTIES
@@ -205,17 +215,11 @@ if(NOT CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
     set(DISABLE_LTO_WARNINGS "${DISABLE_LTO_WARNINGS} -Wno-lto-type-mismatch")
   endif()
   set_target_properties(cxx03_test PROPERTIES LINK_FLAGS "${DISABLE_LTO_WARNINGS}")
-  add_test(NAME cxx03 COMMAND cxx03_test --benchmark_min_time=0.01s)
+  benchmark_add_test(NAME cxx03 COMMAND cxx03_test --benchmark_min_time=0.01s)
 endif()
 
-# Attempt to work around flaky test failures when running on Appveyor servers.
-if (DEFINED ENV{APPVEYOR})
-  set(COMPLEXITY_MIN_TIME "0.5s")
-else()
-  set(COMPLEXITY_MIN_TIME "0.01s")
-endif()
 compile_output_test(complexity_test)
-add_test(NAME complexity_benchmark COMMAND complexity_test --benchmark_min_time=${COMPLEXITY_MIN_TIME})
+benchmark_add_test(NAME complexity_benchmark COMMAND complexity_test --benchmark_min_time=1000000x)
 
 ###############################################################################
 # GoogleTest Unit Tests
@@ -230,7 +234,12 @@ if (BENCHMARK_ENABLE_GTEST_TESTS)
 
   macro(add_gtest name)
     compile_gtest(${name})
-    add_test(NAME ${name} COMMAND ${name})
+    benchmark_add_test(NAME ${name} COMMAND ${name})
+    if(WIN32 AND BUILD_SHARED_LIBS)
+      set_tests_properties(${name} PROPERTIES
+        ENVIRONMENT_MODIFICATION "PATH=path_list_prepend:$<TARGET_FILE_DIR:benchmark::benchmark>;PATH=path_list_prepend:$<TARGET_FILE_DIR:gmock_main>"
+      )
+    endif()
   endmacro()
 
   add_gtest(benchmark_gtest)

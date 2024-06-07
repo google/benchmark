@@ -152,8 +152,16 @@ BENCHMARK_EXPORT std::map<std::string, std::string>*& GetGlobalContext() {
   return global_context;
 }
 
-// FIXME: wouldn't LTO mess this up?
-void UseCharPointer(char const volatile*) {}
+static void const volatile* volatile global_force_escape_pointer;
+
+// FIXME: Verify if LTO still messes this up?
+void UseCharPointer(char const volatile* const v) {
+  // We want to escape the pointer `v` so that the compiler can not eliminate
+  // computations that produced it. To do that, we escape the pointer by storing
+  // it into a volatile variable, since generally, volatile store, is not
+  // something the compiler is allowed to elide.
+  global_force_escape_pointer = reinterpret_cast<void const volatile*>(v);
+}
 
 }  // namespace internal
 
@@ -178,6 +186,17 @@ State::State(std::string name, IterationCount max_iters,
   BM_CHECK(max_iterations != 0) << "At least one iteration must be run";
   BM_CHECK_LT(thread_index_, threads_)
       << "thread_index must be less than threads";
+
+  // Add counters with correct flag now.  If added with `counters[name]` in
+  // `PauseTiming`, a new `Counter` will be inserted the first time, which
+  // won't have the flag.  Inserting them now also reduces the allocations
+  // during the benchmark.
+  if (perf_counters_measurement_) {
+    for (const std::string& counter_name :
+         perf_counters_measurement_->names()) {
+      counters[counter_name] = Counter(0.0, Counter::kAvgIterations);
+    }
+  }
 
   // Note: The use of offsetof below is technically undefined until C++17
   // because State is not a standard layout type. However, all compilers
@@ -227,9 +246,11 @@ void State::PauseTiming() {
       BM_CHECK(false) << "Perf counters read the value failed.";
     }
     for (const auto& name_and_measurement : measurements) {
-      auto name = name_and_measurement.first;
-      auto measurement = name_and_measurement.second;
-      counters[name] += Counter(measurement, Counter::kAvgIterations);
+      const std::string& name = name_and_measurement.first;
+      const double measurement = name_and_measurement.second;
+      // Counter was inserted with `kAvgIterations` flag by the constructor.
+      assert(counters.find(name) != counters.end());
+      counters[name].value += measurement;
     }
   }
 }
@@ -386,7 +407,8 @@ void RunBenchmarks(const std::vector<BenchmarkInstance>& benchmarks,
       benchmarks_with_threads += (benchmark.threads() > 1);
       runners.emplace_back(benchmark, &perfcounters, reports_for_family);
       int num_repeats_of_this_instance = runners.back().GetNumRepeats();
-      num_repetitions_total += num_repeats_of_this_instance;
+      num_repetitions_total +=
+          static_cast<size_t>(num_repeats_of_this_instance);
       if (reports_for_family)
         reports_for_family->num_runs_total += num_repeats_of_this_instance;
     }
@@ -564,12 +586,16 @@ size_t RunSpecifiedBenchmarks(BenchmarkReporter* display_reporter,
     Err << "A custom file reporter was provided but "
            "--benchmark_out=<file> was not specified."
         << std::endl;
+    Out.flush();
+    Err.flush();
     std::exit(1);
   }
   if (!fname.empty()) {
     output_file.open(fname);
     if (!output_file.is_open()) {
       Err << "invalid file name: '" << fname << "'" << std::endl;
+      Out.flush();
+      Err.flush();
       std::exit(1);
     }
     if (!file_reporter) {
@@ -584,10 +610,16 @@ size_t RunSpecifiedBenchmarks(BenchmarkReporter* display_reporter,
   }
 
   std::vector<internal::BenchmarkInstance> benchmarks;
-  if (!FindBenchmarksInternal(spec, &benchmarks, &Err)) return 0;
+  if (!FindBenchmarksInternal(spec, &benchmarks, &Err)) {
+    Out.flush();
+    Err.flush();
+    return 0;
+  }
 
   if (benchmarks.empty()) {
     Err << "Failed to match any benchmarks against regex: " << spec << "\n";
+    Out.flush();
+    Err.flush();
     return 0;
   }
 
@@ -598,6 +630,8 @@ size_t RunSpecifiedBenchmarks(BenchmarkReporter* display_reporter,
     internal::RunBenchmarks(benchmarks, display_reporter, file_reporter);
   }
 
+  Out.flush();
+  Err.flush();
   return benchmarks.size();
 }
 
@@ -722,6 +756,14 @@ int InitializeStreams() {
 }
 
 }  // end namespace internal
+
+std::string GetBenchmarkVersion() {
+#ifdef BENCHMARK_VERSION
+  return {BENCHMARK_VERSION};
+#else
+  return {""};
+#endif
+}
 
 void PrintDefaultHelp() {
   fprintf(stdout,

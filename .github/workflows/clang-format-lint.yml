@@ -4,7 +4,8 @@ on:
   pull_request: {}
 
 jobs:
-  build:
+  job:
+    name: check-clang-format
     runs-on: ubuntu-latest
 
     steps:

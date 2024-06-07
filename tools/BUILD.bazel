@@ -4,14 +4,15 @@ py_library(
     name = "gbench",
     srcs = glob(["gbench/*.py"]),
     deps = [
-      requirement("numpy"),
-      requirement("scipy"),
+        requirement("numpy"),
+        requirement("scipy"),
     ],
 )
 
 py_binary(
     name = "compare",
     srcs = ["compare.py"],
+    imports = ["."],
     python_version = "PY3",
     deps = [
         ":gbench",

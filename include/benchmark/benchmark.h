@@ -302,6 +302,9 @@ class BenchmarkReporter;
 // Default number of minimum benchmark running time in seconds.
 const char kDefaultMinTimeStr[] = "0.5s";
 
+// Returns the version of the library.
+BENCHMARK_EXPORT std::string GetBenchmarkVersion();
+
 BENCHMARK_EXPORT void PrintDefaultHelp();
 
 BENCHMARK_EXPORT void Initialize(int* argc, char** argv,
@@ -341,7 +344,7 @@ BENCHMARK_EXPORT BenchmarkReporter* CreateDefaultDisplayReporter();
 // The second and third overload use the specified 'display_reporter' and
 //  'file_reporter' respectively. 'file_reporter' will write to the file
 //  specified
-//   by '--benchmark_output'. If '--benchmark_output' is not given the
+//   by '--benchmark_out'. If '--benchmark_out' is not given the
 //  'file_reporter' is ignored.
 //
 // RETURNS: The number of matching benchmarks.
@@ -584,6 +587,12 @@ inline BENCHMARK_ALWAYS_INLINE void DoNotOptimize(Tp const& value) {
 inline BENCHMARK_ALWAYS_INLINE void ClobberMemory() { _ReadWriteBarrier(); }
 #endif
 #else
+#ifdef BENCHMARK_HAS_CXX11
+template <class Tp>
+inline BENCHMARK_ALWAYS_INLINE void DoNotOptimize(Tp&& value) {
+  internal::UseCharPointer(&reinterpret_cast<char const volatile&>(value));
+}
+#else
 template <class Tp>
 BENCHMARK_DEPRECATED_MSG(
     "The const-ref version of this method can permit "
@@ -591,6 +600,12 @@ BENCHMARK_DEPRECATED_MSG(
 inline BENCHMARK_ALWAYS_INLINE void DoNotOptimize(Tp const& value) {
   internal::UseCharPointer(&reinterpret_cast<char const volatile&>(value));
 }
+
+template <class Tp>
+inline BENCHMARK_ALWAYS_INLINE void DoNotOptimize(Tp& value) {
+  internal::UseCharPointer(&reinterpret_cast<char const volatile&>(value));
+}
+#endif
 // FIXME Add ClobberMemory() for non-gnu and non-msvc compilers, before C++11.
 #endif
 
@@ -660,13 +675,15 @@ typedef std::map<std::string, Counter> UserCounters;
 // calculated automatically to the best fit.
 enum BigO { oNone, o1, oN, oNSquared, oNCubed, oLogN, oNLogN, oAuto, oLambda };
 
+typedef int64_t ComplexityN;
+
 typedef int64_t IterationCount;
 
 enum StatisticUnit { kTime, kPercentage };
 
 // BigOFunc is passed to a benchmark in order to specify the asymptotic
 // computational complexity for the benchmark.
-typedef double(BigOFunc)(IterationCount);
+typedef double(BigOFunc)(ComplexityN);
 
 // StatisticsFunc is passed to a benchmark in order to compute some descriptive
 // statistics over all the measurements of some type
@@ -734,13 +751,13 @@ class BENCHMARK_EXPORT State {
   // have been called previously.
   //
   // NOTE: KeepRunning may not be used after calling either of these functions.
-  BENCHMARK_ALWAYS_INLINE StateIterator begin();
-  BENCHMARK_ALWAYS_INLINE StateIterator end();
+  inline BENCHMARK_ALWAYS_INLINE StateIterator begin();
+  inline BENCHMARK_ALWAYS_INLINE StateIterator end();
 
   // Returns true if the benchmark should continue through another iteration.
   // NOTE: A benchmark may not return from the test until KeepRunning() has
   // returned false.
-  bool KeepRunning();
+  inline bool KeepRunning();
 
   // Returns true iff the benchmark should run n more iterations.
   // REQUIRES: 'n' > 0.
@@ -752,7 +769,7 @@ class BENCHMARK_EXPORT State {
   //   while (state.KeepRunningBatch(1000)) {
   //     // process 1000 elements
   //   }
-  bool KeepRunningBatch(IterationCount n);
+  inline bool KeepRunningBatch(IterationCount n);
 
   // REQUIRES: timer is running and 'SkipWithMessage(...)' or
   //   'SkipWithError(...)' has not been called by the current thread.
@@ -863,10 +880,12 @@ class BENCHMARK_EXPORT State {
   // and complexity_n will
   // represent the length of N.
   BENCHMARK_ALWAYS_INLINE
-  void SetComplexityN(int64_t complexity_n) { complexity_n_ = complexity_n; }
+  void SetComplexityN(ComplexityN complexity_n) {
+    complexity_n_ = complexity_n;
+  }
 
   BENCHMARK_ALWAYS_INLINE
-  int64_t complexity_length_n() const { return complexity_n_; }
+  ComplexityN complexity_length_n() const { return complexity_n_; }
 
   // If this routine is called with items > 0, then an items/s
   // label is printed on the benchmark report line for the currently
@@ -955,7 +974,7 @@ class BENCHMARK_EXPORT State {
   // items we don't need on the first cache line
   std::vector<int64_t> range_;
 
-  int64_t complexity_n_;
+  ComplexityN complexity_n_;
 
  public:
   // Container for user-defined counters.
@@ -970,7 +989,7 @@ class BENCHMARK_EXPORT State {
   void StartKeepRunning();
   // Implementation of KeepRunning() and KeepRunningBatch().
   // is_batch must be true unless n is 1.
-  bool KeepRunningInternal(IterationCount n, bool is_batch);
+  inline bool KeepRunningInternal(IterationCount n, bool is_batch);
   void FinishKeepRunning();
 
   const std::string name_;
@@ -1504,7 +1523,7 @@ class Fixture : public internal::Benchmark {
 // /* Registers a benchmark named "BM_takes_args/int_string_test` */
 // BENCHMARK_CAPTURE(BM_takes_args, int_string_test, 42, std::string("abc"));
 #define BENCHMARK_CAPTURE(func, test_case_name, ...)     \
-  BENCHMARK_PRIVATE_DECLARE(func) =                      \
+  BENCHMARK_PRIVATE_DECLARE(_benchmark_) =               \
       (::benchmark::internal::RegisterBenchmarkInternal( \
           new ::benchmark::internal::FunctionBenchmark(  \
               #func "/" #test_case_name,                 \
@@ -1540,6 +1559,31 @@ class Fixture : public internal::Benchmark {
 #else
 #define BENCHMARK_TEMPLATE(n, a) BENCHMARK_TEMPLATE1(n, a)
 #endif
+
+#ifdef BENCHMARK_HAS_CXX11
+// This will register a benchmark for a templatized function,
+// with the additional arguments specified by `...`.
+//
+// For example:
+//
+// template <typename T, class ...ExtraArgs>`
+// void BM_takes_args(benchmark::State& state, ExtraArgs&&... extra_args) {
+//  [...]
+//}
+// /* Registers a benchmark named "BM_takes_args<void>/int_string_test` */
+// BENCHMARK_TEMPLATE1_CAPTURE(BM_takes_args, void, int_string_test, 42,
+//                             std::string("abc"));
+#define BENCHMARK_TEMPLATE1_CAPTURE(func, a, test_case_name, ...) \
+  BENCHMARK_CAPTURE(func<a>, test_case_name, __VA_ARGS__)
+
+#define BENCHMARK_TEMPLATE2_CAPTURE(func, a, b, test_case_name, ...) \
+  BENCHMARK_PRIVATE_DECLARE(func) =                                  \
+      (::benchmark::internal::RegisterBenchmarkInternal(             \
+          new ::benchmark::internal::FunctionBenchmark(              \
+              #func "<" #a "," #b ">"                                \
+                    "/" #test_case_name,                             \
+              [](::benchmark::State& st) { func<a, b>(st, __VA_ARGS__); })))
+#endif  // BENCHMARK_HAS_CXX11
 
 #define BENCHMARK_PRIVATE_DECLARE_F(BaseClass, Method)          \
   class BaseClass##_##Method##_Benchmark : public BaseClass {   \
@@ -1748,6 +1792,7 @@ class BENCHMARK_EXPORT BenchmarkReporter {
           real_accumulated_time(0),
           cpu_accumulated_time(0),
           max_heapbytes_used(0),
+          use_real_time_for_initial_big_o(false),
           complexity(oNone),
           complexity_lambda(),
           complexity_n(0),
@@ -1790,10 +1835,14 @@ class BENCHMARK_EXPORT BenchmarkReporter {
     // This is set to 0.0 if memory tracing is not enabled.
     double max_heapbytes_used;
 
+    // By default Big-O is computed for CPU time, but that is not what you want
+    // to happen when manual time was requested, which is stored as real time.
+    bool use_real_time_for_initial_big_o;
+
     // Keep track of arguments to compute asymptotic complexity
     BigO complexity;
     BigOFunc* complexity_lambda;
-    int64_t complexity_n;
+    ComplexityN complexity_n;
 
     // what statistics to compute from the measurements
     const std::vector<internal::Statistics>* statistics;

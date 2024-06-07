@@ -1,5 +1,5 @@
-"""util.py - General utilities for running, loading, and processing benchmarks
-"""
+"""util.py - General utilities for running, loading, and processing benchmarks"""
+
 import json
 import os
 import re
@@ -7,13 +7,12 @@ import subprocess
 import sys
 import tempfile
 
-
 # Input file type enumeration
 IT_Invalid = 0
 IT_JSON = 1
 IT_Executable = 2
 
-_num_magic_bytes = 2 if sys.platform.startswith('win') else 4
+_num_magic_bytes = 2 if sys.platform.startswith("win") else 4
 
 
 def is_executable_file(filename):
@@ -24,21 +23,21 @@ def is_executable_file(filename):
     """
     if not os.path.isfile(filename):
         return False
-    with open(filename, mode='rb') as f:
+    with open(filename, mode="rb") as f:
         magic_bytes = f.read(_num_magic_bytes)
-    if sys.platform == 'darwin':
+    if sys.platform == "darwin":
         return magic_bytes in [
-            b'\xfe\xed\xfa\xce',  # MH_MAGIC
-            b'\xce\xfa\xed\xfe',  # MH_CIGAM
-            b'\xfe\xed\xfa\xcf',  # MH_MAGIC_64
-            b'\xcf\xfa\xed\xfe',  # MH_CIGAM_64
-            b'\xca\xfe\xba\xbe',  # FAT_MAGIC
-            b'\xbe\xba\xfe\xca'   # FAT_CIGAM
+            b"\xfe\xed\xfa\xce",  # MH_MAGIC
+            b"\xce\xfa\xed\xfe",  # MH_CIGAM
+            b"\xfe\xed\xfa\xcf",  # MH_MAGIC_64
+            b"\xcf\xfa\xed\xfe",  # MH_CIGAM_64
+            b"\xca\xfe\xba\xbe",  # FAT_MAGIC
+            b"\xbe\xba\xfe\xca",  # FAT_CIGAM
         ]
-    elif sys.platform.startswith('win'):
-        return magic_bytes == b'MZ'
+    elif sys.platform.startswith("win"):
+        return magic_bytes == b"MZ"
     else:
-        return magic_bytes == b'\x7FELF'
+        return magic_bytes == b"\x7fELF"
 
 
 def is_json_file(filename):
@@ -47,7 +46,7 @@ def is_json_file(filename):
     'False' otherwise.
     """
     try:
-        with open(filename, 'r') as f:
+        with open(filename, "r") as f:
             json.load(f)
         return True
     except BaseException:
@@ -72,7 +71,10 @@ def classify_input_file(filename):
     elif is_json_file(filename):
         ftype = IT_JSON
     else:
-        err_msg = "'%s' does not name a valid benchmark executable or JSON file" % filename
+        err_msg = (
+            "'%s' does not name a valid benchmark executable or JSON file"
+            % filename
+        )
     return ftype, err_msg
 
 
@@ -95,11 +97,11 @@ def find_benchmark_flag(prefix, benchmark_flags):
     if it is found return the arg it specifies. If specified more than once the
     last value is returned. If the flag is not found None is returned.
     """
-    assert prefix.startswith('--') and prefix.endswith('=')
+    assert prefix.startswith("--") and prefix.endswith("=")
     result = None
     for f in benchmark_flags:
         if f.startswith(prefix):
-            result = f[len(prefix):]
+            result = f[len(prefix) :]
     return result
 
 
@@ -108,7 +110,7 @@ def remove_benchmark_flags(prefix, benchmark_flags):
     Return a new list containing the specified benchmark_flags except those
     with the specified prefix.
     """
-    assert prefix.startswith('--') and prefix.endswith('=')
+    assert prefix.startswith("--") and prefix.endswith("=")
     return [f for f in benchmark_flags if not f.startswith(prefix)]
 
 
@@ -124,36 +126,61 @@ def load_benchmark_results(fname, benchmark_filter):
 
     REQUIRES: 'fname' names a file containing JSON benchmark output.
     """
+
     def benchmark_wanted(benchmark):
         if benchmark_filter is None:
             return True
-        name = benchmark.get('run_name', None) or benchmark['name']
-        if re.search(benchmark_filter, name):
-            return True
-        return False
+        name = benchmark.get("run_name", None) or benchmark["name"]
+        return re.search(benchmark_filter, name) is not None
 
-    with open(fname, 'r') as f:
+    with open(fname, "r") as f:
         results = json.load(f)
-        if 'benchmarks' in results:
-            results['benchmarks'] = list(filter(benchmark_wanted,
-                                                results['benchmarks']))
+        if "context" in results:
+            if "json_schema_version" in results["context"]:
+                json_schema_version = results["context"]["json_schema_version"]
+                if json_schema_version != 1:
+                    print(
+                        "In %s, got unnsupported JSON schema version: %i, expected 1"
+                        % (fname, json_schema_version)
+                    )
+                    sys.exit(1)
+        if "benchmarks" in results:
+            results["benchmarks"] = list(
+                filter(benchmark_wanted, results["benchmarks"])
+            )
         return results
 
 
 def sort_benchmark_results(result):
-    benchmarks = result['benchmarks']
+    benchmarks = result["benchmarks"]
 
     # From inner key to the outer key!
     benchmarks = sorted(
-        benchmarks, key=lambda benchmark: benchmark['repetition_index'] if 'repetition_index' in benchmark else -1)
+        benchmarks,
+        key=lambda benchmark: benchmark["repetition_index"]
+        if "repetition_index" in benchmark
+        else -1,
+    )
     benchmarks = sorted(
-        benchmarks, key=lambda benchmark: 1 if 'run_type' in benchmark and benchmark['run_type'] == "aggregate" else 0)
+        benchmarks,
+        key=lambda benchmark: 1
+        if "run_type" in benchmark and benchmark["run_type"] == "aggregate"
+        else 0,
+    )
     benchmarks = sorted(
-        benchmarks, key=lambda benchmark: benchmark['per_family_instance_index'] if 'per_family_instance_index' in benchmark else -1)
+        benchmarks,
+        key=lambda benchmark: benchmark["per_family_instance_index"]
+        if "per_family_instance_index" in benchmark
+        else -1,
+    )
     benchmarks = sorted(
-        benchmarks, key=lambda benchmark: benchmark['family_index'] if 'family_index' in benchmark else -1)
+        benchmarks,
+        key=lambda benchmark: benchmark["family_index"]
+        if "family_index" in benchmark
+        else -1,
+    )
 
-    result['benchmarks'] = benchmarks
+    result["benchmarks"] = benchmarks
     return result
 
 
@@ -164,21 +191,21 @@ def run_benchmark(exe_name, benchmark_flags):
     real time console output.
     RETURNS: A JSON object representing the benchmark output
     """
-    output_name = find_benchmark_flag('--benchmark_out=',
-                                      benchmark_flags)
+    output_name = find_benchmark_flag("--benchmark_out=", benchmark_flags)
     is_temp_output = False
     if output_name is None:
         is_temp_output = True
         thandle, output_name = tempfile.mkstemp()
         os.close(thandle)
-        benchmark_flags = list(benchmark_flags) + \
-            ['--benchmark_out=%s' % output_name]
+        benchmark_flags = list(benchmark_flags) + [
+            "--benchmark_out=%s" % output_name
+        ]
 
     cmd = [exe_name] + benchmark_flags
-    print("RUNNING: %s" % ' '.join(cmd))
+    print("RUNNING: %s" % " ".join(cmd))
     exitCode = subprocess.call(cmd)
     if exitCode != 0:
-        print('TEST FAILED...')
+        print("TEST FAILED...")
         sys.exit(exitCode)
     json_res = load_benchmark_results(output_name, None)
     if is_temp_output:
@@ -195,9 +222,10 @@ def run_or_load_benchmark(filename, benchmark_flags):
     """
     ftype = check_input_file(filename)
     if ftype == IT_JSON:
-        benchmark_filter = find_benchmark_flag('--benchmark_filter=',
-                                               benchmark_flags)
+        benchmark_filter = find_benchmark_flag(
+            "--benchmark_filter=", benchmark_flags
+        )
         return load_benchmark_results(filename, benchmark_filter)
     if ftype == IT_Executable:
         return run_benchmark(filename, benchmark_flags)
-    raise ValueError('Unknown file type %s' % ftype)
+    raise ValueError("Unknown file type %s" % ftype)

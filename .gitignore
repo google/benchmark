@@ -46,6 +46,7 @@ rules.ninja
 
 # bazel output symlinks.
 bazel-*
+MODULE.bazel.lock
 
 # out-of-source build top-level folders.
 build/

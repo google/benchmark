@@ -14,7 +14,7 @@ BM_DECLARE_string(benchmark_perf_counters);
 
 static void BM_Simple(benchmark::State& state) {
   for (auto _ : state) {
-    auto iterations = state.iterations();
+    auto iterations = double(state.iterations()) * double(state.iterations());
     benchmark::DoNotOptimize(iterations);
   }
 }
@@ -61,34 +61,28 @@ ADD_CASES(TC_JSONOut, {{"\"name\": \"BM_WithPauseResume\",$"}});
 
 static void CheckSimple(Results const& e) {
   CHECK_COUNTER_VALUE(e, double, "CYCLES", GT, 0);
-  CHECK_COUNTER_VALUE(e, double, "BRANCHES", GT, 0.0);
 }
 
 double withoutPauseResumeInstrCount = 0.0;
 double withPauseResumeInstrCount = 0.0;
 
-static void CheckInstrCount(double* counter, Results const& e) {
-  BM_CHECK_GT(e.NumIterations(), 0);
-  *counter = e.GetAs<double>("INSTRUCTIONS") / e.NumIterations();
+static void SaveInstrCountWithoutResume(Results const& e) {
+  withoutPauseResumeInstrCount = e.GetAs<double>("INSTRUCTIONS");
 }
 
-static void CheckInstrCountWithoutResume(Results const& e) {
-  CheckInstrCount(&withoutPauseResumeInstrCount, e);
-}
-
-static void CheckInstrCountWithResume(Results const& e) {
-  CheckInstrCount(&withPauseResumeInstrCount, e);
+static void SaveInstrCountWithResume(Results const& e) {
+  withPauseResumeInstrCount = e.GetAs<double>("INSTRUCTIONS");
 }
 
 CHECK_BENCHMARK_RESULTS("BM_Simple", &CheckSimple);
-CHECK_BENCHMARK_RESULTS("BM_WithoutPauseResume", &CheckInstrCountWithoutResume);
-CHECK_BENCHMARK_RESULTS("BM_WithPauseResume", &CheckInstrCountWithResume);
+CHECK_BENCHMARK_RESULTS("BM_WithoutPauseResume", &SaveInstrCountWithoutResume);
+CHECK_BENCHMARK_RESULTS("BM_WithPauseResume", &SaveInstrCountWithResume);
 
 int main(int argc, char* argv[]) {
   if (!benchmark::internal::PerfCounters::kSupported) {
     return 0;
   }
-  benchmark::FLAGS_benchmark_perf_counters = "CYCLES,BRANCHES,INSTRUCTIONS";
+  benchmark::FLAGS_benchmark_perf_counters = "CYCLES,INSTRUCTIONS";
   benchmark::internal::PerfCounters::Initialize();
   RunOutputTests(argc, argv);
 

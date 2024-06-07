@@ -102,7 +102,8 @@ double MakeTime(thread_basic_info_data_t const& info) {
 #endif
 #if defined(CLOCK_PROCESS_CPUTIME_ID) || defined(CLOCK_THREAD_CPUTIME_ID)
 double MakeTime(struct timespec const& ts) {
-  return ts.tv_sec + (static_cast<double>(ts.tv_nsec) * 1e-9);
+  return static_cast<double>(ts.tv_sec) +
+         (static_cast<double>(ts.tv_nsec) * 1e-9);
 }
 #endif
 
@@ -125,8 +126,12 @@ double ProcessCPUUsage() {
     return MakeTime(kernel_time, user_time);
   DiagnoseAndExit("GetProccessTimes() failed");
 #elif defined(BENCHMARK_OS_QURT)
+  // Note that qurt_timer_get_ticks() is no longer documented as of SDK 5.3.0,
+  // and doesn't appear to work on at least some devices (eg Samsung S22),
+  // so let's use the actually-documented and apparently-equivalent
+  // qurt_sysclock_get_hw_ticks() call instead.
   return static_cast<double>(
-             qurt_timer_timetick_to_us(qurt_timer_get_ticks())) *
+             qurt_timer_timetick_to_us(qurt_sysclock_get_hw_ticks())) *
          1.0e-6;
 #elif defined(BENCHMARK_OS_EMSCRIPTEN)
   // clock_gettime(CLOCK_PROCESS_CPUTIME_ID, ...) returns 0 on Emscripten.
@@ -159,8 +164,12 @@ double ThreadCPUUsage() {
                  &user_time);
   return MakeTime(kernel_time, user_time);
 #elif defined(BENCHMARK_OS_QURT)
+  // Note that qurt_timer_get_ticks() is no longer documented as of SDK 5.3.0,
+  // and doesn't appear to work on at least some devices (eg Samsung S22),
+  // so let's use the actually-documented and apparently-equivalent
+  // qurt_sysclock_get_hw_ticks() call instead.
   return static_cast<double>(
-             qurt_timer_timetick_to_us(qurt_timer_get_ticks())) *
+             qurt_timer_timetick_to_us(qurt_sysclock_get_hw_ticks())) *
          1.0e-6;
 #elif defined(BENCHMARK_OS_MACOSX)
   // FIXME We want to use clock_gettime, but its not available in MacOS 10.11.
@@ -180,6 +189,9 @@ double ThreadCPUUsage() {
 #elif defined(BENCHMARK_OS_RTEMS)
   // RTEMS doesn't support CLOCK_THREAD_CPUTIME_ID. See
   // https://github.com/RTEMS/rtems/blob/master/cpukit/posix/src/clockgettime.c
+  return ProcessCPUUsage();
+#elif defined(BENCHMARK_OS_ZOS)
+  // z/OS doesn't support CLOCK_THREAD_CPUTIME_ID.
   return ProcessCPUUsage();
 #elif defined(BENCHMARK_OS_SOLARIS)
   struct rusage ru;
@@ -241,9 +253,9 @@ std::string LocalDateTimeString() {
       tz_offset_sign = '-';
     }
 
-    tz_len =
+    tz_len = static_cast<size_t>(
         ::snprintf(tz_offset, sizeof(tz_offset), "%c%02li:%02li",
-                   tz_offset_sign, offset_minutes / 100, offset_minutes % 100);
+                   tz_offset_sign, offset_minutes / 100, offset_minutes % 100));
     BM_CHECK(tz_len == kTzOffsetLen);
     ((void)tz_len);  // Prevent unused variable warning in optimized build.
   } else {
