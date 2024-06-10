@@ -64,7 +64,7 @@ endif()
 # We need extra libraries on Solaris
 if(${CMAKE_SYSTEM_NAME} MATCHES "SunOS")
   target_link_libraries(benchmark PRIVATE kstat)
-  set(pkg_config_private_libs -lkstat)
+  set(BENCHMARK_PRIVATE_LINK_LIBRARIES -lkstat)
 endif()
 
 if (NOT BUILD_SHARED_LIBS)
