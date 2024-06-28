@@ -442,6 +442,8 @@ void RunBenchmarks(const std::vector<BenchmarkInstance>& benchmarks,
       std::shuffle(repetition_indices.begin(), repetition_indices.end(), g);
     }
 
+    if (profiler != nullptr) profiler->Init();
+
     for (size_t repetition_index : repetition_indices) {
       internal::BenchmarkRunner& runner = runners[repetition_index];
       runner.DoOneRepetition();
@@ -472,6 +474,9 @@ void RunBenchmarks(const std::vector<BenchmarkInstance>& benchmarks,
       Report(display_reporter, file_reporter, run_results);
     }
   }
+
+  if (profiler != nullptr) profiler->Finalize();
+
   display_reporter->Finalize();
   if (file_reporter) file_reporter->Finalize();
   FlushStreams(display_reporter);
@@ -655,6 +660,8 @@ int32_t GetBenchmarkVerbosity() { return FLAGS_v; }
 void RegisterMemoryManager(MemoryManager* manager) {
   internal::memory_manager = manager;
 }
+
+void RegisterProfiler(Profiler* profiler) { internal::profiler = profiler; }
 
 void AddCustomContext(const std::string& key, const std::string& value) {
   if (internal::global_context == nullptr) {
