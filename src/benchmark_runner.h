@@ -35,6 +35,7 @@ BM_DECLARE_string(benchmark_perf_counters);
 namespace internal {
 
 extern MemoryManager* memory_manager;
+extern ProfilerManager* profiler_manager;
 
 struct RunResults {
   std::vector<BenchmarkReporter::Run> non_aggregates;
@@ -112,6 +113,10 @@ class BenchmarkRunner {
     double seconds;
   };
   IterationResults DoNIterations();
+
+  MemoryManager::Result* RunMemoryManager(IterationCount memory_iterations);
+
+  void RunProfilerManager();
 
   IterationCount PredictNumItersNeeded(const IterationResults& i) const;
 
