@@ -210,7 +210,7 @@ inline BENCHMARK_ALWAYS_INLINE int64_t Now() {
 #else
   uint64_t cycles;
   asm volatile("rdtime %0" : "=r"(cycles));
-  return cycles;
+  return static_cast<int64_t>(cycles);
 #endif
 #elif defined(__e2k__) || defined(__elbrus__)
   struct timeval tv;

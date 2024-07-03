@@ -73,6 +73,7 @@ cc_library(
         ":perfcounters": ["HAVE_LIBPFM"],
         "//conditions:default": [],
     }),
+    includes = ["include"],
     linkopts = select({
         ":windows": ["-DEFAULTLIB:shlwapi.lib"],
         "//conditions:default": ["-pthread"],
@@ -87,7 +88,6 @@ cc_library(
         "_LARGEFILE64_SOURCE",
         "_LARGEFILE_SOURCE",
     ],
-    strip_include_prefix = "include",
     visibility = ["//visibility:public"],
     deps = select({
         ":perfcounters": ["@libpfm"],
@@ -102,7 +102,7 @@ cc_library(
         "include/benchmark/benchmark.h",
         "include/benchmark/export.h",
     ],
-    strip_include_prefix = "include",
+    includes = ["include"],
     visibility = ["//visibility:public"],
     deps = [":benchmark"],
 )
