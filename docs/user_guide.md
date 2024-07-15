@@ -624,20 +624,22 @@ public:
   }
 };
 
+// Defines and registers `FooTest` using the class `MyFixture`.
 BENCHMARK_F(MyFixture, FooTest)(benchmark::State& st) {
    for (auto _ : st) {
      ...
   }
 }
 
+// Only defines `BarTest` using `MyFixture`.
 BENCHMARK_DEFINE_F(MyFixture, BarTest)(benchmark::State& st) {
    for (auto _ : st) {
      ...
   }
 }
-/* BarTest is NOT registered */
+// `BarTest` is NOT registered.
 BENCHMARK_REGISTER_F(MyFixture, BarTest)->Threads(2);
-/* BarTest is now registered */
+// `BarTest` is now registered.
 ```
 
 ### Templated Fixtures
@@ -653,21 +655,22 @@ For example:
 template<typename T>
 class MyFixture : public benchmark::Fixture {};
 
+// Defines and registers `IntTest` using the class template `MyFixture<int>`.
 BENCHMARK_TEMPLATE_F(MyFixture, IntTest, int)(benchmark::State& st) {
    for (auto _ : st) {
      ...
   }
 }
 
+// Only defines `DoubleTest` using the class template `MyFixture<double>`.
 BENCHMARK_TEMPLATE_DEFINE_F(MyFixture, DoubleTest, double)(benchmark::State& st) {
    for (auto _ : st) {
      ...
   }
 }
-
-/* DoubleTest is NOT registered */
+// `DoubleTest` is NOT registered.
 BENCHMARK_REGISTER_F(MyFixture, DoubleTest)->Threads(2);
-/* DoubleTest is now registered */
+// `DoubleTest` is now registered.
 ```
 
 <a name="custom-counters" />
@@ -1014,11 +1017,11 @@ in any way. `<expr>` may even be removed entirely when the result is already
 known. For example:
 
 ```c++
-  /* Example 1: `<expr>` is removed entirely. */
+  // Example 1: `<expr>` is removed entirely.
   int foo(int x) { return x + 42; }
   while (...) DoNotOptimize(foo(0)); // Optimized to DoNotOptimize(42);
 
-  /*  Example 2: Result of '<expr>' is only reused */
+  // Example 2: Result of '<expr>' is only reused.
   int bar(int) __attribute__((const));
   while (...) DoNotOptimize(bar(0)); // Optimized to:
   // int __result__ = bar(0);
