@@ -665,7 +665,9 @@ BENCHMARK_TEMPLATE_DEFINE_F(MyFixture, DoubleTest, double)(benchmark::State& st)
   }
 }
 
+/* DoubleTest is NOT registered */
 BENCHMARK_REGISTER_F(MyFixture, DoubleTest)->Threads(2);
+/* DoubleTest is now registered */
 ```
 
 <a name="custom-counters" />
