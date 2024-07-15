@@ -631,7 +631,7 @@ BENCHMARK_F(MyFixture, FooTest)(benchmark::State& st) {
   }
 }
 
-// Only defines `BarTest` using `MyFixture`.
+// Only defines `BarTest` using the class `MyFixture`.
 BENCHMARK_DEFINE_F(MyFixture, BarTest)(benchmark::State& st) {
    for (auto _ : st) {
      ...
