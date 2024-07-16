@@ -416,6 +416,26 @@ class MemoryManager {
 BENCHMARK_EXPORT
 void RegisterMemoryManager(MemoryManager* memory_manager);
 
+// If a ProfilerManager is registered (via RegisterProfilerManager()), the
+// benchmark will be run an additional time under the profiler to collect and
+// report profile metrics for the run of the benchmark.
+class ProfilerManager {
+ public:
+  virtual ~ProfilerManager() {}
+
+  // This is called after `Setup()` code and right before the benchmark is run.
+  virtual void AfterSetupStart() = 0;
+
+  // This is called before `Teardown()` code and right after the benchmark
+  // completes.
+  virtual void BeforeTeardownStop() = 0;
+};
+
+// Register a ProfilerManager instance that will be used to collect and report
+// profile measurements for benchmark runs.
+BENCHMARK_EXPORT
+void RegisterProfilerManager(ProfilerManager* profiler_manager);
+
 // Add a key-value pair to output as part of the context stanza in the report.
 BENCHMARK_EXPORT
 void AddCustomContext(const std::string& key, const std::string& value);

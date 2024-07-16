@@ -656,6 +656,10 @@ void RegisterMemoryManager(MemoryManager* manager) {
   internal::memory_manager = manager;
 }
 
+void RegisterProfilerManager(ProfilerManager* manager) {
+  internal::profiler_manager = manager;
+}
+
 void AddCustomContext(const std::string& key, const std::string& value) {
   if (internal::global_context == nullptr) {
     internal::global_context = new std::map<std::string, std::string>();

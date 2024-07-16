@@ -1139,6 +1139,21 @@ a report on the number of allocations, bytes used, etc.
 This data will then be reported alongside other performance data, currently
 only when using JSON output.
 
+<a name="profiling" />
+
+## Profiling
+
+It's often useful to also profile benchmarks in particular ways, in addition to
+CPU performance. For this reason, benchmark offers the `RegisterProfilerManager`
+method that allows a custom `ProfilerManager` to be injected.
+
+If set, the `ProfilerManager::AfterSetupStart` and
+`ProfilerManager::BeforeTeardownStop` methods will be called at the start and
+end of a separate benchmark run to allow user code to collect and report
+user-provided profile metrics.
+
+Output collected from this profiling run must be reported separately.
+
 <a name="using-register-benchmark" />
 
 ## Using RegisterBenchmark(name, fn, args...)
