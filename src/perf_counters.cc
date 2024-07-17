@@ -157,8 +157,8 @@ PerfCounters PerfCounters::Create(
     attr.exclude_hv = true;
 
     // Read all counters in a group in one read.
-    attr.read_format = PERF_FORMAT_GROUP; //| PERF_FORMAT_TOTAL_TIME_ENABLED |
-                       //PERF_FORMAT_TOTAL_TIME_RUNNING;
+    attr.read_format = PERF_FORMAT_GROUP;  //| PERF_FORMAT_TOTAL_TIME_ENABLED |
+                                           // PERF_FORMAT_TOTAL_TIME_RUNNING;
 
     int id = -1;
     while (id < 0) {
