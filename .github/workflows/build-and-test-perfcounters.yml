@@ -17,7 +17,7 @@ jobs:
         os: [ubuntu-22.04, ubuntu-20.04]
         build_type: ['Release', 'Debug']
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
 
     - name: install libpfm
       run: |
