@@ -508,7 +508,8 @@ int GetNumCPUsImpl() {
   int max_id = -1;
   std::ifstream f("/proc/cpuinfo");
   if (!f.is_open()) {
-    PrintErrorAndDie("Failed to open /proc/cpuinfo");
+    std::cerr << "Failed to open /proc/cpuinfo\n";
+    return -1;
   }
 #if defined(__alpha__)
   const std::string Key = "cpus detected";
