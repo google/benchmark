@@ -1004,7 +1004,8 @@ class BENCHMARK_EXPORT State {
   State(std::string name, IterationCount max_iters,
         const std::vector<int64_t>& ranges, int thread_i, int n_threads,
         internal::ThreadTimer* timer, internal::ThreadManager* manager,
-        internal::PerfCountersMeasurement* perf_counters_measurement);
+        internal::PerfCountersMeasurement* perf_counters_measurement,
+        ProfilerManager* profiler_manager);
 
   void StartKeepRunning();
   // Implementation of KeepRunning() and KeepRunningBatch().
@@ -1019,6 +1020,7 @@ class BENCHMARK_EXPORT State {
   internal::ThreadTimer* const timer_;
   internal::ThreadManager* const manager_;
   internal::PerfCountersMeasurement* const perf_counters_measurement_;
+  ProfilerManager* const profiler_manager_;
 
   friend class internal::BenchmarkInstance;
 };
