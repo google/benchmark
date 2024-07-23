@@ -81,10 +81,11 @@ jobs:
     name: Publish google-benchmark wheels to PyPI
     needs: [merge_wheels]
     runs-on: ubuntu-latest
-    permissions:
-      id-token: write
     steps:
       - uses: actions/download-artifact@v4
         with:
           path: dist
-      - uses: pypa/gh-action-pypi-publish@v1.8.14
+      - uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          user: __token__
+          password: ${{ secrets.PYPI_PASSWORD }}
