@@ -207,7 +207,7 @@ State::State(std::string name, IterationCount max_iters,
 #if defined(__INTEL_COMPILER)
 #pragma warning push
 #pragma warning(disable : 1875)
-#elif defined(__GNUC__)
+#elif defined(__GNUC__) || defined(__clang__)
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Winvalid-offsetof"
 #endif
@@ -225,7 +225,7 @@ State::State(std::string name, IterationCount max_iters,
       offsetof(State, skipped_) <= (cache_line_size - sizeof(skipped_)), "");
 #if defined(__INTEL_COMPILER)
 #pragma warning pop
-#elif defined(__GNUC__)
+#elif defined(__GNUC__) || defined(__clang__)
 #pragma GCC diagnostic pop
 #endif
 #if defined(__NVCC__)
