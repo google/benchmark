@@ -27,7 +27,6 @@ namespace benchmark {
 
 // Internal function to calculate the different scalability forms
 BigOFunc* FittingCurve(BigO complexity) {
-  static const double kLog2E = 1.44269504088896340736;
   switch (complexity) {
     case oN:
       return [](IterationCount n) -> double { return static_cast<double>(n); };
@@ -36,15 +35,12 @@ BigOFunc* FittingCurve(BigO complexity) {
     case oNCubed:
       return [](IterationCount n) -> double { return std::pow(n, 3); };
     case oLogN:
-      /* Note: can't use log2 because Android's GNU STL lacks it */
-      return [](IterationCount n) {
-        return kLog2E * std::log(static_cast<double>(n));
+      return [](IterationCount n) -> double {
+        return std::log2(static_cast<double>(n));
       };
     case oNLogN:
-      /* Note: can't use log2 because Android's GNU STL lacks it */
-      return [](IterationCount n) {
-        return kLog2E * static_cast<double>(n) *
-               std::log(static_cast<double>(n));
+      return [](IterationCount n) -> double {
+        return static_cast<double>(n) * std::log2(static_cast<double>(n));
       };
     case o1:
     default:
