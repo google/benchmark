@@ -99,7 +99,7 @@ class BuildBazelExtension(build_ext.build_ext):
 
         bazel_argv = [
             "bazel",
-            "build",
+            "run",
             ext.bazel_target,
             f"--symlink_prefix={temp_path / 'bazel-'}",
             f"--compilation_mode={'dbg' if self.debug else 'opt'}",
@@ -127,20 +127,42 @@ class BuildBazelExtension(build_ext.build_ext):
         else:
             suffix = ".abi3.so" if ext.py_limited_api else ".so"
 
-        ext_name = ext.target_name + suffix
-        ext_bazel_bin_path = temp_path / "bazel-bin" / ext.relpath / ext_name
-        ext_dest_path = Path(self.get_ext_fullpath(ext.name)).with_name(
-            ext_name
-        )
-        shutil.copyfile(ext_bazel_bin_path, ext_dest_path)
+        # copy the Bazel build artifacts into setuptools' libdir,
+        # from where the wheel is built.
+        pkgname = "google_benchmark"
+        pythonroot = Path("bindings") / "python" / "google_benchmark"
+        srcdir = temp_path / "bazel-bin" / pythonroot
+        libdir = Path(self.build_lib) / pkgname
+        for root, dirs, files in os.walk(srcdir, topdown=True):
+            # exclude runfiles directories and children.
+            dirs[:] = [d for d in dirs if "runfiles" not in d]
+
+            for f in files:
+                print(f)
+                fp = Path(f)
+                should_copy = False
+                # we do not want the bare .so file included
+                # when building for ABI3, so we require a
+                # full and exact match on the file extension.
+                if "".join(fp.suffixes) == suffix:
+                    should_copy = True
+                elif fp.suffix == ".pyi":
+                    should_copy = True
+                elif Path(root) == srcdir and f == "py.typed":
+                    # copy py.typed, but only at the package root.
+                    should_copy = True
+
+                if should_copy:
+                    shutil.copyfile(root / fp, libdir / fp)
 
 
 setuptools.setup(
     cmdclass=dict(build_ext=BuildBazelExtension),
+    package_data={"google_benchmark": ["py.typed", "*.pyi"]},
     ext_modules=[
         BazelExtension(
             name="google_benchmark._benchmark",
-            bazel_target="//bindings/python/google_benchmark:_benchmark",
+            bazel_target="//bindings/python/google_benchmark:benchmark_stubgen",
             py_limited_api=py_limited_api,
         )
     ],

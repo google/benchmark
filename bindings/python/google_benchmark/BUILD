@@ -1,4 +1,4 @@
-load("@nanobind_bazel//:build_defs.bzl", "nanobind_extension")
+load("@nanobind_bazel//:build_defs.bzl", "nanobind_extension", "nanobind_stubgen")
 
 py_library(
     name = "google_benchmark",
@@ -13,6 +13,12 @@ nanobind_extension(
     name = "_benchmark",
     srcs = ["benchmark.cc"],
     deps = ["//:benchmark"],
+)
+
+nanobind_stubgen(
+    name = "benchmark_stubgen",
+    marker_file = "bindings/python/google_benchmark/py.typed",
+    module = ":_benchmark",
 )
 
 py_test(
