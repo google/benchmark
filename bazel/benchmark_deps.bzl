@@ -38,14 +38,14 @@ def benchmark_deps():
         new_git_repository(
             name = "com_google_googletest",
             remote = "https://github.com/google/googletest.git",
-            tag = "release-1.12.1",
+            tag = "release-1.15.0",
         )
 
     if "nanobind" not in native.existing_rules():
         new_git_repository(
             name = "nanobind",
             remote = "https://github.com/wjakob/nanobind.git",
-            tag = "v1.8.0",
+            tag = "v1.9.2",
             build_file = "@//bindings/python:nanobind.BUILD",
             recursive_init_submodules = True,
         )
