@@ -38,7 +38,7 @@ def benchmark_deps():
         new_git_repository(
             name = "com_google_googletest",
             remote = "https://github.com/google/googletest.git",
-            tag = "release-1.15.0",
+            tag = "release-1.12.1",
         )
 
     if "nanobind" not in native.existing_rules():
