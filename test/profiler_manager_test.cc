@@ -6,8 +6,12 @@
 #include "output_test.h"
 
 class TestProfilerManager : public benchmark::ProfilerManager {
-  void AfterSetupStart() override {}
-  void BeforeTeardownStop() override {}
+ public:
+  void AfterSetupStart() override { ++start_called; }
+  void BeforeTeardownStop() override { ++stop_called; }
+
+  int start_called = 0;
+  int stop_called = 0;
 };
 
 void BM_empty(benchmark::State& state) {
@@ -35,9 +39,12 @@ ADD_CASES(TC_JSONOut, {{"\"name\": \"BM_empty\",$"},
 ADD_CASES(TC_CSVOut, {{"^\"BM_empty\",%csv_report$"}});
 
 int main(int argc, char* argv[]) {
-  std::unique_ptr<benchmark::ProfilerManager> pm(new TestProfilerManager());
+  std::unique_ptr<TestProfilerManager> pm(new TestProfilerManager());
 
   benchmark::RegisterProfilerManager(pm.get());
   RunOutputTests(argc, argv);
   benchmark::RegisterProfilerManager(nullptr);
+
+  assert(pm->start_called == 1);
+  assert(pm->stop_called == 1);
 }
