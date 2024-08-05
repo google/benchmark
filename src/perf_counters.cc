@@ -218,7 +218,7 @@ PerfCounters PerfCounters::Create(
       GetErrorLogInstance() << "***WARNING*** Failed to start counters. "
                                "Claring out all counters.\n";
 
-      // Close all peformance counters
+      // Close all performance counters
       for (int id : counter_ids) {
         ::close(id);
       }
