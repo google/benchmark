@@ -11,7 +11,7 @@
 // ========================================================================= //
 
 ADD_CASES(TC_ConsoleOut, {{"^[-]+$", MR_Next},
-                          {"^Benchmark %s Time %s CPU %s Iterations$", MR_Next},
+                          {"^Benchmark %s Time %s Per-Thread Time %s CPU %s Iterations$", MR_Next},
                           {"^[-]+$", MR_Next}});
 static int AddContextCases() {
   AddCases(TC_ConsoleErr,
@@ -417,8 +417,8 @@ void BM_Complexity_O1(benchmark::State& state) {
 BENCHMARK(BM_Complexity_O1)->Range(1, 1 << 18)->Complexity(benchmark::o1);
 SET_SUBSTITUTIONS({{"%bigOStr", "[ ]* %float \\([0-9]+\\)"},
                    {"%RMS", "[ ]*[0-9]+ %"}});
-ADD_CASES(TC_ConsoleOut, {{"^BM_Complexity_O1_BigO %bigOStr %bigOStr[ ]*$"},
-                          {"^BM_Complexity_O1_RMS %RMS %RMS[ ]*$"}});
+ADD_CASES(TC_ConsoleOut, {{"^BM_Complexity_O1_BigO %bigOStr %bigOStr %bigOStr[ ]*$"},
+                          {"^BM_Complexity_O1_RMS %RMS %RMS %RMS[ ]*$"}});
 
 // ========================================================================= //
 // ----------------------- Testing Aggregate Output ------------------------ //
@@ -436,7 +436,8 @@ ADD_CASES(TC_ConsoleOut,
            {"^BM_Repeat/repeats:2 %console_report$"},
            {"^BM_Repeat/repeats:2_mean %console_time_only_report [ ]*2$"},
            {"^BM_Repeat/repeats:2_median %console_time_only_report [ ]*2$"},
-           {"^BM_Repeat/repeats:2_stddev %console_time_only_report [ ]*2$"}});
+           {"^BM_Repeat/repeats:2_stddev %console_time_only_report [ ]*2$"},
+           {"^BM_Repeat/repeats:2_cv %console_percentage_report[ ]*$"}});
 ADD_CASES(TC_JSONOut, {{"\"name\": \"BM_Repeat/repeats:2\",$"},
                        {"\"family_index\": 15,$", MR_Next},
                        {"\"per_family_instance_index\": 0,$", MR_Next},
@@ -496,7 +497,8 @@ ADD_CASES(TC_ConsoleOut,
            {"^BM_Repeat/repeats:3 %console_report$"},
            {"^BM_Repeat/repeats:3_mean %console_time_only_report [ ]*3$"},
            {"^BM_Repeat/repeats:3_median %console_time_only_report [ ]*3$"},
-           {"^BM_Repeat/repeats:3_stddev %console_time_only_report [ ]*3$"}});
+           {"^BM_Repeat/repeats:3_stddev %console_time_only_report [ ]*3$"},
+           {"^BM_Repeat/repeats:3_cv %console_percentage_report[ ]*$"}});
 ADD_CASES(TC_JSONOut, {{"\"name\": \"BM_Repeat/repeats:3\",$"},
                        {"\"family_index\": 16,$", MR_Next},
                        {"\"per_family_instance_index\": 0,$", MR_Next},
@@ -566,7 +568,8 @@ ADD_CASES(TC_ConsoleOut,
            {"^BM_Repeat/repeats:4 %console_report$"},
            {"^BM_Repeat/repeats:4_mean %console_time_only_report [ ]*4$"},
            {"^BM_Repeat/repeats:4_median %console_time_only_report [ ]*4$"},
-           {"^BM_Repeat/repeats:4_stddev %console_time_only_report [ ]*4$"}});
+           {"^BM_Repeat/repeats:4_stddev %console_time_only_report [ ]*4$"},
+           {"^BM_Repeat/repeats:4_cv %console_percentage_report[ ]*$"}});
 ADD_CASES(TC_JSONOut, {{"\"name\": \"BM_Repeat/repeats:4\",$"},
                        {"\"family_index\": 17,$", MR_Next},
                        {"\"per_family_instance_index\": 0,$", MR_Next},
@@ -666,7 +669,8 @@ ADD_CASES(
     {{".*BM_SummaryRepeat/repeats:3 ", MR_Not},
      {"^BM_SummaryRepeat/repeats:3_mean %console_time_only_report [ ]*3$"},
      {"^BM_SummaryRepeat/repeats:3_median %console_time_only_report [ ]*3$"},
-     {"^BM_SummaryRepeat/repeats:3_stddev %console_time_only_report [ ]*3$"}});
+     {"^BM_SummaryRepeat/repeats:3_stddev %console_time_only_report [ ]*3$"},
+     {"^BM_SummaryRepeat/repeats:3_cv %console_percentage_report[ ]*$"}});
 ADD_CASES(TC_JSONOut,
           {{".*BM_SummaryRepeat/repeats:3 ", MR_Not},
            {"\"name\": \"BM_SummaryRepeat/repeats:3_mean\",$"},
@@ -717,7 +721,8 @@ ADD_CASES(
     {{".*BM_SummaryDisplay/repeats:2 ", MR_Not},
      {"^BM_SummaryDisplay/repeats:2_mean %console_time_only_report [ ]*2$"},
      {"^BM_SummaryDisplay/repeats:2_median %console_time_only_report [ ]*2$"},
-     {"^BM_SummaryDisplay/repeats:2_stddev %console_time_only_report [ ]*2$"}});
+     {"^BM_SummaryDisplay/repeats:2_stddev %console_time_only_report [ ]*2$"},
+     {"^BM_SummaryDisplay/repeats:2_cv %console_percentage_report[ ]*$"}});
 ADD_CASES(TC_JSONOut,
           {{".*BM_SummaryDisplay/repeats:2 ", MR_Not},
            {"\"name\": \"BM_SummaryDisplay/repeats:2_mean\",$"},
@@ -772,7 +777,8 @@ ADD_CASES(
      {"^BM_RepeatTimeUnit/repeats:3_median %console_us_time_only_report [ "
       "]*3$"},
      {"^BM_RepeatTimeUnit/repeats:3_stddev %console_us_time_only_report [ "
-      "]*3$"}});
+      "]*3$"},
+     {"^BM_RepeatTimeUnit/repeats:3_cv %console_percentage_report[ ]*$"}});
 ADD_CASES(TC_JSONOut,
           {{".*BM_RepeatTimeUnit/repeats:3 ", MR_Not},
            {"\"name\": \"BM_RepeatTimeUnit/repeats:3_mean\",$"},
@@ -837,19 +843,19 @@ BENCHMARK(BM_UserStats)
 // check that user-provided stats is calculated, and is after the default-ones
 // empty string as name is intentional, it would sort before anything else
 ADD_CASES(TC_ConsoleOut, {{"^BM_UserStats/iterations:5/repeats:3/manual_time [ "
-                           "]* 150 ns %time [ ]*5$"},
+                           "]*150 ns [ ]*150 ns [ ]*%time [ ]*5$"},
                           {"^BM_UserStats/iterations:5/repeats:3/manual_time [ "
-                           "]* 150 ns %time [ ]*5$"},
+                           "]*150 ns [ ]*150 ns %time [ ]*5$"},
                           {"^BM_UserStats/iterations:5/repeats:3/manual_time [ "
-                           "]* 150 ns %time [ ]*5$"},
+                           "]*150 ns [ ]*150 ns %time [ ]*5$"},
                           {"^BM_UserStats/iterations:5/repeats:3/"
-                           "manual_time_mean [ ]* 150 ns %time [ ]*3$"},
+                           "manual_time_mean [ ]*150 ns [ ]*150 ns %time [ ]*3$"},
                           {"^BM_UserStats/iterations:5/repeats:3/"
-                           "manual_time_median [ ]* 150 ns %time [ ]*3$"},
+                           "manual_time_median [ ]*150 ns [ ]*150 ns %time [ ]*3$"},
                           {"^BM_UserStats/iterations:5/repeats:3/"
-                           "manual_time_stddev [ ]* 0.000 ns %time [ ]*3$"},
-                          {"^BM_UserStats/iterations:5/repeats:3/manual_time_ "
-                           "[ ]* 150 ns %time [ ]*3$"}});
+                           "manual_time_stddev [ ]*0.000 ns [ ]*0.000 ns %time [ ]*3$"},
+                          {"^BM_UserStats/iterations:5/repeats:3/manual_time_cv "
+                           "%console_percentage_report[ ]*$"}});
 ADD_CASES(
     TC_JSONOut,
     {{"\"name\": \"BM_UserStats/iterations:5/repeats:3/manual_time\",$"},
@@ -971,19 +977,19 @@ BENCHMARK(BM_UserPercentStats)
 // anything else
 ADD_CASES(TC_ConsoleOut,
           {{"^BM_UserPercentStats/iterations:5/repeats:3/manual_time [ "
-            "]* 150 ns %time [ ]*5$"},
+            "]*150 ns [ ]*150 ns [ ]*%time [ ]*5$"},
            {"^BM_UserPercentStats/iterations:5/repeats:3/manual_time [ "
-            "]* 150 ns %time [ ]*5$"},
+            "]* 150 ns [ ]*150 ns [ ]*%time [ ]*5$"},
            {"^BM_UserPercentStats/iterations:5/repeats:3/manual_time [ "
-            "]* 150 ns %time [ ]*5$"},
+            "]* 150 ns [ ]*150 ns [ ]*%time [ ]*5$"},
            {"^BM_UserPercentStats/iterations:5/repeats:3/"
-            "manual_time_mean [ ]* 150 ns %time [ ]*3$"},
+            "manual_time_mean [ ]* 150 ns [ ]*150 ns [ ]*%time [ ]*3$"},
            {"^BM_UserPercentStats/iterations:5/repeats:3/"
-            "manual_time_median [ ]* 150 ns %time [ ]*3$"},
+            "manual_time_median [ ]* 150 ns [ ]*150 ns [ ]*%time [ ]*3$"},
            {"^BM_UserPercentStats/iterations:5/repeats:3/"
-            "manual_time_stddev [ ]* 0.000 ns %time [ ]*3$"},
-           {"^BM_UserPercentStats/iterations:5/repeats:3/manual_time_ "
-            "[ ]* 1.00 % [ ]* 1.00 %[ ]*3$"}});
+            "manual_time_stddev [ ]* 0.000 ns [ ]*0.000 ns [ ]*%time [ ]*3$"},
+           {"^BM_UserPercentStats/iterations:5/repeats:3/manual_time_cv "
+            "%console_percentage_report[ ]*$"}});
 ADD_CASES(
     TC_JSONOut,
     {{"\"name\": \"BM_UserPercentStats/iterations:5/repeats:3/manual_time\",$"},

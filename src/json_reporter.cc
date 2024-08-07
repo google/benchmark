@@ -274,11 +274,25 @@ void JSONReporter::PrintRunData(Run const& run) {
         run.aggregate_unit == StatisticUnit::kTime) {
       out << indent << FormatKV("real_time", run.GetAdjustedRealTime())
           << ",\n";
+      if (run.threads != 1) {
+        out << indent
+            << FormatKV(
+                   "per_thread_real_time",
+                   run.GetAdjustedRealTime() * static_cast<double>(run.threads))
+            << ",\n";
+      }
       out << indent << FormatKV("cpu_time", run.GetAdjustedCPUTime());
     } else {
       assert(run.aggregate_unit == StatisticUnit::kPercentage);
       out << indent << FormatKV("real_time", run.real_accumulated_time)
           << ",\n";
+      if (run.threads != 1) {
+      out << indent
+          << FormatKV(
+                 "per_thread_real_time",
+                 run.real_accumulated_time * static_cast<double>(run.threads))
+          << ",\n";
+      }
       out << indent << FormatKV("cpu_time", run.cpu_accumulated_time);
     }
     out << ",\n"
