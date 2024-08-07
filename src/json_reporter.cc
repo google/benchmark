@@ -287,11 +287,11 @@ void JSONReporter::PrintRunData(Run const& run) {
       out << indent << FormatKV("real_time", run.real_accumulated_time)
           << ",\n";
       if (run.threads != 1) {
-      out << indent
-          << FormatKV(
-                 "per_thread_real_time",
-                 run.real_accumulated_time * static_cast<double>(run.threads))
-          << ",\n";
+        out << indent
+            << FormatKV(
+                   "per_thread_real_time",
+                   run.real_accumulated_time * static_cast<double>(run.threads))
+            << ",\n";
       }
       out << indent << FormatKV("cpu_time", run.cpu_accumulated_time);
     }

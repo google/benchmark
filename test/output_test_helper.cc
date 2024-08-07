@@ -108,21 +108,20 @@ void CheckCase(std::stringstream& remaining_output, TestCase const& TC,
     for (const auto& NC : not_checks) {
       BM_CHECK(!NC.regex->Match(line))
           << "Unexpected match for line \"" << line << "\" for MR_Not regex \""
-          << NC.regex_str << "\""
-          << "\n    actual regex string \"" << TC.substituted_regex << "\""
+          << NC.regex_str << "\"" << "\n    actual regex string \""
+          << TC.substituted_regex << "\""
           << "\n    started matching near: " << first_line;
     }
     if (TC.regex->Match(line)) return;
     BM_CHECK(TC.match_rule != MR_Next)
         << "Expected line \"" << line << "\" to match regex \"" << TC.regex_str
-        << "\""
-        << "\n    actual regex string \"" << TC.substituted_regex << "\""
-        << "\n    started matching near: " << first_line;
+        << "\"" << "\n    actual regex string \"" << TC.substituted_regex
+        << "\"" << "\n    started matching near: " << first_line;
   }
   BM_CHECK(remaining_output.eof() == false)
       << "End of output reached before match for regex \"" << TC.regex_str
-      << "\" was found"
-      << "\n    actual regex string \"" << TC.substituted_regex << "\""
+      << "\" was found" << "\n    actual regex string \""
+      << TC.substituted_regex << "\""
       << "\n    started matching near: " << first_line;
 }
 
