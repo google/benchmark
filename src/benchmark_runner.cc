@@ -292,9 +292,6 @@ BenchmarkRunner::IterationResults BenchmarkRunner::DoNIterations() {
   // And get rid of the manager.
   manager.reset();
 
-  i.results.real_time_used;
-  i.results.manual_time_used;
-
   BM_VLOG(2) << "Ran in " << i.results.cpu_time_used << "/"
              << i.results.real_time_used << "\n";
 
