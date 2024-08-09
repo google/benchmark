@@ -25,9 +25,9 @@ int AddComplexityTest(const std::string &test_name,
                     {"%rms", "[ ]*[0-9]+ %"}});
   AddCases(
       TC_ConsoleOut,
-      {{"^%bigo_name %bigo_str %bigo_str %bigo_str[ ]*$"},
+      {{"^%bigo_name %bigo_str %bigo_str[ ]*$"},
        {"^%bigo_name", MR_Not},  // Assert we we didn't only matched a name.
-       {"^%rms_name %rms %rms %rms[ ]*$", MR_Next}});
+       {"^%rms_name %rms %rms[ ]*$", MR_Next}});
   AddCases(
       TC_JSONOut,
       {{"\"name\": \"%bigo_name\",$"},

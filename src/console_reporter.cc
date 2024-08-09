@@ -60,8 +60,8 @@ bool ConsoleReporter::ReportContext(const Context& context) {
 BENCHMARK_EXPORT
 void ConsoleReporter::PrintHeader(const Run& run) {
   std::string str = FormatString(
-      "%-*s %13s %15s %15s %12s", static_cast<int>(name_field_width_),
-      "Benchmark", "Time", "Per-Thread Time", "CPU", "Iterations");
+      "%-*s %13s %15s %12s", static_cast<int>(name_field_width_),
+      "Benchmark", "Time", "CPU", "Iterations");
   if (!run.counters.empty()) {
     if (output_options_ & OO_Tabular) {
       for (auto const& c : run.counters) {
@@ -151,32 +151,27 @@ void ConsoleReporter::PrintRunData(const Run& result) {
   }
 
   const double real_time = result.GetAdjustedRealTime();
-  const double per_thread_real_time =
-      real_time * static_cast<double>(result.threads);
   const double cpu_time = result.GetAdjustedCPUTime();
   const std::string real_time_str = FormatTime(real_time);
-  const std::string per_thread_real_time_str = FormatTime(per_thread_real_time);
   const std::string cpu_time_str = FormatTime(cpu_time);
 
   if (result.report_big_o) {
     std::string big_o = GetBigOString(result.complexity);
-    printer(Out, COLOR_YELLOW, "%10.2f %-4s %10.2f %-4s %10.2f %-4s ",
-            real_time, big_o.c_str(), per_thread_real_time, big_o.c_str(),
-            cpu_time, big_o.c_str());
+    printer(Out, COLOR_YELLOW, "%10.2f %-4s %10.2f %-4s ",
+            real_time, big_o.c_str(), cpu_time, big_o.c_str());
   } else if (result.report_rms) {
-    printer(Out, COLOR_YELLOW, "%10.0f %-4s %10.0f %-4s %10.0f %-4s ",
-            real_time * 100, "%", per_thread_real_time * 100, "%",
-            cpu_time * 100, "%");
+    printer(Out, COLOR_YELLOW, "%10.0f %-4s %10.0f %-4s ",
+            real_time * 100, "%", "%", cpu_time * 100, "%");
   } else if (result.run_type != Run::RT_Aggregate ||
              result.aggregate_unit == StatisticUnit::kTime) {
     const char* timeLabel = GetTimeUnitString(result.time_unit);
-    printer(Out, COLOR_YELLOW, "%s %-4s %s %-4s %s %-4s ",
-            real_time_str.c_str(), timeLabel, per_thread_real_time_str.c_str(),
-            timeLabel, cpu_time_str.c_str(), timeLabel);
+    printer(Out, COLOR_YELLOW, "%s %-4s %s %-4s ",
+            real_time_str.c_str(), timeLabel,
+            cpu_time_str.c_str(), timeLabel);
   } else {
     assert(result.aggregate_unit == StatisticUnit::kPercentage);
-    printer(Out, COLOR_YELLOW, "%10.2f %-4s %10s %-4s %10.2f %-4s ",
-            (100. * result.real_accumulated_time), "%", " ", " ",
+    printer(Out, COLOR_YELLOW, "%10.2f %-4s %10.2f %-4s ",
+            (100. * result.real_accumulated_time), "%",
             (100. * result.cpu_accumulated_time), "%");
   }
 

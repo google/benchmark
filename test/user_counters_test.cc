@@ -12,7 +12,7 @@
 
 ADD_CASES(TC_ConsoleOut,
           {{"^[-]+$", MR_Next},
-           {"^Benchmark %s Time %s Per-Thread Time %s CPU %s Iterations UserCounters...$", MR_Next},
+           {"^Benchmark %s Time %s CPU %s Iterations UserCounters...$", MR_Next},
            {"^[-]+$", MR_Next}});
 ADD_CASES(TC_CSVOut, {{"%csv_header,\"bar\",\"foo\""}});
 
