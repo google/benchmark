@@ -61,6 +61,7 @@ def skipped(state):
 
 
 @benchmark.register
+@benchmark.option.use_manual_time()
 def manual_timing(state):
     while state:
         # Manually count Python CPU time
