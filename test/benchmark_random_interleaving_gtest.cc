@@ -51,10 +51,9 @@ class BenchmarkTest : public testing::Test {
   void Execute(const std::string& pattern) {
     queue->Clear();
 
-    BenchmarkReporter* reporter = new NullReporter;
+    std::unique_ptr<BenchmarkReporter> reporter(new NullReporter());
     FLAGS_benchmark_filter = pattern;
-    RunSpecifiedBenchmarks(reporter);
-    delete reporter;
+    RunSpecifiedBenchmarks(reporter.get());
 
     queue->Put("DONE");  // End marker
   }
@@ -111,8 +110,8 @@ TEST_F(BenchmarkTest, Match1WithRandomInterleaving) {
     std::vector<std::string> interleaving;
     interleaving.push_back(queue->Get());
     interleaving.push_back(queue->Get());
-    element_count[interleaving[0].c_str()]++;
-    element_count[interleaving[1].c_str()]++;
+    element_count[interleaving[0]]++;
+    element_count[interleaving[1]]++;
     interleaving_count[StrFormat("%s,%s", interleaving[0].c_str(),
                                  interleaving[1].c_str())]++;
   }

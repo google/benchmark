@@ -1,4 +1,4 @@
-load("//bindings/python:build_defs.bzl", "py_extension")
+load("@nanobind_bazel//:build_defs.bzl", "nanobind_extension", "nanobind_stubgen")
 
 py_library(
     name = "google_benchmark",
@@ -6,23 +6,19 @@ py_library(
     visibility = ["//visibility:public"],
     deps = [
         ":_benchmark",
-        # pip; absl:app
     ],
 )
 
-py_extension(
+nanobind_extension(
     name = "_benchmark",
     srcs = ["benchmark.cc"],
-    copts = [
-        "-fexceptions",
-        "-fno-strict-aliasing",
-    ],
-    features = ["-use_header_modules"],
-    deps = [
-        "//:benchmark",
-        "@pybind11",
-        "@python_headers",
-    ],
+    deps = ["//:benchmark"],
+)
+
+nanobind_stubgen(
+    name = "benchmark_stubgen",
+    marker_file = "bindings/python/google_benchmark/py.typed",
+    module = ":_benchmark",
 )
 
 py_test(
@@ -35,4 +31,3 @@ py_test(
         ":google_benchmark",
     ],
 )
-

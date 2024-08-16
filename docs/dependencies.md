@@ -1,18 +1,13 @@
 # Build tool dependency policy
 
-To ensure the broadest compatibility when building the benchmark library, but
-still allow forward progress, we require any build tooling to be available for:
+We follow the [Foundational C++ support policy](https://opensource.google/documentation/policies/cplusplus-support) for our build tools. In
+particular the ["Build Systems" section](https://opensource.google/documentation/policies/cplusplus-support#build-systems).
 
-* Debian stable AND
-* The last two Ubuntu LTS releases AND
+## CMake
 
-Currently, this means using build tool versions that are available for Ubuntu
-16.04 (Xenial), Ubuntu 18.04 (Bionic), and Debian stretch.
+The current supported version is CMake 3.10 as of 2023-08-10. Most modern
+distributions include newer versions, for example:
 
-_Note, [travis](.travis.yml) runs under Ubuntu 14.04 (Trusty) for linux builds._
-
-## cmake
-The current supported version is cmake 3.5.1 as of 2018-06-06.
-
-_Note, this version is also available for Ubuntu 14.04, the previous Ubuntu LTS
-release, as `cmake3`._
+* Ubuntu 20.04 provides CMake 3.16.3
+* Debian 11.4 provides CMake 3.18.4
+* Ubuntu 22.04 provides CMake 3.22.1

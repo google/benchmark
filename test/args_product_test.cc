@@ -1,9 +1,9 @@
-#include "benchmark/benchmark.h"
-
 #include <cassert>
 #include <iostream>
 #include <set>
 #include <vector>
+
+#include "benchmark/benchmark.h"
 
 class ArgsProductFixture : public ::benchmark::Fixture {
  public:
@@ -23,7 +23,7 @@ class ArgsProductFixture : public ::benchmark::Fixture {
                         {2, 15, 10, 9},
                         {4, 5, 6, 11}}) {}
 
-  void SetUp(const ::benchmark::State& state) BENCHMARK_OVERRIDE {
+  void SetUp(const ::benchmark::State& state) override {
     std::vector<int64_t> ranges = {state.range(0), state.range(1),
                                    state.range(2), state.range(3)};
 
@@ -34,10 +34,10 @@ class ArgsProductFixture : public ::benchmark::Fixture {
 
   // NOTE: This is not TearDown as we want to check after _all_ runs are
   // complete.
-  virtual ~ArgsProductFixture() {
+  ~ArgsProductFixture() override {
     if (actualValues != expectedValues) {
       std::cout << "EXPECTED\n";
-      for (auto v : expectedValues) {
+      for (const auto& v : expectedValues) {
         std::cout << "{";
         for (int64_t iv : v) {
           std::cout << iv << ", ";
@@ -45,7 +45,7 @@ class ArgsProductFixture : public ::benchmark::Fixture {
         std::cout << "}\n";
       }
       std::cout << "ACTUAL\n";
-      for (auto v : actualValues) {
+      for (const auto& v : actualValues) {
         std::cout << "{";
         for (int64_t iv : v) {
           std::cout << iv << ", ";

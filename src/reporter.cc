@@ -12,24 +12,19 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "benchmark/benchmark.h"
-#include "timers.h"
-
 #include <cstdlib>
-
 #include <iostream>
 #include <map>
 #include <string>
 #include <tuple>
 #include <vector>
 
+#include "benchmark/benchmark.h"
 #include "check.h"
 #include "string_util.h"
+#include "timers.h"
 
 namespace benchmark {
-namespace internal {
-extern std::map<std::string, std::string>* global_context;
-}
 
 BenchmarkReporter::BenchmarkReporter()
     : output_stream_(&std::cout), error_stream_(&std::cerr) {}
@@ -41,7 +36,11 @@ void BenchmarkReporter::PrintBasicContext(std::ostream *out,
   BM_CHECK(out) << "cannot be null";
   auto &Out = *out;
 
+#ifndef BENCHMARK_OS_QURT
+  // Date/time information is not available on QuRT.
+  // Attempting to get it via this call cause the binary to crash.
   Out << LocalDateTimeString() << "\n";
+#endif
 
   if (context.executable_name)
     Out << "Running " << context.executable_name << "\n";
@@ -69,8 +68,11 @@ void BenchmarkReporter::PrintBasicContext(std::ostream *out,
     Out << "\n";
   }
 
-  if (internal::global_context != nullptr) {
-    for (const auto& kv: *internal::global_context) {
+  std::map<std::string, std::string> *global_context =
+      internal::GetGlobalContext();
+
+  if (global_context != nullptr) {
+    for (const auto &kv : *global_context) {
       Out << kv.first << ": " << kv.second << "\n";
     }
   }
