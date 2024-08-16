@@ -21,6 +21,7 @@ TEST_COPTS = [
     ## assert() are used a lot in tests upstream, which may be optimised out leading to
     ## unused-variable warning.
     "-Wno-unused-variable",
+    "-Werror=old-style-cast",
 ]
 
 # Some of the issues with DoNotOptimize only occur when optimization is enabled
@@ -35,6 +36,7 @@ PER_SRC_TEST_ARGS = {
     "repetitions_test.cc": [" --benchmark_repetitions=3"],
     "spec_arg_test.cc": ["--benchmark_filter=BM_NotChosen"],
     "spec_arg_verbosity_test.cc": ["--v=42"],
+    "complexity_test.cc": ["--benchmark_min_time=1000000x"],
 }
 
 cc_library(

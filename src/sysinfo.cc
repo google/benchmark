@@ -162,7 +162,7 @@ ValueUnion GetSysctlImp(std::string const& name) {
       mib[1] = HW_CPUSPEED;
     }
 
-    if (sysctl(mib, 2, buff.data(), &buff.Size, nullptr, 0) == -1) {
+    if (sysctl(mib, 2, buff.data(), &buff.size, nullptr, 0) == -1) {
       return ValueUnion();
     }
     return buff;
@@ -350,7 +350,7 @@ std::vector<CPUInfo::CacheInfo> GetCacheSizesWindows() {
     CPUInfo::CacheInfo C;
     C.num_sharing = static_cast<int>(b.count());
     C.level = cache.Level;
-    C.size = cache.Size;
+    C.size = static_cast<int>(cache.Size);
     C.type = "Unknown";
     switch (cache.Type) {
       case CacheUnified:
@@ -474,27 +474,25 @@ std::string GetSystemName() {
 #endif  // Catch-all POSIX block.
 }
 
-int GetNumCPUs() {
+int GetNumCPUsImpl() {
 #ifdef BENCHMARK_HAS_SYSCTL
   int num_cpu = -1;
   if (GetSysctl("hw.ncpu", &num_cpu)) return num_cpu;
-  fprintf(stderr, "Err: %s\n", strerror(errno));
-  std::exit(EXIT_FAILURE);
+  PrintErrorAndDie("Err: ", strerror(errno));
 #elif defined(BENCHMARK_OS_WINDOWS)
   SYSTEM_INFO sysinfo;
   // Use memset as opposed to = {} to avoid GCC missing initializer false
   // positives.
   std::memset(&sysinfo, 0, sizeof(SYSTEM_INFO));
   GetSystemInfo(&sysinfo);
-  return sysinfo.dwNumberOfProcessors;  // number of logical
-                                        // processors in the current
-                                        // group
+  // number of logical processors in the current group
+  return static_cast<int>(sysinfo.dwNumberOfProcessors);
 #elif defined(BENCHMARK_OS_SOLARIS)
   // Returns -1 in case of a failure.
   long num_cpu = sysconf(_SC_NPROCESSORS_ONLN);
   if (num_cpu < 0) {
-    fprintf(stderr, "sysconf(_SC_NPROCESSORS_ONLN) failed with error: %s\n",
-            strerror(errno));
+    PrintErrorAndDie("sysconf(_SC_NPROCESSORS_ONLN) failed with error: ",
+                     strerror(errno));
   }
   return (int)num_cpu;
 #elif defined(BENCHMARK_OS_QNX)
@@ -510,10 +508,14 @@ int GetNumCPUs() {
   int max_id = -1;
   std::ifstream f("/proc/cpuinfo");
   if (!f.is_open()) {
-    std::cerr << "failed to open /proc/cpuinfo\n";
+    std::cerr << "Failed to open /proc/cpuinfo\n";
     return -1;
   }
+#if defined(__alpha__)
+  const std::string Key = "cpus detected";
+#else
   const std::string Key = "processor";
+#endif
   std::string ln;
   while (std::getline(f, ln)) {
     if (ln.empty()) continue;
@@ -536,12 +538,10 @@ int GetNumCPUs() {
     }
   }
   if (f.bad()) {
-    std::cerr << "Failure reading /proc/cpuinfo\n";
-    return -1;
+    PrintErrorAndDie("Failure reading /proc/cpuinfo");
   }
   if (!f.eof()) {
-    std::cerr << "Failed to read to end of /proc/cpuinfo\n";
-    return -1;
+    PrintErrorAndDie("Failed to read to end of /proc/cpuinfo");
   }
   f.close();
 
@@ -553,6 +553,15 @@ int GetNumCPUs() {
   return num_cpus;
 #endif
   BENCHMARK_UNREACHABLE();
+}
+
+int GetNumCPUs() {
+  const int num_cpus = GetNumCPUsImpl();
+  if (num_cpus < 1) {
+    std::cerr << "Unable to extract number of CPUs.  If your platform uses "
+                 "/proc/cpuinfo, custom support may need to be added.\n";
+  }
+  return num_cpus;
 }
 
 class ThreadAffinityGuard final {
@@ -725,9 +734,9 @@ double GetCPUCyclesPerSecond(CPUInfo::Scaling scaling) {
 #endif
   unsigned long long hz = 0;
 #if defined BENCHMARK_OS_OPENBSD
-  if (GetSysctl(freqStr, &hz)) return hz * 1000000;
+  if (GetSysctl(freqStr, &hz)) return static_cast<double>(hz * 1000000);
 #else
-  if (GetSysctl(freqStr, &hz)) return hz;
+  if (GetSysctl(freqStr, &hz)) return static_cast<double>(hz);
 #endif
   fprintf(stderr, "Unable to determine clock rate from sysctl: %s: %s\n",
           freqStr, strerror(errno));
@@ -777,8 +786,9 @@ double GetCPUCyclesPerSecond(CPUInfo::Scaling scaling) {
   kstat_close(kc);
   return clock_hz;
 #elif defined(BENCHMARK_OS_QNX)
-  return static_cast<double>((int64_t)(SYSPAGE_ENTRY(cpuinfo)->speed) *
-                             (int64_t)(1000 * 1000));
+  return static_cast<double>(
+      static_cast<int64_t>(SYSPAGE_ENTRY(cpuinfo)->speed) *
+      static_cast<int64_t>(1000 * 1000));
 #elif defined(BENCHMARK_OS_QURT)
   // QuRT doesn't provide any API to query Hexagon frequency.
   return 1000000000;
@@ -826,7 +836,7 @@ std::vector<double> GetLoadAvg() {
     !(defined(__ANDROID__) && __ANDROID_API__ < 29)
   static constexpr int kMaxSamples = 3;
   std::vector<double> res(kMaxSamples, 0.0);
-  const int nelem = getloadavg(res.data(), kMaxSamples);
+  const size_t nelem = static_cast<size_t>(getloadavg(res.data(), kMaxSamples));
   if (nelem < 1) {
     res.clear();
   } else {

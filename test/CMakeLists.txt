@@ -192,6 +192,9 @@ benchmark_add_test(NAME user_counters_thousands_test COMMAND user_counters_thous
 compile_output_test(memory_manager_test)
 benchmark_add_test(NAME memory_manager_test COMMAND memory_manager_test --benchmark_min_time=0.01s)
 
+compile_output_test(profiler_manager_test)
+benchmark_add_test(NAME profiler_manager_test COMMAND profiler_manager_test --benchmark_min_time=0.01s)
+
 # MSVC does not allow to set the language standard to C++98/03.
 if(NOT (MSVC OR CMAKE_CXX_SIMULATE_ID STREQUAL "MSVC"))
   compile_benchmark_test(cxx03_test)
@@ -218,14 +221,8 @@ if(NOT (MSVC OR CMAKE_CXX_SIMULATE_ID STREQUAL "MSVC"))
   benchmark_add_test(NAME cxx03 COMMAND cxx03_test --benchmark_min_time=0.01s)
 endif()
 
-# Attempt to work around flaky test failures when running on Appveyor servers.
-if (DEFINED ENV{APPVEYOR})
-  set(COMPLEXITY_MIN_TIME "0.5s")
-else()
-  set(COMPLEXITY_MIN_TIME "0.01s")
-endif()
 compile_output_test(complexity_test)
-benchmark_add_test(NAME complexity_benchmark COMMAND complexity_test --benchmark_min_time=${COMPLEXITY_MIN_TIME})
+benchmark_add_test(NAME complexity_benchmark COMMAND complexity_test --benchmark_min_time=1000000x)
 
 ###############################################################################
 # GoogleTest Unit Tests

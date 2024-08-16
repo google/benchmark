@@ -1,5 +1,5 @@
-"""util.py - General utilities for running, loading, and processing benchmarks
-"""
+"""util.py - General utilities for running, loading, and processing benchmarks"""
+
 import json
 import os
 import re
@@ -37,7 +37,7 @@ def is_executable_file(filename):
     elif sys.platform.startswith("win"):
         return magic_bytes == b"MZ"
     else:
-        return magic_bytes == b"\x7FELF"
+        return magic_bytes == b"\x7fELF"
 
 
 def is_json_file(filename):
@@ -131,12 +131,19 @@ def load_benchmark_results(fname, benchmark_filter):
         if benchmark_filter is None:
             return True
         name = benchmark.get("run_name", None) or benchmark["name"]
-        if re.search(benchmark_filter, name):
-            return True
-        return False
+        return re.search(benchmark_filter, name) is not None
 
     with open(fname, "r") as f:
         results = json.load(f)
+        if "context" in results:
+            if "json_schema_version" in results["context"]:
+                json_schema_version = results["context"]["json_schema_version"]
+                if json_schema_version != 1:
+                    print(
+                        "In %s, got unnsupported JSON schema version: %i, expected 1"
+                        % (fname, json_schema_version)
+                    )
+                    sys.exit(1)
         if "benchmarks" in results:
             results["benchmarks"] = list(
                 filter(benchmark_wanted, results["benchmarks"])

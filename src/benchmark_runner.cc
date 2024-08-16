@@ -62,6 +62,8 @@ namespace internal {
 
 MemoryManager* memory_manager = nullptr;
 
+ProfilerManager* profiler_manager = nullptr;
+
 namespace {
 
 static constexpr IterationCount kMaxIterations = 1000000000000;
@@ -96,6 +98,7 @@ BenchmarkReporter::Run CreateRunReport(
     } else {
       report.real_accumulated_time = results.real_time_used;
     }
+    report.use_real_time_for_initial_big_o = b.use_manual_time();
     report.cpu_accumulated_time = results.cpu_time_used;
     report.complexity_n = results.complexity_n;
     report.complexity = b.complexity();
@@ -122,14 +125,15 @@ BenchmarkReporter::Run CreateRunReport(
 // Adds the stats collected for the thread into manager->results.
 void RunInThread(const BenchmarkInstance* b, IterationCount iters,
                  int thread_id, ThreadManager* manager,
-                 PerfCountersMeasurement* perf_counters_measurement) {
+                 PerfCountersMeasurement* perf_counters_measurement,
+                 ProfilerManager* profiler_manager) {
   internal::ThreadTimer timer(
       b->measure_process_cpu_time()
           ? internal::ThreadTimer::CreateProcessCpuTime()
           : internal::ThreadTimer::Create());
 
-  State st =
-      b->Run(iters, thread_id, &timer, manager, perf_counters_measurement);
+  State st = b->Run(iters, thread_id, &timer, manager,
+                    perf_counters_measurement, profiler_manager);
   BM_CHECK(st.skipped() || st.iterations() >= st.max_iterations)
       << "Benchmark returned before State::KeepRunning() returned false!";
   {
@@ -234,7 +238,7 @@ BenchmarkRunner::BenchmarkRunner(
       has_explicit_iteration_count(b.iterations() != 0 ||
                                    parsed_benchtime_flag.tag ==
                                        BenchTimeType::ITERS),
-      pool(b.threads() - 1),
+      pool(static_cast<size_t>(b.threads() - 1)),
       iters(has_explicit_iteration_count
                 ? ComputeIters(b_, parsed_benchtime_flag)
                 : 1),
@@ -265,12 +269,14 @@ BenchmarkRunner::IterationResults BenchmarkRunner::DoNIterations() {
   // Run all but one thread in separate threads
   for (std::size_t ti = 0; ti < pool.size(); ++ti) {
     pool[ti] = std::thread(&RunInThread, &b, iters, static_cast<int>(ti + 1),
-                           manager.get(), perf_counters_measurement_ptr);
+                           manager.get(), perf_counters_measurement_ptr,
+                           /*profiler_manager=*/nullptr);
   }
   // And run one thread here directly.
   // (If we were asked to run just one thread, we don't create new threads.)
   // Yes, we need to do this here *after* we start the separate threads.
-  RunInThread(&b, iters, 0, manager.get(), perf_counters_measurement_ptr);
+  RunInThread(&b, iters, 0, manager.get(), perf_counters_measurement_ptr,
+              /*profiler_manager=*/nullptr);
 
   // The main thread has finished. Now let's wait for the other threads.
   manager->WaitForAllThreads();
@@ -285,12 +291,6 @@ BenchmarkRunner::IterationResults BenchmarkRunner::DoNIterations() {
 
   // And get rid of the manager.
   manager.reset();
-
-  // Adjust real/manual time stats since they were reported per thread.
-  i.results.real_time_used /= b.threads();
-  i.results.manual_time_used /= b.threads();
-  // If we were measuring whole-process CPU usage, adjust the CPU time too.
-  if (b.measure_process_cpu_time()) i.results.cpu_time_used /= b.threads();
 
   BM_VLOG(2) << "Ran in " << i.results.cpu_time_used << "/"
              << i.results.real_time_used << "\n";
@@ -400,6 +400,41 @@ void BenchmarkRunner::RunWarmUp() {
   }
 }
 
+MemoryManager::Result* BenchmarkRunner::RunMemoryManager(
+    IterationCount memory_iterations) {
+  // TODO(vyng): Consider making BenchmarkReporter::Run::memory_result an
+  // optional so we don't have to own the Result here.
+  // Can't do it now due to cxx03.
+  memory_results.push_back(MemoryManager::Result());
+  MemoryManager::Result* memory_result = &memory_results.back();
+  memory_manager->Start();
+  std::unique_ptr<internal::ThreadManager> manager;
+  manager.reset(new internal::ThreadManager(1));
+  b.Setup();
+  RunInThread(&b, memory_iterations, 0, manager.get(),
+              perf_counters_measurement_ptr,
+              /*profiler_manager=*/nullptr);
+  manager->WaitForAllThreads();
+  manager.reset();
+  b.Teardown();
+  memory_manager->Stop(*memory_result);
+  return memory_result;
+}
+
+void BenchmarkRunner::RunProfilerManager() {
+  // TODO: Provide a way to specify the number of iterations.
+  IterationCount profile_iterations = 1;
+  std::unique_ptr<internal::ThreadManager> manager;
+  manager.reset(new internal::ThreadManager(1));
+  b.Setup();
+  RunInThread(&b, profile_iterations, 0, manager.get(),
+              /*perf_counters_measurement_ptr=*/nullptr,
+              /*profiler_manager=*/profiler_manager);
+  manager->WaitForAllThreads();
+  manager.reset();
+  b.Teardown();
+}
+
 void BenchmarkRunner::DoOneRepetition() {
   assert(HasRepeatsRemaining() && "Already done all repetitions?");
 
@@ -444,28 +479,18 @@ void BenchmarkRunner::DoOneRepetition() {
            "then we should have accepted the current iteration run.");
   }
 
-  // Oh, one last thing, we need to also produce the 'memory measurements'..
+  // Produce memory measurements if requested.
   MemoryManager::Result* memory_result = nullptr;
   IterationCount memory_iterations = 0;
   if (memory_manager != nullptr) {
-    // TODO(vyng): Consider making BenchmarkReporter::Run::memory_result an
-    // optional so we don't have to own the Result here.
-    // Can't do it now due to cxx03.
-    memory_results.push_back(MemoryManager::Result());
-    memory_result = &memory_results.back();
     // Only run a few iterations to reduce the impact of one-time
     // allocations in benchmarks that are not properly managed.
     memory_iterations = std::min<IterationCount>(16, iters);
-    memory_manager->Start();
-    std::unique_ptr<internal::ThreadManager> manager;
-    manager.reset(new internal::ThreadManager(1));
-    b.Setup();
-    RunInThread(&b, memory_iterations, 0, manager.get(),
-                perf_counters_measurement_ptr);
-    manager->WaitForAllThreads();
-    manager.reset();
-    b.Teardown();
-    memory_manager->Stop(*memory_result);
+    memory_result = RunMemoryManager(memory_iterations);
+  }
+
+  if (profiler_manager != nullptr) {
+    RunProfilerManager();
   }
 
   // Ok, now actually report.

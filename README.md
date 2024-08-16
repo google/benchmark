@@ -50,15 +50,13 @@ IRC channels:
 
 ## Requirements
 
-The library can be used with C++03. However, it requires C++11 to build,
+The library can be used with C++03. However, it requires C++14 to build,
 including compiler and standard library support.
 
-The following minimum versions are required to build the library:
+_See [dependencies.md](docs/dependencies.md) for more details regarding supported
+compilers and standards._
 
-* GCC 4.8
-* Clang 3.4
-* Visual Studio 14 2015
-* Intel 2015 Update 1
+If you have need for a particular compiler to be supported, patches are very welcome.
 
 See [Platform-Specific Build Instructions](docs/platform_specific_build_instructions.md).
 

@@ -302,6 +302,9 @@ class BenchmarkReporter;
 // Default number of minimum benchmark running time in seconds.
 const char kDefaultMinTimeStr[] = "0.5s";
 
+// Returns the version of the library.
+BENCHMARK_EXPORT std::string GetBenchmarkVersion();
+
 BENCHMARK_EXPORT void PrintDefaultHelp();
 
 BENCHMARK_EXPORT void Initialize(int* argc, char** argv,
@@ -412,6 +415,26 @@ class MemoryManager {
 // allocation measurements for benchmark runs.
 BENCHMARK_EXPORT
 void RegisterMemoryManager(MemoryManager* memory_manager);
+
+// If a ProfilerManager is registered (via RegisterProfilerManager()), the
+// benchmark will be run an additional time under the profiler to collect and
+// report profile metrics for the run of the benchmark.
+class ProfilerManager {
+ public:
+  virtual ~ProfilerManager() {}
+
+  // This is called after `Setup()` code and right before the benchmark is run.
+  virtual void AfterSetupStart() = 0;
+
+  // This is called before `Teardown()` code and right after the benchmark
+  // completes.
+  virtual void BeforeTeardownStop() = 0;
+};
+
+// Register a ProfilerManager instance that will be used to collect and report
+// profile measurements for benchmark runs.
+BENCHMARK_EXPORT
+void RegisterProfilerManager(ProfilerManager* profiler_manager);
 
 // Add a key-value pair to output as part of the context stanza in the report.
 BENCHMARK_EXPORT
@@ -981,7 +1004,8 @@ class BENCHMARK_EXPORT State {
   State(std::string name, IterationCount max_iters,
         const std::vector<int64_t>& ranges, int thread_i, int n_threads,
         internal::ThreadTimer* timer, internal::ThreadManager* manager,
-        internal::PerfCountersMeasurement* perf_counters_measurement);
+        internal::PerfCountersMeasurement* perf_counters_measurement,
+        ProfilerManager* profiler_manager);
 
   void StartKeepRunning();
   // Implementation of KeepRunning() and KeepRunningBatch().
@@ -996,6 +1020,7 @@ class BENCHMARK_EXPORT State {
   internal::ThreadTimer* const timer_;
   internal::ThreadManager* const manager_;
   internal::PerfCountersMeasurement* const perf_counters_measurement_;
+  ProfilerManager* const profiler_manager_;
 
   friend class internal::BenchmarkInstance;
 };
@@ -1520,7 +1545,7 @@ class Fixture : public internal::Benchmark {
 // /* Registers a benchmark named "BM_takes_args/int_string_test` */
 // BENCHMARK_CAPTURE(BM_takes_args, int_string_test, 42, std::string("abc"));
 #define BENCHMARK_CAPTURE(func, test_case_name, ...)     \
-  BENCHMARK_PRIVATE_DECLARE(func) =                      \
+  BENCHMARK_PRIVATE_DECLARE(_benchmark_) =               \
       (::benchmark::internal::RegisterBenchmarkInternal( \
           new ::benchmark::internal::FunctionBenchmark(  \
               #func "/" #test_case_name,                 \
@@ -1556,6 +1581,31 @@ class Fixture : public internal::Benchmark {
 #else
 #define BENCHMARK_TEMPLATE(n, a) BENCHMARK_TEMPLATE1(n, a)
 #endif
+
+#ifdef BENCHMARK_HAS_CXX11
+// This will register a benchmark for a templatized function,
+// with the additional arguments specified by `...`.
+//
+// For example:
+//
+// template <typename T, class ...ExtraArgs>`
+// void BM_takes_args(benchmark::State& state, ExtraArgs&&... extra_args) {
+//  [...]
+//}
+// /* Registers a benchmark named "BM_takes_args<void>/int_string_test` */
+// BENCHMARK_TEMPLATE1_CAPTURE(BM_takes_args, void, int_string_test, 42,
+//                             std::string("abc"));
+#define BENCHMARK_TEMPLATE1_CAPTURE(func, a, test_case_name, ...) \
+  BENCHMARK_CAPTURE(func<a>, test_case_name, __VA_ARGS__)
+
+#define BENCHMARK_TEMPLATE2_CAPTURE(func, a, b, test_case_name, ...) \
+  BENCHMARK_PRIVATE_DECLARE(func) =                                  \
+      (::benchmark::internal::RegisterBenchmarkInternal(             \
+          new ::benchmark::internal::FunctionBenchmark(              \
+              #func "<" #a "," #b ">"                                \
+                    "/" #test_case_name,                             \
+              [](::benchmark::State& st) { func<a, b>(st, __VA_ARGS__); })))
+#endif  // BENCHMARK_HAS_CXX11
 
 #define BENCHMARK_PRIVATE_DECLARE_F(BaseClass, Method)          \
   class BaseClass##_##Method##_Benchmark : public BaseClass {   \
@@ -1764,6 +1814,7 @@ class BENCHMARK_EXPORT BenchmarkReporter {
           real_accumulated_time(0),
           cpu_accumulated_time(0),
           max_heapbytes_used(0),
+          use_real_time_for_initial_big_o(false),
           complexity(oNone),
           complexity_lambda(),
           complexity_n(0),
@@ -1805,6 +1856,10 @@ class BENCHMARK_EXPORT BenchmarkReporter {
 
     // This is set to 0.0 if memory tracing is not enabled.
     double max_heapbytes_used;
+
+    // By default Big-O is computed for CPU time, but that is not what you want
+    // to happen when manual time was requested, which is stored as real time.
+    bool use_real_time_for_initial_big_o;
 
     // Keep track of arguments to compute asymptotic complexity
     BigO complexity;

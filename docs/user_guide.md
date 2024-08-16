@@ -28,6 +28,8 @@
 
 [Templated Benchmarks](#templated-benchmarks)
 
+[Templated Benchmarks that take arguments](#templated-benchmarks-with-arguments)
+
 [Fixtures](#fixtures)
 
 [Custom Counters](#custom-counters)
@@ -574,6 +576,30 @@ Three macros are provided for adding benchmark templates.
 #define BENCHMARK_TEMPLATE2(func, arg1, arg2)
 ```
 
+<a name="templated-benchmarks-with-arguments" />
+
+## Templated Benchmarks that take arguments
+
+Sometimes there is a need to template benchmarks, and provide arguments to them.
+
+```c++
+template <class Q> void BM_Sequential_With_Step(benchmark::State& state, int step) {
+  Q q;
+  typename Q::value_type v;
+  for (auto _ : state) {
+    for (int i = state.range(0); i-=step; )
+      q.push(v);
+    for (int e = state.range(0); e-=step; )
+      q.Wait(&v);
+  }
+  // actually messages, not bytes:
+  state.SetBytesProcessed(
+      static_cast<int64_t>(state.iterations())*state.range(0));
+}
+
+BENCHMARK_TEMPLATE1_CAPTURE(BM_Sequential, WaitQueue<int>, Step1, 1)->Range(1<<0, 1<<10);
+```
+
 <a name="fixtures" />
 
 ## Fixtures
@@ -598,20 +624,22 @@ public:
   }
 };
 
+// Defines and registers `FooTest` using the class `MyFixture`.
 BENCHMARK_F(MyFixture, FooTest)(benchmark::State& st) {
    for (auto _ : st) {
      ...
   }
 }
 
+// Only defines `BarTest` using the class `MyFixture`.
 BENCHMARK_DEFINE_F(MyFixture, BarTest)(benchmark::State& st) {
    for (auto _ : st) {
      ...
   }
 }
-/* BarTest is NOT registered */
+// `BarTest` is NOT registered.
 BENCHMARK_REGISTER_F(MyFixture, BarTest)->Threads(2);
-/* BarTest is now registered */
+// `BarTest` is now registered.
 ```
 
 ### Templated Fixtures
@@ -627,19 +655,22 @@ For example:
 template<typename T>
 class MyFixture : public benchmark::Fixture {};
 
+// Defines and registers `IntTest` using the class template `MyFixture<int>`.
 BENCHMARK_TEMPLATE_F(MyFixture, IntTest, int)(benchmark::State& st) {
    for (auto _ : st) {
      ...
   }
 }
 
+// Only defines `DoubleTest` using the class template `MyFixture<double>`.
 BENCHMARK_TEMPLATE_DEFINE_F(MyFixture, DoubleTest, double)(benchmark::State& st) {
    for (auto _ : st) {
      ...
   }
 }
-
+// `DoubleTest` is NOT registered.
 BENCHMARK_REGISTER_F(MyFixture, DoubleTest)->Threads(2);
+// `DoubleTest` is now registered.
 ```
 
 <a name="custom-counters" />
@@ -986,11 +1017,11 @@ in any way. `<expr>` may even be removed entirely when the result is already
 known. For example:
 
 ```c++
-  /* Example 1: `<expr>` is removed entirely. */
+  // Example 1: `<expr>` is removed entirely.
   int foo(int x) { return x + 42; }
   while (...) DoNotOptimize(foo(0)); // Optimized to DoNotOptimize(42);
 
-  /*  Example 2: Result of '<expr>' is only reused */
+  // Example 2: Result of '<expr>' is only reused.
   int bar(int) __attribute__((const));
   while (...) DoNotOptimize(bar(0)); // Optimized to:
   // int __result__ = bar(0);
@@ -1107,6 +1138,21 @@ a report on the number of allocations, bytes used, etc.
 
 This data will then be reported alongside other performance data, currently
 only when using JSON output.
+
+<a name="profiling" />
+
+## Profiling
+
+It's often useful to also profile benchmarks in particular ways, in addition to
+CPU performance. For this reason, benchmark offers the `RegisterProfilerManager`
+method that allows a custom `ProfilerManager` to be injected.
+
+If set, the `ProfilerManager::AfterSetupStart` and
+`ProfilerManager::BeforeTeardownStop` methods will be called at the start and
+end of a separate benchmark run to allow user code to collect and report
+user-provided profile metrics.
+
+Output collected from this profiling run must be reported separately.
 
 <a name="using-register-benchmark" />
 

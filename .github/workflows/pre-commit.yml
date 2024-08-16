@@ -27,7 +27,7 @@ jobs:
     - name: Install dependencies
       run: python -m pip install ".[dev]"
     - name: Cache pre-commit tools
-      uses: actions/cache@v3
+      uses: actions/cache@v4
       with:
         path: |
           ${{ env.MYPY_CACHE_DIR }}

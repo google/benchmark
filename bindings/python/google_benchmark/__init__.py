@@ -26,6 +26,7 @@ Example usage:
   if __name__ == '__main__':
     benchmark.main()
 """
+
 import atexit
 
 from absl import app

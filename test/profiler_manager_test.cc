@@ -1,20 +1,22 @@
+// FIXME: WIP
+
 #include <memory>
 
-#include "../src/check.h"
 #include "benchmark/benchmark.h"
 #include "output_test.h"
 
-class TestMemoryManager : public benchmark::MemoryManager {
-  void Start() override {}
-  void Stop(Result& result) override {
-    result.num_allocs = 42;
-    result.max_bytes_used = 42000;
-  }
+class TestProfilerManager : public benchmark::ProfilerManager {
+ public:
+  void AfterSetupStart() override { ++start_called; }
+  void BeforeTeardownStop() override { ++stop_called; }
+
+  int start_called = 0;
+  int stop_called = 0;
 };
 
 void BM_empty(benchmark::State& state) {
   for (auto _ : state) {
-    auto iterations = double(state.iterations()) * double(state.iterations());
+    auto iterations = state.iterations();
     benchmark::DoNotOptimize(iterations);
   }
 }
@@ -32,16 +34,17 @@ ADD_CASES(TC_JSONOut, {{"\"name\": \"BM_empty\",$"},
                        {"\"iterations\": %int,$", MR_Next},
                        {"\"real_time\": %float,$", MR_Next},
                        {"\"cpu_time\": %float,$", MR_Next},
-                       {"\"time_unit\": \"ns\",$", MR_Next},
-                       {"\"allocs_per_iter\": %float,$", MR_Next},
-                       {"\"max_bytes_used\": 42000$", MR_Next},
+                       {"\"time_unit\": \"ns\"$", MR_Next},
                        {"}", MR_Next}});
 ADD_CASES(TC_CSVOut, {{"^\"BM_empty\",%csv_report$"}});
 
 int main(int argc, char* argv[]) {
-  std::unique_ptr<benchmark::MemoryManager> mm(new TestMemoryManager());
+  std::unique_ptr<TestProfilerManager> pm(new TestProfilerManager());
 
-  benchmark::RegisterMemoryManager(mm.get());
+  benchmark::RegisterProfilerManager(pm.get());
   RunOutputTests(argc, argv);
-  benchmark::RegisterMemoryManager(nullptr);
+  benchmark::RegisterProfilerManager(nullptr);
+
+  assert(pm->start_called == 1);
+  assert(pm->stop_called == 1);
 }

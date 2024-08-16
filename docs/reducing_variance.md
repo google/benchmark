@@ -14,8 +14,6 @@ you might want to disable the CPU frequency scaling while running the
 benchmark, as well as consider other ways to stabilize the performance of
 your system while benchmarking.
 
-See [Reducing Variance](reducing_variance.md) for more information.
-
 Exactly how to do this depends on the Linux distribution,
 desktop environment, and installed programs.  Specific details are a moving
 target, so we will not attempt to exhaustively document them here.
@@ -67,7 +65,7 @@ program.
 Reducing sources of variance is OS and architecture dependent, which is one
 reason some companies maintain machines dedicated to performance testing.
 
-Some of the easier and and effective ways of reducing variance on a typical
+Some of the easier and effective ways of reducing variance on a typical
 Linux workstation are:
 
 1. Use the performance governor as [discussed
@@ -89,7 +87,7 @@ above](user_guide#disabling-cpu-frequency-scaling).
 4. Close other programs that do non-trivial things based on timers, such as
    your web browser, desktop environment, etc.
 5. Reduce the working set of your benchmark to fit within the L1 cache, but
-   do be aware that this may lead you to optimize for an unrelistic
+   do be aware that this may lead you to optimize for an unrealistic
    situation.
 
 Further resources on this topic:

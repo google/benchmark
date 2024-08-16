@@ -1,5 +1,22 @@
 licenses(["notice"])
 
+COPTS = [
+    "-pedantic",
+    "-pedantic-errors",
+    "-std=c++14",
+    "-Wall",
+    "-Wconversion",
+    "-Wextra",
+    "-Wshadow",
+    #    "-Wshorten-64-to-32",
+    "-Wfloat-equal",
+    "-fstrict-aliasing",
+    ## assert() are used a lot in tests upstream, which may be optimised out leading to
+    ## unused-variable warning.
+    "-Wno-unused-variable",
+    "-Werror=old-style-cast",
+]
+
 config_setting(
     name = "qnx",
     constraint_values = ["@platforms//os:qnx"],
@@ -47,14 +64,16 @@ cc_library(
     ],
     copts = select({
         ":windows": [],
-        "//conditions:default": ["-Werror=old-style-cast"],
+        "//conditions:default": COPTS,
     }),
     defines = [
         "BENCHMARK_STATIC_DEFINE",
+        "BENCHMARK_VERSION=\\\"" + (module_version() if module_version() != None else "") + "\\\"",
     ] + select({
         ":perfcounters": ["HAVE_LIBPFM"],
         "//conditions:default": [],
     }),
+    includes = ["include"],
     linkopts = select({
         ":windows": ["-DEFAULTLIB:shlwapi.lib"],
         "//conditions:default": ["-pthread"],
@@ -69,7 +88,6 @@ cc_library(
         "_LARGEFILE64_SOURCE",
         "_LARGEFILE_SOURCE",
     ],
-    strip_include_prefix = "include",
     visibility = ["//visibility:public"],
     deps = select({
         ":perfcounters": ["@libpfm"],
@@ -84,7 +102,7 @@ cc_library(
         "include/benchmark/benchmark.h",
         "include/benchmark/export.h",
     ],
-    strip_include_prefix = "include",
+    includes = ["include"],
     visibility = ["//visibility:public"],
     deps = [":benchmark"],
 )
