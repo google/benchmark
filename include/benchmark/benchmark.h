@@ -308,21 +308,21 @@ BENCHMARK(BM_test)->Unit(benchmark::kMillisecond);
 #elif defined(__ARM_ARCH_7A__)
 #define BENCHMARK_INTERNAL_CACHELINE_SIZE 64
 #endif  // ARM_ARCH
-#else
+#endif  // arches
+#endif  // __GNUC__
+
+#ifndef BENCHMARK_INTERNAL_CACHELINE_SIZE
 // A reasonable default guess.  Note that overestimates tend to waste more
 // space, while underestimates tend to waste more time.
 #define BENCHMARK_INTERNAL_CACHELINE_SIZE 64
 #endif
 
+#if defined(__GNUC__)
 // Indicates that the declared object be cache aligned using
 // `BENCHMARK_INTERNAL_CACHELINE_SIZE` (see above).
 #define BENCHMARK_INTERNAL_CACHELINE_ALIGNED \
   __attribute__((aligned(BENCHMARK_INTERNAL_CACHELINE_SIZE)))
-
 #elif defined(_MSC_VER)
-// A reasonable default guess.  Note that overestimates tend to waste more
-// space, while underestimates tend to waste more time.
-#define BENCHMARK_INTERNAL_CACHELINE_SIZE 64
 #define BENCHMARK_INTERNAL_CACHELINE_ALIGNED \
   __declspec(align(BENCHMARK_INTERNAL_CACHELINE_SIZE))
 #else
