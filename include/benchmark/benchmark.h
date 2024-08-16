@@ -291,6 +291,7 @@ BENCHMARK(BM_test)->Unit(benchmark::kMillisecond);
 #endif
 
 #if defined(__GNUC__)
+// Determine the cacheline size based on architecture
 #if defined(__i386__) || defined(__x86_64__)
 #define BENCHMARK_INTERNAL_CACHELINE_SIZE 64
 #elif defined(__powerpc64__)
@@ -307,9 +308,7 @@ BENCHMARK(BM_test)->Unit(benchmark::kMillisecond);
 #elif defined(__ARM_ARCH_7A__)
 #define BENCHMARK_INTERNAL_CACHELINE_SIZE 64
 #endif  // ARM_ARCH
-#endif  // cpu arch
-
-#ifndef BENCHMARK_INTERNAL_CACHELINE_SIZE
+#else
 // A reasonable default guess.  Note that overestimates tend to waste more
 // space, while underestimates tend to waste more time.
 #define BENCHMARK_INTERNAL_CACHELINE_SIZE 64
@@ -319,12 +318,16 @@ BENCHMARK(BM_test)->Unit(benchmark::kMillisecond);
 // `BENCHMARK_INTERNAL_CACHELINE_SIZE` (see above).
 #define BENCHMARK_INTERNAL_CACHELINE_ALIGNED \
   __attribute__((aligned(BENCHMARK_INTERNAL_CACHELINE_SIZE)))
+
 #elif defined(_MSC_VER)
+// A reasonable default guess.  Note that overestimates tend to waste more
+// space, while underestimates tend to waste more time.
+#define BENCHMARK_INTERNAL_CACHELINE_SIZE 64
 #define BENCHMARK_INTERNAL_CACHELINE_ALIGNED \
   __declspec(align(BENCHMARK_INTERNAL_CACHELINE_SIZE))
 #else
 #define BENCHMARK_INTERNAL_CACHELINE_ALIGNED
-#endif  // __GNUC__
+#endif
 
 #if defined(_MSC_VER)
 #pragma warning(push)
