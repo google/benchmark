@@ -80,6 +80,10 @@ BenchmarkReporter::Run CreateRunReport(
   BenchmarkReporter::Run report;
 
   report.run_name = b.name();
+
+  if (FLAGS_benchmark_dry_run) {
+    report.run_name.function_name.append("/dry_run");
+  }
   report.family_index = b.family_index();
   report.per_family_instance_index = b.per_family_instance_index();
   report.skipped = results.skipped_;
@@ -228,20 +232,21 @@ BenchmarkRunner::BenchmarkRunner(
     : b(b_),
       reports_for_family(reports_for_family_),
       parsed_benchtime_flag(ParseBenchMinTime(FLAGS_benchmark_min_time)),
-      min_time(ComputeMinTime(b_, parsed_benchtime_flag)),
-      min_warmup_time((!IsZero(b.min_time()) && b.min_warmup_time() > 0.0)
-                          ? b.min_warmup_time()
-                          : FLAGS_benchmark_min_warmup_time),
+      min_time(FLAGS_benchmark_dry_run ? 0 : ComputeMinTime(b_, parsed_benchtime_flag)),
+      min_warmup_time(FLAGS_benchmark_dry_run ? 0
+                      : (!IsZero(b.min_time()) && b.min_warmup_time() > 0.0) ? b.min_warmup_time()
+                      : FLAGS_benchmark_min_warmup_time),
       warmup_done(!(min_warmup_time > 0.0)),
-      repeats(b.repetitions() != 0 ? b.repetitions()
-                                   : FLAGS_benchmark_repetitions),
+      repeats(FLAGS_benchmark_dry_run ? 1
+              : b.repetitions() != 0  ? b.repetitions()
+              : FLAGS_benchmark_repetitions),
       has_explicit_iteration_count(b.iterations() != 0 ||
                                    parsed_benchtime_flag.tag ==
                                        BenchTimeType::ITERS),
       pool(static_cast<size_t>(b.threads() - 1)),
-      iters(has_explicit_iteration_count
-                ? ComputeIters(b_, parsed_benchtime_flag)
-                : 1),
+      iters(FLAGS_benchmark_dry_run ? 1
+            : has_explicit_iteration_count ? ComputeIters(b_, parsed_benchtime_flag)
+            : 1),
       perf_counters_measurement_ptr(pcm_) {
   run_results.display_report_aggregates_only =
       (FLAGS_benchmark_report_aggregates_only ||
@@ -295,6 +300,10 @@ BenchmarkRunner::IterationResults BenchmarkRunner::DoNIterations() {
   BM_VLOG(2) << "Ran in " << i.results.cpu_time_used << "/"
              << i.results.real_time_used << "\n";
 
+  // In dry run mode, we report 1 iteration even if each thread runs a singular iteration.
+  if (FLAGS_benchmark_dry_run) {
+    i.results.iterations /= b.threads();
+  }
   // By using KeepRunningBatch a benchmark can iterate more times than
   // requested, so take the iteration count from i.results.
   i.iters = i.results.iterations / b.threads();
@@ -339,7 +348,8 @@ bool BenchmarkRunner::ShouldReportIterationResults(
   // Determine if this run should be reported;
   // Either it has run for a sufficient amount of time
   // or because an error was reported.
-  return i.results.skipped_ ||
+  return i.results.skipped_ || 
+         FLAGS_benchmark_dry_run ||
          i.iters >= kMaxIterations ||  // Too many iterations already.
          i.seconds >=
              GetMinTimeToApply() ||  // The elapsed time is large enough.
