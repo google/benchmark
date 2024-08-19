@@ -126,14 +126,14 @@ BenchmarkReporter::Run CreateRunReport(
 void RunInThread(const BenchmarkInstance* b, IterationCount iters,
                  int thread_id, ThreadManager* manager,
                  PerfCountersMeasurement* perf_counters_measurement,
-                 ProfilerManager* profiler_manager) {
+                 ProfilerManager* profiler_manager_) {
   internal::ThreadTimer timer(
       b->measure_process_cpu_time()
           ? internal::ThreadTimer::CreateProcessCpuTime()
           : internal::ThreadTimer::Create());
 
   State st = b->Run(iters, thread_id, &timer, manager,
-                    perf_counters_measurement, profiler_manager);
+                    perf_counters_measurement, profiler_manager_);
   BM_CHECK(st.skipped() || st.iterations() >= st.max_iterations)
       << "Benchmark returned before State::KeepRunning() returned false!";
   {

@@ -150,6 +150,10 @@ if (MSVC)
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /W4")
   add_definitions(-D_CRT_SECURE_NO_WARNINGS)
 
+  if(BENCHMARK_ENABLE_WERROR)
+      add_cxx_compiler_flag(-WX)
+  endif()
+
   if (NOT BENCHMARK_ENABLE_EXCEPTIONS)
     add_cxx_compiler_flag(-EHs-)
     add_cxx_compiler_flag(-EHa-)
