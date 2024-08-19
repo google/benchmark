@@ -804,7 +804,6 @@ enum Skipped
 // State is passed to a running Benchmark and contains state for the
 // benchmark to use.
 class BENCHMARK_EXPORT BENCHMARK_INTERNAL_CACHELINE_ALIGNED State {
-
  public:
   struct StateIterator;
   friend struct StateIterator;
