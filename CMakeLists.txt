@@ -150,6 +150,10 @@ if (MSVC)
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /W4")
   add_definitions(-D_CRT_SECURE_NO_WARNINGS)
 
+  # Disable padding warning because we did it intentionally
+  # C4324: 'benchmark::State': structure was padded due to alignment specifier
+  add_cxx_compiler_flag(-wd4324)
+
   if(BENCHMARK_ENABLE_WERROR)
       add_cxx_compiler_flag(-WX)
   endif()
