@@ -796,9 +796,15 @@ enum Skipped
 
 }  // namespace internal
 
+#if defined(_MSC_VER) 
+#pragma warning(push)
+// C4324: 'benchmark::State': structure was padded due to alignment specifier
+#pragma warning(disable : 4324) 
+#endif  // _MSC_VER_
 // State is passed to a running Benchmark and contains state for the
 // benchmark to use.
 class BENCHMARK_EXPORT BENCHMARK_INTERNAL_CACHELINE_ALIGNED State {
+
  public:
   struct StateIterator;
   friend struct StateIterator;
@@ -1063,6 +1069,9 @@ class BENCHMARK_EXPORT BENCHMARK_INTERNAL_CACHELINE_ALIGNED State {
 
   friend class internal::BenchmarkInstance;
 };
+#if defined(_MSC_VER)
+#pragma warning(pop)
+#endif // _MSC_VER_
 
 inline BENCHMARK_ALWAYS_INLINE bool State::KeepRunning() {
   return KeepRunningInternal(1, /*is_batch=*/false);
