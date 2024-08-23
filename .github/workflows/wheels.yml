@@ -46,10 +46,62 @@ jobs:
         with:
           platforms: all
 
-      - name: Build wheels on ${{ matrix.os }} using cibuildwheel
-        uses: pypa/cibuildwheel@v2.17
+      - name: Build 3.8 wheels on ${{ matrix.os }} using cibuildwheel
+        uses: pypa/cibuildwheel@v2.20
         env:
-          CIBW_BUILD: "cp38-* cp39-* cp310-* cp311-* cp312-*"
+          CIBW_BUILD: "cp38-*"
+          CIBW_SKIP: "*-musllinux_*"
+          CIBW_TEST_SKIP: "cp38-macosx_*:arm64"
+          CIBW_ARCHS_LINUX: auto64 aarch64
+          CIBW_ARCHS_WINDOWS: auto64
+          CIBW_BEFORE_ALL_LINUX: bash .github/install_bazel.sh
+          # Grab the rootless Bazel installation inside the container.
+          CIBW_ENVIRONMENT_LINUX: PATH=$PATH:$HOME/bin
+          CIBW_TEST_COMMAND: python {project}/bindings/python/google_benchmark/example.py
+
+      - name: Build 3.9 wheels on ${{ matrix.os }} using cibuildwheel
+        uses: pypa/cibuildwheel@v2.20
+        env:
+          CIBW_BUILD: "cp39-*"
+          CIBW_SKIP: "*-musllinux_*"
+          CIBW_TEST_SKIP: "cp38-macosx_*:arm64"
+          CIBW_ARCHS_LINUX: auto64 aarch64
+          CIBW_ARCHS_WINDOWS: auto64
+          CIBW_BEFORE_ALL_LINUX: bash .github/install_bazel.sh
+          # Grab the rootless Bazel installation inside the container.
+          CIBW_ENVIRONMENT_LINUX: PATH=$PATH:$HOME/bin
+          CIBW_TEST_COMMAND: python {project}/bindings/python/google_benchmark/example.py
+
+      - name: Build 3.10 wheels on ${{ matrix.os }} using cibuildwheel
+        uses: pypa/cibuildwheel@v2.20
+        env:
+          CIBW_BUILD: "cp310-*"
+          CIBW_SKIP: "*-musllinux_*"
+          CIBW_TEST_SKIP: "cp38-macosx_*:arm64"
+          CIBW_ARCHS_LINUX: auto64 aarch64
+          CIBW_ARCHS_WINDOWS: auto64
+          CIBW_BEFORE_ALL_LINUX: bash .github/install_bazel.sh
+          # Grab the rootless Bazel installation inside the container.
+          CIBW_ENVIRONMENT_LINUX: PATH=$PATH:$HOME/bin
+          CIBW_TEST_COMMAND: python {project}/bindings/python/google_benchmark/example.py
+
+      - name: Build 3.11 wheels on ${{ matrix.os }} using cibuildwheel
+        uses: pypa/cibuildwheel@v2.20
+        env:
+          CIBW_BUILD: "cp311-*"
+          CIBW_SKIP: "*-musllinux_*"
+          CIBW_TEST_SKIP: "cp38-macosx_*:arm64"
+          CIBW_ARCHS_LINUX: auto64 aarch64
+          CIBW_ARCHS_WINDOWS: auto64
+          CIBW_BEFORE_ALL_LINUX: bash .github/install_bazel.sh
+          # Grab the rootless Bazel installation inside the container.
+          CIBW_ENVIRONMENT_LINUX: PATH=$PATH:$HOME/bin
+          CIBW_TEST_COMMAND: python {project}/bindings/python/google_benchmark/example.py
+
+      - name: Build 3.12 wheels on ${{ matrix.os }} using cibuildwheel
+        uses: pypa/cibuildwheel@v2.20
+        env:
+          CIBW_BUILD: "cp312-*"
           CIBW_SKIP: "*-musllinux_*"
           CIBW_TEST_SKIP: "cp38-macosx_*:arm64"
           CIBW_ARCHS_LINUX: auto64 aarch64

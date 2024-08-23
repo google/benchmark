@@ -1,7 +1,7 @@
 # Require CMake 3.10. If available, use the policies up to CMake 3.22.
 cmake_minimum_required (VERSION 3.10...3.22)
 
-project (benchmark VERSION 1.8.5 LANGUAGES CXX)
+project (benchmark VERSION 1.9.0 LANGUAGES CXX)
 
 option(BENCHMARK_ENABLE_TESTING "Enable testing of the benchmark library." ON)
 option(BENCHMARK_ENABLE_EXCEPTIONS "Enable the use of exceptions in the benchmark library." ON)
@@ -149,6 +149,10 @@ if (MSVC)
   string(REGEX REPLACE "[-/]W[1-4]" "" CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /W4")
   add_definitions(-D_CRT_SECURE_NO_WARNINGS)
+
+  if(BENCHMARK_ENABLE_WERROR)
+      add_cxx_compiler_flag(-WX)
+  endif()
 
   if (NOT BENCHMARK_ENABLE_EXCEPTIONS)
     add_cxx_compiler_flag(-EHs-)
