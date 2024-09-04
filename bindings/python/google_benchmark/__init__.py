@@ -49,7 +49,8 @@ from google_benchmark._benchmark import (
     oNone as oNone,
     oNSquared as oNSquared,
 )
-from google_benchmark.version import __version__ as __version__
+
+__version__ = "1.9.0"
 
 
 class __OptionMaker:
