@@ -147,7 +147,7 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 if (MSVC)
   # Turn compiler warnings up to 11
   string(REGEX REPLACE "[-/]W[1-4]" "" CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /W4")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /W4 /MP")
   add_definitions(-D_CRT_SECURE_NO_WARNINGS)
 
   if(BENCHMARK_ENABLE_WERROR)
