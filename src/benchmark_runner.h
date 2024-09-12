@@ -90,10 +90,10 @@ class BenchmarkRunner {
   BenchmarkReporter::PerFamilyRunReports* reports_for_family;
 
   BenchTimeType parsed_benchtime_flag;
-  const double min_time;
-  const double min_warmup_time;
+  double min_time;
+  double min_warmup_time;
   bool warmup_done;
-  const int repeats;
+  int repeats;
   const bool has_explicit_iteration_count;
 
   int num_repetitions_done = 0;

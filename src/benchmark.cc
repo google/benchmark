@@ -92,8 +92,9 @@ BM_DEFINE_double(benchmark_min_warmup_time, 0.0);
 // standard deviation of the runs will be reported.
 BM_DEFINE_int32(benchmark_repetitions, 1);
 
-// If enabled, forces each benchmark to execute exactly one iteration and one repetition, 
-// bypassing any configured MinTime()/MinWarmUpTime()/Iterations()/Repetitions()
+// If enabled, forces each benchmark to execute exactly one iteration and one
+// repetition, bypassing any configured
+// MinTime()/MinWarmUpTime()/Iterations()/Repetitions()
 BM_DEFINE_bool(benchmark_dry_run, false);
 
 // If set, enable random interleaving of repetitions of all benchmarks.
@@ -759,6 +760,9 @@ void ParseCommandLineFlags(int* argc, char** argv) {
   SetDefaultTimeUnitFromFlag(FLAGS_benchmark_time_unit);
   if (FLAGS_benchmark_color.empty()) {
     PrintUsageAndExit();
+  }
+  if (FLAGS_benchmark_dry_run) {
+    AddCustomContext("dry_run", "true");
   }
   for (const auto& kv : FLAGS_benchmark_context) {
     AddCustomContext(kv.first, kv.second);
