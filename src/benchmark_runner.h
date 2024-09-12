@@ -25,14 +25,6 @@
 
 namespace benchmark {
 
-BM_DECLARE_string(benchmark_min_time);
-BM_DECLARE_double(benchmark_min_warmup_time);
-BM_DECLARE_int32(benchmark_repetitions);
-BM_DECLARE_bool(benchmark_dry_run);
-BM_DECLARE_bool(benchmark_report_aggregates_only);
-BM_DECLARE_bool(benchmark_display_aggregates_only);
-BM_DECLARE_string(benchmark_perf_counters);
-
 namespace internal {
 
 extern MemoryManager* memory_manager;
@@ -90,10 +82,10 @@ class BenchmarkRunner {
   BenchmarkReporter::PerFamilyRunReports* reports_for_family;
 
   BenchTimeType parsed_benchtime_flag;
-  double min_time;
-  double min_warmup_time;
+  const double min_time;
+  const double min_warmup_time;
   bool warmup_done;
-  int repeats;
+  const int repeats;
   const bool has_explicit_iteration_count;
 
   int num_repetitions_done = 0;
