@@ -138,7 +138,6 @@ class BuildBazelExtension(build_ext.build_ext):
             dirs[:] = [d for d in dirs if "runfiles" not in d]
 
             for f in files:
-                print(f)
                 fp = Path(f)
                 should_copy = False
                 # we do not want the bare .so file included

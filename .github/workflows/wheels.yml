@@ -18,7 +18,7 @@ jobs:
       - name: Install Python 3.12
         uses: actions/setup-python@v5
         with:
-          python-version: 3.12
+          python-version: "3.12"
       - run: python -m pip install build
       - name: Build sdist
         run: python -m build --sdist
@@ -40,16 +40,23 @@ jobs:
         with:
           fetch-depth: 0
 
+      - uses: actions/setup-python@v5
+        name: Install Python 3.12
+        with:
+          python-version: "3.12"
+      - run: pip install --upgrade pip uv
+
       - name: Set up QEMU
         if: runner.os == 'Linux'
         uses: docker/setup-qemu-action@v3
         with:
           platforms: all
 
-      - name: Build 3.8 wheels on ${{ matrix.os }} using cibuildwheel
+      - name: Build wheels on ${{ matrix.os }} using cibuildwheel
         uses: pypa/cibuildwheel@v2.20
         env:
-          CIBW_BUILD: "cp38-*"
+          CIBW_BUILD: "cp310-* cp311-* cp312-*"
+          CIBW_BUILD_FRONTEND: "build[uv]"
           CIBW_SKIP: "*-musllinux_*"
           CIBW_TEST_SKIP: "cp38-macosx_*:arm64"
           CIBW_ARCHS_LINUX: auto64 aarch64
@@ -58,58 +65,8 @@ jobs:
           # Grab the rootless Bazel installation inside the container.
           CIBW_ENVIRONMENT_LINUX: PATH=$PATH:$HOME/bin
           CIBW_TEST_COMMAND: python {project}/bindings/python/google_benchmark/example.py
-
-      - name: Build 3.9 wheels on ${{ matrix.os }} using cibuildwheel
-        uses: pypa/cibuildwheel@v2.20
-        env:
-          CIBW_BUILD: "cp39-*"
-          CIBW_SKIP: "*-musllinux_*"
-          CIBW_TEST_SKIP: "cp38-macosx_*:arm64"
-          CIBW_ARCHS_LINUX: auto64 aarch64
-          CIBW_ARCHS_WINDOWS: auto64
-          CIBW_BEFORE_ALL_LINUX: bash .github/install_bazel.sh
-          # Grab the rootless Bazel installation inside the container.
-          CIBW_ENVIRONMENT_LINUX: PATH=$PATH:$HOME/bin
-          CIBW_TEST_COMMAND: python {project}/bindings/python/google_benchmark/example.py
-
-      - name: Build 3.10 wheels on ${{ matrix.os }} using cibuildwheel
-        uses: pypa/cibuildwheel@v2.20
-        env:
-          CIBW_BUILD: "cp310-*"
-          CIBW_SKIP: "*-musllinux_*"
-          CIBW_TEST_SKIP: "cp38-macosx_*:arm64"
-          CIBW_ARCHS_LINUX: auto64 aarch64
-          CIBW_ARCHS_WINDOWS: auto64
-          CIBW_BEFORE_ALL_LINUX: bash .github/install_bazel.sh
-          # Grab the rootless Bazel installation inside the container.
-          CIBW_ENVIRONMENT_LINUX: PATH=$PATH:$HOME/bin
-          CIBW_TEST_COMMAND: python {project}/bindings/python/google_benchmark/example.py
-
-      - name: Build 3.11 wheels on ${{ matrix.os }} using cibuildwheel
-        uses: pypa/cibuildwheel@v2.20
-        env:
-          CIBW_BUILD: "cp311-*"
-          CIBW_SKIP: "*-musllinux_*"
-          CIBW_TEST_SKIP: "cp38-macosx_*:arm64"
-          CIBW_ARCHS_LINUX: auto64 aarch64
-          CIBW_ARCHS_WINDOWS: auto64
-          CIBW_BEFORE_ALL_LINUX: bash .github/install_bazel.sh
-          # Grab the rootless Bazel installation inside the container.
-          CIBW_ENVIRONMENT_LINUX: PATH=$PATH:$HOME/bin
-          CIBW_TEST_COMMAND: python {project}/bindings/python/google_benchmark/example.py
-
-      - name: Build 3.12 wheels on ${{ matrix.os }} using cibuildwheel
-        uses: pypa/cibuildwheel@v2.20
-        env:
-          CIBW_BUILD: "cp312-*"
-          CIBW_SKIP: "*-musllinux_*"
-          CIBW_TEST_SKIP: "cp38-macosx_*:arm64"
-          CIBW_ARCHS_LINUX: auto64 aarch64
-          CIBW_ARCHS_WINDOWS: auto64
-          CIBW_BEFORE_ALL_LINUX: bash .github/install_bazel.sh
-          # Grab the rootless Bazel installation inside the container.
-          CIBW_ENVIRONMENT_LINUX: PATH=$PATH:$HOME/bin
-          CIBW_TEST_COMMAND: python {project}/bindings/python/google_benchmark/example.py
+          # unused by Bazel, but needed explicitly by delocate on MacOS.
+          MACOSX_DEPLOYMENT_TARGET: "10.14"
 
       - name: Upload Google Benchmark ${{ matrix.os }} wheels
         uses: actions/upload-artifact@v4
@@ -133,11 +90,11 @@ jobs:
     name: Publish google-benchmark wheels to PyPI
     needs: [merge_wheels]
     runs-on: ubuntu-latest
+    if: github.event_name == 'release' && github.event.action == 'published'
+    permissions:
+      id-token: write
     steps:
       - uses: actions/download-artifact@v4
         with:
           path: dist
       - uses: pypa/gh-action-pypi-publish@release/v1
-        with:
-          user: __token__
-          password: ${{ secrets.PYPI_PASSWORD }}
