@@ -167,6 +167,13 @@ line interface or by setting environment variables before execution. For every
  prevails). A complete list of CLI options is available running benchmarks
  with the `--help` switch.
 
+### Dry runs
+
+To confirm that benchmarks can run successfully without needing to wait for
+multiple repetitions and iterations, the `--benchmark_dry_run` flag can be
+used.  This will run the benchmarks as normal, but for 1 iteration and 1
+repetition only.
+
 <a name="running-a-subset-of-benchmarks" />
 
 ## Running a Subset of Benchmarks
