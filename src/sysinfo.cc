@@ -353,10 +353,10 @@ std::vector<CPUInfo::CacheInfo> GetCacheSizesWindows() {
     C.size = static_cast<int>(cache.Size);
     C.type = "Unknown";
     switch (cache.Type) {
-      #ifdef NTDDI_WIN10_NI // Windows SDK version >= 10.0.26100.0
+#ifdef NTDDI_WIN11_GE // Windows SDK version >= 10.0.26100.0
       case CacheUnknown:
         break;
-      #endif
+#endif
       case CacheUnified:
         C.type = "Unified";
         break;
