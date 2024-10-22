@@ -92,6 +92,11 @@ BM_DEFINE_double(benchmark_min_warmup_time, 0.0);
 // standard deviation of the runs will be reported.
 BM_DEFINE_int32(benchmark_repetitions, 1);
 
+// If enabled, forces each benchmark to execute exactly one iteration and one
+// repetition, bypassing any configured
+// MinTime()/MinWarmUpTime()/Iterations()/Repetitions()
+BM_DEFINE_bool(benchmark_dry_run, false);
+
 // If set, enable random interleaving of repetitions of all benchmarks.
 // See http://github.com/google/benchmark/issues/1051 for details.
 BM_DEFINE_bool(benchmark_enable_random_interleaving, false);
@@ -717,6 +722,7 @@ void ParseCommandLineFlags(int* argc, char** argv) {
                         &FLAGS_benchmark_min_warmup_time) ||
         ParseInt32Flag(argv[i], "benchmark_repetitions",
                        &FLAGS_benchmark_repetitions) ||
+        ParseBoolFlag(argv[i], "benchmark_dry_run", &FLAGS_benchmark_dry_run) ||
         ParseBoolFlag(argv[i], "benchmark_enable_random_interleaving",
                       &FLAGS_benchmark_enable_random_interleaving) ||
         ParseBoolFlag(argv[i], "benchmark_report_aggregates_only",
@@ -755,6 +761,9 @@ void ParseCommandLineFlags(int* argc, char** argv) {
   if (FLAGS_benchmark_color.empty()) {
     PrintUsageAndExit();
   }
+  if (FLAGS_benchmark_dry_run) {
+    AddCustomContext("dry_run", "true");
+  }
   for (const auto& kv : FLAGS_benchmark_context) {
     AddCustomContext(kv.first, kv.second);
   }
@@ -783,6 +792,7 @@ void PrintDefaultHelp() {
           "          [--benchmark_min_time=`<integer>x` OR `<float>s` ]\n"
           "          [--benchmark_min_warmup_time=<min_warmup_time>]\n"
           "          [--benchmark_repetitions=<num_repetitions>]\n"
+          "          [--benchmark_dry_run={true|false}]\n"
           "          [--benchmark_enable_random_interleaving={true|false}]\n"
           "          [--benchmark_report_aggregates_only={true|false}]\n"
           "          [--benchmark_display_aggregates_only={true|false}]\n"
