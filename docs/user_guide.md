@@ -82,9 +82,9 @@ tabular data on stdout. Example tabular output looks like:
 ```
 Benchmark                               Time(ns)    CPU(ns) Iterations
 ----------------------------------------------------------------------
-BM_SetInsert/1024/1                        28928      29349      23853  133.097kB/s   33.2742k items/s
-BM_SetInsert/1024/8                        32065      32913      21375  949.487kB/s   237.372k items/s
-BM_SetInsert/1024/10                       33157      33648      21431  1.13369MB/s   290.225k items/s
+BM_SetInsert/1024/1                        28928      29349      23853  133.097kiB/s   33.2742k items/s
+BM_SetInsert/1024/8                        32065      32913      21375  949.487kiB/s   237.372k items/s
+BM_SetInsert/1024/10                       33157      33648      21431  1.13369MiB/s   290.225k items/s
 ```
 
 The JSON format outputs human readable json split into two top level attributes.
@@ -166,6 +166,13 @@ line interface or by setting environment variables before execution. For every
 `OPTION_FLAG=<value>` exist and is used as default if set (CLI switches always
  prevails). A complete list of CLI options is available running benchmarks
  with the `--help` switch.
+
+### Dry runs
+
+To confirm that benchmarks can run successfully without needing to wait for
+multiple repetitions and iterations, the `--benchmark_dry_run` flag can be
+used.  This will run the benchmarks as normal, but for 1 iteration and 1
+repetition only.
 
 <a name="running-a-subset-of-benchmarks" />
 

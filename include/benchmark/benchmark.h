@@ -290,11 +290,50 @@ BENCHMARK(BM_test)->Unit(benchmark::kMillisecond);
 #define BENCHMARK_OVERRIDE
 #endif
 
+#if defined(__GNUC__)
+// Determine the cacheline size based on architecture
+#if defined(__i386__) || defined(__x86_64__)
+#define BENCHMARK_INTERNAL_CACHELINE_SIZE 64
+#elif defined(__powerpc64__)
+#define BENCHMARK_INTERNAL_CACHELINE_SIZE 128
+#elif defined(__aarch64__)
+#define BENCHMARK_INTERNAL_CACHELINE_SIZE 64
+#elif defined(__arm__)
+// Cache line sizes for ARM: These values are not strictly correct since
+// cache line sizes depend on implementations, not architectures.  There
+// are even implementations with cache line sizes configurable at boot
+// time.
+#if defined(__ARM_ARCH_5T__)
+#define BENCHMARK_INTERNAL_CACHELINE_SIZE 32
+#elif defined(__ARM_ARCH_7A__)
+#define BENCHMARK_INTERNAL_CACHELINE_SIZE 64
+#endif  // ARM_ARCH
+#endif  // arches
+#endif  // __GNUC__
+
+#ifndef BENCHMARK_INTERNAL_CACHELINE_SIZE
+// A reasonable default guess.  Note that overestimates tend to waste more
+// space, while underestimates tend to waste more time.
+#define BENCHMARK_INTERNAL_CACHELINE_SIZE 64
+#endif
+
+#if defined(__GNUC__)
+// Indicates that the declared object be cache aligned using
+// `BENCHMARK_INTERNAL_CACHELINE_SIZE` (see above).
+#define BENCHMARK_INTERNAL_CACHELINE_ALIGNED \
+  __attribute__((aligned(BENCHMARK_INTERNAL_CACHELINE_SIZE)))
+#elif defined(_MSC_VER)
+#define BENCHMARK_INTERNAL_CACHELINE_ALIGNED \
+  __declspec(align(BENCHMARK_INTERNAL_CACHELINE_SIZE))
+#else
+#define BENCHMARK_INTERNAL_CACHELINE_ALIGNED
+#endif
+
 #if defined(_MSC_VER)
 #pragma warning(push)
 // C4251: <symbol> needs to have dll-interface to be used by clients of class
 #pragma warning(disable : 4251)
-#endif
+#endif  // _MSC_VER_
 
 namespace benchmark {
 class BenchmarkReporter;
@@ -757,9 +796,14 @@ enum Skipped
 
 }  // namespace internal
 
+#if defined(_MSC_VER)
+#pragma warning(push)
+// C4324: 'benchmark::State': structure was padded due to alignment specifier
+#pragma warning(disable : 4324)
+#endif  // _MSC_VER_
 // State is passed to a running Benchmark and contains state for the
 // benchmark to use.
-class BENCHMARK_EXPORT State {
+class BENCHMARK_EXPORT BENCHMARK_INTERNAL_CACHELINE_ALIGNED State {
  public:
   struct StateIterator;
   friend struct StateIterator;
@@ -1024,6 +1068,9 @@ class BENCHMARK_EXPORT State {
 
   friend class internal::BenchmarkInstance;
 };
+#if defined(_MSC_VER)
+#pragma warning(pop)
+#endif  // _MSC_VER_
 
 inline BENCHMARK_ALWAYS_INLINE bool State::KeepRunning() {
   return KeepRunningInternal(1, /*is_batch=*/false);
@@ -1507,6 +1554,7 @@ class Fixture : public internal::Benchmark {
   BaseClass##_##Method##_Benchmark
 
 #define BENCHMARK_PRIVATE_DECLARE(n)                                 \
+  /* NOLINTNEXTLINE(misc-use-anonymous-namespace) */                 \
   static ::benchmark::internal::Benchmark* BENCHMARK_PRIVATE_NAME(n) \
       BENCHMARK_UNUSED
 

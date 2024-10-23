@@ -58,6 +58,14 @@
 
 namespace benchmark {
 
+BM_DECLARE_bool(benchmark_dry_run);
+BM_DECLARE_string(benchmark_min_time);
+BM_DECLARE_double(benchmark_min_warmup_time);
+BM_DECLARE_int32(benchmark_repetitions);
+BM_DECLARE_bool(benchmark_report_aggregates_only);
+BM_DECLARE_bool(benchmark_display_aggregates_only);
+BM_DECLARE_string(benchmark_perf_counters);
+
 namespace internal {
 
 MemoryManager* memory_manager = nullptr;
@@ -126,14 +134,14 @@ BenchmarkReporter::Run CreateRunReport(
 void RunInThread(const BenchmarkInstance* b, IterationCount iters,
                  int thread_id, ThreadManager* manager,
                  PerfCountersMeasurement* perf_counters_measurement,
-                 ProfilerManager* profiler_manager) {
+                 ProfilerManager* profiler_manager_) {
   internal::ThreadTimer timer(
       b->measure_process_cpu_time()
           ? internal::ThreadTimer::CreateProcessCpuTime()
           : internal::ThreadTimer::Create());
 
   State st = b->Run(iters, thread_id, &timer, manager,
-                    perf_counters_measurement, profiler_manager);
+                    perf_counters_measurement, profiler_manager_);
   BM_CHECK(st.skipped() || st.iterations() >= st.max_iterations)
       << "Benchmark returned before State::KeepRunning() returned false!";
   {
@@ -228,20 +236,29 @@ BenchmarkRunner::BenchmarkRunner(
     : b(b_),
       reports_for_family(reports_for_family_),
       parsed_benchtime_flag(ParseBenchMinTime(FLAGS_benchmark_min_time)),
-      min_time(ComputeMinTime(b_, parsed_benchtime_flag)),
-      min_warmup_time((!IsZero(b.min_time()) && b.min_warmup_time() > 0.0)
-                          ? b.min_warmup_time()
-                          : FLAGS_benchmark_min_warmup_time),
-      warmup_done(!(min_warmup_time > 0.0)),
-      repeats(b.repetitions() != 0 ? b.repetitions()
-                                   : FLAGS_benchmark_repetitions),
+      min_time(FLAGS_benchmark_dry_run
+                   ? 0
+                   : ComputeMinTime(b_, parsed_benchtime_flag)),
+      min_warmup_time(
+          FLAGS_benchmark_dry_run
+              ? 0
+              : ((!IsZero(b.min_time()) && b.min_warmup_time() > 0.0)
+                     ? b.min_warmup_time()
+                     : FLAGS_benchmark_min_warmup_time)),
+      warmup_done(FLAGS_benchmark_dry_run ? true : !(min_warmup_time > 0.0)),
+      repeats(FLAGS_benchmark_dry_run
+                  ? 1
+                  : (b.repetitions() != 0 ? b.repetitions()
+                                          : FLAGS_benchmark_repetitions)),
       has_explicit_iteration_count(b.iterations() != 0 ||
                                    parsed_benchtime_flag.tag ==
                                        BenchTimeType::ITERS),
       pool(static_cast<size_t>(b.threads() - 1)),
-      iters(has_explicit_iteration_count
-                ? ComputeIters(b_, parsed_benchtime_flag)
-                : 1),
+      iters(FLAGS_benchmark_dry_run
+                ? 1
+                : (has_explicit_iteration_count
+                       ? ComputeIters(b_, parsed_benchtime_flag)
+                       : 1)),
       perf_counters_measurement_ptr(pcm_) {
   run_results.display_report_aggregates_only =
       (FLAGS_benchmark_report_aggregates_only ||
@@ -292,12 +309,6 @@ BenchmarkRunner::IterationResults BenchmarkRunner::DoNIterations() {
   // And get rid of the manager.
   manager.reset();
 
-  // Adjust real/manual time stats since they were reported per thread.
-  i.results.real_time_used /= b.threads();
-  i.results.manual_time_used /= b.threads();
-  // If we were measuring whole-process CPU usage, adjust the CPU time too.
-  if (b.measure_process_cpu_time()) i.results.cpu_time_used /= b.threads();
-
   BM_VLOG(2) << "Ran in " << i.results.cpu_time_used << "/"
              << i.results.real_time_used << "\n";
 
@@ -345,7 +356,7 @@ bool BenchmarkRunner::ShouldReportIterationResults(
   // Determine if this run should be reported;
   // Either it has run for a sufficient amount of time
   // or because an error was reported.
-  return i.results.skipped_ ||
+  return i.results.skipped_ || FLAGS_benchmark_dry_run ||
          i.iters >= kMaxIterations ||  // Too many iterations already.
          i.seconds >=
              GetMinTimeToApply() ||  // The elapsed time is large enough.
