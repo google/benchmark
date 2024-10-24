@@ -20,7 +20,7 @@ jobs:
 
       - uses: lukka/get-cmake@latest
         with:
-          cmakeVersion: 3.10.0
+          cmakeVersion: 3.13.0
 
       - name: create build environment
         run: cmake -E make_directory ${{ runner.workspace }}/_build
