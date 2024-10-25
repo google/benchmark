@@ -3,6 +3,7 @@ import os
 import platform
 import re
 import shutil
+import sys
 from pathlib import Path
 from typing import Any, Generator
 
@@ -15,8 +16,7 @@ IS_LINUX = platform.system() == "Linux"
 
 # hardcoded SABI-related options. Requires that each Python interpreter
 # (hermetic or not) participating is of the same major-minor version.
-version_tuple = tuple(int(i) for i in platform.python_version_tuple())
-py_limited_api = version_tuple >= (3, 12)
+py_limited_api = sys.version_info >= (3, 12)
 options = {"bdist_wheel": {"py_limited_api": "cp312"}} if py_limited_api else {}
 
 
@@ -43,10 +43,10 @@ def _maybe_patch_toolchains() -> Generator[None, None, None]:
         return "python.toolchain(" + callargs + ")"
 
     CIBW_LINUX = is_cibuildwheel() and IS_LINUX
+    module_bazel = Path("MODULE.bazel")
+    content: str = module_bazel.read_text()
     try:
         if CIBW_LINUX:
-            module_bazel = Path("MODULE.bazel")
-            content: str = module_bazel.read_text()
             module_bazel.write_text(
                 re.sub(
                     r"python.toolchain\(([\w\"\s,.=]*)\)",
@@ -92,10 +92,16 @@ class BuildBazelExtension(build_ext.build_ext):
     def bazel_build(self, ext: BazelExtension) -> None:
         """Runs the bazel build to create the package."""
         temp_path = Path(self.build_temp)
-        # omit the patch version to avoid build errors if the toolchain is not
-        # yet registered in the current @rules_python version.
-        # patch version differences should be fine.
-        python_version = ".".join(platform.python_version_tuple()[:2])
+        if py_limited_api:
+            # We only need to know the minimum ABI version,
+            # since it is stable across minor versions by definition.
+            # The value here is calculated as the minimum of a) the minimum
+            # Python version required, and b) the stable ABI version target.
+            # NB: This needs to be kept in sync with [project.requires-python]
+            # in pyproject.toml.
+            python_version = "3.12"
+        else:
+            python_version = "{0}.{1}".format(*sys.version_info[:2])
 
         bazel_argv = [
             "bazel",
