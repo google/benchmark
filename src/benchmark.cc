@@ -668,6 +668,10 @@ void RegisterMemoryManager(MemoryManager* manager) {
 }
 
 void RegisterProfilerManager(ProfilerManager* manager) {
+  // Don't allow overwriting an existing manager.
+  if (manager != nullptr) {
+    BM_CHECK_EQ(internal::profiler_manager, nullptr);
+  }
   internal::profiler_manager = manager;
 }
 
