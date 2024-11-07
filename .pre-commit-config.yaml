@@ -1,17 +1,17 @@
 repos:
   -   repo: https://github.com/keith/pre-commit-buildifier
-      rev: 7.1.2
+      rev: 7.3.1
       hooks:
       -   id: buildifier
       -   id: buildifier-lint
   - repo: https://github.com/pre-commit/mirrors-mypy
-    rev: v1.11.1
+    rev: v1.13.0
     hooks:
       - id: mypy
         types_or: [ python, pyi ]
         args: [ "--ignore-missing-imports", "--scripts-are-modules" ]
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.6.1
+    rev: v0.7.2
     hooks:
       - id: ruff
         args: [ --fix, --exit-non-zero-on-fix ]

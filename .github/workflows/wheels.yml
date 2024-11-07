@@ -53,7 +53,7 @@ jobs:
           platforms: all
 
       - name: Build wheels on ${{ matrix.os }} using cibuildwheel
-        uses: pypa/cibuildwheel@v2.20
+        uses: pypa/cibuildwheel@v2.21.3
         env:
           CIBW_BUILD: "cp310-* cp311-* cp312-*"
           CIBW_BUILD_FRONTEND: "build[uv]"
