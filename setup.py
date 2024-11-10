@@ -92,16 +92,10 @@ class BuildBazelExtension(build_ext.build_ext):
     def bazel_build(self, ext: BazelExtension) -> None:
         """Runs the bazel build to create the package."""
         temp_path = Path(self.build_temp)
-        if py_limited_api:
-            # We only need to know the minimum ABI version,
-            # since it is stable across minor versions by definition.
-            # The value here is calculated as the minimum of a) the minimum
-            # Python version required, and b) the stable ABI version target.
-            # NB: This needs to be kept in sync with [project.requires-python]
-            # in pyproject.toml.
-            python_version = "3.12"
-        else:
-            python_version = "{0}.{1}".format(*sys.version_info[:2])
+
+        # We round to the minor version, which makes rules_python
+        # look up the latest available patch version internally.
+        python_version = "{0}.{1}".format(*sys.version_info[:2])
 
         bazel_argv = [
             "bazel",
