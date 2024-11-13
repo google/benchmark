@@ -10,7 +10,7 @@ platform(
 TEST_COPTS = [
     "-pedantic",
     "-pedantic-errors",
-    "-std=c++14",
+    "-std=c++17",
     "-Wall",
     "-Wconversion",
     "-Wextra",
