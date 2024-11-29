@@ -90,7 +90,6 @@ jobs:
     name: Publish google-benchmark wheels to PyPI
     needs: [merge_wheels]
     runs-on: ubuntu-latest
-    if: github.event_name == 'release' && github.event.action == 'published'
     permissions:
       id-token: write
     steps:
