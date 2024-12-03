@@ -77,7 +77,6 @@ class BuildBazelExtension(build_ext.build_ext):
     def run(self):
         for ext in self.extensions:
             self.bazel_build(ext)
-        super().run()
         # explicitly call `bazel shutdown` for graceful exit
         self.spawn(["bazel", "shutdown"])
 
