@@ -53,12 +53,11 @@ jobs:
           platforms: all
 
       - name: Build wheels on ${{ matrix.os }} using cibuildwheel
-        uses: pypa/cibuildwheel@v2.21.3
+        uses: pypa/cibuildwheel@v2.22.0
         env:
           CIBW_BUILD: "cp310-* cp311-* cp312-*"
           CIBW_BUILD_FRONTEND: "build[uv]"
           CIBW_SKIP: "*-musllinux_*"
-          CIBW_TEST_SKIP: "cp38-macosx_*:arm64"
           CIBW_ARCHS_LINUX: auto64 aarch64
           CIBW_ARCHS_WINDOWS: auto64
           CIBW_BEFORE_ALL_LINUX: bash .github/install_bazel.sh
@@ -74,27 +73,16 @@ jobs:
           name: dist-${{ matrix.os }}
           path: wheelhouse/*.whl
 
-  merge_wheels:
-    name: Merge all built wheels into one artifact
-    runs-on: ubuntu-latest
-    needs: [build_sdist, build_wheels]
-    steps:
-      - name: Merge wheels
-        uses: actions/upload-artifact/merge@v4
-        with:
-          name: dist
-          pattern: dist-*
-          delete-merged: true
-
   pypi_upload:
     name: Publish google-benchmark wheels to PyPI
-    needs: [merge_wheels]
+    needs: [build_sdist, build_wheels]
     runs-on: ubuntu-latest
     permissions:
       id-token: write
     steps:
       - uses: actions/download-artifact@v4
         with:
-          name: dist
           path: dist
+          pattern: dist-*
+          merge-multiple: true
       - uses: pypa/gh-action-pypi-publish@release/v1
