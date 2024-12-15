@@ -19,7 +19,7 @@
 #include <tuple>
 #include <vector>
 
-#include "benchmark/benchmark.h"
+#include "benchmark_api_internal.h"
 #include "check.h"
 #include "complexity.h"
 #include "string_util.h"
@@ -164,6 +164,13 @@ void CSVReporter::PrintRunData(const Run& run) {
     }
   }
   Out << '\n';
+}
+
+void CSVReporter::List(
+    const std::vector<internal::BenchmarkInstance>& benchmarks) {
+  (void)benchmarks;  // Suppress unused parameter warning
+  std::ostream& err = GetErrorStream();
+  err << "List() method is not implemented for CSVReporter.\n";
 }
 
 }  // end namespace benchmark
