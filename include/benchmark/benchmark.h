@@ -403,7 +403,16 @@ RunSpecifiedBenchmarks(BenchmarkReporter* display_reporter,
 
 // TimeUnit is passed to a benchmark in order to specify the order of magnitude
 // for the measured time.
-enum TimeUnit { kNanosecond, kMicrosecond, kMillisecond, kSecond };
+enum TimeUnit
+#if defined(BENCHMARK_HAS_CXX11)
+    : uint8_t
+#endif
+{
+  kNanosecond,
+  kMicrosecond,
+  kMillisecond,
+  kSecond
+};
 
 BENCHMARK_EXPORT TimeUnit GetDefaultTimeUnit();
 
@@ -698,7 +707,11 @@ class Counter {
     kInvert = 1 << 31
   };
 
-  enum OneK {
+  enum OneK
+#if defined(BENCHMARK_HAS_CXX11)
+      : uint16_t
+#endif
+  {
     // 1'000 items per 1k
     kIs1000 = 1000,
     // 1'024 items per 1k
@@ -713,7 +726,7 @@ class Counter {
   Counter(double v = 0., Flags f = kDefaults, OneK k = kIs1000)
       : value(v), flags(f), oneK(k) {}
 
-  BENCHMARK_ALWAYS_INLINE operator double const &() const { return value; }
+  BENCHMARK_ALWAYS_INLINE operator double const&() const { return value; }
   BENCHMARK_ALWAYS_INLINE operator double&() { return value; }
 };
 
@@ -732,13 +745,34 @@ typedef std::map<std::string, Counter> UserCounters;
 // computational
 // complexity for the benchmark. In case oAuto is selected, complexity will be
 // calculated automatically to the best fit.
-enum BigO { oNone, o1, oN, oNSquared, oNCubed, oLogN, oNLogN, oAuto, oLambda };
+enum BigO
+#if defined(BENCHMARK_HAS_CXX11)
+    : uint8_t
+#endif
+{
+  oNone,
+  o1,
+  oN,
+  oNSquared,
+  oNCubed,
+  oLogN,
+  oNLogN,
+  oAuto,
+  oLambda
+};
 
 typedef int64_t ComplexityN;
 
 typedef int64_t IterationCount;
 
-enum StatisticUnit { kTime, kPercentage };
+enum StatisticUnit
+#if defined(BENCHMARK_HAS_CXX11)
+    : uint8_t
+#endif
+{
+  kTime,
+  kPercentage
+};
 
 // BigOFunc is passed to a benchmark in order to specify the asymptotic
 // computational complexity for the benchmark.
@@ -766,8 +800,7 @@ class PerfCountersMeasurement;
 
 enum AggregationReportMode
 #if defined(BENCHMARK_HAS_CXX11)
-    : unsigned
-#else
+    : uint8_t
 #endif
 {
   // The mode has not been manually specified
@@ -786,7 +819,7 @@ enum AggregationReportMode
 
 enum Skipped
 #if defined(BENCHMARK_HAS_CXX11)
-    : unsigned
+    : uint8_t
 #endif
 {
   NotSkipped = 0,
@@ -1109,7 +1142,7 @@ inline BENCHMARK_ALWAYS_INLINE bool State::KeepRunningInternal(IterationCount n,
 }
 
 struct State::StateIterator {
-  struct BENCHMARK_UNUSED Value {};
+  struct BENCHMARK_UNUSED Value{};
   typedef std::forward_iterator_tag iterator_category;
   typedef Value value_type;
   typedef Value reference;
@@ -1789,7 +1822,15 @@ struct BENCHMARK_EXPORT CPUInfo {
     int num_sharing;
   };
 
-  enum Scaling { UNKNOWN, ENABLED, DISABLED };
+  enum Scaling
+#if defined(BENCHMARK_HAS_CXX11)
+      : uint8_t
+#endif
+  {
+    UNKNOWN,
+    ENABLED,
+    DISABLED
+  };
 
   int num_cpus;
   Scaling scaling;
@@ -1850,7 +1891,14 @@ class BENCHMARK_EXPORT BenchmarkReporter {
 
   struct BENCHMARK_EXPORT Run {
     static const int64_t no_repetition_index = -1;
-    enum RunType { RT_Iteration, RT_Aggregate };
+    enum RunType
+#if defined(BENCHMARK_HAS_CXX11)
+        : uint8_t
+#endif
+    {
+      RT_Iteration,
+      RT_Aggregate
+    };
 
     Run()
         : run_type(RT_Iteration),
@@ -2006,7 +2054,11 @@ class BENCHMARK_EXPORT BenchmarkReporter {
 // default reporter used by RunSpecifiedBenchmarks().
 class BENCHMARK_EXPORT ConsoleReporter : public BenchmarkReporter {
  public:
-  enum OutputOptions {
+  enum OutputOptions
+#if defined(BENCHMARK_HAS_CXX11)
+      : uint8_t
+#endif
+  {
     OO_None = 0,
     OO_Color = 1,
     OO_Tabular = 2,
