@@ -147,7 +147,12 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 if (MSVC)
   # Turn compiler warnings up to 11
   string(REGEX REPLACE "[-/]W[1-4]" "" CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /W4 /MP")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /W4")
+
+  # MP flag only applies to cl, not cl frontends to other compilers (e.g. clang-cl, icx-cl etc)
+  if(CMAKE_CXX_COMPILER_ID MATCHES MSVC)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /MP")
+  endif()
   add_definitions(-D_CRT_SECURE_NO_WARNINGS)
 
   if(BENCHMARK_ENABLE_WERROR)
