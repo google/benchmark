@@ -11,6 +11,14 @@
 #define BENCHMARK_HAS_CXX11
 #endif
 
+// This _MSC_VER check should detect VS 2017 v15.3 and newer.
+#if __cplusplus >= 201703L || \
+    (defined(_MSC_VER) && _MSC_VER >= 1911 && _MSVC_LANG >= 201703L)
+// CXX17 implies CXX11
+#define BENCHMARK_HAS_CXX11
+#define BENCHMARK_HAS_CXX17
+#endif
+
 namespace benchmark {
 namespace internal {
 
