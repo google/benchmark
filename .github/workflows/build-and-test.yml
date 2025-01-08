@@ -141,8 +141,9 @@ jobs:
             git
             base-devel
           pacboy: >-
-            cc:p
             cmake:p
+            gcc:p
+            llvm:p
             ninja:p
 
       - name: configure cmake
