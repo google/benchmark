@@ -494,7 +494,7 @@ int GetNumCPUsImpl() {
   return static_cast<int>(sysinfo.dwNumberOfProcessors);
 #elif defined(__linux__) || defined(BENCHMARK_OS_SOLARIS)
   // Returns -1 in case of a failure.
-  int num_cpu = static_cast<int> (sysconf(_SC_NPROCESSORS_ONLN));
+  int num_cpu = static_cast<int>(sysconf(_SC_NPROCESSORS_ONLN));
   if (num_cpu < 0) {
     PrintErrorAndDie("sysconf(_SC_NPROCESSORS_ONLN) failed with error: ",
                      strerror(errno));
