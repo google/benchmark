@@ -561,10 +561,12 @@ int GetNumCPUsImpl() {
 }
 
 int GetNumCPUs() {
-  const int num_cpus = GetNumCPUsImpl();
+  int num_cpus = GetNumCPUsImpl();
   if (num_cpus < 1) {
     std::cerr << "Unable to extract number of CPUs.  If your platform uses "
                  "/proc/cpuinfo, custom support may need to be added.\n";
+    /* There is at least one CPU which we run on. */
+    num_cpus = 1;
   }
   return num_cpus;
 }
