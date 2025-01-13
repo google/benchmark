@@ -84,7 +84,7 @@
 namespace benchmark {
 namespace {
 
-void PrintImp(std::ostream& out) { out << std::endl; }
+void PrintImp(std::ostream& out) { out << '\n'; }
 
 template <class First, class... Rest>
 void PrintImp(std::ostream& out, First&& f, Rest&&... rest) {
@@ -528,8 +528,7 @@ class ThreadAffinityGuard final {
   ThreadAffinityGuard() : reset_affinity(SetAffinity()) {
     if (!reset_affinity)
       std::cerr << "***WARNING*** Failed to set thread affinity. Estimated CPU "
-                   "frequency may be incorrect."
-                << std::endl;
+                   "frequency may be incorrect.\n";
   }
 
   ~ThreadAffinityGuard() {

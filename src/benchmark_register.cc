@@ -125,7 +125,7 @@ bool BenchmarkFamilies::FindBenchmarks(
     is_negative_filter = true;
   }
   if (!re.Init(spec, &error_msg)) {
-    Err << "Could not compile benchmark re: " << error_msg << std::endl;
+    Err << "Could not compile benchmark re: " << error_msg << '\n';
     return false;
   }
 
