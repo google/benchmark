@@ -189,8 +189,6 @@ BENCHMARK(BM_test)->Unit(benchmark::kMillisecond);
   TypeName(const TypeName&) = delete;                \
   TypeName& operator=(const TypeName&) = delete
 
-#define BENCHMARK_UNUSED [[maybe_unused]]
-
 // Used to annotate functions, methods and classes so they
 // are not optimized by the compiler. Useful for tests
 // where you expect loops to stay in place churning cycles
@@ -462,7 +460,7 @@ BENCHMARK_EXPORT Benchmark* RegisterBenchmarkInternal(Benchmark*);
 
 // Ensure that the standard streams are properly initialized in every TU.
 BENCHMARK_EXPORT int InitializeStreams();
-BENCHMARK_UNUSED static int stream_init_anchor = InitializeStreams();
+[[maybe_unused]] static int stream_init_anchor = InitializeStreams();
 
 }  // namespace internal
 
@@ -1022,7 +1020,7 @@ inline BENCHMARK_ALWAYS_INLINE bool State::KeepRunningInternal(IterationCount n,
 }
 
 struct State::StateIterator {
-  struct BENCHMARK_UNUSED Value{};
+  struct [[maybe_unused]] Value {};
   typedef std::forward_iterator_tag iterator_category;
   typedef Value value_type;
   typedef Value reference;
@@ -1447,7 +1445,7 @@ class Fixture : public internal::Benchmark {
 #define BENCHMARK_PRIVATE_DECLARE(n)                                 \
   /* NOLINTNEXTLINE(misc-use-anonymous-namespace) */                 \
   static ::benchmark::internal::Benchmark* BENCHMARK_PRIVATE_NAME(n) \
-      BENCHMARK_UNUSED
+      [[maybe_unused]]
 
 #define BENCHMARK(...)                                               \
   BENCHMARK_PRIVATE_DECLARE(_benchmark_) =                           \
