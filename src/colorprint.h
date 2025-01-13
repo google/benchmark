@@ -6,7 +6,7 @@
 #include <string>
 
 namespace benchmark {
-enum LogColor {
+enum LogColor : uint8_t {
   COLOR_DEFAULT,
   COLOR_RED,
   COLOR_GREEN,

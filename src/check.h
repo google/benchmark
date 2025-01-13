@@ -57,7 +57,7 @@ class CheckHandler {
 #pragma warning(disable : 4722)
 #endif
   BENCHMARK_NORETURN ~CheckHandler() BENCHMARK_NOEXCEPT_OP(false) {
-    log_ << std::endl;
+    log_ << '\n';
     CallAbortHandler();
   }
 #if defined(COMPILER_MSVC)
