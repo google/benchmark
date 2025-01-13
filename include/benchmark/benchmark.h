@@ -648,7 +648,17 @@ typedef std::map<std::string, Counter> UserCounters;
 // computational
 // complexity for the benchmark. In case oAuto is selected, complexity will be
 // calculated automatically to the best fit.
-enum BigO : uint8_t { oNone, o1, oN, oNSquared, oNCubed, oLogN, oNLogN, oAuto, oLambda };
+enum BigO : uint8_t {
+  oNone,
+  o1,
+  oN,
+  oNSquared,
+  oNCubed,
+  oLogN,
+  oNLogN,
+  oAuto,
+  oLambda
+};
 
 typedef int64_t ComplexityN;
 
@@ -695,11 +705,7 @@ enum AggregationReportMode : uint8_t {
       ARM_FileReportAggregatesOnly | ARM_DisplayReportAggregatesOnly
 };
 
-enum Skipped : uint8_t {
-  NotSkipped = 0,
-  SkippedWithMessage,
-  SkippedWithError
-};
+enum Skipped : uint8_t { NotSkipped = 0, SkippedWithMessage, SkippedWithError };
 
 }  // namespace internal
 
@@ -1016,7 +1022,7 @@ inline BENCHMARK_ALWAYS_INLINE bool State::KeepRunningInternal(IterationCount n,
 }
 
 struct State::StateIterator {
-  struct BENCHMARK_UNUSED Value {};
+  struct BENCHMARK_UNUSED Value{};
   typedef std::forward_iterator_tag iterator_category;
   typedef Value value_type;
   typedef Value reference;
