@@ -1,5 +1,4 @@
-# Build rule for libpfm, which is required to collect performance counters for
-# BENCHMARK_ENABLE_LIBPFM builds.
+"""Build rule for libpfm, which is required to collect performance counters for BENCHMARK_ENABLE_LIBPFM builds."""
 
 load("@rules_foreign_cc//foreign_cc:defs.bzl", "make")
 
