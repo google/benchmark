@@ -21,7 +21,7 @@
 #define SET_SUBSTITUTIONS(...) \
   int CONCAT(dummy, __LINE__) = ::SetSubstitutions(__VA_ARGS__)
 
-enum MatchRules {
+enum MatchRules uint8_t {
   MR_Default,  // Skip non-matching lines until a match is found.
   MR_Next,     // Match must occur on the next line.
   MR_Not  // No line between the current position and the next match matches
@@ -37,7 +37,7 @@ struct TestCase {
   std::shared_ptr<benchmark::Regex> regex;
 };
 
-enum TestCaseID {
+enum TestCaseID uint8_t {
   TC_ConsoleOut,
   TC_ConsoleErr,
   TC_JSONOut,
@@ -101,7 +101,7 @@ struct Results {
 
   double NumIterations() const;
 
-  typedef enum { kCpuTime, kRealTime } BenchmarkTime;
+  typedef enum : uint8_t { kCpuTime, kRealTime } BenchmarkTime;
 
   // get cpu_time or real_time in seconds
   double GetTime(BenchmarkTime which) const;
