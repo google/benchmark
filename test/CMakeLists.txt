@@ -299,7 +299,7 @@ if (${CMAKE_BUILD_TYPE_LOWER} MATCHES "coverage")
       COMMAND ${LCOV} -q -a before.lcov -a after.lcov --output-file final.lcov
       COMMAND ${LCOV} -q -r final.lcov "'${CMAKE_SOURCE_DIR}/test/*'" -o final.lcov
       COMMAND ${GENHTML} final.lcov -o lcov --demangle-cpp --sort -p "${CMAKE_BINARY_DIR}" -t benchmark
-      DEPENDS filter_test benchmark_test options_test basic_test fixture_test cxx03_test complexity_test
+      DEPENDS filter_test benchmark_test options_test basic_test fixture_test complexity_test
       WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
       COMMENT "Running LCOV"
     )
