@@ -629,7 +629,7 @@ class Counter {
   Counter(double v = 0., Flags f = kDefaults, OneK k = kIs1000)
       : value(v), flags(f), oneK(k) {}
 
-  BENCHMARK_ALWAYS_INLINE operator double const&() const { return value; }
+  BENCHMARK_ALWAYS_INLINE operator double const &() const { return value; }
   BENCHMARK_ALWAYS_INLINE operator double&() { return value; }
 };
 
@@ -1016,7 +1016,7 @@ inline BENCHMARK_ALWAYS_INLINE bool State::KeepRunningInternal(IterationCount n,
 }
 
 struct State::StateIterator {
-  struct BENCHMARK_UNUSED Value{};
+  struct BENCHMARK_UNUSED Value {};
   typedef std::forward_iterator_tag iterator_category;
   typedef Value value_type;
   typedef Value reference;
