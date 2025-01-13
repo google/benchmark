@@ -566,7 +566,6 @@ inline BENCHMARK_ALWAYS_INLINE
 }
 #endif
 
-
 #elif defined(_MSC_VER)
 template <class Tp>
 BENCHMARK_DEPRECATED_MSG(
@@ -630,7 +629,7 @@ class Counter {
   Counter(double v = 0., Flags f = kDefaults, OneK k = kIs1000)
       : value(v), flags(f), oneK(k) {}
 
-  BENCHMARK_ALWAYS_INLINE operator double const &() const { return value; }
+  BENCHMARK_ALWAYS_INLINE operator double const&() const { return value; }
   BENCHMARK_ALWAYS_INLINE operator double&() { return value; }
 };
 
@@ -681,8 +680,7 @@ class ThreadTimer;
 class ThreadManager;
 class PerfCountersMeasurement;
 
-enum AggregationReportMode : unsigned
-{
+enum AggregationReportMode : unsigned {
   // The mode has not been manually specified
   ARM_Unspecified = 0,
   // The mode is user-specified.
@@ -697,8 +695,7 @@ enum AggregationReportMode : unsigned
       ARM_FileReportAggregatesOnly | ARM_DisplayReportAggregatesOnly
 };
 
-enum Skipped : unsigned
-{
+enum Skipped : unsigned {
   NotSkipped = 0,
   SkippedWithMessage,
   SkippedWithError
@@ -1019,7 +1016,7 @@ inline BENCHMARK_ALWAYS_INLINE bool State::KeepRunningInternal(IterationCount n,
 }
 
 struct State::StateIterator {
-  struct BENCHMARK_UNUSED Value {};
+  struct BENCHMARK_UNUSED Value{};
   typedef std::forward_iterator_tag iterator_category;
   typedef Value value_type;
   typedef Value reference;
@@ -1526,15 +1523,15 @@ class Fixture : public internal::Benchmark {
                     "/" #test_case_name,                             \
               [](::benchmark::State& st) { func<a, b>(st, __VA_ARGS__); })))
 
-#define BENCHMARK_PRIVATE_DECLARE_F(BaseClass, Method)          \
-  class BaseClass##_##Method##_Benchmark : public BaseClass {   \
-   public:                                                      \
-    BaseClass##_##Method##_Benchmark() {                        \
-      this->SetName(#BaseClass "/" #Method);                    \
-    }                                                           \
-                                                                \
-   protected:                                                   \
-    void BenchmarkCase(::benchmark::State&) override;           \
+#define BENCHMARK_PRIVATE_DECLARE_F(BaseClass, Method)        \
+  class BaseClass##_##Method##_Benchmark : public BaseClass { \
+   public:                                                    \
+    BaseClass##_##Method##_Benchmark() {                      \
+      this->SetName(#BaseClass "/" #Method);                  \
+    }                                                         \
+                                                              \
+   protected:                                                 \
+    void BenchmarkCase(::benchmark::State&) override;         \
   };
 
 #define BENCHMARK_TEMPLATE1_PRIVATE_DECLARE_F(BaseClass, Method, a) \
@@ -1545,7 +1542,7 @@ class Fixture : public internal::Benchmark {
     }                                                               \
                                                                     \
    protected:                                                       \
-    void BenchmarkCase(::benchmark::State&) override;     \
+    void BenchmarkCase(::benchmark::State&) override;               \
   };
 
 #define BENCHMARK_TEMPLATE2_PRIVATE_DECLARE_F(BaseClass, Method, a, b) \
@@ -1556,7 +1553,7 @@ class Fixture : public internal::Benchmark {
     }                                                                  \
                                                                        \
    protected:                                                          \
-    void BenchmarkCase(::benchmark::State&) override;        \
+    void BenchmarkCase(::benchmark::State&) override;                  \
   };
 
 #define BENCHMARK_TEMPLATE_PRIVATE_DECLARE_F(BaseClass, Method, ...)       \
@@ -1567,7 +1564,7 @@ class Fixture : public internal::Benchmark {
     }                                                                      \
                                                                            \
    protected:                                                              \
-    void BenchmarkCase(::benchmark::State&) override;            \
+    void BenchmarkCase(::benchmark::State&) override;                      \
   };
 
 #define BENCHMARK_DEFINE_F(BaseClass, Method)    \

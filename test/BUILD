@@ -15,7 +15,7 @@ TEST_COPTS = [
     "-Wconversion",
     "-Wextra",
     "-Wshadow",
-    #    "-Wshorten-64-to-32",
+#"-Wshorten-64-to-32",
     "-Wfloat-equal",
     "-fstrict-aliasing",
     ## assert() are used a lot in tests upstream, which may be optimised out leading to
@@ -24,7 +24,7 @@ TEST_COPTS = [
     "-Werror=old-style-cast",
 ]
 
-# Some of the issues with DoNotOptimize only occur when optimization is enabled
+#Some of the issues with DoNotOptimize only occur when optimization is enabled
 PER_SRC_COPTS = {
     "donotoptimize_test.cc": ["-O3"],
 }
@@ -54,7 +54,7 @@ cc_library(
     ],
 )
 
-# Tests that use gtest.  These rely on `gtest_main`.
+#Tests that use gtest.These rely on `gtest_main`.
 [
     cc_test(
         name = test_src[:-len(".cc")],
@@ -74,7 +74,7 @@ cc_library(
     for test_src in glob(["*_gtest.cc"])
 ]
 
-# Tests that do not use gtest.  These have their own `main` defined.
+#Tests that do not use gtest.These have their own `main` defined.
 [
     cc_test(
         name = test_src[:-len(".cc")],
@@ -90,9 +90,9 @@ cc_library(
             "//:benchmark",
             "//:benchmark_internal_headers",
         ],
-        # FIXME: Add support for assembly tests to bazel.
-        # See Issue #556
-        # https://github.com/google/benchmark/issues/556
+#FIXME : Add support for assembly tests to bazel.
+#See Issue #556
+#https:  // github.com/google/benchmark/issues/556
     )
     for test_src in glob(
         ["*_test.cc"],
