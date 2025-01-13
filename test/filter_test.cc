@@ -90,7 +90,7 @@ int main(int argc, char** argv) {
     if (returned_count != expected_return) {
       std::cerr << "ERROR: Expected " << expected_return
                 << " tests to match the filter but returned_count = "
-                << returned_count << std::endl;
+                << returned_count << '\n';
       return -1;
     }
 
