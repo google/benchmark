@@ -163,60 +163,33 @@ BENCHMARK(BM_test)->Unit(benchmark::kMillisecond);
 #ifndef BENCHMARK_BENCHMARK_H_
 #define BENCHMARK_BENCHMARK_H_
 
-// The _MSVC_LANG check should detect Visual Studio 2015 Update 3 and newer.
-#if __cplusplus >= 201103L || (defined(_MSVC_LANG) && _MSVC_LANG >= 201103L)
-#define BENCHMARK_HAS_CXX11
-#endif
-
-// This _MSC_VER check should detect VS 2017 v15.3 and newer.
-#if __cplusplus >= 201703L || \
-    (defined(_MSC_VER) && _MSC_VER >= 1911 && _MSVC_LANG >= 201703L)
-#define BENCHMARK_HAS_CXX17
-#endif
-
 #include <stdint.h>
 
 #include <algorithm>
+#include <atomic>
 #include <cassert>
 #include <cstddef>
+#include <initializer_list>
 #include <iosfwd>
 #include <limits>
 #include <map>
 #include <set>
 #include <string>
+#include <type_traits>
 #include <utility>
 #include <vector>
 
 #include "benchmark/export.h"
 
-#if defined(BENCHMARK_HAS_CXX11)
-#include <atomic>
-#include <initializer_list>
-#include <type_traits>
-#include <utility>
-#endif
-
 #if defined(_MSC_VER)
 #include <intrin.h>  // for _ReadWriteBarrier
 #endif
 
-#ifndef BENCHMARK_HAS_CXX11
-#define BENCHMARK_DISALLOW_COPY_AND_ASSIGN(TypeName) \
-  TypeName(const TypeName&);                         \
-  TypeName& operator=(const TypeName&)
-#else
 #define BENCHMARK_DISALLOW_COPY_AND_ASSIGN(TypeName) \
   TypeName(const TypeName&) = delete;                \
   TypeName& operator=(const TypeName&) = delete
-#endif
 
-#ifdef BENCHMARK_HAS_CXX17
 #define BENCHMARK_UNUSED [[maybe_unused]]
-#elif defined(__GNUC__) || defined(__clang__)
-#define BENCHMARK_UNUSED __attribute__((unused))
-#else
-#define BENCHMARK_UNUSED
-#endif
 
 // Used to annotate functions, methods and classes so they
 // are not optimized by the compiler. Useful for tests
@@ -282,12 +255,6 @@ BENCHMARK(BM_test)->Unit(benchmark::kMillisecond);
 #define BENCHMARK_UNREACHABLE() __assume(false)
 #else
 #define BENCHMARK_UNREACHABLE() ((void)0)
-#endif
-
-#ifdef BENCHMARK_HAS_CXX11
-#define BENCHMARK_OVERRIDE override
-#else
-#define BENCHMARK_OVERRIDE
 #endif
 
 #if defined(__GNUC__)
@@ -506,11 +473,9 @@ BENCHMARK_UNUSED static int stream_init_anchor = InitializeStreams();
 
 // Force the compiler to flush pending writes to global memory. Acts as an
 // effective read/write barrier
-#ifdef BENCHMARK_HAS_CXX11
 inline BENCHMARK_ALWAYS_INLINE void ClobberMemory() {
   std::atomic_signal_fence(std::memory_order_acq_rel);
 }
-#endif
 
 // The DoNotOptimize(...) function can be used to prevent a value or
 // expression from being optimized away by the compiler. This function is
@@ -535,7 +500,6 @@ inline BENCHMARK_ALWAYS_INLINE void DoNotOptimize(Tp& value) {
 #endif
 }
 
-#ifdef BENCHMARK_HAS_CXX11
 template <class Tp>
 inline BENCHMARK_ALWAYS_INLINE void DoNotOptimize(Tp&& value) {
 #if defined(__clang__)
@@ -544,8 +508,7 @@ inline BENCHMARK_ALWAYS_INLINE void DoNotOptimize(Tp&& value) {
   asm volatile("" : "+m,r"(value) : : "memory");
 #endif
 }
-#endif
-#elif defined(BENCHMARK_HAS_CXX11) && (__GNUC__ >= 5)
+#elif (__GNUC__ >= 5)
 // Workaround for a bug with full argument copy overhead with GCC.
 // See: #1340 and https://gcc.gnu.org/bugzilla/show_bug.cgi?id=105519
 template <class Tp>
@@ -601,37 +564,9 @@ inline BENCHMARK_ALWAYS_INLINE
     DoNotOptimize(Tp&& value) {
   asm volatile("" : "+m"(value) : : "memory");
 }
-
-#else
-// Fallback for GCC < 5. Can add some overhead because the compiler is forced
-// to use memory operations instead of operations with registers.
-// TODO: Remove if GCC < 5 will be unsupported.
-template <class Tp>
-BENCHMARK_DEPRECATED_MSG(
-    "The const-ref version of this method can permit "
-    "undesired compiler optimizations in benchmarks")
-inline BENCHMARK_ALWAYS_INLINE void DoNotOptimize(Tp const& value) {
-  asm volatile("" : : "m"(value) : "memory");
-}
-
-template <class Tp>
-inline BENCHMARK_ALWAYS_INLINE void DoNotOptimize(Tp& value) {
-  asm volatile("" : "+m"(value) : : "memory");
-}
-
-#ifdef BENCHMARK_HAS_CXX11
-template <class Tp>
-inline BENCHMARK_ALWAYS_INLINE void DoNotOptimize(Tp&& value) {
-  asm volatile("" : "+m"(value) : : "memory");
-}
-#endif
 #endif
 
-#ifndef BENCHMARK_HAS_CXX11
-inline BENCHMARK_ALWAYS_INLINE void ClobberMemory() {
-  asm volatile("" : : : "memory");
-}
-#endif
+
 #elif defined(_MSC_VER)
 template <class Tp>
 BENCHMARK_DEPRECATED_MSG(
@@ -642,29 +577,11 @@ inline BENCHMARK_ALWAYS_INLINE void DoNotOptimize(Tp const& value) {
   _ReadWriteBarrier();
 }
 
-#ifndef BENCHMARK_HAS_CXX11
-inline BENCHMARK_ALWAYS_INLINE void ClobberMemory() { _ReadWriteBarrier(); }
-#endif
 #else
-#ifdef BENCHMARK_HAS_CXX11
 template <class Tp>
 inline BENCHMARK_ALWAYS_INLINE void DoNotOptimize(Tp&& value) {
   internal::UseCharPointer(&reinterpret_cast<char const volatile&>(value));
 }
-#else
-template <class Tp>
-BENCHMARK_DEPRECATED_MSG(
-    "The const-ref version of this method can permit "
-    "undesired compiler optimizations in benchmarks")
-inline BENCHMARK_ALWAYS_INLINE void DoNotOptimize(Tp const& value) {
-  internal::UseCharPointer(&reinterpret_cast<char const volatile&>(value));
-}
-
-template <class Tp>
-inline BENCHMARK_ALWAYS_INLINE void DoNotOptimize(Tp& value) {
-  internal::UseCharPointer(&reinterpret_cast<char const volatile&>(value));
-}
-#endif
 // FIXME Add ClobberMemory() for non-gnu and non-msvc compilers, before C++11.
 #endif
 
@@ -764,11 +681,7 @@ class ThreadTimer;
 class ThreadManager;
 class PerfCountersMeasurement;
 
-enum AggregationReportMode
-#if defined(BENCHMARK_HAS_CXX11)
-    : unsigned
-#else
-#endif
+enum AggregationReportMode : unsigned
 {
   // The mode has not been manually specified
   ARM_Unspecified = 0,
@@ -784,10 +697,7 @@ enum AggregationReportMode
       ARM_FileReportAggregatesOnly | ARM_DisplayReportAggregatesOnly
 };
 
-enum Skipped
-#if defined(BENCHMARK_HAS_CXX11)
-    : unsigned
-#endif
+enum Skipped : unsigned
 {
   NotSkipped = 0,
   SkippedWithMessage,
@@ -1404,17 +1314,7 @@ class BENCHMARK_EXPORT Benchmark {
   callback_function setup_;
   callback_function teardown_;
 
-  Benchmark(Benchmark const&)
-#if defined(BENCHMARK_HAS_CXX11)
-      = delete
-#endif
-      ;
-
-  Benchmark& operator=(Benchmark const&)
-#if defined(BENCHMARK_HAS_CXX11)
-      = delete
-#endif
-      ;
+  BENCHMARK_DISALLOW_COPY_AND_ASSIGN(Benchmark);
 };
 
 }  // namespace internal
@@ -1426,10 +1326,8 @@ class BENCHMARK_EXPORT Benchmark {
 internal::Benchmark* RegisterBenchmark(const std::string& name,
                                        internal::Function* fn);
 
-#if defined(BENCHMARK_HAS_CXX11)
 template <class Lambda>
 internal::Benchmark* RegisterBenchmark(const std::string& name, Lambda&& fn);
-#endif
 
 // Remove all registered benchmarks. All pointers to previously registered
 // benchmarks are invalidated.
@@ -1443,17 +1341,16 @@ class BENCHMARK_EXPORT FunctionBenchmark : public Benchmark {
   FunctionBenchmark(const std::string& name, Function* func)
       : Benchmark(name), func_(func) {}
 
-  void Run(State& st) BENCHMARK_OVERRIDE;
+  void Run(State& st) override;
 
  private:
   Function* func_;
 };
 
-#ifdef BENCHMARK_HAS_CXX11
 template <class Lambda>
 class LambdaBenchmark : public Benchmark {
  public:
-  void Run(State& st) BENCHMARK_OVERRIDE { lambda_(st); }
+  void Run(State& st) override { lambda_(st); }
 
  private:
   template <class OLambda>
@@ -1467,7 +1364,6 @@ class LambdaBenchmark : public Benchmark {
 
   Lambda lambda_;
 };
-#endif
 }  // namespace internal
 
 inline internal::Benchmark* RegisterBenchmark(const std::string& name,
@@ -1478,7 +1374,6 @@ inline internal::Benchmark* RegisterBenchmark(const std::string& name,
       ::new internal::FunctionBenchmark(name, fn));
 }
 
-#ifdef BENCHMARK_HAS_CXX11
 template <class Lambda>
 internal::Benchmark* RegisterBenchmark(const std::string& name, Lambda&& fn) {
   using BenchType =
@@ -1488,10 +1383,8 @@ internal::Benchmark* RegisterBenchmark(const std::string& name, Lambda&& fn) {
   return internal::RegisterBenchmarkInternal(
       ::new BenchType(name, std::forward<Lambda>(fn)));
 }
-#endif
 
-#if defined(BENCHMARK_HAS_CXX11) && \
-    (!defined(BENCHMARK_GCC_VERSION) || BENCHMARK_GCC_VERSION >= 409)
+#if (!defined(BENCHMARK_GCC_VERSION) || BENCHMARK_GCC_VERSION >= 409)
 template <class Lambda, class... Args>
 internal::Benchmark* RegisterBenchmark(const std::string& name, Lambda&& fn,
                                        Args&&... args) {
@@ -1507,7 +1400,7 @@ class Fixture : public internal::Benchmark {
  public:
   Fixture() : internal::Benchmark("") {}
 
-  void Run(State& st) BENCHMARK_OVERRIDE {
+  void Run(State& st) override {
     this->SetUp(st);
     this->BenchmarkCase(st);
     this->TearDown(st);
@@ -1538,14 +1431,9 @@ class Fixture : public internal::Benchmark {
 #endif
 
 // Helpers for generating unique variable names
-#ifdef BENCHMARK_HAS_CXX11
 #define BENCHMARK_PRIVATE_NAME(...)                                      \
   BENCHMARK_PRIVATE_CONCAT(benchmark_uniq_, BENCHMARK_PRIVATE_UNIQUE_ID, \
                            __VA_ARGS__)
-#else
-#define BENCHMARK_PRIVATE_NAME(n) \
-  BENCHMARK_PRIVATE_CONCAT(benchmark_uniq_, BENCHMARK_PRIVATE_UNIQUE_ID, n)
-#endif  // BENCHMARK_HAS_CXX11
 
 #define BENCHMARK_PRIVATE_CONCAT(a, b, c) BENCHMARK_PRIVATE_CONCAT2(a, b, c)
 #define BENCHMARK_PRIVATE_CONCAT2(a, b, c) a##b##c
@@ -1558,18 +1446,11 @@ class Fixture : public internal::Benchmark {
   static ::benchmark::internal::Benchmark* BENCHMARK_PRIVATE_NAME(n) \
       BENCHMARK_UNUSED
 
-#ifdef BENCHMARK_HAS_CXX11
 #define BENCHMARK(...)                                               \
   BENCHMARK_PRIVATE_DECLARE(_benchmark_) =                           \
       (::benchmark::internal::RegisterBenchmarkInternal(             \
           new ::benchmark::internal::FunctionBenchmark(#__VA_ARGS__, \
                                                        __VA_ARGS__)))
-#else
-#define BENCHMARK(n)                                     \
-  BENCHMARK_PRIVATE_DECLARE(n) =                         \
-      (::benchmark::internal::RegisterBenchmarkInternal( \
-          new ::benchmark::internal::FunctionBenchmark(#n, n)))
-#endif  // BENCHMARK_HAS_CXX11
 
 // Old-style macros
 #define BENCHMARK_WITH_ARG(n, a) BENCHMARK(n)->Arg((a))
@@ -1578,8 +1459,6 @@ class Fixture : public internal::Benchmark {
 #define BENCHMARK_RANGE(n, lo, hi) BENCHMARK(n)->Range((lo), (hi))
 #define BENCHMARK_RANGE2(n, l1, h1, l2, h2) \
   BENCHMARK(n)->RangePair({{(l1), (h1)}, {(l2), (h2)}})
-
-#ifdef BENCHMARK_HAS_CXX11
 
 // Register a benchmark which invokes the function specified by `func`
 // with the additional arguments specified by `...`.
@@ -1598,8 +1477,6 @@ class Fixture : public internal::Benchmark {
           new ::benchmark::internal::FunctionBenchmark(  \
               #func "/" #test_case_name,                 \
               [](::benchmark::State& st) { func(st, __VA_ARGS__); })))
-
-#endif  // BENCHMARK_HAS_CXX11
 
 // This will register a benchmark for a templatized function.  For example:
 //
@@ -1620,17 +1497,12 @@ class Fixture : public internal::Benchmark {
           new ::benchmark::internal::FunctionBenchmark(#n "<" #a "," #b ">", \
                                                        n<a, b>)))
 
-#ifdef BENCHMARK_HAS_CXX11
 #define BENCHMARK_TEMPLATE(n, ...)                       \
   BENCHMARK_PRIVATE_DECLARE(n) =                         \
       (::benchmark::internal::RegisterBenchmarkInternal( \
           new ::benchmark::internal::FunctionBenchmark(  \
               #n "<" #__VA_ARGS__ ">", n<__VA_ARGS__>)))
-#else
-#define BENCHMARK_TEMPLATE(n, a) BENCHMARK_TEMPLATE1(n, a)
-#endif
 
-#ifdef BENCHMARK_HAS_CXX11
 // This will register a benchmark for a templatized function,
 // with the additional arguments specified by `...`.
 //
@@ -1653,7 +1525,6 @@ class Fixture : public internal::Benchmark {
               #func "<" #a "," #b ">"                                \
                     "/" #test_case_name,                             \
               [](::benchmark::State& st) { func<a, b>(st, __VA_ARGS__); })))
-#endif  // BENCHMARK_HAS_CXX11
 
 #define BENCHMARK_PRIVATE_DECLARE_F(BaseClass, Method)          \
   class BaseClass##_##Method##_Benchmark : public BaseClass {   \
@@ -1663,7 +1534,7 @@ class Fixture : public internal::Benchmark {
     }                                                           \
                                                                 \
    protected:                                                   \
-    void BenchmarkCase(::benchmark::State&) BENCHMARK_OVERRIDE; \
+    void BenchmarkCase(::benchmark::State&) override;           \
   };
 
 #define BENCHMARK_TEMPLATE1_PRIVATE_DECLARE_F(BaseClass, Method, a) \
@@ -1674,7 +1545,7 @@ class Fixture : public internal::Benchmark {
     }                                                               \
                                                                     \
    protected:                                                       \
-    void BenchmarkCase(::benchmark::State&) BENCHMARK_OVERRIDE;     \
+    void BenchmarkCase(::benchmark::State&) override;     \
   };
 
 #define BENCHMARK_TEMPLATE2_PRIVATE_DECLARE_F(BaseClass, Method, a, b) \
@@ -1685,10 +1556,9 @@ class Fixture : public internal::Benchmark {
     }                                                                  \
                                                                        \
    protected:                                                          \
-    void BenchmarkCase(::benchmark::State&) BENCHMARK_OVERRIDE;        \
+    void BenchmarkCase(::benchmark::State&) override;        \
   };
 
-#ifdef BENCHMARK_HAS_CXX11
 #define BENCHMARK_TEMPLATE_PRIVATE_DECLARE_F(BaseClass, Method, ...)       \
   class BaseClass##_##Method##_Benchmark : public BaseClass<__VA_ARGS__> { \
    public:                                                                 \
@@ -1697,12 +1567,8 @@ class Fixture : public internal::Benchmark {
     }                                                                      \
                                                                            \
    protected:                                                              \
-    void BenchmarkCase(::benchmark::State&) BENCHMARK_OVERRIDE;            \
+    void BenchmarkCase(::benchmark::State&) override;            \
   };
-#else
-#define BENCHMARK_TEMPLATE_PRIVATE_DECLARE_F(n, a) \
-  BENCHMARK_TEMPLATE1_PRIVATE_DECLARE_F(n, a)
-#endif
 
 #define BENCHMARK_DEFINE_F(BaseClass, Method)    \
   BENCHMARK_PRIVATE_DECLARE_F(BaseClass, Method) \
@@ -1716,14 +1582,9 @@ class Fixture : public internal::Benchmark {
   BENCHMARK_TEMPLATE2_PRIVATE_DECLARE_F(BaseClass, Method, a, b) \
   void BENCHMARK_PRIVATE_CONCAT_NAME(BaseClass, Method)::BenchmarkCase
 
-#ifdef BENCHMARK_HAS_CXX11
 #define BENCHMARK_TEMPLATE_DEFINE_F(BaseClass, Method, ...)            \
   BENCHMARK_TEMPLATE_PRIVATE_DECLARE_F(BaseClass, Method, __VA_ARGS__) \
   void BENCHMARK_PRIVATE_CONCAT_NAME(BaseClass, Method)::BenchmarkCase
-#else
-#define BENCHMARK_TEMPLATE_DEFINE_F(BaseClass, Method, a) \
-  BENCHMARK_TEMPLATE1_DEFINE_F(BaseClass, Method, a)
-#endif
 
 #define BENCHMARK_REGISTER_F(BaseClass, Method) \
   BENCHMARK_PRIVATE_REGISTER_F(BENCHMARK_PRIVATE_CONCAT_NAME(BaseClass, Method))
@@ -1748,15 +1609,10 @@ class Fixture : public internal::Benchmark {
   BENCHMARK_REGISTER_F(BaseClass, Method);                       \
   void BENCHMARK_PRIVATE_CONCAT_NAME(BaseClass, Method)::BenchmarkCase
 
-#ifdef BENCHMARK_HAS_CXX11
 #define BENCHMARK_TEMPLATE_F(BaseClass, Method, ...)                   \
   BENCHMARK_TEMPLATE_PRIVATE_DECLARE_F(BaseClass, Method, __VA_ARGS__) \
   BENCHMARK_REGISTER_F(BaseClass, Method);                             \
   void BENCHMARK_PRIVATE_CONCAT_NAME(BaseClass, Method)::BenchmarkCase
-#else
-#define BENCHMARK_TEMPLATE_F(BaseClass, Method, a) \
-  BENCHMARK_TEMPLATE1_F(BaseClass, Method, a)
-#endif
 
 // Helper macro to create a main routine in a test that runs the benchmarks
 // Note the workaround for Hexagon simulator passing argc != 0, argv = NULL.
@@ -2016,8 +1872,8 @@ class BENCHMARK_EXPORT ConsoleReporter : public BenchmarkReporter {
   explicit ConsoleReporter(OutputOptions opts_ = OO_Defaults)
       : output_options_(opts_), name_field_width_(0), printed_header_(false) {}
 
-  bool ReportContext(const Context& context) BENCHMARK_OVERRIDE;
-  void ReportRuns(const std::vector<Run>& reports) BENCHMARK_OVERRIDE;
+  bool ReportContext(const Context& context) override;
+  void ReportRuns(const std::vector<Run>& reports) override;
 
  protected:
   virtual void PrintRunData(const Run& report);
@@ -2032,9 +1888,9 @@ class BENCHMARK_EXPORT ConsoleReporter : public BenchmarkReporter {
 class BENCHMARK_EXPORT JSONReporter : public BenchmarkReporter {
  public:
   JSONReporter() : first_report_(true) {}
-  bool ReportContext(const Context& context) BENCHMARK_OVERRIDE;
-  void ReportRuns(const std::vector<Run>& reports) BENCHMARK_OVERRIDE;
-  void Finalize() BENCHMARK_OVERRIDE;
+  bool ReportContext(const Context& context) override;
+  void ReportRuns(const std::vector<Run>& reports) override;
+  void Finalize() override;
 
  private:
   void PrintRunData(const Run& report);
@@ -2047,8 +1903,8 @@ class BENCHMARK_EXPORT BENCHMARK_DEPRECATED_MSG(
     : public BenchmarkReporter {
  public:
   CSVReporter() : printed_header_(false) {}
-  bool ReportContext(const Context& context) BENCHMARK_OVERRIDE;
-  void ReportRuns(const std::vector<Run>& reports) BENCHMARK_OVERRIDE;
+  bool ReportContext(const Context& context) override;
+  void ReportRuns(const std::vector<Run>& reports) override;
 
  private:
   void PrintRunData(const Run& report);
