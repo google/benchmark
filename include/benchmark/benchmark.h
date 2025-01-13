@@ -370,7 +370,7 @@ RunSpecifiedBenchmarks(BenchmarkReporter* display_reporter,
 
 // TimeUnit is passed to a benchmark in order to specify the order of magnitude
 // for the measured time.
-enum TimeUnit { kNanosecond, kMicrosecond, kMillisecond, kSecond };
+enum TimeUnit : uint8_t { kNanosecond, kMicrosecond, kMillisecond, kSecond };
 
 BENCHMARK_EXPORT TimeUnit GetDefaultTimeUnit();
 
@@ -614,7 +614,7 @@ class Counter {
     kInvert = 1 << 31
   };
 
-  enum OneK {
+  enum OneK : uint16_t {
     // 1'000 items per 1k
     kIs1000 = 1000,
     // 1'024 items per 1k
@@ -648,13 +648,13 @@ typedef std::map<std::string, Counter> UserCounters;
 // computational
 // complexity for the benchmark. In case oAuto is selected, complexity will be
 // calculated automatically to the best fit.
-enum BigO { oNone, o1, oN, oNSquared, oNCubed, oLogN, oNLogN, oAuto, oLambda };
+enum BigO : uint8_t { oNone, o1, oN, oNSquared, oNCubed, oLogN, oNLogN, oAuto, oLambda };
 
 typedef int64_t ComplexityN;
 
 typedef int64_t IterationCount;
 
-enum StatisticUnit { kTime, kPercentage };
+enum StatisticUnit : uint8_t { kTime, kPercentage };
 
 // BigOFunc is passed to a benchmark in order to specify the asymptotic
 // computational complexity for the benchmark.
@@ -680,7 +680,7 @@ class ThreadTimer;
 class ThreadManager;
 class PerfCountersMeasurement;
 
-enum AggregationReportMode : unsigned {
+enum AggregationReportMode : uint8_t {
   // The mode has not been manually specified
   ARM_Unspecified = 0,
   // The mode is user-specified.
@@ -695,7 +695,7 @@ enum AggregationReportMode : unsigned {
       ARM_FileReportAggregatesOnly | ARM_DisplayReportAggregatesOnly
 };
 
-enum Skipped : unsigned {
+enum Skipped : uint8_t {
   NotSkipped = 0,
   SkippedWithMessage,
   SkippedWithError
@@ -1642,7 +1642,7 @@ struct BENCHMARK_EXPORT CPUInfo {
     int num_sharing;
   };
 
-  enum Scaling { UNKNOWN, ENABLED, DISABLED };
+  enum Scaling : uint8_t { UNKNOWN, ENABLED, DISABLED };
 
   int num_cpus;
   Scaling scaling;
@@ -1703,7 +1703,7 @@ class BENCHMARK_EXPORT BenchmarkReporter {
 
   struct BENCHMARK_EXPORT Run {
     static const int64_t no_repetition_index = -1;
-    enum RunType { RT_Iteration, RT_Aggregate };
+    enum RunType : uint8_t { RT_Iteration, RT_Aggregate };
 
     Run()
         : run_type(RT_Iteration),
@@ -1859,7 +1859,7 @@ class BENCHMARK_EXPORT BenchmarkReporter {
 // default reporter used by RunSpecifiedBenchmarks().
 class BENCHMARK_EXPORT ConsoleReporter : public BenchmarkReporter {
  public:
-  enum OutputOptions {
+  enum OutputOptions : uint8_t {
     OO_None = 0,
     OO_Color = 1,
     OO_Tabular = 2,
