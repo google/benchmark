@@ -814,7 +814,7 @@ class TestReportDifference(unittest.TestCase):
         ]
         self.assertEqual(len(self.json_diff_report), len(expected_output))
         for out, expected in zip(
-            self.json_diff_report, expected_output, strict=False
+            self.json_diff_report, expected_output, strict=True
         ):
             self.assertEqual(out["name"], expected["name"])
             self.assertEqual(out["label"], expected["label"])
@@ -944,7 +944,7 @@ class TestReportDifferenceBetweenFamilies(unittest.TestCase):
         ]
         self.assertEqual(len(self.json_diff_report), len(expected_output))
         for out, expected in zip(
-            self.json_diff_report, expected_output, strict=False
+            self.json_diff_report, expected_output, strict=True
         ):
             self.assertEqual(out["name"], expected["name"])
             self.assertEqual(out["time_unit"], expected["time_unit"])
@@ -1189,7 +1189,7 @@ class TestReportDifferenceWithUTest(unittest.TestCase):
         ]
         self.assertEqual(len(self.json_diff_report), len(expected_output))
         for out, expected in zip(
-            self.json_diff_report, expected_output, strict=False
+            self.json_diff_report, expected_output, strict=True
         ):
             self.assertEqual(out["name"], expected["name"])
             self.assertEqual(out["time_unit"], expected["time_unit"])
@@ -1381,7 +1381,7 @@ class TestReportDifferenceWithUTestWhileDisplayingAggregatesOnly(
         ]
         self.assertEqual(len(self.json_diff_report), len(expected_output))
         for out, expected in zip(
-            self.json_diff_report, expected_output, strict=False
+            self.json_diff_report, expected_output, strict=True
         ):
             self.assertEqual(out["name"], expected["name"])
             self.assertEqual(out["time_unit"], expected["time_unit"])
@@ -1442,7 +1442,7 @@ class TestReportDifferenceForPercentageAggregates(unittest.TestCase):
         ]
         self.assertEqual(len(self.json_diff_report), len(expected_output))
         for out, expected in zip(
-            self.json_diff_report, expected_output, strict=False
+            self.json_diff_report, expected_output, strict=True
         ):
             self.assertEqual(out["name"], expected["name"])
             self.assertEqual(out["time_unit"], expected["time_unit"])
@@ -1491,7 +1491,7 @@ class TestReportSorting(unittest.TestCase):
             ]
             self.assertEqual(len(expected_names), len(sorted_benchmarks))
             for out, expected in zip(
-                sorted_benchmarks, expected_names, strict=False
+                sorted_benchmarks, expected_names, strict=True
             ):
                 self.assertEqual(out["name"], expected)
 
@@ -1585,7 +1585,7 @@ class TestReportDifferenceWithUTestWhileDisplayingAggregatesOnly2(
         ]
         self.assertEqual(len(self.json_diff_report), len(expected_output))
         for out, expected in zip(
-            self.json_diff_report, expected_output, strict=False
+            self.json_diff_report, expected_output, strict=True
         ):
             self.assertEqual(out["name"], expected["name"])
             self.assertEqual(out["time_unit"], expected["time_unit"])
