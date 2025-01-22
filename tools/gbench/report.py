@@ -249,7 +249,10 @@ def print_utest(bc_name, utest, utest_alpha, first_col_width, use_color=True):
     # We still got some results to show but issue a warning about it.
     if not utest["have_optimal_repetitions"]:
         dsc_color = BC_WARNING
-        dsc += f". WARNING: Results unreliable! {UTEST_OPTIMAL_REPETITIONS}+ repetitions recommended."
+        dsc += (
+            f". WARNING: Results unreliable! {UTEST_OPTIMAL_REPETITIONS}+"
+            " repetitions recommended."
+        )
 
     special_str = "{}{:<{}s}{endc}{}{:16.4f}{endc}{}{:16.4f}{endc}{}      {}"
 
@@ -397,12 +400,17 @@ def print_difference_report(
     first_col_width = find_longest_name(json_diff_report)
     first_col_width = max(first_col_width, len("Benchmark"))
     first_col_width += len(UTEST_COL_NAME)
-    first_line = "{:<{}s}Time             CPU      Time Old      Time New       CPU Old       CPU New".format(
-        "Benchmark", 12 + first_col_width
+    fmt_str = (
+        "{:<{}s}Time             CPU      Time Old      Time New       CPU Old"
+        "       CPU New"
     )
+    first_line = fmt_str.format("Benchmark", 12 + first_col_width)
     output_strs = [first_line, "-" * len(first_line)]
 
-    fmt_str = "{}{:<{}s}{endc}{}{:+16.4f}{endc}{}{:+16.4f}{endc}{:14.0f}{:14.0f}{endc}{:14.0f}{:14.0f}"
+    fmt_str = (
+        "{}{:<{}s}{endc}{}{:+16.4f}{endc}{}{:+16.4f}{endc}{:14.0f}{:14.0f}"
+        "{endc}{:14.0f}{:14.0f}"
+    )
     for benchmark in json_diff_report:
         # *If* we were asked to only include aggregates,
         # and if it is non-aggregate, then don't print it.
