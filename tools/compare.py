@@ -94,9 +94,7 @@ def create_parser():
         dest="utest",
         default=True,
         action="store_false",
-        help="The tool can do a two-tailed Mann-Whitney U test with the null hypothesis that it is equally likely that a randomly selected value from one sample will be less than or greater than a randomly selected value from a second sample.\nWARNING: requires **LARGE** (no less than {}) number of repetitions to be meaningful!\nThe test is being done by default, if at least {} repetitions were done.\nThis option can disable the U Test.".format(
-            report.UTEST_OPTIMAL_REPETITIONS, report.UTEST_MIN_REPETITIONS
-        ),
+        help=f"The tool can do a two-tailed Mann-Whitney U test with the null hypothesis that it is equally likely that a randomly selected value from one sample will be less than or greater than a randomly selected value from a second sample.\nWARNING: requires **LARGE** (no less than {report.UTEST_OPTIMAL_REPETITIONS}) number of repetitions to be meaningful!\nThe test is being done by default, if at least {report.UTEST_MIN_REPETITIONS} repetitions were done.\nThis option can disable the U Test.",
     )
     alpha_default = 0.05
     utest.add_argument(
