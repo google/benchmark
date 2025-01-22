@@ -474,8 +474,8 @@ class TestGetUniqueBenchmarkNames(unittest.TestCase):
         print("\n")
         print("\n".join(output_lines))
         self.assertEqual(len(output_lines), len(expect_lines))
-        for i in range(len(output_lines)):
-            self.assertEqual(expect_lines[i], output_lines[i])
+        for i, output_line in enumerate(output_lines):
+            self.assertEqual(expect_lines[i], output_line)
 
 
 class TestReportDifference(unittest.TestCase):
@@ -578,8 +578,8 @@ class TestReportDifference(unittest.TestCase):
         print("\n")
         print("\n".join(output_lines_with_header))
         self.assertEqual(len(output_lines), len(expect_lines))
-        for i in range(len(output_lines)):
-            parts = [x for x in output_lines[i].split(" ") if x]
+        for i, output_line in enumerate(output_lines):
+            parts = [x for x in output_line.split(" ") if x]
             self.assertEqual(len(parts), 7)
             self.assertEqual(expect_lines[i], parts)
 
@@ -857,8 +857,8 @@ class TestReportDifferenceBetweenFamilies(unittest.TestCase):
         print("\n")
         print("\n".join(output_lines_with_header))
         self.assertEqual(len(output_lines), len(expect_lines))
-        for i in range(len(output_lines)):
-            parts = [x for x in output_lines[i].split(" ") if x]
+        for i, output_line in enumerate(output_lines):
+            parts = [x for x in output_line.split(" ") if x]
             self.assertEqual(len(parts), 7)
             self.assertEqual(expect_lines[i], parts)
 
@@ -1023,8 +1023,8 @@ class TestReportDifferenceWithUTest(unittest.TestCase):
         print("\n")
         print("\n".join(output_lines_with_header))
         self.assertEqual(len(output_lines), len(expect_lines))
-        for i in range(len(output_lines)):
-            parts = [x for x in output_lines[i].split(" ") if x]
+        for i, output_line in enumerate(output_lines):
+            parts = [x for x in output_line.split(" ") if x]
             self.assertEqual(expect_lines[i], parts)
 
     def test_json_diff_report_pretty_printing_aggregates_only(self):
@@ -1079,8 +1079,8 @@ class TestReportDifferenceWithUTest(unittest.TestCase):
         print("\n")
         print("\n".join(output_lines_with_header))
         self.assertEqual(len(output_lines), len(expect_lines))
-        for i in range(len(output_lines)):
-            parts = [x for x in output_lines[i].split(" ") if x]
+        for i, output_line in enumerate(output_lines):
+            parts = [x for x in output_line.split(" ") if x]
             self.assertEqual(expect_lines[i], parts)
 
     def test_json_diff_report(self):
@@ -1270,8 +1270,8 @@ class TestReportDifferenceWithUTestWhileDisplayingAggregatesOnly(
         print("\n")
         print("\n".join(output_lines_with_header))
         self.assertEqual(len(output_lines), len(expect_lines))
-        for i in range(len(output_lines)):
-            parts = [x for x in output_lines[i].split(" ") if x]
+        for i, output_line in enumerate(output_lines):
+            parts = [x for x in output_line.split(" ") if x]
             self.assertEqual(expect_lines[i], parts)
 
     def test_json_diff_report(self):
@@ -1418,8 +1418,8 @@ class TestReportDifferenceForPercentageAggregates(unittest.TestCase):
         print("\n")
         print("\n".join(output_lines_with_header))
         self.assertEqual(len(output_lines), len(expect_lines))
-        for i in range(len(output_lines)):
-            parts = [x for x in output_lines[i].split(" ") if x]
+        for i, output_line in enumerate(output_lines):
+            parts = [x for x in output_line.split(" ") if x]
             self.assertEqual(expect_lines[i], parts)
 
     def test_json_diff_report(self):
@@ -1541,8 +1541,8 @@ class TestReportDifferenceWithUTestWhileDisplayingAggregatesOnly2(
         )
         output_lines = output_lines_with_header[2:]
         found = False
-        for i in range(len(output_lines)):
-            parts = [x for x in output_lines[i].split(" ") if x]
+        for output_line in output_lines:
+            parts = [x for x in output_line.split(" ") if x]
             found = expect_line == parts
             if found:
                 break
