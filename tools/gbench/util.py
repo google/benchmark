@@ -1,4 +1,6 @@
-"""util.py - General utilities for running, loading, and processing benchmarks"""
+"""util.py - General utilities for running, loading, and processing
+benchmarks
+"""
 
 import json
 import os
@@ -141,8 +143,8 @@ def load_benchmark_results(fname, benchmark_filter):
             json_schema_version = results["context"]["json_schema_version"]
             if json_schema_version != 1:
                 print(
-                    "In %s, got unnsupported JSON schema version: %i, expected 1"
-                    % (fname, json_schema_version)
+                    f"In {fname}, got unnsupported JSON schema version:"
+                    f" {json_schema_version}, expected 1"
                 )
                 sys.exit(1)
         if "benchmarks" in results:
