@@ -109,7 +109,7 @@ class BenchmarkRunner {
 
   MemoryManager::Result* RunMemoryManager(IterationCount memory_iterations);
 
-  void RunProfilerManager();
+  void RunProfilerManager(IterationCount profile_iterations);
 
   IterationCount PredictNumItersNeeded(const IterationResults& i) const;
 
