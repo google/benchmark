@@ -143,5 +143,5 @@ jobs:
 
       - name: test
         shell: msys2 {0}
-        working-directory: ${{ runner.workspace }}/_build
+        working-directory: _build
         run: ctest -C ${{ matrix.build_type }} -VV
