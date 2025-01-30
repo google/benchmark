@@ -68,9 +68,10 @@ target-version = "py311"
 
 [tool.ruff.lint]
 # Enable pycodestyle (`E`, `W`), Pyflakes (`F`), and isort (`I`) codes by default.
-select = ["E", "F", "I", "W"]
+select = ["ASYNC", "B", "C4", "C90", "E", "F", "I", "PERF", "PIE", "PT018", "RUF", "SIM", "UP", "W"]
 ignore = [
-    "E501", # line too long
+    "PLW2901",  # redefined-loop-name
+    "UP031",    # printf-string-formatting
 ]
 
 [tool.ruff.lint.isort]

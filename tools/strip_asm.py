@@ -73,16 +73,16 @@ def process_identifiers(line):
     parts = re.split(r"([a-zA-Z0-9_]+)", line)
     new_line = ""
     for tk in parts:
-        if is_identifier(tk):
-            if tk.startswith("__Z"):
-                tk = tk[1:]
-            elif (
+        if is_identifier(tk) and (
+            tk.startswith("__Z")
+            or (
                 tk.startswith("_")
                 and len(tk) > 1
                 and tk[1].isalpha()
                 and tk[1] != "Z"
-            ):
-                tk = tk[1:]
+            )
+        ):
+            tk = tk[1:]
         new_line += tk
     return new_line
 
@@ -148,7 +148,7 @@ def main():
         print("ERROR: input file '%s' does not exist" % input)
         sys.exit(1)
 
-    with open(input, "r") as f:
+    with open(input) as f:
         contents = f.read()
     new_contents = process_asm(contents)
     with open(output, "w") as f:

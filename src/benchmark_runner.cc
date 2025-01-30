@@ -438,9 +438,7 @@ MemoryManager::Result* BenchmarkRunner::RunMemoryManager(
   return memory_result;
 }
 
-void BenchmarkRunner::RunProfilerManager() {
-  // TODO: Provide a way to specify the number of iterations.
-  IterationCount profile_iterations = 1;
+void BenchmarkRunner::RunProfilerManager(IterationCount profile_iterations) {
   std::unique_ptr<internal::ThreadManager> manager;
   manager.reset(new internal::ThreadManager(1));
   b.Setup();
@@ -507,7 +505,10 @@ void BenchmarkRunner::DoOneRepetition() {
   }
 
   if (profiler_manager != nullptr) {
-    RunProfilerManager();
+    // We want to externally profile the benchmark for the same number of
+    // iterations because, for example, if we're tracing the benchmark then we
+    // want trace data to reasonably match PMU data.
+    RunProfilerManager(iters);
   }
 
   // Ok, now actually report.

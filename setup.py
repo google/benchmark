@@ -4,8 +4,9 @@ import platform
 import re
 import shutil
 import sys
+from collections.abc import Generator
 from pathlib import Path
-from typing import Any, Generator
+from typing import Any
 
 import setuptools
 from setuptools.command import build_ext
@@ -86,15 +87,14 @@ class BuildBazelExtension(build_ext.build_ext):
         This is done in the ``bazel_build`` method, so it's not necessary to
         do again in the `build_ext` base class.
         """
-        pass
 
-    def bazel_build(self, ext: BazelExtension) -> None:
+    def bazel_build(self, ext: BazelExtension) -> None:  # noqa: C901
         """Runs the bazel build to create the package."""
         temp_path = Path(self.build_temp)
 
         # We round to the minor version, which makes rules_python
         # look up the latest available patch version internally.
-        python_version = "{0}.{1}".format(*sys.version_info[:2])
+        python_version = "{}.{}".format(*sys.version_info[:2])
 
         bazel_argv = [
             "bazel",
@@ -142,9 +142,7 @@ class BuildBazelExtension(build_ext.build_ext):
                 # we do not want the bare .so file included
                 # when building for ABI3, so we require a
                 # full and exact match on the file extension.
-                if "".join(fp.suffixes) == suffix:
-                    should_copy = True
-                elif fp.suffix == ".pyi":
+                if "".join(fp.suffixes) == suffix or fp.suffix == ".pyi":
                     should_copy = True
                 elif Path(root) == srcdir and f == "py.typed":
                     # copy py.typed, but only at the package root.
@@ -155,7 +153,7 @@ class BuildBazelExtension(build_ext.build_ext):
 
 
 setuptools.setup(
-    cmdclass=dict(build_ext=BuildBazelExtension),
+    cmdclass={"build_ext": BuildBazelExtension},
     package_data={"google_benchmark": ["py.typed", "*.pyi"]},
     ext_modules=[
         BazelExtension(
