@@ -72,19 +72,20 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - uses: lukka/get-cmake@latest
+
+      - name: configure cmake
+        run: >
+          cmake -S . -B _build/
+          -G "${{ matrix.generator }}"
+          -DBENCHMARK_DOWNLOAD_DEPENDENCIES=ON
+          -DBUILD_SHARED_LIBS=${{ matrix.lib == 'shared' }}
+
       - name: build
-        uses: threeal/cmake-action@v2.1.0
-        with:
-          build-dir: ${{ runner.workspace }}/_build
-          generator: ${{ matrix.generator }}
-          options: |
-            BENCHMARK_DOWNLOAD_DEPENDENCIES=ON
-            BUILD_SHARED_LIBS=${{ matrix.lib == 'shared' }}
-            CMAKE_BUILD_TYPE=${{ matrix.build_type }}
+        run: cmake --build ${{ runner.workspace }}/_build --config ${{ matrix.build_type }}
 
       - name: test
-        working-directory: ${{ runner.workspace }}/_build
-        run: ctest -C ${{ matrix.build_type }} -VV
+        run: ctest --test-dir ${{ runner.workspace }}/_build -C ${{ matrix.build_type }} -VV
 
   msys2:
     name: ${{ matrix.os }}.${{ matrix.build_type }}.${{ matrix.lib }}.${{ matrix.msys2.msystem }}
