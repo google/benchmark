@@ -121,6 +121,7 @@ jobs:
           pacboy: >-
             gcc:p
             clang:p
+            cmake:p
             ninja:p
 
       - uses: actions/checkout@v4
