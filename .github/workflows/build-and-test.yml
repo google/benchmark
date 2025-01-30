@@ -141,7 +141,8 @@ jobs:
             git
             base-devel
           pacboy: >-
-            cc:p
+            gcc:p
+            clang:p
             cmake:p
             ninja:p
 
