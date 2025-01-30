@@ -19,17 +19,17 @@ typedef int64_t IterationCount;
 
 class TestReporter : public benchmark::ConsoleReporter {
  public:
-  virtual bool ReportContext(const Context& context) BENCHMARK_OVERRIDE {
+  virtual bool ReportContext(const Context& context) override {
     return ConsoleReporter::ReportContext(context);
   };
 
-  virtual void ReportRuns(const std::vector<Run>& report) BENCHMARK_OVERRIDE {
+  virtual void ReportRuns(const std::vector<Run>& report) override {
     assert(report.size() == 1);
     ConsoleReporter::ReportRuns(report);
   };
 
   virtual void ReportRunsConfig(double min_time, bool /* has_explicit_iters */,
-                                IterationCount /* iters */) BENCHMARK_OVERRIDE {
+                                IterationCount /* iters */) override {
     min_times_.push_back(min_time);
   }
 
