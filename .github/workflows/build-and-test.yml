@@ -80,6 +80,7 @@ jobs:
           options: |
             BENCHMARK_DOWNLOAD_DEPENDENCIES=ON
             BUILD_SHARED_LIBS=${{ matrix.lib == 'shared' }}
+            CMAKE_BUILD_TYPE=${{ matrix.build_type }}
 
       - name: test
         working-directory: ${{ runner.workspace }}/_build
