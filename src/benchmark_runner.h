@@ -19,7 +19,6 @@
 #include <vector>
 
 #include "benchmark_api_internal.h"
-#include "internal_macros.h"
 #include "perf_counters.h"
 #include "thread_manager.h"
 
