@@ -109,9 +109,7 @@ jobs:
           - static
 
     steps:
-      - uses: actions/checkout@v4
-
-      - name: Install Base Dependencies
+      - name: setup msys2
         uses: msys2/setup-msys2@v2
         with:
           cache: false
@@ -125,16 +123,24 @@ jobs:
             clang:p
             ninja:p
 
+      - uses: actions/checkout@v4
+
+      # NOTE: we can't use cmake actions here as we need to do everything in msys2 shell.
+      - name: configure cmake
+        shell: msys2 {0}
+        env:
+          CXX: ${{ matrix.msys2.compiler }}
+        run: >
+          cmake -S . -B _build/
+          -GNinja
+          -DBENCHMARK_DOWNLOAD_DEPENDENCIES=ON
+          -DBUILD_SHARED_LIBS=${{ matrix.lib == 'shared' }}
+
       - name: build
-        uses: threeal/cmake-action@v2.1.0
-        with:
-          build-dir: ${{ runner.workspace }}/_build
-          generator: Ninja
-          cxx-compiler: ${{ matrix.msys2.msystem.compiler }}
-          options: |
-            BENCHMARK_DOWNLOAD_DEPENDENCIES=ON
-            BUILD_SHARED_LIBS=${{ matrix.lib == 'shared' }}
+        shell: msys2 {0}
+        run: cmake --build _build/ --config ${{ matrix.build_type }}
 
       - name: test
+        shell: msys2 {0}
         working-directory: ${{ runner.workspace }}/_build
         run: ctest -C ${{ matrix.build_type }} -VV
