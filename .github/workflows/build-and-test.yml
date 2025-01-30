@@ -34,7 +34,7 @@ jobs:
             BENCHMARK_DOWNLOAD_DEPENDENCIES=ON
             BUILD_SHARED_LIBS=${{ matrix.lib == 'shared' }}
             CMAKE_BUILD_TYPE=${{ matrix.build_type }}
-            CMAKE_CXX_COMPILER=${{ env.CXX }}
+            CMAKE_CXX_COMPILER=${{ matrix.compiler }}
             CMAKE_CXX_VISIBILITY_PRESET=hidden
             CMAKE_VISIBILITY_INLINES_HIDDEN=ON
 
