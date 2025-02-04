@@ -99,9 +99,7 @@ jobs:
         os: [ windows-latest ]
         msys2:
           - { msystem: MINGW64,    arch: x86_64,  family: GNU,  compiler: g++ }
-          - { msystem: MINGW32,    arch: i686,    family: GNU,  compiler: g++ }
           - { msystem: CLANG64,    arch: x86_64,  family: LLVM, compiler: clang++ }
-          - { msystem: CLANG32,    arch: i686,    family: LLVM, compiler: clang++ }
           - { msystem: UCRT64,     arch: x86_64,  family: GNU,  compiler: g++ }
         build_type:
           - Debug
