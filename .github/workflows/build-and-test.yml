@@ -128,7 +128,6 @@ jobs:
 
       # NOTE: we can't use cmake actions here as we need to do everything in msys2 shell.
       - name: configure cmake
-        shell: msys2 {0}
         env:
           CXX: ${{ matrix.msys2.compiler }}
         run: >
@@ -138,10 +137,8 @@ jobs:
           -DBUILD_SHARED_LIBS=${{ matrix.lib == 'shared' }}
 
       - name: build
-        shell: msys2 {0}
         run: cmake --build _build/ --config ${{ matrix.build_type }}
 
       - name: test
-        shell: msys2 {0}
         working-directory: _build
         run: ctest -C ${{ matrix.build_type }} -VV
