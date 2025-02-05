@@ -26,8 +26,6 @@
 namespace benchmark {
 namespace internal {
 
-constexpr size_t PerfCounterValues::kMaxCounters;
-
 #if defined HAVE_LIBPFM
 
 size_t PerfCounterValues::Read(const std::vector<int>& leaders) {

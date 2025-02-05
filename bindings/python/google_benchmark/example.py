@@ -13,7 +13,8 @@
 # limitations under the License.
 """Example of Python using C++ benchmark framework.
 
-To run this example, you must first install the `google_benchmark` Python package.
+To run this example, you must first install the `google_benchmark` Python
+package.
 
 To install using `setup.py`, download and extract the `google_benchmark` source.
 In the extracted directory, execute:
@@ -57,7 +58,7 @@ def skipped(state):
         state.skip_with_error("some error")
         return  # NOTE: You must explicitly return, or benchmark will continue.
 
-    ...  # Benchmark code would be here.
+    # Benchmark code would be here.
 
 
 @benchmark.register
@@ -78,7 +79,6 @@ def custom_counters(state):
     num_foo = 0.0
     while state:
         # Benchmark some code here
-        pass
         # Collect some custom metric named foo
         num_foo += 0.13
 
