@@ -480,7 +480,23 @@ std::string GetSystemName() {
 }
 
 int GetNumCPUsImpl() {
-#ifdef BENCHMARK_HAS_SYSCTL
+#ifdef BENCHMARK_OS_WINDOWS
+  SYSTEM_INFO sysinfo;
+  // Use memset as opposed to = {} to avoid GCC missing initializer false
+  // positives.
+  std::memset(&sysinfo, 0, sizeof(SYSTEM_INFO));
+  GetSystemInfo(&sysinfo);
+  // number of logical processors in the current group
+  return static_cast<int>(sysinfo.dwNumberOfProcessors);
+#elif defined(BENCHMARK_OS_QNX)
+  return static_cast<int>(_syspage_ptr->num_cpu);
+#elif defined(BENCHMARK_OS_QURT)
+  qurt_sysenv_max_hthreads_t hardware_threads;
+  if (qurt_sysenv_get_max_hw_threads(&hardware_threads) != QURT_EOK) {
+    hardware_threads.max_hthreads = 1;
+  }
+  return hardware_threads.max_hthreads;
+#elif defined(BENCHMARK_HAS_SYSCTL)
   int num_cpu = -1;
   constexpr auto* hwncpu =
 #if defined BENCHMARK_OS_MACOSX
@@ -492,15 +508,7 @@ int GetNumCPUsImpl() {
 #endif
   if (GetSysctl(hwncpu, &num_cpu)) return num_cpu;
   PrintErrorAndDie("Err: ", strerror(errno));
-#elif defined(BENCHMARK_OS_WINDOWS)
-  SYSTEM_INFO sysinfo;
-  // Use memset as opposed to = {} to avoid GCC missing initializer false
-  // positives.
-  std::memset(&sysinfo, 0, sizeof(SYSTEM_INFO));
-  GetSystemInfo(&sysinfo);
-  // number of logical processors in the current group
-  return static_cast<int>(sysinfo.dwNumberOfProcessors);
-#elif defined(__linux__) || defined(BENCHMARK_OS_SOLARIS)
+#elif defined(_SC_NPROCESSORS_ONLN)
   // Returns -1 in case of a failure.
   int num_cpu = static_cast<int>(sysconf(_SC_NPROCESSORS_ONLN));
   if (num_cpu < 0) {
@@ -508,14 +516,6 @@ int GetNumCPUsImpl() {
                      strerror(errno));
   }
   return num_cpu;
-#elif defined(BENCHMARK_OS_QNX)
-  return static_cast<int>(_syspage_ptr->num_cpu);
-#elif defined(BENCHMARK_OS_QURT)
-  qurt_sysenv_max_hthreads_t hardware_threads;
-  if (qurt_sysenv_get_max_hw_threads(&hardware_threads) != QURT_EOK) {
-    hardware_threads.max_hthreads = 1;
-  }
-  return hardware_threads.max_hthreads;
 #else
   // Fallback for platforms (such as WASM) that aren't covered above.
   int num_cpus = 0;
