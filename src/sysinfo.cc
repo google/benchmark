@@ -153,11 +153,11 @@ ValueUnion GetSysctlImp(std::string const& name) {
   int mib[2];
 
   mib[0] = CTL_HW;
-  if ((name == "hw.ncpu") || (name == "hw.cpuspeed")) {
+  if ((name == "hw.ncpuonline") || (name == "hw.cpuspeed")) {
     ValueUnion buff(sizeof(int));
 
-    if (name == "hw.ncpu") {
-      mib[1] = HW_NCPU;
+    if (name == "hw.ncpuonline") {
+      mib[1] = HW_NCPUONLINE;
     } else {
       mib[1] = HW_CPUSPEED;
     }
@@ -482,7 +482,13 @@ std::string GetSystemName() {
 int GetNumCPUsImpl() {
 #ifdef BENCHMARK_HAS_SYSCTL
   int num_cpu = -1;
-  if (GetSysctl("hw.ncpu", &num_cpu)) return num_cpu;
+  constexpr auto* hwncpu =
+#ifdef HW_NCPUONLINE
+      "hw.ncpuonline";
+#else
+      "hw.ncpu";
+#endif
+  if (GetSysctl(hwncpu, &num_cpu)) return num_cpu;
   PrintErrorAndDie("Err: ", strerror(errno));
 #elif defined(BENCHMARK_OS_WINDOWS)
   SYSTEM_INFO sysinfo;
