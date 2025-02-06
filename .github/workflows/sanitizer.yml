@@ -67,6 +67,9 @@ jobs:
         "${GITHUB_WORKSPACE}/.github/libcxx-setup.sh"
         echo "EXTRA_CXX_FLAGS=-stdlib=libc++ -L ${GITHUB_WORKSPACE}/llvm-build/lib -lc++abi -Isystem${GITHUB_WORKSPACE}/llvm-build/include -Isystem${GITHUB_WORKSPACE}/llvm-build/include/c++/v1 -Wl,-rpath,${GITHUB_WORKSPACE}/llvm-build/lib" >> $GITHUB_ENV
 
+    - name: check for libc++ headers
+      run: ls ${GITHUB_WORKSPACE}/llvm-build/include ${GITHUB_WORKSPACE}/llvm-build/include/c++/v1
+
     - name: create build environment
       run: cmake -E make_directory ${{ runner.workspace }}/_build
 
