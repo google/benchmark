@@ -484,9 +484,9 @@ int GetNumCPUsImpl() {
   int num_cpu = -1;
   constexpr auto* hwncpu =
 #ifdef HW_NCPUONLINE
-  "hw.ncpuonline";
+      "hw.ncpuonline";
 #else
-  "hw.ncpu";
+      "hw.ncpu";
 #endif
   if (GetSysctl(hwncpu, &num_cpu)) return num_cpu;
   PrintErrorAndDie("Err: ", strerror(errno));
