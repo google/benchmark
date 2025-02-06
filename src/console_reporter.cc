@@ -21,7 +21,7 @@
 #include <tuple>
 #include <vector>
 
-#include "benchmark/benchmark.h"
+#include "benchmark_api_internal.h"
 #include "check.h"
 #include "colorprint.h"
 #include "commandlineflags.h"
@@ -205,6 +205,15 @@ void ConsoleReporter::PrintRunData(const Run& result) {
   }
 
   printer(Out, COLOR_DEFAULT, "\n");
+}
+
+BENCHMARK_EXPORT
+void ConsoleReporter::List(
+    const std::vector<internal::BenchmarkInstance>& benchmarks) {
+  std::ostream& Out = GetOutputStream();
+  for (auto const& benchmark : benchmarks) {
+    Out << benchmark.name().str() << "\n";
+  }
 }
 
 }  // end namespace benchmark

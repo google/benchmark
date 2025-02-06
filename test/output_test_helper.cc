@@ -165,6 +165,14 @@ class TestReporter : public benchmark::BenchmarkReporter {
     for (auto rep : reporters_) rep->Finalize();
   }
 
+  void List(const std::vector<benchmark::internal::BenchmarkInstance>&
+                benchmarks) override {
+    // simply logging the status
+    for (const auto& benchmark : benchmarks) {
+      std::cout << benchmark.name().str() << std::endl;
+    }
+  }
+
  private:
   std::vector<benchmark::BenchmarkReporter*> reporters_;
 };
