@@ -67,10 +67,6 @@ jobs:
         "${GITHUB_WORKSPACE}/.github/libcxx-setup.sh"
         echo "EXTRA_CXX_FLAGS=-stdlib=libc++ -L${GITHUB_WORKSPACE}/llvm-build/lib -lc++abi -I${GITHUB_WORKSPACE}/llvm-build/include/c++/v1 -Isystem${GITHUB_WORKSPACE}/llvm-build/include/c++/v1 -Wl,-rpath,${GITHUB_WORKSPACE}/llvm-build/lib" >> $GITHUB_ENV
 
-    - name: check for libc++ headers
-      if: matrix.sanitizer != 'asan'
-      run: ls ${GITHUB_WORKSPACE}/llvm-build/include/c++/v1
-
     - name: create build environment
       run: cmake -E make_directory ${{ runner.workspace }}/_build
 
@@ -80,7 +76,6 @@ jobs:
       run: >
         VERBOSE=1
         cmake $GITHUB_WORKSPACE
-        -DCXXFEATURECHECK_DEBUG=ON
         -DBENCHMARK_ENABLE_ASSEMBLY_TESTS=OFF
         -DBENCHMARK_ENABLE_LIBPFM=OFF
         -DBENCHMARK_DOWNLOAD_DEPENDENCIES=ON
