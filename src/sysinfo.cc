@@ -483,7 +483,9 @@ int GetNumCPUsImpl() {
 #ifdef BENCHMARK_HAS_SYSCTL
   int num_cpu = -1;
   constexpr auto* hwncpu =
-#ifdef HW_NCPUONLINE
+#if defined BENCHMARK_OS_MACOSX
+      "hw.logicalcpu";
+#elif defined(HW_NCPUONLINE)
       "hw.ncpuonline";
 #else
       "hw.ncpu";
