@@ -198,32 +198,6 @@ benchmark_add_test(NAME profiler_manager_test COMMAND profiler_manager_test --be
 compile_benchmark_test(profiler_manager_iterations_test)
 benchmark_add_test(NAME profiler_manager_iterations COMMAND profiler_manager_iterations_test)
 
-# MSVC does not allow to set the language standard to C++98/03.
-if(NOT (MSVC OR CMAKE_CXX_SIMULATE_ID STREQUAL "MSVC"))
-  compile_benchmark_test(cxx03_test)
-  set_target_properties(cxx03_test
-      PROPERTIES
-      CXX_STANDARD 98
-      CXX_STANDARD_REQUIRED YES)
-  # libstdc++ provides different definitions within <map> between dialects. When
-  # LTO is enabled and -Werror is specified GCC diagnoses this ODR violation
-  # causing the test to fail to compile. To prevent this we explicitly disable
-  # the warning.
-  check_cxx_compiler_flag(-Wno-odr BENCHMARK_HAS_WNO_ODR)
-  check_cxx_compiler_flag(-Wno-lto-type-mismatch BENCHMARK_HAS_WNO_LTO_TYPE_MISMATCH)
-  # Cannot set_target_properties multiple times here because the warnings will
-  # be overwritten on each call
-  set (DISABLE_LTO_WARNINGS "")
-  if (BENCHMARK_HAS_WNO_ODR)
-    set(DISABLE_LTO_WARNINGS "${DISABLE_LTO_WARNINGS} -Wno-odr")
-  endif()
-  if (BENCHMARK_HAS_WNO_LTO_TYPE_MISMATCH)
-    set(DISABLE_LTO_WARNINGS "${DISABLE_LTO_WARNINGS} -Wno-lto-type-mismatch")
-  endif()
-  set_target_properties(cxx03_test PROPERTIES LINK_FLAGS "${DISABLE_LTO_WARNINGS}")
-  benchmark_add_test(NAME cxx03 COMMAND cxx03_test --benchmark_min_time=0.01s)
-endif()
-
 compile_output_test(complexity_test)
 benchmark_add_test(NAME complexity_benchmark COMMAND complexity_test --benchmark_min_time=1000000x)
 
