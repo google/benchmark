@@ -2,12 +2,11 @@
 #define BENCHMARK_COLORPRINT_H_
 
 #include <cstdarg>
-#include <cstdint>
 #include <iostream>
 #include <string>
 
 namespace benchmark {
-enum LogColor : std::uint8_t {
+enum LogColor {
   COLOR_DEFAULT,
   COLOR_RED,
   COLOR_GREEN,
