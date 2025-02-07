@@ -646,17 +646,7 @@ typedef std::map<std::string, Counter> UserCounters;
 // computational
 // complexity for the benchmark. In case oAuto is selected, complexity will be
 // calculated automatically to the best fit.
-enum BigO {
-  oNone,
-  o1,
-  oN,
-  oNSquared,
-  oNCubed,
-  oLogN,
-  oNLogN,
-  oAuto,
-  oLambda
-};
+enum BigO { oNone, o1, oN, oNSquared, oNCubed, oLogN, oNLogN, oAuto, oLambda };
 
 typedef int64_t ComplexityN;
 
