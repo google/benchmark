@@ -36,6 +36,8 @@ AbortHandlerT*& GetAbortHandler();
 
 BENCHMARK_NORETURN inline void CallAbortHandler() {
   GetAbortHandler()();
+  std::flush(std::cout);
+  std::flush(std::cerr);
   std::abort();  // fallback to enforce noreturn
 }
 
@@ -57,7 +59,7 @@ class CheckHandler {
 #pragma warning(disable : 4722)
 #endif
   BENCHMARK_NORETURN ~CheckHandler() BENCHMARK_NOEXCEPT_OP(false) {
-    log_ << std::endl;
+    log_ << '\n';
     CallAbortHandler();
   }
 #if defined(COMPILER_MSVC)

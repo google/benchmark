@@ -490,8 +490,9 @@ static std::string GetTempFileName() {
     std::string name = GetRandomFileName();
     if (!FileExists(name)) return name;
   }
-  std::cerr << "Failed to create unique temporary file name" << std::endl;
-  std::abort();
+  std::cerr << "Failed to create unique temporary file name\n";
+  std::flush(std::cerr);
+  std::exit(1);
 }
 
 std::string GetFileReporterOutput(int argc, char* argv[]) {

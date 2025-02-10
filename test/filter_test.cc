@@ -90,7 +90,7 @@ int main(int argc, char** argv) {
     if (returned_count != expected_return) {
       std::cerr << "ERROR: Expected " << expected_return
                 << " tests to match the filter but returned_count = "
-                << returned_count << std::endl;
+                << returned_count << '\n';
       return -1;
     }
 
@@ -99,7 +99,7 @@ int main(int argc, char** argv) {
     if (reports_count != expected_reports) {
       std::cerr << "ERROR: Expected " << expected_reports
                 << " tests to be run but reported_count = " << reports_count
-                << std::endl;
+                << '\n';
       return -1;
     }
 
@@ -108,7 +108,7 @@ int main(int argc, char** argv) {
     if (num_families != expected_reports) {
       std::cerr << "ERROR: Expected " << expected_reports
                 << " test families to be run but num_families = "
-                << num_families << std::endl;
+                << num_families << '\n';
       return -1;
     }
   }

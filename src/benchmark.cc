@@ -506,6 +506,7 @@ std::unique_ptr<BenchmarkReporter> CreateReporter(
     return PtrType(new CSVReporter());
   }
   std::cerr << "Unexpected format: '" << name << "'\n";
+  std::flush(std::cerr);
   std::exit(1);
 }
 
@@ -595,8 +596,7 @@ size_t RunSpecifiedBenchmarks(BenchmarkReporter* display_reporter,
   std::string const& fname = FLAGS_benchmark_out;
   if (fname.empty() && file_reporter) {
     Err << "A custom file reporter was provided but "
-           "--benchmark_out=<file> was not specified."
-        << std::endl;
+           "--benchmark_out=<file> was not specified.\n";
     Out.flush();
     Err.flush();
     std::exit(1);
@@ -604,7 +604,7 @@ size_t RunSpecifiedBenchmarks(BenchmarkReporter* display_reporter,
   if (!fname.empty()) {
     output_file.open(fname);
     if (!output_file.is_open()) {
-      Err << "invalid file name: '" << fname << "'" << std::endl;
+      Err << "invalid file name: '" << fname << "'\n";
       Out.flush();
       Err.flush();
       std::exit(1);
@@ -691,7 +691,9 @@ void (*HelperPrintf)();
 
 void PrintUsageAndExit() {
   HelperPrintf();
-  exit(0);
+  std::flush(std::cout);
+  std::flush(std::cerr);
+  std::exit(0);
 }
 
 void SetDefaultTimeUnitFromFlag(const std::string& time_unit_flag) {
