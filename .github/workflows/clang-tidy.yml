@@ -35,4 +35,4 @@ jobs:
     - name: run
       shell: bash
       working-directory: ${{ runner.workspace }}/_build
-      run: run-clang-tidy -config-file=${{ runner.workspace }}/.clang-tidy
+      run: run-clang-tidy

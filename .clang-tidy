@@ -1,5 +1,16 @@
 ---
-Checks:          'abseil-*,bugprone-*,clang-analyzer-*,cppcoreguidelines-*,google-*,misc-*,performance-*,readability-*,-clang-analyzer-deadcode*,-clang-analyzer-optin*,-readability-identifier-length'
+Checks: >
+  abseil-*,
+  bugprone-*,
+  clang-analyzer-*,
+  cppcoreguidelines-*,
+  google-*,
+  misc-*,
+  performance-*,
+  readability-*,
+  -clang-analyzer-deadcode*,
+  -clang-analyzer-optin*,
+  -readability-identifier-length
 WarningsAsErrors: ''
 HeaderFilterRegex: ''
 AnalyzeTemporaryDtors: false
