@@ -130,7 +130,7 @@ BENCHMARK(BM_WithRep)
 int main(int argc, char** argv) {
   benchmark::Initialize(&argc, argv);
 
-  size_t ret = benchmark::RunSpecifiedBenchmarks(".");
+  const size_t ret = benchmark::RunSpecifiedBenchmarks(".");
   assert(ret > 0);
 
   // Setup/Teardown is called once for each arg group (1,3,5,7).
