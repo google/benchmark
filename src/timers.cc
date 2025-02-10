@@ -109,6 +109,7 @@ double MakeTime(struct timespec const& ts) {
 
 BENCHMARK_NORETURN static void DiagnoseAndExit(const char* msg) {
   std::cerr << "ERROR: " << msg << '\n';
+  std::flush(std::cerr);
   std::exit(EXIT_FAILURE);
 }
 

@@ -506,6 +506,7 @@ inline BENCHMARK_ALWAYS_INLINE void DoNotOptimize(Tp&& value) {
   asm volatile("" : "+m,r"(value) : : "memory");
 #endif
 }
+// !defined(__GNUC__) || defined(__llvm__) || defined(__INTEL_COMPILER)
 #elif (__GNUC__ >= 5)
 // Workaround for a bug with full argument copy overhead with GCC.
 // See: #1340 and https://gcc.gnu.org/bugzilla/show_bug.cgi?id=105519
@@ -562,6 +563,7 @@ inline BENCHMARK_ALWAYS_INLINE
     DoNotOptimize(Tp&& value) {
   asm volatile("" : "+m"(value) : : "memory");
 }
+// !defined(__GNUC__) || defined(__llvm__) || defined(__INTEL_COMPILER)
 #endif
 
 #elif defined(_MSC_VER)
@@ -678,7 +680,7 @@ class ThreadTimer;
 class ThreadManager;
 class PerfCountersMeasurement;
 
-enum AggregationReportMode {
+enum AggregationReportMode : unsigned {
   // The mode has not been manually specified
   ARM_Unspecified = 0,
   // The mode is user-specified.
@@ -693,7 +695,11 @@ enum AggregationReportMode {
       ARM_FileReportAggregatesOnly | ARM_DisplayReportAggregatesOnly
 };
 
-enum Skipped { NotSkipped = 0, SkippedWithMessage, SkippedWithError };
+enum Skipped : unsigned {
+  NotSkipped = 0,
+  SkippedWithMessage,
+  SkippedWithError
+};
 
 }  // namespace internal
 

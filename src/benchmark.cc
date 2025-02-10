@@ -505,7 +505,7 @@ std::unique_ptr<BenchmarkReporter> CreateReporter(
   if (name == "csv") {
     return PtrType(new CSVReporter());
   }
-  std::cerr << "Unexpected format: '" << name << "'\n";
+  std::cerr << "Unexpected format: '" << name << std::endl;
   std::exit(1);
 }
 
@@ -690,7 +690,9 @@ void (*HelperPrintf)();
 
 void PrintUsageAndExit() {
   HelperPrintf();
-  exit(0);
+  std::flush(std::cout);
+  std::flush(std::cerr);
+  std::exit(0);
 }
 
 void SetDefaultTimeUnitFromFlag(const std::string& time_unit_flag) {

@@ -95,6 +95,7 @@ void PrintImp(std::ostream& out, First&& f, Rest&&... rest) {
 template <class... Args>
 BENCHMARK_NORETURN void PrintErrorAndDie(Args&&... args) {
   PrintImp(std::cerr, std::forward<Args>(args)...);
+  std::cerr << std::flush;
   std::exit(EXIT_FAILURE);
 }
 
