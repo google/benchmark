@@ -36,6 +36,8 @@ AbortHandlerT*& GetAbortHandler();
 
 BENCHMARK_NORETURN inline void CallAbortHandler() {
   GetAbortHandler()();
+  std::flush(std::cout);
+  std::flush(std::cerr);
   std::abort();  // fallback to enforce noreturn
 }
 
