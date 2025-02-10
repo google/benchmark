@@ -634,7 +634,7 @@ class Counter {
           OneK onek = kIs1000)  // NOLINT
       : value(val), flags(flg), oneK(onek) {}
 
-  BENCHMARK_ALWAYS_INLINE operator double const&() const {  // NOLINT
+  BENCHMARK_ALWAYS_INLINE operator double const &() const {  // NOLINT
     return value;
   }
   BENCHMARK_ALWAYS_INLINE operator double&() { return value; }  // NOLINT
