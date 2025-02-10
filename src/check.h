@@ -26,7 +26,8 @@
 #define BENCHMARK_NOEXCEPT_OP(x)
 #endif
 
-namespace benchmark::internal {
+namespace benchmark {
+namespace internal {
 
 typedef void(AbortHandlerT)();
 
@@ -73,7 +74,8 @@ class CheckHandler {
   LogType& log_;
 };
 
-}  // namespace benchmark::internal
+}  // end namespace internal
+}  // end namespace benchmark
 
 // The BM_CHECK macro returns a std::ostream object that can have extra
 // information written to it.

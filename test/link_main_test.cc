@@ -2,8 +2,7 @@
 
 void BM_empty(benchmark::State& state) {
   for (auto _ : state) {
-    auto iterations = static_cast<double>(state.iterations()) *
-                      static_cast<double>(state.iterations());
+    auto iterations = double(state.iterations()) * double(state.iterations());
     benchmark::DoNotOptimize(iterations);
   }
 }

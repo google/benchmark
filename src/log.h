@@ -18,12 +18,14 @@ class LogType {
   friend LogType& operator<<(LogType&, Tp const&);
   friend LogType& operator<<(LogType&, EndLType*);
 
-  LogType(const LogType&) = delete;
-  LogType& operator=(const LogType&) = delete;
-
  private:
   LogType(std::ostream* out) : out_(out) {}
   std::ostream* out_;
+
+  // NOTE: we could use BENCHMARK_DISALLOW_COPY_AND_ASSIGN but we shouldn't have
+  // a dependency on benchmark.h from here.
+  LogType(const LogType&) = delete;
+  LogType& operator=(const LogType&) = delete;
 };
 
 template <class Tp>
