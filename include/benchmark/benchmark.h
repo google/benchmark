@@ -406,13 +406,16 @@ class MemoryManager {
     int64_t net_heap_growth;
   };
 
-  virtual ~MemoryManager() {}
+  MemoryManager() {}
+  virtual ~MemoryManager() = default;
+  MemoryManager(MemoryManager const&) = delete;
 
   // Implement this to start recording allocation information.
   virtual void Start() = 0;
 
   // Implement this to stop recording and fill out the given Result structure.
   virtual void Stop(Result& result) = 0;
+
 };
 
 // Register a MemoryManager instance that will be used to collect and report
@@ -425,7 +428,9 @@ void RegisterMemoryManager(MemoryManager* memory_manager);
 // report profile metrics for the run of the benchmark.
 class ProfilerManager {
  public:
-  virtual ~ProfilerManager() {}
+  ProfilerManager() {}
+  virtual ~ProfilerManager() = default;
+  ProfilerManager(ProfilerManager const&) = delete;
 
   // This is called after `Setup()` code and right before the benchmark is run.
   virtual void AfterSetupStart() = 0;
@@ -460,7 +465,7 @@ BENCHMARK_EXPORT Benchmark* RegisterBenchmarkInternal(Benchmark*);
 
 // Ensure that the standard streams are properly initialized in every TU.
 BENCHMARK_EXPORT int InitializeStreams();
-[[maybe_unused]] static int stream_init_anchor = InitializeStreams();
+[[maybe_unused]] static const int stream_init_anchor = InitializeStreams();
 
 }  // namespace internal
 
@@ -626,11 +631,13 @@ class Counter {
   OneK oneK;
 
   BENCHMARK_ALWAYS_INLINE
-  Counter(double v = 0., Flags f = kDefaults, OneK k = kIs1000)
-      : value(v), flags(f), oneK(k) {}
+  Counter(double val = 0., Flags flg = kDefaults, OneK onek = kIs1000)  // NOLINT
+      : value(val), flags(flg), oneK(onek) {}
 
-  BENCHMARK_ALWAYS_INLINE operator double const &() const { return value; }
-  BENCHMARK_ALWAYS_INLINE operator double&() { return value; }
+  BENCHMARK_ALWAYS_INLINE operator double const &() const {  // NOLINT
+    return value;
+  }
+  BENCHMARK_ALWAYS_INLINE operator double&() { return value; }  // NOLINT
 };
 
 // A helper for user code to create unforeseen combinations of Flags, without
@@ -642,7 +649,7 @@ Counter::Flags inline operator|(const Counter::Flags& LHS,
 }
 
 // This is the container for the user-defined counters.
-typedef std::map<std::string, Counter> UserCounters;
+using UserCounters = std::map<std::string, Counter>;
 
 // BigO is passed to a benchmark in order to specify the asymptotic
 // computational
@@ -650,9 +657,9 @@ typedef std::map<std::string, Counter> UserCounters;
 // calculated automatically to the best fit.
 enum BigO { oNone, o1, oN, oNSquared, oNCubed, oLogN, oNLogN, oAuto, oLambda };
 
-typedef int64_t ComplexityN;
+using ComplexityN = int64_t;
 
-typedef int64_t IterationCount;
+using IterationCount = int64_t;
 
 enum StatisticUnit { kTime, kPercentage };
 
@@ -670,9 +677,9 @@ struct Statistics {
   StatisticsFunc* compute_;
   StatisticUnit unit_;
 
-  Statistics(const std::string& name, StatisticsFunc* compute,
+  Statistics(std::string name, StatisticsFunc* compute,
              StatisticUnit unit = kTime)
-      : name_(name), compute_(compute), unit_(unit) {}
+      : name_(std::move(name)), compute_(compute), unit_(unit) {}
 };
 
 class BenchmarkInstance;
@@ -840,9 +847,9 @@ class BENCHMARK_EXPORT BENCHMARK_INTERNAL_CACHELINE_ALIGNED State {
 
   BENCHMARK_ALWAYS_INLINE
   int64_t bytes_processed() const {
-    if (counters.find("bytes_per_second") != counters.end())
-      return static_cast<int64_t>(counters.at("bytes_per_second"));
-    return 0;
+    return (counters.find("bytes_per_second") != counters.end()) ?
+      static_cast<int64_t>(counters.at("bytes_per_second")) :
+      0;
   }
 
   // If this routine is called with complexity_n > 0 and complexity report is
@@ -872,9 +879,9 @@ class BENCHMARK_EXPORT BENCHMARK_INTERNAL_CACHELINE_ALIGNED State {
 
   BENCHMARK_ALWAYS_INLINE
   int64_t items_processed() const {
-    if (counters.find("items_per_second") != counters.end())
-      return static_cast<int64_t>(counters.at("items_per_second"));
-    return 0;
+    return (counters.find("items_per_second") != counters.end()) ?
+      static_cast<int64_t>(counters.at("items_per_second")) :
+      0;
   }
 
   // If this routine is called, the specified label is printed at the
@@ -1017,11 +1024,11 @@ inline BENCHMARK_ALWAYS_INLINE bool State::KeepRunningInternal(IterationCount n,
 
 struct State::StateIterator {
   struct [[maybe_unused]] Value {};
-  typedef std::forward_iterator_tag iterator_category;
-  typedef Value value_type;
-  typedef Value reference;
-  typedef Value pointer;
-  typedef std::ptrdiff_t difference_type;
+  using iterator_category = std::forward_iterator_tag;
+  using value_type = Value;
+  using reference = Value;
+  using pointer = Value;
+  using difference_type = std::ptrdiff_t;
 
  private:
   friend class State;
@@ -1034,7 +1041,7 @@ struct State::StateIterator {
 
  public:
   BENCHMARK_ALWAYS_INLINE
-  Value operator*() const { return Value(); }
+  Value operator*() const { return {}; }
 
   BENCHMARK_ALWAYS_INLINE
   StateIterator& operator++() {
@@ -1045,7 +1052,7 @@ struct State::StateIterator {
 
   BENCHMARK_ALWAYS_INLINE
   bool operator!=(StateIterator const&) const {
-    if (BENCHMARK_BUILTIN_EXPECT(cached_ != 0, true)) return true;
+    if (BENCHMARK_BUILTIN_EXPECT(cached_ != 0, true)) { return true; }
     parent_->FinishKeepRunning();
     return false;
   }
@@ -1060,7 +1067,7 @@ inline BENCHMARK_ALWAYS_INLINE State::StateIterator State::begin() {
 }
 inline BENCHMARK_ALWAYS_INLINE State::StateIterator State::end() {
   StartKeepRunning();
-  return StateIterator();
+  return {};
 }
 
 namespace internal {
@@ -1354,6 +1361,7 @@ class LambdaBenchmark : public Benchmark {
   LambdaBenchmark(const std::string& name, OLambda&& lam)
       : Benchmark(name), lambda_(std::forward<OLambda>(lam)) {}
 
+  virtual ~LambdaBenchmark() = default;
   LambdaBenchmark(LambdaBenchmark const&) = delete;
 
   template <class Lam>  // NOLINTNEXTLINE(readability-redundant-declaration)
@@ -1721,7 +1729,7 @@ class BENCHMARK_EXPORT BenchmarkReporter {
           complexity_n(0),
           report_big_o(false),
           report_rms(false),
-          memory_result(NULL),
+          memory_result(nullptr),
           allocs_per_iter(0.0) {}
 
     std::string benchmark_name() const;
@@ -1844,6 +1852,7 @@ class BENCHMARK_EXPORT BenchmarkReporter {
   std::ostream& GetErrorStream() const { return *error_stream_; }
 
   virtual ~BenchmarkReporter();
+  BenchmarkReporter(const BenchmarkReporter&) = delete;
 
   // Write a human readable string to 'out' representing the specified
   // 'context'.

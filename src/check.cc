@@ -1,11 +1,11 @@
 #include "check.h"
 
-namespace benchmark {
-namespace internal {
+namespace benchmark::internal {
 
-static AbortHandlerT* handler = &std::abort;
+namespace {
+AbortHandlerT* handler = &std::abort;
+}  // namespace
 
 BENCHMARK_EXPORT AbortHandlerT*& GetAbortHandler() { return handler; }
 
-}  // namespace internal
-}  // namespace benchmark
+}  // namespace benchmark::internal
