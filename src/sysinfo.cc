@@ -497,6 +497,7 @@ int GetNumCPUsImpl() {
   }
   return hardware_threads.max_hthreads;
 #elif defined(BENCHMARK_HAS_SYSCTL)
+  // *BSD, macOS
   int num_cpu = -1;
   constexpr auto* hwncpu =
 #if defined BENCHMARK_OS_MACOSX
@@ -509,6 +510,7 @@ int GetNumCPUsImpl() {
   if (GetSysctl(hwncpu, &num_cpu)) return num_cpu;
   PrintErrorAndDie("Err: ", strerror(errno));
 #elif defined(_SC_NPROCESSORS_ONLN)
+  // Linux, Solaris, AIX, Haiku, WASM, etc.
   // Returns -1 in case of a failure.
   int num_cpu = static_cast<int>(sysconf(_SC_NPROCESSORS_ONLN));
   if (num_cpu < 0) {
@@ -517,54 +519,8 @@ int GetNumCPUsImpl() {
   }
   return num_cpu;
 #else
-  // Fallback for platforms (such as WASM) that aren't covered above.
-  int num_cpus = 0;
-  int max_id = -1;
-  std::ifstream f("/proc/cpuinfo");
-  if (!f.is_open()) {
-    std::cerr << "Failed to open /proc/cpuinfo\n";
-    return -1;
-  }
-#if defined(__alpha__)
-  const std::string Key = "cpus detected";
-#else
-  const std::string Key = "processor";
-#endif
-  std::string ln;
-  while (std::getline(f, ln)) {
-    if (ln.empty()) continue;
-    std::size_t split_idx = ln.find(':');
-    std::string value;
-#if defined(__s390__)
-    // s390 has another format in /proc/cpuinfo
-    // it needs to be parsed differently
-    if (split_idx != std::string::npos)
-      value = ln.substr(Key.size() + 1, split_idx - Key.size() - 1);
-#else
-    if (split_idx != std::string::npos) value = ln.substr(split_idx + 1);
-#endif
-    if (ln.size() >= Key.size() && ln.compare(0, Key.size(), Key) == 0) {
-      num_cpus++;
-      if (!value.empty()) {
-        const int cur_id = benchmark::stoi(value);
-        max_id = std::max(cur_id, max_id);
-      }
-    }
-  }
-  if (f.bad()) {
-    PrintErrorAndDie("Failure reading /proc/cpuinfo");
-  }
-  if (!f.eof()) {
-    PrintErrorAndDie("Failed to read to end of /proc/cpuinfo");
-  }
-  f.close();
-
-  if ((max_id + 1) != num_cpus) {
-    fprintf(stderr,
-            "CPU ID assignments in /proc/cpuinfo seem messed up."
-            " This is usually caused by a bad BIOS.\n");
-  }
-  return num_cpus;
+  // Fallback, no other API exists.
+  return -1;
 #endif
   BENCHMARK_UNREACHABLE();
 }
