@@ -505,7 +505,8 @@ std::unique_ptr<BenchmarkReporter> CreateReporter(
   if (name == "csv") {
     return PtrType(new CSVReporter());
   }
-  std::cerr << "Unexpected format: '" << name << std::endl;
+  std::cerr << "Unexpected format: '" << name << "'\n";
+  std::flush(std::cerr);
   std::exit(1);
 }
 
