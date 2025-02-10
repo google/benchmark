@@ -415,7 +415,6 @@ class MemoryManager {
 
   // Implement this to stop recording and fill out the given Result structure.
   virtual void Stop(Result& result) = 0;
-
 };
 
 // Register a MemoryManager instance that will be used to collect and report
@@ -631,10 +630,11 @@ class Counter {
   OneK oneK;
 
   BENCHMARK_ALWAYS_INLINE
-  Counter(double val = 0., Flags flg = kDefaults, OneK onek = kIs1000)  // NOLINT
+  Counter(double val = 0., Flags flg = kDefaults,
+          OneK onek = kIs1000)  // NOLINT
       : value(val), flags(flg), oneK(onek) {}
 
-  BENCHMARK_ALWAYS_INLINE operator double const &() const {  // NOLINT
+  BENCHMARK_ALWAYS_INLINE operator double const&() const {  // NOLINT
     return value;
   }
   BENCHMARK_ALWAYS_INLINE operator double&() { return value; }  // NOLINT
@@ -847,9 +847,9 @@ class BENCHMARK_EXPORT BENCHMARK_INTERNAL_CACHELINE_ALIGNED State {
 
   BENCHMARK_ALWAYS_INLINE
   int64_t bytes_processed() const {
-    return (counters.find("bytes_per_second") != counters.end()) ?
-      static_cast<int64_t>(counters.at("bytes_per_second")) :
-      0;
+    return (counters.find("bytes_per_second") != counters.end())
+               ? static_cast<int64_t>(counters.at("bytes_per_second"))
+               : 0;
   }
 
   // If this routine is called with complexity_n > 0 and complexity report is
@@ -879,9 +879,9 @@ class BENCHMARK_EXPORT BENCHMARK_INTERNAL_CACHELINE_ALIGNED State {
 
   BENCHMARK_ALWAYS_INLINE
   int64_t items_processed() const {
-    return (counters.find("items_per_second") != counters.end()) ?
-      static_cast<int64_t>(counters.at("items_per_second")) :
-      0;
+    return (counters.find("items_per_second") != counters.end())
+               ? static_cast<int64_t>(counters.at("items_per_second"))
+               : 0;
   }
 
   // If this routine is called, the specified label is printed at the
@@ -1052,7 +1052,9 @@ struct State::StateIterator {
 
   BENCHMARK_ALWAYS_INLINE
   bool operator!=(StateIterator const&) const {
-    if (BENCHMARK_BUILTIN_EXPECT(cached_ != 0, true)) { return true; }
+    if (BENCHMARK_BUILTIN_EXPECT(cached_ != 0, true)) {
+      return true;
+    }
     parent_->FinishKeepRunning();
     return false;
   }
