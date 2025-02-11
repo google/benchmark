@@ -492,7 +492,7 @@ void BenchmarkRunner::DoOneRepetition() {
     const bool results_are_significant = !is_the_first_repetition ||
                                          has_explicit_iteration_count ||
                                          ShouldReportIterationResults(i);
-  // Good, let's report them!
+    // Good, let's report them!
     if (results_are_significant) {
       break;
     }

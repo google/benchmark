@@ -475,12 +475,14 @@ void RunBenchmarks(const std::vector<BenchmarkInstance>& benchmarks,
     for (size_t repetition_index : repetition_indices) {
       internal::BenchmarkRunner& runner = runners[repetition_index];
       runner.DoOneRepetition();
-      if (runner.HasRepeatsRemaining()) {continue;}
+      if (runner.HasRepeatsRemaining()) {
+        continue;
+      }
       // FIXME: report each repetition separately, not all of them in bulk.
 
       display_reporter->ReportRunsConfig(
           runner.GetMinTime(), runner.HasExplicitIters(), runner.GetIters());
-      if (file_reporter){
+      if (file_reporter) {
         file_reporter->ReportRunsConfig(
             runner.GetMinTime(), runner.HasExplicitIters(), runner.GetIters());
       }
@@ -504,7 +506,9 @@ void RunBenchmarks(const std::vector<BenchmarkInstance>& benchmarks,
     }
   }
   display_reporter->Finalize();
-  if (file_reporter) {file_reporter->Finalize();}
+  if (file_reporter) {
+    file_reporter->Finalize();
+  }
   FlushStreams(display_reporter);
   FlushStreams(file_reporter);
 }
@@ -656,7 +660,7 @@ size_t RunSpecifiedBenchmarks(BenchmarkReporter* display_reporter,
   }
 
   if (FLAGS_benchmark_list_tests) {
-    for (auto const& benchmark : benchmarks){
+    for (auto const& benchmark : benchmarks) {
       Out << benchmark.name().str() << "\n";
     }
   } else {
@@ -771,7 +775,9 @@ void ParseCommandLineFlags(int* argc, char** argv) {
         ParseStringFlag(argv[i], "benchmark_time_unit",
                         &FLAGS_benchmark_time_unit) ||
         ParseInt32Flag(argv[i], "v", &FLAGS_v)) {
-      for (int j = i; j != *argc - 1; ++j) {argv[j] = argv[j + 1];}
+      for (int j = i; j != *argc - 1; ++j) {
+        argv[j] = argv[j + 1];
+      }
 
       --(*argc);
       --i;
