@@ -1438,10 +1438,10 @@ class Fixture : public internal::Benchmark {
 #define BENCHMARK_PRIVATE_CONCAT_NAME(BaseClass, Method) \
   BaseClass##_##Method##_Benchmark
 
-#define BENCHMARK_PRIVATE_DECLARE(n)                                 \
-  /* NOLINTNEXTLINE(misc-use-anonymous-namespace) */                 \
-  static ::benchmark::internal::Benchmark* BENCHMARK_PRIVATE_NAME(n) \
-      [[maybe_unused]]
+#define BENCHMARK_PRIVATE_DECLARE(n)                    \
+  /* NOLINTNEXTLINE(misc-use-anonymous-namespace) */    \
+  static ::benchmark::internal::Benchmark const * const \
+      BENCHMARK_PRIVATE_NAME(n) [[maybe_unused]]
 
 #define BENCHMARK(...)                                               \
   BENCHMARK_PRIVATE_DECLARE(_benchmark_) =                           \
