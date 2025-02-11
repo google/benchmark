@@ -49,7 +49,7 @@ cc_library(
         "include/benchmark/export.h",
     ],
     copts = select({
-        ":windows": [MSVC_COPTS],
+        ":windows": MSVC_COPTS,
         "//conditions:default": COPTS,
     }),
     defines = [
