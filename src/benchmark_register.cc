@@ -474,9 +474,8 @@ const char* Benchmark::GetName() const { return name_.c_str(); }
 
 int Benchmark::ArgsCnt() const {
   if (args_.empty()) {
-    if (arg_names_.empty()) return -1; {
-      return static_cast<int>(arg_names_.size());
-    }
+    if (arg_names_.empty()) {return -1; }
+    return static_cast<int>(arg_names_.size());
   }
   return static_cast<int>(args_.front().size());
 }
