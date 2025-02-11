@@ -185,11 +185,11 @@ bool BenchmarkFamilies::FindBenchmarks(
   return true;
 }
 
-Benchmark* RegisterBenchmarkInternal(Benchmark* bench) {
-  std::unique_ptr<Benchmark> bench_ptr(bench);
+Benchmark* RegisterBenchmarkInternal(std::unique_ptr<Benchmark> bench) {
+  Benchmark* bench_ptr = bench.get();
   BenchmarkFamilies* families = BenchmarkFamilies::GetInstance();
-  families->AddBenchmark(std::move(bench_ptr));
-  return bench;
+  families->AddBenchmark(std::move(bench));
+  return bench_ptr;
 }
 
 // FIXME: This function is a hack so that benchmark.cc can access
