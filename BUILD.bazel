@@ -17,6 +17,10 @@ COPTS = [
     "-Werror=old-style-cast",
 ]
 
+MSVC_COPTS = [
+    "/std:c++17",
+]
+
 config_setting(
     name = "windows",
     constraint_values = ["@platforms//os:windows"],
@@ -45,7 +49,7 @@ cc_library(
         "include/benchmark/export.h",
     ],
     copts = select({
-        ":windows": [],
+        ":windows": MSVC_COPTS,
         "//conditions:default": COPTS,
     }),
     defines = [
