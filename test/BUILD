@@ -25,7 +25,7 @@ TEST_COPTS = [
 ]
 
 TEST_MSVC_OPTS = [
-    "/std:c++17"
+    "/std:c++17",
 ]
 
 # Some of the issues with DoNotOptimize only occur when optimization is enabled
