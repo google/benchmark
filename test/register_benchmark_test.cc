@@ -86,8 +86,9 @@ void BM_extra_args(benchmark::State& st, const char* label) {
 int RegisterFromFunction() {
   std::pair<const char*, const char*> cases[] = {
       {"test1", "One"}, {"test2", "Two"}, {"test3", "Three"}};
-  for (auto const& c : cases)
+  for (auto const& c : cases){
     benchmark::RegisterBenchmark(c.first, &BM_extra_args, c.second);
+  }
   return 0;
 }
 int dummy2 = RegisterFromFunction();

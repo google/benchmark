@@ -46,14 +46,14 @@ void try_invalid_pause_resume(benchmark::State& state) {
 void BM_diagnostic_test(benchmark::State& state) {
   static bool called_once = false;
 
-  if (called_once == false) try_invalid_pause_resume(state);
+  if (called_once == false) {try_invalid_pause_resume(state);}
 
   for (auto _ : state) {
     auto iterations = double(state.iterations()) * double(state.iterations());
     benchmark::DoNotOptimize(iterations);
   }
 
-  if (called_once == false) try_invalid_pause_resume(state);
+  if (called_once == false) {try_invalid_pause_resume(state);}
 
   called_once = true;
 }
@@ -62,14 +62,14 @@ BENCHMARK(BM_diagnostic_test);
 void BM_diagnostic_test_keep_running(benchmark::State& state) {
   static bool called_once = false;
 
-  if (called_once == false) try_invalid_pause_resume(state);
+  if (called_once == false) {try_invalid_pause_resume(state);}
 
   while (state.KeepRunning()) {
     auto iterations = double(state.iterations()) * double(state.iterations());
     benchmark::DoNotOptimize(iterations);
   }
 
-  if (called_once == false) try_invalid_pause_resume(state);
+  if (called_once == false) {try_invalid_pause_resume(state);}
 
   called_once = true;
 }

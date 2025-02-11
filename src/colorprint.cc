@@ -156,7 +156,9 @@ void ColorPrintf(std::ostream& out, LogColor color, const char* fmt,
   SetConsoleTextAttribute(stdout_handle, original_color_attrs);
 #else
   const char* color_code = GetPlatformColorCode(color);
-  if (color_code) out << FormatString("\033[0;3%sm", color_code);
+  if (color_code) {
+    out << FormatString("\033[0;3%sm", color_code);
+  }
   out << FormatString(fmt, args) << "\033[m";
 #endif
 }

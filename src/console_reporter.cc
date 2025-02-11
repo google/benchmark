@@ -189,8 +189,9 @@ void ConsoleReporter::PrintRunData(const Run& result) {
       unit = "%";
     } else {
       s = HumanReadableNumber(c.second.value, c.second.oneK);
-      if (c.second.flags & Counter::kIsRate)
+      if (c.second.flags & Counter::kIsRate) {
         unit = (c.second.flags & Counter::kInvert) ? "s" : "/s";
+      }
     }
     if (output_options_ & OO_Tabular) {
       printer(Out, COLOR_DEFAULT, " %*s%s", cNameLen - strlen(unit), s.c_str(),

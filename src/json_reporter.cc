@@ -89,11 +89,11 @@ std::string FormatKV(std::string const& key, double value) {
   std::stringstream ss;
   ss << '"' << StrEscape(key) << "\": ";
 
-  if (std::isnan(value))
+  if (std::isnan(value)) {
     ss << (value < 0 ? "-" : "") << "NaN";
-  else if (std::isinf(value))
+  } else if (std::isinf(value)) {
     ss << (value < 0 ? "-" : "") << "Infinity";
-  else {
+  } else {
     const auto max_digits10 =
         std::numeric_limits<decltype(value)>::max_digits10;
     const auto max_fractional_digits10 = max_digits10 - 1;
@@ -155,7 +155,9 @@ bool JSONReporter::ReportContext(const Context& context) {
         << FormatKV("num_sharing", static_cast<int64_t>(CI.num_sharing))
         << "\n";
     out << indent << "}";
-    if (i != info.caches.size() - 1) out << ",";
+    if (i != info.caches.size() - 1) {
+      out << ",";
+    }
     out << "\n";
   }
   indent = std::string(4, ' ');
@@ -163,7 +165,9 @@ bool JSONReporter::ReportContext(const Context& context) {
   out << indent << "\"load_avg\": [";
   for (auto it = info.load_avg.begin(); it != info.load_avg.end();) {
     out << *it++;
-    if (it != info.load_avg.end()) out << ",";
+    if (it != info.load_avg.end()) {
+      out << ",";
+    }
   }
   out << "],\n";
 
@@ -306,8 +310,9 @@ void JSONReporter::PrintRunData(Run const& run) {
 
     auto report_if_present = [&out, &indent](const std::string& label,
                                              int64_t val) {
-      if (val != MemoryManager::TombstoneValue)
+      if (val != MemoryManager::TombstoneValue) {
         out << ",\n" << indent << FormatKV(label, val);
+      }
     };
 
     report_if_present("total_allocated_bytes",
