@@ -157,7 +157,9 @@ std::vector<BenchmarkReporter::Run> ComputeBigO(
   typedef BenchmarkReporter::Run Run;
   std::vector<Run> results;
 
-  if (reports.size() < 2) return results;
+  if (reports.size() < 2) {
+    return results;
+  }
 
   // Accumulators.
   std::vector<ComplexityN> n;

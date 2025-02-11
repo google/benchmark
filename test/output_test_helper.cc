@@ -112,7 +112,9 @@ void CheckCase(std::stringstream& remaining_output, TestCase const& TC,
           << "\n    actual regex string \"" << TC.substituted_regex << "\""
           << "\n    started matching near: " << first_line;
     }
-    if (TC.regex->Match(line)) return;
+    if (TC.regex->Match(line)) {
+      return;
+    }
     BM_CHECK(TC.match_rule != MR_Next)
         << "Expected line \"" << line << "\" to match regex \"" << TC.regex_str
         << "\""
@@ -159,10 +161,14 @@ class TestReporter : public benchmark::BenchmarkReporter {
   }
 
   void ReportRuns(const std::vector<Run>& report) override {
-    for (auto rep : reporters_) rep->ReportRuns(report);
+    for (auto rep : reporters_) {
+      rep->ReportRuns(report);
+    }
   }
   void Finalize() override {
-    for (auto rep : reporters_) rep->Finalize();
+    for (auto rep : reporters_) {
+      rep->Finalize();
+    }
   }
 
  private:
@@ -224,7 +230,9 @@ void ResultsChecker::CheckResults(std::stringstream& output) {
     // clear before calling tellg()
     output.clear();
     // seek to zero only when needed
-    if (output.tellg() > start) output.seekg(start);
+    if (output.tellg() > start) {
+      output.seekg(start);
+    }
     // and just in case
     output.clear();
   }
@@ -265,7 +273,9 @@ void ResultsChecker::SetHeader_(const std::string& csv_header) {
 
 // set the values for a benchmark
 void ResultsChecker::SetValues_(const std::string& entry_csv_line) {
-  if (entry_csv_line.empty()) return;  // some lines are empty
+  if (entry_csv_line.empty()) {
+    return;
+  }  // some lines are empty
   BM_CHECK(!field_names.empty());
   auto vals = SplitCsv_(entry_csv_line);
   BM_CHECK_EQ(vals.size(), field_names.size());
@@ -279,21 +289,33 @@ void ResultsChecker::SetValues_(const std::string& entry_csv_line) {
 // a quick'n'dirty csv splitter (eliminating quotes)
 std::vector<std::string> ResultsChecker::SplitCsv_(const std::string& line) {
   std::vector<std::string> out;
-  if (line.empty()) return out;
-  if (!field_names.empty()) out.reserve(field_names.size());
+  if (line.empty()) {
+    return out;
+  }
+  if (!field_names.empty()) {
+    out.reserve(field_names.size());
+  }
   size_t prev = 0, pos = line.find_first_of(','), curr = pos;
   while (pos != line.npos) {
     BM_CHECK(curr > 0);
-    if (line[prev] == '"') ++prev;
-    if (line[curr - 1] == '"') --curr;
+    if (line[prev] == '"') {
+      ++prev;
+    }
+    if (line[curr - 1] == '"') {
+      --curr;
+    }
     out.push_back(line.substr(prev, curr - prev));
     prev = pos + 1;
     pos = line.find_first_of(',', pos + 1);
     curr = pos;
   }
   curr = line.size();
-  if (line[prev] == '"') ++prev;
-  if (line[curr - 1] == '"') --curr;
+  if (line[prev] == '"') {
+    ++prev;
+  }
+  if (line[curr - 1] == '"') {
+    --curr;
+  }
   out.push_back(line.substr(prev, curr - prev));
   return out;
 }
@@ -308,7 +330,9 @@ size_t AddChecker(const std::string& bm_name, const ResultsCheckFn& fn) {
 
 int Results::NumThreads() const {
   auto pos = name.find("/threads:");
-  if (pos == name.npos) return 1;
+  if (pos == name.npos) {
+    return 1;
+  }
   auto end = name.find('/', pos + 9);
   std::stringstream ss;
   ss << name.substr(pos + 9, end);
@@ -378,7 +402,9 @@ int SetSubstitutions(
         break;
       }
     }
-    if (!exists) subs.push_back(std::move(KV));
+    if (!exists) {
+      subs.push_back(std::move(KV));
+    }
   }
   return 0;
 }
@@ -449,11 +475,14 @@ void RunOutputTests(int argc, char* argv[]) {
 BENCHMARK_RESTORE_DEPRECATED_WARNING
 
 int SubstrCnt(const std::string& haystack, const std::string& pat) {
-  if (pat.length() == 0) return 0;
+  if (pat.length() == 0) {
+    return 0;
+  }
   int count = 0;
   for (size_t offset = haystack.find(pat); offset != std::string::npos;
-       offset = haystack.find(pat, offset + pat.length()))
+       offset = haystack.find(pat, offset + pat.length())) {
     ++count;
+  }
   return count;
 }
 
@@ -471,7 +500,9 @@ static char RandomHexChar() {
 static std::string GetRandomFileName() {
   std::string model = "test.%%%%%%";
   for (auto& ch : model) {
-    if (ch == '%') ch = RandomHexChar();
+    if (ch == '%') {
+      ch = RandomHexChar();
+    }
   }
   return model;
 }
@@ -488,7 +519,9 @@ static std::string GetTempFileName() {
   int retries = 3;
   while (--retries) {
     std::string name = GetRandomFileName();
-    if (!FileExists(name)) return name;
+    if (!FileExists(name)) {
+      return name;
+    }
   }
   std::cerr << "Failed to create unique temporary file name\n";
   std::flush(std::cerr);

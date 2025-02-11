@@ -71,9 +71,10 @@ BENCHMARK(BM_FooBa);
 
 int main(int argc, char** argv) {
   bool list_only = false;
-  for (int i = 0; i < argc; ++i)
+  for (int i = 0; i < argc; ++i) {
     list_only |= std::string(argv[i]).find("--benchmark_list_tests") !=
                  std::string::npos;
+  }
 
   benchmark::Initialize(&argc, argv);
 

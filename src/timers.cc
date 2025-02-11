@@ -144,8 +144,9 @@ double ProcessCPUUsage() {
   // FIXME We want to use clock_gettime, but its not available in MacOS 10.11.
   // See https://github.com/google/benchmark/pull/292
   struct timespec spec;
-  if (clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &spec) == 0)
+  if (clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &spec) == 0) {
     return MakeTime(spec);
+  }
   DiagnoseAndExit("clock_gettime(CLOCK_PROCESS_CPUTIME_ID, ...) failed");
 #else
   struct rusage ru;
@@ -200,7 +201,9 @@ double ThreadCPUUsage() {
   DiagnoseAndExit("getrusage(RUSAGE_LWP, ...) failed");
 #elif defined(CLOCK_THREAD_CPUTIME_ID)
   struct timespec ts;
-  if (clock_gettime(CLOCK_THREAD_CPUTIME_ID, &ts) == 0) return MakeTime(ts);
+  if (clock_gettime(CLOCK_THREAD_CPUTIME_ID, &ts) == 0) {
+    return MakeTime(ts);
+  }
   DiagnoseAndExit("clock_gettime(CLOCK_THREAD_CPUTIME_ID, ...) failed");
 #else
 #error Per-thread timing is not available on your system.

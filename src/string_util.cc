@@ -87,10 +87,14 @@ void ToExponentAndMantissa(double val, int precision, double one_k,
 }
 
 std::string ExponentToPrefix(int64_t exponent, bool iec) {
-  if (exponent == 0) return "";
+  if (exponent == 0) {
+    return {};
+  }
 
   const int64_t index = (exponent > 0 ? exponent - 1 : -exponent - 1);
-  if (index >= kUnitsSize) return "";
+  if (index >= kUnitsSize) {
+    return {};
+  }
 
   const char* const* array =
       (exponent > 0 ? (iec ? kBigIECUnits : kBigSIUnits) : kSmallSIUnits);
@@ -124,9 +128,12 @@ std::string StrFormatImp(const char* msg, va_list args) {
   va_end(args_cp);
 
   // handle empty expansion
-  if (ret == 0) return std::string{};
-  if (static_cast<std::size_t>(ret) < local_buff.size())
+  if (ret == 0) {
+    return {};
+  }
+  if (static_cast<std::size_t>(ret) < local_buff.size()) {
     return std::string(local_buff.data());
+  }
 
   // we did not provide a long enough buffer on our first attempt.
   // add 1 to size to account for null-byte in size cast to prevent overflow
@@ -153,7 +160,9 @@ std::string StrFormat(const char* format, ...) {
 }
 
 std::vector<std::string> StrSplit(const std::string& str, char delim) {
-  if (str.empty()) return {};
+  if (str.empty()) {
+    return {};
+  }
   std::vector<std::string> ret;
   size_t first = 0;
   size_t next = str.find(delim);

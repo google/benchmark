@@ -64,7 +64,9 @@ void Increment(UserCounters* l, UserCounters const& r) {
 }
 
 bool SameNames(UserCounters const& l, UserCounters const& r) {
-  if (&l == &r) return true;
+  if (&l == &r) {
+    return true;
+  }
   if (l.size() != r.size()) {
     return false;
   }

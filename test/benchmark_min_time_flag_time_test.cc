@@ -73,7 +73,9 @@ int main(int argc, char** argv) {
   int fake_argc = argc + 1;
   const char** fake_argv = new const char*[static_cast<size_t>(fake_argc)];
 
-  for (int i = 0; i < argc; ++i) fake_argv[i] = argv[i];
+  for (int i = 0; i < argc; ++i) {
+    fake_argv[i] = argv[i];
+  }
 
   const char* no_suffix = "--benchmark_min_time=4";
   const char* with_suffix = "--benchmark_min_time=4.0s";
