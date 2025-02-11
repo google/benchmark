@@ -159,17 +159,23 @@ void RunInThread(const BenchmarkInstance* b, IterationCount iters,
 
 double ComputeMinTime(const benchmark::internal::BenchmarkInstance& b,
                       const BenchTimeType& iters_or_time) {
-  if (!IsZero(b.min_time())) return b.min_time();
+  if (!IsZero(b.min_time())) {
+    return b.min_time();
+  }
   // If the flag was used to specify number of iters, then return the default
   // min_time.
-  if (iters_or_time.tag == BenchTimeType::ITERS) return kDefaultMinTime;
+  if (iters_or_time.tag == BenchTimeType::ITERS) {
+    return kDefaultMinTime;
+  }
 
   return iters_or_time.time;
 }
 
 IterationCount ComputeIters(const benchmark::internal::BenchmarkInstance& b,
                             const BenchTimeType& iters_or_time) {
-  if (b.iterations() != 0) return b.iterations();
+  if (b.iterations() != 0) {
+    return b.iterations();
+  }
 
   // We've already concluded that this flag is currently used to pass
   // iters but do a check here again anyway.
@@ -297,7 +303,9 @@ BenchmarkRunner::IterationResults BenchmarkRunner::DoNIterations() {
 
   // The main thread has finished. Now let's wait for the other threads.
   manager->WaitForAllThreads();
-  for (std::thread& thread : pool) thread.join();
+  for (std::thread& thread : pool) {
+    thread.join();
+  }
 
   IterationResults i;
   // Acquire the measurements/counters from the manager, UNDER THE LOCK!
@@ -460,7 +468,9 @@ void BenchmarkRunner::DoOneRepetition() {
   // this warmup never happened except the fact that warmup_done is set. Every
   // other manipulation of the BenchmarkRunner instance would be a bug! Please
   // fix it.
-  if (!warmup_done) RunWarmUp();
+  if (!warmup_done) {
+    RunWarmUp();
+  }
 
   IterationResults i;
   // We *may* be gradually increasing the length (iteration count)
@@ -482,8 +492,10 @@ void BenchmarkRunner::DoOneRepetition() {
     const bool results_are_significant = !is_the_first_repetition ||
                                          has_explicit_iteration_count ||
                                          ShouldReportIterationResults(i);
-
-    if (results_are_significant) break;  // Good, let's report them!
+  // Good, let's report them!
+    if (results_are_significant) {
+      break;
+    }
 
     // Nope, bad iteration. Let's re-estimate the hopefully-sufficient
     // iteration count, and run the benchmark again...
@@ -518,7 +530,9 @@ void BenchmarkRunner::DoOneRepetition() {
 
   if (reports_for_family) {
     ++reports_for_family->num_runs_done;
-    if (!report.skipped) reports_for_family->Runs.push_back(report);
+    if (!report.skipped) {
+      reports_for_family->Runs.push_back(report);
+    }
   }
 
   run_results.non_aggregates.push_back(report);

@@ -600,7 +600,7 @@ class ThreadAffinityGuard final {
 
     bool is_first_cpu = true;
 
-    for (int i = 0; i < CPU_SETSIZE; ++i)
+    for (int i = 0; i < CPU_SETSIZE; ++i) {
       if (CPU_ISSET(i, &affinity)) {
         if (is_first_cpu) {
           is_first_cpu = false;
@@ -608,6 +608,7 @@ class ThreadAffinityGuard final {
           CPU_CLR(i, &affinity);
         }
       }
+    }
 
     if (is_first_cpu) {
       return false;
@@ -692,7 +693,9 @@ double GetCPUCyclesPerSecond(CPUInfo::Scaling scaling) {
     }
     std::size_t split_idx = ln.find(':');
     std::string value;
-    if (split_idx != std::string::npos) value = ln.substr(split_idx + 1);
+    if (split_idx != std::string::npos) {
+      value = ln.substr(split_idx + 1);
+    }
     // When parsing the "cpu MHz" and "bogomips" (fallback) entries, we only
     // accept positive values. Some environments (virtual machines) report zero,
     // which would cause infinite looping in WallTime_Init.

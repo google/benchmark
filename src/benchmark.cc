@@ -367,9 +367,10 @@ void Report(BenchmarkReporter* display_reporter,
 
   report_one(display_reporter, run_results.display_report_aggregates_only,
              run_results);
-  if (file_reporter)
+  if (file_reporter) {
     report_one(file_reporter, run_results.file_report_aggregates_only,
                run_results);
+  }
 
   FlushStreams(display_reporter);
   FlushStreams(file_reporter);
@@ -474,14 +475,15 @@ void RunBenchmarks(const std::vector<BenchmarkInstance>& benchmarks,
     for (size_t repetition_index : repetition_indices) {
       internal::BenchmarkRunner& runner = runners[repetition_index];
       runner.DoOneRepetition();
-      if (runner.HasRepeatsRemaining()) continue;
+      if (runner.HasRepeatsRemaining()) {continue;}
       // FIXME: report each repetition separately, not all of them in bulk.
 
       display_reporter->ReportRunsConfig(
           runner.GetMinTime(), runner.HasExplicitIters(), runner.GetIters());
-      if (file_reporter)
+      if (file_reporter){
         file_reporter->ReportRunsConfig(
             runner.GetMinTime(), runner.HasExplicitIters(), runner.GetIters());
+      }
 
       RunResults run_results = runner.GetResults();
 
@@ -502,7 +504,7 @@ void RunBenchmarks(const std::vector<BenchmarkInstance>& benchmarks,
     }
   }
   display_reporter->Finalize();
-  if (file_reporter) file_reporter->Finalize();
+  if (file_reporter) {file_reporter->Finalize();}
   FlushStreams(display_reporter);
   FlushStreams(file_reporter);
 }
@@ -597,8 +599,9 @@ size_t RunSpecifiedBenchmarks(BenchmarkReporter* display_reporter,
 size_t RunSpecifiedBenchmarks(BenchmarkReporter* display_reporter,
                               BenchmarkReporter* file_reporter,
                               std::string spec) {
-  if (spec.empty() || spec == "all")
+  if (spec.empty() || spec == "all") {
     spec = ".";  // Regexp that matches all benchmarks
+  }
 
   // Setup the reporters
   std::ofstream output_file;
@@ -653,8 +656,9 @@ size_t RunSpecifiedBenchmarks(BenchmarkReporter* display_reporter,
   }
 
   if (FLAGS_benchmark_list_tests) {
-    for (auto const& benchmark : benchmarks)
+    for (auto const& benchmark : benchmarks){
       Out << benchmark.name().str() << "\n";
+    }
   } else {
     internal::RunBenchmarks(benchmarks, display_reporter, file_reporter);
   }
@@ -767,7 +771,7 @@ void ParseCommandLineFlags(int* argc, char** argv) {
         ParseStringFlag(argv[i], "benchmark_time_unit",
                         &FLAGS_benchmark_time_unit) ||
         ParseInt32Flag(argv[i], "v", &FLAGS_v)) {
-      for (int j = i; j != *argc - 1; ++j) argv[j] = argv[j + 1];
+      for (int j = i; j != *argc - 1; ++j) {argv[j] = argv[j + 1];}
 
       --(*argc);
       --i;
