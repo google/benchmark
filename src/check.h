@@ -82,12 +82,11 @@ class CheckHandler {
 // The BM_CHECK macro returns a std::ostream object that can have extra
 // information written to it.
 #ifndef NDEBUG
-#define BM_CHECK(b)                                                        \
-  (b ? ::benchmark::internal::GetNullLogInstance()                         \
-     : ::benchmark::internal::CheckHandler(std::string_view(#b),           \
-                                           std::string_view(__FILE__),     \
-                                           std::string_view(__func__),     \
-                                           __LINE__)                       \
+#define BM_CHECK(b)                                          \
+  (b ? ::benchmark::internal::GetNullLogInstance()           \
+     : ::benchmark::internal::CheckHandler(                  \
+           std::string_view(#b), std::string_view(__FILE__), \
+           std::string_view(__func__), __LINE__)             \
            .GetLog())
 #else
 #define BM_CHECK(b) ::benchmark::internal::GetNullLogInstance()
