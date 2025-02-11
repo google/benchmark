@@ -4,6 +4,7 @@
 #include <cmath>
 #include <cstdlib>
 #include <ostream>
+#include <string_view>
 
 #include "benchmark/export.h"
 #include "internal_macros.h"
@@ -46,7 +47,8 @@ BENCHMARK_NORETURN inline void CallAbortHandler() {
 // destructed.
 class CheckHandler {
  public:
-  CheckHandler(const char* check, const char* file, const char* func, int line)
+  CheckHandler(std::string_view check, std::string_view file,
+               std::string_view func, int line)
       : log_(GetErrorLogInstance()) {
     log_ << file << ":" << line << ": " << func << ": Check `" << check
          << "' failed. ";
@@ -80,10 +82,10 @@ class CheckHandler {
 // The BM_CHECK macro returns a std::ostream object that can have extra
 // information written to it.
 #ifndef NDEBUG
-#define BM_CHECK(b)                                                           \
-  (b ? ::benchmark::internal::GetNullLogInstance()                            \
-     : ::benchmark::internal::CheckHandler(reinterpret_cast<const char*>(#b), \
-                                           __FILE__, __func__, __LINE__)      \
+#define BM_CHECK(b)                                                        \
+  (b ? ::benchmark::internal::GetNullLogInstance()                         \
+     : ::benchmark::internal::CheckHandler(std::string_view(#b), __FILE__, \
+                                           __func__, __LINE__)             \
            .GetLog())
 #else
 #define BM_CHECK(b) ::benchmark::internal::GetNullLogInstance()
