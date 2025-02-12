@@ -73,12 +73,12 @@ class BENCHMARK_EXPORT PerfCounterValues {
   // This reading is complex and as the goal of this class is to
   // abstract away the intrincacies of the reading process, this is
   // a better place for it
-  static size_t Read(const std::vector<int>& leaders);
+  size_t Read(const std::vector<int>& leaders);
 
   // Move the padding to 2 due to the reading algorithm (1st padding plus a
   // current read padding)
   static constexpr size_t kPadding = 2;
-  std::array<uint64_t, kPadding + kMaxCounters> values_ = {};
+  std::array<uint64_t, kPadding + kMaxCounters> values_;
   const size_t nr_counters_;
 };
 

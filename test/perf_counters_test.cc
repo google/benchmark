@@ -14,8 +14,7 @@ BM_DECLARE_string(benchmark_perf_counters);
 
 static void BM_Simple(benchmark::State& state) {
   for (auto _ : state) {
-    auto iterations = static_cast<double>(state.iterations()) *
-                      static_cast<double>(state.iterations());
+    auto iterations = double(state.iterations()) * double(state.iterations());
     benchmark::DoNotOptimize(iterations);
   }
 }
@@ -39,8 +38,7 @@ BENCHMARK(BM_WithoutPauseResume);
 ADD_CASES(TC_JSONOut, {{"\"name\": \"BM_WithoutPauseResume\",$"}});
 
 void BM_WithPauseResume(benchmark::State& state) {
-  int m = 0;
-  int n = 0;
+  int m = 0, n = 0;
 
   for (auto _ : state) {
     for (auto i = 0; i < kIters; ++i) {
