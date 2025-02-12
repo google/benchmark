@@ -86,7 +86,7 @@ std::string FormatKV(std::string const& key, int64_t value) {
 }
 
 std::string FormatKV(std::string const& key, int value) {
-  FormatKV(key, static_cast<int64_t>(value));
+  return FormatKV(key, static_cast<int64_t>(value));
 }
 
 std::string FormatKV(std::string const& key, double value) {
