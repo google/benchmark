@@ -101,7 +101,7 @@ State BenchmarkInstance::Run(
 }
 
 void BenchmarkInstance::Setup() const {
-  if (setup_) {
+  if (setup_ != nullptr) {
     State st(name_.function_name, /*iters*/ 1, args_, /*thread_id*/ 0, threads_,
              nullptr, nullptr, nullptr, nullptr);
     setup_(st);
@@ -109,7 +109,7 @@ void BenchmarkInstance::Setup() const {
 }
 
 void BenchmarkInstance::Teardown() const {
-  if (teardown_) {
+  if (teardown_ != nullptr) {
     State st(name_.function_name, /*iters*/ 1, args_, /*thread_id*/ 0, threads_,
              nullptr, nullptr, nullptr, nullptr);
     teardown_(st);

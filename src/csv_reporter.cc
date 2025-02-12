@@ -115,7 +115,7 @@ BENCHMARK_EXPORT
 void CSVReporter::PrintRunData(const Run& run) {
   std::ostream& Out = GetOutputStream();
   Out << CsvEscape(run.benchmark_name()) << ",";
-  if (run.skipped) {
+  if (run.skipped != 0u) {
     Out << std::string(elements.size() - 3, ',');
     Out << std::boolalpha << (internal::SkippedWithError == run.skipped) << ",";
     Out << CsvEscape(run.skip_message) << "\n";

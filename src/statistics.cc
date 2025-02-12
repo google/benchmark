@@ -153,7 +153,7 @@ std::vector<BenchmarkReporter::Run> ComputeStats(
   for (Run const& run : reports) {
     BM_CHECK_EQ(reports[0].benchmark_name(), run.benchmark_name());
     BM_CHECK_EQ(run_iterations, run.iterations);
-    if (run.skipped) {
+    if (run.skipped != 0u) {
       continue;
     }
     real_accumulated_time_stat.emplace_back(run.real_accumulated_time);
@@ -176,7 +176,7 @@ std::vector<BenchmarkReporter::Run> ComputeStats(
   }
 
   const double iteration_rescale_factor =
-      double(reports.size()) / double(run_iterations);
+      static_cast<double>(reports.size()) / static_cast<double>(run_iterations);
 
   for (const auto& Stat : *reports[0].statistics) {
     // Get the data from the accumulator to BenchmarkReporter::Run's.

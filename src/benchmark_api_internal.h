@@ -17,9 +17,9 @@ namespace internal {
 // Information kept per benchmark we may want to run
 class BenchmarkInstance {
  public:
-  BenchmarkInstance(Benchmark* benchmark, int family_index,
-                    int per_family_instance_index,
-                    const std::vector<int64_t>& args, int threads);
+  BenchmarkInstance(Benchmark* benchmark, int family_idx,
+                    int per_family_instance_idx,
+                    const std::vector<int64_t>& args, int thread_count);
 
   const BenchmarkName& name() const { return name_; }
   int family_index() const { return family_index_; }

@@ -29,7 +29,7 @@ static_assert(arraysize(kBigSIUnits) == arraysize(kBigIECUnits),
 static_assert(arraysize(kSmallSIUnits) == arraysize(kBigSIUnits),
               "Small SI and Big SI unit arrays must be the same size");
 
-static const int64_t kUnitsSize = arraysize(kBigSIUnits);
+const int64_t kUnitsSize = arraysize(kBigSIUnits);
 
 void ToExponentAndMantissa(double val, int precision, double one_k,
                            std::string* mantissa, int64_t* exponent) {
