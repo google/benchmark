@@ -164,7 +164,7 @@ void RunTestOne() {
 // benchmarks.
 // Also test that new benchmarks can be registered and ran afterwards.
 void RunTestTwo() {
-  assert(ExpectedResults.size() != 0 &&
+  assert(!ExpectedResults.empty() &&
          "must have at least one registered benchmark");
   ExpectedResults.clear();
   benchmark::ClearRegisteredBenchmarks();

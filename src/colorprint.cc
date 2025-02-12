@@ -156,7 +156,7 @@ void ColorPrintf(std::ostream& out, LogColor color, const char* fmt,
   SetConsoleTextAttribute(stdout_handle, original_color_attrs);
 #else
   const char* color_code = GetPlatformColorCode(color);
-  if (color_code) {
+  if (color_code != nullptr) {
     out << FormatString("\033[0;3%sm", color_code);
   }
   out << FormatString(fmt, args) << "\033[m";
@@ -195,7 +195,7 @@ bool IsColorTerminal() {
 
   bool term_supports_color = false;
   for (const char* candidate : SUPPORTED_TERM_VALUES) {
-    if (term && 0 == strcmp(term, candidate)) {
+    if ((term != nullptr) && 0 == strcmp(term, candidate)) {
       term_supports_color = true;
       break;
     }

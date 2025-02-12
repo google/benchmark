@@ -48,7 +48,7 @@ class BenchmarkTest : public testing::Test {
 
   static void TeardownHook(int /* num_threads */) { queue->push("Teardown"); }
 
-  void Execute(const std::string& pattern) {
+  static void Execute(const std::string& pattern) {
     queue->Clear();
 
     std::unique_ptr<BenchmarkReporter> reporter(new NullReporter());

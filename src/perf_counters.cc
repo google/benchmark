@@ -129,7 +129,7 @@ PerfCounters PerfCounters::Create(
 
     // This struct will be populated by libpfm from the counter string
     // and then fed into the syscall perf_event_open
-    struct perf_event_attr attr {};
+    struct perf_event_attr attr{};
     attr.size = sizeof(attr);
 
     // This is the input struct to libpfm.
@@ -243,13 +243,15 @@ void PerfCounters::CloseCounters() const {
   }
 }
 #else   // defined HAVE_LIBPFM
-size_t PerfCounterValues::Read(const std::vector<int>&) { return 0; }
+size_t PerfCounterValues::Read(const std::vector<int>& /*unused*/) { return 0; }
 
 const bool PerfCounters::kSupported = false;
 
 bool PerfCounters::Initialize() { return false; }
 
-bool PerfCounters::IsCounterSupported(const std::string&) { return false; }
+bool PerfCounters::IsCounterSupported(const std::string& /*unused*/) {
+  return false;
+}
 
 PerfCounters PerfCounters::Create(
     const std::vector<std::string>& counter_names) {

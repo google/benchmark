@@ -80,7 +80,7 @@ int fixture_setup = 0;
 
 class FIXTURE_BECHMARK_NAME : public ::benchmark::Fixture {
  public:
-  void SetUp(const ::benchmark::State&) override {
+  void SetUp(const ::benchmark::State& /*unused*/) override {
     fixture_interaction::fixture_setup++;
   }
 
@@ -92,7 +92,7 @@ BENCHMARK_F(FIXTURE_BECHMARK_NAME, BM_WithFixture)(benchmark::State& st) {
   }
 }
 
-static void DoSetupWithFixture(const benchmark::State&) {
+static void DoSetupWithFixture(const benchmark::State& /*unused*/) {
   fixture_interaction::setup++;
 }
 
@@ -110,7 +110,7 @@ namespace repetitions {
 int setup = 0;
 }
 
-static void DoSetupWithRepetitions(const benchmark::State&) {
+static void DoSetupWithRepetitions(const benchmark::State& /*unused*/) {
   repetitions::setup++;
 }
 static void BM_WithRep(benchmark::State& state) {

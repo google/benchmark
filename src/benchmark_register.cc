@@ -53,13 +53,13 @@ namespace benchmark {
 
 namespace {
 // For non-dense Range, intermediate values are powers of kRangeMultiplier.
-static constexpr int kRangeMultiplier = 8;
+constexpr int kRangeMultiplier = 8;
 
 // The size of a benchmark family determines is the number of inputs to repeat
 // the benchmark on. If this is "large" then warn the user during configuration.
-static constexpr size_t kMaxFamilySize = 100;
+constexpr size_t kMaxFamilySize = 100;
 
-static constexpr char kDisabledPrefix[] = "DISABLED_";
+constexpr char kDisabledPrefix[] = "DISABLED_";
 }  // end namespace
 
 namespace internal {
@@ -82,7 +82,7 @@ class BenchmarkFamilies {
 
   // Extract the list of benchmark instances that match the specified
   // regular expression.
-  bool FindBenchmarks(std::string re,
+  bool FindBenchmarks(std::string spec,
                       std::vector<BenchmarkInstance>* benchmarks,
                       std::ostream* Err);
 

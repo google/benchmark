@@ -98,7 +98,7 @@ void CheckCase(std::stringstream& remaining_output, TestCase const& TC,
   std::string first_line;
   bool on_first = true;
   std::string line;
-  while (remaining_output.eof() == false) {
+  while (!remaining_output.eof()) {
     BM_CHECK(remaining_output.good());
     std::getline(remaining_output, line);
     if (on_first) {
@@ -149,7 +149,7 @@ class TestReporter : public benchmark::BenchmarkReporter {
   bool ReportContext(const Context& context) override {
     bool last_ret = false;
     bool first = true;
-    for (auto rep : reporters_) {
+    for (auto* rep : reporters_) {
       bool new_ret = rep->ReportContext(context);
       BM_CHECK(first || new_ret == last_ret)
           << "Reports return different values for ReportContext";
@@ -161,12 +161,12 @@ class TestReporter : public benchmark::BenchmarkReporter {
   }
 
   void ReportRuns(const std::vector<Run>& report) override {
-    for (auto rep : reporters_) {
+    for (auto* rep : reporters_) {
       rep->ReportRuns(report);
     }
   }
   void Finalize() override {
-    for (auto rep : reporters_) {
+    for (auto* rep : reporters_) {
       rep->Finalize();
     }
   }
@@ -206,7 +206,7 @@ class ResultsChecker {
   void SetHeader_(const std::string& csv_header);
   void SetValues_(const std::string& entry_csv_line);
 
-  std::vector<std::string> SplitCsv_(const std::string& line);
+  std::vector<std::string> SplitCsv_(const std::string& line) const;
 };
 
 // store the static ResultsChecker in a function to prevent initialization
@@ -239,7 +239,7 @@ void ResultsChecker::CheckResults(std::stringstream& output) {
   // now go over every line and publish it to the ResultsChecker
   std::string line;
   bool on_first = true;
-  while (output.eof() == false) {
+  while (!output.eof()) {
     BM_CHECK(output.good());
     std::getline(output, line);
     if (on_first) {
@@ -287,7 +287,8 @@ void ResultsChecker::SetValues_(const std::string& entry_csv_line) {
 }
 
 // a quick'n'dirty csv splitter (eliminating quotes)
-std::vector<std::string> ResultsChecker::SplitCsv_(const std::string& line) {
+std::vector<std::string> ResultsChecker::SplitCsv_(
+    const std::string& line) const {
   std::vector<std::string> out;
   if (line.empty()) {
     return out;
@@ -295,8 +296,10 @@ std::vector<std::string> ResultsChecker::SplitCsv_(const std::string& line) {
   if (!field_names.empty()) {
     out.reserve(field_names.size());
   }
-  size_t prev = 0, pos = line.find_first_of(','), curr = pos;
-  while (pos != line.npos) {
+  size_t prev = 0;
+  size_t pos = line.find_first_of(',');
+  size_t curr = pos;
+  while (pos != std::string::npos) {
     BM_CHECK(curr > 0);
     if (line[prev] == '"') {
       ++prev;
@@ -330,7 +333,7 @@ size_t AddChecker(const std::string& bm_name, const ResultsCheckFn& fn) {
 
 int Results::NumThreads() const {
   auto pos = name.find("/threads:");
-  if (pos == name.npos) {
+  if (pos == std::string::npos) {
     return 1;
   }
   auto end = name.find('/', pos + 9);
@@ -348,7 +351,7 @@ double Results::GetTime(BenchmarkTime which) const {
   BM_CHECK(which == kCpuTime || which == kRealTime);
   const char* which_str = which == kCpuTime ? "cpu_time" : "real_time";
   double val = GetAs<double>(which_str);
-  auto unit = Get("time_unit");
+  const auto* unit = Get("time_unit");
   BM_CHECK(unit);
   if (*unit == "ns") {
     return val * 1.e-9;
@@ -517,7 +520,7 @@ static std::string GetTempFileName() {
   // create the same file at the same time. However, it still introduces races
   // similar to tmpnam.
   int retries = 3;
-  while (--retries) {
+  while (--retries != 0) {
     std::string name = GetRandomFileName();
     if (!FileExists(name)) {
       return name;
@@ -539,7 +542,7 @@ std::string GetFileReporterOutput(int argc, char* argv[]) {
   tmp += tmp_file_name;
   new_argv.emplace_back(const_cast<char*>(tmp.c_str()));
 
-  argc = int(new_argv.size());
+  argc = static_cast<int>(new_argv.size());
 
   benchmark::Initialize(&argc, new_argv.data());
   benchmark::RunSpecifiedBenchmarks();

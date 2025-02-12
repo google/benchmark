@@ -97,11 +97,11 @@ BENCHMARK(BM_error_before_running_range_for);
 ADD_CASES("BM_error_before_running_range_for", {{"", true, "error message"}});
 
 void BM_error_during_running(benchmark::State& state) {
-  int first_iter = true;
+  int first_iter = 1;
   while (state.KeepRunning()) {
     if (state.range(0) == 1 && state.thread_index() <= (state.threads() / 2)) {
       assert(first_iter);
-      first_iter = false;
+      first_iter = 0;
       state.SkipWithError("error message");
     } else {
       state.PauseTiming();
@@ -143,7 +143,8 @@ ADD_CASES("BM_error_during_running_ranged_for",
 
 void BM_error_after_running(benchmark::State& state) {
   for (auto _ : state) {
-    auto iterations = double(state.iterations()) * double(state.iterations());
+    auto iterations = static_cast<double>(state.iterations()) *
+                      static_cast<double>(state.iterations());
     benchmark::DoNotOptimize(iterations);
   }
   if (state.thread_index() <= (state.threads() / 2)) {

@@ -76,7 +76,6 @@
 #include "benchmark/benchmark.h"
 #include "check.h"
 #include "cycleclock.h"
-#include "internal_macros.h"
 #include "log.h"
 #include "string_util.h"
 #include "timers.h"
@@ -121,7 +120,7 @@ struct ValueUnion {
 
   explicit ValueUnion(std::size_t buff_size)
       : size(sizeof(DataT) + buff_size),
-        buff(::new (std::malloc(size)) DataT(), &std::free) {}
+        buff(::new(std::malloc(size)) DataT(), &std::free) {}
 
   ValueUnion(ValueUnion&& other) = default;
 
