@@ -51,7 +51,8 @@ void BM_diagnostic_test(benchmark::State& state) {
   }
 
   for (auto _ : state) {
-    auto iterations = double(state.iterations()) * double(state.iterations());
+    auto iterations = static_cast<double>(state.iterations()) *
+                      static_cast<double>(state.iterations());
     benchmark::DoNotOptimize(iterations);
   }
 
@@ -71,7 +72,8 @@ void BM_diagnostic_test_keep_running(benchmark::State& state) {
   }
 
   while (state.KeepRunning()) {
-    auto iterations = double(state.iterations()) * double(state.iterations());
+    auto iterations = static_cast<double>(state.iterations()) *
+                      static_cast<double>(state.iterations());
     benchmark::DoNotOptimize(iterations);
   }
 

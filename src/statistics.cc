@@ -176,7 +176,7 @@ std::vector<BenchmarkReporter::Run> ComputeStats(
   }
 
   const double iteration_rescale_factor =
-      double(reports.size()) / double(run_iterations);
+      static_cast<double>(reports.size()) / static_cast<double>(run_iterations);
 
   for (const auto& Stat : *reports[0].statistics) {
     // Get the data from the accumulator to BenchmarkReporter::Run's.

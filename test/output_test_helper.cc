@@ -539,7 +539,7 @@ std::string GetFileReporterOutput(int argc, char* argv[]) {
   tmp += tmp_file_name;
   new_argv.emplace_back(const_cast<char*>(tmp.c_str()));
 
-  argc = int(new_argv.size());
+  argc = static_cast<int>(new_argv.size());
 
   benchmark::Initialize(&argc, new_argv.data());
   benchmark::RunSpecifiedBenchmarks();

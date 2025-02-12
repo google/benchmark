@@ -85,6 +85,12 @@ std::string FormatKV(std::string const& key, int64_t value) {
   return ss.str();
 }
 
+std::string FormatKV(std::string const& key, int value) {
+  std::stringstream ss;
+  ss << '"' << StrEscape(key) << "\": " << value;
+  return ss.str();
+}
+
 std::string FormatKV(std::string const& key, double value) {
   std::stringstream ss;
   ss << '"' << StrEscape(key) << "\": ";
@@ -183,7 +189,7 @@ bool JSONReporter::ReportContext(const Context& context) {
   out << ",\n";
 
   // NOTE: our json schema is not strictly tied to the library version!
-  out << indent << FormatKV("json_schema_version", int64_t(1));
+  out << indent << FormatKV("json_schema_version", 1);
 
   std::map<std::string, std::string>* global_context =
       internal::GetGlobalContext();

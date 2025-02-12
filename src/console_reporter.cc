@@ -180,7 +180,7 @@ void ConsoleReporter::PrintRunData(const Run& result) {
 
   for (auto& c : result.counters) {
     const std::size_t cNameLen =
-        std::max(std::string::size_type(10), c.first.length());
+        std::max(static_cast<std::size_t>(10), c.first.length());
     std::string s;
     const char* unit = "";
     if (result.run_type == Run::RT_Aggregate &&
