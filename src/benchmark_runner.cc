@@ -186,7 +186,7 @@ IterationCount ComputeIters(const benchmark::internal::BenchmarkInstance& b,
 }  // end namespace
 
 BenchTimeType ParseBenchMinTime(const std::string& value) {
-  BenchTimeType ret{};
+  BenchTimeType ret = {};
 
   if (value.empty()) {
     ret.tag = BenchTimeType::TIME;

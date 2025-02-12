@@ -631,7 +631,7 @@ class Counter {
   Counter(double v = 0., Flags f = kDefaults, OneK k = kIs1000)
       : value(v), flags(f), oneK(k) {}
 
-  BENCHMARK_ALWAYS_INLINE operator double const &() const { return value; }
+  BENCHMARK_ALWAYS_INLINE operator double const&() const { return value; }
   BENCHMARK_ALWAYS_INLINE operator double&() { return value; }
 };
 
@@ -1692,7 +1692,7 @@ class BENCHMARK_EXPORT BenchmarkReporter {
     CPUInfo const& cpu_info;
     SystemInfo const& sys_info;
     // The number of chars in the longest benchmark name.
-    size_t name_field_width{};
+    size_t name_field_width = 0;
     static const char* executable_name;
     Context();
   };

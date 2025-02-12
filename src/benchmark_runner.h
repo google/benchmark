@@ -38,7 +38,7 @@ struct RunResults {
 };
 
 struct BENCHMARK_EXPORT BenchTimeType {
-  enum { ITERS, TIME } tag;
+  enum { UNSPECIFIED, ITERS, TIME } tag;
   union {
     IterationCount iters;
     double time;

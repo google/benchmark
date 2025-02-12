@@ -121,7 +121,7 @@ struct ValueUnion {
 
   explicit ValueUnion(std::size_t buff_size)
       : size(sizeof(DataT) + buff_size),
-        buff(::new (std::malloc(size)) DataT(), &std::free) {}
+        buff(::new(std::malloc(size)) DataT(), &std::free) {}
 
   ValueUnion(ValueUnion&& other) = default;
 
