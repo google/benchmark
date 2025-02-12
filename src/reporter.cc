@@ -42,17 +42,18 @@ void BenchmarkReporter::PrintBasicContext(std::ostream *out,
   Out << LocalDateTimeString() << "\n";
 #endif
 
-  if (context.executable_name) {
-    Out << "Running " << context.executable_name << "\n";
+  if (benchmark::BenchmarkReporter::Context::executable_name != nullptr) {
+    Out << "Running " << benchmark::BenchmarkReporter::Context::executable_name
+        << "\n";
   }
 
   const CPUInfo &info = context.cpu_info;
   Out << "Run on (" << info.num_cpus << " X "
       << (info.cycles_per_second / 1000000.0) << " MHz CPU "
       << ((info.num_cpus > 1) ? "s" : "") << ")\n";
-  if (info.caches.size() != 0) {
+  if (!info.caches.empty()) {
     Out << "CPU Caches:\n";
-    for (auto &CInfo : info.caches) {
+    for (const auto &CInfo : info.caches) {
       Out << "  L" << CInfo.level << " " << CInfo.type << " "
           << (CInfo.size / 1024) << " KiB";
       if (CInfo.num_sharing != 0) {

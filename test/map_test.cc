@@ -39,7 +39,7 @@ class MapFixture : public ::benchmark::Fixture {
     m = ConstructRandomMap(static_cast<int>(st.range(0)));
   }
 
-  void TearDown(const ::benchmark::State&) override { m.clear(); }
+  void TearDown(const ::benchmark::State& /*unused*/) override { m.clear(); }
 
   std::map<int, int> m;
 };

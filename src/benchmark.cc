@@ -46,7 +46,6 @@
 #include "commandlineflags.h"
 #include "complexity.h"
 #include "counter.h"
-#include "internal_macros.h"
 #include "log.h"
 #include "mutex.h"
 #include "perf_counters.h"
@@ -198,7 +197,7 @@ State::State(std::string name, IterationCount max_iters,
   // `PauseTiming`, a new `Counter` will be inserted the first time, which
   // won't have the flag.  Inserting them now also reduces the allocations
   // during the benchmark.
-  if (perf_counters_measurement_) {
+  if (perf_counters_measurement_ != nullptr) {
     for (const std::string& counter_name :
          perf_counters_measurement_->names()) {
       counters[counter_name] = Counter(0.0, Counter::kAvgIterations);
@@ -247,7 +246,7 @@ void State::PauseTiming() {
   // Add in time accumulated so far
   BM_CHECK(started_ && !finished_ && !skipped());
   timer_->StopTimer();
-  if (perf_counters_measurement_) {
+  if (perf_counters_measurement_ != nullptr) {
     std::vector<std::pair<std::string, double>> measurements;
     if (!perf_counters_measurement_->Stop(measurements)) {
       BM_CHECK(false) << "Perf counters read the value failed.";
@@ -265,7 +264,7 @@ void State::PauseTiming() {
 void State::ResumeTiming() {
   BM_CHECK(started_ && !finished_ && !skipped());
   timer_->StartTimer();
-  if (perf_counters_measurement_) {
+  if (perf_counters_measurement_ != nullptr) {
     perf_counters_measurement_->Start();
   }
 }
@@ -342,7 +341,7 @@ namespace {
 // Flushes streams after invoking reporter methods that write to them. This
 // ensures users get timely updates even when streams are not line-buffered.
 void FlushStreams(BenchmarkReporter* reporter) {
-  if (!reporter) {
+  if (reporter == nullptr) {
     return;
   }
   std::flush(reporter->GetOutputStream());
@@ -367,7 +366,7 @@ void Report(BenchmarkReporter* display_reporter,
 
   report_one(display_reporter, run_results.display_report_aggregates_only,
              run_results);
-  if (file_reporter) {
+  if (file_reporter != nullptr) {
     report_one(file_reporter, run_results.file_report_aggregates_only,
                run_results);
   }
@@ -408,7 +407,7 @@ void RunBenchmarks(const std::vector<BenchmarkInstance>& benchmarks,
       per_family_reports;
 
   if (display_reporter->ReportContext(context) &&
-      (!file_reporter || file_reporter->ReportContext(context))) {
+      ((file_reporter == nullptr) || file_reporter->ReportContext(context))) {
     FlushStreams(display_reporter);
     FlushStreams(file_reporter);
 
@@ -433,12 +432,12 @@ void RunBenchmarks(const std::vector<BenchmarkInstance>& benchmarks,
       if (benchmark.complexity() != oNone) {
         reports_for_family = &per_family_reports[benchmark.family_index()];
       }
-      benchmarks_with_threads += (benchmark.threads() > 1);
+      benchmarks_with_threads += static_cast<int>(benchmark.threads() > 1);
       runners.emplace_back(benchmark, &perfcounters, reports_for_family);
       int num_repeats_of_this_instance = runners.back().GetNumRepeats();
       num_repetitions_total +=
           static_cast<size_t>(num_repeats_of_this_instance);
-      if (reports_for_family) {
+      if (reports_for_family != nullptr) {
         reports_for_family->num_runs_total += num_repeats_of_this_instance;
       }
     }
@@ -482,7 +481,7 @@ void RunBenchmarks(const std::vector<BenchmarkInstance>& benchmarks,
 
       display_reporter->ReportRunsConfig(
           runner.GetMinTime(), runner.HasExplicitIters(), runner.GetIters());
-      if (file_reporter) {
+      if (file_reporter != nullptr) {
         file_reporter->ReportRunsConfig(
             runner.GetMinTime(), runner.HasExplicitIters(), runner.GetIters());
       }
@@ -506,7 +505,7 @@ void RunBenchmarks(const std::vector<BenchmarkInstance>& benchmarks,
     }
   }
   display_reporter->Finalize();
-  if (file_reporter) {
+  if (file_reporter != nullptr) {
     file_reporter->Finalize();
   }
   FlushStreams(display_reporter);
@@ -569,7 +568,7 @@ ConsoleReporter::OutputOptions GetOutputOptions(bool force_no_color) {
 }  // end namespace internal
 
 BenchmarkReporter* CreateDefaultDisplayReporter() {
-  static auto default_display_reporter =
+  static auto* default_display_reporter =
       internal::CreateReporter(FLAGS_benchmark_format,
                                internal::GetOutputOptions())
           .release();
@@ -611,7 +610,7 @@ size_t RunSpecifiedBenchmarks(BenchmarkReporter* display_reporter,
   std::ofstream output_file;
   std::unique_ptr<BenchmarkReporter> default_display_reporter;
   std::unique_ptr<BenchmarkReporter> default_file_reporter;
-  if (!display_reporter) {
+  if (display_reporter == nullptr) {
     default_display_reporter.reset(CreateDefaultDisplayReporter());
     display_reporter = default_display_reporter.get();
   }
@@ -619,7 +618,7 @@ size_t RunSpecifiedBenchmarks(BenchmarkReporter* display_reporter,
   auto& Err = display_reporter->GetErrorStream();
 
   std::string const& fname = FLAGS_benchmark_out;
-  if (fname.empty() && file_reporter) {
+  if (fname.empty() && (file_reporter != nullptr)) {
     Err << "A custom file reporter was provided but "
            "--benchmark_out=<file> was not specified.\n";
     Out.flush();
@@ -634,7 +633,7 @@ size_t RunSpecifiedBenchmarks(BenchmarkReporter* display_reporter,
       Err.flush();
       std::exit(1);
     }
-    if (!file_reporter) {
+    if (file_reporter == nullptr) {
       default_file_reporter = internal::CreateReporter(
           FLAGS_benchmark_out_format, FLAGS_benchmark_counters_tabular
                                           ? ConsoleReporter::OO_Tabular
@@ -743,8 +742,8 @@ void SetDefaultTimeUnitFromFlag(const std::string& time_unit_flag) {
 void ParseCommandLineFlags(int* argc, char** argv) {
   using namespace benchmark;
   BenchmarkReporter::Context::executable_name =
-      (argc && *argc > 0) ? argv[0] : "unknown";
-  for (int i = 1; argc && i < *argc; ++i) {
+      ((argc != nullptr) && *argc > 0) ? argv[0] : "unknown";
+  for (int i = 1; (argc != nullptr) && i < *argc; ++i) {
     if (ParseBoolFlag(argv[i], "benchmark_list_tests",
                       &FLAGS_benchmark_list_tests) ||
         ParseStringFlag(argv[i], "benchmark_filter", &FLAGS_benchmark_filter) ||

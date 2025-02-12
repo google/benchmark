@@ -313,7 +313,7 @@ BENCHMARK_EXPORT std::string GetBenchmarkVersion();
 BENCHMARK_EXPORT void PrintDefaultHelp();
 
 BENCHMARK_EXPORT void Initialize(int* argc, char** argv,
-                                 void (*HelperPrinterf)() = PrintDefaultHelp);
+                                 void (*HelperPrintf)() = PrintDefaultHelp);
 BENCHMARK_EXPORT void Shutdown();
 
 // Report to stdout all arguments in 'argv' as unrecognized except the first.
@@ -631,7 +631,7 @@ class Counter {
   Counter(double v = 0., Flags f = kDefaults, OneK k = kIs1000)
       : value(v), flags(f), oneK(k) {}
 
-  BENCHMARK_ALWAYS_INLINE operator double const &() const { return value; }
+  BENCHMARK_ALWAYS_INLINE operator double const&() const { return value; }
   BENCHMARK_ALWAYS_INLINE operator double&() { return value; }
 };
 
@@ -1165,7 +1165,7 @@ class BENCHMARK_EXPORT Benchmark {
   // Pass this benchmark object to *func, which can customize
   // the benchmark by calling various methods like Arg, Args,
   // Threads, etc.
-  Benchmark* Apply(void (*func)(Benchmark* benchmark));
+  Benchmark* Apply(void (*custom_arguments)(Benchmark* benchmark));
 
   // Set the range multiplier for non-dense range. If not called, the range
   // multiplier kRangeMultiplier will be used.
@@ -1869,8 +1869,8 @@ class BENCHMARK_EXPORT ConsoleReporter : public BenchmarkReporter {
   void ReportRuns(const std::vector<Run>& reports) override;
 
  protected:
-  virtual void PrintRunData(const Run& report);
-  virtual void PrintHeader(const Run& report);
+  virtual void PrintRunData(const Run& result);
+  virtual void PrintHeader(const Run& run);
 
   OutputOptions output_options_;
   size_t name_field_width_;
@@ -1886,7 +1886,7 @@ class BENCHMARK_EXPORT JSONReporter : public BenchmarkReporter {
   void Finalize() override;
 
  private:
-  void PrintRunData(const Run& report);
+  void PrintRunData(const Run& run);
 
   bool first_report_;
 };
@@ -1900,7 +1900,7 @@ class BENCHMARK_EXPORT BENCHMARK_DEPRECATED_MSG(
   void ReportRuns(const std::vector<Run>& reports) override;
 
  private:
-  void PrintRunData(const Run& report);
+  void PrintRunData(const Run& run);
 
   bool printed_header_;
   std::set<std::string> user_counter_names_;

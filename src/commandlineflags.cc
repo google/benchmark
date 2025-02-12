@@ -109,7 +109,7 @@ bool ParseKvPairs(const std::string& src_text, const char* str,
 // Returns the name of the environment variable corresponding to the
 // given flag.  For example, FlagToEnvVar("foo") will return
 // "BENCHMARK_FOO" in the open-source version.
-static std::string FlagToEnvVar(const char* flag) {
+std::string FlagToEnvVar(const char* flag) {
   const std::string flag_str(flag);
 
   std::string env_var;

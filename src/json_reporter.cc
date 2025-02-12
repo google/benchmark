@@ -85,6 +85,10 @@ std::string FormatKV(std::string const& key, int64_t value) {
   return ss.str();
 }
 
+std::string FormatKV(std::string const& key, int value) {
+  return FormatKV(key, static_cast<int64_t>(value));
+}
+
 std::string FormatKV(std::string const& key, double value) {
   std::stringstream ss;
   ss << '"' << StrEscape(key) << "\": ";
@@ -122,7 +126,7 @@ bool JSONReporter::ReportContext(const Context& context) {
 
   out << indent << FormatKV("host_name", context.sys_info.name) << ",\n";
 
-  if (Context::executable_name) {
+  if (Context::executable_name != nullptr) {
     out << indent << FormatKV("executable", Context::executable_name) << ",\n";
   }
 
@@ -136,7 +140,7 @@ bool JSONReporter::ReportContext(const Context& context) {
   if (CPUInfo::Scaling::UNKNOWN != info.scaling) {
     out << indent
         << FormatKV("cpu_scaling_enabled",
-                    info.scaling == CPUInfo::Scaling::ENABLED ? true : false)
+                    info.scaling == CPUInfo::Scaling::ENABLED)
         << ",\n";
   }
 
@@ -144,7 +148,7 @@ bool JSONReporter::ReportContext(const Context& context) {
   indent = std::string(6, ' ');
   std::string cache_indent(8, ' ');
   for (size_t i = 0; i < info.caches.size(); ++i) {
-    auto& CI = info.caches[i];
+    const auto& CI = info.caches[i];
     out << indent << "{\n";
     out << cache_indent << FormatKV("type", CI.type) << ",\n";
     out << cache_indent << FormatKV("level", static_cast<int64_t>(CI.level))
@@ -183,7 +187,7 @@ bool JSONReporter::ReportContext(const Context& context) {
   out << ",\n";
 
   // NOTE: our json schema is not strictly tied to the library version!
-  out << indent << FormatKV("json_schema_version", int64_t(1));
+  out << indent << FormatKV("json_schema_version", 1);
 
   std::map<std::string, std::string>* global_context =
       internal::GetGlobalContext();
@@ -298,11 +302,11 @@ void JSONReporter::PrintRunData(Run const& run) {
     out << indent << FormatKV("rms", run.GetAdjustedCPUTime());
   }
 
-  for (auto& c : run.counters) {
+  for (const auto& c : run.counters) {
     out << ",\n" << indent << FormatKV(c.first, c.second);
   }
 
-  if (run.memory_result) {
+  if (run.memory_result != nullptr) {
     const MemoryManager::Result memory_result = *run.memory_result;
     out << ",\n" << indent << FormatKV("allocs_per_iter", run.allocs_per_iter);
     out << ",\n"
