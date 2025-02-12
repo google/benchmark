@@ -186,7 +186,7 @@ IterationCount ComputeIters(const benchmark::internal::BenchmarkInstance& b,
 }  // end namespace
 
 BenchTimeType ParseBenchMinTime(const std::string& value) {
-  BenchTimeType ret;
+  BenchTimeType ret = {};
 
   if (value.empty()) {
     ret.tag = BenchTimeType::TIME;
@@ -195,7 +195,7 @@ BenchTimeType ParseBenchMinTime(const std::string& value) {
   }
 
   if (value.back() == 'x') {
-    char* p_end;
+    char* p_end = nullptr;
     // Reset errno before it's changed by strtol.
     errno = 0;
     IterationCount num_iters = std::strtol(value.c_str(), &p_end, 10);
@@ -217,7 +217,7 @@ BenchTimeType ParseBenchMinTime(const std::string& value) {
                   "Eg., `30s` for 30-seconds.";
   }
 
-  char* p_end;
+  char* p_end = nullptr;
   // Reset errno before it's changed by strtod.
   errno = 0;
   double min_time = std::strtod(value.c_str(), &p_end);
