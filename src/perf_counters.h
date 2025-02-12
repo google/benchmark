@@ -78,7 +78,7 @@ class BENCHMARK_EXPORT PerfCounterValues {
   // Move the padding to 2 due to the reading algorithm (1st padding plus a
   // current read padding)
   static constexpr size_t kPadding = 2;
-  std::array<uint64_t, kPadding + kMaxCounters> values_;
+  std::array<uint64_t, kPadding + kMaxCounters> values_ = {};
   const size_t nr_counters_;
 };
 
