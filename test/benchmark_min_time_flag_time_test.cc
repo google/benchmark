@@ -29,7 +29,7 @@ class TestReporter : public benchmark::ConsoleReporter {
   };
 
   void ReportRunsConfig(double min_time, bool /* has_explicit_iters */,
-                                IterationCount /* iters */) override {
+                        IterationCount /* iters */) override {
     min_times_.push_back(min_time);
   }
 
