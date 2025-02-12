@@ -83,7 +83,7 @@ std::string PerformSubstitutions(std::string source) {
   SubMap const& subs = GetSubstitutions();
   using SizeT = std::string::size_type;
   for (auto const& KV : subs) {
-    SizeT pos;
+    SizeT pos = 0;
     SizeT next_start = 0;
     while ((pos = source.find(KV.first, next_start)) != std::string::npos) {
       next_start = pos + KV.second.size();

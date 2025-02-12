@@ -13,11 +13,11 @@ namespace {
 
 class TestReporter : public benchmark::ConsoleReporter {
  public:
-  virtual bool ReportContext(const Context& context) override {
+  bool ReportContext(const Context& context) override {
     return ConsoleReporter::ReportContext(context);
   };
 
-  virtual void ReportRuns(const std::vector<Run>& report) override {
+  void ReportRuns(const std::vector<Run>& report) override {
     assert(report.size() == 1);
     iter_nums_.push_back(report[0].iterations);
     ConsoleReporter::ReportRuns(report);
@@ -25,7 +25,7 @@ class TestReporter : public benchmark::ConsoleReporter {
 
   TestReporter() {}
 
-  virtual ~TestReporter() {}
+  ~TestReporter() override {}
 
   const std::vector<benchmark::IterationCount>& GetIters() const {
     return iter_nums_;

@@ -85,7 +85,7 @@ int main(int argc, char** argv) {
   if (argc == 2) {
     // Make sure we ran all of the tests
     std::stringstream ss(argv[1]);
-    int64_t expected_return;
+    int64_t expected_return = 0;
     ss >> expected_return;
 
     if (returned_count != expected_return) {

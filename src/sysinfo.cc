@@ -252,7 +252,7 @@ int CountSetBitsInCPUMap(std::string val) {
     CPUMask mask(benchmark::stoul(part, nullptr, 16));
     return static_cast<int>(mask.count());
   };
-  std::size_t pos;
+  std::size_t pos = 0;
   int total = 0;
   while ((pos = val.find(',')) != std::string::npos) {
     total += CountBits(val.substr(0, pos));
@@ -587,7 +587,7 @@ class ThreadAffinityGuard final {
  private:
   bool SetAffinity() {
 #if defined(BENCHMARK_HAS_PTHREAD_AFFINITY)
-    int ret;
+    int ret = 0;
     self = pthread_self();
     ret = pthread_getaffinity_np(self, sizeof(previous_affinity),
                                  &previous_affinity);
@@ -627,8 +627,8 @@ class ThreadAffinityGuard final {
   }
 
 #if defined(BENCHMARK_HAS_PTHREAD_AFFINITY)
-  pthread_t self;
-  cpu_set_t previous_affinity;
+  pthread_t self{};
+  cpu_set_t previous_affinity{};
 #elif defined(BENCHMARK_OS_WINDOWS_WIN32)
   HANDLE self;
   DWORD_PTR previous_affinity;
@@ -642,7 +642,7 @@ double GetCPUCyclesPerSecond(CPUInfo::Scaling scaling) {
   (void)scaling;
 
 #if defined BENCHMARK_OS_LINUX || defined BENCHMARK_OS_CYGWIN
-  long freq;
+  long freq = 0;
 
   // If the kernel is exporting the tsc frequency use that. There are issues
   // where cpuinfo_max_freq cannot be relied on because the BIOS may be
