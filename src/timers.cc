@@ -143,7 +143,7 @@ double ProcessCPUUsage() {
 #elif defined(CLOCK_PROCESS_CPUTIME_ID) && !defined(BENCHMARK_OS_MACOSX)
   // FIXME We want to use clock_gettime, but its not available in MacOS 10.11.
   // See https://github.com/google/benchmark/pull/292
-  struct timespec spec;
+  struct timespec spec {};
   if (clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &spec) == 0) {
     return MakeTime(spec);
   }
@@ -200,7 +200,7 @@ double ThreadCPUUsage() {
   if (getrusage(RUSAGE_LWP, &ru) == 0) return MakeTime(ru);
   DiagnoseAndExit("getrusage(RUSAGE_LWP, ...) failed");
 #elif defined(CLOCK_THREAD_CPUTIME_ID)
-  struct timespec ts;
+  struct timespec ts {};
   if (clock_gettime(CLOCK_THREAD_CPUTIME_ID, &ts) == 0) {
     return MakeTime(ts);
   }
@@ -217,9 +217,9 @@ std::string LocalDateTimeString() {
   const std::size_t kTzOffsetLen = 6;
   const std::size_t kTimestampLen = 19;
 
-  std::size_t tz_len;
-  std::size_t timestamp_len;
-  long int offset_minutes;
+  std::size_t tz_len = 0;
+  std::size_t timestamp_len = 0;
+  long int offset_minutes = 0;
   char tz_offset_sign = '+';
   // tz_offset is set in one of three ways:
   // * strftime with %z - This either returns empty or the ISO 8601 time.  The
@@ -239,7 +239,7 @@ std::string LocalDateTimeString() {
 #if defined(BENCHMARK_OS_WINDOWS)
   std::tm* timeinfo_p = ::localtime(&now);
 #else
-  std::tm timeinfo;
+  std::tm timeinfo{};
   std::tm* timeinfo_p = &timeinfo;
   ::localtime_r(&now, &timeinfo);
 #endif
