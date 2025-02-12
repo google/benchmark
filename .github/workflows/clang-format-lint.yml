@@ -10,9 +10,4 @@ jobs:
 
     steps:
     - uses: actions/checkout@v4
-    - uses: DoozyX/clang-format-lint-action@v0.15
-      with:
-        source: './include/benchmark ./src ./test'
-        extensions: 'h,cc'
-        clangFormatVersion: 12
-        style: Google
+    - uses: yshui/git-clang-format-lint@v1.17
