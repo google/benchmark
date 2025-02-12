@@ -13,3 +13,4 @@ jobs:
     - uses: DoozyX/clang-format-lint-action@v0.18.2
       with:
         source: './include/benchmark ./src ./test'
+        clangFormatVersion: 16
