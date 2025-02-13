@@ -16,10 +16,11 @@
 #define CONCAT2(x, y) x##y
 #define CONCAT(x, y) CONCAT2(x, y)
 
-#define ADD_CASES(...) int CONCAT(dummy, __LINE__) = ::AddCases(__VA_ARGS__)
+#define ADD_CASES(...) \
+  const int CONCAT(dummy, __LINE__) = ::AddCases(__VA_ARGS__)
 
 #define SET_SUBSTITUTIONS(...) \
-  int CONCAT(dummy, __LINE__) = ::SetSubstitutions(__VA_ARGS__)
+  const int CONCAT(dummy, __LINE__) = ::SetSubstitutions(__VA_ARGS__)
 
 enum MatchRules : uint8_t {
   MR_Default,  // Skip non-matching lines until a match is found.
@@ -80,7 +81,8 @@ std::string GetFileReporterOutput(int argc, char* argv[]);
 //                  will be the subject of a call to checker_function
 // checker_function: should be of type ResultsCheckFn (see below)
 #define CHECK_BENCHMARK_RESULTS(bm_name_pattern, checker_function) \
-  size_t CONCAT(dummy, __LINE__) = AddChecker(bm_name_pattern, checker_function)
+  const size_t CONCAT(dummy, __LINE__) =                           \
+      AddChecker(bm_name_pattern, checker_function)
 
 struct Results;
 typedef std::function<void(Results const&)> ResultsCheckFn;

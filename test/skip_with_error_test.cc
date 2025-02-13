@@ -59,7 +59,7 @@ int AddCases(const std::string& base_name,
 
 #define CONCAT(x, y) CONCAT2(x, y)
 #define CONCAT2(x, y) x##y
-#define ADD_CASES(...) int CONCAT(dummy, __LINE__) = AddCases(__VA_ARGS__)
+#define ADD_CASES(...) const int CONCAT(dummy, __LINE__) = AddCases(__VA_ARGS__)
 
 }  // end namespace
 

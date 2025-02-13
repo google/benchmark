@@ -306,7 +306,8 @@ static void BM_templated_test(benchmark::State& state) {
   }
 }
 
-static auto BM_templated_test_double = BM_templated_test<std::complex<double>>;
+static const auto BM_templated_test_double =
+    BM_templated_test<std::complex<double>>;
 BENCHMARK(BM_templated_test_double);
 
 BENCHMARK_MAIN();

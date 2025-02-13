@@ -34,7 +34,7 @@ class EventQueue : public std::queue<std::string> {
   }
 };
 
-EventQueue* queue = new EventQueue();
+EventQueue* const queue = new EventQueue();  // NOLINT
 
 class NullReporter : public BenchmarkReporter {
  public:
