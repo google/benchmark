@@ -68,7 +68,7 @@ class BenchmarkInstance {
   IterationCount iterations_;
   int threads_;  // Number of concurrent threads to us
 
-  typedef void (*callback_function)(const benchmark::State&);
+  using callback_function = Benchmark::callback_function;
   callback_function setup_ = nullptr;
   callback_function teardown_ = nullptr;
 };
