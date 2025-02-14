@@ -1077,7 +1077,7 @@ typedef void(Function)(State&);
 // Each method returns "this" so that multiple method calls can
 // chained into one expression.
 class BENCHMARK_EXPORT Benchmark {
-  public:
+public:
   virtual ~Benchmark();
 
   // Define alias of Setup/Teardown callback function type
