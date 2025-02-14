@@ -14,20 +14,17 @@ namespace singlethreaded {
 static int setup_call = 0;
 static int teardown_call = 0;
 }  // namespace singlethreaded
+static void DoSetup1(const benchmark::State& state) {
+  ++singlethreaded::setup_call;
 
-struct DoSetup1 {
-  void operator()(const benchmark::State& state) {
-    ++singlethreaded::setup_call;
+  // Setup/Teardown should never be called with any thread_idx != 0.
+  assert(state.thread_index() == 0);
+}
 
-    // Setup/Teardown should never be called with any thread_idx != 0.
-    assert(state.thread_index() == 0);
-  }
-};
-
-auto DoTeardown1 = [](const benchmark::State& state) {
+static void DoTeardown1(const benchmark::State& state) {
   ++singlethreaded::teardown_call;
   assert(state.thread_index() == 0);
-};
+}
 
 static void BM_with_setup(benchmark::State& state) {
   for (auto s : state) {
@@ -39,7 +36,7 @@ BENCHMARK(BM_with_setup)
     ->Arg(5)
     ->Arg(7)
     ->Iterations(100)
-    ->Setup(DoSetup1{})
+    ->Setup(DoSetup1)
     ->Teardown(DoTeardown1);
 
 // Test that Setup() and Teardown() are called once for each group of threads.
