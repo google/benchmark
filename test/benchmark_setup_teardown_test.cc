@@ -16,7 +16,7 @@ static int teardown_call = 0;
 }  // namespace singlethreaded
 
 struct DoSetup1 {
-  void operator()(const benchmark::State& state){
+  void operator()(const benchmark::State& state) {
     ++singlethreaded::setup_call;
 
     // Setup/Teardown should never be called with any thread_idx != 0.
@@ -24,7 +24,7 @@ struct DoSetup1 {
   }
 };
 
-auto DoTeardown1 = [](const benchmark::State& state){
+auto DoTeardown1 = [](const benchmark::State& state) {
   ++singlethreaded::teardown_call;
   assert(state.thread_index() == 0);
 };
