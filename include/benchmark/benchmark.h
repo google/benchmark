@@ -1077,11 +1077,11 @@ typedef void(Function)(State&);
 // Each method returns "this" so that multiple method calls can
 // chained into one expression.
 class BENCHMARK_EXPORT Benchmark {
+  public:
+  virtual ~Benchmark();
+
   // Define alias of Setup/Teardown callback function type
   using callback_function = std::function<void(const benchmark::State&)>;
-
- public:
-  virtual ~Benchmark();
 
   // Note: the following methods all return "this" so that multiple
   // method calls can be chained together in one expression.
