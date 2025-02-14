@@ -127,8 +127,46 @@ BENCHMARK(BM_WithRep)
     ->Iterations(100)
     ->Repetitions(4);
 
+namespace withfunctors {
+  static int setup_call = 0;
+  static int teardown_call = 0;
+};
+namespace withlambdas {
+  static int setup_call = 0;
+  static int teardown_call = 0;
+};
+struct Functor {
+  int& var;
+  Functor(int& v) : var(v) {}
+  void operator()(const benchmark::State& /*unused*/) {
+    var++;
+  }
+};
+
 int main(int argc, char** argv) {
   benchmark::Initialize(&argc, argv);
+
+  auto bmf = benchmark::RegisterBenchmark("BM_with_functors", 
+    [](benchmark::State& state) {
+      for (auto _ : state) {
+      }
+  });
+  bmf->Arg(1)->Arg(2)->Iterations(10);
+  bmf->Setup(Functor(withfunctors::setup_call));
+  bmf->Teardown(Functor(withfunctors::teardown_call));
+
+  auto bml = benchmark::RegisterBenchmark("BM_with_lambdas", 
+    [](benchmark::State& state) {
+      for (auto _ : state) {
+      }
+  });
+  bml->Arg(1)->Arg(2)->Iterations(10);
+  bml->Setup([](const benchmark::State& /*unused*/) {
+    withlambdas::setup_call++;
+  });
+  bml->Teardown([](const benchmark::State& /*unused*/) {
+    withlambdas::teardown_call++;
+  });
 
   size_t ret = benchmark::RunSpecifiedBenchmarks(".");
   assert(ret > 0);
@@ -152,6 +190,14 @@ int main(int argc, char** argv) {
 
   // Setup is call once for each repetition * num_arg =  4 * 4 = 16.
   assert(repetitions::setup == 16);
+
+  // Setup/Teardown is called once for each arg group (1,2).
+  assert(withlambdas::setup_call == 2);
+  assert(withlambdas::teardown_call == 2);
+
+  // Setup/Teardown is called once for each arg group (1,2).
+  assert(withlambdas::setup_call == 2);
+  assert(withlambdas::teardown_call == 2);
 
   return 0;
 }
