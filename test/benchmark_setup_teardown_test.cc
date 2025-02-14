@@ -154,15 +154,15 @@ int main(int argc, char** argv) {
   bmf->Teardown(Functor(withfunctors::teardown_call));
 
   auto bml = benchmark::RegisterBenchmark("BM_with_lambdas",
-    [](benchmark::State& state) {
-      for (auto _ : state) {
-      }
-    });
+                                          [](benchmark::State& state) {
+                                            for (auto _ : state) {
+                                            }
+                                          });
   bml->Arg(1)->Arg(2)->Iterations(10);
   bml->Setup(
-    [](const benchmark::State& /*unused*/) { withlambdas::setup_call++; });
+      [](const benchmark::State& /*unused*/) { withlambdas::setup_call++; });
   bml->Teardown(
-    [](const benchmark::State& /*unused*/) { withlambdas::teardown_call++; });
+      [](const benchmark::State& /*unused*/) { withlambdas::teardown_call++; });
 
   size_t ret = benchmark::RunSpecifiedBenchmarks(".");
   assert(ret > 0);
