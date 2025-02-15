@@ -337,15 +337,15 @@ Benchmark* Benchmark::Apply(void (*custom_arguments)(Benchmark* benchmark)) {
   return this;
 }
 
-Benchmark* Benchmark::Setup(callback_function setup) {
+Benchmark* Benchmark::Setup(callback_function&& setup) {
   BM_CHECK(setup != nullptr);
-  setup_ = setup;
+  setup_ = std::forward<callback_function>(setup);
   return this;
 }
 
-Benchmark* Benchmark::Teardown(callback_function teardown) {
+Benchmark* Benchmark::Teardown(callback_function&& teardown) {
   BM_CHECK(teardown != nullptr);
-  teardown_ = teardown;
+  teardown_ = std::forward<callback_function>(teardown);
   return this;
 }
 

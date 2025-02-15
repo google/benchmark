@@ -1163,8 +1163,8 @@ class BENCHMARK_EXPORT Benchmark {
   // of threads, thread-index, benchmark arguments, etc.
   //
   // The callback must not be NULL or self-deleting.
-  Benchmark* Setup(callback_function);
-  Benchmark* Teardown(callback_function);
+  Benchmark* Setup(callback_function&&);
+  Benchmark* Teardown(callback_function&&);
 
   // Pass this benchmark object to *func, which can customize
   // the benchmark by calling various methods like Arg, Args,
