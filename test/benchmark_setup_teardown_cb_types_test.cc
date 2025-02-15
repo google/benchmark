@@ -10,22 +10,17 @@ static int functor_calls = 0;
 static int lambda_calls = 0;
 static int ctr_copy_calls = 0;
 static int ctr_move_calls = 0;
-};
+};  // namespace counters
 
 struct Functor {
   Functor() {}
-  Functor(const Functor& /*unused*/){
-    counters::ctr_copy_calls++;
-  }
-  Functor(Functor&& /*unused*/){
-    counters::ctr_move_calls++;
-  }
-  //void operator()(const benchmark::State& /*unused*/) { counters::functor_calls++; }
-  void operator()(const benchmark::State& /*unused*/) { }
+  Functor(const Functor& /*unused*/) { counters::ctr_copy_calls++; }
+  Functor(Functor&& /*unused*/) { counters::ctr_move_calls++; }
+  void operator()(const benchmark::State& /*unused*/) {}
 };
 
-void BM_DoSomething(benchmark::State& state){
-  for(auto _ : state) {
+void BM_DoSomething(benchmark::State& state) {
+  for (auto _ : state) {
   }
 }
 
@@ -67,11 +62,11 @@ int main(int argc, char** argv) {
     assert(counters::ctr_move_calls == 4);
   }
   {
-    bm->Setup([](const benchmark::State& /*unused*/){});
-    bm->Teardown([](const benchmark::State& /*unused*/){});
+    bm->Setup([](const benchmark::State& /*unused*/) {});
+    bm->Teardown([](const benchmark::State& /*unused*/) {});
   }
   {
-    callback_function func1 = [](const benchmark::State& /*unused*/){};
+    callback_function func1 = [](const benchmark::State& /*unused*/) {};
     callback_function func2 = func1;
     bm->Setup(std::move(func1));
     bm->Teardown(std::move(func2));
@@ -79,7 +74,7 @@ int main(int argc, char** argv) {
     assert(func2 == nullptr);
   }
   {
-    callback_function func1 = [](const benchmark::State& /*unused*/){};
+    callback_function func1 = [](const benchmark::State& /*unused*/) {};
     callback_function func2 = func1;
     bm->Setup(func1);
     bm->Teardown(func2);
@@ -87,13 +82,13 @@ int main(int argc, char** argv) {
     assert(func2 != nullptr);
   }
   {
-    auto func = [](const benchmark::State& /*unused*/){};
+    auto func = [](const benchmark::State& /*unused*/) {};
     bm->Setup(func);
     bm->Teardown(func);
     assert(func != nullptr);
   }
   {
-    auto func1 = [](const benchmark::State& /*unused*/){};
+    auto func1 = [](const benchmark::State& /*unused*/) {};
     auto func2 = func1;
     bm->Setup(std::move(func1));
     bm->Teardown(std::move(func2));
