@@ -304,6 +304,10 @@ BENCHMARK(BM_test)->Unit(benchmark::kMillisecond);
 
 namespace benchmark {
 class BenchmarkReporter;
+class State;
+
+// Define alias of Setup/Teardown callback function type
+using callback_function = std::function<void(const benchmark::State&)>;
 
 // Default number of minimum benchmark running time in seconds.
 const char kDefaultMinTimeStr[] = "0.5s";
@@ -1080,9 +1084,6 @@ class BENCHMARK_EXPORT Benchmark {
  public:
   virtual ~Benchmark();
 
-  // Define alias of Setup/Teardown callback function type
-  using callback_function = std::function<void(const benchmark::State&)>;
-
   // Note: the following methods all return "this" so that multiple
   // method calls can be chained together in one expression.
 
@@ -1164,7 +1165,9 @@ class BENCHMARK_EXPORT Benchmark {
   //
   // The callback must not be NULL or self-deleting.
   Benchmark* Setup(callback_function&&);
+  Benchmark* Setup(const callback_function&);
   Benchmark* Teardown(callback_function&&);
+  Benchmark* Teardown(const callback_function&);
 
   // Pass this benchmark object to *func, which can customize
   // the benchmark by calling various methods like Arg, Args,

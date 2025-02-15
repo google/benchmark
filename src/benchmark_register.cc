@@ -343,9 +343,21 @@ Benchmark* Benchmark::Setup(callback_function&& setup) {
   return this;
 }
 
+Benchmark* Benchmark::Setup(const callback_function& setup) {
+  BM_CHECK(setup != nullptr);
+  setup_ = std::move(setup);
+  return this;
+}
+
 Benchmark* Benchmark::Teardown(callback_function&& teardown) {
   BM_CHECK(teardown != nullptr);
   teardown_ = std::forward<callback_function>(teardown);
+  return this;
+}
+
+Benchmark* Benchmark::Teardown(const callback_function& teardown) {
+  BM_CHECK(teardown != nullptr);
+  teardown_ = teardown;
   return this;
 }
 
