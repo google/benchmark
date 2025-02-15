@@ -85,6 +85,9 @@ benchmark_add_test(NAME spec_arg_verbosity COMMAND spec_arg_verbosity_test --v=4
 compile_benchmark_test(benchmark_setup_teardown_test)
 benchmark_add_test(NAME benchmark_setup_teardown COMMAND benchmark_setup_teardown_test)
 
+compile_benchmark_test(benchmark_setup_teardown_cb_types_test)
+benchmark_add_test(NAME benchmark_setup_teardown_cb_types COMMAND benchmark_setup_teardown_cb_types_test)
+
 compile_benchmark_test(filter_test)
 macro(add_filter_test name filter expect)
   benchmark_add_test(NAME ${name} COMMAND filter_test --benchmark_min_time=0.01s --benchmark_filter=${filter} ${expect})
