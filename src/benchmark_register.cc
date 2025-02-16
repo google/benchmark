@@ -224,9 +224,7 @@ Benchmark::Benchmark(const std::string& name)
       use_real_time_(false),
       use_manual_time_(false),
       complexity_(oNone),
-      complexity_lambda_(nullptr),
-      setup_(nullptr),
-      teardown_(nullptr) {
+      complexity_lambda_(nullptr) {
   ComputeStatistics("mean", StatisticsMean);
   ComputeStatistics("median", StatisticsMedian);
   ComputeStatistics("stddev", StatisticsStdDev);

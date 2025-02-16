@@ -1162,8 +1162,6 @@ class BENCHMARK_EXPORT Benchmark {
   //
   // The callback will be passed a State object, which includes the number
   // of threads, thread-index, benchmark arguments, etc.
-  //
-  // The callback must not be NULL or self-deleting.
   Benchmark* Setup(callback_function&&);
   Benchmark* Setup(const callback_function&);
   Benchmark* Teardown(callback_function&&);
