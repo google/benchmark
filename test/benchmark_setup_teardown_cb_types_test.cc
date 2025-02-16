@@ -24,7 +24,6 @@ void BM_DoSomething(benchmark::State& state) {
   }
 }
 
-
 int main(int argc, char** argv) {
   benchmark::Initialize(&argc, argv);
   auto bm = benchmark::RegisterBenchmark("BM_CtrCopy", BM_DoSomething);
