@@ -71,7 +71,8 @@ BENCHMARK(BM_MyBench);
 int main(int argc, char** argv) {
   // Make a fake argv and append the new --benchmark_min_time=<foo> to it.
   int fake_argc = argc + 1;
-  const char** fake_argv = new const char*[static_cast<size_t>(fake_argc)];
+  std::unique_ptr<const char*[]> fake_argv(
+      new const char*[static_cast<size_t>(fake_argc)]);
 
   for (int i = 0; i < argc; ++i) {
     fake_argv[i] = argv[i];
@@ -82,11 +83,10 @@ int main(int argc, char** argv) {
   double expected = 4.0;
 
   fake_argv[argc] = no_suffix;
-  DoTestHelper(&fake_argc, fake_argv, expected);
+  DoTestHelper(&fake_argc, fake_argv.get(), expected);
 
   fake_argv[argc] = with_suffix;
-  DoTestHelper(&fake_argc, fake_argv, expected);
+  DoTestHelper(&fake_argc, fake_argv.get(), expected);
 
-  delete[] fake_argv;
   return 0;
 }

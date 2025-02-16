@@ -51,7 +51,7 @@ std::set<int64_t> ConstructRandomSet(int64_t size) {
 }
 
 std::mutex test_vector_mu;
-std::vector<int>* test_vector = nullptr;
+std::unique_ptr<std::vector<int>> test_vector;
 
 }  // end namespace
 
@@ -146,7 +146,7 @@ BENCHMARK(BM_StringCompare)->Range(1, 1 << 20);
 static void BM_SetupTeardown(benchmark::State& state) {
   if (state.thread_index() == 0) {
     // No need to lock test_vector_mu here as this is running single-threaded.
-    test_vector = new std::vector<int>();
+    test_vector.reset(new std::vector<int>());
   }
   int i = 0;
   for (auto _ : state) {
@@ -159,7 +159,7 @@ static void BM_SetupTeardown(benchmark::State& state) {
     ++i;
   }
   if (state.thread_index() == 0) {
-    delete test_vector;
+    test_vector.reset();
   }
 }
 BENCHMARK(BM_SetupTeardown)->ThreadPerCpu();
@@ -181,7 +181,7 @@ static void BM_ParallelMemset(benchmark::State& state) {
   int to = from + thread_size;
 
   if (state.thread_index() == 0) {
-    test_vector = new std::vector<int>(static_cast<size_t>(size));
+    test_vector.reset(new std::vector<int>(static_cast<size_t>(size)));
   }
 
   for (auto _ : state) {
@@ -193,7 +193,7 @@ static void BM_ParallelMemset(benchmark::State& state) {
   }
 
   if (state.thread_index() == 0) {
-    delete test_vector;
+    test_vector.reset();
   }
 }
 BENCHMARK(BM_ParallelMemset)->Arg(10 << 20)->ThreadRange(1, 4);
