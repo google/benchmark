@@ -74,7 +74,7 @@ int main(int argc, char** argv) {
   std::unique_ptr<const char*[]> fake_argv(
       new const char*[static_cast<size_t>(fake_argc)]);
 
-  for (int i = 0; i < argc; ++i) {
+  for (size_t i = 0; i < static_cast<size_t>(argc); ++i) {
     fake_argv[i] = argv[i];
   }
 
@@ -82,10 +82,10 @@ int main(int argc, char** argv) {
   const char* with_suffix = "--benchmark_min_time=4.0s";
   double expected = 4.0;
 
-  fake_argv[argc] = no_suffix;
+  fake_argv[static_cast<size_t>(argc)] = no_suffix;
   DoTestHelper(&fake_argc, fake_argv.get(), expected);
 
-  fake_argv[argc] = with_suffix;
+  fake_argv[static_cast<size_t>(argc)] = with_suffix;
   DoTestHelper(&fake_argc, fake_argv.get(), expected);
 
   return 0;
