@@ -343,7 +343,7 @@ Benchmark* Benchmark::Setup(callback_function&& setup) {
 
 Benchmark* Benchmark::Setup(const callback_function& setup) {
   BM_CHECK(setup != nullptr);
-  setup_ = std::move(setup);
+  setup_ = setup;
   return this;
 }
 
