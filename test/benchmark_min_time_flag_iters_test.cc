@@ -46,14 +46,13 @@ BENCHMARK(BM_MyBench);
 int main(int argc, char** argv) {
   // Make a fake argv and append the new --benchmark_min_time=<foo> to it.
   int fake_argc = argc + 1;
-  std::unique_ptr<const char*[]> fake_argv(
-      new const char*[static_cast<size_t>(fake_argc)]);
+  std::vector<const char*> fake_argv(fake_argc);
   for (size_t i = 0; i < static_cast<size_t>(argc); ++i) {
     fake_argv[i] = argv[i];
   }
   fake_argv[static_cast<size_t>(argc)] = "--benchmark_min_time=4x";
 
-  benchmark::Initialize(&fake_argc, const_cast<char**>(fake_argv.get()));
+  benchmark::Initialize(&fake_argc, const_cast<char**>(fake_argv.data()));
 
   TestReporter test_reporter;
   const size_t returned_count =

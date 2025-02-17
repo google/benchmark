@@ -12,6 +12,7 @@
 #include <list>
 #include <map>
 #include <mutex>
+#include <optional>
 #include <set>
 #include <sstream>
 #include <string>
@@ -51,7 +52,7 @@ std::set<int64_t> ConstructRandomSet(int64_t size) {
 }
 
 std::mutex test_vector_mu;
-std::unique_ptr<std::vector<int>> test_vector;
+std::optional<std::vector<int>> test_vector;
 
 }  // end namespace
 
@@ -146,7 +147,7 @@ BENCHMARK(BM_StringCompare)->Range(1, 1 << 20);
 static void BM_SetupTeardown(benchmark::State& state) {
   if (state.thread_index() == 0) {
     // No need to lock test_vector_mu here as this is running single-threaded.
-    test_vector.reset(new std::vector<int>());
+    test_vector = std::vector<int>();
   }
   int i = 0;
   for (auto _ : state) {
@@ -181,7 +182,7 @@ static void BM_ParallelMemset(benchmark::State& state) {
   int to = from + thread_size;
 
   if (state.thread_index() == 0) {
-    test_vector.reset(new std::vector<int>(static_cast<size_t>(size)));
+    test_vector = std::vector<int>(static_cast<size_t>(size));
   }
 
   for (auto _ : state) {
