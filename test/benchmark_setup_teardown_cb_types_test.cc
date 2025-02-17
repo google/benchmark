@@ -6,8 +6,8 @@
 using benchmark::callback_function;
 struct Functor {
   Functor() {}
-  Functor(const Functor& /*unused*/) { }
-  Functor(Functor&& /*unused*/) { }
+  Functor(const Functor& /*unused*/) {}
+  Functor(Functor&& /*unused*/) {}
   void operator()(const benchmark::State& /*unused*/) {}
 };
 
@@ -16,8 +16,7 @@ void BM_DoSomething(benchmark::State& state) {
   }
 }
 
-void function(const benchmark::State& /*unused*/) {
-}
+void function(const benchmark::State& /*unused*/) {}
 
 int main(int argc, char** argv) {
   benchmark::Initialize(&argc, argv);
