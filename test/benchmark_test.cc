@@ -50,8 +50,10 @@ std::set<int64_t> ConstructRandomSet(int64_t size) {
   return s;
 }
 
+// NOLINTBEGIN(cppcoreguidelines-avoid-non-const-global-variables)
 std::mutex test_vector_mu;
 std::vector<int>* test_vector = nullptr;
+// NOLINTEND(cppcoreguidelines-avoid-non-const-global-variables)
 
 }  // end namespace
 

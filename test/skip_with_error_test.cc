@@ -46,6 +46,7 @@ struct TestCase {
   }
 };
 
+// NOLINTNEXTLINE(cppcoreguidelines-avoid-non-const-global-variables)
 std::vector<TestCase> ExpectedResults;
 
 int AddCases(const std::string& base_name,
