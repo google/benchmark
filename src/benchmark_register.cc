@@ -224,9 +224,7 @@ Benchmark::Benchmark(const std::string& name)
       use_real_time_(false),
       use_manual_time_(false),
       complexity_(oNone),
-      complexity_lambda_(nullptr),
-      setup_(nullptr),
-      teardown_(nullptr) {
+      complexity_lambda_(nullptr) {
   ComputeStatistics("mean", StatisticsMean);
   ComputeStatistics("median", StatisticsMedian);
   ComputeStatistics("stddev", StatisticsStdDev);
@@ -337,13 +335,25 @@ Benchmark* Benchmark::Apply(void (*custom_arguments)(Benchmark* benchmark)) {
   return this;
 }
 
-Benchmark* Benchmark::Setup(void (*setup)(const benchmark::State&)) {
+Benchmark* Benchmark::Setup(callback_function&& setup) {
+  BM_CHECK(setup != nullptr);
+  setup_ = std::forward<callback_function>(setup);
+  return this;
+}
+
+Benchmark* Benchmark::Setup(const callback_function& setup) {
   BM_CHECK(setup != nullptr);
   setup_ = setup;
   return this;
 }
 
-Benchmark* Benchmark::Teardown(void (*teardown)(const benchmark::State&)) {
+Benchmark* Benchmark::Teardown(callback_function&& teardown) {
+  BM_CHECK(teardown != nullptr);
+  teardown_ = std::forward<callback_function>(teardown);
+  return this;
+}
+
+Benchmark* Benchmark::Teardown(const callback_function& teardown) {
   BM_CHECK(teardown != nullptr);
   teardown_ = teardown;
   return this;

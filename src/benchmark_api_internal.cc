@@ -27,7 +27,9 @@ BenchmarkInstance::BenchmarkInstance(Benchmark* benchmark, int family_idx,
       min_time_(benchmark_.min_time_),
       min_warmup_time_(benchmark_.min_warmup_time_),
       iterations_(benchmark_.iterations_),
-      threads_(thread_count) {
+      threads_(thread_count),
+      setup_(benchmark_.setup_),
+      teardown_(benchmark_.teardown_) {
   name_.function_name = benchmark_.name_;
 
   size_t arg_i = 0;
@@ -84,9 +86,6 @@ BenchmarkInstance::BenchmarkInstance(Benchmark* benchmark, int family_idx,
   if (!benchmark_.thread_counts_.empty()) {
     name_.threads = StrFormat("threads:%d", threads_);
   }
-
-  setup_ = benchmark_.setup_;
-  teardown_ = benchmark_.teardown_;
 }
 
 State BenchmarkInstance::Run(
