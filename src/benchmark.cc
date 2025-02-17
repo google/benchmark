@@ -150,13 +150,17 @@ BM_DEFINE_int32(v, 0);
 
 namespace internal {
 
+// NOLINTNEXTLINE(cppcoreguidelines-avoid-non-const-global-variables)
 std::map<std::string, std::string>* global_context = nullptr;
 
 BENCHMARK_EXPORT std::map<std::string, std::string>*& GetGlobalContext() {
   return global_context;
 }
 
-static void const volatile* volatile global_force_escape_pointer;
+namespace {
+// NOLINTNEXTLINE(cppcoreguidelines-avoid-non-const-global-variables)
+void const volatile* volatile global_force_escape_pointer;
+}  // namespace
 
 // FIXME: Verify if LTO still messes this up?
 void UseCharPointer(char const volatile* const v) {

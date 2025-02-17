@@ -34,7 +34,8 @@ class EventQueue : public std::queue<std::string> {
   }
 };
 
-EventQueue* queue = new EventQueue();
+// NOLINTNEXTLINE(cppcoreguidelines-avoid-non-const-global-variables)
+EventQueue* const queue = new EventQueue();
 
 class NullReporter : public BenchmarkReporter {
  public:

@@ -60,7 +60,7 @@ static int AddContextCases() {
   AddCases(TC_JSONOut, {{"\"json_schema_version\": 1$", MR_Next}});
   return 0;
 }
-int dummy_register = AddContextCases();
+const int dummy_register = AddContextCases();
 ADD_CASES(TC_CSVOut, {{"%csv_header"}});
 
 // ========================================================================= //
