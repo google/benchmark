@@ -70,8 +70,8 @@ BENCHMARK(BM_MyBench);
 
 int main(int argc, char** argv) {
   // Make a fake argv and append the new --benchmark_min_time=<foo> to it.
-  size_t fake_argc = static_cast<size_t>(argc + 1);
-  std::vector<const char*> fake_argv(fake_argc);
+  int fake_argc = argc + 1;
+  std::vector<const char*> fake_argv(static_cast<size_t>(fake_argc));
 
   for (size_t i = 0; i < static_cast<size_t>(argc); ++i) {
     fake_argv[i] = argv[i];
