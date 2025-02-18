@@ -38,16 +38,16 @@ int main(int argc, char** argv) {
   // Make a fake argv and append the new --benchmark_profiler_iterations=<foo>
   // to it.
   int fake_argc = argc + 1;
-  const char** fake_argv = new const char*[static_cast<size_t>(fake_argc)];
-  for (int i = 0; i < argc; ++i) {
+  std::vector<const char*> fake_argv(static_cast<size_t>(fake_argc));
+  for (size_t i = 0; i < static_cast<size_t>(argc); ++i) {
     fake_argv[i] = argv[i];
   }
-  fake_argv[argc] = "--benchmark_min_time=4x";
+  fake_argv[static_cast<size_t>(argc)] = "--benchmark_min_time=4x";
 
   std::unique_ptr<benchmark::ProfilerManager> pm(new TestProfilerManager());
   benchmark::RegisterProfilerManager(pm.get());
 
-  benchmark::Initialize(&fake_argc, const_cast<char**>(fake_argv));
+  benchmark::Initialize(&fake_argc, const_cast<char**>(fake_argv.data()));
 
   NullReporter null_reporter;
   const size_t returned_count =
@@ -58,6 +58,5 @@ int main(int argc, char** argv) {
   assert(end_profiler_iteration_count == 4);
 
   benchmark::RegisterProfilerManager(nullptr);
-  delete[] fake_argv;
   return 0;
 }
