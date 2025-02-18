@@ -219,7 +219,7 @@ inline BENCHMARK_ALWAYS_INLINE int64_t Now() {
 #elif defined(__hexagon__)
   uint64_t pcycle;
   asm volatile("%0 = C15:14" : "=r"(pcycle));
-  return static_cast<double>(pcycle);
+  return static_cast<int64_t>(pcycle);
 #elif defined(__alpha__)
   // Alpha has a cycle counter, the PCC register, but it is an unsigned 32-bit
   // integer and thus wraps every ~4s, making using it for tick counts
