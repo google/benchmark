@@ -53,11 +53,12 @@ int AddCases(std::initializer_list<TestCase> const& v) {
 
 #define CONCAT(x, y) CONCAT2(x, y)
 #define CONCAT2(x, y) x##y
-#define ADD_CASES(...) int CONCAT(dummy, __LINE__) = AddCases({__VA_ARGS__})
+#define ADD_CASES(...) \
+  const int CONCAT(dummy, __LINE__) = AddCases({__VA_ARGS__})
 
 }  // end namespace
 
-typedef benchmark::internal::Benchmark* ReturnVal;
+using ReturnVal = benchmark::internal::Benchmark const* const;
 
 //----------------------------------------------------------------------------//
 // Test RegisterBenchmark with no additional arguments
@@ -91,7 +92,7 @@ int RegisterFromFunction() {
   }
   return 0;
 }
-int dummy2 = RegisterFromFunction();
+const int dummy2 = RegisterFromFunction();
 ADD_CASES({"test1", "One"}, {"test2", "Two"}, {"test3", "Three"});
 
 #endif  // BENCHMARK_HAS_NO_VARIADIC_REGISTER_BENCHMARK

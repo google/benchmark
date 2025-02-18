@@ -51,8 +51,10 @@ std::set<int64_t> ConstructRandomSet(int64_t size) {
   return s;
 }
 
+// NOLINTBEGIN(cppcoreguidelines-avoid-non-const-global-variables)
 std::mutex test_vector_mu;
 std::optional<std::vector<int>> test_vector;
+// NOLINTEND(cppcoreguidelines-avoid-non-const-global-variables)
 
 }  // end namespace
 
@@ -307,7 +309,8 @@ static void BM_templated_test(benchmark::State& state) {
   }
 }
 
-static auto BM_templated_test_double = BM_templated_test<std::complex<double>>;
+static const auto BM_templated_test_double =
+    BM_templated_test<std::complex<double>>;
 BENCHMARK(BM_templated_test_double);
 
 BENCHMARK_MAIN();

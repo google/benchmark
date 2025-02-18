@@ -26,7 +26,7 @@
 
 namespace benchmark {
 
-auto StatisticsSum = [](const std::vector<double>& v) {
+const auto StatisticsSum = [](const std::vector<double>& v) {
   return std::accumulate(v.begin(), v.end(), 0.0);
 };
 
@@ -59,12 +59,12 @@ double StatisticsMedian(const std::vector<double>& v) {
 }
 
 // Return the sum of the squares of this sample set
-auto SumSquares = [](const std::vector<double>& v) {
+const auto SumSquares = [](const std::vector<double>& v) {
   return std::inner_product(v.begin(), v.end(), v.begin(), 0.0);
 };
 
-auto Sqr = [](const double dat) { return dat * dat; };
-auto Sqrt = [](const double dat) {
+const auto Sqr = [](const double dat) { return dat * dat; };
+const auto Sqrt = [](const double dat) {
   // Avoid NaN due to imprecision in the calculations
   if (dat < 0.0) {
     return 0.0;
