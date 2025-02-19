@@ -112,6 +112,15 @@ TEST_F(BenchmarkTest, FunctorMove) {
 
 // Test that Setup/Teardown can not take nullptr
 TEST_F(BenchmarkTest, NullptrTest) {
+#if GTEST_HAS_DEATH_TEST
+  // Tests only runnable in debug mode (when BM_CHECK is enabled).
+#ifndef NDEBUG
+#ifndef TEST_BENCHMARK_LIBRARY_HAS_NO_ASSERTIONS
   EXPECT_DEATH(bm->Setup(nullptr), "setup != nullptr");
   EXPECT_DEATH(bm->Teardown(nullptr), "teardown != nullptr");
+#else
+  GTEST_SKIP() << "Test skipped because BM_CHECK is disabled";
+#endif
+#endif
+#endif
 }
