@@ -232,6 +232,7 @@ if (BENCHMARK_ENABLE_GTEST_TESTS)
   add_gtest(time_unit_gtest)
   add_gtest(min_time_parse_gtest)
   add_gtest(profiler_manager_gtest)
+  add_gtest(benchmark_setup_teardown_cb_types_gtest)
 endif(BENCHMARK_ENABLE_GTEST_TESTS)
 
 ###############################################################################
