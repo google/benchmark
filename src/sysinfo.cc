@@ -509,7 +509,7 @@ int GetNumCPUsImpl() {
   if (qurt_sysenv_get_max_hw_threads(&hardware_threads) != QURT_EOK) {
     hardware_threads.max_hthreads = 1;
   }
-  return hardware_threads.max_hthreads;
+  return static_cast<int>(hardware_threads.max_hthreads);
 #elif defined(BENCHMARK_HAS_SYSCTL)
   // *BSD, macOS
   int num_cpu = -1;
