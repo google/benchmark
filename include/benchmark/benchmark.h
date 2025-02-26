@@ -394,7 +394,8 @@ class MemoryManager {
         : num_allocs(0),
           max_bytes_used(0),
           total_allocated_bytes(TombstoneValue),
-          net_heap_growth(TombstoneValue) {}
+          net_heap_growth(TombstoneValue),
+          is_valid(false) {}
 
     // The number of allocations made in total between Start and Stop.
     int64_t num_allocs;
@@ -410,6 +411,8 @@ class MemoryManager {
     // ie., total_allocated_bytes - total_deallocated_bytes.
     // Init'ed to TombstoneValue if metric not available.
     int64_t net_heap_growth;
+
+    bool is_valid;
   };
 
   virtual ~MemoryManager() {}
@@ -1721,7 +1724,6 @@ class BENCHMARK_EXPORT BenchmarkReporter {
           complexity_n(0),
           report_big_o(false),
           report_rms(false),
-          memory_result(NULL),
           allocs_per_iter(0.0) {}
 
     std::string benchmark_name() const;
@@ -1777,7 +1779,7 @@ class BENCHMARK_EXPORT BenchmarkReporter {
     UserCounters counters;
 
     // Memory metrics.
-    const MemoryManager::Result* memory_result;
+    MemoryManager::Result memory_result;
     double allocs_per_iter;
   };
 
