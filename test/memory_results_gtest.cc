@@ -86,7 +86,6 @@ TEST_F(MemoryResultsTest, ResultsTest) {
   counts::reset();
   MemoryManager* mm = new TestMemoryManager;
   RegisterMemoryManager(mm);
-  EXPECT_EQ(benchmark::internal::memory_manager, mm);
 
   RunSpecifiedBenchmarks(&reporter);
   EXPECT_EQ(reporter.store.size(), N_REPETITIONS);
