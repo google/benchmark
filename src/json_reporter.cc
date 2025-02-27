@@ -307,7 +307,7 @@ void JSONReporter::PrintRunData(Run const& run) {
   }
 
   if (run.memory_result.memory_iterations > 0) {
-    const MemoryManager::Result& memory_result{run.memory_result};
+    const auto& memory_result = run.memory_result;
     out << ",\n" << indent << FormatKV("allocs_per_iter", run.allocs_per_iter);
     out << ",\n"
         << indent << FormatKV("max_bytes_used", memory_result.max_bytes_used);

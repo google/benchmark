@@ -306,7 +306,7 @@ namespace benchmark {
 class BenchmarkReporter;
 class State;
 
-typedef int64_t IterationCount;
+using IterationCount = int64_t;
 
 // Define alias of Setup/Teardown callback function type
 using callback_function = std::function<void(const benchmark::State&)>;
