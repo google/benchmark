@@ -306,6 +306,8 @@ namespace benchmark {
 class BenchmarkReporter;
 class State;
 
+typedef int64_t IterationCount;
+
 // Define alias of Setup/Teardown callback function type
 using callback_function = std::function<void(const benchmark::State&)>;
 
@@ -395,7 +397,7 @@ class MemoryManager {
           max_bytes_used(0),
           total_allocated_bytes(TombstoneValue),
           net_heap_growth(TombstoneValue),
-          is_valid(false) {}
+          memory_iterations(0) {}
 
     // The number of allocations made in total between Start and Stop.
     int64_t num_allocs;
@@ -412,7 +414,7 @@ class MemoryManager {
     // Init'ed to TombstoneValue if metric not available.
     int64_t net_heap_growth;
 
-    bool is_valid;
+    IterationCount memory_iterations;
   };
 
   virtual ~MemoryManager() {}
@@ -661,8 +663,6 @@ typedef std::map<std::string, Counter> UserCounters;
 enum BigO { oNone, o1, oN, oNSquared, oNCubed, oLogN, oNLogN, oAuto, oLambda };
 
 typedef int64_t ComplexityN;
-
-typedef int64_t IterationCount;
 
 enum StatisticUnit { kTime, kPercentage };
 

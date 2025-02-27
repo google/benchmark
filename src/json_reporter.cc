@@ -306,7 +306,7 @@ void JSONReporter::PrintRunData(Run const& run) {
     out << ",\n" << indent << FormatKV(c.first, c.second);
   }
 
-  if (run.memory_result.is_valid) {
+  if (run.memory_result.memory_iterations > 0) {
     const MemoryManager::Result& memory_result{run.memory_result};
     out << ",\n" << indent << FormatKV("allocs_per_iter", run.allocs_per_iter);
     out << ",\n"

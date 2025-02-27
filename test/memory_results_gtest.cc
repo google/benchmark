@@ -53,7 +53,7 @@ class TestReporter : public ConsoleReporter {
   void PrintHeader(const Run&) override {}
   void PrintRunData(const Run& run) override {
     if (run.repetition_index == -1) return;
-    if (!run.memory_result.is_valid) return;
+    if (!run.memory_result.memory_iterations) return;
 
     store.push_back(run.memory_result);
   }

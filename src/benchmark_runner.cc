@@ -114,7 +114,6 @@ BenchmarkReporter::Run CreateRunReport(
     report.counters = results.counters;
 
     if (memory_iterations > 0) {
-      assert(memory_result.is_valid);
       report.memory_result = memory_result;
       report.allocs_per_iter =
           memory_iterations != 0
@@ -440,6 +439,7 @@ MemoryManager::Result BenchmarkRunner::RunMemoryManager(
   b.Teardown();
   MemoryManager::Result memory_result;
   memory_manager->Stop(memory_result);
+  memory_result.memory_iterations = memory_iterations;
   return memory_result;
 }
 
@@ -511,7 +511,6 @@ void BenchmarkRunner::DoOneRepetition() {
     // allocations in benchmarks that are not properly managed.
     memory_iterations = std::min<IterationCount>(16, iters);
     memory_result = RunMemoryManager(memory_iterations);
-    memory_result.is_valid = true;
   }
 
   if (profiler_manager != nullptr) {
