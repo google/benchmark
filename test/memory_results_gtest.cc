@@ -90,7 +90,7 @@ TEST_F(MemoryResultsTest, ResultsTest) {
   RunSpecifiedBenchmarks(&reporter);
   EXPECT_EQ(reporter.store.size(), N_REPETITIONS);
 
-  for (size_t i = 0; i < reporter.store.size(); i++) {
+  for (int64_t i = 0; i < reporter.store.size(); i++) {
     EXPECT_EQ(reporter.store[i].num_allocs, i);
     EXPECT_EQ(reporter.store[i].max_bytes_used, i * 2);
     EXPECT_EQ(reporter.store[i].net_heap_growth, i * 4);
