@@ -90,11 +90,12 @@ TEST_F(MemoryResultsTest, ResultsTest) {
   RunSpecifiedBenchmarks(&reporter);
   EXPECT_EQ(reporter.store.size(), N_REPETITIONS);
 
-  for (int64_t i = 0; i < static_cast<int64_t>(reporter.store.size()); i++) {
-    EXPECT_EQ(reporter.store[i].num_allocs, i);
-    EXPECT_EQ(reporter.store[i].max_bytes_used, i * 2);
-    EXPECT_EQ(reporter.store[i].net_heap_growth, i * 4);
-    EXPECT_EQ(reporter.store[i].total_allocated_bytes, i * 10);
+  for (size_t i = 0; i < reporter.store.size(); i++) {
+    EXPECT_EQ(reporter.store[i].num_allocs, static_cast<int64_t>(i));
+    EXPECT_EQ(reporter.store[i].max_bytes_used, static_cast<int64_t>(i) * 2);
+    EXPECT_EQ(reporter.store[i].net_heap_growth, static_cast<int64_t>(i) * 4);
+    EXPECT_EQ(reporter.store[i].total_allocated_bytes,
+              static_cast<int64_t>(i) * 10);
   }
 
   delete mm;
