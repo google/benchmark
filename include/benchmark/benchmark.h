@@ -389,7 +389,7 @@ BENCHMARK_EXPORT void SetDefaultTimeUnit(TimeUnit unit);
 // benchmark.
 class MemoryManager {
  public:
-  static const int64_t TombstoneValue;
+  static constexpr int64_t TombstoneValue = std::numeric_limits<int64_t>::max();
 
   struct Result {
     Result()

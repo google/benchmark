@@ -330,7 +330,4 @@ void JSONReporter::PrintRunData(Run const& run) {
   out << '\n';
 }
 
-const int64_t MemoryManager::TombstoneValue =
-    std::numeric_limits<int64_t>::max();
-
 }  // end namespace benchmark
