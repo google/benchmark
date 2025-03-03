@@ -1,6 +1,5 @@
 #include <vector>
 
-#include "../src/benchmark_runner.h"
 #include "benchmark/benchmark.h"
 #include "gtest/gtest.h"
 
