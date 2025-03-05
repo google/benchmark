@@ -306,6 +306,8 @@ namespace benchmark {
 class BenchmarkReporter;
 class State;
 
+using IterationCount = int64_t;
+
 // Define alias of Setup/Teardown callback function type
 using callback_function = std::function<void(const benchmark::State&)>;
 
@@ -387,14 +389,15 @@ BENCHMARK_EXPORT void SetDefaultTimeUnit(TimeUnit unit);
 // benchmark.
 class MemoryManager {
  public:
-  static const int64_t TombstoneValue;
+  static constexpr int64_t TombstoneValue = std::numeric_limits<int64_t>::max();
 
   struct Result {
     Result()
         : num_allocs(0),
           max_bytes_used(0),
           total_allocated_bytes(TombstoneValue),
-          net_heap_growth(TombstoneValue) {}
+          net_heap_growth(TombstoneValue),
+          memory_iterations(0) {}
 
     // The number of allocations made in total between Start and Stop.
     int64_t num_allocs;
@@ -410,6 +413,8 @@ class MemoryManager {
     // ie., total_allocated_bytes - total_deallocated_bytes.
     // Init'ed to TombstoneValue if metric not available.
     int64_t net_heap_growth;
+
+    IterationCount memory_iterations;
   };
 
   virtual ~MemoryManager() {}
@@ -658,8 +663,6 @@ typedef std::map<std::string, Counter> UserCounters;
 enum BigO { oNone, o1, oN, oNSquared, oNCubed, oLogN, oNLogN, oAuto, oLambda };
 
 typedef int64_t ComplexityN;
-
-typedef int64_t IterationCount;
 
 enum StatisticUnit { kTime, kPercentage };
 
@@ -1721,7 +1724,6 @@ class BENCHMARK_EXPORT BenchmarkReporter {
           complexity_n(0),
           report_big_o(false),
           report_rms(false),
-          memory_result(NULL),
           allocs_per_iter(0.0) {}
 
     std::string benchmark_name() const;
@@ -1777,7 +1779,7 @@ class BENCHMARK_EXPORT BenchmarkReporter {
     UserCounters counters;
 
     // Memory metrics.
-    const MemoryManager::Result* memory_result;
+    MemoryManager::Result memory_result;
     double allocs_per_iter;
   };
 
