@@ -40,7 +40,8 @@ as some of the structural aspects of the APIs are similar.
 [Discussion group](https://groups.google.com/d/forum/benchmark-discuss)
 
 IRC channels:
-* [libera](https://libera.chat) #benchmark
+
+- [libera](https://libera.chat) #benchmark
 
 [Additional Tooling Documentation](docs/tools.md)
 
@@ -82,6 +83,7 @@ $ cmake -E chdir "build" cmake -DBENCHMARK_DOWNLOAD_DEPENDENCIES=on -DCMAKE_BUIL
 # Build the library.
 $ cmake --build "build" --config Release
 ```
+
 This builds the `benchmark` and `benchmark_main` libraries and tests.
 On a unix system, the build directory should now look something like this:
 
@@ -110,8 +112,8 @@ sudo cmake --build "build" --config Release --target install
 Note that Google Benchmark requires Google Test to build and run the tests. This
 dependency can be provided two ways:
 
-* Checkout the Google Test sources into `benchmark/googletest`.
-* Otherwise, if `-DBENCHMARK_DOWNLOAD_DEPENDENCIES=ON` is specified during
+- Checkout the Google Test sources into `benchmark/googletest`.
+- Otherwise, if `-DBENCHMARK_DOWNLOAD_DEPENDENCIES=ON` is specified during
   configuration as above, the library will automatically download and build
   any required dependencies.
 
@@ -137,9 +139,10 @@ If you are using clang, you may need to set `LLVMAR_EXECUTABLE`,
 `LLVMNM_EXECUTABLE` and `LLVMRANLIB_EXECUTABLE` cmake cache variables.
 
 To enable sanitizer checks (eg., `asan` and `tsan`), add:
+
 ```
  -DCMAKE_C_FLAGS="-g -O2 -fno-omit-frame-pointer -fsanitize=address -fsanitize=thread -fno-sanitize-recover=all"
- -DCMAKE_CXX_FLAGS="-g -O2 -fno-omit-frame-pointer -fsanitize=address -fsanitize=thread -fno-sanitize-recover=all "  
+ -DCMAKE_CXX_FLAGS="-g -O2 -fno-omit-frame-pointer -fsanitize=address -fsanitize=thread -fno-sanitize-recover=all "
 ```
 
 ### Stable and Experimental Library Versions
@@ -184,13 +187,13 @@ BENCHMARK_MAIN();
 ```
 
 To run the benchmark, compile and link against the `benchmark` library
-(libbenchmark.a/.so). If you followed the build steps above, this library will 
+(libbenchmark.a/.so). If you followed the build steps above, this library will
 be under the build directory you created.
 
 ```bash
 # Example on linux after running the build steps above. Assumes the
 # `benchmark` and `build` directories are under the current directory.
-$ g++ mybenchmark.cc -std=c++11 -isystem benchmark/include \
+$ g++ mybenchmark.cc -std=c++14 -isystem benchmark/include \
   -Lbenchmark/build/src -lbenchmark -lpthread -o mybenchmark
 ```
 
@@ -205,17 +208,22 @@ flag for option information or see the [User Guide](docs/user_guide.md).
 If using CMake, it is recommended to link against the project-provided
 `benchmark::benchmark` and `benchmark::benchmark_main` targets using
 `target_link_libraries`.
-It is possible to use ```find_package``` to import an installed version of the
+It is possible to use `find_package` to import an installed version of the
 library.
+
 ```cmake
 find_package(benchmark REQUIRED)
 ```
-Alternatively, ```add_subdirectory``` will incorporate the library directly in
+
+Alternatively, `add_subdirectory` will incorporate the library directly in
 to one's CMake project.
+
 ```cmake
 add_subdirectory(benchmark)
 ```
+
 Either way, link to the library as follows.
+
 ```cmake
 target_link_libraries(MyTarget benchmark::benchmark)
 ```
