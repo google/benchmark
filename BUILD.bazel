@@ -1,3 +1,5 @@
+load("@rules_cc//cc:defs.bzl", "cc_library")
+
 licenses(["notice"])
 
 COPTS = [
@@ -15,6 +17,10 @@ COPTS = [
     ## unused-variable warning.
     "-Wno-unused-variable",
     "-Werror=old-style-cast",
+]
+
+MSVC_COPTS = [
+    "/std:c++17",
 ]
 
 config_setting(
@@ -45,7 +51,7 @@ cc_library(
         "include/benchmark/export.h",
     ],
     copts = select({
-        ":windows": [],
+        ":windows": MSVC_COPTS,
         "//conditions:default": COPTS,
     }),
     defines = [

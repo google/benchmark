@@ -1,4 +1,4 @@
-# Enable the tests
+#Enable the tests
 
 set(THREADS_PREFER_PTHREAD_FLAG ON)
 
@@ -198,32 +198,6 @@ benchmark_add_test(NAME profiler_manager_test COMMAND profiler_manager_test --be
 compile_benchmark_test(profiler_manager_iterations_test)
 benchmark_add_test(NAME profiler_manager_iterations COMMAND profiler_manager_iterations_test)
 
-# MSVC does not allow to set the language standard to C++98/03.
-if(NOT (MSVC OR CMAKE_CXX_SIMULATE_ID STREQUAL "MSVC"))
-  compile_benchmark_test(cxx03_test)
-  set_target_properties(cxx03_test
-      PROPERTIES
-      CXX_STANDARD 98
-      CXX_STANDARD_REQUIRED YES)
-  # libstdc++ provides different definitions within <map> between dialects. When
-  # LTO is enabled and -Werror is specified GCC diagnoses this ODR violation
-  # causing the test to fail to compile. To prevent this we explicitly disable
-  # the warning.
-  check_cxx_compiler_flag(-Wno-odr BENCHMARK_HAS_WNO_ODR)
-  check_cxx_compiler_flag(-Wno-lto-type-mismatch BENCHMARK_HAS_WNO_LTO_TYPE_MISMATCH)
-  # Cannot set_target_properties multiple times here because the warnings will
-  # be overwritten on each call
-  set (DISABLE_LTO_WARNINGS "")
-  if (BENCHMARK_HAS_WNO_ODR)
-    set(DISABLE_LTO_WARNINGS "${DISABLE_LTO_WARNINGS} -Wno-odr")
-  endif()
-  if (BENCHMARK_HAS_WNO_LTO_TYPE_MISMATCH)
-    set(DISABLE_LTO_WARNINGS "${DISABLE_LTO_WARNINGS} -Wno-lto-type-mismatch")
-  endif()
-  set_target_properties(cxx03_test PROPERTIES LINK_FLAGS "${DISABLE_LTO_WARNINGS}")
-  benchmark_add_test(NAME cxx03 COMMAND cxx03_test --benchmark_min_time=0.01s)
-endif()
-
 compile_output_test(complexity_test)
 benchmark_add_test(NAME complexity_benchmark COMMAND complexity_test --benchmark_min_time=1000000x)
 
@@ -258,6 +232,8 @@ if (BENCHMARK_ENABLE_GTEST_TESTS)
   add_gtest(time_unit_gtest)
   add_gtest(min_time_parse_gtest)
   add_gtest(profiler_manager_gtest)
+  add_gtest(benchmark_setup_teardown_cb_types_gtest)
+  add_gtest(memory_results_gtest)
 endif(BENCHMARK_ENABLE_GTEST_TESTS)
 
 ###############################################################################
@@ -299,7 +275,7 @@ if (${CMAKE_BUILD_TYPE_LOWER} MATCHES "coverage")
       COMMAND ${LCOV} -q -a before.lcov -a after.lcov --output-file final.lcov
       COMMAND ${LCOV} -q -r final.lcov "'${CMAKE_SOURCE_DIR}/test/*'" -o final.lcov
       COMMAND ${GENHTML} final.lcov -o lcov --demangle-cpp --sort -p "${CMAKE_BINARY_DIR}" -t benchmark
-      DEPENDS filter_test benchmark_test options_test basic_test fixture_test cxx03_test complexity_test
+      DEPENDS filter_test benchmark_test options_test basic_test fixture_test complexity_test
       WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
       COMMENT "Running LCOV"
     )

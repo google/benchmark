@@ -46,7 +46,6 @@
 #include "commandlineflags.h"
 #include "complexity.h"
 #include "counter.h"
-#include "internal_macros.h"
 #include "log.h"
 #include "mutex.h"
 #include "perf_counters.h"
@@ -74,7 +73,7 @@ ProfilerManager* profiler_manager = nullptr;
 
 namespace {
 
-static constexpr IterationCount kMaxIterations = 1000000000000;
+constexpr IterationCount kMaxIterations = 1000000000000;
 const double kDefaultMinTime =
     std::strtod(::benchmark::kDefaultMinTimeStr, /*p_end*/ nullptr);
 
@@ -82,7 +81,7 @@ BenchmarkReporter::Run CreateRunReport(
     const benchmark::internal::BenchmarkInstance& b,
     const internal::ThreadManager::Result& results,
     IterationCount memory_iterations,
-    const MemoryManager::Result* memory_result, double seconds,
+    const MemoryManager::Result& memory_result, double seconds,
     int64_t repetition_index, int64_t repeats) {
   // Create report about this benchmark run.
   BenchmarkReporter::Run report;
@@ -100,7 +99,7 @@ BenchmarkReporter::Run CreateRunReport(
   report.repetition_index = repetition_index;
   report.repetitions = repeats;
 
-  if (!report.skipped) {
+  if (report.skipped == 0u) {
     if (b.use_manual_time()) {
       report.real_accumulated_time = results.manual_time_used;
     } else {
@@ -115,12 +114,12 @@ BenchmarkReporter::Run CreateRunReport(
     report.counters = results.counters;
 
     if (memory_iterations > 0) {
-      assert(memory_result != nullptr);
       report.memory_result = memory_result;
       report.allocs_per_iter =
-          memory_iterations ? static_cast<double>(memory_result->num_allocs) /
-                                  static_cast<double>(memory_iterations)
-                            : 0;
+          memory_iterations != 0
+              ? static_cast<double>(memory_result.num_allocs) /
+                    static_cast<double>(memory_iterations)
+              : 0;
     }
 
     internal::Finish(&report.counters, results.iterations, seconds,
@@ -159,17 +158,23 @@ void RunInThread(const BenchmarkInstance* b, IterationCount iters,
 
 double ComputeMinTime(const benchmark::internal::BenchmarkInstance& b,
                       const BenchTimeType& iters_or_time) {
-  if (!IsZero(b.min_time())) return b.min_time();
+  if (!IsZero(b.min_time())) {
+    return b.min_time();
+  }
   // If the flag was used to specify number of iters, then return the default
   // min_time.
-  if (iters_or_time.tag == BenchTimeType::ITERS) return kDefaultMinTime;
+  if (iters_or_time.tag == BenchTimeType::ITERS) {
+    return kDefaultMinTime;
+  }
 
   return iters_or_time.time;
 }
 
 IterationCount ComputeIters(const benchmark::internal::BenchmarkInstance& b,
                             const BenchTimeType& iters_or_time) {
-  if (b.iterations() != 0) return b.iterations();
+  if (b.iterations() != 0) {
+    return b.iterations();
+  }
 
   // We've already concluded that this flag is currently used to pass
   // iters but do a check here again anyway.
@@ -180,7 +185,7 @@ IterationCount ComputeIters(const benchmark::internal::BenchmarkInstance& b,
 }  // end namespace
 
 BenchTimeType ParseBenchMinTime(const std::string& value) {
-  BenchTimeType ret;
+  BenchTimeType ret = {};
 
   if (value.empty()) {
     ret.tag = BenchTimeType::TIME;
@@ -189,7 +194,7 @@ BenchTimeType ParseBenchMinTime(const std::string& value) {
   }
 
   if (value.back() == 'x') {
-    char* p_end;
+    char* p_end = nullptr;
     // Reset errno before it's changed by strtol.
     errno = 0;
     IterationCount num_iters = std::strtol(value.c_str(), &p_end, 10);
@@ -211,7 +216,7 @@ BenchTimeType ParseBenchMinTime(const std::string& value) {
                   "Eg., `30s` for 30-seconds.";
   }
 
-  char* p_end;
+  char* p_end = nullptr;
   // Reset errno before it's changed by strtod.
   errno = 0;
   double min_time = std::strtod(value.c_str(), &p_end);
@@ -267,10 +272,11 @@ BenchmarkRunner::BenchmarkRunner(
       FLAGS_benchmark_report_aggregates_only;
   if (b.aggregation_report_mode() != internal::ARM_Unspecified) {
     run_results.display_report_aggregates_only =
-        (b.aggregation_report_mode() &
-         internal::ARM_DisplayReportAggregatesOnly);
+        ((b.aggregation_report_mode() &
+          internal::ARM_DisplayReportAggregatesOnly) != 0u);
     run_results.file_report_aggregates_only =
-        (b.aggregation_report_mode() & internal::ARM_FileReportAggregatesOnly);
+        ((b.aggregation_report_mode() &
+          internal::ARM_FileReportAggregatesOnly) != 0u);
     BM_CHECK(FLAGS_benchmark_perf_counters.empty() ||
              (perf_counters_measurement_ptr->num_counters() == 0))
         << "Perf counters were requested but could not be set up.";
@@ -297,7 +303,9 @@ BenchmarkRunner::IterationResults BenchmarkRunner::DoNIterations() {
 
   // The main thread has finished. Now let's wait for the other threads.
   manager->WaitForAllThreads();
-  for (std::thread& thread : pool) thread.join();
+  for (std::thread& thread : pool) {
+    thread.join();
+  }
 
   IterationResults i;
   // Acquire the measurements/counters from the manager, UNDER THE LOCK!
@@ -356,7 +364,7 @@ bool BenchmarkRunner::ShouldReportIterationResults(
   // Determine if this run should be reported;
   // Either it has run for a sufficient amount of time
   // or because an error was reported.
-  return i.results.skipped_ || FLAGS_benchmark_dry_run ||
+  return (i.results.skipped_ != 0u) || FLAGS_benchmark_dry_run ||
          i.iters >= kMaxIterations ||  // Too many iterations already.
          i.seconds >=
              GetMinTimeToApply() ||  // The elapsed time is large enough.
@@ -417,13 +425,8 @@ void BenchmarkRunner::RunWarmUp() {
   }
 }
 
-MemoryManager::Result* BenchmarkRunner::RunMemoryManager(
+MemoryManager::Result BenchmarkRunner::RunMemoryManager(
     IterationCount memory_iterations) {
-  // TODO(vyng): Consider making BenchmarkReporter::Run::memory_result an
-  // optional so we don't have to own the Result here.
-  // Can't do it now due to cxx03.
-  memory_results.push_back(MemoryManager::Result());
-  MemoryManager::Result* memory_result = &memory_results.back();
   memory_manager->Start();
   std::unique_ptr<internal::ThreadManager> manager;
   manager.reset(new internal::ThreadManager(1));
@@ -434,7 +437,9 @@ MemoryManager::Result* BenchmarkRunner::RunMemoryManager(
   manager->WaitForAllThreads();
   manager.reset();
   b.Teardown();
-  memory_manager->Stop(*memory_result);
+  MemoryManager::Result memory_result;
+  memory_manager->Stop(memory_result);
+  memory_result.memory_iterations = memory_iterations;
   return memory_result;
 }
 
@@ -460,7 +465,9 @@ void BenchmarkRunner::DoOneRepetition() {
   // this warmup never happened except the fact that warmup_done is set. Every
   // other manipulation of the BenchmarkRunner instance would be a bug! Please
   // fix it.
-  if (!warmup_done) RunWarmUp();
+  if (!warmup_done) {
+    RunWarmUp();
+  }
 
   IterationResults i;
   // We *may* be gradually increasing the length (iteration count)
@@ -482,8 +489,10 @@ void BenchmarkRunner::DoOneRepetition() {
     const bool results_are_significant = !is_the_first_repetition ||
                                          has_explicit_iteration_count ||
                                          ShouldReportIterationResults(i);
-
-    if (results_are_significant) break;  // Good, let's report them!
+    // Good, let's report them!
+    if (results_are_significant) {
+      break;
+    }
 
     // Nope, bad iteration. Let's re-estimate the hopefully-sufficient
     // iteration count, and run the benchmark again...
@@ -495,7 +504,7 @@ void BenchmarkRunner::DoOneRepetition() {
   }
 
   // Produce memory measurements if requested.
-  MemoryManager::Result* memory_result = nullptr;
+  MemoryManager::Result memory_result;
   IterationCount memory_iterations = 0;
   if (memory_manager != nullptr) {
     // Only run a few iterations to reduce the impact of one-time
@@ -516,9 +525,11 @@ void BenchmarkRunner::DoOneRepetition() {
       CreateRunReport(b, i.results, memory_iterations, memory_result, i.seconds,
                       num_repetitions_done, repeats);
 
-  if (reports_for_family) {
+  if (reports_for_family != nullptr) {
     ++reports_for_family->num_runs_done;
-    if (!report.skipped) reports_for_family->Runs.push_back(report);
+    if (report.skipped == 0u) {
+      reports_for_family->Runs.push_back(report);
+    }
   }
 
   run_results.non_aggregates.push_back(report);

@@ -22,8 +22,9 @@ void MyBusySpinwait() {
     const auto elapsed = now - start;
 
     if (std::chrono::duration<double, std::chrono::seconds::period>(elapsed) >=
-        time_frame)
+        time_frame) {
       return;
+    }
   }
 }
 

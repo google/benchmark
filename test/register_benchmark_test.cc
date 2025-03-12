@@ -53,11 +53,12 @@ int AddCases(std::initializer_list<TestCase> const& v) {
 
 #define CONCAT(x, y) CONCAT2(x, y)
 #define CONCAT2(x, y) x##y
-#define ADD_CASES(...) int CONCAT(dummy, __LINE__) = AddCases({__VA_ARGS__})
+#define ADD_CASES(...) \
+  const int CONCAT(dummy, __LINE__) = AddCases({__VA_ARGS__})
 
 }  // end namespace
 
-typedef benchmark::internal::Benchmark* ReturnVal;
+using ReturnVal = benchmark::internal::Benchmark const* const;
 
 //----------------------------------------------------------------------------//
 // Test RegisterBenchmark with no additional arguments
@@ -86,11 +87,12 @@ void BM_extra_args(benchmark::State& st, const char* label) {
 int RegisterFromFunction() {
   std::pair<const char*, const char*> cases[] = {
       {"test1", "One"}, {"test2", "Two"}, {"test3", "Three"}};
-  for (auto const& c : cases)
+  for (auto const& c : cases) {
     benchmark::RegisterBenchmark(c.first, &BM_extra_args, c.second);
+  }
   return 0;
 }
-int dummy2 = RegisterFromFunction();
+const int dummy2 = RegisterFromFunction();
 ADD_CASES({"test1", "One"}, {"test2", "Two"}, {"test3", "Three"});
 
 #endif  // BENCHMARK_HAS_NO_VARIADIC_REGISTER_BENCHMARK
@@ -163,7 +165,7 @@ void RunTestOne() {
 // benchmarks.
 // Also test that new benchmarks can be registered and ran afterwards.
 void RunTestTwo() {
-  assert(ExpectedResults.size() != 0 &&
+  assert(!ExpectedResults.empty() &&
          "must have at least one registered benchmark");
   ExpectedResults.clear();
   benchmark::ClearRegisteredBenchmarks();

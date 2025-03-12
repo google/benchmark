@@ -24,6 +24,10 @@ TEST_COPTS = [
     "-Werror=old-style-cast",
 ]
 
+TEST_MSVC_OPTS = [
+    "/std:c++17",
+]
+
 # Some of the issues with DoNotOptimize only occur when optimization is enabled
 PER_SRC_COPTS = {
     "donotoptimize_test.cc": ["-O3"],
@@ -45,7 +49,7 @@ cc_library(
     srcs = ["output_test_helper.cc"],
     hdrs = ["output_test.h"],
     copts = select({
-        "//:windows": [],
+        "//:windows": TEST_MSVC_OPTS,
         "//conditions:default": TEST_COPTS,
     }),
     deps = [
@@ -61,7 +65,7 @@ cc_library(
         size = "small",
         srcs = [test_src],
         copts = select({
-            "//:windows": [],
+            "//:windows": TEST_MSVC_OPTS,
             "//conditions:default": TEST_COPTS,
         }) + PER_SRC_COPTS.get(test_src, []),
         deps = [
@@ -82,7 +86,7 @@ cc_library(
         srcs = [test_src],
         args = TEST_ARGS + PER_SRC_TEST_ARGS.get(test_src, []),
         copts = select({
-            "//:windows": [],
+            "//:windows": TEST_MSVC_OPTS,
             "//conditions:default": TEST_COPTS,
         }) + PER_SRC_COPTS.get(test_src, []),
         deps = [
@@ -98,34 +102,17 @@ cc_library(
         ["*_test.cc"],
         exclude = [
             "*_assembly_test.cc",
-            "cxx03_test.cc",
             "link_main_test.cc",
         ],
     )
 ]
 
 cc_test(
-    name = "cxx03_test",
-    size = "small",
-    srcs = ["cxx03_test.cc"],
-    copts = TEST_COPTS + ["-std=c++03"],
-    target_compatible_with = select({
-        "//:windows": ["@platforms//:incompatible"],
-        "//conditions:default": [],
-    }),
-    deps = [
-        ":output_test_helper",
-        "//:benchmark",
-        "//:benchmark_internal_headers",
-    ],
-)
-
-cc_test(
     name = "link_main_test",
     size = "small",
     srcs = ["link_main_test.cc"],
     copts = select({
-        "//:windows": [],
+        "//:windows": TEST_MSVC_OPTS,
         "//conditions:default": TEST_COPTS,
     }),
     deps = ["//:benchmark_main"],

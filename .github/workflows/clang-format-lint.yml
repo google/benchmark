@@ -3,6 +3,9 @@ on:
   push: {}
   pull_request: {}
 
+env:
+  CMAKE_GENERATOR: Ninja
+
 jobs:
   job:
     name: check-clang-format
@@ -10,9 +13,7 @@ jobs:
 
     steps:
     - uses: actions/checkout@v4
-    - uses: DoozyX/clang-format-lint-action@v0.15
+    - uses: DoozyX/clang-format-lint-action@v0.18.2
       with:
         source: './include/benchmark ./src ./test'
-        extensions: 'h,cc'
-        clangFormatVersion: 12
-        style: Google
+        clangFormatVersion: 18

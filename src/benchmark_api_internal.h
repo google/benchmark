@@ -17,9 +17,9 @@ namespace internal {
 // Information kept per benchmark we may want to run
 class BenchmarkInstance {
  public:
-  BenchmarkInstance(Benchmark* benchmark, int family_index,
-                    int per_family_instance_index,
-                    const std::vector<int64_t>& args, int threads);
+  BenchmarkInstance(Benchmark* benchmark, int family_idx,
+                    int per_family_instance_idx,
+                    const std::vector<int64_t>& args, int thread_count);
 
   const BenchmarkName& name() const { return name_; }
   int family_index() const { return family_index_; }
@@ -68,9 +68,8 @@ class BenchmarkInstance {
   IterationCount iterations_;
   int threads_;  // Number of concurrent threads to us
 
-  typedef void (*callback_function)(const benchmark::State&);
-  callback_function setup_ = nullptr;
-  callback_function teardown_ = nullptr;
+  callback_function setup_;
+  callback_function teardown_;
 };
 
 bool FindBenchmarksInternal(const std::string& re,
