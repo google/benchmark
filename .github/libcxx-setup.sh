@@ -17,7 +17,8 @@ fi
 
 ## Build and install libc++ (Use unstable ABI for better sanitizer coverage)
 mkdir llvm-build && cd llvm-build
-cmake -DCMAKE_C_COMPILER=${CC}                  \
+cmake -GNinja                                   \
+      -DCMAKE_C_COMPILER=${CC}                  \
       -DCMAKE_CXX_COMPILER=${CXX}               \
       -DCMAKE_BUILD_TYPE=RelWithDebInfo         \
       -DCMAKE_INSTALL_PREFIX=/usr               \
@@ -29,7 +30,6 @@ cmake -DCMAKE_C_COMPILER=${CC}                  \
       -DLIBCXX_INCLUDE_TESTS=OFF                \
       -DLIBCXX_INCLUDE_BENCHMARKS=OFF           \
       -DLLVM_ENABLE_RUNTIMES='libcxx;libcxxabi' \
-      -G "Unix Makefiles" \
       ../llvm-project/runtimes/
-make -j cxx cxxabi
+cmake --build . -- cxx cxxabi
 cd ..
