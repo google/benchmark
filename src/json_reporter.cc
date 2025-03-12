@@ -306,8 +306,8 @@ void JSONReporter::PrintRunData(Run const& run) {
     out << ",\n" << indent << FormatKV(c.first, c.second);
   }
 
-  if (run.memory_result != nullptr) {
-    const MemoryManager::Result memory_result = *run.memory_result;
+  if (run.memory_result.memory_iterations > 0) {
+    const auto& memory_result = run.memory_result;
     out << ",\n" << indent << FormatKV("allocs_per_iter", run.allocs_per_iter);
     out << ",\n"
         << indent << FormatKV("max_bytes_used", memory_result.max_bytes_used);
@@ -329,8 +329,5 @@ void JSONReporter::PrintRunData(Run const& run) {
   }
   out << '\n';
 }
-
-const int64_t MemoryManager::TombstoneValue =
-    std::numeric_limits<int64_t>::max();
 
 }  // end namespace benchmark
