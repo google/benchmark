@@ -5,6 +5,7 @@ on:
   pull_request: {}
 
 env:
+  CMAKE_GENERATOR: Ninja
   UBSAN_OPTIONS: "print_stacktrace=1"
 
 jobs:
@@ -18,11 +19,6 @@ jobs:
         sanitizer: ['asan', 'ubsan', 'tsan', 'msan']
 
     steps:
-    - name: Installing build dependencies
-      run: |
-        sudo apt update
-        sudo apt install ninja-build
-
     - uses: actions/checkout@v4
 
     - name: configure msan env
