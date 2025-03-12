@@ -18,6 +18,11 @@ jobs:
         sanitizer: ['asan', 'ubsan', 'tsan', 'msan']
 
     steps:
+    - name: Installing build dependencies
+      run: |
+        sudo apt update
+        sudo apt install ninja-build
+
     - uses: actions/checkout@v4
 
     - name: configure msan env
@@ -75,7 +80,7 @@ jobs:
       working-directory: ${{ runner.workspace }}/_build
       run: >
         VERBOSE=1
-        cmake $GITHUB_WORKSPACE
+        cmake -GNinja $GITHUB_WORKSPACE
         -DBENCHMARK_ENABLE_ASSEMBLY_TESTS=OFF
         -DBENCHMARK_ENABLE_LIBPFM=OFF
         -DBENCHMARK_DOWNLOAD_DEPENDENCIES=ON
