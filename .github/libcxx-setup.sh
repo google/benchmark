@@ -19,8 +19,9 @@ cmake -DCMAKE_C_COMPILER=${CC}                  \
       -DLIBCXX_ABI_UNSTABLE=OFF                 \
       -DLLVM_USE_SANITIZER=${LIBCXX_SANITIZER}  \
       -DLLVM_BUILD_32_BITS=${BUILD_32_BITS}     \
-      -DLLVM_ENABLE_RUNTIMES='libcxx;libcxxabi;libunwind' \
+      -DLIBCXXABI_USE_LLVM_UNWINDER=OFF         \
+      -DLLVM_ENABLE_RUNTIMES='libcxx;libcxxabi' \
       -G "Unix Makefiles" \
       ../llvm-project/runtimes/
-make -j cxx cxxabi unwind
+make -j cxx cxxabi
 cd ..
