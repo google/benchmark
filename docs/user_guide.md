@@ -462,7 +462,7 @@ BENCHMARK(BM_SetInsert)->Apply(CustomArguments);
 
 ### Passing Arbitrary Arguments to a Benchmark
 
-In C++11 it is possible to define a benchmark that takes an arbitrary number
+It is possible to define a benchmark that takes an arbitrary number
 of extra arguments. The `BENCHMARK_CAPTURE(func, test_case_name, ...args)`
 macro creates a benchmark that invokes `func`  with the `benchmark::State` as
 the first argument followed by the specified `args...`.
@@ -563,11 +563,12 @@ template <class Q> void BM_Sequential(benchmark::State& state) {
   state.SetBytesProcessed(
       static_cast<int64_t>(state.iterations())*state.range(0));
 }
-// C++03
-BENCHMARK_TEMPLATE(BM_Sequential, WaitQueue<int>)->Range(1<<0, 1<<10);
 
-// C++11 or newer, you can use the BENCHMARK macro with template parameters:
+// You can use the BENCHMARK macro with template parameters:
 BENCHMARK(BM_Sequential<WaitQueue<int>>)->Range(1<<0, 1<<10);
+
+// Old, legacy verbose C++03 syntax:
+BENCHMARK_TEMPLATE(BM_Sequential, WaitQueue<int>)->Range(1<<0, 1<<10);
 
 ```
 
@@ -736,12 +737,10 @@ is 1k a 1000 (default, `benchmark::Counter::OneK::kIs1000`), or 1024
   state.counters["BytesProcessed"] = Counter(state.range(0), benchmark::Counter::kIsIterationInvariantRate, benchmark::Counter::OneK::kIs1024);
 ```
 
-When you're compiling in C++11 mode or later you can use `insert()` with
-`std::initializer_list`:
+You can use `insert()` with `std::initializer_list`:
 
 <!-- {% raw %} -->
 ```c++
-  // With C++11, this can be done:
   state.counters.insert({{"Foo", numFoos}, {"Bar", numBars}, {"Baz", numBazs}});
   // ... instead of:
   state.counters["Foo"] = numFoos;
@@ -1245,7 +1244,7 @@ static void BM_test_ranged_fo(benchmark::State & state) {
 
 ## A Faster KeepRunning Loop
 
-In C++11 mode, a ranged-based for loop should be used in preference to
+A ranged-based for loop should be used in preference to
 the `KeepRunning` loop for running the benchmarks. For example:
 
 ```c++
