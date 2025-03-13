@@ -574,11 +574,7 @@ BENCHMARK(BM_Sequential<WaitQueue<int>>)->Range(1<<0, 1<<10);
 Three macros are provided for adding benchmark templates.
 
 ```c++
-#ifdef BENCHMARK_HAS_CXX11
 #define BENCHMARK(func<...>) // Takes any number of parameters.
-#else // C++ < C++11
-#define BENCHMARK_TEMPLATE(func, arg1)
-#endif
 #define BENCHMARK_TEMPLATE1(func, arg1)
 #define BENCHMARK_TEMPLATE2(func, arg1, arg2)
 ```
