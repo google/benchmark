@@ -50,7 +50,7 @@ IRC channels:
 
 ## Requirements
 
-The library can be used with C++03. However, it requires C++14 to build,
+The library can be used with C++14. However, it requires C++17 to build,
 including compiler and standard library support.
 
 _See [dependencies.md](docs/dependencies.md) for more details regarding supported
