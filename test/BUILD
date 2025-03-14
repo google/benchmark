@@ -102,17 +102,17 @@ cc_library(
         ["*_test.cc"],
         exclude = [
             "*_assembly_test.cc",
-            "cxx14_test.cc",
+            "cxx11_test.cc",
             "link_main_test.cc",
         ],
     )
 ]
 
 cc_test(
-    name = "cxx14_test",
+    name = "cxx11_test",
     size = "small",
-    srcs = ["cxx14_test.cc"],
-    copts = TEST_COPTS + ["-std=c++14"],
+    srcs = ["cxx11_test.cc"],
+    copts = TEST_COPTS + ["-std=c++11"],
     target_compatible_with = select({
         "//:windows": ["@platforms//:incompatible"],
         "//conditions:default": [],
