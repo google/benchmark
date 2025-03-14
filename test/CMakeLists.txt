@@ -74,11 +74,16 @@ endmacro(benchmark_add_test)
 
 # Demonstration executable
 
-compile_benchmark_test_with_main(cxx14_test)
-set_property(TARGET cxx14_test PROPERTY CXX_STANDARD 14)
-set_property(TARGET cxx14_test PROPERTY CXX_STANDARD_REQUIRED ON)
-set_property(TARGET cxx14_test PROPERTY CXX_EXTENSIONS OFF)
-benchmark_add_test(NAME cxx14_test COMMAND cxx14_test --benchmark_min_time=0.01s)
+compile_benchmark_test_with_main(cxx11_test)
+if(DEFINED MSVC)
+  # MSVC does not really support C++11.
+  set_property(TARGET cxx11_test PROPERTY CXX_STANDARD 14)
+else()
+  set_property(TARGET cxx11_test PROPERTY CXX_STANDARD 11)
+endif()
+set_property(TARGET cxx11_test PROPERTY CXX_STANDARD_REQUIRED ON)
+set_property(TARGET cxx11_test PROPERTY CXX_EXTENSIONS OFF)
+benchmark_add_test(NAME cxx11_test COMMAND cxx11_test --benchmark_min_time=0.01s)
 
 compile_benchmark_test(benchmark_test)
 benchmark_add_test(NAME benchmark COMMAND benchmark_test --benchmark_min_time=0.01s)
