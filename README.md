@@ -50,7 +50,7 @@ IRC channels:
 
 ## Requirements
 
-The library can be used with C++03. However, it requires C++14 to build,
+The library can be used with C++11. However, it requires C++17 to build,
 including compiler and standard library support.
 
 _See [dependencies.md](docs/dependencies.md) for more details regarding supported
@@ -190,7 +190,7 @@ be under the build directory you created.
 ```bash
 # Example on linux after running the build steps above. Assumes the
 # `benchmark` and `build` directories are under the current directory.
-$ g++ mybenchmark.cc -std=c++14 -isystem benchmark/include \
+$ g++ mybenchmark.cc -std=c++11 -isystem benchmark/include \
   -Lbenchmark/build/src -lbenchmark -lpthread -o mybenchmark
 ```
 

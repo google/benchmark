@@ -77,7 +77,6 @@ ADD_CASES({"BM_function"}, {"BM_function_manual_registration"});
 // Note: GCC <= 4.8 do not support this form of RegisterBenchmark because they
 //       reject the variadic pack expansion of lambda captures.
 //----------------------------------------------------------------------------//
-#ifndef BENCHMARK_HAS_NO_VARIADIC_REGISTER_BENCHMARK
 
 void BM_extra_args(benchmark::State& st, const char* label) {
   for (auto _ : st) {
@@ -94,8 +93,6 @@ int RegisterFromFunction() {
 }
 const int dummy2 = RegisterFromFunction();
 ADD_CASES({"test1", "One"}, {"test2", "Two"}, {"test3", "Three"});
-
-#endif  // BENCHMARK_HAS_NO_VARIADIC_REGISTER_BENCHMARK
 
 //----------------------------------------------------------------------------//
 // Test RegisterBenchmark with DISABLED_ benchmark
@@ -121,14 +118,11 @@ struct CustomFixture {
 };
 
 void TestRegistrationAtRuntime() {
-#ifdef BENCHMARK_HAS_CXX11
   {
     CustomFixture fx;
     benchmark::RegisterBenchmark("custom_fixture", fx);
     AddCases({std::string("custom_fixture")});
   }
-#endif
-#ifndef BENCHMARK_HAS_NO_VARIADIC_REGISTER_BENCHMARK
   {
     const char* x = "42";
     auto capturing_lam = [=](benchmark::State& st) {
@@ -139,7 +133,6 @@ void TestRegistrationAtRuntime() {
     benchmark::RegisterBenchmark("lambda_benchmark", capturing_lam);
     AddCases({{"lambda_benchmark", x}});
   }
-#endif
 }
 
 // Test that all benchmarks, registered at either during static init or runtime,
