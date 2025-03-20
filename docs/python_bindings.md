@@ -3,7 +3,7 @@
 Python bindings are available as wheels on [PyPI](https://pypi.org/project/google-benchmark/) for importing and 
 using Google Benchmark directly in Python. 
 Currently, pre-built wheels exist for macOS (both ARM64 and Intel x86), Linux x86-64 and 64-bit Windows.
-Supported Python versions are Python 3.7 - 3.10.
+Supported Python versions are Python 3.8 - 3.12.
 
 To install Google Benchmark's Python bindings, run:
 
@@ -25,9 +25,9 @@ python3 -m venv venv --system-site-packages
 source venv/bin/activate  # .\venv\Scripts\Activate.ps1 on Windows
 
 # upgrade Python's system-wide packages
-python -m pip install --upgrade pip setuptools wheel
-# builds the wheel and stores it in the directory "wheelhouse".
-python -m pip wheel . -w wheelhouse
+python -m pip install --upgrade pip build
+# builds the wheel and stores it in the directory "dist".
+python -m build
 ```
 
 NB: Building wheels from source requires Bazel. For platform-specific instructions on how to install Bazel,

@@ -41,7 +41,7 @@ TEST(PerfCountersTest, NegativeTest) {
     return;
   }
   EXPECT_TRUE(PerfCounters::Initialize());
-  // Sanity checks
+  // Safety checks
   // Create() will always create a valid object, even if passed no or
   // wrong arguments as the new behavior is to warn and drop unsupported
   // counters
@@ -226,9 +226,13 @@ void measure(size_t threadcount, PerfCounterValues* before,
   // threadpool.
   auto counters =
       PerfCounters::Create({kGenericPerfEvent1, kGenericPerfEvent2});
-  for (auto& t : threads) t = std::thread(work);
+  for (auto& t : threads) {
+    t = std::thread(work);
+  }
   counters.Snapshot(before);
-  for (auto& t : threads) t.join();
+  for (auto& t : threads) {
+    t.join();
+  }
   counters.Snapshot(after);
 }
 

@@ -14,7 +14,8 @@ class TestMemoryManager : public benchmark::MemoryManager {
 
 void BM_empty(benchmark::State& state) {
   for (auto _ : state) {
-    auto iterations = state.iterations();
+    auto iterations = static_cast<double>(state.iterations()) *
+                      static_cast<double>(state.iterations());
     benchmark::DoNotOptimize(iterations);
   }
 }

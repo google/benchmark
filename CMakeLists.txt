@@ -1,7 +1,7 @@
 # Require CMake 3.10. If available, use the policies up to CMake 3.22.
-cmake_minimum_required (VERSION 3.10...3.22)
+cmake_minimum_required (VERSION 3.13...3.22)
 
-project (benchmark VERSION 1.8.3 LANGUAGES CXX)
+project (benchmark VERSION 1.9.1 LANGUAGES CXX)
 
 option(BENCHMARK_ENABLE_TESTING "Enable testing of the benchmark library." ON)
 option(BENCHMARK_ENABLE_EXCEPTIONS "Enable the use of exceptions in the benchmark library." ON)
@@ -104,17 +104,27 @@ get_git_version(GIT_VERSION)
 
 # If no git version can be determined, use the version
 # from the project() command
-if ("${GIT_VERSION}" STREQUAL "0.0.0")
-  set(VERSION "${benchmark_VERSION}")
+if ("${GIT_VERSION}" STREQUAL "v0.0.0")
+  set(VERSION "v${benchmark_VERSION}")
 else()
   set(VERSION "${GIT_VERSION}")
 endif()
+
+# Normalize version: drop "v" prefix, replace first "-" with ".",
+# drop everything after second "-" (including said "-").
+string(STRIP ${VERSION} VERSION)
+if(VERSION MATCHES v[^-]*-)
+   string(REGEX REPLACE "v([^-]*)-([0-9]+)-.*" "\\1.\\2"  NORMALIZED_VERSION ${VERSION})
+else()
+   string(REGEX REPLACE "v(.*)" "\\1" NORMALIZED_VERSION ${VERSION})
+endif()
+
 # Tell the user what versions we are using
-message(STATUS "Google Benchmark version: ${VERSION}")
+message(STATUS "Google Benchmark version: ${VERSION}, normalized to ${NORMALIZED_VERSION}")
 
 # The version of the libraries
-set(GENERIC_LIB_VERSION ${VERSION})
-string(SUBSTRING ${VERSION} 0 1 GENERIC_LIB_SOVERSION)
+set(GENERIC_LIB_VERSION ${NORMALIZED_VERSION})
+string(SUBSTRING ${NORMALIZED_VERSION} 0 1 GENERIC_LIB_SOVERSION)
 
 # Import our CMake modules
 include(AddCXXCompilerFlag)
@@ -128,11 +138,7 @@ if (BENCHMARK_BUILD_32_BITS)
   add_required_cxx_compiler_flag(-m32)
 endif()
 
-if (MSVC OR CMAKE_CXX_SIMULATE_ID STREQUAL "MSVC")
-  set(BENCHMARK_CXX_STANDARD 14)
-else()
-  set(BENCHMARK_CXX_STANDARD 11)
-endif()
+set(BENCHMARK_CXX_STANDARD 17)
 
 set(CMAKE_CXX_STANDARD ${BENCHMARK_CXX_STANDARD})
 set(CMAKE_CXX_STANDARD_REQUIRED YES)
@@ -142,7 +148,16 @@ if (MSVC)
   # Turn compiler warnings up to 11
   string(REGEX REPLACE "[-/]W[1-4]" "" CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /W4")
+
+  # MP flag only applies to cl, not cl frontends to other compilers (e.g. clang-cl, icx-cl etc)
+  if(CMAKE_CXX_COMPILER_ID MATCHES MSVC)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /MP")
+  endif()
   add_definitions(-D_CRT_SECURE_NO_WARNINGS)
+
+  if(BENCHMARK_ENABLE_WERROR)
+      add_cxx_compiler_flag(-WX)
+  endif()
 
   if (NOT BENCHMARK_ENABLE_EXCEPTIONS)
     add_cxx_compiler_flag(-EHs-)
@@ -170,12 +185,17 @@ if (MSVC)
     set(CMAKE_EXE_LINKER_FLAGS_MINSIZEREL "${CMAKE_EXE_LINKER_FLAGS_MINSIZEREL} /LTCG")
   endif()
 else()
+  # Turn on Large-file Support
+  add_definitions(-D_FILE_OFFSET_BITS=64)
+  add_definitions(-D_LARGEFILE64_SOURCE)
+  add_definitions(-D_LARGEFILE_SOURCE)
   # Turn compiler warnings up to 11
   add_cxx_compiler_flag(-Wall)
   add_cxx_compiler_flag(-Wextra)
   add_cxx_compiler_flag(-Wshadow)
   add_cxx_compiler_flag(-Wfloat-equal)
   add_cxx_compiler_flag(-Wold-style-cast)
+  add_cxx_compiler_flag(-Wconversion)
   if(BENCHMARK_ENABLE_WERROR)
       add_cxx_compiler_flag(-Werror)
   endif()
@@ -286,17 +306,11 @@ if (BENCHMARK_USE_LIBCXX)
   endif()
 endif(BENCHMARK_USE_LIBCXX)
 
-set(EXTRA_CXX_FLAGS "")
-if (WIN32 AND "${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang")
-  # Clang on Windows fails to compile the regex feature check under C++11
-  set(EXTRA_CXX_FLAGS "-DCMAKE_CXX_STANDARD=14")
-endif()
-
 # C++ feature checks
 # Determine the correct regular expression engine to use
-cxx_feature_check(STD_REGEX ${EXTRA_CXX_FLAGS})
-cxx_feature_check(GNU_POSIX_REGEX ${EXTRA_CXX_FLAGS})
-cxx_feature_check(POSIX_REGEX ${EXTRA_CXX_FLAGS})
+cxx_feature_check(STD_REGEX)
+cxx_feature_check(GNU_POSIX_REGEX)
+cxx_feature_check(POSIX_REGEX)
 if(NOT HAVE_STD_REGEX AND NOT HAVE_GNU_POSIX_REGEX AND NOT HAVE_POSIX_REGEX)
   message(FATAL_ERROR "Failed to determine the source files for the regular expression backend")
 endif()
@@ -312,7 +326,7 @@ find_package(Threads REQUIRED)
 cxx_feature_check(PTHREAD_AFFINITY)
 
 if (BENCHMARK_ENABLE_LIBPFM)
-  find_package(PFM)
+  find_package(PFM REQUIRED)
 endif()
 
 # Set up directories

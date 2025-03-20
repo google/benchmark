@@ -26,8 +26,6 @@
 namespace benchmark {
 namespace internal {
 
-constexpr size_t PerfCounterValues::kMaxCounters;
-
 #if defined HAVE_LIBPFM
 
 size_t PerfCounterValues::Read(const std::vector<int>& leaders) {
@@ -39,7 +37,8 @@ size_t PerfCounterValues::Read(const std::vector<int>& leaders) {
     auto read_bytes = ::read(lead, ptr, size);
     if (read_bytes >= ssize_t(sizeof(uint64_t))) {
       // Actual data bytes are all bytes minus initial padding
-      std::size_t data_bytes = read_bytes - sizeof(uint64_t);
+      std::size_t data_bytes =
+          static_cast<std::size_t>(read_bytes) - sizeof(uint64_t);
       // This should be very cheap since it's in hot cache
       std::memmove(ptr, ptr + sizeof(uint64_t), data_bytes);
       // Increment our counters
@@ -156,7 +155,8 @@ PerfCounters PerfCounters::Create(
     attr.exclude_hv = true;
 
     // Read all counters in a group in one read.
-    attr.read_format = PERF_FORMAT_GROUP;
+    attr.read_format = PERF_FORMAT_GROUP;  //| PERF_FORMAT_TOTAL_TIME_ENABLED |
+                                           // PERF_FORMAT_TOTAL_TIME_RUNNING;
 
     int id = -1;
     while (id < 0) {
@@ -216,7 +216,7 @@ PerfCounters PerfCounters::Create(
       GetErrorLogInstance() << "***WARNING*** Failed to start counters. "
                                "Claring out all counters.\n";
 
-      // Close all peformance counters
+      // Close all performance counters
       for (int id : counter_ids) {
         ::close(id);
       }
@@ -254,7 +254,7 @@ bool PerfCounters::IsCounterSupported(const std::string&) { return false; }
 PerfCounters PerfCounters::Create(
     const std::vector<std::string>& counter_names) {
   if (!counter_names.empty()) {
-    GetErrorLogInstance() << "Performance counters not supported.";
+    GetErrorLogInstance() << "Performance counters not supported.\n";
   }
   return NoCounters();
 }

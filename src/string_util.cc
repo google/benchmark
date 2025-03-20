@@ -29,7 +29,7 @@ static_assert(arraysize(kBigSIUnits) == arraysize(kBigIECUnits),
 static_assert(arraysize(kSmallSIUnits) == arraysize(kBigSIUnits),
               "Small SI and Big SI unit arrays must be the same size");
 
-static const int64_t kUnitsSize = arraysize(kBigSIUnits);
+const int64_t kUnitsSize = arraysize(kBigSIUnits);
 
 void ToExponentAndMantissa(double val, int precision, double one_k,
                            std::string* mantissa, int64_t* exponent) {
@@ -56,7 +56,7 @@ void ToExponentAndMantissa(double val, int precision, double one_k,
       scaled /= one_k;
       if (scaled <= big_threshold) {
         mantissa_stream << scaled;
-        *exponent = i + 1;
+        *exponent = static_cast<int64_t>(i + 1);
         *mantissa = mantissa_stream.str();
         return;
       }
@@ -87,10 +87,14 @@ void ToExponentAndMantissa(double val, int precision, double one_k,
 }
 
 std::string ExponentToPrefix(int64_t exponent, bool iec) {
-  if (exponent == 0) return "";
+  if (exponent == 0) {
+    return {};
+  }
 
   const int64_t index = (exponent > 0 ? exponent - 1 : -exponent - 1);
-  if (index >= kUnitsSize) return "";
+  if (index >= kUnitsSize) {
+    return {};
+  }
 
   const char* const* array =
       (exponent > 0 ? (iec ? kBigIECUnits : kBigSIUnits) : kSmallSIUnits);
@@ -101,7 +105,7 @@ std::string ExponentToPrefix(int64_t exponent, bool iec) {
 std::string ToBinaryStringFullySpecified(double value, int precision,
                                          Counter::OneK one_k) {
   std::string mantissa;
-  int64_t exponent;
+  int64_t exponent = 0;
   ToExponentAndMantissa(value, precision,
                         one_k == Counter::kIs1024 ? 1024.0 : 1000.0, &mantissa,
                         &exponent);
@@ -115,7 +119,7 @@ std::string StrFormatImp(const char* msg, va_list args) {
 
   // TODO(ericwf): use std::array for first attempt to avoid one memory
   // allocation guess what the size might be
-  std::array<char, 256> local_buff;
+  std::array<char, 256> local_buff = {};
 
   // 2015-10-08: vsnprintf is used instead of snd::vsnprintf due to a limitation
   // in the android-ndk
@@ -124,9 +128,12 @@ std::string StrFormatImp(const char* msg, va_list args) {
   va_end(args_cp);
 
   // handle empty expansion
-  if (ret == 0) return std::string{};
-  if (static_cast<std::size_t>(ret) < local_buff.size())
+  if (ret == 0) {
+    return {};
+  }
+  if (static_cast<std::size_t>(ret) < local_buff.size()) {
     return std::string(local_buff.data());
+  }
 
   // we did not provide a long enough buffer on our first attempt.
   // add 1 to size to account for null-byte in size cast to prevent overflow
@@ -153,7 +160,9 @@ std::string StrFormat(const char* format, ...) {
 }
 
 std::vector<std::string> StrSplit(const std::string& str, char delim) {
-  if (str.empty()) return {};
+  if (str.empty()) {
+    return {};
+  }
   std::vector<std::string> ret;
   size_t first = 0;
   size_t next = str.find(delim);

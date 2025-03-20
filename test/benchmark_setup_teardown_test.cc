@@ -10,10 +10,12 @@
 
 // Test that Setup() and Teardown() are called exactly once
 // for each benchmark run (single-threaded).
+namespace {
 namespace singlethreaded {
 static int setup_call = 0;
 static int teardown_call = 0;
 }  // namespace singlethreaded
+}  // namespace
 static void DoSetup1(const benchmark::State& state) {
   ++singlethreaded::setup_call;
 
@@ -40,11 +42,13 @@ BENCHMARK(BM_with_setup)
     ->Teardown(DoTeardown1);
 
 // Test that Setup() and Teardown() are called once for each group of threads.
+namespace {
 namespace concurrent {
 static std::atomic<int> setup_call(0);
 static std::atomic<int> teardown_call(0);
 static std::atomic<int> func_call(0);
 }  // namespace concurrent
+}  // namespace
 
 static void DoSetup2(const benchmark::State& state) {
   concurrent::setup_call.fetch_add(1, std::memory_order_acquire);
@@ -71,16 +75,18 @@ BENCHMARK(BM_concurrent)
     ->Threads(15);
 
 // Testing interaction with Fixture::Setup/Teardown
+namespace {
 namespace fixture_interaction {
 int setup = 0;
 int fixture_setup = 0;
 }  // namespace fixture_interaction
+}  // namespace
 
 #define FIXTURE_BECHMARK_NAME MyFixture
 
 class FIXTURE_BECHMARK_NAME : public ::benchmark::Fixture {
  public:
-  void SetUp(const ::benchmark::State&) override {
+  void SetUp(const ::benchmark::State& /*unused*/) override {
     fixture_interaction::fixture_setup++;
   }
 
@@ -92,7 +98,7 @@ BENCHMARK_F(FIXTURE_BECHMARK_NAME, BM_WithFixture)(benchmark::State& st) {
   }
 }
 
-static void DoSetupWithFixture(const benchmark::State&) {
+static void DoSetupWithFixture(const benchmark::State& /*unused*/) {
   fixture_interaction::setup++;
 }
 
@@ -110,7 +116,7 @@ namespace repetitions {
 int setup = 0;
 }
 
-static void DoSetupWithRepetitions(const benchmark::State&) {
+static void DoSetupWithRepetitions(const benchmark::State& /*unused*/) {
   repetitions::setup++;
 }
 static void BM_WithRep(benchmark::State& state) {

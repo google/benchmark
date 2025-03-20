@@ -4,6 +4,9 @@ on:
   push: {}
   pull_request: {}
 
+env:
+  CMAKE_GENERATOR: Ninja
+
 jobs:
   job:
     name: run-clang-tidy
@@ -11,17 +14,17 @@ jobs:
     strategy:
       fail-fast: false
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
 
     - name: install clang-tidy
       run: sudo apt update && sudo apt -y install clang-tidy
 
     - name: create build environment
-      run: cmake -E make_directory ${{ runner.workspace }}/_build
+      run: cmake -E make_directory ${{ github.workspace }}/_build
 
     - name: configure cmake
       shell: bash
-      working-directory: ${{ runner.workspace }}/_build
+      working-directory: ${{ github.workspace }}/_build
       run: >
         cmake $GITHUB_WORKSPACE
         -DBENCHMARK_ENABLE_ASSEMBLY_TESTS=OFF
@@ -34,5 +37,5 @@ jobs:
 
     - name: run
       shell: bash
-      working-directory: ${{ runner.workspace }}/_build
-      run: run-clang-tidy
+      working-directory: ${{ github.workspace }}/_build
+      run: run-clang-tidy -config-file=$GITHUB_WORKSPACE/.clang-tidy

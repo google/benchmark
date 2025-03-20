@@ -14,7 +14,7 @@ BM_DECLARE_string(benchmark_perf_counters);
 
 static void BM_Simple(benchmark::State& state) {
   for (auto _ : state) {
-    auto iterations = state.iterations();
+    auto iterations = double(state.iterations()) * double(state.iterations());
     benchmark::DoNotOptimize(iterations);
   }
 }

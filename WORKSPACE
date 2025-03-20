@@ -4,19 +4,17 @@ load("//:bazel/benchmark_deps.bzl", "benchmark_deps")
 
 benchmark_deps()
 
-load("@rules_foreign_cc//foreign_cc:repositories.bzl", "rules_foreign_cc_dependencies")
+load("@rules_python//python:repositories.bzl", "py_repositories")
 
-rules_foreign_cc_dependencies()
+py_repositories()
 
-load("@rules_python//python:pip.bzl", pip3_install="pip_install")
+load("@rules_python//python:pip.bzl", "pip_parse")
 
-pip3_install(
-   name = "tools_pip_deps",
-   requirements = "//tools:requirements.txt",
+pip_parse(
+    name = "tools_pip_deps",
+    requirements_lock = "//tools:requirements.txt",
 )
 
-new_local_repository(
-    name = "python_headers",
-    build_file = "@//bindings/python:python_headers.BUILD",
-    path = "<PYTHON_INCLUDE_PATH>",  # May be overwritten by setup.py.
-)
+load("@tools_pip_deps//:requirements.bzl", "install_deps")
+
+install_deps()

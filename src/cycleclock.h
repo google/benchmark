@@ -70,7 +70,7 @@ inline BENCHMARK_ALWAYS_INLINE int64_t Now() {
   // frequency scaling).  Also note that when the Mac sleeps, this
   // counter pauses; it does not continue counting, nor does it
   // reset to zero.
-  return mach_absolute_time();
+  return static_cast<int64_t>(mach_absolute_time());
 #elif defined(BENCHMARK_OS_EMSCRIPTEN)
   // this goes above x86-specific code because old versions of Emscripten
   // define __x86_64__, although they have nothing to do with it.
@@ -82,7 +82,7 @@ inline BENCHMARK_ALWAYS_INLINE int64_t Now() {
 #elif defined(__x86_64__) || defined(__amd64__)
   uint64_t low, high;
   __asm__ volatile("rdtsc" : "=a"(low), "=d"(high));
-  return (high << 32) | low;
+  return static_cast<int64_t>((high << 32) | low);
 #elif defined(__powerpc__) || defined(__ppc__)
   // This returns a time-base, which is not always precisely a cycle-count.
 #if defined(__powerpc64__) || defined(__ppc64__)
@@ -181,33 +181,36 @@ inline BENCHMARK_ALWAYS_INLINE int64_t Now() {
 #elif defined(__s390__)  // Covers both s390 and s390x.
   // Return the CPU clock.
   uint64_t tsc;
-#if defined(BENCHMARK_OS_ZOS) && defined(COMPILER_IBMXL)
-  // z/OS XL compiler HLASM syntax.
+#if defined(BENCHMARK_OS_ZOS)
+  // z/OS HLASM syntax.
   asm(" stck %0" : "=m"(tsc) : : "cc");
 #else
+  // Linux on Z syntax.
   asm("stck %0" : "=Q"(tsc) : : "cc");
 #endif
   return tsc;
 #elif defined(__riscv)  // RISC-V
-  // Use RDCYCLE (and RDCYCLEH on riscv32)
+  // Use RDTIME (and RDTIMEH on riscv32).
+  // RDCYCLE is a privileged instruction since Linux 6.6.
 #if __riscv_xlen == 32
   uint32_t cycles_lo, cycles_hi0, cycles_hi1;
   // This asm also includes the PowerPC overflow handling strategy, as above.
   // Implemented in assembly because Clang insisted on branching.
   asm volatile(
-      "rdcycleh %0\n"
-      "rdcycle %1\n"
-      "rdcycleh %2\n"
+      "rdtimeh %0\n"
+      "rdtime %1\n"
+      "rdtimeh %2\n"
       "sub %0, %0, %2\n"
       "seqz %0, %0\n"
       "sub %0, zero, %0\n"
       "and %1, %1, %0\n"
       : "=r"(cycles_hi0), "=r"(cycles_lo), "=r"(cycles_hi1));
-  return (static_cast<uint64_t>(cycles_hi1) << 32) | cycles_lo;
+  return static_cast<int64_t>((static_cast<uint64_t>(cycles_hi1) << 32) |
+                              cycles_lo);
 #else
   uint64_t cycles;
-  asm volatile("rdcycle %0" : "=r"(cycles));
-  return cycles;
+  asm volatile("rdtime %0" : "=r"(cycles));
+  return static_cast<int64_t>(cycles);
 #endif
 #elif defined(__e2k__) || defined(__elbrus__)
   struct timeval tv;
@@ -216,11 +219,33 @@ inline BENCHMARK_ALWAYS_INLINE int64_t Now() {
 #elif defined(__hexagon__)
   uint64_t pcycle;
   asm volatile("%0 = C15:14" : "=r"(pcycle));
-  return static_cast<double>(pcycle);
+  return static_cast<int64_t>(pcycle);
+#elif defined(__alpha__)
+  // Alpha has a cycle counter, the PCC register, but it is an unsigned 32-bit
+  // integer and thus wraps every ~4s, making using it for tick counts
+  // unreliable beyond this time range.  The real-time clock is low-precision,
+  // roughtly ~1ms, but it is the only option that can reasonable count
+  // indefinitely.
+  struct timeval tv;
+  gettimeofday(&tv, nullptr);
+  return static_cast<int64_t>(tv.tv_sec) * 1000000 + tv.tv_usec;
+#elif defined(__hppa__) || defined(__linux__)
+  // Fallback for all other architectures with a recent Linux kernel, e.g.:
+  // HP PA-RISC provides a user-readable clock counter (cr16), but
+  // it's not syncronized across CPUs and only 32-bit wide when programs
+  // are built as 32-bit binaries.
+  // Same for SH-4 and possibly others.
+  // Use clock_gettime(CLOCK_MONOTONIC, ...) instead of gettimeofday
+  // because is provides nanosecond resolution.
+  // Initialize to always return 0 if clock_gettime fails.
+  struct timespec ts = {0, 0};
+  clock_gettime(CLOCK_MONOTONIC, &ts);
+  return static_cast<int64_t>(ts.tv_sec) * 1000000000 + ts.tv_nsec;
 #else
-// The soft failover to a generic implementation is automatic only for ARM.
-// For other platforms the developer is expected to make an attempt to create
-// a fast implementation and use generic version if nothing better is available.
+  // The soft failover to a generic implementation is automatic only for ARM.
+  // For other platforms the developer is expected to make an attempt to create
+  // a fast implementation and use generic version if nothing better is
+  // available.
 #error You need to define CycleTimer for your OS and CPU
 #endif
 }

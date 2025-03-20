@@ -12,10 +12,12 @@
 #include <list>
 #include <map>
 #include <mutex>
+#include <optional>
 #include <set>
 #include <sstream>
 #include <string>
 #include <thread>
+#include <type_traits>
 #include <utility>
 #include <vector>
 
@@ -43,18 +45,24 @@ double CalculatePi(int depth) {
 
 std::set<int64_t> ConstructRandomSet(int64_t size) {
   std::set<int64_t> s;
-  for (int i = 0; i < size; ++i) s.insert(s.end(), i);
+  for (int i = 0; i < size; ++i) {
+    s.insert(s.end(), i);
+  }
   return s;
 }
 
+// NOLINTBEGIN(cppcoreguidelines-avoid-non-const-global-variables)
 std::mutex test_vector_mu;
-std::vector<int>* test_vector = nullptr;
+std::optional<std::vector<int>> test_vector;
+// NOLINTEND(cppcoreguidelines-avoid-non-const-global-variables)
 
 }  // end namespace
 
 static void BM_Factorial(benchmark::State& state) {
   int fac_42 = 0;
-  for (auto _ : state) fac_42 = Factorial(8);
+  for (auto _ : state) {
+    fac_42 = Factorial(8);
+  }
   // Prevent compiler optimizations
   std::stringstream ss;
   ss << fac_42;
@@ -65,7 +73,9 @@ BENCHMARK(BM_Factorial)->UseRealTime();
 
 static void BM_CalculatePiRange(benchmark::State& state) {
   double pi = 0.0;
-  for (auto _ : state) pi = CalculatePi(static_cast<int>(state.range(0)));
+  for (auto _ : state) {
+    pi = CalculatePi(static_cast<int>(state.range(0)));
+  }
   std::stringstream ss;
   ss << pi;
   state.SetLabel(ss.str());
@@ -89,7 +99,9 @@ static void BM_SetInsert(benchmark::State& state) {
     state.PauseTiming();
     data = ConstructRandomSet(state.range(0));
     state.ResumeTiming();
-    for (int j = 0; j < state.range(1); ++j) data.insert(rand());
+    for (int j = 0; j < state.range(1); ++j) {
+      data.insert(rand());
+    }
   }
   state.SetItemsProcessed(state.iterations() * state.range(1));
   state.SetBytesProcessed(state.iterations() * state.range(1) *
@@ -107,7 +119,9 @@ static void BM_Sequential(benchmark::State& state) {
   ValueType v = 42;
   for (auto _ : state) {
     Container c;
-    for (int64_t i = state.range(0); --i;) c.push_back(v);
+    for (int64_t i = state.range(0); --i;) {
+      c.push_back(v);
+    }
   }
   const int64_t items_processed = state.iterations() * state.range(0);
   state.SetItemsProcessed(items_processed);
@@ -117,9 +131,7 @@ BENCHMARK_TEMPLATE2(BM_Sequential, std::vector<int>, int)
     ->Range(1 << 0, 1 << 10);
 BENCHMARK_TEMPLATE(BM_Sequential, std::list<int>)->Range(1 << 0, 1 << 10);
 // Test the variadic version of BENCHMARK_TEMPLATE in C++11 and beyond.
-#ifdef BENCHMARK_HAS_CXX11
 BENCHMARK_TEMPLATE(BM_Sequential, std::vector<int>, int)->Arg(512);
-#endif
 
 static void BM_StringCompare(benchmark::State& state) {
   size_t len = static_cast<size_t>(state.range(0));
@@ -135,19 +147,20 @@ BENCHMARK(BM_StringCompare)->Range(1, 1 << 20);
 static void BM_SetupTeardown(benchmark::State& state) {
   if (state.thread_index() == 0) {
     // No need to lock test_vector_mu here as this is running single-threaded.
-    test_vector = new std::vector<int>();
+    test_vector = std::vector<int>();
   }
   int i = 0;
   for (auto _ : state) {
     std::lock_guard<std::mutex> l(test_vector_mu);
-    if (i % 2 == 0)
+    if (i % 2 == 0) {
       test_vector->push_back(i);
-    else
+    } else {
       test_vector->pop_back();
+    }
     ++i;
   }
   if (state.thread_index() == 0) {
-    delete test_vector;
+    test_vector.reset();
   }
 }
 BENCHMARK(BM_SetupTeardown)->ThreadPerCpu();
@@ -155,8 +168,9 @@ BENCHMARK(BM_SetupTeardown)->ThreadPerCpu();
 static void BM_LongTest(benchmark::State& state) {
   double tracker = 0.0;
   for (auto _ : state) {
-    for (int i = 0; i < state.range(0); ++i)
+    for (int i = 0; i < state.range(0); ++i) {
       benchmark::DoNotOptimize(tracker += i);
+    }
   }
 }
 BENCHMARK(BM_LongTest)->Range(1 << 16, 1 << 28);
@@ -168,7 +182,7 @@ static void BM_ParallelMemset(benchmark::State& state) {
   int to = from + thread_size;
 
   if (state.thread_index() == 0) {
-    test_vector = new std::vector<int>(static_cast<size_t>(size));
+    test_vector = std::vector<int>(static_cast<size_t>(size));
   }
 
   for (auto _ : state) {
@@ -180,7 +194,7 @@ static void BM_ParallelMemset(benchmark::State& state) {
   }
 
   if (state.thread_index() == 0) {
-    delete test_vector;
+    test_vector.reset();
   }
 }
 BENCHMARK(BM_ParallelMemset)->Arg(10 << 20)->ThreadRange(1, 4);
@@ -209,8 +223,6 @@ static void BM_ManualTiming(benchmark::State& state) {
 BENCHMARK(BM_ManualTiming)->Range(1, 1 << 14)->UseRealTime();
 BENCHMARK(BM_ManualTiming)->Range(1, 1 << 14)->UseManualTime();
 
-#ifdef BENCHMARK_HAS_CXX11
-
 template <class... Args>
 void BM_with_args(benchmark::State& state, Args&&...) {
   for (auto _ : state) {
@@ -226,7 +238,30 @@ void BM_non_template_args(benchmark::State& state, int, double) {
 }
 BENCHMARK_CAPTURE(BM_non_template_args, basic_test, 0, 0);
 
-#endif  // BENCHMARK_HAS_CXX11
+template <class T, class U, class... ExtraArgs>
+void BM_template2_capture(benchmark::State& state, ExtraArgs&&... extra_args) {
+  static_assert(std::is_same<T, void>::value, "");
+  static_assert(std::is_same<U, char*>::value, "");
+  static_assert(std::is_same<ExtraArgs..., unsigned int>::value, "");
+  unsigned int dummy[sizeof...(ExtraArgs)] = {extra_args...};
+  assert(dummy[0] == 42);
+  for (auto _ : state) {
+  }
+}
+BENCHMARK_TEMPLATE2_CAPTURE(BM_template2_capture, void, char*, foo, 42U);
+BENCHMARK_CAPTURE((BM_template2_capture<void, char*>), foo, 42U);
+
+template <class T, class... ExtraArgs>
+void BM_template1_capture(benchmark::State& state, ExtraArgs&&... extra_args) {
+  static_assert(std::is_same<T, void>::value, "");
+  static_assert(std::is_same<ExtraArgs..., unsigned long>::value, "");
+  unsigned long dummy[sizeof...(ExtraArgs)] = {extra_args...};
+  assert(dummy[0] == 24);
+  for (auto _ : state) {
+  }
+}
+BENCHMARK_TEMPLATE1_CAPTURE(BM_template1_capture, void, foo, 24UL);
+BENCHMARK_CAPTURE(BM_template1_capture<void>, foo, 24UL);
 
 static void BM_DenseThreadRanges(benchmark::State& st) {
   switch (st.range(0)) {
@@ -268,7 +303,8 @@ static void BM_templated_test(benchmark::State& state) {
   }
 }
 
-static auto BM_templated_test_double = BM_templated_test<std::complex<double>>;
+static const auto BM_templated_test_double =
+    BM_templated_test<std::complex<double>>;
 BENCHMARK(BM_templated_test_double);
 
 BENCHMARK_MAIN();

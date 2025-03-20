@@ -26,50 +26,31 @@ Example usage:
   if __name__ == '__main__':
     benchmark.main()
 """
+
 import atexit
 
 from absl import app
+
 from google_benchmark import _benchmark
 from google_benchmark._benchmark import (
-    Counter,
-    kNanosecond,
-    kMicrosecond,
-    kMillisecond,
-    kSecond,
-    oNone,
-    o1,
-    oN,
-    oNSquared,
-    oNCubed,
-    oLogN,
-    oNLogN,
-    oAuto,
-    oLambda,
-    State,
+    Counter as Counter,
+    State as State,
+    kMicrosecond as kMicrosecond,
+    kMillisecond as kMillisecond,
+    kNanosecond as kNanosecond,
+    kSecond as kSecond,
+    o1 as o1,
+    oAuto as oAuto,
+    oLambda as oLambda,
+    oLogN as oLogN,
+    oN as oN,
+    oNCubed as oNCubed,
+    oNLogN as oNLogN,
+    oNone as oNone,
+    oNSquared as oNSquared,
 )
 
-
-__all__ = [
-    "register",
-    "main",
-    "Counter",
-    "kNanosecond",
-    "kMicrosecond",
-    "kMillisecond",
-    "kSecond",
-    "oNone",
-    "o1",
-    "oN",
-    "oNSquared",
-    "oNCubed",
-    "oLogN",
-    "oNLogN",
-    "oAuto",
-    "oLambda",
-    "State",
-]
-
-__version__ = "1.8.3"
+__version__ = "1.9.1"
 
 
 class __OptionMaker:
@@ -79,7 +60,8 @@ class __OptionMaker:
     """
 
     class Options:
-        """Pure data class to store options calls, along with the benchmarked function."""
+        """Pure data class to store options calls, along with the benchmarked
+        function."""
 
         def __init__(self, func):
             self.func = func
@@ -97,14 +79,13 @@ class __OptionMaker:
 
         # The function that get returned on @option.range(start=0, limit=1<<5).
         def __builder_method(*args, **kwargs):
-
             # The decorator that get called, either with the benchmared function
             # or the previous Options
             def __decorator(func_or_options):
                 options = self.make(func_or_options)
                 options.builder_calls.append((builder_name, args, kwargs))
-                # The decorator returns Options so it is not technically a decorator
-                # and needs a final call to @register
+                # The decorator returns Options so it is not technically a
+                # decorator and needs a final call to @register
                 return options
 
             return __decorator
@@ -113,8 +94,8 @@ class __OptionMaker:
 
 
 # Alias for nicer API.
-# We have to instantiate an object, even if stateless, to be able to use __getattr__
-# on option.range
+# We have to instantiate an object, even if stateless, to be able to use
+# __getattr__ on option.range
 option = __OptionMaker()
 
 
@@ -124,8 +105,8 @@ def register(undefined=None, *, name=None):
         # Decorator is called without parenthesis so we return a decorator
         return lambda f: register(f, name=name)
 
-    # We have either the function to benchmark (simple case) or an instance of Options
-    # (@option._ case).
+    # We have either the function to benchmark (simple case) or an instance of
+    # Options (@option._ case).
     options = __OptionMaker.make(undefined)
 
     if name is None:

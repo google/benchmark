@@ -83,7 +83,7 @@ std::string PerformSubstitutions(std::string source) {
   SubMap const& subs = GetSubstitutions();
   using SizeT = std::string::size_type;
   for (auto const& KV : subs) {
-    SizeT pos;
+    SizeT pos = 0;
     SizeT next_start = 0;
     while ((pos = source.find(KV.first, next_start)) != std::string::npos) {
       next_start = pos + KV.second.size();
@@ -98,7 +98,7 @@ void CheckCase(std::stringstream& remaining_output, TestCase const& TC,
   std::string first_line;
   bool on_first = true;
   std::string line;
-  while (remaining_output.eof() == false) {
+  while (!remaining_output.eof()) {
     BM_CHECK(remaining_output.good());
     std::getline(remaining_output, line);
     if (on_first) {
@@ -112,7 +112,9 @@ void CheckCase(std::stringstream& remaining_output, TestCase const& TC,
           << "\n    actual regex string \"" << TC.substituted_regex << "\""
           << "\n    started matching near: " << first_line;
     }
-    if (TC.regex->Match(line)) return;
+    if (TC.regex->Match(line)) {
+      return;
+    }
     BM_CHECK(TC.match_rule != MR_Next)
         << "Expected line \"" << line << "\" to match regex \"" << TC.regex_str
         << "\""
@@ -147,7 +149,7 @@ class TestReporter : public benchmark::BenchmarkReporter {
   bool ReportContext(const Context& context) override {
     bool last_ret = false;
     bool first = true;
-    for (auto rep : reporters_) {
+    for (auto* rep : reporters_) {
       bool new_ret = rep->ReportContext(context);
       BM_CHECK(first || new_ret == last_ret)
           << "Reports return different values for ReportContext";
@@ -159,10 +161,14 @@ class TestReporter : public benchmark::BenchmarkReporter {
   }
 
   void ReportRuns(const std::vector<Run>& report) override {
-    for (auto rep : reporters_) rep->ReportRuns(report);
+    for (auto* rep : reporters_) {
+      rep->ReportRuns(report);
+    }
   }
   void Finalize() override {
-    for (auto rep : reporters_) rep->Finalize();
+    for (auto* rep : reporters_) {
+      rep->Finalize();
+    }
   }
 
  private:
@@ -200,7 +206,7 @@ class ResultsChecker {
   void SetHeader_(const std::string& csv_header);
   void SetValues_(const std::string& entry_csv_line);
 
-  std::vector<std::string> SplitCsv_(const std::string& line);
+  std::vector<std::string> SplitCsv_(const std::string& line) const;
 };
 
 // store the static ResultsChecker in a function to prevent initialization
@@ -224,14 +230,16 @@ void ResultsChecker::CheckResults(std::stringstream& output) {
     // clear before calling tellg()
     output.clear();
     // seek to zero only when needed
-    if (output.tellg() > start) output.seekg(start);
+    if (output.tellg() > start) {
+      output.seekg(start);
+    }
     // and just in case
     output.clear();
   }
   // now go over every line and publish it to the ResultsChecker
   std::string line;
   bool on_first = true;
-  while (output.eof() == false) {
+  while (!output.eof()) {
     BM_CHECK(output.good());
     std::getline(output, line);
     if (on_first) {
@@ -265,7 +273,9 @@ void ResultsChecker::SetHeader_(const std::string& csv_header) {
 
 // set the values for a benchmark
 void ResultsChecker::SetValues_(const std::string& entry_csv_line) {
-  if (entry_csv_line.empty()) return;  // some lines are empty
+  if (entry_csv_line.empty()) {
+    return;
+  }  // some lines are empty
   BM_CHECK(!field_names.empty());
   auto vals = SplitCsv_(entry_csv_line);
   BM_CHECK_EQ(vals.size(), field_names.size());
@@ -277,23 +287,38 @@ void ResultsChecker::SetValues_(const std::string& entry_csv_line) {
 }
 
 // a quick'n'dirty csv splitter (eliminating quotes)
-std::vector<std::string> ResultsChecker::SplitCsv_(const std::string& line) {
+std::vector<std::string> ResultsChecker::SplitCsv_(
+    const std::string& line) const {
   std::vector<std::string> out;
-  if (line.empty()) return out;
-  if (!field_names.empty()) out.reserve(field_names.size());
-  size_t prev = 0, pos = line.find_first_of(','), curr = pos;
-  while (pos != line.npos) {
+  if (line.empty()) {
+    return out;
+  }
+  if (!field_names.empty()) {
+    out.reserve(field_names.size());
+  }
+  size_t prev = 0;
+  size_t pos = line.find_first_of(',');
+  size_t curr = pos;
+  while (pos != std::string::npos) {
     BM_CHECK(curr > 0);
-    if (line[prev] == '"') ++prev;
-    if (line[curr - 1] == '"') --curr;
+    if (line[prev] == '"') {
+      ++prev;
+    }
+    if (line[curr - 1] == '"') {
+      --curr;
+    }
     out.push_back(line.substr(prev, curr - prev));
     prev = pos + 1;
     pos = line.find_first_of(',', pos + 1);
     curr = pos;
   }
   curr = line.size();
-  if (line[prev] == '"') ++prev;
-  if (line[curr - 1] == '"') --curr;
+  if (line[prev] == '"') {
+    ++prev;
+  }
+  if (line[curr - 1] == '"') {
+    --curr;
+  }
   out.push_back(line.substr(prev, curr - prev));
   return out;
 }
@@ -308,7 +333,9 @@ size_t AddChecker(const std::string& bm_name, const ResultsCheckFn& fn) {
 
 int Results::NumThreads() const {
   auto pos = name.find("/threads:");
-  if (pos == name.npos) return 1;
+  if (pos == std::string::npos) {
+    return 1;
+  }
   auto end = name.find('/', pos + 9);
   std::stringstream ss;
   ss << name.substr(pos + 9, end);
@@ -324,7 +351,7 @@ double Results::GetTime(BenchmarkTime which) const {
   BM_CHECK(which == kCpuTime || which == kRealTime);
   const char* which_str = which == kCpuTime ? "cpu_time" : "real_time";
   double val = GetAs<double>(which_str);
-  auto unit = Get("time_unit");
+  const auto* unit = Get("time_unit");
   BM_CHECK(unit);
   if (*unit == "ns") {
     return val * 1.e-9;
@@ -378,7 +405,9 @@ int SetSubstitutions(
         break;
       }
     }
-    if (!exists) subs.push_back(std::move(KV));
+    if (!exists) {
+      subs.push_back(std::move(KV));
+    }
   }
   return 0;
 }
@@ -449,11 +478,14 @@ void RunOutputTests(int argc, char* argv[]) {
 BENCHMARK_RESTORE_DEPRECATED_WARNING
 
 int SubstrCnt(const std::string& haystack, const std::string& pat) {
-  if (pat.length() == 0) return 0;
+  if (pat.length() == 0) {
+    return 0;
+  }
   int count = 0;
   for (size_t offset = haystack.find(pat); offset != std::string::npos;
-       offset = haystack.find(pat, offset + pat.length()))
+       offset = haystack.find(pat, offset + pat.length())) {
     ++count;
+  }
   return count;
 }
 
@@ -471,7 +503,9 @@ static char RandomHexChar() {
 static std::string GetRandomFileName() {
   std::string model = "test.%%%%%%";
   for (auto& ch : model) {
-    if (ch == '%') ch = RandomHexChar();
+    if (ch == '%') {
+      ch = RandomHexChar();
+    }
   }
   return model;
 }
@@ -486,12 +520,15 @@ static std::string GetTempFileName() {
   // create the same file at the same time. However, it still introduces races
   // similar to tmpnam.
   int retries = 3;
-  while (--retries) {
+  while (--retries != 0) {
     std::string name = GetRandomFileName();
-    if (!FileExists(name)) return name;
+    if (!FileExists(name)) {
+      return name;
+    }
   }
-  std::cerr << "Failed to create unique temporary file name" << std::endl;
-  std::abort();
+  std::cerr << "Failed to create unique temporary file name\n";
+  std::flush(std::cerr);
+  std::exit(1);
 }
 
 std::string GetFileReporterOutput(int argc, char* argv[]) {
@@ -505,7 +542,7 @@ std::string GetFileReporterOutput(int argc, char* argv[]) {
   tmp += tmp_file_name;
   new_argv.emplace_back(const_cast<char*>(tmp.c_str()));
 
-  argc = int(new_argv.size());
+  argc = static_cast<int>(new_argv.size());
 
   benchmark::Initialize(&argc, new_argv.data());
   benchmark::RunSpecifiedBenchmarks();

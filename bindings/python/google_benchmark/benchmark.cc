@@ -118,7 +118,7 @@ NB_MODULE(_benchmark, m) {
   using benchmark::Counter;
   nb::class_<Counter> py_counter(m, "Counter");
 
-  nb::enum_<Counter::Flags>(py_counter, "Flags")
+  nb::enum_<Counter::Flags>(py_counter, "Flags", nb::is_arithmetic(), nb::is_flag())
       .value("kDefaults", Counter::Flags::kDefaults)
       .value("kIsRate", Counter::Flags::kIsRate)
       .value("kAvgThreads", Counter::Flags::kAvgThreads)
@@ -129,8 +129,7 @@ NB_MODULE(_benchmark, m) {
       .value("kAvgIterations", Counter::Flags::kAvgIterations)
       .value("kAvgIterationsRate", Counter::Flags::kAvgIterationsRate)
       .value("kInvert", Counter::Flags::kInvert)
-      .export_values()
-      .def(nb::self | nb::self);
+      .export_values();
 
   nb::enum_<Counter::OneK>(py_counter, "OneK")
       .value("kIs1000", Counter::OneK::kIs1000)
@@ -141,7 +140,8 @@ NB_MODULE(_benchmark, m) {
       .def(nb::init<double, Counter::Flags, Counter::OneK>(),
            nb::arg("value") = 0., nb::arg("flags") = Counter::kDefaults,
            nb::arg("k") = Counter::kIs1000)
-      .def("__init__", ([](Counter *c, double value) { new (c) Counter(value); }))
+      .def("__init__",
+           ([](Counter* c, double value) { new (c) Counter(value); }))
       .def_rw("value", &Counter::value)
       .def_rw("flags", &Counter::flags)
       .def_rw("oneK", &Counter::oneK)
