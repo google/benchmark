@@ -17,13 +17,9 @@ class ThreadManager {
     return benchmark_mutex_;
   }
 
-  bool StartStopBarrier() {
-    return start_stop_barrier_.wait();
-  }
+  bool StartStopBarrier() { return start_stop_barrier_.wait(); }
 
-  void NotifyThreadComplete() {
-    start_stop_barrier_.removeThread();
-  }
+  void NotifyThreadComplete() { start_stop_barrier_.removeThread(); }
 
   struct Result {
     IterationCount iterations = 0;
