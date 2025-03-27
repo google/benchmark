@@ -12,7 +12,7 @@ namespace internal {
 class ThreadManager {
  public:
   explicit ThreadManager(int num_threads)
-      : alive_threads_(num_threads), start_stop_barrier_(num_threads) {}
+      : start_stop_barrier_(num_threads) {}
 
   Mutex& GetBenchmarkMutex() const RETURN_CAPABILITY(benchmark_mutex_) {
     return benchmark_mutex_;
@@ -24,16 +24,6 @@ class ThreadManager {
 
   void NotifyThreadComplete() EXCLUDES(end_cond_mutex_) {
     start_stop_barrier_.removeThread();
-    if (--alive_threads_ == 0) {
-      MutexLock lock(end_cond_mutex_);
-      end_condition_.notify_all();
-    }
-  }
-
-  void WaitForAllThreads() EXCLUDES(end_cond_mutex_) {
-    MutexLock lock(end_cond_mutex_);
-    end_condition_.wait(lock.native_handle(),
-                        [this]() { return alive_threads_ == 0; });
   }
 
   struct Result {
@@ -51,10 +41,7 @@ class ThreadManager {
 
  private:
   mutable Mutex benchmark_mutex_;
-  std::atomic<int> alive_threads_;
   Barrier start_stop_barrier_;
-  Mutex end_cond_mutex_;
-  Condition end_condition_;
 };
 
 }  // namespace internal
