@@ -62,9 +62,7 @@ class ManualThreadRunner : public benchmark::ThreadRunnerBase {
   std::vector<std::thread> pool;
 };
 
-
 void BM_ManualThreading(benchmark::State& state) {
-
   for (auto _ : state) {
     MyBusySpinwait();
     state.SetIterationTime(time_frame_in_sec);

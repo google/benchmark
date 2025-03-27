@@ -1103,7 +1103,6 @@ struct ThreadRunnerBase {
 using threadrunner_factory =
     std::function<std::unique_ptr<ThreadRunnerBase>(int)>;
 
-
 namespace internal {
 
 typedef void(Function)(State&);

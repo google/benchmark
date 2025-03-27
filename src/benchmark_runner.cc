@@ -13,8 +13,6 @@
 // limitations under the License.
 
 #include "benchmark_runner.h"
-#include <functional>
-#include <type_traits>
 
 #include "benchmark/benchmark.h"
 #include "benchmark_api_internal.h"
@@ -36,6 +34,7 @@
 #include <cstdio>
 #include <cstdlib>
 #include <fstream>
+#include <functional>
 #include <iostream>
 #include <limits>
 #include <memory>
@@ -255,7 +254,6 @@ struct ThreadRunnerDefault : ThreadRunnerBase {
  private:
   std::vector<std::thread> pool;
 };
-
 
 BenchmarkRunner::BenchmarkRunner(
     const benchmark::internal::BenchmarkInstance& b_,
