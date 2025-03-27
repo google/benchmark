@@ -302,7 +302,6 @@ BenchmarkRunner::IterationResults BenchmarkRunner::DoNIterations() {
               /*profiler_manager=*/nullptr);
 
   // The main thread has finished. Now let's wait for the other threads.
-  manager->WaitForAllThreads();
   for (std::thread& thread : pool) {
     thread.join();
   }
@@ -434,7 +433,6 @@ MemoryManager::Result BenchmarkRunner::RunMemoryManager(
   RunInThread(&b, memory_iterations, 0, manager.get(),
               perf_counters_measurement_ptr,
               /*profiler_manager=*/nullptr);
-  manager->WaitForAllThreads();
   manager.reset();
   b.Teardown();
   MemoryManager::Result memory_result;
@@ -450,7 +448,6 @@ void BenchmarkRunner::RunProfilerManager(IterationCount profile_iterations) {
   RunInThread(&b, profile_iterations, 0, manager.get(),
               /*perf_counters_measurement_ptr=*/nullptr,
               /*profiler_manager=*/profiler_manager);
-  manager->WaitForAllThreads();
   manager.reset();
   b.Teardown();
 }
