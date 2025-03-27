@@ -55,8 +55,6 @@ class ManualThreadRunner : public benchmark::ThreadRunnerBase {
   std::vector<std::thread> pool;
 };
 
-}  // namespace
-
 // ========================================================================= //
 // --------------------------- TEST CASES BEGIN ---------------------------- //
 // ========================================================================= //
@@ -73,6 +71,8 @@ void BM_ManualThreading(benchmark::State& state) {
   state.counters["invtime"] =
       benchmark::Counter{1, benchmark::Counter::kIsRate};
 }
+
+}  // end namespace
 
 BENCHMARK(BM_ManualThreading)
     ->Iterations(1)
