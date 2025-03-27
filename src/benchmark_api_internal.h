@@ -42,7 +42,8 @@ class BenchmarkInstance {
   void Setup() const;
   void Teardown() const;
   std::unique_ptr<ThreadRunnerBase> GetUserThreadRunner() const {
-    return benchmark_.threadrunner_ ? benchmark_.threadrunner_(threads_) : nullptr;
+    return benchmark_.threadrunner_ ? benchmark_.threadrunner_(threads_)
+                                    : nullptr;
   }
 
   State Run(IterationCount iters, int thread_id, internal::ThreadTimer* timer,

@@ -236,14 +236,11 @@ BenchTimeType ParseBenchMinTime(const std::string& value) {
   return ret;
 }
 
-struct ThreadRunnerDefault : ThreadRunnerBase
-{
+struct ThreadRunnerDefault : ThreadRunnerBase {
   explicit ThreadRunnerDefault(int num_threads)
-  : pool(static_cast<size_t>(num_threads - 1))
-  {}
+      : pool(static_cast<size_t>(num_threads - 1)) {}
 
-  void RunThreads(const std::function<void(int)>& fn) final
-  {
+  void RunThreads(const std::function<void(int)>& fn) final {
     for (std::size_t ti = 0; ti < pool.size(); ++ti) {
       pool[ti] = std::thread(fn, static_cast<int>(ti + 1));
     }
@@ -254,7 +251,8 @@ struct ThreadRunnerDefault : ThreadRunnerBase
       thread.join();
     }
   }
-private:
+
+ private:
   std::vector<std::thread> pool;
 };
 
@@ -318,7 +316,8 @@ BenchmarkRunner::IterationResults BenchmarkRunner::DoNIterations() {
   manager.reset(new internal::ThreadManager(b.threads()));
 
   thread_runner->RunThreads([&](int thread_idx) {
-    RunInThread(&b, iters, thread_idx, manager.get(), perf_counters_measurement_ptr, /*profiler_manager=*/nullptr);
+    RunInThread(&b, iters, thread_idx, manager.get(),
+                perf_counters_measurement_ptr, /*profiler_manager=*/nullptr);
   });
 
   IterationResults i;

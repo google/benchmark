@@ -24,8 +24,8 @@ void MyBusySpinwait() {
     const auto now = benchmark::ChronoClockNow();
     const auto elapsed = now - start;
 
-    if (std::chrono::duration<double, std::chrono::seconds::period>(elapsed) >= time_frame)
-    {
+    if (std::chrono::duration<double, std::chrono::seconds::period>(elapsed) >=
+        time_frame) {
       return;
     }
   }
@@ -41,15 +41,12 @@ void MyBusySpinwait() {
 // BM_ManualThreading
 // Creation of threads is done before the start of the measurement,
 // joining after the finish of the measurement.
-class ManualThreadRunner : public benchmark::ThreadRunnerBase
-{
-public:
+class ManualThreadRunner : public benchmark::ThreadRunnerBase {
+ public:
   explicit ManualThreadRunner(int num_threads)
-  : pool(static_cast<size_t>(num_threads - 1))
-  {}
+      : pool(static_cast<size_t>(num_threads - 1)) {}
 
-  void RunThreads(const std::function<void(int)>& fn) final
-  {
+  void RunThreads(const std::function<void(int)>& fn) final {
     for (std::size_t ti = 0; ti < pool.size(); ++ti) {
       pool[ti] = std::thread(fn, static_cast<int>(ti + 1));
     }
@@ -60,7 +57,8 @@ public:
       thread.join();
     }
   }
-private:
+
+ private:
   std::vector<std::thread> pool;
 };
 
@@ -77,64 +75,88 @@ void BM_ManualThreading(benchmark::State& state) {
 
 BENCHMARK(BM_ManualThreading)
     ->Iterations(1)
-    ->ThreadRunner([](int num_threads) { return std::make_unique<ManualThreadRunner>(num_threads); })
+    ->ThreadRunner([](int num_threads) {
+      return std::make_unique<ManualThreadRunner>(num_threads);
+    })
     ->Threads(1);
 BENCHMARK(BM_ManualThreading)
     ->Iterations(1)
-    ->ThreadRunner([](int num_threads) { return std::make_unique<ManualThreadRunner>(num_threads); })
+    ->ThreadRunner([](int num_threads) {
+      return std::make_unique<ManualThreadRunner>(num_threads);
+    })
     ->Threads(1)
     ->UseRealTime();
 BENCHMARK(BM_ManualThreading)
     ->Iterations(1)
-    ->ThreadRunner([](int num_threads) { return std::make_unique<ManualThreadRunner>(num_threads); })
+    ->ThreadRunner([](int num_threads) {
+      return std::make_unique<ManualThreadRunner>(num_threads);
+    })
     ->Threads(1)
     ->UseManualTime();
 BENCHMARK(BM_ManualThreading)
     ->Iterations(1)
-    ->ThreadRunner([](int num_threads) { return std::make_unique<ManualThreadRunner>(num_threads); })
+    ->ThreadRunner([](int num_threads) {
+      return std::make_unique<ManualThreadRunner>(num_threads);
+    })
     ->Threads(1)
     ->MeasureProcessCPUTime();
 BENCHMARK(BM_ManualThreading)
     ->Iterations(1)
-    ->ThreadRunner([](int num_threads) { return std::make_unique<ManualThreadRunner>(num_threads); })
+    ->ThreadRunner([](int num_threads) {
+      return std::make_unique<ManualThreadRunner>(num_threads);
+    })
     ->Threads(1)
     ->MeasureProcessCPUTime()
     ->UseRealTime();
 BENCHMARK(BM_ManualThreading)
     ->Iterations(1)
-    ->ThreadRunner([](int num_threads) { return std::make_unique<ManualThreadRunner>(num_threads); })
+    ->ThreadRunner([](int num_threads) {
+      return std::make_unique<ManualThreadRunner>(num_threads);
+    })
     ->Threads(1)
     ->MeasureProcessCPUTime()
     ->UseManualTime();
 
 BENCHMARK(BM_ManualThreading)
     ->Iterations(1)
-    ->ThreadRunner([](int num_threads) { return std::make_unique<ManualThreadRunner>(num_threads); })
+    ->ThreadRunner([](int num_threads) {
+      return std::make_unique<ManualThreadRunner>(num_threads);
+    })
     ->Threads(2);
 BENCHMARK(BM_ManualThreading)
     ->Iterations(1)
-    ->ThreadRunner([](int num_threads) { return std::make_unique<ManualThreadRunner>(num_threads); })
+    ->ThreadRunner([](int num_threads) {
+      return std::make_unique<ManualThreadRunner>(num_threads);
+    })
     ->Threads(2)
     ->UseRealTime();
 BENCHMARK(BM_ManualThreading)
     ->Iterations(1)
-    ->ThreadRunner([](int num_threads) { return std::make_unique<ManualThreadRunner>(num_threads); })
+    ->ThreadRunner([](int num_threads) {
+      return std::make_unique<ManualThreadRunner>(num_threads);
+    })
     ->Threads(2)
     ->UseManualTime();
 BENCHMARK(BM_ManualThreading)
     ->Iterations(1)
-    ->ThreadRunner([](int num_threads) { return std::make_unique<ManualThreadRunner>(num_threads); })
+    ->ThreadRunner([](int num_threads) {
+      return std::make_unique<ManualThreadRunner>(num_threads);
+    })
     ->Threads(2)
     ->MeasureProcessCPUTime();
 BENCHMARK(BM_ManualThreading)
     ->Iterations(1)
-    ->ThreadRunner([](int num_threads) { return std::make_unique<ManualThreadRunner>(num_threads); })
+    ->ThreadRunner([](int num_threads) {
+      return std::make_unique<ManualThreadRunner>(num_threads);
+    })
     ->Threads(2)
     ->MeasureProcessCPUTime()
     ->UseRealTime();
 BENCHMARK(BM_ManualThreading)
     ->Iterations(1)
-    ->ThreadRunner([](int num_threads) { return std::make_unique<ManualThreadRunner>(num_threads); })
+    ->ThreadRunner([](int num_threads) {
+      return std::make_unique<ManualThreadRunner>(num_threads);
+    })
     ->Threads(2)
     ->MeasureProcessCPUTime()
     ->UseManualTime();
