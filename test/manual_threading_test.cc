@@ -7,7 +7,6 @@
 
 #include "../src/timers.h"
 #include "benchmark/benchmark.h"
-#include "output_test.h"
 
 namespace {
 
@@ -30,6 +29,8 @@ void MyBusySpinwait() {
     }
   }
 }
+
+int numRunThreadsCalled_ = 0;
 
 }  // namespace
 
@@ -56,6 +57,8 @@ class ManualThreadRunner : public benchmark::ThreadRunnerBase {
     for (std::thread& thread : pool) {
       thread.join();
     }
+
+    ++numRunThreadsCalled_;
   }
 
  private:
@@ -163,4 +166,9 @@ BENCHMARK(BM_ManualThreading)
 // ---------------------------- TEST CASES END ----------------------------- //
 // ========================================================================= //
 
-int main(int argc, char* argv[]) { RunOutputTests(argc, argv); }
+int main(int argc, char* argv[]) {
+  benchmark::Initialize(&argc, argv);
+  benchmark::RunSpecifiedBenchmarks();
+  benchmark::Shutdown();
+  assert(numRunThreadsCalled_ > 0);
+}
