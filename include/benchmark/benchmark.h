@@ -1391,7 +1391,8 @@ class LambdaBenchmark : public Benchmark {
 inline internal::Benchmark* RegisterBenchmark(const std::string& name,
                                               internal::Function* fn) {
   return internal::RegisterBenchmarkInternal(
-      benchmark::internal::make_unique<internal::FunctionBenchmark>(name, fn));
+      ::benchmark::internal::make_unique<internal::FunctionBenchmark>(name,
+                                                                      fn));
 }
 
 template <class Lambda>
@@ -1399,8 +1400,8 @@ internal::Benchmark* RegisterBenchmark(const std::string& name, Lambda&& fn) {
   using BenchType =
       internal::LambdaBenchmark<typename std::decay<Lambda>::type>;
   return internal::RegisterBenchmarkInternal(
-      benchmark::internal::make_unique<BenchType>(name,
-                                                  std::forward<Lambda>(fn)));
+      ::benchmark::internal::make_unique<BenchType>(name,
+                                                    std::forward<Lambda>(fn)));
 }
 
 template <class Lambda, class... Args>
@@ -1464,7 +1465,7 @@ class Fixture : public internal::Benchmark {
 #define BENCHMARK(...)                                                \
   BENCHMARK_PRIVATE_DECLARE(_benchmark_) =                            \
       (::benchmark::internal::RegisterBenchmarkInternal(              \
-          benchmark::internal::make_unique<                           \
+          ::benchmark::internal::make_unique<                         \
               ::benchmark::internal::FunctionBenchmark>(#__VA_ARGS__, \
                                                         __VA_ARGS__)))
 
@@ -1490,7 +1491,7 @@ class Fixture : public internal::Benchmark {
 #define BENCHMARK_CAPTURE(func, test_case_name, ...)     \
   BENCHMARK_PRIVATE_DECLARE(_benchmark_) =               \
       (::benchmark::internal::RegisterBenchmarkInternal( \
-          benchmark::internal::make_unique<              \
+          ::benchmark::internal::make_unique<            \
               ::benchmark::internal::FunctionBenchmark>( \
               #func "/" #test_case_name,                 \
               [](::benchmark::State& st) { func(st, __VA_ARGS__); })))
@@ -1506,20 +1507,20 @@ class Fixture : public internal::Benchmark {
 #define BENCHMARK_TEMPLATE1(n, a)                        \
   BENCHMARK_PRIVATE_DECLARE(n) =                         \
       (::benchmark::internal::RegisterBenchmarkInternal( \
-          benchmark::internal::make_unique<              \
+          ::benchmark::internal::make_unique<            \
               ::benchmark::internal::FunctionBenchmark>(#n "<" #a ">", n<a>)))
 
 #define BENCHMARK_TEMPLATE2(n, a, b)                                          \
   BENCHMARK_PRIVATE_DECLARE(n) =                                              \
       (::benchmark::internal::RegisterBenchmarkInternal(                      \
-          benchmark::internal::make_unique<                                   \
+          ::benchmark::internal::make_unique<                                 \
               ::benchmark::internal::FunctionBenchmark>(#n "<" #a "," #b ">", \
                                                         n<a, b>)))
 
 #define BENCHMARK_TEMPLATE(n, ...)                       \
   BENCHMARK_PRIVATE_DECLARE(n) =                         \
       (::benchmark::internal::RegisterBenchmarkInternal( \
-          benchmark::internal::make_unique<              \
+          ::benchmark::internal::make_unique<            \
               ::benchmark::internal::FunctionBenchmark>( \
               #n "<" #__VA_ARGS__ ">", n<__VA_ARGS__>)))
 
@@ -1541,7 +1542,7 @@ class Fixture : public internal::Benchmark {
 #define BENCHMARK_TEMPLATE2_CAPTURE(func, a, b, test_case_name, ...) \
   BENCHMARK_PRIVATE_DECLARE(func) =                                  \
       (::benchmark::internal::RegisterBenchmarkInternal(             \
-          benchmark::internal::make_unique<                          \
+          ::benchmark::internal::make_unique<                        \
               ::benchmark::internal::FunctionBenchmark>(             \
               #func "<" #a "," #b ">"                                \
                     "/" #test_case_name,                             \
@@ -1613,7 +1614,7 @@ class Fixture : public internal::Benchmark {
 #define BENCHMARK_PRIVATE_REGISTER_F(TestName)           \
   BENCHMARK_PRIVATE_DECLARE(TestName) =                  \
       (::benchmark::internal::RegisterBenchmarkInternal( \
-          benchmark::internal::make_unique<TestName>()))
+          ::benchmark::internal::make_unique<TestName>()))
 
 // This macro will define and register a benchmark within a fixture class.
 #define BENCHMARK_F(BaseClass, Method)           \
