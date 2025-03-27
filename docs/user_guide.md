@@ -863,6 +863,42 @@ BENCHMARK(BM_test)->Range(8, 8<<10)->UseRealTime();
 
 Without `UseRealTime`, CPU time is used by default.
 
+### Manual Multithreaded Benchmarks
+
+Google/benchmark uses `std::thread` as multithreading environment per default.
+If you want to use another multithreading environment (e.g. OpenMP), you can provide a factory function
+to your benchmark using the `ThreadRunner` function.
+The factory function takes the number of threads as argument and creates a custom class derived
+from `benchmark::ThreadRunnerBase`.
+This custom class must override the function `void RunThreads(const std::function<void(int)>& fn)`.
+`RunThreads` is called by the main thread and spawns the requested number of threads.
+Each spawned thread must call `fn(thread_index)`, where `thread_index` is its own thread index.
+Before `RunThreads` returns, all spawned threads must be joined.
+```c++
+class OpenMPThreadRunner : public benchmark::ThreadRunnerBase
+{
+  OpenMPThreadRunner(int num_threads)
+  : num_threads_(num_threads)
+  {}
+
+  void RunThreads(const std::function<void(int)>& fn) final
+  {
+#pragma omp parallel num_threads(num_threads_)
+    fn(omp_get_thread_num());
+  }
+
+private:
+  int num_threads_;
+};
+
+BENCHMARK(BM_MultiThreaded)
+  ->ThreadRunner([](int num_threads) { return std::make_unique<OpenMPThreadRunner>(num_threads); })
+  ->Threads(1)->Threads(2)->Threads(4);
+```
+The above example creates a parallel OpenMP region before it enters `BM_MultiThreaded`.
+The actual benchmark code can remain the same and is therefore not tied to a specific thread runner.
+The measurement does not include the time for creating and joining the threads.
+
 <a name="cpu-timers" />
 
 ## CPU Timers

@@ -15,6 +15,7 @@
 #ifndef BENCHMARK_RUNNER_H_
 #define BENCHMARK_RUNNER_H_
 
+#include <memory>
 #include <thread>
 #include <vector>
 
@@ -89,7 +90,7 @@ class BenchmarkRunner {
 
   int num_repetitions_done = 0;
 
-  std::vector<std::thread> pool;
+  std::unique_ptr<ThreadRunnerBase> thread_runner;
 
   IterationCount iters;  // preserved between repetitions!
   // So only the first repetition has to find/calculate it,
