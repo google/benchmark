@@ -183,6 +183,39 @@ IterationCount ComputeIters(const benchmark::internal::BenchmarkInstance& b,
   return iters_or_time.iters;
 }
 
+class ThreadRunnerDefault : public ThreadRunnerBase {
+ public:
+  explicit ThreadRunnerDefault(int num_threads)
+      : pool(static_cast<size_t>(num_threads - 1)) {}
+
+  void RunThreads(const std::function<void(int)>& fn) final {
+    // Run all but one thread in separate threads
+    for (std::size_t ti = 0; ti < pool.size(); ++ti) {
+      pool[ti] = std::thread(fn, static_cast<int>(ti + 1));
+    }
+    // And run one thread here directly.
+    // (If we were asked to run just one thread, we don't create new threads.)
+    // Yes, we need to do this here *after* we start the separate threads.
+    fn(0);
+
+    // The main thread has finished. Now let's wait for the other threads.
+    for (std::thread& thread : pool) {
+      thread.join();
+    }
+  }
+
+ private:
+  std::vector<std::thread> pool;
+};
+
+template <class T>
+std::unique_ptr<ThreadRunnerBase> GetThreadRunner(
+    const T& userThreadRunnerFactory, int num_threads) {
+  return userThreadRunnerFactory
+             ? userThreadRunnerFactory(num_threads)
+             : std::make_unique<ThreadRunnerDefault>(num_threads);
+}
+
 }  // end namespace
 
 BenchTimeType ParseBenchMinTime(const std::string& value) {
@@ -235,31 +268,6 @@ BenchTimeType ParseBenchMinTime(const std::string& value) {
   return ret;
 }
 
-class ThreadRunnerDefault : public ThreadRunnerBase {
- public:
-  explicit ThreadRunnerDefault(int num_threads)
-      : pool(static_cast<size_t>(num_threads - 1)) {}
-
-  void RunThreads(const std::function<void(int)>& fn) final {
-    // Run all but one thread in separate threads
-    for (std::size_t ti = 0; ti < pool.size(); ++ti) {
-      pool[ti] = std::thread(fn, static_cast<int>(ti + 1));
-    }
-    // And run one thread here directly.
-    // (If we were asked to run just one thread, we don't create new threads.)
-    // Yes, we need to do this here *after* we start the separate threads.
-    fn(0);
-
-    // The main thread has finished. Now let's wait for the other threads.
-    for (std::thread& thread : pool) {
-      thread.join();
-    }
-  }
-
- private:
-  std::vector<std::thread> pool;
-};
-
 BenchmarkRunner::BenchmarkRunner(
     const benchmark::internal::BenchmarkInstance& b_,
     PerfCountersMeasurement* pcm_,
@@ -284,7 +292,8 @@ BenchmarkRunner::BenchmarkRunner(
       has_explicit_iteration_count(b.iterations() != 0 ||
                                    parsed_benchtime_flag.tag ==
                                        BenchTimeType::ITERS),
-      thread_runner(b.GetUserThreadRunner()),
+      thread_runner(
+          GetThreadRunner(b.GetUserThreadRunnerFactory(), b.threads())),
       iters(FLAGS_benchmark_dry_run
                 ? 1
                 : (has_explicit_iteration_count
@@ -306,9 +315,6 @@ BenchmarkRunner::BenchmarkRunner(
     BM_CHECK(FLAGS_benchmark_perf_counters.empty() ||
              (perf_counters_measurement_ptr->num_counters() == 0))
         << "Perf counters were requested but could not be set up.";
-  }
-  if (!thread_runner) {
-    thread_runner = std::make_unique<ThreadRunnerDefault>(b.threads());
   }
 }
 

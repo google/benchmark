@@ -32,16 +32,6 @@ void MyBusySpinwait() {
 
 int numRunThreadsCalled_ = 0;
 
-}  // namespace
-
-// ========================================================================= //
-// --------------------------- TEST CASES BEGIN ---------------------------- //
-// ========================================================================= //
-
-// ========================================================================= //
-// BM_ManualThreading
-// Creation of threads is done before the start of the measurement,
-// joining after the finish of the measurement.
 class ManualThreadRunner : public benchmark::ThreadRunnerBase {
  public:
   explicit ManualThreadRunner(int num_threads)
@@ -65,6 +55,16 @@ class ManualThreadRunner : public benchmark::ThreadRunnerBase {
   std::vector<std::thread> pool;
 };
 
+}  // namespace
+
+// ========================================================================= //
+// --------------------------- TEST CASES BEGIN ---------------------------- //
+// ========================================================================= //
+
+// ========================================================================= //
+// BM_ManualThreading
+// Creation of threads is done before the start of the measurement,
+// joining after the finish of the measurement.
 void BM_ManualThreading(benchmark::State& state) {
   for (auto _ : state) {
     MyBusySpinwait();
