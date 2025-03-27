@@ -17,11 +17,11 @@ class ThreadManager {
     return benchmark_mutex_;
   }
 
-  bool StartStopBarrier() EXCLUDES(end_cond_mutex_) {
+  bool StartStopBarrier() {
     return start_stop_barrier_.wait();
   }
 
-  void NotifyThreadComplete() EXCLUDES(end_cond_mutex_) {
+  void NotifyThreadComplete() {
     start_stop_barrier_.removeThread();
   }
 
