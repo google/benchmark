@@ -183,7 +183,7 @@ IterationCount ComputeIters(const benchmark::internal::BenchmarkInstance& b,
   return iters_or_time.iters;
 }
 
-class ThreadRunnerDefault : public ThreadRunnerBase {
+class BENCHMARK_EXPORT ThreadRunnerDefault : public ThreadRunnerBase {
  public:
   explicit ThreadRunnerDefault(int num_threads)
       : pool(static_cast<size_t>(num_threads - 1)) {}
@@ -208,9 +208,8 @@ class ThreadRunnerDefault : public ThreadRunnerBase {
   std::vector<std::thread> pool;
 };
 
-template <class T>
 std::unique_ptr<ThreadRunnerBase> GetThreadRunner(
-    const T& userThreadRunnerFactory, int num_threads) {
+    const threadrunner_factory& userThreadRunnerFactory, int num_threads) {
   return userThreadRunnerFactory
              ? userThreadRunnerFactory(num_threads)
              : std::make_unique<ThreadRunnerDefault>(num_threads);
