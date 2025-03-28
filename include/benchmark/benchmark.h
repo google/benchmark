@@ -1094,7 +1094,7 @@ inline BENCHMARK_ALWAYS_INLINE State::StateIterator State::end() {
 }
 
 // Base class for user-defined multi-threading
-struct ThreadRunnerBase {
+struct BENCHMARK_EXPORT ThreadRunnerBase {
   virtual ~ThreadRunnerBase() {}
   virtual void RunThreads(const std::function<void(int)>& fn) = 0;
 };

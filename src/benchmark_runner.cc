@@ -183,7 +183,7 @@ IterationCount ComputeIters(const benchmark::internal::BenchmarkInstance& b,
   return iters_or_time.iters;
 }
 
-class BENCHMARK_EXPORT ThreadRunnerDefault : public ThreadRunnerBase {
+class ThreadRunnerDefault : public ThreadRunnerBase {
  public:
   explicit ThreadRunnerDefault(int num_threads)
       : pool(static_cast<size_t>(num_threads - 1)) {}
