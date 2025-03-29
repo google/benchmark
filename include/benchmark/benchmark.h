@@ -1093,7 +1093,17 @@ inline BENCHMARK_ALWAYS_INLINE State::StateIterator State::end() {
   return StateIterator();
 }
 
+// Base class for user-defined multi-threading
+struct ThreadRunnerBase {
+  virtual ~ThreadRunnerBase() {}
+  virtual void RunThreads(const std::function<void(int)>& fn) = 0;
+};
+
 namespace internal {
+
+// Define alias of ThreadRunner factory function type
+using threadrunner_factory =
+    std::function<std::unique_ptr<ThreadRunnerBase>(int)>;
 
 typedef void(Function)(State&);
 
@@ -1299,6 +1309,9 @@ class BENCHMARK_EXPORT Benchmark {
   // Equivalent to ThreadRange(NumCPUs(), NumCPUs())
   Benchmark* ThreadPerCpu();
 
+  // Sets a user-defined threadrunner (see ThreadRunnerBase)
+  Benchmark* ThreadRunner(threadrunner_factory&& factory);
+
   virtual void Run(State& state) = 0;
 
   TimeUnit GetTimeUnit() const;
@@ -1339,6 +1352,8 @@ class BENCHMARK_EXPORT Benchmark {
 
   callback_function setup_;
   callback_function teardown_;
+
+  threadrunner_factory threadrunner_;
 
   BENCHMARK_DISALLOW_COPY_AND_ASSIGN(Benchmark);
 };

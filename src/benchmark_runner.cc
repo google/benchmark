@@ -34,6 +34,7 @@
 #include <cstdio>
 #include <cstdlib>
 #include <fstream>
+#include <functional>
 #include <iostream>
 #include <limits>
 #include <memory>
@@ -182,6 +183,38 @@ IterationCount ComputeIters(const benchmark::internal::BenchmarkInstance& b,
   return iters_or_time.iters;
 }
 
+class ThreadRunnerDefault : public ThreadRunnerBase {
+ public:
+  explicit ThreadRunnerDefault(int num_threads)
+      : pool(static_cast<size_t>(num_threads - 1)) {}
+
+  void RunThreads(const std::function<void(int)>& fn) final {
+    // Run all but one thread in separate threads
+    for (std::size_t ti = 0; ti < pool.size(); ++ti) {
+      pool[ti] = std::thread(fn, static_cast<int>(ti + 1));
+    }
+    // And run one thread here directly.
+    // (If we were asked to run just one thread, we don't create new threads.)
+    // Yes, we need to do this here *after* we start the separate threads.
+    fn(0);
+
+    // The main thread has finished. Now let's wait for the other threads.
+    for (std::thread& thread : pool) {
+      thread.join();
+    }
+  }
+
+ private:
+  std::vector<std::thread> pool;
+};
+
+std::unique_ptr<ThreadRunnerBase> GetThreadRunner(
+    const threadrunner_factory& userThreadRunnerFactory, int num_threads) {
+  return userThreadRunnerFactory
+             ? userThreadRunnerFactory(num_threads)
+             : std::make_unique<ThreadRunnerDefault>(num_threads);
+}
+
 }  // end namespace
 
 BenchTimeType ParseBenchMinTime(const std::string& value) {
@@ -258,7 +291,8 @@ BenchmarkRunner::BenchmarkRunner(
       has_explicit_iteration_count(b.iterations() != 0 ||
                                    parsed_benchtime_flag.tag ==
                                        BenchTimeType::ITERS),
-      pool(static_cast<size_t>(b.threads() - 1)),
+      thread_runner(
+          GetThreadRunner(b.GetUserThreadRunnerFactory(), b.threads())),
       iters(FLAGS_benchmark_dry_run
                 ? 1
                 : (has_explicit_iteration_count
@@ -289,22 +323,10 @@ BenchmarkRunner::IterationResults BenchmarkRunner::DoNIterations() {
   std::unique_ptr<internal::ThreadManager> manager;
   manager.reset(new internal::ThreadManager(b.threads()));
 
-  // Run all but one thread in separate threads
-  for (std::size_t ti = 0; ti < pool.size(); ++ti) {
-    pool[ti] = std::thread(&RunInThread, &b, iters, static_cast<int>(ti + 1),
-                           manager.get(), perf_counters_measurement_ptr,
-                           /*profiler_manager=*/nullptr);
-  }
-  // And run one thread here directly.
-  // (If we were asked to run just one thread, we don't create new threads.)
-  // Yes, we need to do this here *after* we start the separate threads.
-  RunInThread(&b, iters, 0, manager.get(), perf_counters_measurement_ptr,
-              /*profiler_manager=*/nullptr);
-
-  // The main thread has finished. Now let's wait for the other threads.
-  for (std::thread& thread : pool) {
-    thread.join();
-  }
+  thread_runner->RunThreads([&](int thread_idx) {
+    RunInThread(&b, iters, thread_idx, manager.get(),
+                perf_counters_measurement_ptr, /*profiler_manager=*/nullptr);
+  });
 
   IterationResults i;
   // Acquire the measurements/counters from the manager, UNDER THE LOCK!
