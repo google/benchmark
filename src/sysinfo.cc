@@ -435,7 +435,7 @@ std::vector<CPUInfo::CacheInfo> GetCacheSizes() {
   return GetCacheSizesWindows();
 #elif defined(BENCHMARK_OS_QNX)
   return GetCacheSizesQNX();
-#elif defined(BENCHMARK_OS_QURT)
+#elif defined(BENCHMARK_OS_QURT) || defined(__EMSCRIPTEN__)
   return std::vector<CPUInfo::CacheInfo>();
 #else
   return GetCacheSizesFromKVFS();
