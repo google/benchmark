@@ -189,6 +189,9 @@ benchmark_add_test(NAME perf_counters_test COMMAND perf_counters_test --benchmar
 compile_output_test(internal_threading_test)
 benchmark_add_test(NAME internal_threading_test COMMAND internal_threading_test --benchmark_min_time=0.01s)
 
+compile_output_test(manual_threading_test)
+benchmark_add_test(NAME manual_threading_test COMMAND manual_threading_test --benchmark_min_time=0.01s)
+
 compile_output_test(report_aggregates_only_test)
 benchmark_add_test(NAME report_aggregates_only_test COMMAND report_aggregates_only_test --benchmark_min_time=0.01s)
 
