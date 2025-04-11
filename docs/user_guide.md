@@ -712,7 +712,7 @@ For example:
 ```c++
 template<typename Sz>
 class SizedFixture : public benchmark::Fixture {
-  static constexpr Size = Sz::value;
+  static constexpr auto Size = Sz::value;
   int myValue;
 };
 
