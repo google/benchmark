@@ -677,6 +677,54 @@ BENCHMARK_REGISTER_F(MyFixture, DoubleTest)->Threads(2);
 // `DoubleTest` is now registered.
 ```
 
+If you want to use a method template for your fixtures,
+which you instantiate afterward, use the following macros:
+
+* `BENCHMARK_TEMPLATE_METHOD_F(ClassName, Method)`
+* `BENCHMARK_TEMPLATE_INSTANTIATE_F(ClassName, Method, ...)`
+
+With these macros you can define one method for several instantiations.
+Example (using `MyFixture` from above):
+
+```c++
+// Defines `Test` using the class template `MyFixture`.
+BENCHMARK_TEMPLATE_METHOD_F(MyFixture, Test)(benchmark::State& st) {
+   for (auto _ : st) {
+     ...
+  }
+}
+
+// Instantiates and registers the benchmark `MyFixture<int>::Test`.
+BENCHMARK_TEMPLATE_INSTANTIATE_F(MyFixture, Test, int)->Threads(2);
+// Instantiates and registers the benchmark `MyFixture<double>::Test`.
+BENCHMARK_TEMPLATE_INSTANTIATE_F(MyFixture, Test, double)->Threads(4);
+```
+
+Inside the method definition of `BENCHMARK_TEMPLATE_METHOD_F` the type `Base` refers
+to the type of the instantiated fixture.
+Accesses to members of the fixture must be prefixed by `this->`.
+
+`BENCHMARK_TEMPLATE_METHOD_F`and `BENCHMARK_TEMPLATE_INSTANTIATE_F` can only be used,
+if the fixture does not use non-type template parameters.
+If you want to pass values as template parameters, use e.g. `std::integral_constant`.
+For example:
+
+```c++
+template<typename Sz>
+class SizedFixture : public benchmark::Fixture {
+  static constexpr Size = Sz::value;
+  int myValue;
+};
+
+BENCHMARK_TEMPLATE_METHOD_F(SizedFixture, Test)(benchmark::State& st) {
+   for (auto _ : st) {
+     this->myValue = Base::Size;
+  }
+}
+
+BENCHMARK_TEMPLATE_INSTANTIATE_F(SizedFixture, Test, std::integral_constant<5>)->Threads(2);
+```
+
 <a name="custom-counters" />
 
 ## Custom Counters

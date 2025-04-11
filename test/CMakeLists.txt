@@ -180,6 +180,9 @@ benchmark_add_test(NAME reporter_output_test COMMAND reporter_output_test --benc
 compile_output_test(templated_fixture_test)
 benchmark_add_test(NAME templated_fixture_test COMMAND templated_fixture_test --benchmark_min_time=0.01s)
 
+compile_output_test(templated_fixture_method_test)
+benchmark_add_test(NAME templated_fixture_method_test COMMAND templated_fixture_method_test --benchmark_min_time=0.01s)
+
 compile_output_test(user_counters_test)
 benchmark_add_test(NAME user_counters_test COMMAND user_counters_test --benchmark_min_time=0.01s)
 

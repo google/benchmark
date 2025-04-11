@@ -1631,6 +1631,36 @@ class Fixture : public internal::Benchmark {
       (::benchmark::internal::RegisterBenchmarkInternal( \
           ::benchmark::internal::make_unique<TestName>()))
 
+#define BENCHMARK_TEMPLATE_PRIVATE_CONCAT_NAME_F(BaseClass, Method) \
+  BaseClass##_##Method##_BenchmarkTemplate
+
+#define BENCHMARK_TEMPLATE_METHOD_F(BaseClass, Method)              \
+  template <class... Args>                                          \
+  class BENCHMARK_TEMPLATE_PRIVATE_CONCAT_NAME_F(BaseClass, Method) \
+      : public BaseClass<Args...> {                                 \
+   protected:                                                       \
+    using Base = BaseClass<Args...>;                                \
+    void BenchmarkCase(::benchmark::State&) override;               \
+  };                                                                \
+  template <class... Args>                                          \
+  void BENCHMARK_TEMPLATE_PRIVATE_CONCAT_NAME_F(                    \
+      BaseClass, Method)<Args...>::BenchmarkCase
+
+#define BENCHMARK_TEMPLATE_PRIVATE_INSTANTIATE_F(BaseClass, Method,           \
+                                                 UniqueName, ...)             \
+  class UniqueName : public BENCHMARK_TEMPLATE_PRIVATE_CONCAT_NAME_F(         \
+                         BaseClass, Method)<__VA_ARGS__> {                    \
+   public:                                                                    \
+    UniqueName() { this->SetName(#BaseClass "<" #__VA_ARGS__ ">/" #Method); } \
+  };                                                                          \
+  BENCHMARK_PRIVATE_DECLARE(BaseClass##_##Method##_Benchmark) =               \
+      (::benchmark::internal::RegisterBenchmarkInternal(                      \
+          ::benchmark::internal::make_unique<UniqueName>()))
+
+#define BENCHMARK_TEMPLATE_INSTANTIATE_F(BaseClass, Method, ...) \
+  BENCHMARK_TEMPLATE_PRIVATE_INSTANTIATE_F(                      \
+      BaseClass, Method, BENCHMARK_PRIVATE_NAME(tf), __VA_ARGS__)
+
 // This macro will define and register a benchmark within a fixture class.
 #define BENCHMARK_F(BaseClass, Method)           \
   BENCHMARK_PRIVATE_DECLARE_F(BaseClass, Method) \
