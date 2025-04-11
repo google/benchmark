@@ -1657,9 +1657,10 @@ class Fixture : public internal::Benchmark {
       (::benchmark::internal::RegisterBenchmarkInternal(                      \
           ::benchmark::internal::make_unique<UniqueName>()))
 
-#define BENCHMARK_TEMPLATE_INSTANTIATE_F(BaseClass, Method, ...) \
-  BENCHMARK_TEMPLATE_PRIVATE_INSTANTIATE_F(                      \
-      BaseClass, Method, BENCHMARK_PRIVATE_NAME(tf), __VA_ARGS__)
+#define BENCHMARK_TEMPLATE_INSTANTIATE_F(BaseClass, Method, ...)    \
+  BENCHMARK_TEMPLATE_PRIVATE_INSTANTIATE_F(                         \
+      BaseClass, Method, BENCHMARK_PRIVATE_NAME(BaseClass##Method), \
+      __VA_ARGS__)
 
 // This macro will define and register a benchmark within a fixture class.
 #define BENCHMARK_F(BaseClass, Method)           \
