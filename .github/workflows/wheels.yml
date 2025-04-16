@@ -6,6 +6,9 @@ on:
     types:
       - published
 
+env:
+  CMAKE_GENERATOR: Ninja
+
 jobs:
   build_sdist:
     name: Build source distribution

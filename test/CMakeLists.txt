@@ -73,6 +73,18 @@ macro(benchmark_add_test)
 endmacro(benchmark_add_test)
 
 # Demonstration executable
+
+compile_benchmark_test_with_main(cxx11_test)
+if(DEFINED MSVC)
+  # MSVC does not really support C++11.
+  set_property(TARGET cxx11_test PROPERTY CXX_STANDARD 14)
+else()
+  set_property(TARGET cxx11_test PROPERTY CXX_STANDARD 11)
+endif()
+set_property(TARGET cxx11_test PROPERTY CXX_STANDARD_REQUIRED ON)
+set_property(TARGET cxx11_test PROPERTY CXX_EXTENSIONS OFF)
+benchmark_add_test(NAME cxx11_test COMMAND cxx11_test --benchmark_min_time=0.01s)
+
 compile_benchmark_test(benchmark_test)
 benchmark_add_test(NAME benchmark COMMAND benchmark_test --benchmark_min_time=0.01s)
 
@@ -168,6 +180,9 @@ benchmark_add_test(NAME reporter_output_test COMMAND reporter_output_test --benc
 compile_output_test(templated_fixture_test)
 benchmark_add_test(NAME templated_fixture_test COMMAND templated_fixture_test --benchmark_min_time=0.01s)
 
+compile_output_test(templated_fixture_method_test)
+benchmark_add_test(NAME templated_fixture_method_test COMMAND templated_fixture_method_test --benchmark_min_time=0.01s)
+
 compile_output_test(user_counters_test)
 benchmark_add_test(NAME user_counters_test COMMAND user_counters_test --benchmark_min_time=0.01s)
 
@@ -176,6 +191,9 @@ benchmark_add_test(NAME perf_counters_test COMMAND perf_counters_test --benchmar
 
 compile_output_test(internal_threading_test)
 benchmark_add_test(NAME internal_threading_test COMMAND internal_threading_test --benchmark_min_time=0.01s)
+
+compile_output_test(manual_threading_test)
+benchmark_add_test(NAME manual_threading_test COMMAND manual_threading_test --benchmark_min_time=0.01s)
 
 compile_output_test(report_aggregates_only_test)
 benchmark_add_test(NAME report_aggregates_only_test COMMAND report_aggregates_only_test --benchmark_min_time=0.01s)
@@ -233,6 +251,7 @@ if (BENCHMARK_ENABLE_GTEST_TESTS)
   add_gtest(min_time_parse_gtest)
   add_gtest(profiler_manager_gtest)
   add_gtest(benchmark_setup_teardown_cb_types_gtest)
+  add_gtest(memory_results_gtest)
 endif(BENCHMARK_ENABLE_GTEST_TESTS)
 
 ###############################################################################

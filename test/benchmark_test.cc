@@ -131,9 +131,7 @@ BENCHMARK_TEMPLATE2(BM_Sequential, std::vector<int>, int)
     ->Range(1 << 0, 1 << 10);
 BENCHMARK_TEMPLATE(BM_Sequential, std::list<int>)->Range(1 << 0, 1 << 10);
 // Test the variadic version of BENCHMARK_TEMPLATE in C++11 and beyond.
-#ifdef BENCHMARK_HAS_CXX11
 BENCHMARK_TEMPLATE(BM_Sequential, std::vector<int>, int)->Arg(512);
-#endif
 
 static void BM_StringCompare(benchmark::State& state) {
   size_t len = static_cast<size_t>(state.range(0));
@@ -225,8 +223,6 @@ static void BM_ManualTiming(benchmark::State& state) {
 BENCHMARK(BM_ManualTiming)->Range(1, 1 << 14)->UseRealTime();
 BENCHMARK(BM_ManualTiming)->Range(1, 1 << 14)->UseManualTime();
 
-#ifdef BENCHMARK_HAS_CXX11
-
 template <class... Args>
 void BM_with_args(benchmark::State& state, Args&&...) {
   for (auto _ : state) {
@@ -266,8 +262,6 @@ void BM_template1_capture(benchmark::State& state, ExtraArgs&&... extra_args) {
 }
 BENCHMARK_TEMPLATE1_CAPTURE(BM_template1_capture, void, foo, 24UL);
 BENCHMARK_CAPTURE(BM_template1_capture<void>, foo, 24UL);
-
-#endif  // BENCHMARK_HAS_CXX11
 
 static void BM_DenseThreadRanges(benchmark::State& st) {
   switch (st.range(0)) {

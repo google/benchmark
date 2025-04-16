@@ -39,6 +39,9 @@ set_property(
 if (PFM_FOUND)
   target_link_libraries(benchmark PRIVATE PFM::libpfm)
   target_compile_definitions(benchmark PRIVATE -DHAVE_LIBPFM)
+  install(
+      FILES "${PROJECT_SOURCE_DIR}/cmake/Modules/FindPFM.cmake"
+      DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME}")
 endif()
 
 # pthread affinity, if available

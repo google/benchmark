@@ -3,6 +3,9 @@ on:
   push: {}
   pull_request: {}
 
+env:
+  CMAKE_GENERATOR: Ninja
+
 jobs:
   job:
     name: check-clang-format

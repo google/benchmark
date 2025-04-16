@@ -4,6 +4,9 @@ on:
   push: {}
   pull_request: {}
 
+env:
+  CMAKE_GENERATOR: Ninja
+
 jobs:
   build_and_test_default:
     name: bazel.${{ matrix.os }}

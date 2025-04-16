@@ -484,6 +484,11 @@ Benchmark* Benchmark::ThreadPerCpu() {
   return this;
 }
 
+Benchmark* Benchmark::ThreadRunner(threadrunner_factory&& factory) {
+  threadrunner_ = std::move(factory);
+  return this;
+}
+
 void Benchmark::SetName(const std::string& name) { name_ = name; }
 
 const char* Benchmark::GetName() const { return name_.c_str(); }
