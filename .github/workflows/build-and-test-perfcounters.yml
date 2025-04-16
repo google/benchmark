@@ -17,7 +17,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-22.04, ubuntu-20.04]
+        os: [ubuntu-latest]
         build_type: ['Release', 'Debug']
     steps:
     - uses: actions/checkout@v4

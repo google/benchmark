@@ -20,7 +20,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-22.04, ubuntu-20.04, ubuntu-22.04-arm, macos-latest]
+        os: [ubuntu-24.04, ubuntu-22.04, ubuntu-24.04-arm, macos-latest]
         build_type: ['Release', 'Debug']
         compiler: ['g++', 'clang++']
         lib: ['shared', 'static']
