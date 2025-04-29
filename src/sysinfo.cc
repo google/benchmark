@@ -850,11 +850,11 @@ std::vector<double> GetLoadAvg() {
     !(defined(__ANDROID__) && __ANDROID_API__ < 29)
   static constexpr int kMaxSamples = 3;
   std::vector<double> res(kMaxSamples, 0.0);
-  const size_t nelem = static_cast<size_t>(getloadavg(res.data(), kMaxSamples));
+  const auto nelem = getloadavg(res.data(), kMaxSamples);
   if (nelem < 1) {
     res.clear();
   } else {
-    res.resize(nelem);
+    res.resize(static_cast<size_t>(nelem));
   }
   return res;
 #else
