@@ -144,6 +144,14 @@ bool JSONReporter::ReportContext(const Context& context) {
         << ",\n";
   }
 
+  const SystemInfo& sysinfo = context.sys_info;
+  if (SystemInfo::ASLR::UNKNOWN != sysinfo.ASLRStatus) {
+    out << indent
+        << FormatKV("aslr_enabled",
+                    sysinfo.ASLRStatus == SystemInfo::ASLR::ENABLED)
+        << ",\n";
+  }
+
   out << indent << "\"caches\": [\n";
   indent = std::string(6, ' ');
   std::string cache_indent(8, ' ');

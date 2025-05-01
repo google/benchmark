@@ -1731,7 +1731,10 @@ struct BENCHMARK_EXPORT CPUInfo {
 
 // Adding Struct for System Information
 struct BENCHMARK_EXPORT SystemInfo {
+  enum class ASLR { UNKNOWN, ENABLED, DISABLED };
+
   std::string name;
+  ASLR ASLRStatus;
   static const SystemInfo& Get();
 
  private:

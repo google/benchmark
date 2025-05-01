@@ -88,6 +88,12 @@ void BenchmarkReporter::PrintBasicContext(std::ostream *out,
            "overhead.\n";
   }
 
+  const SystemInfo &sysinfo = context.sys_info;
+  if (SystemInfo::ASLR::ENABLED == sysinfo.ASLRStatus) {
+    Out << "***WARNING*** ASLR is enabled, the results may have unreproducible "
+           "noise in them.\n";
+  }
+
 #ifndef NDEBUG
   Out << "***WARNING*** Library was built as DEBUG. Timings may be "
          "affected.\n";
