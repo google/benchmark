@@ -142,8 +142,11 @@ void RunInThread(const BenchmarkInstance* b, IterationCount iters,
 
   State st = b->Run(iters, thread_id, &timer, manager,
                     perf_counters_measurement, profiler_manager_);
-  BM_CHECK(st.skipped() || st.iterations() >= st.max_iterations)
-      << "Benchmark returned before State::KeepRunning() returned false!";
+  if (!(st.skipped() || st.iterations() >= st.max_iterations)) {
+    st.SkipWithError(
+        "The benchmark didn't run, nor was it explicitly skipped. Please call "
+        "'SkipWithXXX` in your benchmark as appropriate.");
+  }
   {
     MutexLock l(manager->GetBenchmarkMutex());
     internal::ThreadManager::Result& results = manager->results;
