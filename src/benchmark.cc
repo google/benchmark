@@ -26,6 +26,10 @@
 #include <unistd.h>
 #endif
 
+#ifdef BENCHMARK_OS_LINUX
+#include <sys/personality.h>
+#endif
+
 #include <algorithm>
 #include <atomic>
 #include <condition_variable>
@@ -812,6 +816,35 @@ int InitializeStreams() {
 }
 
 }  // end namespace internal
+
+void MaybeReenterWithoutASLR(int /*argc*/, char** argv) {
+  // On e.g. Hexagon simulator, argv may be NULL.
+  if (!argv) return;
+
+#ifdef BENCHMARK_OS_LINUX
+  const auto curr_personality = personality(0xffffffff);
+
+  // We should never fail to read-only query the current personality,
+  // but let's be cautious.
+  if (curr_personality == -1) return;
+
+  // If ASLR is already disabled, we have nothing more to do.
+  if (curr_personality & ADDR_NO_RANDOMIZE) return;
+
+  // Try to change the personality to disable ASLR.
+  const auto prev_personality = personality(
+      static_cast<unsigned long>(curr_personality) | ADDR_NO_RANDOMIZE);
+
+  // Have we failed to change the personality? That may happen.
+  if (prev_personality == -1) return;
+
+  execv(argv[0], argv);
+  // The exec() functions return only if an error has occurred,
+  // in which case we want to just continue as-is.
+#else
+  return;
+#endif
+}
 
 std::string GetBenchmarkVersion() {
 #ifdef BENCHMARK_VERSION

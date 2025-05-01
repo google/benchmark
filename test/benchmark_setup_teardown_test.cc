@@ -134,6 +134,8 @@ BENCHMARK(BM_WithRep)
     ->Repetitions(4);
 
 int main(int argc, char** argv) {
+  benchmark::MaybeReenterWithoutASLR(argc, argv);
+
   benchmark::Initialize(&argc, argv);
 
   size_t ret = benchmark::RunSpecifiedBenchmarks(".");

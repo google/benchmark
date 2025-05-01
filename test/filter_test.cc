@@ -70,6 +70,8 @@ static void BM_FooBa(benchmark::State& state) {
 BENCHMARK(BM_FooBa);
 
 int main(int argc, char** argv) {
+  benchmark::MaybeReenterWithoutASLR(argc, argv);
+
   bool list_only = false;
   for (int i = 0; i < argc; ++i) {
     list_only |= std::string(argv[i]).find("--benchmark_list_tests") !=
