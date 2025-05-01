@@ -503,6 +503,7 @@ SystemInfo::ASLR GetASLR() {
   return (curr_personality & ADDR_NO_RANDOMIZE) ? SystemInfo::ASLR::DISABLED
                                                 : SystemInfo::ASLR::ENABLED;
 #else
+  // FIXME: support detecting ASLR on other OS.
   return SystemInfo::ASLR::UNKNOWN;
 #endif
 }

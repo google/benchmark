@@ -50,15 +50,18 @@ If you see this error:
 you might want to disable the ASLR security hardening feature while running the
 benchmark.
 
-To globally disable ASLR, run
+To globally disable ASLR on Linux, run
 ```
 echo 0 > /proc/sys/kernel/randomize_va_space
 ```
 
-To run a single benchmark with ASLR disabled, do:
+To run a single benchmark with ASLR disabled on Linux, do:
 ```
 setarch `uname -m` -R ./a_benchmark
 ```
+
+Note that for the information on how to disable ASLR on other operating systems,
+please refer to their documentation.
 
 ## Reducing Variance in Benchmarks
 
