@@ -39,6 +39,27 @@ The benchmarks you subsequently run will have less variance.
 
 <a name="reducing-variance" />
 
+## Disabling ASLR
+
+If you see this error:
+
+```
+***WARNING*** ASLR is enabled, the results may have unreproducible noise in them.
+```
+
+you might want to disable the ASLR security hardening feature while running the
+benchmark.
+
+To globally disable ASLR, run
+```
+echo 0 > /proc/sys/kernel/randomize_va_space
+```
+
+To run a single benchmark with ASLR disabled, do:
+```
+setarch `uname -m` -R ./a_benchmark
+```
+
 ## Reducing Variance in Benchmarks
 
 The Linux CPU frequency governor [discussed

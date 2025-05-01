@@ -54,6 +54,10 @@
 #include <pthread.h>
 #endif
 
+#if defined(BENCHMARK_OS_LINUX)
+#include <sys/personality.h>
+#endif
+
 #include <algorithm>
 #include <array>
 #include <bitset>
@@ -493,6 +497,16 @@ std::string GetSystemName() {
 #endif  // Catch-all POSIX block.
 }
 
+SystemInfo::ASLR GetASLR() {
+#ifdef BENCHMARK_OS_LINUX
+  const auto curr_personality = personality(0xffffffff);
+  return (curr_personality & ADDR_NO_RANDOMIZE) ? SystemInfo::ASLR::DISABLED
+                                                : SystemInfo::ASLR::ENABLED;
+#else
+  return SystemInfo::ASLR::UNKNOWN;
+#endif
+}
+
 int GetNumCPUsImpl() {
 #ifdef BENCHMARK_OS_WINDOWS
   SYSTEM_INFO sysinfo;
@@ -881,5 +895,5 @@ const SystemInfo& SystemInfo::Get() {
   return *info;
 }
 
-SystemInfo::SystemInfo() : name(GetSystemName()) {}
+SystemInfo::SystemInfo() : name(GetSystemName()), ASLRStatus(GetASLR()) {}
 }  // end namespace benchmark
