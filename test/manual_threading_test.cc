@@ -35,14 +35,12 @@ int numRunThreadsCalled_ = 0;
 class ManualThreadRunner : public benchmark::ThreadRunnerBase {
  public:
   explicit ManualThreadRunner(int num_threads)
-      : pool(static_cast<size_t>(num_threads - 1)) {}
+      : pool(static_cast<size_t>(num_threads)) {}
 
   void RunThreads(const std::function<void(int)>& fn) final {
     for (std::size_t ti = 0; ti < pool.size(); ++ti) {
-      pool[ti] = std::thread(fn, static_cast<int>(ti + 1));
+      pool[ti] = std::thread(fn, static_cast<int>(ti));
     }
-
-    fn(0);
 
     for (std::thread& thread : pool) {
       thread.join();

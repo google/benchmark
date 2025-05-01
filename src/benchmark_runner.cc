@@ -186,19 +186,16 @@ IterationCount ComputeIters(const benchmark::internal::BenchmarkInstance& b,
 class ThreadRunnerDefault : public ThreadRunnerBase {
  public:
   explicit ThreadRunnerDefault(int num_threads)
-      : pool(static_cast<size_t>(num_threads - 1)) {}
+      : pool(static_cast<size_t>(num_threads)) {}
 
   void RunThreads(const std::function<void(int)>& fn) final {
-    // Run all but one thread in separate threads
+    // Run *all* threads in separate threads,
+    // even if just one thread was requested.
+    // We do this to e.g. get different ASLR each time.
     for (std::size_t ti = 0; ti < pool.size(); ++ti) {
-      pool[ti] = std::thread(fn, static_cast<int>(ti + 1));
+      pool[ti] = std::thread(fn, static_cast<int>(ti));
     }
-    // And run one thread here directly.
-    // (If we were asked to run just one thread, we don't create new threads.)
-    // Yes, we need to do this here *after* we start the separate threads.
-    fn(0);
 
-    // The main thread has finished. Now let's wait for the other threads.
     for (std::thread& thread : pool) {
       thread.join();
     }
