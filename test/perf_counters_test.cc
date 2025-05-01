@@ -79,6 +79,7 @@ CHECK_BENCHMARK_RESULTS("BM_WithoutPauseResume", &SaveInstrCountWithoutResume);
 CHECK_BENCHMARK_RESULTS("BM_WithPauseResume", &SaveInstrCountWithResume);
 
 int main(int argc, char* argv[]) {
+  benchmark::MaybeReenterWithoutASLR(argc, argv);
   if (!benchmark::internal::PerfCounters::kSupported) {
     return 0;
   }

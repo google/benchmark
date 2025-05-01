@@ -26,7 +26,9 @@ struct BitRef {
   BitRef(int i, unsigned char& b) : index(i), byte(b) {}
 };
 
-int main(int /*unused*/, char* /*unused*/[]) {
+int main(int argc, char* argv[]) {
+  benchmark::MaybeReenterWithoutASLR(argc, argv);
+
   // this test verifies compilation of DoNotOptimize() for some types
 
   char buffer1[1] = "";

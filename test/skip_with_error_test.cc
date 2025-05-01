@@ -183,6 +183,7 @@ ADD_CASES("BM_error_while_paused", {{"/1/threads:1", true, "error message"},
                                     {"/2/threads:8", false, ""}});
 
 int main(int argc, char* argv[]) {
+  benchmark::MaybeReenterWithoutASLR(argc, argv);
   benchmark::Initialize(&argc, argv);
 
   TestReporter test_reporter;

@@ -94,6 +94,7 @@ int main(int argc, char* argv[]) {
   (void)argc;
   (void)argv;
 #else
+  benchmark::MaybeReenterWithoutASLR(argc, argv);
   benchmark::internal::GetAbortHandler() = &TestHandler;
   benchmark::Initialize(&argc, argv);
   benchmark::RunSpecifiedBenchmarks();

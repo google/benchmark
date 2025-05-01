@@ -211,4 +211,7 @@ ADD_CASES(TC_CSVOut, {{"^\"BM_ImplicitRepetitions_stddev\",%csv_report$"}});
 // --------------------------- TEST CASES END ------------------------------ //
 // ========================================================================= //
 
-int main(int argc, char* argv[]) { RunOutputTests(argc, argv); }
+int main(int argc, char* argv[]) {
+  benchmark::MaybeReenterWithoutASLR(argc, argv);
+  RunOutputTests(argc, argv);
+}

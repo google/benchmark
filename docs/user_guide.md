@@ -1268,6 +1268,7 @@ For Example:
 auto BM_test = [](benchmark::State& st, auto Inputs) { /* ... */ };
 
 int main(int argc, char** argv) {
+  benchmark::MaybeReenterWithoutASLR(argc, argv);
   for (auto& test_input : { /* ... */ })
       benchmark::RegisterBenchmark(test_input.name(), BM_test, test_input);
   benchmark::Initialize(&argc, argv);
