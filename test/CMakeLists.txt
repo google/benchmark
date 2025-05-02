@@ -109,6 +109,9 @@ benchmark_add_test(NAME min_time_flag_time COMMAND benchmark_min_time_flag_time_
 compile_benchmark_test(benchmark_min_time_flag_iters_test)
 benchmark_add_test(NAME min_time_flag_iters COMMAND benchmark_min_time_flag_iters_test)
 
+compile_benchmark_test(benchmark_min_rel_accuracy_flag_test)
+benchmark_add_test(NAME min_rel_accuracy_flag_test COMMAND benchmark_min_rel_accuracy_flag_test)
+
 add_filter_test(filter_simple "Foo" 3)
 add_filter_test(filter_simple_negative "-Foo" 2)
 add_filter_test(filter_suffix "BM_.*" 4)
