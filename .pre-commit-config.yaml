@@ -1,6 +1,6 @@
 repos:
   -   repo: https://github.com/keith/pre-commit-buildifier
-      rev: 8.0.1
+      rev: 8.0.3
       hooks:
       -   id: buildifier
       -   id: buildifier-lint
@@ -11,7 +11,7 @@ repos:
         types_or: [ python, pyi ]
         args: [ "--ignore-missing-imports", "--scripts-are-modules" ]
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.9.6
+    rev: v0.11.8
     hooks:
       - id: ruff
         args: [ --fix, --exit-non-zero-on-fix ]
