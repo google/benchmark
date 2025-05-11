@@ -815,6 +815,12 @@ int InitializeStreams() {
   return 0;
 }
 
+template <typename T>
+std::make_unsigned_t<T> get_as_unsigned(T v) {
+  using UnsignedT = std::make_unsigned_t<T>;
+  return static_cast<UnsignedT>(v);
+}
+
 }  // end namespace internal
 
 void MaybeReenterWithoutASLR(int /*argc*/, char** argv) {
@@ -829,11 +835,12 @@ void MaybeReenterWithoutASLR(int /*argc*/, char** argv) {
   if (curr_personality == -1) return;
 
   // If ASLR is already disabled, we have nothing more to do.
-  if (curr_personality & ADDR_NO_RANDOMIZE) return;
+  if (internal::get_as_unsigned(curr_personality) & ADDR_NO_RANDOMIZE) return;
 
   // Try to change the personality to disable ASLR.
-  const auto prev_personality = personality(
-      static_cast<unsigned long>(curr_personality) | ADDR_NO_RANDOMIZE);
+  const auto proposed_personality =
+      internal::get_as_unsigned(curr_personality) | ADDR_NO_RANDOMIZE;
+  const auto prev_personality = personality(proposed_personality);
 
   // Have we failed to change the personality? That may happen.
   if (prev_personality == -1) return;
