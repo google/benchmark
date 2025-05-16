@@ -845,6 +845,13 @@ void MaybeReenterWithoutASLR(int /*argc*/, char** argv) {
   // Have we failed to change the personality? That may happen.
   if (prev_personality == -1) return;
 
+  // Make sure the parsona has been updated with the no-ASLR flag,
+  // otherwise we will try to reenter infinitely.
+  // This seems impossible, but can happen in some docker configurations.
+  const auto new_personality = personality(0xffffffff);
+  if ((internal::get_as_unsigned(new_personality) & ADDR_NO_RANDOMIZE) == 0)
+    return;
+
   execv(argv[0], argv);
   // The exec() functions return only if an error has occurred,
   // in which case we want to just continue as-is.
