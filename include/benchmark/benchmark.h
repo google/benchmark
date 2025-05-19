@@ -40,6 +40,7 @@ BENCHMARK(BM_StringCopy);
 //       my_unittest --benchmark_filter=String
 //       my_unittest --benchmark_filter='Copy|Creation'
 int main(int argc, char** argv) {
+  benchmark::MaybeReenterWithoutASLR(argc, argv);
   benchmark::Initialize(&argc, argv);
   benchmark::RunSpecifiedBenchmarks();
   benchmark::Shutdown();
@@ -333,6 +334,8 @@ using callback_function = std::function<void(const benchmark::State&)>;
 
 // Default number of minimum benchmark running time in seconds.
 const char kDefaultMinTimeStr[] = "0.5s";
+
+BENCHMARK_EXPORT void MaybeReenterWithoutASLR(int, char**);
 
 // Returns the version of the library.
 BENCHMARK_EXPORT std::string GetBenchmarkVersion();
@@ -1687,6 +1690,7 @@ class Fixture : public internal::Benchmark {
 // Note the workaround for Hexagon simulator passing argc != 0, argv = NULL.
 #define BENCHMARK_MAIN()                                                \
   int main(int argc, char** argv) {                                     \
+    benchmark::MaybeReenterWithoutASLR(argc, argv);                     \
     char arg0_default[] = "benchmark";                                  \
     char* args_default = reinterpret_cast<char*>(arg0_default);         \
     if (!argv) {                                                        \
@@ -1731,7 +1735,10 @@ struct BENCHMARK_EXPORT CPUInfo {
 
 // Adding Struct for System Information
 struct BENCHMARK_EXPORT SystemInfo {
+  enum class ASLR { UNKNOWN, ENABLED, DISABLED };
+
   std::string name;
+  ASLR ASLRStatus;
   static const SystemInfo& Get();
 
  private:

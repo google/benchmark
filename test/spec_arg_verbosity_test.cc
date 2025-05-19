@@ -12,6 +12,8 @@ static void BM_Verbosity(benchmark::State& state) {
 BENCHMARK(BM_Verbosity);
 
 int main(int argc, char** argv) {
+  benchmark::MaybeReenterWithoutASLR(argc, argv);
+
   const int32_t flagv = 42;
 
   // Verify that argv specify --v=42.
