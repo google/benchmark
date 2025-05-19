@@ -1,6 +1,6 @@
 module(
     name = "google_benchmark",
-    version = "1.9.1",
+    version = "1.9.3",
 )
 
 bazel_dep(name = "bazel_skylib", version = "1.7.1")
@@ -38,4 +38,4 @@ use_repo(pip, "tools_pip_deps")
 
 # -- bazel_dep definitions -- #
 
-bazel_dep(name = "nanobind_bazel", version = "2.5.0", dev_dependency = True)
+bazel_dep(name = "nanobind_bazel", version = "2.7.0", dev_dependency = True)

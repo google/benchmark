@@ -183,6 +183,7 @@ ADD_CASES("BM_error_while_paused", {{"/1/threads:1", true, "error message"},
                                     {"/2/threads:8", false, ""}});
 
 int main(int argc, char* argv[]) {
+  benchmark::MaybeReenterWithoutASLR(argc, argv);
   benchmark::Initialize(&argc, argv);
 
   TestReporter test_reporter;
@@ -200,3 +201,12 @@ int main(int argc, char* argv[]) {
 
   return 0;
 }
+
+void BM_malformed(benchmark::State&) {
+  // NOTE: empty body wanted. No thing else.
+}
+BENCHMARK(BM_malformed);
+ADD_CASES("BM_malformed",
+          {{"", true,
+            "The benchmark didn't run, nor was it explicitly skipped. Please "
+            "call 'SkipWithXXX` in your benchmark as appropriate."}});

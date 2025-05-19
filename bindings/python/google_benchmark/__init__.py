@@ -50,7 +50,7 @@ from google_benchmark._benchmark import (
     oNSquared as oNSquared,
 )
 
-__version__ = "1.9.1"
+__version__ = "1.9.3"
 
 
 class __OptionMaker:
@@ -136,6 +136,8 @@ def _run_benchmarks(argv):
 def main(argv=None):
     return app.run(_run_benchmarks, argv=argv, flags_parser=_flags_parser)
 
+
+# FIXME: can we rerun with disabled ASLR?
 
 # Methods for use with custom main function.
 initialize = _benchmark.Initialize

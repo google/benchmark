@@ -44,6 +44,8 @@ static void BM_MyBench(benchmark::State& state) {
 BENCHMARK(BM_MyBench);
 
 int main(int argc, char** argv) {
+  benchmark::MaybeReenterWithoutASLR(argc, argv);
+
   // Make a fake argv and append the new --benchmark_min_time=<foo> to it.
   int fake_argc = argc + 1;
   std::vector<const char*> fake_argv(static_cast<size_t>(fake_argc));

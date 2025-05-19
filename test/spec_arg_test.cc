@@ -55,6 +55,8 @@ static void BM_Chosen(benchmark::State& state) {
 BENCHMARK(BM_Chosen);
 
 int main(int argc, char** argv) {
+  benchmark::MaybeReenterWithoutASLR(argc, argv);
+
   const std::string flag = "BM_NotChosen";
 
   // Verify that argv specify --benchmark_filter=BM_NotChosen.
