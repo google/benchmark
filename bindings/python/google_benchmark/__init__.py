@@ -50,7 +50,7 @@ from google_benchmark._benchmark import (
     oNSquared as oNSquared,
 )
 
-__version__ = "1.9.3"
+__version__ = "1.9.4"
 
 
 class __OptionMaker:
