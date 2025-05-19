@@ -40,6 +40,7 @@ BENCHMARK(BM_StringCopy);
 //       my_unittest --benchmark_filter=String
 //       my_unittest --benchmark_filter='Copy|Creation'
 int main(int argc, char** argv) {
+  benchmark::MaybeReenterWithoutASLR(argc, argv);
   benchmark::Initialize(&argc, argv);
   benchmark::RunSpecifiedBenchmarks();
   benchmark::Shutdown();
@@ -333,6 +334,8 @@ using callback_function = std::function<void(const benchmark::State&)>;
 
 // Default number of minimum benchmark running time in seconds.
 const char kDefaultMinTimeStr[] = "0.5s";
+
+BENCHMARK_EXPORT void MaybeReenterWithoutASLR(int, char**);
 
 // Returns the version of the library.
 BENCHMARK_EXPORT std::string GetBenchmarkVersion();
@@ -1093,7 +1096,17 @@ inline BENCHMARK_ALWAYS_INLINE State::StateIterator State::end() {
   return StateIterator();
 }
 
+// Base class for user-defined multi-threading
+struct ThreadRunnerBase {
+  virtual ~ThreadRunnerBase() {}
+  virtual void RunThreads(const std::function<void(int)>& fn) = 0;
+};
+
 namespace internal {
+
+// Define alias of ThreadRunner factory function type
+using threadrunner_factory =
+    std::function<std::unique_ptr<ThreadRunnerBase>(int)>;
 
 typedef void(Function)(State&);
 
@@ -1299,6 +1312,9 @@ class BENCHMARK_EXPORT Benchmark {
   // Equivalent to ThreadRange(NumCPUs(), NumCPUs())
   Benchmark* ThreadPerCpu();
 
+  // Sets a user-defined threadrunner (see ThreadRunnerBase)
+  Benchmark* ThreadRunner(threadrunner_factory&& factory);
+
   virtual void Run(State& state) = 0;
 
   TimeUnit GetTimeUnit() const;
@@ -1339,6 +1355,8 @@ class BENCHMARK_EXPORT Benchmark {
 
   callback_function setup_;
   callback_function teardown_;
+
+  threadrunner_factory threadrunner_;
 
   BENCHMARK_DISALLOW_COPY_AND_ASSIGN(Benchmark);
 };
@@ -1391,7 +1409,8 @@ class LambdaBenchmark : public Benchmark {
 inline internal::Benchmark* RegisterBenchmark(const std::string& name,
                                               internal::Function* fn) {
   return internal::RegisterBenchmarkInternal(
-      benchmark::internal::make_unique<internal::FunctionBenchmark>(name, fn));
+      ::benchmark::internal::make_unique<internal::FunctionBenchmark>(name,
+                                                                      fn));
 }
 
 template <class Lambda>
@@ -1399,8 +1418,8 @@ internal::Benchmark* RegisterBenchmark(const std::string& name, Lambda&& fn) {
   using BenchType =
       internal::LambdaBenchmark<typename std::decay<Lambda>::type>;
   return internal::RegisterBenchmarkInternal(
-      benchmark::internal::make_unique<BenchType>(name,
-                                                  std::forward<Lambda>(fn)));
+      ::benchmark::internal::make_unique<BenchType>(name,
+                                                    std::forward<Lambda>(fn)));
 }
 
 template <class Lambda, class... Args>
@@ -1464,7 +1483,7 @@ class Fixture : public internal::Benchmark {
 #define BENCHMARK(...)                                                \
   BENCHMARK_PRIVATE_DECLARE(_benchmark_) =                            \
       (::benchmark::internal::RegisterBenchmarkInternal(              \
-          benchmark::internal::make_unique<                           \
+          ::benchmark::internal::make_unique<                         \
               ::benchmark::internal::FunctionBenchmark>(#__VA_ARGS__, \
                                                         __VA_ARGS__)))
 
@@ -1490,7 +1509,7 @@ class Fixture : public internal::Benchmark {
 #define BENCHMARK_CAPTURE(func, test_case_name, ...)     \
   BENCHMARK_PRIVATE_DECLARE(_benchmark_) =               \
       (::benchmark::internal::RegisterBenchmarkInternal( \
-          benchmark::internal::make_unique<              \
+          ::benchmark::internal::make_unique<            \
               ::benchmark::internal::FunctionBenchmark>( \
               #func "/" #test_case_name,                 \
               [](::benchmark::State& st) { func(st, __VA_ARGS__); })))
@@ -1506,20 +1525,20 @@ class Fixture : public internal::Benchmark {
 #define BENCHMARK_TEMPLATE1(n, a)                        \
   BENCHMARK_PRIVATE_DECLARE(n) =                         \
       (::benchmark::internal::RegisterBenchmarkInternal( \
-          benchmark::internal::make_unique<              \
+          ::benchmark::internal::make_unique<            \
               ::benchmark::internal::FunctionBenchmark>(#n "<" #a ">", n<a>)))
 
 #define BENCHMARK_TEMPLATE2(n, a, b)                                          \
   BENCHMARK_PRIVATE_DECLARE(n) =                                              \
       (::benchmark::internal::RegisterBenchmarkInternal(                      \
-          benchmark::internal::make_unique<                                   \
+          ::benchmark::internal::make_unique<                                 \
               ::benchmark::internal::FunctionBenchmark>(#n "<" #a "," #b ">", \
                                                         n<a, b>)))
 
 #define BENCHMARK_TEMPLATE(n, ...)                       \
   BENCHMARK_PRIVATE_DECLARE(n) =                         \
       (::benchmark::internal::RegisterBenchmarkInternal( \
-          benchmark::internal::make_unique<              \
+          ::benchmark::internal::make_unique<            \
               ::benchmark::internal::FunctionBenchmark>( \
               #n "<" #__VA_ARGS__ ">", n<__VA_ARGS__>)))
 
@@ -1541,7 +1560,7 @@ class Fixture : public internal::Benchmark {
 #define BENCHMARK_TEMPLATE2_CAPTURE(func, a, b, test_case_name, ...) \
   BENCHMARK_PRIVATE_DECLARE(func) =                                  \
       (::benchmark::internal::RegisterBenchmarkInternal(             \
-          benchmark::internal::make_unique<                          \
+          ::benchmark::internal::make_unique<                        \
               ::benchmark::internal::FunctionBenchmark>(             \
               #func "<" #a "," #b ">"                                \
                     "/" #test_case_name,                             \
@@ -1613,7 +1632,38 @@ class Fixture : public internal::Benchmark {
 #define BENCHMARK_PRIVATE_REGISTER_F(TestName)           \
   BENCHMARK_PRIVATE_DECLARE(TestName) =                  \
       (::benchmark::internal::RegisterBenchmarkInternal( \
-          benchmark::internal::make_unique<TestName>()))
+          ::benchmark::internal::make_unique<TestName>()))
+
+#define BENCHMARK_TEMPLATE_PRIVATE_CONCAT_NAME_F(BaseClass, Method) \
+  BaseClass##_##Method##_BenchmarkTemplate
+
+#define BENCHMARK_TEMPLATE_METHOD_F(BaseClass, Method)              \
+  template <class... Args>                                          \
+  class BENCHMARK_TEMPLATE_PRIVATE_CONCAT_NAME_F(BaseClass, Method) \
+      : public BaseClass<Args...> {                                 \
+   protected:                                                       \
+    using Base = BaseClass<Args...>;                                \
+    void BenchmarkCase(::benchmark::State&) override;               \
+  };                                                                \
+  template <class... Args>                                          \
+  void BENCHMARK_TEMPLATE_PRIVATE_CONCAT_NAME_F(                    \
+      BaseClass, Method)<Args...>::BenchmarkCase
+
+#define BENCHMARK_TEMPLATE_PRIVATE_INSTANTIATE_F(BaseClass, Method,           \
+                                                 UniqueName, ...)             \
+  class UniqueName : public BENCHMARK_TEMPLATE_PRIVATE_CONCAT_NAME_F(         \
+                         BaseClass, Method)<__VA_ARGS__> {                    \
+   public:                                                                    \
+    UniqueName() { this->SetName(#BaseClass "<" #__VA_ARGS__ ">/" #Method); } \
+  };                                                                          \
+  BENCHMARK_PRIVATE_DECLARE(BaseClass##_##Method##_Benchmark) =               \
+      (::benchmark::internal::RegisterBenchmarkInternal(                      \
+          ::benchmark::internal::make_unique<UniqueName>()))
+
+#define BENCHMARK_TEMPLATE_INSTANTIATE_F(BaseClass, Method, ...)    \
+  BENCHMARK_TEMPLATE_PRIVATE_INSTANTIATE_F(                         \
+      BaseClass, Method, BENCHMARK_PRIVATE_NAME(BaseClass##Method), \
+      __VA_ARGS__)
 
 // This macro will define and register a benchmark within a fixture class.
 #define BENCHMARK_F(BaseClass, Method)           \
@@ -1640,6 +1690,7 @@ class Fixture : public internal::Benchmark {
 // Note the workaround for Hexagon simulator passing argc != 0, argv = NULL.
 #define BENCHMARK_MAIN()                                                \
   int main(int argc, char** argv) {                                     \
+    benchmark::MaybeReenterWithoutASLR(argc, argv);                     \
     char arg0_default[] = "benchmark";                                  \
     char* args_default = reinterpret_cast<char*>(arg0_default);         \
     if (!argv) {                                                        \
@@ -1684,7 +1735,10 @@ struct BENCHMARK_EXPORT CPUInfo {
 
 // Adding Struct for System Information
 struct BENCHMARK_EXPORT SystemInfo {
+  enum class ASLR { UNKNOWN, ENABLED, DISABLED };
+
   std::string name;
+  ASLR ASLRStatus;
   static const SystemInfo& Get();
 
  private:

@@ -677,6 +677,54 @@ BENCHMARK_REGISTER_F(MyFixture, DoubleTest)->Threads(2);
 // `DoubleTest` is now registered.
 ```
 
+If you want to use a method template for your fixtures,
+which you instantiate afterward, use the following macros:
+
+* `BENCHMARK_TEMPLATE_METHOD_F(ClassName, Method)`
+* `BENCHMARK_TEMPLATE_INSTANTIATE_F(ClassName, Method, ...)`
+
+With these macros you can define one method for several instantiations.
+Example (using `MyFixture` from above):
+
+```c++
+// Defines `Test` using the class template `MyFixture`.
+BENCHMARK_TEMPLATE_METHOD_F(MyFixture, Test)(benchmark::State& st) {
+   for (auto _ : st) {
+     ...
+  }
+}
+
+// Instantiates and registers the benchmark `MyFixture<int>::Test`.
+BENCHMARK_TEMPLATE_INSTANTIATE_F(MyFixture, Test, int)->Threads(2);
+// Instantiates and registers the benchmark `MyFixture<double>::Test`.
+BENCHMARK_TEMPLATE_INSTANTIATE_F(MyFixture, Test, double)->Threads(4);
+```
+
+Inside the method definition of `BENCHMARK_TEMPLATE_METHOD_F` the type `Base` refers
+to the type of the instantiated fixture.
+Accesses to members of the fixture must be prefixed by `this->`.
+
+`BENCHMARK_TEMPLATE_METHOD_F`and `BENCHMARK_TEMPLATE_INSTANTIATE_F` can only be used,
+if the fixture does not use non-type template parameters.
+If you want to pass values as template parameters, use e.g. `std::integral_constant`.
+For example:
+
+```c++
+template<typename Sz>
+class SizedFixture : public benchmark::Fixture {
+  static constexpr auto Size = Sz::value;
+  int myValue;
+};
+
+BENCHMARK_TEMPLATE_METHOD_F(SizedFixture, Test)(benchmark::State& st) {
+   for (auto _ : st) {
+     this->myValue = Base::Size;
+  }
+}
+
+BENCHMARK_TEMPLATE_INSTANTIATE_F(SizedFixture, Test, std::integral_constant<5>)->Threads(2);
+```
+
 <a name="custom-counters" />
 
 ## Custom Counters
@@ -862,6 +910,46 @@ BENCHMARK(BM_test)->Range(8, 8<<10)->UseRealTime();
 ```
 
 Without `UseRealTime`, CPU time is used by default.
+
+### Manual Multithreaded Benchmarks
+
+Google/benchmark uses `std::thread` as multithreading environment per default.
+If you want to use another multithreading environment (e.g. OpenMP), you can provide
+a factory function to your benchmark using the `ThreadRunner` function.
+The factory function takes the number of threads as argument and creates a custom class
+derived from `benchmark::ThreadRunnerBase`.
+This custom class must override the function
+`void RunThreads(const std::function<void(int)>& fn)`.
+`RunThreads` is called by the main thread and spawns the requested number of threads.
+Each spawned thread must call `fn(thread_index)`, where `thread_index` is its own
+thread index. Before `RunThreads` returns, all spawned threads must be joined.
+```c++
+class OpenMPThreadRunner : public benchmark::ThreadRunnerBase
+{
+  OpenMPThreadRunner(int num_threads)
+  : num_threads_(num_threads)
+  {}
+
+  void RunThreads(const std::function<void(int)>& fn) final
+  {
+#pragma omp parallel num_threads(num_threads_)
+    fn(omp_get_thread_num());
+  }
+
+private:
+  int num_threads_;
+};
+
+BENCHMARK(BM_MultiThreaded)
+  ->ThreadRunner([](int num_threads) {
+    return std::make_unique<OpenMPThreadRunner>(num_threads);
+  })
+  ->Threads(1)->Threads(2)->Threads(4);
+```
+The above example creates a parallel OpenMP region before it enters `BM_MultiThreaded`.
+The actual benchmark code can remain the same and is therefore not tied to a specific
+thread runner. The measurement does not include the time for creating and joining the
+threads.
 
 <a name="cpu-timers" />
 
@@ -1180,6 +1268,7 @@ For Example:
 auto BM_test = [](benchmark::State& st, auto Inputs) { /* ... */ };
 
 int main(int argc, char** argv) {
+  benchmark::MaybeReenterWithoutASLR(argc, argv);
   for (auto& test_input : { /* ... */ })
       benchmark::RegisterBenchmark(test_input.name(), BM_test, test_input);
   benchmark::Initialize(&argc, argv);

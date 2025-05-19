@@ -26,6 +26,10 @@
 #include <unistd.h>
 #endif
 
+#ifdef BENCHMARK_OS_LINUX
+#include <sys/personality.h>
+#endif
+
 #include <algorithm>
 #include <atomic>
 #include <condition_variable>
@@ -811,7 +815,50 @@ int InitializeStreams() {
   return 0;
 }
 
+template <typename T>
+std::make_unsigned_t<T> get_as_unsigned(T v) {
+  using UnsignedT = std::make_unsigned_t<T>;
+  return static_cast<UnsignedT>(v);
+}
+
 }  // end namespace internal
+
+void MaybeReenterWithoutASLR(int /*argc*/, char** argv) {
+  // On e.g. Hexagon simulator, argv may be NULL.
+  if (!argv) return;
+
+#ifdef BENCHMARK_OS_LINUX
+  const auto curr_personality = personality(0xffffffff);
+
+  // We should never fail to read-only query the current personality,
+  // but let's be cautious.
+  if (curr_personality == -1) return;
+
+  // If ASLR is already disabled, we have nothing more to do.
+  if (internal::get_as_unsigned(curr_personality) & ADDR_NO_RANDOMIZE) return;
+
+  // Try to change the personality to disable ASLR.
+  const auto proposed_personality =
+      internal::get_as_unsigned(curr_personality) | ADDR_NO_RANDOMIZE;
+  const auto prev_personality = personality(proposed_personality);
+
+  // Have we failed to change the personality? That may happen.
+  if (prev_personality == -1) return;
+
+  // Make sure the parsona has been updated with the no-ASLR flag,
+  // otherwise we will try to reenter infinitely.
+  // This seems impossible, but can happen in some docker configurations.
+  const auto new_personality = personality(0xffffffff);
+  if ((internal::get_as_unsigned(new_personality) & ADDR_NO_RANDOMIZE) == 0)
+    return;
+
+  execv(argv[0], argv);
+  // The exec() functions return only if an error has occurred,
+  // in which case we want to just continue as-is.
+#else
+  return;
+#endif
+}
 
 std::string GetBenchmarkVersion() {
 #ifdef BENCHMARK_VERSION

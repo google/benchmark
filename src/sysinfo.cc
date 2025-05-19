@@ -54,6 +54,10 @@
 #include <pthread.h>
 #endif
 
+#if defined(BENCHMARK_OS_LINUX)
+#include <sys/personality.h>
+#endif
+
 #include <algorithm>
 #include <array>
 #include <bitset>
@@ -493,6 +497,17 @@ std::string GetSystemName() {
 #endif  // Catch-all POSIX block.
 }
 
+SystemInfo::ASLR GetASLR() {
+#ifdef BENCHMARK_OS_LINUX
+  const auto curr_personality = personality(0xffffffff);
+  return (curr_personality & ADDR_NO_RANDOMIZE) ? SystemInfo::ASLR::DISABLED
+                                                : SystemInfo::ASLR::ENABLED;
+#else
+  // FIXME: support detecting ASLR on other OS.
+  return SystemInfo::ASLR::UNKNOWN;
+#endif
+}
+
 int GetNumCPUsImpl() {
 #ifdef BENCHMARK_OS_WINDOWS
   SYSTEM_INFO sysinfo;
@@ -850,11 +865,11 @@ std::vector<double> GetLoadAvg() {
     !(defined(__ANDROID__) && __ANDROID_API__ < 29)
   static constexpr int kMaxSamples = 3;
   std::vector<double> res(kMaxSamples, 0.0);
-  const size_t nelem = static_cast<size_t>(getloadavg(res.data(), kMaxSamples));
+  const auto nelem = getloadavg(res.data(), kMaxSamples);
   if (nelem < 1) {
     res.clear();
   } else {
-    res.resize(nelem);
+    res.resize(static_cast<size_t>(nelem));
   }
   return res;
 #else
@@ -881,5 +896,5 @@ const SystemInfo& SystemInfo::Get() {
   return *info;
 }
 
-SystemInfo::SystemInfo() : name(GetSystemName()) {}
+SystemInfo::SystemInfo() : name(GetSystemName()), ASLRStatus(GetASLR()) {}
 }  // end namespace benchmark
