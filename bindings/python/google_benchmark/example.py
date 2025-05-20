@@ -23,6 +23,7 @@ In the extracted directory, execute:
 
 import random
 import time
+import sys
 
 import google_benchmark as benchmark
 from google_benchmark import Counter
@@ -137,4 +138,5 @@ def computing_complexity(state):
 
 
 if __name__ == "__main__":
+    benchmark.add_custom_context("python", sys.version)
     benchmark.main()

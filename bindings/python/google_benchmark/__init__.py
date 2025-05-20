@@ -142,4 +142,5 @@ def main(argv=None):
 # Methods for use with custom main function.
 initialize = _benchmark.Initialize
 run_benchmarks = _benchmark.RunSpecifiedBenchmarks
+add_custom_context = _benchmark.AddCustomContext
 atexit.register(_benchmark.ClearRegisteredBenchmarks)
