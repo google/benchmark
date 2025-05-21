@@ -956,6 +956,8 @@ class BENCHMARK_EXPORT BENCHMARK_INTERNAL_CACHELINE_ALIGNED State {
   BENCHMARK_ALWAYS_INLINE
   std::string name() const { return name_; }
 
+  size_t range_size() const { return range_.size(); }
+
  private:
   // items we expect on the first cache line (ie 64 bytes of the struct)
   // When total_iterations_ is 0, KeepRunning() and friends will return false.
