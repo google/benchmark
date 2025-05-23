@@ -239,6 +239,16 @@ BENCHMARK(BM_test)->Unit(benchmark::kMillisecond);
   _Pragma("diagnostic push") \
   _Pragma("diag_suppress deprecated_entity_with_custom_message")
 #define BENCHMARK_RESTORE_DEPRECATED_WARNING _Pragma("diagnostic pop")
+#elif defined(_MSC_VER)
+#define BENCHMARK_BUILTIN_EXPECT(x, y) x
+#define BENCHMARK_DEPRECATED_MSG(msg) __declspec(deprecated(msg))
+#define BENCHMARK_WARNING_MSG(msg)                           \
+  __pragma(message(__FILE__ "(" BENCHMARK_INTERNAL_TOSTRING( \
+      __LINE__) ") : warning note: " msg))
+#define BENCHMARK_DISABLE_DEPRECATED_WARNING \
+  __pragma(warning(push)) \
+  __pragma(warning(disable : 4996))
+#define BENCHMARK_RESTORE_DEPRECATED_WARNING __pragma(warning(pop))
 #else
 #define BENCHMARK_BUILTIN_EXPECT(x, y) x
 #define BENCHMARK_DEPRECATED_MSG(msg)
