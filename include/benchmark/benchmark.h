@@ -621,6 +621,17 @@ inline BENCHMARK_ALWAYS_INLINE void DoNotOptimize(Tp const& value) {
   _ReadWriteBarrier();
 }
 
+template <class Tp>
+inline BENCHMARK_ALWAYS_INLINE void DoNotOptimize(Tp& value) {
+  internal::UseCharPointer(&reinterpret_cast<char const volatile&>(value));
+  _ReadWriteBarrier();
+}
+
+template <class Tp>
+inline BENCHMARK_ALWAYS_INLINE void DoNotOptimize(Tp&& value) {
+  internal::UseCharPointer(&reinterpret_cast<char const volatile&>(value));
+  _ReadWriteBarrier();
+}
 #else
 template <class Tp>
 inline BENCHMARK_ALWAYS_INLINE void DoNotOptimize(Tp&& value) {
