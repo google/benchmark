@@ -19,4 +19,4 @@ jobs:
       with:
         python-version: 3.12
     - name: Run pre-commit checks
-      run: uv run --no-sync --extra dev pre-commit run --all-files --verbose --show-diff-on-failure
+      run: uv run --only-group=dev pre-commit run --all-files --verbose --show-diff-on-failure
