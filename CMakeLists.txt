@@ -230,9 +230,13 @@ else()
       add_cxx_compiler_flag(-Wstrict-aliasing)
     endif()
   endif()
-  # ICC17u2: overloaded virtual function "benchmark::Fixture::SetUp" is only partially overridden
-  # (because of deprecated overload)
-  add_cxx_compiler_flag(-wd654)
+  if  (CMAKE_CXX_COMPILER_ID STREQUAL "Intel" OR
+       CMAKE_CXX_COMPILER_ID STREQUAL "IntelLLVM")
+      # ICC17u2: overloaded virtual function "benchmark::Fixture::SetUp" is only partially overridden
+      # (because of deprecated overload)
+      add_cxx_compiler_flag(-wd654)
+  endif()
+
   add_cxx_compiler_flag(-Wthread-safety)
   if (HAVE_CXX_FLAG_WTHREAD_SAFETY)
     cxx_feature_check(THREAD_SAFETY_ATTRIBUTES "-DINCLUDE_DIRECTORIES=${PROJECT_SOURCE_DIR}/include")
