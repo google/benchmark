@@ -486,7 +486,7 @@ void RegisterProfilerManager(ProfilerManager* profiler_manager);
 
 // Add a key-value pair to output as part of the context stanza in the report.
 BENCHMARK_EXPORT
-void AddCustomContext(const std::string& key, const std::string& value);
+void AddCustomContext(std::string key, std::string value);
 
 namespace internal {
 class Benchmark;
