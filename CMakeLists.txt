@@ -216,6 +216,9 @@ else()
     # See #631 for rationale.
     add_cxx_compiler_flag(-wd1786)
     add_cxx_compiler_flag(-fno-finite-math-only)
+    # ICC17u2: overloaded virtual function "benchmark::Fixture::SetUp" is only partially
+    # overridden (because of deprecated overload)
+    add_cxx_compiler_flag(-wd654)
   endif()
   # Disable deprecation warnings for release builds (when -Werror is enabled).
   if(BENCHMARK_ENABLE_WERROR)
@@ -229,12 +232,6 @@ else()
     if (NOT CMAKE_CXX_COMPILER_ID STREQUAL "Intel" AND NOT CMAKE_CXX_COMPILER_ID STREQUAL "IntelLLVM") #ICC17u2: Many false positives for Wstrict-aliasing
       add_cxx_compiler_flag(-Wstrict-aliasing)
     endif()
-  endif()
-  if  (CMAKE_CXX_COMPILER_ID STREQUAL "Intel" OR
-       CMAKE_CXX_COMPILER_ID STREQUAL "IntelLLVM")
-      # ICC17u2: overloaded virtual function "benchmark::Fixture::SetUp" is only partially overridden
-      # (because of deprecated overload)
-      add_cxx_compiler_flag(-wd654)
   endif()
 
   add_cxx_compiler_flag(-Wthread-safety)
