@@ -19,6 +19,7 @@ classifiers = [
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
     "Topic :: Software Development :: Testing",
     "Topic :: System :: Benchmark",
 ]
@@ -27,7 +28,7 @@ dynamic = ["readme", "version"]
 
 dependencies = ["absl-py>=0.7.1"]
 
-[project.optional-dependencies]
+[dependency-groups]
 dev = ["pre-commit>=3.3.3"]
 
 [project.urls]
