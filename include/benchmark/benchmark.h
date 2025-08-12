@@ -239,6 +239,16 @@ BENCHMARK(BM_test)->Unit(benchmark::kMillisecond);
   _Pragma("diagnostic push") \
   _Pragma("diag_suppress deprecated_entity_with_custom_message")
 #define BENCHMARK_RESTORE_DEPRECATED_WARNING _Pragma("diagnostic pop")
+#elif defined(_MSC_VER)
+#define BENCHMARK_BUILTIN_EXPECT(x, y) x
+#define BENCHMARK_DEPRECATED_MSG(msg) __declspec(deprecated(msg))
+#define BENCHMARK_WARNING_MSG(msg)                           \
+  __pragma(message(__FILE__ "(" BENCHMARK_INTERNAL_TOSTRING( \
+      __LINE__) ") : warning note: " msg))
+#define BENCHMARK_DISABLE_DEPRECATED_WARNING \
+  __pragma(warning(push)) \
+  __pragma(warning(disable : 4996))
+#define BENCHMARK_RESTORE_DEPRECATED_WARNING __pragma(warning(pop))
 #else
 #define BENCHMARK_BUILTIN_EXPECT(x, y) x
 #define BENCHMARK_DEPRECATED_MSG(msg)
@@ -476,7 +486,7 @@ void RegisterProfilerManager(ProfilerManager* profiler_manager);
 
 // Add a key-value pair to output as part of the context stanza in the report.
 BENCHMARK_EXPORT
-void AddCustomContext(const std::string& key, const std::string& value);
+void AddCustomContext(std::string key, std::string value);
 
 namespace internal {
 class Benchmark;
@@ -611,6 +621,17 @@ inline BENCHMARK_ALWAYS_INLINE void DoNotOptimize(Tp const& value) {
   _ReadWriteBarrier();
 }
 
+template <class Tp>
+inline BENCHMARK_ALWAYS_INLINE void DoNotOptimize(Tp& value) {
+  internal::UseCharPointer(&reinterpret_cast<char const volatile&>(value));
+  _ReadWriteBarrier();
+}
+
+template <class Tp>
+inline BENCHMARK_ALWAYS_INLINE void DoNotOptimize(Tp&& value) {
+  internal::UseCharPointer(&reinterpret_cast<char const volatile&>(value));
+  _ReadWriteBarrier();
+}
 #else
 template <class Tp>
 inline BENCHMARK_ALWAYS_INLINE void DoNotOptimize(Tp&& value) {
