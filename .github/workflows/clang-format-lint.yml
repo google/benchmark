@@ -6,14 +6,17 @@ on:
 env:
   CMAKE_GENERATOR: Ninja
 
+permissions:
+  contents: read
+
 jobs:
   job:
     name: check-clang-format
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v4
-    - uses: DoozyX/clang-format-lint-action@v0.18.2
+    - uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # v4.3.0
+    - uses: DoozyX/clang-format-lint-action@c71d0bf4e21876ebec3e5647491186f8797fde31 # v0.18.2
       with:
         source: './include/benchmark ./src ./test'
         clangFormatVersion: 18

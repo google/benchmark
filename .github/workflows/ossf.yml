@@ -5,12 +5,15 @@ on:
     - cron: '0 0 * * 0' # Runs every Sunday at midnight UTC
   workflow_dispatch:
 
+permissions:
+  contents: read
+
 jobs:
   ossf-scorecard:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # v4.3.0
 
       - name: Publish OSSF Scorecard badge to README
         uses: ossf/scorecard-action@v2

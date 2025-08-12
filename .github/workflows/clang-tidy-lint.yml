@@ -7,6 +7,9 @@ on:
 env:
   CMAKE_GENERATOR: Ninja
 
+permissions:
+  contents: read
+
 jobs:
   job:
     name: run-clang-tidy
@@ -14,7 +17,7 @@ jobs:
     strategy:
       fail-fast: false
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # v4.3.0
 
     - name: install clang-tidy
       run: sudo apt update && sudo apt -y install clang-tidy

@@ -9,6 +9,9 @@ on:
 env:
   CMAKE_GENERATOR: Ninja
 
+permissions:
+  contents: read
+
 jobs:
   job:
     # TODO(dominic): Extend this to include compiler and set through env: CC/CXX.
@@ -20,7 +23,7 @@ jobs:
         os: [ubuntu-latest]
         build_type: ['Release', 'Debug']
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # v4.3.0
 
     - name: install libpfm
       run: |
