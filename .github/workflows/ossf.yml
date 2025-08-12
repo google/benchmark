@@ -16,7 +16,7 @@ jobs:
         uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # v4.3.0
 
       - name: Publish OSSF Scorecard badge to README
-        uses: ossf/scorecard-action@v2
+        uses: ossf/scorecard-action@05b42c624433fc40578a4040d5cf5e36ddca8cde # v2.4.2
         with:
           publish_results: true
           badge: true
