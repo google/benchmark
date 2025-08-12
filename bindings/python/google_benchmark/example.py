@@ -22,6 +22,7 @@ In the extracted directory, execute:
 """
 
 import random
+import sys
 import time
 
 import google_benchmark as benchmark
@@ -137,4 +138,5 @@ def computing_complexity(state):
 
 
 if __name__ == "__main__":
+    benchmark.add_custom_context("python", sys.version)
     benchmark.main()
