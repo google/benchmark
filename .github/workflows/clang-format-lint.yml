@@ -18,5 +18,5 @@ jobs:
     - uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # v4.3.0
     - uses: DoozyX/clang-format-lint-action@c71d0bf4e21876ebec3e5647491186f8797fde31 # v0.18.2
       with:
-        source: './include/benchmark ./src ./test'
+        source: './include/benchmark ./src ./test ./bindings'
         clangFormatVersion: 18
