@@ -135,7 +135,8 @@ class BuildBazelExtension(build_ext.build_ext):
             libdir = Path(self.build_lib) / pkgname
         else:
             build_py = self.get_finalized_command("build_py")
-            libdir = build_py.get_package_dir(pkgname)
+            libdir = Path(build_py.get_package_dir(pkgname))
+
         for root, dirs, files in os.walk(srcdir, topdown=True):
             # exclude runfiles directories and children.
             dirs[:] = [d for d in dirs if "runfiles" not in d]

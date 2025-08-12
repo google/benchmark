@@ -30,10 +30,10 @@ jobs:
         if: runner.os == 'macOS'
         run: brew install ninja
 
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # v4.3.0
 
       - name: build
-        uses: threeal/cmake-action@v2.1.0
+        uses: threeal/cmake-action@725d1314ccf9ea922805d7e3f9d9bcbca892b406 # v2.1.0
         with:
           build-dir: ${{ runner.workspace }}/_build
           cxx-compiler: ${{ matrix.compiler }}
@@ -60,7 +60,7 @@ jobs:
       fail-fast: false
       matrix:
         msvc:
-          - VS-16-2019
+          - VS-17-2025
           - VS-17-2022
         build_type:
           - Debug
@@ -69,17 +69,17 @@ jobs:
           - shared
           - static
         include:
-          - msvc: VS-16-2019
-            os: windows-2019
-            generator: 'Visual Studio 16 2019'
+          - msvc: VS-17-2025
+            os: windows-2025
+            generator: 'Visual Studio 17 2022'
           - msvc: VS-17-2022
             os: windows-2022
             generator: 'Visual Studio 17 2022'
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # v4.3.0
 
-      - uses: lukka/get-cmake@latest
+      - uses: lukka/get-cmake@f3273e0bcecf2f2c0d3430de21bf02ab2752c47d # latest
 
       - name: configure cmake
         run: >
@@ -117,7 +117,7 @@ jobs:
 
     steps:
       - name: setup msys2
-        uses: msys2/setup-msys2@v2
+        uses: msys2/setup-msys2@40677d36a502eb2cf0fb808cc9dec31bf6152638 # v2.28.0
         with:
           cache: false
           msystem: ${{ matrix.msys2.msystem }}
@@ -131,7 +131,7 @@ jobs:
             cmake:p
             ninja:p
 
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # v4.3.0
 
       # NOTE: we can't use cmake actions here as we need to do everything in msys2 shell.
       - name: configure cmake

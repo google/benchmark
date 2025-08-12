@@ -461,7 +461,7 @@ std::string GetSystemName() {
                                 DWCOUNT, NULL, 0, NULL, NULL);
   str.resize(len);
   WideCharToMultiByte(CP_UTF8, WC_ERR_INVALID_CHARS, hostname, DWCOUNT, &str[0],
-                      str.size(), NULL, NULL);
+                      static_cast<int>(str.size()), NULL, NULL);
 #endif
   return str;
 #elif defined(BENCHMARK_OS_QURT)
