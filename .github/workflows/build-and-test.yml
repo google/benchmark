@@ -60,7 +60,7 @@ jobs:
       fail-fast: false
       matrix:
         msvc:
-          - VS-16-2019
+          - VS-17-2025
           - VS-17-2022
         build_type:
           - Debug
@@ -69,9 +69,9 @@ jobs:
           - shared
           - static
         include:
-          - msvc: VS-16-2019
-            os: windows-2019
-            generator: 'Visual Studio 16 2019'
+          - msvc: VS-17-2025
+            os: windows-2025
+            generator: 'Visual Studio 17 2022'
           - msvc: VS-17-2022
             os: windows-2022
             generator: 'Visual Studio 17 2022'

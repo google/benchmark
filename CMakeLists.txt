@@ -216,6 +216,9 @@ else()
     # See #631 for rationale.
     add_cxx_compiler_flag(-wd1786)
     add_cxx_compiler_flag(-fno-finite-math-only)
+    # ICC17u2: overloaded virtual function "benchmark::Fixture::SetUp" is only partially
+    # overridden (because of deprecated overload)
+    add_cxx_compiler_flag(-wd654)
   endif()
   # Disable deprecation warnings for release builds (when -Werror is enabled).
   if(BENCHMARK_ENABLE_WERROR)
@@ -230,9 +233,7 @@ else()
       add_cxx_compiler_flag(-Wstrict-aliasing)
     endif()
   endif()
-  # ICC17u2: overloaded virtual function "benchmark::Fixture::SetUp" is only partially overridden
-  # (because of deprecated overload)
-  add_cxx_compiler_flag(-wd654)
+
   add_cxx_compiler_flag(-Wthread-safety)
   if (HAVE_CXX_FLAG_WTHREAD_SAFETY)
     cxx_feature_check(THREAD_SAFETY_ATTRIBUTES "-DINCLUDE_DIRECTORIES=${PROJECT_SOURCE_DIR}/include")
