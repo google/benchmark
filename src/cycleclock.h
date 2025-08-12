@@ -36,6 +36,9 @@
 // declarations of some other intrinsics, breaking compilation.
 // Therefore, we simply declare __rdtsc ourselves. See also
 // http://connect.microsoft.com/VisualStudio/feedback/details/262047
+//
+// Note that MSVC defines the x64 preprocessor macros when building
+// for Arm64EC, despite it using Arm64 assembly instructions.
 #if defined(COMPILER_MSVC) && !defined(_M_IX86) && !defined(_M_ARM64) && \
     !defined(_M_ARM64EC)
 extern "C" uint64_t __rdtsc();
@@ -79,7 +82,10 @@ inline BENCHMARK_ALWAYS_INLINE int64_t Now() {
   int64_t ret;
   __asm__ volatile("rdtsc" : "=A"(ret));
   return ret;
-#elif defined(__x86_64__) || defined(__amd64__)
+
+// Note that Clang, like MSVC, defines the x64 preprocessor macros when building
+// for Arm64EC, despite it using Arm64 assembly instructions.
+#elif (defined(__x86_64__) || defined(__amd64__)) && !defined(__arm64ec__)
   uint64_t low, high;
   __asm__ volatile("rdtsc" : "=a"(low), "=d"(high));
   return static_cast<int64_t>((high << 32) | low);
@@ -139,7 +145,7 @@ inline BENCHMARK_ALWAYS_INLINE int64_t Now() {
   struct timespec ts = {0, 0};
   clock_gettime(CLOCK_MONOTONIC, &ts);
   return static_cast<int64_t>(ts.tv_sec) * 1000000000 + ts.tv_nsec;
-#elif defined(__aarch64__)
+#elif defined(__aarch64__) || defined(__arm64ec__)
   // System timer of ARMv8 runs at a different frequency than the CPU's.
   // The frequency is fixed, typically in the range 1-50MHz.  It can be
   // read at CNTFRQ special register.  We assume the OS has set up

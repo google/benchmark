@@ -105,23 +105,28 @@ Linux workstation are:
 
 1. Use the performance governor as [discussed
 above](user_guide#disabling-cpu-frequency-scaling).
-1. Disable processor boosting by:
+2. Disable processor boosting by:
    ```sh
    echo 0 | sudo tee /sys/devices/system/cpu/cpufreq/boost
    ```
    See the Linux kernel's
    [boost.txt](https://www.kernel.org/doc/Documentation/cpu-freq/boost.txt)
    for more information.
-2. Set the benchmark program's task affinity to a fixed cpu.  For example:
+3. Set the benchmark program's task affinity to a fixed cpu.  For example:
    ```sh
    taskset -c 0 ./mybenchmark
    ```
-3. Disabling Hyperthreading/SMT.  This can be done in the Bios or using the
+4. Increase the program's scheduling priority to minimize context switches using `nice` or `chrt`:
+   ```sh
+   sudo nice -n -20 ./mybenchmark
+   sudo chrt -f 80 ./mybenchmark
+   ```
+5. Disabling Hyperthreading/SMT.  This can be done in the Bios or using the
    `/sys` file system (see the LLVM project's [Benchmarking
    tips](https://llvm.org/docs/Benchmarking.html)).
-4. Close other programs that do non-trivial things based on timers, such as
+6. Close other programs that do non-trivial things based on timers, such as
    your web browser, desktop environment, etc.
-5. Reduce the working set of your benchmark to fit within the L1 cache, but
+7. Reduce the working set of your benchmark to fit within the L1 cache, but
    do be aware that this may lead you to optimize for an unrealistic
    situation.
 

@@ -46,10 +46,11 @@ jobs:
         name: Install Python 3.12
         with:
           python-version: "3.12"
-      - run: pip install --upgrade pip uv
+      - name: Install the latest version of uv
+        uses: astral-sh/setup-uv@v6
 
       - name: Build wheels on ${{ matrix.os }} using cibuildwheel
-        uses: pypa/cibuildwheel@v2.23.2
+        uses: pypa/cibuildwheel@v3.0.0
         env:
           CIBW_BUILD: "cp310-* cp311-* cp312-*"
           CIBW_BUILD_FRONTEND: "build[uv]"
@@ -60,7 +61,7 @@ jobs:
           CIBW_ENVIRONMENT_LINUX: PATH=$PATH:$HOME/bin
           CIBW_TEST_COMMAND: python {project}/bindings/python/google_benchmark/example.py
           # unused by Bazel, but needed explicitly by delocate on MacOS.
-          MACOSX_DEPLOYMENT_TARGET: "10.14"
+          MACOSX_DEPLOYMENT_TARGET: ${{ matrix.os == 'macos-13' && 10.14 || 11.0 }}
 
       - name: Upload Google Benchmark ${{ matrix.os }} wheels
         uses: actions/upload-artifact@v4

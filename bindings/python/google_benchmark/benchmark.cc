@@ -167,7 +167,15 @@ NB_MODULE(_benchmark, m) {
       .def_prop_rw("items_processed", &State::items_processed,
                    &State::SetItemsProcessed)
       .def("set_label", &State::SetLabel)
-      .def("range", &State::range, nb::arg("pos") = 0)
+      .def(
+          "range",
+          [](const State& state, std::size_t pos = 0) -> int64_t {
+            if (pos < state.range_size()) {
+              return state.range(pos);
+            }
+            throw nb::index_error("pos is out of range");
+          },
+          nb::arg("pos") = 0)
       .def_prop_ro("iterations", &State::iterations)
       .def_prop_ro("name", &State::name)
       .def_rw("counters", &State::counters)

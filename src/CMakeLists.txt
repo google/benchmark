@@ -67,7 +67,6 @@ endif()
 # We need extra libraries on Solaris
 if(${CMAKE_SYSTEM_NAME} MATCHES "SunOS")
   target_link_libraries(benchmark PRIVATE kstat)
-  set(BENCHMARK_PRIVATE_LINK_LIBRARIES -lkstat)
 endif()
 
 if (NOT BUILD_SHARED_LIBS)
@@ -108,6 +107,20 @@ configure_package_config_file (
 write_basic_package_version_file(
   "${version_config}" VERSION ${GENERIC_LIB_VERSION} COMPATIBILITY SameMajorVersion
 )
+
+# Derive private link libraries from target
+if(NOT BUILD_SHARED_LIBS)
+  get_target_property(LINK_LIBS benchmark LINK_LIBRARIES)
+  if(LINK_LIBS)
+    set(BENCHMARK_PRIVATE_LINK_LIBRARIES "")
+    foreach(LIB IN LISTS LINK_LIBS)
+      if(NOT TARGET "${LIB}" AND LIB MATCHES "^[a-zA-Z0-9_.-]+$")
+        list(APPEND BENCHMARK_PRIVATE_LINK_LIBRARIES "-l${LIB}")
+      endif()
+    endforeach()
+    string(JOIN " " BENCHMARK_PRIVATE_LINK_LIBRARIES ${BENCHMARK_PRIVATE_LINK_LIBRARIES})
+  endif()
+endif()
 
 configure_file("${PROJECT_SOURCE_DIR}/cmake/benchmark.pc.in" "${pkg_config}" @ONLY)
 configure_file("${PROJECT_SOURCE_DIR}/cmake/benchmark_main.pc.in" "${pkg_config_main}" @ONLY)
