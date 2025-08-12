@@ -19,7 +19,7 @@ jobs:
         sanitizer: ['asan', 'ubsan', 'tsan', 'msan']
 
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # v4.3.0
 
     - name: configure msan env
       if: matrix.sanitizer == 'msan'
@@ -52,7 +52,7 @@ jobs:
         echo "ASAN_OPTIONS=alloc_dealloc_mismatch=0" >> $GITHUB_ENV
 
     - name: setup clang
-      uses: egor-tensin/setup-clang@v1
+      uses: egor-tensin/setup-clang@ef434b41eb33a70396fb336b1bae39c76d740c3d # v1.4
       with:
         version: latest
         platform: x64

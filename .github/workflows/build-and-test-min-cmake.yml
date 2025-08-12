@@ -19,9 +19,9 @@ jobs:
         os: [ubuntu-latest, macos-latest]
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # v4.3.0
 
-      - uses: lukka/get-cmake@latest
+      - uses: lukka/get-cmake@f3273e0bcecf2f2c0d3430de21bf02ab2752c47d # latest
         with:
           cmakeVersion: 3.13.0
 
