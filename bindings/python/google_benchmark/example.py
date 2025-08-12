@@ -22,8 +22,8 @@ In the extracted directory, execute:
 """
 
 import random
-import time
 import sys
+import time
 
 import google_benchmark as benchmark
 from google_benchmark import Counter
