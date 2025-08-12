@@ -188,5 +188,9 @@ NB_MODULE(_benchmark, m) {
   m.def("RunSpecifiedBenchmarks",
         []() { benchmark::RunSpecifiedBenchmarks(); });
   m.def("ClearRegisteredBenchmarks", benchmark::ClearRegisteredBenchmarks);
+  m.def("AddCustomContext", benchmark::AddCustomContext, nb::arg("key"),
+        nb::arg("value"),
+        "Add a key-value pair to output as part of the context stanza in the "
+        "report.");
 };
 }  // namespace
