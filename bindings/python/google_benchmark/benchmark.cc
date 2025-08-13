@@ -41,7 +41,6 @@ benchmark::internal::Benchmark* RegisterBenchmark(const std::string& name,
 }
 
 NB_MODULE(_benchmark, m) {
-
   using benchmark::TimeUnit;
   nb::enum_<TimeUnit>(m, "TimeUnit")
       .value("kNanosecond", TimeUnit::kNanosecond)
@@ -78,47 +77,40 @@ NB_MODULE(_benchmark, m) {
       .def("args", &Benchmark::Args, nb::rv_policy::reference)
       .def("range", &Benchmark::Range, nb::rv_policy::reference,
            nb::arg("start"), nb::arg("limit"))
-      .def("dense_range", &Benchmark::DenseRange,
-           nb::rv_policy::reference, nb::arg("start"),
-           nb::arg("limit"), nb::arg("step") = 1)
+      .def("dense_range", &Benchmark::DenseRange, nb::rv_policy::reference,
+           nb::arg("start"), nb::arg("limit"), nb::arg("step") = 1)
       .def("ranges", &Benchmark::Ranges, nb::rv_policy::reference)
-      .def("args_product", &Benchmark::ArgsProduct,
-           nb::rv_policy::reference)
+      .def("args_product", &Benchmark::ArgsProduct, nb::rv_policy::reference)
       .def("arg_name", &Benchmark::ArgName, nb::rv_policy::reference)
-      .def("arg_names", &Benchmark::ArgNames,
-           nb::rv_policy::reference)
-      .def("range_pair", &Benchmark::RangePair,
-           nb::rv_policy::reference, nb::arg("lo1"), nb::arg("hi1"),
-           nb::arg("lo2"), nb::arg("hi2"))
+      .def("arg_names", &Benchmark::ArgNames, nb::rv_policy::reference)
+      .def("range_pair", &Benchmark::RangePair, nb::rv_policy::reference,
+           nb::arg("lo1"), nb::arg("hi1"), nb::arg("lo2"), nb::arg("hi2"))
       .def("range_multiplier", &Benchmark::RangeMultiplier,
            nb::rv_policy::reference)
       .def("min_time", &Benchmark::MinTime, nb::rv_policy::reference)
       .def("min_warmup_time", &Benchmark::MinWarmUpTime,
            nb::rv_policy::reference)
-      .def("iterations", &Benchmark::Iterations,
-           nb::rv_policy::reference)
-      .def("repetitions", &Benchmark::Repetitions,
-           nb::rv_policy::reference)
+      .def("iterations", &Benchmark::Iterations, nb::rv_policy::reference)
+      .def("repetitions", &Benchmark::Repetitions, nb::rv_policy::reference)
       .def("report_aggregates_only", &Benchmark::ReportAggregatesOnly,
            nb::rv_policy::reference, nb::arg("value") = true)
       .def("display_aggregates_only", &Benchmark::DisplayAggregatesOnly,
            nb::rv_policy::reference, nb::arg("value") = true)
       .def("measure_process_cpu_time", &Benchmark::MeasureProcessCPUTime,
            nb::rv_policy::reference)
-      .def("use_real_time", &Benchmark::UseRealTime,
-           nb::rv_policy::reference)
+      .def("use_real_time", &Benchmark::UseRealTime, nb::rv_policy::reference)
       .def("use_manual_time", &Benchmark::UseManualTime,
            nb::rv_policy::reference)
       .def(
           "complexity",
           (Benchmark * (Benchmark::*)(benchmark::BigO)) & Benchmark::Complexity,
-          nb::rv_policy::reference,
-          nb::arg("complexity") = benchmark::oAuto);
+          nb::rv_policy::reference, nb::arg("complexity") = benchmark::oAuto);
 
   using benchmark::Counter;
   nb::class_<Counter> py_counter(m, "Counter");
 
-  nb::enum_<Counter::Flags>(py_counter, "Flags", nb::is_arithmetic(), nb::is_flag())
+  nb::enum_<Counter::Flags>(py_counter, "Flags", nb::is_arithmetic(),
+                            nb::is_flag())
       .value("kDefaults", Counter::Flags::kDefaults)
       .value("kIsRate", Counter::Flags::kIsRate)
       .value("kAvgThreads", Counter::Flags::kAvgThreads)
@@ -161,9 +153,9 @@ NB_MODULE(_benchmark, m) {
       .def_prop_ro("error_occurred", &State::error_occurred)
       .def("set_iteration_time", &State::SetIterationTime)
       .def_prop_rw("bytes_processed", &State::bytes_processed,
-                    &State::SetBytesProcessed)
+                   &State::SetBytesProcessed)
       .def_prop_rw("complexity_n", &State::complexity_length_n,
-                    &State::SetComplexityN)
+                   &State::SetComplexityN)
       .def_prop_rw("items_processed", &State::items_processed,
                    &State::SetItemsProcessed)
       .def("set_label", &State::SetLabel)
@@ -183,8 +175,7 @@ NB_MODULE(_benchmark, m) {
       .def_prop_ro("threads", &State::threads);
 
   m.def("Initialize", Initialize);
-  m.def("RegisterBenchmark", RegisterBenchmark,
-        nb::rv_policy::reference);
+  m.def("RegisterBenchmark", RegisterBenchmark, nb::rv_policy::reference);
   m.def("RunSpecifiedBenchmarks",
         []() { benchmark::RunSpecifiedBenchmarks(); });
   m.def("ClearRegisteredBenchmarks", benchmark::ClearRegisteredBenchmarks);
