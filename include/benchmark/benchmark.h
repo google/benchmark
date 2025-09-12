@@ -1821,6 +1821,7 @@ class BENCHMARK_EXPORT BenchmarkReporter {
           complexity(oNone),
           complexity_lambda(),
           complexity_n(0),
+          statistics(),
           report_big_o(false),
           report_rms(false),
           allocs_per_iter(0.0) {}
