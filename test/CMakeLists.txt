@@ -219,6 +219,9 @@ benchmark_add_test(NAME profiler_manager_iterations COMMAND profiler_manager_ite
 compile_output_test(complexity_test)
 benchmark_add_test(NAME complexity_benchmark COMMAND complexity_test --benchmark_min_time=1000000x)
 
+compile_output_test(locale_impermeability_test)
+benchmark_add_test(NAME locale_impermeability_test COMMAND locale_impermeability_test)
+
 ###############################################################################
 # GoogleTest Unit Tests
 ###############################################################################
