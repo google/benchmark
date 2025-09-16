@@ -31,4 +31,3 @@ void MyTemplatedOverloadedBenchmark(benchmark::State& state) {
 BENCHMARK_TEMPLATE(MyTemplatedOverloadedBenchmark, 1);
 
 BENCHMARK_MAIN();
-
