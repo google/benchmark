@@ -1503,12 +1503,13 @@ class Fixture : public internal::Benchmark {
   static ::benchmark::internal::Benchmark const* const BENCHMARK_PRIVATE_NAME( \
       n) BENCHMARK_UNUSED
 
-#define BENCHMARK(...)                                                \
-  BENCHMARK_PRIVATE_DECLARE(_benchmark_) =                            \
-      (::benchmark::internal::RegisterBenchmarkInternal(              \
-          ::benchmark::internal::make_unique<                         \
-              ::benchmark::internal::FunctionBenchmark>(#__VA_ARGS__, \
-                                                        static_cast<::benchmark::internal::Function*>(__VA_ARGS__))))
+#define BENCHMARK(...)                                   \
+  BENCHMARK_PRIVATE_DECLARE(_benchmark_) =               \
+      (::benchmark::internal::RegisterBenchmarkInternal( \
+          ::benchmark::internal::make_unique<            \
+              ::benchmark::internal::FunctionBenchmark>( \
+              #__VA_ARGS__,                              \
+              static_cast<::benchmark::internal::Function*>(__VA_ARGS__))))
 
 // Old-style macros
 #define BENCHMARK_WITH_ARG(n, a) BENCHMARK(n)->Arg((a))
@@ -1550,24 +1551,24 @@ class Fixture : public internal::Benchmark {
       (::benchmark::internal::RegisterBenchmarkInternal( \
           ::benchmark::internal::make_unique<            \
               ::benchmark::internal::FunctionBenchmark>( \
-                  #n "<" #a ">", \
-                  static_cast<::benchmark::internal::Function*>(n<a>))))
+              #n "<" #a ">",                             \
+              static_cast<::benchmark::internal::Function*>(n<a>))))
 
-#define BENCHMARK_TEMPLATE2(n, a, b)                                          \
-  BENCHMARK_PRIVATE_DECLARE(n) =                                              \
-      (::benchmark::internal::RegisterBenchmarkInternal(                      \
-          ::benchmark::internal::make_unique<                                 \
-              ::benchmark::internal::FunctionBenchmark>(                      \
-                  #n "<" #a "," #b ">",                                       \
-                  static_cast<::benchmark::internal::Function*>(n<a, b>))))
+#define BENCHMARK_TEMPLATE2(n, a, b)                     \
+  BENCHMARK_PRIVATE_DECLARE(n) =                         \
+      (::benchmark::internal::RegisterBenchmarkInternal( \
+          ::benchmark::internal::make_unique<            \
+              ::benchmark::internal::FunctionBenchmark>( \
+              #n "<" #a "," #b ">",                      \
+              static_cast<::benchmark::internal::Function*>(n<a, b>))))
 
 #define BENCHMARK_TEMPLATE(n, ...)                       \
   BENCHMARK_PRIVATE_DECLARE(n) =                         \
       (::benchmark::internal::RegisterBenchmarkInternal( \
           ::benchmark::internal::make_unique<            \
               ::benchmark::internal::FunctionBenchmark>( \
-                  #n "<" #__VA_ARGS__ ">",               \
-                  static_cast<::benchmark::internal::Function*>(n<__VA_ARGS__>))))
+              #n "<" #__VA_ARGS__ ">",                   \
+              static_cast<::benchmark::internal::Function*>(n<__VA_ARGS__>))))
 
 // This will register a benchmark for a templatized function,
 // with the additional arguments specified by `...`.
