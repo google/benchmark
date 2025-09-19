@@ -285,4 +285,19 @@ std::string LocalDateTimeString() {
   return std::string(storage);
 }
 
+void benchmark_sum() {
+    const int N = 1000000;
+    auto start = std::chrono::high_resolution_clock::now();
+
+    long long sum = 0;
+    for (int i = 0; i < N; ++i) {
+        sum += i;
+    }
+
+    auto end = std::chrono::high_resolution_clock::now();
+    std::chrono::duration<double> elapsed = end - start;
+
+    std::cout << "benchmark_sum took " << elapsed.count() << " seconds\n";
+}
+
 }  // end namespace benchmark
