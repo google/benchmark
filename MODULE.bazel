@@ -38,4 +38,4 @@ use_repo(pip, "tools_pip_deps")
 
 # -- bazel_dep definitions -- #
 
-bazel_dep(name = "nanobind_bazel", version = "2.7.0", dev_dependency = True)
+bazel_dep(name = "nanobind_bazel", version = "2.9.2", dev_dependency = True)
