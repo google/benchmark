@@ -141,7 +141,7 @@ def main():
     parser.add_argument(
         "out", metavar="output", type=str, nargs=1, help="The output file"
     )
-    args, unknown_args = parser.parse_known_args()
+    args, _ = parser.parse_known_args()
     input = args.input[0]
     output = args.out[0]
     if not os.path.isfile(input):
