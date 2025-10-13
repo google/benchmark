@@ -120,19 +120,11 @@ def register(undefined=None, *, name=None):
     return options.func
 
 
-def _flags_parser(argv: list[str] | None = None) -> list[str]:
+def main(argv: list[str] | None = None) -> None:
     import sys
 
-    return _benchmark.Initialize(argv or sys.argv)
-
-
-def _run_benchmarks(argv: list[str] | None = None) -> None:
+    _benchmark.Initialize(argv or sys.argv)
     return _benchmark.RunSpecifiedBenchmarks()
-
-
-def main(argv: list[str] | None = None) -> None:
-    argv = _flags_parser(argv)
-    return _run_benchmarks(argv)
 
 
 # FIXME: can we rerun with disabled ASLR?
