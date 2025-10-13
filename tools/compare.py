@@ -21,8 +21,8 @@ def check_inputs(in1, in2, flags):
     """
     Perform checking on the user provided inputs and diagnose any abnormalities
     """
-    in1_kind, in1_err = util.classify_input_file(in1)
-    in2_kind, in2_err = util.classify_input_file(in2)
+    in1_kind, _ = util.classify_input_file(in1)
+    in2_kind, _ = util.classify_input_file(in2)
     output_file = util.find_benchmark_flag("--benchmark_out=", flags)
     output_type = util.find_benchmark_flag("--benchmark_out_format=", flags)
     if (
