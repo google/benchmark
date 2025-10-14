@@ -26,8 +26,6 @@ classifiers = [
 
 dynamic = ["readme", "version"]
 
-dependencies = ["absl-py>=0.7.1"]
-
 [dependency-groups]
 dev = ["pre-commit>=3.3.3"]
 
