@@ -191,7 +191,7 @@ class ThreadRunnerDefault : public ThreadRunnerBase {
   explicit ThreadRunnerDefault(int num_threads)
       : pool(static_cast<size_t>(num_threads - 1)) {}
 
-  void RunThreads(const std::function<void(int)>& fn) final {
+  void RunThreads(const std::function<void(int)>& fn) override final {
     // Run all but one thread in separate threads
     for (std::size_t ti = 0; ti < pool.size(); ++ti) {
       pool[ti] = std::thread(fn, static_cast<int>(ti + 1));
