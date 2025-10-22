@@ -723,6 +723,7 @@ namespace internal {
 
 void (*HelperPrintf)();
 
+namespace {
 void PrintUsageAndExit() {
   HelperPrintf();
   std::flush(std::cout);
@@ -810,6 +811,8 @@ void ParseCommandLineFlags(int* argc, char** argv) {
     AddCustomContext(kv.first, kv.second);
   }
 }
+
+}  // end namespace
 
 int InitializeStreams() {
   static std::ios_base::Init init;
