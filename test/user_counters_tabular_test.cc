@@ -4,6 +4,7 @@
 #include "benchmark/benchmark.h"
 #include "output_test.h"
 
+namespace {
 // @todo: <jpmag> this checks the full output at once; the rule for
 // CounterSet1 was failing because it was not matching "^[-]+$".
 // @todo: <jpmag> check that the counters are vertically aligned.
@@ -555,6 +556,7 @@ void CheckSet2(Results const& e) {
   CHECK_COUNTER_VALUE(e, int, "Baz", EQ, 40);
 }
 CHECK_BENCHMARK_RESULTS("BM_CounterSet2_Tabular", &CheckSet2);
+}  // end namespace
 
 // ========================================================================= //
 // --------------------------- TEST CASES END ------------------------------ //

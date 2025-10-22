@@ -4,6 +4,7 @@
 #include "benchmark/benchmark.h"
 #include "output_test.h"
 
+namespace {
 // ========================================================================= //
 // ------------------------ Thousands Customisation ------------------------ //
 // ========================================================================= //
@@ -179,6 +180,7 @@ void CheckThousands(Results const& e) {
   CHECK_FLOAT_COUNTER_VALUE(e, "t4_1048576Base1024", EQ, 1024 * 1024, 0.0001);
 }
 CHECK_BENCHMARK_RESULTS("BM_Counters_Thousands", &CheckThousands);
+}  // end namespace
 
 // ========================================================================= //
 // --------------------------- TEST CASES END ------------------------------ //

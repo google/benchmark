@@ -25,14 +25,13 @@ class NullReporter : public benchmark::BenchmarkReporter {
   void ReportRuns(const std::vector<Run>& /* report */) override {}
 };
 
-}  // end namespace
-
-static void BM_MyBench(benchmark::State& state) {
+void BM_MyBench(benchmark::State& state) {
   for (auto s : state) {
     ++iteration_count;
   }
 }
 BENCHMARK(BM_MyBench);
+}  // end namespace
 
 int main(int argc, char** argv) {
   benchmark::MaybeReenterWithoutASLR(argc, argv);

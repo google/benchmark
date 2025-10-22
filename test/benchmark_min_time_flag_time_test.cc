@@ -60,13 +60,13 @@ void DoTestHelper(int* argc, const char** argv, double expected) {
   assert(!min_times.empty() && AlmostEqual(min_times[0], expected));
 }
 
-}  // end namespace
-
-static void BM_MyBench(benchmark::State& state) {
+void BM_MyBench(benchmark::State& state) {
   for (auto s : state) {
   }
 }
 BENCHMARK(BM_MyBench);
+
+}  // end namespace
 
 int main(int argc, char** argv) {
   benchmark::MaybeReenterWithoutASLR(argc, argv);

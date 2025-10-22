@@ -62,8 +62,6 @@ int AddCases(const std::string& base_name,
 #define CONCAT2(x, y) x##y
 #define ADD_CASES(...) const int CONCAT(dummy, __LINE__) = AddCases(__VA_ARGS__)
 
-}  // end namespace
-
 void BM_error_no_running(benchmark::State& state) {
   state.SkipWithError("error message");
 }
@@ -182,6 +180,16 @@ ADD_CASES("BM_error_while_paused", {{"/1/threads:1", true, "error message"},
                                     {"/2/threads:4", false, ""},
                                     {"/2/threads:8", false, ""}});
 
+void BM_malformed(benchmark::State& /*unused*/) {
+  // NOTE: empty body wanted. No thing else.
+}
+BENCHMARK(BM_malformed);
+ADD_CASES("BM_malformed",
+          {{"", true,
+            "The benchmark didn't run, nor was it explicitly skipped. Please "
+            "call 'SkipWithXXX` in your benchmark as appropriate."}});
+}  // end namespace
+
 int main(int argc, char* argv[]) {
   benchmark::MaybeReenterWithoutASLR(argc, argv);
   benchmark::Initialize(&argc, argv);
@@ -201,12 +209,3 @@ int main(int argc, char* argv[]) {
 
   return 0;
 }
-
-void BM_malformed(benchmark::State&) {
-  // NOTE: empty body wanted. No thing else.
-}
-BENCHMARK(BM_malformed);
-ADD_CASES("BM_malformed",
-          {{"", true,
-            "The benchmark didn't run, nor was it explicitly skipped. Please "
-            "call 'SkipWithXXX` in your benchmark as appropriate."}});

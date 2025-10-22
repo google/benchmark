@@ -1,14 +1,13 @@
 #undef NDEBUG
-#include <algorithm>
 #include <cassert>
 #include <cmath>
 #include <cstdlib>
-#include <vector>
 
 #include "benchmark/benchmark.h"
 #include "output_test.h"
 
-static void BM_ostream(benchmark::State &state) {
+namespace {
+void BM_ostream(benchmark::State& state) {
 #if !defined(__MINGW64__) || defined(__clang__)
   // GCC-based versions of MINGW64 do not support locale manipulations,
   // don't run the test under them.
@@ -40,8 +39,9 @@ ADD_CASES(TC_JSONOut,
            {"}", MR_Next}});
 ADD_CASES(TC_CSVOut, {{"^\"BM_ostream/iterations:1000000/"
                        "manual_time\",1000000,%float,%float,ns,,,,,$"}});
+}  // end namespace
 
-int main(int argc, char *argv[]) {
+int main(int argc, char* argv[]) {
   benchmark::MaybeReenterWithoutASLR(argc, argv);
   RunOutputTests(argc, argv);
 }

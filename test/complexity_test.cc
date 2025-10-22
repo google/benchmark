@@ -1,5 +1,4 @@
 #undef NDEBUG
-#include <algorithm>
 #include <cassert>
 #include <cmath>
 #include <cstdlib>
@@ -13,10 +12,10 @@ namespace {
 #define ADD_COMPLEXITY_CASES(...) \
   const int CONCAT(dummy, __LINE__) = AddComplexityTest(__VA_ARGS__)
 
-int AddComplexityTest(const std::string &test_name,
-                      const std::string &big_o_test_name,
-                      const std::string &rms_test_name,
-                      const std::string &big_o, int family_index) {
+int AddComplexityTest(const std::string& test_name,
+                      const std::string& big_o_test_name,
+                      const std::string& rms_test_name,
+                      const std::string& big_o, int family_index) {
   SetSubstitutions({{"%name", test_name},
                     {"%bigo_name", big_o_test_name},
                     {"%rms_name", rms_test_name},
@@ -61,13 +60,11 @@ int AddComplexityTest(const std::string &test_name,
   return 0;
 }
 
-}  // end namespace
-
 // ========================================================================= //
 // --------------------------- Testing BigO O(1) --------------------------- //
 // ========================================================================= //
 
-void BM_Complexity_O1(benchmark::State &state) {
+void BM_Complexity_O1(benchmark::State& state) {
   for (auto _ : state) {
     // This test requires a non-zero CPU time to avoid divide-by-zero
     benchmark::DoNotOptimize(state.iterations());
@@ -116,7 +113,7 @@ ADD_COMPLEXITY_CASES(one_test_name, big_o_1_test_name, rms_o_1_test_name,
 // --------------------------- Testing BigO O(N) --------------------------- //
 // ========================================================================= //
 
-void BM_Complexity_O_N(benchmark::State &state) {
+void BM_Complexity_O_N(benchmark::State& state) {
   for (auto _ : state) {
     // This test requires a non-zero CPU time to avoid divide-by-zero
     benchmark::DoNotOptimize(state.iterations());
@@ -173,8 +170,8 @@ ADD_COMPLEXITY_CASES(n_test_name, big_o_n_test_name, rms_o_n_test_name,
 // ------------------------- Testing BigO O(NlgN) ------------------------- //
 // ========================================================================= //
 
-static const double kLog2E = 1.44269504088896340736;
-static void BM_Complexity_O_N_log_N(benchmark::State &state) {
+const double kLog2E = 1.44269504088896340736;
+void BM_Complexity_O_N_log_N(benchmark::State& state) {
   for (auto _ : state) {
     // This test requires a non-zero CPU time to avoid divide-by-zero
     benchmark::DoNotOptimize(state.iterations());
@@ -236,7 +233,7 @@ ADD_COMPLEXITY_CASES(n_lg_n_test_name, big_o_n_lg_n_test_name,
 // -------- Testing formatting of Complexity with captured args ------------ //
 // ========================================================================= //
 
-void BM_ComplexityCaptureArgs(benchmark::State &state, int n) {
+void BM_ComplexityCaptureArgs(benchmark::State& state, int n) {
   for (auto _ : state) {
     // This test requires a non-zero CPU time to avoid divide-by-zero
     benchmark::DoNotOptimize(state.iterations());
@@ -264,12 +261,13 @@ const std::string complexity_capture_name =
 ADD_COMPLEXITY_CASES(complexity_capture_name, complexity_capture_name + "_BigO",
                      complexity_capture_name + "_RMS", "N",
                      /*family_index=*/9);
+}  // end namespace
 
 // ========================================================================= //
 // --------------------------- TEST CASES END ------------------------------ //
 // ========================================================================= //
 
-int main(int argc, char *argv[]) {
+int main(int argc, char* argv[]) {
   benchmark::MaybeReenterWithoutASLR(argc, argv);
   RunOutputTests(argc, argv);
 }

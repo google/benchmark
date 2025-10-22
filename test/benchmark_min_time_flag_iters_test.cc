@@ -1,7 +1,6 @@
 #include <cassert>
 #include <cstdlib>
 #include <cstring>
-#include <iostream>
 #include <string>
 #include <vector>
 
@@ -35,12 +34,12 @@ class TestReporter : public benchmark::ConsoleReporter {
   std::vector<benchmark::IterationCount> iter_nums_;
 };
 
-}  // end namespace
-
-static void BM_MyBench(benchmark::State& state) {
+void BM_MyBench(benchmark::State& state) {
   for (auto s : state) {
   }
 }
+}  // end namespace
+
 BENCHMARK(BM_MyBench);
 
 int main(int argc, char** argv) {

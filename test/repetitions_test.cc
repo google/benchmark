@@ -2,11 +2,12 @@
 #include "benchmark/benchmark.h"
 #include "output_test.h"
 
+namespace {
 // ========================================================================= //
 // ------------------------ Testing Basic Output --------------------------- //
 // ========================================================================= //
 
-static void BM_ExplicitRepetitions(benchmark::State& state) {
+void BM_ExplicitRepetitions(benchmark::State& state) {
   for (auto _ : state) {
   }
 }
@@ -108,7 +109,7 @@ ADD_CASES(TC_CSVOut,
 // ------------------------ Testing Basic Output --------------------------- //
 // ========================================================================= //
 
-static void BM_ImplicitRepetitions(benchmark::State& state) {
+void BM_ImplicitRepetitions(benchmark::State& state) {
   for (auto _ : state) {
   }
 }
@@ -206,6 +207,7 @@ ADD_CASES(TC_CSVOut, {{"^\"BM_ImplicitRepetitions\",%csv_report$"}});
 ADD_CASES(TC_CSVOut, {{"^\"BM_ImplicitRepetitions_mean\",%csv_report$"}});
 ADD_CASES(TC_CSVOut, {{"^\"BM_ImplicitRepetitions_median\",%csv_report$"}});
 ADD_CASES(TC_CSVOut, {{"^\"BM_ImplicitRepetitions_stddev\",%csv_report$"}});
+}  // end namespace
 
 // ========================================================================= //
 // --------------------------- TEST CASES END ------------------------------ //

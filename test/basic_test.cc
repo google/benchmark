@@ -3,6 +3,7 @@
 
 #define BASIC_BENCHMARK_TEST(x) BENCHMARK(x)->Arg(8)->Arg(512)->Arg(8192)
 
+namespace {
 void BM_empty(benchmark::State& state) {
   for (auto _ : state) {
     auto iterations = static_cast<double>(state.iterations()) *
@@ -174,5 +175,6 @@ static_assert(
                      benchmark::State::StateIterator>::value_type,
                  typename benchmark::State::StateIterator::value_type>::value,
     "");
+}  // end namespace
 
 BENCHMARK_MAIN();

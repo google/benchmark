@@ -209,12 +209,14 @@ class ResultsChecker {
   std::vector<std::string> SplitCsv_(const std::string& line) const;
 };
 
+namespace {
 // store the static ResultsChecker in a function to prevent initialization
 // order problems
 ResultsChecker& GetResultsChecker() {
   static ResultsChecker rc;
   return rc;
 }
+}  // end namespace
 
 // add a results checker for a benchmark
 void ResultsChecker::Add(const std::string& entry_pattern,
@@ -489,18 +491,19 @@ int SubstrCnt(const std::string& haystack, const std::string& pat) {
   return count;
 }
 
-static char ToHex(int ch) {
+namespace {
+char ToHex(int ch) {
   return ch < 10 ? static_cast<char>('0' + ch)
                  : static_cast<char>('a' + (ch - 10));
 }
 
-static char RandomHexChar() {
+char RandomHexChar() {
   static std::mt19937 rd{std::random_device{}()};
   static std::uniform_int_distribution<int> mrand{0, 15};
   return ToHex(mrand(rd));
 }
 
-static std::string GetRandomFileName() {
+std::string GetRandomFileName() {
   std::string model = "test.%%%%%%";
   for (auto& ch : model) {
     if (ch == '%') {
@@ -510,12 +513,12 @@ static std::string GetRandomFileName() {
   return model;
 }
 
-static bool FileExists(std::string const& name) {
+bool FileExists(std::string const& name) {
   std::ifstream in(name.c_str());
   return in.good();
 }
 
-static std::string GetTempFileName() {
+std::string GetTempFileName() {
   // This function attempts to avoid race conditions where two tests
   // create the same file at the same time. However, it still introduces races
   // similar to tmpnam.
@@ -530,6 +533,7 @@ static std::string GetTempFileName() {
   std::flush(std::cerr);
   std::exit(1);
 }
+}  // end namespace
 
 std::string GetFileReporterOutput(int argc, char* argv[]) {
   std::vector<char*> new_argv(argv, argv + argc);
