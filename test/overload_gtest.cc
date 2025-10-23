@@ -1,9 +1,10 @@
 #include "benchmark/benchmark.h"
 
+namespace {
 // Simulate an overloaded function name.
 // This version does nothing and is just here to create ambiguity for
 // MyOverloadedBenchmark.
-void MyOverloadedBenchmark() {}
+BENCHMARK_UNUSED void MyOverloadedBenchmark() {}
 
 // This is the actual benchmark function we want to register.
 // It has the signature void(benchmark::State&) required by the library.
@@ -29,5 +30,6 @@ void MyTemplatedOverloadedBenchmark(benchmark::State& state) {
 }
 
 BENCHMARK_TEMPLATE(MyTemplatedOverloadedBenchmark, 1);
+}  // end namespace
 
 BENCHMARK_MAIN();

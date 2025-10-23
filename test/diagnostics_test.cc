@@ -17,6 +17,7 @@
 #define TEST_HAS_NO_EXCEPTIONS
 #endif
 
+namespace {
 void TestHandler() {
 #ifndef TEST_HAS_NO_EXCEPTIONS
   throw std::logic_error("");
@@ -84,6 +85,7 @@ void BM_diagnostic_test_keep_running(benchmark::State& state) {
   called_once = true;
 }
 BENCHMARK(BM_diagnostic_test_keep_running);
+}  // end namespace
 
 int main(int argc, char* argv[]) {
 #ifdef NDEBUG

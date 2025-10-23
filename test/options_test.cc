@@ -8,6 +8,7 @@
 #endif
 #include <cassert>
 
+namespace {
 void BM_basic(benchmark::State& state) {
   for (auto _ : state) {
   }
@@ -73,5 +74,6 @@ void BM_explicit_iteration_count(benchmark::State& state) {
   assert(state.iterations() == 42);
 }
 BENCHMARK(BM_explicit_iteration_count)->Iterations(42);
+}  // end namespace
 
 BENCHMARK_MAIN();

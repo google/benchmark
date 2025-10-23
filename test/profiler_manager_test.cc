@@ -6,6 +6,7 @@
 #include "benchmark/benchmark.h"
 #include "output_test.h"
 
+namespace {
 class TestProfilerManager : public benchmark::ProfilerManager {
  public:
   void AfterSetupStart() override { ++start_called; }
@@ -38,6 +39,7 @@ ADD_CASES(TC_JSONOut, {{"\"name\": \"BM_empty\",$"},
                        {"\"time_unit\": \"ns\"$", MR_Next},
                        {"}", MR_Next}});
 ADD_CASES(TC_CSVOut, {{"^\"BM_empty\",%csv_report$"}});
+}  // end namespace
 
 int main(int argc, char* argv[]) {
   benchmark::MaybeReenterWithoutASLR(argc, argv);

@@ -17,6 +17,8 @@
 namespace benchmark {
 namespace internal {
 
+namespace {
+
 double Finish(Counter const& c, IterationCount iterations, double cpu_time,
               double num_threads) {
   double v = c.value;
@@ -38,6 +40,8 @@ double Finish(Counter const& c, IterationCount iterations, double cpu_time,
   }
   return v;
 }
+
+}  // namespace
 
 void Finish(UserCounters* l, IterationCount iterations, double cpu_time,
             double num_threads) {

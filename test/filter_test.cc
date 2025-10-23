@@ -37,37 +37,36 @@ class TestReporter : public benchmark::ConsoleReporter {
   mutable int64_t max_family_index_;
 };
 
-}  // end namespace
-
-static void NoPrefix(benchmark::State& state) {
+void NoPrefix(benchmark::State& state) {
   for (auto _ : state) {
   }
 }
 BENCHMARK(NoPrefix);
 
-static void BM_Foo(benchmark::State& state) {
+void BM_Foo(benchmark::State& state) {
   for (auto _ : state) {
   }
 }
 BENCHMARK(BM_Foo);
 
-static void BM_Bar(benchmark::State& state) {
+void BM_Bar(benchmark::State& state) {
   for (auto _ : state) {
   }
 }
 BENCHMARK(BM_Bar);
 
-static void BM_FooBar(benchmark::State& state) {
+void BM_FooBar(benchmark::State& state) {
   for (auto _ : state) {
   }
 }
 BENCHMARK(BM_FooBar);
 
-static void BM_FooBa(benchmark::State& state) {
+void BM_FooBa(benchmark::State& state) {
   for (auto _ : state) {
   }
 }
 BENCHMARK(BM_FooBa);
+}  // end namespace
 
 int main(int argc, char** argv) {
   benchmark::MaybeReenterWithoutASLR(argc, argv);

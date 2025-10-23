@@ -1,9 +1,9 @@
 #include <memory>
 
-#include "../src/check.h"
 #include "benchmark/benchmark.h"
 #include "output_test.h"
 
+namespace {
 class TestMemoryManager : public benchmark::MemoryManager {
   void Start() override {}
   void Stop(Result& result) override {
@@ -20,6 +20,7 @@ void BM_empty(benchmark::State& state) {
   }
 }
 BENCHMARK(BM_empty);
+}  // end namespace
 
 ADD_CASES(TC_ConsoleOut, {{"^BM_empty %console_report$"}});
 ADD_CASES(TC_JSONOut, {{"\"name\": \"BM_empty\",$"},

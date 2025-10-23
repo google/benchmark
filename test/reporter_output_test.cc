@@ -1,11 +1,9 @@
-
 #undef NDEBUG
-#include <numeric>
-#include <utility>
 
 #include "benchmark/benchmark.h"
 #include "output_test.h"
 
+namespace {
 // ========================================================================= //
 // ---------------------- Testing Prologue Output -------------------------- //
 // ========================================================================= //
@@ -13,7 +11,7 @@
 ADD_CASES(TC_ConsoleOut, {{"^[-]+$", MR_Next},
                           {"^Benchmark %s Time %s CPU %s Iterations$", MR_Next},
                           {"^[-]+$", MR_Next}});
-static int AddContextCases() {
+int AddContextCases() {
   AddCases(TC_ConsoleErr,
            {
                {"^%int-%int-%intT%int:%int:%int[-+]%int:%int$", MR_Default},
@@ -1128,6 +1126,7 @@ void BM_CSV_Format(benchmark::State& state) {
 }
 BENCHMARK(BM_CSV_Format);
 ADD_CASES(TC_CSVOut, {{"^\"BM_CSV_Format\",,,,,,,,true,\"\"\"freedom\"\"\"$"}});
+}  // end namespace
 
 // ========================================================================= //
 // --------------------------- TEST CASES END ------------------------------ //
