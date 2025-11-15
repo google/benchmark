@@ -214,7 +214,7 @@ PerfCounters PerfCounters::Create(
       // This should never happen but if it does, we give up on the
       // entire batch as recovery would be a mess.
       GetErrorLogInstance() << "***WARNING*** Failed to start counters. "
-                               "Claring out all counters.\n";
+                               "Clearing out all counters.\n";
 
       // Close all performance counters
       for (int id : counter_ids) {

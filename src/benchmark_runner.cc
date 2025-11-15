@@ -400,7 +400,7 @@ bool BenchmarkRunner::ShouldReportIterationResults(
 }
 
 double BenchmarkRunner::GetMinTimeToApply() const {
-  // In order to re-use functionality to run and measure benchmarks for running
+  // In order to reuse functionality to run and measure benchmarks for running
   // a warmup phase of the benchmark, we need a way of telling whether to apply
   // min_time or min_warmup_time. This function will figure out if we are in the
   // warmup phase and therefore need to apply min_warmup_time or if we already
