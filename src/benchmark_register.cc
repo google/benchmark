@@ -179,7 +179,7 @@ bool BenchmarkFamilies::FindBenchmarks(
 
           ++per_family_instance_index;
 
-          // Only bump the next family index once we've estabilished that
+          // Only bump the next family index once we've established that
           // at least one instance of this family will be run.
           if (next_family_index == family_index) {
             ++next_family_index;
