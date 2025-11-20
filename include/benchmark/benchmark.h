@@ -1229,7 +1229,7 @@ class BENCHMARK_EXPORT Benchmark {
   // Pass this benchmark object to *func, which can customize
   // the benchmark by calling various methods like Arg, Args,
   // Threads, etc.
-  Benchmark* Apply(void (*custom_arguments)(Benchmark* benchmark));
+  Benchmark* Apply(const std::function<void(Benchmark* benchmark)>&);
 
   // Set the range multiplier for non-dense range. If not called, the range
   // multiplier kRangeMultiplier will be used.

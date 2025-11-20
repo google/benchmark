@@ -330,7 +330,8 @@ Benchmark* Benchmark::Args(const std::vector<int64_t>& args) {
   return this;
 }
 
-Benchmark* Benchmark::Apply(void (*custom_arguments)(Benchmark* benchmark)) {
+Benchmark* Benchmark::Apply(
+    const std::function<void(Benchmark* benchmark)>& custom_arguments) {
   custom_arguments(this);
   return this;
 }
