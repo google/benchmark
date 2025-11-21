@@ -47,7 +47,7 @@ jobs:
         with:
           python-version: "3.12"
       - name: Install the latest version of uv
-        uses: astral-sh/setup-uv@5a7eac68fb9809dea845d802897dc5c723910fa3 # v7.1.3
+        uses: astral-sh/setup-uv@1e862dfacbd1d6d858c55d9b792c756523627244 # v7.1.4
 
       - name: Build wheels on ${{ matrix.os }} using cibuildwheel
         uses: pypa/cibuildwheel@63fd63b352a9a8bdcc24791c9dbee952ee9a8abc # v3.3.0
