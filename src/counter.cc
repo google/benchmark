@@ -23,7 +23,12 @@ double Finish(Counter const& c, IterationCount iterations, double cpu_time,
               double num_threads) {
   double v = c.value;
   if ((c.flags & Counter::kIsRate) != 0) {
-    v /= cpu_time;
+    // The CPU time is the total time taken by all threads (https://github.com/google/benchmark/pull/1836)
+    // If we used that as the denominator, we'd be calculating the rate per thread here. This is why
+    // we have to divide the total cpu_time by the number of threads for global counters to get a global rate.
+    //
+    // See https://github.com/google/benchmark/issues/2080
+    v /= (cpu_time / num_threads);
   }
   if ((c.flags & Counter::kAvgThreads) != 0) {
     v /= num_threads;
