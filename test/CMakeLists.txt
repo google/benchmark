@@ -83,23 +83,23 @@ else()
 endif()
 set_property(TARGET cxx11_test PROPERTY CXX_STANDARD_REQUIRED ON)
 set_property(TARGET cxx11_test PROPERTY CXX_EXTENSIONS OFF)
-benchmark_add_test(NAME cxx11_test COMMAND cxx11_test --benchmark_min_time=0.01s)
+benchmark_add_test(NAME cxx11_test COMMAND cxx11_test)
 
 compile_benchmark_test(benchmark_test)
-benchmark_add_test(NAME benchmark COMMAND benchmark_test --benchmark_min_time=0.01s)
+benchmark_add_test(NAME benchmark COMMAND benchmark_test)
 
 compile_benchmark_test(spec_arg_test)
-benchmark_add_test(NAME spec_arg COMMAND spec_arg_test --benchmark_filter=BM_NotChosen)
+benchmark_add_test(NAME spec_arg COMMAND spec_arg_test)
 
 compile_benchmark_test(spec_arg_verbosity_test)
-benchmark_add_test(NAME spec_arg_verbosity COMMAND spec_arg_verbosity_test --v=42)
+benchmark_add_test(NAME spec_arg_verbosity COMMAND spec_arg_verbosity_test)
 
 compile_benchmark_test(benchmark_setup_teardown_test)
 benchmark_add_test(NAME benchmark_setup_teardown COMMAND benchmark_setup_teardown_test)
 
 compile_benchmark_test(filter_test)
 macro(add_filter_test name filter expect)
-  benchmark_add_test(NAME ${name} COMMAND filter_test --benchmark_min_time=0.01s --benchmark_filter=${filter} ${expect})
+  benchmark_add_test(NAME ${name} COMMAND filter_test --benchmark_filter=${filter} ${expect})
   benchmark_add_test(NAME ${name}_list_only COMMAND filter_test --benchmark_list_tests --benchmark_filter=${filter} ${expect})
 endmacro(add_filter_test)
 
@@ -129,19 +129,19 @@ add_filter_test(filter_regex_end ".*Ba$" 1)
 add_filter_test(filter_regex_end_negative "-.*Ba$" 4)
 
 compile_benchmark_test(options_test)
-benchmark_add_test(NAME options_benchmarks COMMAND options_test --benchmark_min_time=0.01s)
+benchmark_add_test(NAME options_benchmarks COMMAND options_test)
 
 compile_benchmark_test(basic_test)
-benchmark_add_test(NAME basic_benchmark COMMAND basic_test --benchmark_min_time=0.01s)
+benchmark_add_test(NAME basic_benchmark COMMAND basic_test)
 
 compile_output_test(repetitions_test)
-benchmark_add_test(NAME repetitions_benchmark COMMAND repetitions_test --benchmark_min_time=0.01s --benchmark_repetitions=3)
+benchmark_add_test(NAME repetitions_benchmark COMMAND repetitions_test)
 
 compile_benchmark_test(diagnostics_test)
-benchmark_add_test(NAME diagnostics_test COMMAND diagnostics_test --benchmark_min_time=0.01s)
+benchmark_add_test(NAME diagnostics_test COMMAND diagnostics_test)
 
 compile_benchmark_test(skip_with_error_test)
-benchmark_add_test(NAME skip_with_error_test COMMAND skip_with_error_test --benchmark_min_time=0.01s)
+benchmark_add_test(NAME skip_with_error_test COMMAND skip_with_error_test)
 
 compile_benchmark_test(donotoptimize_test)
 # Enable errors for deprecated deprecations (DoNotOptimize(Tp const& value)).
@@ -154,70 +154,70 @@ check_cxx_compiler_flag(-O3 BENCHMARK_HAS_O3_FLAG)
 if (BENCHMARK_HAS_O3_FLAG)
   set_target_properties(donotoptimize_test PROPERTIES COMPILE_FLAGS "-O3")
 endif()
-benchmark_add_test(NAME donotoptimize_test COMMAND donotoptimize_test --benchmark_min_time=0.01s)
+benchmark_add_test(NAME donotoptimize_test COMMAND donotoptimize_test)
 
 compile_benchmark_test(fixture_test)
-benchmark_add_test(NAME fixture_test COMMAND fixture_test --benchmark_min_time=0.01s)
+benchmark_add_test(NAME fixture_test COMMAND fixture_test)
 
 compile_benchmark_test(register_benchmark_test)
-benchmark_add_test(NAME register_benchmark_test COMMAND register_benchmark_test --benchmark_min_time=0.01s)
+benchmark_add_test(NAME register_benchmark_test COMMAND register_benchmark_test)
 
 compile_benchmark_test(map_test)
-benchmark_add_test(NAME map_test COMMAND map_test --benchmark_min_time=0.01s)
+benchmark_add_test(NAME map_test COMMAND map_test)
 
 compile_benchmark_test(multiple_ranges_test)
-benchmark_add_test(NAME multiple_ranges_test COMMAND multiple_ranges_test --benchmark_min_time=0.01s)
+benchmark_add_test(NAME multiple_ranges_test COMMAND multiple_ranges_test)
 
 compile_benchmark_test(args_product_test)
-benchmark_add_test(NAME args_product_test COMMAND args_product_test --benchmark_min_time=0.01s)
+benchmark_add_test(NAME args_product_test COMMAND args_product_test)
 
 compile_benchmark_test_with_main(link_main_test)
-benchmark_add_test(NAME link_main_test COMMAND link_main_test --benchmark_min_time=0.01s)
+benchmark_add_test(NAME link_main_test COMMAND link_main_test)
 
 compile_output_test(reporter_output_test)
-benchmark_add_test(NAME reporter_output_test COMMAND reporter_output_test --benchmark_min_time=0.01s)
+benchmark_add_test(NAME reporter_output_test COMMAND reporter_output_test)
 
 compile_output_test(templated_fixture_test)
-benchmark_add_test(NAME templated_fixture_test COMMAND templated_fixture_test --benchmark_min_time=0.01s)
+benchmark_add_test(NAME templated_fixture_test COMMAND templated_fixture_test)
 
 compile_output_test(templated_fixture_method_test)
-benchmark_add_test(NAME templated_fixture_method_test COMMAND templated_fixture_method_test --benchmark_min_time=0.01s)
+benchmark_add_test(NAME templated_fixture_method_test COMMAND templated_fixture_method_test)
 
 compile_output_test(user_counters_test)
-benchmark_add_test(NAME user_counters_test COMMAND user_counters_test --benchmark_min_time=0.01s)
+benchmark_add_test(NAME user_counters_test COMMAND user_counters_test)
 
 compile_output_test(perf_counters_test)
-benchmark_add_test(NAME perf_counters_test COMMAND perf_counters_test --benchmark_min_time=0.01s --benchmark_perf_counters=CYCLES,INSTRUCTIONS)
+benchmark_add_test(NAME perf_counters_test COMMAND perf_counters_test)
 
 compile_output_test(internal_threading_test)
-benchmark_add_test(NAME internal_threading_test COMMAND internal_threading_test --benchmark_min_time=0.01s)
+benchmark_add_test(NAME internal_threading_test COMMAND internal_threading_test)
 
 compile_output_test(manual_threading_test)
-benchmark_add_test(NAME manual_threading_test COMMAND manual_threading_test --benchmark_min_time=0.01s)
+benchmark_add_test(NAME manual_threading_test COMMAND manual_threading_test)
 
 compile_output_test(report_aggregates_only_test)
-benchmark_add_test(NAME report_aggregates_only_test COMMAND report_aggregates_only_test --benchmark_min_time=0.01s)
+benchmark_add_test(NAME report_aggregates_only_test COMMAND report_aggregates_only_test)
 
 compile_output_test(display_aggregates_only_test)
-benchmark_add_test(NAME display_aggregates_only_test COMMAND display_aggregates_only_test --benchmark_min_time=0.01s)
+benchmark_add_test(NAME display_aggregates_only_test COMMAND display_aggregates_only_test)
 
 compile_output_test(user_counters_tabular_test)
-benchmark_add_test(NAME user_counters_tabular_test COMMAND user_counters_tabular_test --benchmark_counters_tabular=true --benchmark_min_time=0.01s)
+benchmark_add_test(NAME user_counters_tabular_test COMMAND user_counters_tabular_test)
 
 compile_output_test(user_counters_thousands_test)
-benchmark_add_test(NAME user_counters_thousands_test COMMAND user_counters_thousands_test --benchmark_min_time=0.01s)
+benchmark_add_test(NAME user_counters_thousands_test COMMAND user_counters_thousands_test)
 
 compile_output_test(memory_manager_test)
-benchmark_add_test(NAME memory_manager_test COMMAND memory_manager_test --benchmark_min_time=0.01s)
+benchmark_add_test(NAME memory_manager_test COMMAND memory_manager_test)
 
 compile_output_test(profiler_manager_test)
-benchmark_add_test(NAME profiler_manager_test COMMAND profiler_manager_test --benchmark_min_time=0.01s)
+benchmark_add_test(NAME profiler_manager_test COMMAND profiler_manager_test)
 
 compile_benchmark_test(profiler_manager_iterations_test)
 benchmark_add_test(NAME profiler_manager_iterations COMMAND profiler_manager_iterations_test)
 
 compile_output_test(complexity_test)
-benchmark_add_test(NAME complexity_benchmark COMMAND complexity_test --benchmark_min_time=1000000x)
+benchmark_add_test(NAME complexity_benchmark COMMAND complexity_test)
 
 compile_output_test(locale_impermeability_test)
 benchmark_add_test(NAME locale_impermeability_test COMMAND locale_impermeability_test)

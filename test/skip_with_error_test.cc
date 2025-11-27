@@ -5,6 +5,7 @@
 
 #include "../src/check.h"  // NOTE: check.h is for internal use only!
 #include "benchmark/benchmark.h"
+#include "default_arguments.h"
 
 namespace {
 
@@ -191,6 +192,7 @@ ADD_CASES("BM_malformed",
 }  // end namespace
 
 int main(int argc, char* argv[]) {
+  AddTestArguments(argc, argv);
   benchmark::MaybeReenterWithoutASLR(argc, argv);
   benchmark::Initialize(&argc, argv);
 

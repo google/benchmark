@@ -1,6 +1,7 @@
 #undef NDEBUG
 
 #include "benchmark/benchmark.h"
+#include "default_arguments.h"
 #include "output_test.h"
 
 namespace {
@@ -1133,6 +1134,7 @@ ADD_CASES(TC_CSVOut, {{"^\"BM_CSV_Format\",,,,,,,,true,\"\"\"freedom\"\"\"$"}});
 // ========================================================================= //
 
 int main(int argc, char* argv[]) {
+  AddTestArguments(argc, argv);
   benchmark::MaybeReenterWithoutASLR(argc, argv);
   RunOutputTests(argc, argv);
 }

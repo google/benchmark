@@ -2,6 +2,7 @@
 #undef NDEBUG
 
 #include "benchmark/benchmark.h"
+#include "default_arguments.h"
 #include "output_test.h"
 
 namespace {
@@ -563,6 +564,7 @@ CHECK_BENCHMARK_RESULTS("BM_CounterSet2_Tabular", &CheckSet2);
 // ========================================================================= //
 
 int main(int argc, char* argv[]) {
+  AddTestArguments(argc, argv, {"--benchmark_counters_tabular=true"});
   benchmark::MaybeReenterWithoutASLR(argc, argv);
   RunOutputTests(argc, argv);
 }

@@ -5,6 +5,7 @@
 #include <string>
 
 #include "benchmark/benchmark.h"
+#include "default_arguments.h"
 
 // Test that Setup() and Teardown() are called exactly once
 // for each benchmark run (single-threaded).
@@ -130,6 +131,7 @@ BENCHMARK(BM_WithRep)
 }  // namespace
 
 int main(int argc, char** argv) {
+  AddTestArguments(argc, argv);
   benchmark::MaybeReenterWithoutASLR(argc, argv);
 
   benchmark::Initialize(&argc, argv);

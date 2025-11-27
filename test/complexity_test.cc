@@ -5,6 +5,7 @@
 #include <vector>
 
 #include "benchmark/benchmark.h"
+#include "default_arguments.h"
 #include "output_test.h"
 
 namespace {
@@ -268,6 +269,7 @@ ADD_COMPLEXITY_CASES(complexity_capture_name, complexity_capture_name + "_BigO",
 // ========================================================================= //
 
 int main(int argc, char* argv[]) {
+  AddTestArguments(argc, argv, {"--benchmark_min_time=1000000x"});
   benchmark::MaybeReenterWithoutASLR(argc, argv);
   RunOutputTests(argc, argv);
 }

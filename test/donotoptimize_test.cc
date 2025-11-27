@@ -1,6 +1,7 @@
 #include <cstdint>
 
 #include "benchmark/benchmark.h"
+#include "default_arguments.h"
 
 namespace {
 #if defined(__GNUC__)
@@ -27,6 +28,7 @@ struct BitRef {
 };
 
 int main(int argc, char* argv[]) {
+  AddTestArguments(argc, argv);
   benchmark::MaybeReenterWithoutASLR(argc, argv);
 
   // this test verifies compilation of DoNotOptimize() for some types

@@ -3,6 +3,7 @@
 #include <iostream>
 
 #include "benchmark/benchmark.h"
+#include "default_arguments.h"
 
 namespace {
 // Tests that the user specified verbosity level can be get.
@@ -14,23 +15,10 @@ BENCHMARK(BM_Verbosity);
 }  // end namespace
 
 int main(int argc, char** argv) {
+  AddTestArguments(argc, argv, {"--v=42"});
   benchmark::MaybeReenterWithoutASLR(argc, argv);
 
   const int32_t flagv = 42;
-
-  // Verify that argv specify --v=42.
-  bool found = false;
-  for (int i = 0; i < argc; ++i) {
-    if (strcmp("--v=42", argv[i]) == 0) {
-      found = true;
-      break;
-    }
-  }
-  if (!found) {
-    std::cerr << "This test requires '--v=42' to be passed as a command-line "
-              << "argument.\n";
-    return 1;
-  }
 
   benchmark::Initialize(&argc, argv);
 

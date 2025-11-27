@@ -4,6 +4,7 @@
 #include <string>
 
 #include "benchmark/benchmark.h"
+#include "default_arguments.h"
 #include "output_test.h"
 
 namespace {
@@ -19,6 +20,7 @@ BENCHMARK(BM_SummaryRepeat)->Repetitions(3)->ReportAggregatesOnly();
 }  // end namespace
 
 int main(int argc, char* argv[]) {
+  AddTestArguments(argc, argv);
   benchmark::MaybeReenterWithoutASLR(argc, argv);
   const std::string output = GetFileReporterOutput(argc, argv);
 

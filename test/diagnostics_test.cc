@@ -12,6 +12,7 @@
 
 #include "../src/check.h"
 #include "benchmark/benchmark.h"
+#include "default_arguments.h"
 
 #if defined(__GNUC__) && !defined(__EXCEPTIONS)
 #define TEST_HAS_NO_EXCEPTIONS
@@ -96,6 +97,7 @@ int main(int argc, char* argv[]) {
   (void)argc;
   (void)argv;
 #else
+  AddTestArguments(argc, argv);
   benchmark::MaybeReenterWithoutASLR(argc, argv);
   benchmark::internal::GetAbortHandler() = &TestHandler;
   benchmark::Initialize(&argc, argv);

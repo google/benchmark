@@ -1,5 +1,6 @@
 
 #include "benchmark/benchmark.h"
+#include "default_arguments.h"
 #include "output_test.h"
 
 namespace {
@@ -214,6 +215,7 @@ ADD_CASES(TC_CSVOut, {{"^\"BM_ImplicitRepetitions_stddev\",%csv_report$"}});
 // ========================================================================= //
 
 int main(int argc, char* argv[]) {
+  AddTestArguments(argc, argv, {"--benchmark_repetitions=3"});
   benchmark::MaybeReenterWithoutASLR(argc, argv);
   RunOutputTests(argc, argv);
 }

@@ -4,6 +4,7 @@
 #include <cstdlib>
 
 #include "benchmark/benchmark.h"
+#include "default_arguments.h"
 #include "output_test.h"
 
 namespace {
@@ -42,6 +43,7 @@ ADD_CASES(TC_CSVOut, {{"^\"BM_ostream/iterations:1000000/"
 }  // end namespace
 
 int main(int argc, char* argv[]) {
+  AddTestArguments(argc, argv);
   benchmark::MaybeReenterWithoutASLR(argc, argv);
   RunOutputTests(argc, argv);
 }

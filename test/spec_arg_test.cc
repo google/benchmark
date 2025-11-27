@@ -9,6 +9,7 @@
 #include <vector>
 
 #include "benchmark/benchmark.h"
+#include "default_arguments.h"
 
 // Tests that we can override benchmark-spec value from FLAGS_benchmark_filter
 // with argument to RunSpecifiedBenchmarks(...).
@@ -55,19 +56,10 @@ BENCHMARK(BM_Chosen);
 }  // end namespace
 
 int main(int argc, char** argv) {
+  AddTestArguments(argc, argv, {"--benchmark_filter=BM_NotChosen"});
   benchmark::MaybeReenterWithoutASLR(argc, argv);
 
   const std::string flag = "BM_NotChosen";
-
-  // Verify that argv specify --benchmark_filter=BM_NotChosen.
-  bool found = false;
-  for (int i = 0; i < argc; ++i) {
-    if (strcmp("--benchmark_filter=BM_NotChosen", argv[i]) == 0) {
-      found = true;
-      break;
-    }
-  }
-  assert(found);
 
   benchmark::Initialize(&argc, argv);
 

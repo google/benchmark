@@ -8,6 +8,7 @@
 #include <vector>
 
 #include "benchmark/benchmark.h"
+#include "default_arguments.h"
 
 // Tests that we can specify the min time with
 // --benchmark_min_time=<NUM> (no suffix needed) OR
@@ -69,6 +70,7 @@ BENCHMARK(BM_MyBench);
 }  // end namespace
 
 int main(int argc, char** argv) {
+  AddTestArguments(argc, argv);
   benchmark::MaybeReenterWithoutASLR(argc, argv);
 
   // Make a fake argv and append the new --benchmark_min_time=<foo> to it.

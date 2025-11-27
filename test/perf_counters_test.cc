@@ -4,6 +4,7 @@
 #include "../src/commandlineflags.h"
 #include "../src/perf_counters.h"
 #include "benchmark/benchmark.h"
+#include "default_arguments.h"
 #include "output_test.h"
 
 namespace benchmark {
@@ -81,6 +82,7 @@ CHECK_BENCHMARK_RESULTS("BM_WithPauseResume", &SaveInstrCountWithResume);
 }  // end namespace
 
 int main(int argc, char* argv[]) {
+  AddTestArguments(argc, argv);
   benchmark::MaybeReenterWithoutASLR(argc, argv);
   if (!benchmark::internal::PerfCounters::kSupported) {
     return 0;

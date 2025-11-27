@@ -4,6 +4,7 @@
 #include <string>
 
 #include "benchmark/benchmark.h"
+#include "default_arguments.h"
 #include "output_test.h"
 
 // Ok this test is super ugly. We want to check what happens with the file
@@ -19,6 +20,7 @@ BENCHMARK(BM_SummaryRepeat)->Repetitions(3)->DisplayAggregatesOnly();
 }  // end namespace
 
 int main(int argc, char* argv[]) {
+  AddTestArguments(argc, argv);
   benchmark::MaybeReenterWithoutASLR(argc, argv);
 
   const std::string output = GetFileReporterOutput(argc, argv);

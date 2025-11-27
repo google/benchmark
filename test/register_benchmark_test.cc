@@ -3,8 +3,8 @@
 #include <cassert>
 #include <vector>
 
-#include "../src/check.h"  // NOTE: check.h is for internal use only!
 #include "benchmark/benchmark.h"
+#include "default_arguments.h"
 
 namespace {
 
@@ -183,6 +183,7 @@ void RunTestTwo() {
 }  // end namespace
 
 int main(int argc, char* argv[]) {
+  AddTestArguments(argc, argv);
   benchmark::MaybeReenterWithoutASLR(argc, argv);
   benchmark::Initialize(&argc, argv);
 

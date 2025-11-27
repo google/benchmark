@@ -6,6 +6,7 @@
 
 #include "../src/timers.h"
 #include "benchmark/benchmark.h"
+#include "default_arguments.h"
 #include "output_test.h"
 
 namespace {
@@ -186,6 +187,7 @@ BENCHMARK(BM_MainThreadAndWorkerThread)
 // ========================================================================= //
 
 int main(int argc, char* argv[]) {
+  AddTestArguments(argc, argv);
   benchmark::MaybeReenterWithoutASLR(argc, argv);
 
   RunOutputTests(argc, argv);
