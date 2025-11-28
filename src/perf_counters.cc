@@ -14,9 +14,6 @@
 
 #include "perf_counters.h"
 
-#include <sys/types.h>
-#include <unistd.h>
-
 #include <cstring>
 #include <vector>
 
@@ -139,7 +136,7 @@ PerfCounters PerfCounters::Create(
 
     // This struct will be populated by libpfm from the counter string
     // and then fed into the syscall perf_event_open
-    struct perf_event_attr attr{};
+    struct perf_event_attr attr {};
     attr.size = sizeof(attr);
 
     // This is the input struct to libpfm.
