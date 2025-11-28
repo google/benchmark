@@ -62,6 +62,8 @@ function(cxx_feature_check FEATURE)
     )
     if(COMPILE_STATUS)
       set(RUN_STATUS 0)
+      message(WARNING
+              "If you see build failures due to cross compilation, try setting ${VAR} to 0")
     endif()
   else()
     cxx_feature_check_print("Compiling and running to test ${FEATURE}")
