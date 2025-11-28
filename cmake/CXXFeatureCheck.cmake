@@ -12,6 +12,11 @@
 # cxx_feature_check(STD_REGEX)
 # Requires CMake 3.13+
 
+if(__cxx_feature_check)
+  return()
+endif()
+set(__cxx_feature_check INCLUDED)
+
 option(CXXFEATURECHECK_DEBUG OFF "Enable debug messages for CXX feature checks")
 
 function(cxx_feature_check_print log)
