@@ -85,6 +85,12 @@ PerfCounters PerfCounters::Create(
     Initialize();
   }
 
+  // Initially try to create a single group which holds all PMUs since that
+  // has lower overhead. Group multiplexing doesn't work on all platforms so if
+  // that fails try again without using groups.
+  bool group_pmus = true;
+retry_without_groups:
+
   // Valid counters will populate these arrays but we start empty
   std::vector<std::string> valid_names;
   std::vector<int> counter_ids;
@@ -95,11 +101,6 @@ PerfCounters PerfCounters::Create(
   counter_ids.reserve(counter_names.size());
 
   const int kCounterMode = PFM_PLM3;  // user mode only
-
-  // Group leads will be assigned on demand. The idea is that once we cannot
-  // create a counter descriptor, the reason is that this group has maxed out
-  // so we set the group_id again to -1 and retry - giving the algorithm a
-  // chance to create a new group leader to hold the next set of counters.
   int group_id = -1;
 
   // Loop through all performance counters
@@ -149,7 +150,7 @@ PerfCounters PerfCounters::Create(
     // case.
     attr.disabled = is_first;
     attr.inherit = true;
-    attr.pinned = is_first;
+    attr.pinned = group_pmus;
     attr.exclude_kernel = true;
     attr.exclude_user = false;
     attr.exclude_hv = true;
@@ -171,10 +172,14 @@ PerfCounters PerfCounters::Create(
       }
       if (id < 0) {
         // If the file descriptor is negative we might have reached a limit
-        // in the current group. Set the group_id to -1 and retry
-        if (group_id >= 0) {
-          // Create a new group
-          group_id = -1;
+        // in the current group. Let's try again without groups.
+        if (group_id >= 0 && group_pmus) {
+          // Close all performance counters
+          for (int close_id : counter_ids) {
+            ::close(close_id);
+          }
+          group_pmus = false;
+          goto retry_without_groups;
         } else {
           // At this point we have already retried to set a new group id and
           // failed. We then give up.
@@ -197,7 +202,9 @@ PerfCounters PerfCounters::Create(
     if (group_id < 0) {
       // This is a leader, store and assign it to the current file descriptor
       leader_ids.push_back(id);
-      group_id = id;
+      if (group_pmus) {
+        group_id = id;
+      }
     }
     // This is a valid counter, add it to our descriptor's list
     counter_ids.push_back(id);
@@ -254,7 +261,7 @@ bool PerfCounters::IsCounterSupported(const std::string&) { return false; }
 PerfCounters PerfCounters::Create(
     const std::vector<std::string>& counter_names) {
   if (!counter_names.empty()) {
-    GetErrorLogInstance() << "Performance counters not supported.\n";
+    GetErrorLogInstance() << "Performance counters not supported.";
   }
   return NoCounters();
 }
@@ -280,3 +287,4 @@ PerfCounters& PerfCounters::operator=(PerfCounters&& other) noexcept {
 }
 }  // namespace internal
 }  // namespace benchmark
+
