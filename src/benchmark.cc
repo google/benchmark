@@ -225,7 +225,7 @@ State::State(std::string name, IterationCount max_iters,
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Winvalid-offsetof"
 #endif
-#if defined(__NVCC__)
+#if defined(__NVCC_DIAG_PRAGMA_SUPPORT__)
 #pragma nv_diagnostic push
 #pragma nv_diag_suppress 1427
 #endif
@@ -242,7 +242,7 @@ State::State(std::string name, IterationCount max_iters,
 #elif defined(__GNUC__) || defined(__clang__)
 #pragma GCC diagnostic pop
 #endif
-#if defined(__NVCC__)
+#if defined(__NVCC_DIAG_PRAGMA_SUPPORT__)
 #pragma nv_diagnostic pop
 #endif
 #if defined(__NVCOMPILER)
