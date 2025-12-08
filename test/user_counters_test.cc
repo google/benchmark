@@ -381,8 +381,10 @@ ADD_CASES(TC_CSVOut, {{"^\"BM_Counters_AvgThreadsRate/"
 // VS2013 does not allow this function to be passed as a lambda argument
 // to CHECK_BENCHMARK_RESULTS()
 void CheckAvgThreadsRate(Results const& e) {
-  CHECK_FLOAT_COUNTER_VALUE(e, "foo", EQ, 1. / e.DurationCPUTime(), 0.001);
-  CHECK_FLOAT_COUNTER_VALUE(e, "bar", EQ, 2. / e.DurationCPUTime(), 0.001);
+  // this (and not real time) is the time used
+  double t = e.DurationCPUTime() / e.NumThreads();
+  CHECK_FLOAT_COUNTER_VALUE(e, "foo", EQ, 1. / t, 0.001);
+  CHECK_FLOAT_COUNTER_VALUE(e, "bar", EQ, 2. / t, 0.001);
 }
 CHECK_BENCHMARK_RESULTS("BM_Counters_AvgThreadsRate/threads:%int",
                         &CheckAvgThreadsRate);
