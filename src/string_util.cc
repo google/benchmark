@@ -112,6 +112,7 @@ std::string ToBinaryStringFullySpecified(double value, int precision,
   return mantissa + ExponentToPrefix(exponent, one_k == Counter::kIs1024);
 }
 
+PRINTF_FORMAT_STRING_FUNC(1, 0)
 std::string StrFormatImp(const char* msg, va_list args) {
   // we might need a second shot at this, so pre-emptivly make a copy
   va_list args_cp;
