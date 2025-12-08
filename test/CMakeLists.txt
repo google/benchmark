@@ -186,6 +186,9 @@ benchmark_add_test(NAME templated_fixture_method_test COMMAND templated_fixture_
 compile_output_test(user_counters_test)
 benchmark_add_test(NAME user_counters_test COMMAND user_counters_test --benchmark_min_time=0.01s)
 
+compile_output_test(user_counters_threads_test)
+benchmark_add_test(NAME user_counters_threads_test COMMAND user_counters_threads_test --benchmark_min_time=0.01s)
+
 compile_output_test(perf_counters_test)
 benchmark_add_test(NAME perf_counters_test COMMAND perf_counters_test --benchmark_min_time=0.01s --benchmark_perf_counters=CYCLES,INSTRUCTIONS)
 
