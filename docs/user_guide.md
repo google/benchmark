@@ -749,10 +749,6 @@ and `Counter` values. The latter is a `double`-like class, via an implicit
 conversion to `double&`. Thus you can use all of the standard arithmetic
 assignment operators (`=,+=,-=,*=,/=`) to change the value of each counter.
 
-In multithreaded benchmarks, each counter is set on the calling thread only.
-When the benchmark finishes, the counters from each thread will be summed;
-the resulting sum is the value which will be shown for the benchmark.
-
 The `Counter` constructor accepts three parameters: the value as a `double`
 ; a bit flag which allows you to show counters as rates, and/or as per-thread
 iteration, and/or as per-thread averages, and/or iteration invariants,
@@ -796,6 +792,10 @@ You can use `insert()` with `std::initializer_list`:
   state.counters["Baz"] = numBazs;
 ```
 <!-- {% endraw %} -->
+
+In multithreaded benchmarks, each counter is set on the calling thread only.
+When the benchmark finishes, the counters from each thread will be summed.
+Counters that are configured with `kIsRate`, will report the average rate across all threads, while `kAvgThreadsRate` counters will report the average rate per thread.
 
 ### Counter Reporting
 
