@@ -30,7 +30,7 @@ jobs:
         if: runner.os == 'macOS'
         run: brew install ninja
 
-      - uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # v6.0.0
+      - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
 
       - name: build
         uses: threeal/cmake-action@725d1314ccf9ea922805d7e3f9d9bcbca892b406 # v2.1.0
@@ -77,9 +77,9 @@ jobs:
             generator: 'Visual Studio 17 2022'
 
     steps:
-      - uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # v6.0.0
+      - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
 
-      - uses: lukka/get-cmake@bb2faa721a800324b726fec00f7c1ff7641964d1 # latest
+      - uses: lukka/get-cmake@9e07ecdcee1b12e5037e42f410b67f03e2f626e1 # latest
 
       - name: configure cmake
         run: >
@@ -131,7 +131,7 @@ jobs:
             cmake:p
             ninja:p
 
-      - uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # v6.0.0
+      - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
 
       # NOTE: we can't use cmake actions here as we need to do everything in msys2 shell.
       - name: configure cmake
