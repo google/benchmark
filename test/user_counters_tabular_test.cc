@@ -418,7 +418,7 @@ ADD_CASES(TC_CSVOut, {{"^\"BM_CounterRates_Tabular/threads:%int\",%csv_report,"
 // VS2013 does not allow this function to be passed as a lambda argument
 // to CHECK_BENCHMARK_RESULTS()
 void CheckTabularRate(Results const& e) {
-  double t = e.DurationCPUTime();
+  double t = e.DurationCPUTime() / e.NumThreads();
   CHECK_FLOAT_COUNTER_VALUE(e, "Foo", EQ, 1. / t, 0.001);
   CHECK_FLOAT_COUNTER_VALUE(e, "Bar", EQ, 2. / t, 0.001);
   CHECK_FLOAT_COUNTER_VALUE(e, "Baz", EQ, 4. / t, 0.001);

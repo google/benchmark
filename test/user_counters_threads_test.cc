@@ -107,7 +107,8 @@ ADD_CASES(TC_CSVOut, {{"^\"BM_Counters_WithBytesAndItemsPSec/threads:%int\","
 // VS2013 does not allow this function to be passed as a lambda argument
 // to CHECK_BENCHMARK_RESULTS()
 void CheckBytesAndItemsPSec(Results const& e) {
-  double t = e.DurationCPUTime();  // this (and not real time) is the time used
+  // this (and not real time) is the time used
+  double t = e.DurationCPUTime() / e.NumThreads();
   CHECK_COUNTER_VALUE(e, int, "foo", EQ, 1 * e.NumThreads());
   // check that the values are within 0.1% of the expected values
   CHECK_FLOAT_RESULT_VALUE(e, "bytes_per_second", EQ,
@@ -158,7 +159,8 @@ ADD_CASES(TC_CSVOut,
 // VS2013 does not allow this function to be passed as a lambda argument
 // to CHECK_BENCHMARK_RESULTS()
 void CheckRate(Results const& e) {
-  double t = e.DurationCPUTime();  // this (and not real time) is the time used
+  // this (and not real time) is the time used
+  double t = e.DurationCPUTime() / e.NumThreads();
   // check that the values are within 0.1% of the expected values
   CHECK_FLOAT_COUNTER_VALUE(e, "foo", EQ, (1. * e.NumThreads()) / t, 0.001);
   CHECK_FLOAT_COUNTER_VALUE(e, "bar", EQ, (2. * e.NumThreads()) / t, 0.001);
@@ -258,7 +260,8 @@ ADD_CASES(TC_CSVOut, {{"^\"BM_Counters_InvertedRate/"
 // VS2013 does not allow this function to be passed as a lambda argument
 // to CHECK_BENCHMARK_RESULTS()
 void CheckInvertedRate(Results const& e) {
-  double t = e.DurationCPUTime();  // this (and not real time) is the time used
+  // this (and not real time) is the time used
+  double t = e.DurationCPUTime() / e.NumThreads();
   // check that the values are within 0.1% of the expected values
   CHECK_FLOAT_COUNTER_VALUE(e, "foo", EQ, t / (e.NumThreads()), 0.001);
   CHECK_FLOAT_COUNTER_VALUE(e, "bar", EQ, t / (8192.0 * e.NumThreads()), 0.001);
@@ -394,8 +397,10 @@ ADD_CASES(TC_CSVOut, {{"^\"BM_Counters_AvgThreadsRate/"
 // VS2013 does not allow this function to be passed as a lambda argument
 // to CHECK_BENCHMARK_RESULTS()
 void CheckAvgThreadsRate(Results const& e) {
-  CHECK_FLOAT_COUNTER_VALUE(e, "foo", EQ, 1. / e.DurationCPUTime(), 0.001);
-  CHECK_FLOAT_COUNTER_VALUE(e, "bar", EQ, 2. / e.DurationCPUTime(), 0.001);
+  // this (and not real time) is the time used
+  double t = e.DurationCPUTime() / e.NumThreads();
+  CHECK_FLOAT_COUNTER_VALUE(e, "foo", EQ, 1. / t, 0.001);
+  CHECK_FLOAT_COUNTER_VALUE(e, "bar", EQ, 2. / t, 0.001);
 }
 CHECK_BENCHMARK_RESULTS("BM_Counters_AvgThreadsRate/threads:%int",
                         &CheckAvgThreadsRate);
@@ -496,7 +501,8 @@ ADD_CASES(
 // to CHECK_BENCHMARK_RESULTS()
 void CheckIsIterationInvariantRate(Results const& e) {
   double its = e.NumIterations();
-  double t = e.DurationCPUTime();  // this (and not real time) is the time used
+  // this (and not real time) is the time used
+  double t = e.DurationCPUTime() / e.NumThreads();
   // check that the values are within 0.1% of the expected values
   CHECK_FLOAT_COUNTER_VALUE(e, "foo", EQ, its * 1. * e.NumThreads() / t, 0.001);
   CHECK_FLOAT_COUNTER_VALUE(e, "bar", EQ, its * 2. * e.NumThreads() / t, 0.001);
@@ -596,7 +602,8 @@ ADD_CASES(TC_CSVOut,
 // to CHECK_BENCHMARK_RESULTS()
 void CheckAvgIterationsRate(Results const& e) {
   double its = e.NumIterations();
-  double t = e.DurationCPUTime();  // this (and not real time) is the time used
+  // this (and not real time) is the time used
+  double t = e.DurationCPUTime() / e.NumThreads();
   // check that the values are within 0.1% of the expected values
   CHECK_FLOAT_COUNTER_VALUE(e, "foo", EQ, 1. * e.NumThreads() / its / t, 0.001);
   CHECK_FLOAT_COUNTER_VALUE(e, "bar", EQ, 2. * e.NumThreads() / its / t, 0.001);
