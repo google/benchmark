@@ -5,6 +5,8 @@
 #include <iostream>
 #include <string>
 
+#include "internal_macros.h"
+
 namespace benchmark {
 enum LogColor {
   COLOR_DEFAULT,
@@ -16,16 +18,6 @@ enum LogColor {
   COLOR_CYAN,
   COLOR_WHITE
 };
-
-#if defined(__GNUC__) || defined(__clang__)
-#define PRINTF_FORMAT_STRING_FUNC(format_arg, first_idx) \
-  __attribute__((format(printf, format_arg, first_idx)))
-#elif defined(__MINGW32__)
-#define PRINTF_FORMAT_STRING_FUNC(format_arg, first_idx) \
-  __attribute__((format(__MINGW_PRINTF_FORMAT, format_arg, first_idx)))
-#else
-#define PRINTF_FORMAT_STRING_FUNC(format_arg, first_idx)
-#endif
 
 PRINTF_FORMAT_STRING_FUNC(1, 0)
 std::string FormatString(const char* msg, va_list args);

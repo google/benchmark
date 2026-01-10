@@ -12,6 +12,7 @@ COPTS = [
     "-Wshadow",
     #    "-Wshorten-64-to-32",
     "-Wfloat-equal",
+    "-Wformat=2",
     "-fstrict-aliasing",
     ## assert() are used a lot in tests upstream, which may be optimised out leading to
     ## unused-variable warning.

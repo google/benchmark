@@ -21,6 +21,7 @@ ADD_CASES(TC_CSVOut, {{"%csv_header,\"bar\",\"foo\""}});
 // ========================================================================= //
 // ------------------------- Simple Counters Output ------------------------ //
 // ========================================================================= //
+
 namespace {
 void BM_Counters_Simple(benchmark::State& state) {
   for (auto _ : state) {
@@ -28,34 +29,37 @@ void BM_Counters_Simple(benchmark::State& state) {
   state.counters["foo"] = 1;
   state.counters["bar"] = 2 * static_cast<double>(state.iterations());
 }
-BENCHMARK(BM_Counters_Simple);
-ADD_CASES(TC_ConsoleOut,
-          {{"^BM_Counters_Simple %console_report bar=%hrfloat foo=%hrfloat$"}});
-ADD_CASES(TC_JSONOut, {{"\"name\": \"BM_Counters_Simple\",$"},
-                       {"\"family_index\": 0,$", MR_Next},
-                       {"\"per_family_instance_index\": 0,$", MR_Next},
-                       {"\"run_name\": \"BM_Counters_Simple\",$", MR_Next},
-                       {"\"run_type\": \"iteration\",$", MR_Next},
-                       {"\"repetitions\": 1,$", MR_Next},
-                       {"\"repetition_index\": 0,$", MR_Next},
-                       {"\"threads\": 1,$", MR_Next},
-                       {"\"iterations\": %int,$", MR_Next},
-                       {"\"real_time\": %float,$", MR_Next},
-                       {"\"cpu_time\": %float,$", MR_Next},
-                       {"\"time_unit\": \"ns\",$", MR_Next},
-                       {"\"bar\": %float,$", MR_Next},
-                       {"\"foo\": %float$", MR_Next},
-                       {"}", MR_Next}});
-ADD_CASES(TC_CSVOut, {{"^\"BM_Counters_Simple\",%csv_report,%float,%float$"}});
+BENCHMARK(BM_Counters_Simple)->ThreadRange(1, 8);
+ADD_CASES(TC_ConsoleOut, {{"^BM_Counters_Simple/threads:%int %console_report "
+                           "bar=%hrfloat foo=%hrfloat$"}});
+ADD_CASES(TC_JSONOut,
+          {{"\"name\": \"BM_Counters_Simple/threads:%int\",$"},
+           {"\"family_index\": 0,$", MR_Next},
+           {"\"per_family_instance_index\": 0,$", MR_Next},
+           {"\"run_name\": \"BM_Counters_Simple/threads:%int\",$", MR_Next},
+           {"\"run_type\": \"iteration\",$", MR_Next},
+           {"\"repetitions\": 1,$", MR_Next},
+           {"\"repetition_index\": 0,$", MR_Next},
+           {"\"threads\": %int,$", MR_Next},
+           {"\"iterations\": %int,$", MR_Next},
+           {"\"real_time\": %float,$", MR_Next},
+           {"\"cpu_time\": %float,$", MR_Next},
+           {"\"time_unit\": \"ns\",$", MR_Next},
+           {"\"bar\": %float,$", MR_Next},
+           {"\"foo\": %float$", MR_Next},
+           {"}", MR_Next}});
+ADD_CASES(
+    TC_CSVOut,
+    {{"^\"BM_Counters_Simple/threads:%int\",%csv_report,%float,%float$"}});
 // VS2013 does not allow this function to be passed as a lambda argument
 // to CHECK_BENCHMARK_RESULTS()
 void CheckSimple(Results const& e) {
   double its = e.NumIterations();
-  CHECK_COUNTER_VALUE(e, int, "foo", EQ, 1);
+  CHECK_COUNTER_VALUE(e, int, "foo", EQ, 1 * e.NumThreads());
   // check that the value of bar is within 0.1% of the expected value
   CHECK_FLOAT_COUNTER_VALUE(e, "bar", EQ, 2. * its, 0.001);
 }
-CHECK_BENCHMARK_RESULTS("BM_Counters_Simple", &CheckSimple);
+CHECK_BENCHMARK_RESULTS("BM_Counters_Simple/threads:%int", &CheckSimple);
 }  // end namespace
 
 // ========================================================================= //
@@ -63,7 +67,6 @@ CHECK_BENCHMARK_RESULTS("BM_Counters_Simple", &CheckSimple);
 // ========================================================================= //
 
 namespace {
-int num_calls1 = 0;
 void BM_Counters_WithBytesAndItemsPSec(benchmark::State& state) {
   for (auto _ : state) {
     // This test requires a non-zero CPU time to avoid divide-by-zero
@@ -72,45 +75,48 @@ void BM_Counters_WithBytesAndItemsPSec(benchmark::State& state) {
     benchmark::DoNotOptimize(iterations);
   }
   state.counters["foo"] = 1;
-  state.counters["bar"] = ++num_calls1;
   state.SetBytesProcessed(364);
   state.SetItemsProcessed(150);
 }
-BENCHMARK(BM_Counters_WithBytesAndItemsPSec);
-ADD_CASES(TC_ConsoleOut, {{"^BM_Counters_WithBytesAndItemsPSec %console_report "
-                           "bar=%hrfloat bytes_per_second=%hrfloat/s "
-                           "foo=%hrfloat items_per_second=%hrfloat/s$"}});
-ADD_CASES(TC_JSONOut,
-          {{"\"name\": \"BM_Counters_WithBytesAndItemsPSec\",$"},
-           {"\"family_index\": 1,$", MR_Next},
-           {"\"per_family_instance_index\": 0,$", MR_Next},
-           {"\"run_name\": \"BM_Counters_WithBytesAndItemsPSec\",$", MR_Next},
-           {"\"run_type\": \"iteration\",$", MR_Next},
-           {"\"repetitions\": 1,$", MR_Next},
-           {"\"repetition_index\": 0,$", MR_Next},
-           {"\"threads\": 1,$", MR_Next},
-           {"\"iterations\": %int,$", MR_Next},
-           {"\"real_time\": %float,$", MR_Next},
-           {"\"cpu_time\": %float,$", MR_Next},
-           {"\"time_unit\": \"ns\",$", MR_Next},
-           {"\"bar\": %float,$", MR_Next},
-           {"\"bytes_per_second\": %float,$", MR_Next},
-           {"\"foo\": %float,$", MR_Next},
-           {"\"items_per_second\": %float$", MR_Next},
-           {"}", MR_Next}});
-ADD_CASES(TC_CSVOut, {{"^\"BM_Counters_WithBytesAndItemsPSec\","
-                       "%csv_bytes_items_report,%float,%float$"}});
+BENCHMARK(BM_Counters_WithBytesAndItemsPSec)->ThreadRange(1, 8);
+ADD_CASES(TC_ConsoleOut,
+          {{"^BM_Counters_WithBytesAndItemsPSec/threads:%int %console_report "
+            "bytes_per_second=%hrfloat/s "
+            "foo=%hrfloat items_per_second=%hrfloat/s$"}});
+ADD_CASES(
+    TC_JSONOut,
+    {{"\"name\": \"BM_Counters_WithBytesAndItemsPSec/threads:%int\",$"},
+     {"\"family_index\": 1,$", MR_Next},
+     {"\"per_family_instance_index\": 0,$", MR_Next},
+     {"\"run_name\": \"BM_Counters_WithBytesAndItemsPSec/threads:%int\",$",
+      MR_Next},
+     {"\"run_type\": \"iteration\",$", MR_Next},
+     {"\"repetitions\": 1,$", MR_Next},
+     {"\"repetition_index\": 0,$", MR_Next},
+     {"\"threads\": %int,$", MR_Next},
+     {"\"iterations\": %int,$", MR_Next},
+     {"\"real_time\": %float,$", MR_Next},
+     {"\"cpu_time\": %float,$", MR_Next},
+     {"\"time_unit\": \"ns\",$", MR_Next},
+     {"\"bytes_per_second\": %float,$", MR_Next},
+     {"\"foo\": %float,$", MR_Next},
+     {"\"items_per_second\": %float$", MR_Next},
+     {"}", MR_Next}});
+ADD_CASES(TC_CSVOut, {{"^\"BM_Counters_WithBytesAndItemsPSec/threads:%int\","
+                       "%csv_bytes_items_report,,%float$"}});
 // VS2013 does not allow this function to be passed as a lambda argument
 // to CHECK_BENCHMARK_RESULTS()
 void CheckBytesAndItemsPSec(Results const& e) {
-  double t = e.DurationCPUTime();  // this (and not real time) is the time used
-  CHECK_COUNTER_VALUE(e, int, "foo", EQ, 1);
-  CHECK_COUNTER_VALUE(e, int, "bar", EQ, num_calls1);
+  // this (and not real time) is the time used
+  double t = e.DurationCPUTime() / e.NumThreads();
+  CHECK_COUNTER_VALUE(e, int, "foo", EQ, 1 * e.NumThreads());
   // check that the values are within 0.1% of the expected values
-  CHECK_FLOAT_RESULT_VALUE(e, "bytes_per_second", EQ, 364. / t, 0.001);
-  CHECK_FLOAT_RESULT_VALUE(e, "items_per_second", EQ, 150. / t, 0.001);
+  CHECK_FLOAT_RESULT_VALUE(e, "bytes_per_second", EQ,
+                           (364. * e.NumThreads()) / t, 0.001);
+  CHECK_FLOAT_RESULT_VALUE(e, "items_per_second", EQ,
+                           (150. * e.NumThreads()) / t, 0.001);
 }
-CHECK_BENCHMARK_RESULTS("BM_Counters_WithBytesAndItemsPSec",
+CHECK_BENCHMARK_RESULTS("BM_Counters_WithBytesAndItemsPSec/threads:%int",
                         &CheckBytesAndItemsPSec);
 }  // end namespace
 
@@ -129,35 +135,37 @@ void BM_Counters_Rate(benchmark::State& state) {
   state.counters["foo"] = bm::Counter{1, bm::Counter::kIsRate};
   state.counters["bar"] = bm::Counter{2, bm::Counter::kIsRate};
 }
-BENCHMARK(BM_Counters_Rate);
-ADD_CASES(
-    TC_ConsoleOut,
-    {{"^BM_Counters_Rate %console_report bar=%hrfloat/s foo=%hrfloat/s$"}});
-ADD_CASES(TC_JSONOut, {{"\"name\": \"BM_Counters_Rate\",$"},
-                       {"\"family_index\": 2,$", MR_Next},
-                       {"\"per_family_instance_index\": 0,$", MR_Next},
-                       {"\"run_name\": \"BM_Counters_Rate\",$", MR_Next},
-                       {"\"run_type\": \"iteration\",$", MR_Next},
-                       {"\"repetitions\": 1,$", MR_Next},
-                       {"\"repetition_index\": 0,$", MR_Next},
-                       {"\"threads\": 1,$", MR_Next},
-                       {"\"iterations\": %int,$", MR_Next},
-                       {"\"real_time\": %float,$", MR_Next},
-                       {"\"cpu_time\": %float,$", MR_Next},
-                       {"\"time_unit\": \"ns\",$", MR_Next},
-                       {"\"bar\": %float,$", MR_Next},
-                       {"\"foo\": %float$", MR_Next},
-                       {"}", MR_Next}});
-ADD_CASES(TC_CSVOut, {{"^\"BM_Counters_Rate\",%csv_report,%float,%float$"}});
+BENCHMARK(BM_Counters_Rate)->ThreadRange(1, 8);
+ADD_CASES(TC_ConsoleOut, {{"^BM_Counters_Rate/threads:%int %console_report "
+                           "bar=%hrfloat/s foo=%hrfloat/s$"}});
+ADD_CASES(TC_JSONOut,
+          {{"\"name\": \"BM_Counters_Rate/threads:%int\",$"},
+           {"\"family_index\": 2,$", MR_Next},
+           {"\"per_family_instance_index\": 0,$", MR_Next},
+           {"\"run_name\": \"BM_Counters_Rate/threads:%int\",$", MR_Next},
+           {"\"run_type\": \"iteration\",$", MR_Next},
+           {"\"repetitions\": 1,$", MR_Next},
+           {"\"repetition_index\": 0,$", MR_Next},
+           {"\"threads\": %int,$", MR_Next},
+           {"\"iterations\": %int,$", MR_Next},
+           {"\"real_time\": %float,$", MR_Next},
+           {"\"cpu_time\": %float,$", MR_Next},
+           {"\"time_unit\": \"ns\",$", MR_Next},
+           {"\"bar\": %float,$", MR_Next},
+           {"\"foo\": %float$", MR_Next},
+           {"}", MR_Next}});
+ADD_CASES(TC_CSVOut,
+          {{"^\"BM_Counters_Rate/threads:%int\",%csv_report,%float,%float$"}});
 // VS2013 does not allow this function to be passed as a lambda argument
 // to CHECK_BENCHMARK_RESULTS()
 void CheckRate(Results const& e) {
-  double t = e.DurationCPUTime();  // this (and not real time) is the time used
+  // this (and not real time) is the time used
+  double t = e.DurationCPUTime() / e.NumThreads();
   // check that the values are within 0.1% of the expected values
-  CHECK_FLOAT_COUNTER_VALUE(e, "foo", EQ, 1. / t, 0.001);
-  CHECK_FLOAT_COUNTER_VALUE(e, "bar", EQ, 2. / t, 0.001);
+  CHECK_FLOAT_COUNTER_VALUE(e, "foo", EQ, (1. * e.NumThreads()) / t, 0.001);
+  CHECK_FLOAT_COUNTER_VALUE(e, "bar", EQ, (2. * e.NumThreads()) / t, 0.001);
 }
-CHECK_BENCHMARK_RESULTS("BM_Counters_Rate", &CheckRate);
+CHECK_BENCHMARK_RESULTS("BM_Counters_Rate/threads:%int", &CheckRate);
 }  // end namespace
 
 // ========================================================================= //
@@ -176,17 +184,18 @@ void BM_Invert(benchmark::State& state) {
   state.counters["foo"] = bm::Counter{0.0001, bm::Counter::kInvert};
   state.counters["bar"] = bm::Counter{10000, bm::Counter::kInvert};
 }
-BENCHMARK(BM_Invert);
-ADD_CASES(TC_ConsoleOut,
-          {{"^BM_Invert %console_report bar=%hrfloatu foo=%hrfloatk$"}});
-ADD_CASES(TC_JSONOut, {{"\"name\": \"BM_Invert\",$"},
+BENCHMARK(BM_Invert)->ThreadRange(1, 8);
+ADD_CASES(
+    TC_ConsoleOut,
+    {{"^BM_Invert/threads:%int %console_report bar=%hrfloatu foo=%hrfloatk$"}});
+ADD_CASES(TC_JSONOut, {{"\"name\": \"BM_Invert/threads:%int\",$"},
                        {"\"family_index\": 3,$", MR_Next},
                        {"\"per_family_instance_index\": 0,$", MR_Next},
-                       {"\"run_name\": \"BM_Invert\",$", MR_Next},
+                       {"\"run_name\": \"BM_Invert/threads:%int\",$", MR_Next},
                        {"\"run_type\": \"iteration\",$", MR_Next},
                        {"\"repetitions\": 1,$", MR_Next},
                        {"\"repetition_index\": 0,$", MR_Next},
-                       {"\"threads\": 1,$", MR_Next},
+                       {"\"threads\": %int,$", MR_Next},
                        {"\"iterations\": %int,$", MR_Next},
                        {"\"real_time\": %float,$", MR_Next},
                        {"\"cpu_time\": %float,$", MR_Next},
@@ -194,14 +203,17 @@ ADD_CASES(TC_JSONOut, {{"\"name\": \"BM_Invert\",$"},
                        {"\"bar\": %float,$", MR_Next},
                        {"\"foo\": %float$", MR_Next},
                        {"}", MR_Next}});
-ADD_CASES(TC_CSVOut, {{"^\"BM_Invert\",%csv_report,%float,%float$"}});
+ADD_CASES(TC_CSVOut,
+          {{"^\"BM_Invert/threads:%int\",%csv_report,%float,%float$"}});
 // VS2013 does not allow this function to be passed as a lambda argument
 // to CHECK_BENCHMARK_RESULTS()
 void CheckInvert(Results const& e) {
-  CHECK_FLOAT_COUNTER_VALUE(e, "foo", EQ, 10000, 0.0001);
-  CHECK_FLOAT_COUNTER_VALUE(e, "bar", EQ, 0.0001, 0.0001);
+  CHECK_FLOAT_COUNTER_VALUE(e, "foo", EQ, 1. / (0.0001 * e.NumThreads()),
+                            0.0001);
+  CHECK_FLOAT_COUNTER_VALUE(e, "bar", EQ, 1. / (10000 * e.NumThreads()),
+                            0.0001);
 }
-CHECK_BENCHMARK_RESULTS("BM_Invert", &CheckInvert);
+CHECK_BENCHMARK_RESULTS("BM_Invert/threads:%int", &CheckInvert);
 }  // end namespace
 
 // ========================================================================= //
@@ -222,18 +234,20 @@ void BM_Counters_InvertedRate(benchmark::State& state) {
   state.counters["bar"] =
       bm::Counter{8192, bm::Counter::kIsRate | bm::Counter::kInvert};
 }
-BENCHMARK(BM_Counters_InvertedRate);
-ADD_CASES(TC_ConsoleOut, {{"^BM_Counters_InvertedRate %console_report "
-                           "bar=%hrfloats foo=%hrfloats$"}});
+BENCHMARK(BM_Counters_InvertedRate)->ThreadRange(1, 8);
+ADD_CASES(TC_ConsoleOut,
+          {{"^BM_Counters_InvertedRate/threads:%int %console_report "
+            "bar=%hrfloats foo=%hrfloats$"}});
 ADD_CASES(TC_JSONOut,
-          {{"\"name\": \"BM_Counters_InvertedRate\",$"},
+          {{"\"name\": \"BM_Counters_InvertedRate/threads:%int\",$"},
            {"\"family_index\": 4,$", MR_Next},
            {"\"per_family_instance_index\": 0,$", MR_Next},
-           {"\"run_name\": \"BM_Counters_InvertedRate\",$", MR_Next},
+           {"\"run_name\": \"BM_Counters_InvertedRate/threads:%int\",$",
+            MR_Next},
            {"\"run_type\": \"iteration\",$", MR_Next},
            {"\"repetitions\": 1,$", MR_Next},
            {"\"repetition_index\": 0,$", MR_Next},
-           {"\"threads\": 1,$", MR_Next},
+           {"\"threads\": %int,$", MR_Next},
            {"\"iterations\": %int,$", MR_Next},
            {"\"real_time\": %float,$", MR_Next},
            {"\"cpu_time\": %float,$", MR_Next},
@@ -241,17 +255,19 @@ ADD_CASES(TC_JSONOut,
            {"\"bar\": %float,$", MR_Next},
            {"\"foo\": %float$", MR_Next},
            {"}", MR_Next}});
-ADD_CASES(TC_CSVOut,
-          {{"^\"BM_Counters_InvertedRate\",%csv_report,%float,%float$"}});
+ADD_CASES(TC_CSVOut, {{"^\"BM_Counters_InvertedRate/"
+                       "threads:%int\",%csv_report,%float,%float$"}});
 // VS2013 does not allow this function to be passed as a lambda argument
 // to CHECK_BENCHMARK_RESULTS()
 void CheckInvertedRate(Results const& e) {
-  double t = e.DurationCPUTime();  // this (and not real time) is the time used
+  // this (and not real time) is the time used
+  double t = e.DurationCPUTime() / e.NumThreads();
   // check that the values are within 0.1% of the expected values
-  CHECK_FLOAT_COUNTER_VALUE(e, "foo", EQ, t, 0.001);
-  CHECK_FLOAT_COUNTER_VALUE(e, "bar", EQ, t / 8192.0, 0.001);
+  CHECK_FLOAT_COUNTER_VALUE(e, "foo", EQ, t / (e.NumThreads()), 0.001);
+  CHECK_FLOAT_COUNTER_VALUE(e, "bar", EQ, t / (8192.0 * e.NumThreads()), 0.001);
 }
-CHECK_BENCHMARK_RESULTS("BM_Counters_InvertedRate", &CheckInvertedRate);
+CHECK_BENCHMARK_RESULTS("BM_Counters_InvertedRate/threads:%int",
+                        &CheckInvertedRate);
 }  // end namespace
 
 // ========================================================================= //
@@ -276,7 +292,7 @@ ADD_CASES(TC_JSONOut,
            {"\"run_type\": \"iteration\",$", MR_Next},
            {"\"repetitions\": 1,$", MR_Next},
            {"\"repetition_index\": 0,$", MR_Next},
-           {"\"threads\": 1,$", MR_Next},
+           {"\"threads\": %int,$", MR_Next},
            {"\"iterations\": %int,$", MR_Next},
            {"\"real_time\": %float,$", MR_Next},
            {"\"cpu_time\": %float,$", MR_Next},
@@ -319,7 +335,7 @@ ADD_CASES(TC_JSONOut,
            {"\"run_type\": \"iteration\",$", MR_Next},
            {"\"repetitions\": 1,$", MR_Next},
            {"\"repetition_index\": 0,$", MR_Next},
-           {"\"threads\": 1,$", MR_Next},
+           {"\"threads\": %int,$", MR_Next},
            {"\"iterations\": %int,$", MR_Next},
            {"\"real_time\": %float,$", MR_Next},
            {"\"cpu_time\": %float,$", MR_Next},
@@ -368,7 +384,7 @@ ADD_CASES(TC_JSONOut,
            {"\"run_type\": \"iteration\",$", MR_Next},
            {"\"repetitions\": 1,$", MR_Next},
            {"\"repetition_index\": 0,$", MR_Next},
-           {"\"threads\": 1,$", MR_Next},
+           {"\"threads\": %int,$", MR_Next},
            {"\"iterations\": %int,$", MR_Next},
            {"\"real_time\": %float,$", MR_Next},
            {"\"cpu_time\": %float,$", MR_Next},
@@ -402,18 +418,20 @@ void BM_Counters_IterationInvariant(benchmark::State& state) {
   state.counters["foo"] = bm::Counter{1, bm::Counter::kIsIterationInvariant};
   state.counters["bar"] = bm::Counter{2, bm::Counter::kIsIterationInvariant};
 }
-BENCHMARK(BM_Counters_IterationInvariant);
-ADD_CASES(TC_ConsoleOut, {{"^BM_Counters_IterationInvariant %console_report "
-                           "bar=%hrfloat foo=%hrfloat$"}});
+BENCHMARK(BM_Counters_IterationInvariant)->ThreadRange(1, 8);
+ADD_CASES(TC_ConsoleOut,
+          {{"^BM_Counters_IterationInvariant/threads:%int %console_report "
+            "bar=%hrfloat foo=%hrfloat$"}});
 ADD_CASES(TC_JSONOut,
-          {{"\"name\": \"BM_Counters_IterationInvariant\",$"},
+          {{"\"name\": \"BM_Counters_IterationInvariant/threads:%int\",$"},
            {"\"family_index\": 8,$", MR_Next},
            {"\"per_family_instance_index\": 0,$", MR_Next},
-           {"\"run_name\": \"BM_Counters_IterationInvariant\",$", MR_Next},
+           {"\"run_name\": \"BM_Counters_IterationInvariant/threads:%int\",$",
+            MR_Next},
            {"\"run_type\": \"iteration\",$", MR_Next},
            {"\"repetitions\": 1,$", MR_Next},
            {"\"repetition_index\": 0,$", MR_Next},
-           {"\"threads\": 1,$", MR_Next},
+           {"\"threads\": %int,$", MR_Next},
            {"\"iterations\": %int,$", MR_Next},
            {"\"real_time\": %float,$", MR_Next},
            {"\"cpu_time\": %float,$", MR_Next},
@@ -421,17 +439,17 @@ ADD_CASES(TC_JSONOut,
            {"\"bar\": %float,$", MR_Next},
            {"\"foo\": %float$", MR_Next},
            {"}", MR_Next}});
-ADD_CASES(TC_CSVOut,
-          {{"^\"BM_Counters_IterationInvariant\",%csv_report,%float,%float$"}});
+ADD_CASES(TC_CSVOut, {{"^\"BM_Counters_IterationInvariant/"
+                       "threads:%int\",%csv_report,%float,%float$"}});
 // VS2013 does not allow this function to be passed as a lambda argument
 // to CHECK_BENCHMARK_RESULTS()
 void CheckIterationInvariant(Results const& e) {
   double its = e.NumIterations();
   // check that the values are within 0.1% of the expected value
-  CHECK_FLOAT_COUNTER_VALUE(e, "foo", EQ, its, 0.001);
-  CHECK_FLOAT_COUNTER_VALUE(e, "bar", EQ, 2. * its, 0.001);
+  CHECK_FLOAT_COUNTER_VALUE(e, "foo", EQ, its * e.NumThreads(), 0.001);
+  CHECK_FLOAT_COUNTER_VALUE(e, "bar", EQ, 2. * its * e.NumThreads(), 0.001);
 }
-CHECK_BENCHMARK_RESULTS("BM_Counters_IterationInvariant",
+CHECK_BENCHMARK_RESULTS("BM_Counters_IterationInvariant/threads:%int",
                         &CheckIterationInvariant);
 }  // end namespace
 
@@ -453,38 +471,43 @@ void BM_Counters_kIsIterationInvariantRate(benchmark::State& state) {
   state.counters["bar"] =
       bm::Counter{2, bm::Counter::kIsRate | bm::Counter::kIsIterationInvariant};
 }
-BENCHMARK(BM_Counters_kIsIterationInvariantRate);
-ADD_CASES(TC_ConsoleOut, {{"^BM_Counters_kIsIterationInvariantRate "
-                           "%console_report bar=%hrfloat/s foo=%hrfloat/s$"}});
-ADD_CASES(TC_JSONOut,
-          {{"\"name\": \"BM_Counters_kIsIterationInvariantRate\",$"},
-           {"\"family_index\": 9,$", MR_Next},
-           {"\"per_family_instance_index\": 0,$", MR_Next},
-           {"\"run_name\": \"BM_Counters_kIsIterationInvariantRate\",$",
-            MR_Next},
-           {"\"run_type\": \"iteration\",$", MR_Next},
-           {"\"repetitions\": 1,$", MR_Next},
-           {"\"repetition_index\": 0,$", MR_Next},
-           {"\"threads\": 1,$", MR_Next},
-           {"\"iterations\": %int,$", MR_Next},
-           {"\"real_time\": %float,$", MR_Next},
-           {"\"cpu_time\": %float,$", MR_Next},
-           {"\"time_unit\": \"ns\",$", MR_Next},
-           {"\"bar\": %float,$", MR_Next},
-           {"\"foo\": %float$", MR_Next},
-           {"}", MR_Next}});
-ADD_CASES(TC_CSVOut, {{"^\"BM_Counters_kIsIterationInvariantRate\",%csv_report,"
-                       "%float,%float$"}});
+BENCHMARK(BM_Counters_kIsIterationInvariantRate)->ThreadRange(1, 8);
+ADD_CASES(TC_ConsoleOut,
+          {{"^BM_Counters_kIsIterationInvariantRate/threads:%int "
+            "%console_report bar=%hrfloat/s foo=%hrfloat/s$"}});
+ADD_CASES(
+    TC_JSONOut,
+    {{"\"name\": \"BM_Counters_kIsIterationInvariantRate/threads:%int\",$"},
+     {"\"family_index\": 9,$", MR_Next},
+     {"\"per_family_instance_index\": 0,$", MR_Next},
+     {"\"run_name\": \"BM_Counters_kIsIterationInvariantRate/threads:%int\",$",
+      MR_Next},
+     {"\"run_type\": \"iteration\",$", MR_Next},
+     {"\"repetitions\": 1,$", MR_Next},
+     {"\"repetition_index\": 0,$", MR_Next},
+     {"\"threads\": %int,$", MR_Next},
+     {"\"iterations\": %int,$", MR_Next},
+     {"\"real_time\": %float,$", MR_Next},
+     {"\"cpu_time\": %float,$", MR_Next},
+     {"\"time_unit\": \"ns\",$", MR_Next},
+     {"\"bar\": %float,$", MR_Next},
+     {"\"foo\": %float$", MR_Next},
+     {"}", MR_Next}});
+ADD_CASES(
+    TC_CSVOut,
+    {{"^\"BM_Counters_kIsIterationInvariantRate/threads:%int\",%csv_report,"
+      "%float,%float$"}});
 // VS2013 does not allow this function to be passed as a lambda argument
 // to CHECK_BENCHMARK_RESULTS()
 void CheckIsIterationInvariantRate(Results const& e) {
   double its = e.NumIterations();
-  double t = e.DurationCPUTime();  // this (and not real time) is the time used
+  // this (and not real time) is the time used
+  double t = e.DurationCPUTime() / e.NumThreads();
   // check that the values are within 0.1% of the expected values
-  CHECK_FLOAT_COUNTER_VALUE(e, "foo", EQ, its * 1. / t, 0.001);
-  CHECK_FLOAT_COUNTER_VALUE(e, "bar", EQ, its * 2. / t, 0.001);
+  CHECK_FLOAT_COUNTER_VALUE(e, "foo", EQ, its * 1. * e.NumThreads() / t, 0.001);
+  CHECK_FLOAT_COUNTER_VALUE(e, "bar", EQ, its * 2. * e.NumThreads() / t, 0.001);
 }
-CHECK_BENCHMARK_RESULTS("BM_Counters_kIsIterationInvariantRate",
+CHECK_BENCHMARK_RESULTS("BM_Counters_kIsIterationInvariantRate/threads:%int",
                         &CheckIsIterationInvariantRate);
 }  // end namespace
 
@@ -500,18 +523,20 @@ void BM_Counters_AvgIterations(benchmark::State& state) {
   state.counters["foo"] = bm::Counter{1, bm::Counter::kAvgIterations};
   state.counters["bar"] = bm::Counter{2, bm::Counter::kAvgIterations};
 }
-BENCHMARK(BM_Counters_AvgIterations);
-ADD_CASES(TC_ConsoleOut, {{"^BM_Counters_AvgIterations %console_report "
-                           "bar=%hrfloat foo=%hrfloat$"}});
+BENCHMARK(BM_Counters_AvgIterations)->ThreadRange(1, 8);
+ADD_CASES(TC_ConsoleOut,
+          {{"^BM_Counters_AvgIterations/threads:%int %console_report "
+            "bar=%hrfloat foo=%hrfloat$"}});
 ADD_CASES(TC_JSONOut,
-          {{"\"name\": \"BM_Counters_AvgIterations\",$"},
+          {{"\"name\": \"BM_Counters_AvgIterations/threads:%int\",$"},
            {"\"family_index\": 10,$", MR_Next},
            {"\"per_family_instance_index\": 0,$", MR_Next},
-           {"\"run_name\": \"BM_Counters_AvgIterations\",$", MR_Next},
+           {"\"run_name\": \"BM_Counters_AvgIterations/threads:%int\",$",
+            MR_Next},
            {"\"run_type\": \"iteration\",$", MR_Next},
            {"\"repetitions\": 1,$", MR_Next},
            {"\"repetition_index\": 0,$", MR_Next},
-           {"\"threads\": 1,$", MR_Next},
+           {"\"threads\": %int,$", MR_Next},
            {"\"iterations\": %int,$", MR_Next},
            {"\"real_time\": %float,$", MR_Next},
            {"\"cpu_time\": %float,$", MR_Next},
@@ -519,17 +544,18 @@ ADD_CASES(TC_JSONOut,
            {"\"bar\": %float,$", MR_Next},
            {"\"foo\": %float$", MR_Next},
            {"}", MR_Next}});
-ADD_CASES(TC_CSVOut,
-          {{"^\"BM_Counters_AvgIterations\",%csv_report,%float,%float$"}});
+ADD_CASES(TC_CSVOut, {{"^\"BM_Counters_AvgIterations/"
+                       "threads:%int\",%csv_report,%float,%float$"}});
 // VS2013 does not allow this function to be passed as a lambda argument
 // to CHECK_BENCHMARK_RESULTS()
 void CheckAvgIterations(Results const& e) {
   double its = e.NumIterations();
   // check that the values are within 0.1% of the expected value
-  CHECK_FLOAT_COUNTER_VALUE(e, "foo", EQ, 1. / its, 0.001);
-  CHECK_FLOAT_COUNTER_VALUE(e, "bar", EQ, 2. / its, 0.001);
+  CHECK_FLOAT_COUNTER_VALUE(e, "foo", EQ, 1. * e.NumThreads() / its, 0.001);
+  CHECK_FLOAT_COUNTER_VALUE(e, "bar", EQ, 2. * e.NumThreads() / its, 0.001);
 }
-CHECK_BENCHMARK_RESULTS("BM_Counters_AvgIterations", &CheckAvgIterations);
+CHECK_BENCHMARK_RESULTS("BM_Counters_AvgIterations/threads:%int",
+                        &CheckAvgIterations);
 }  // end namespace
 
 // ========================================================================= //
@@ -549,18 +575,19 @@ void BM_Counters_kAvgIterationsRate(benchmark::State& state) {
   state.counters["bar"] =
       bm::Counter{2, bm::Counter::kIsRate | bm::Counter::kAvgIterations};
 }
-BENCHMARK(BM_Counters_kAvgIterationsRate);
-ADD_CASES(TC_ConsoleOut, {{"^BM_Counters_kAvgIterationsRate "
+BENCHMARK(BM_Counters_kAvgIterationsRate)->ThreadRange(1, 8);
+ADD_CASES(TC_ConsoleOut, {{"^BM_Counters_kAvgIterationsRate/threads:%int "
                            "%console_report bar=%hrfloat/s foo=%hrfloat/s$"}});
 ADD_CASES(TC_JSONOut,
-          {{"\"name\": \"BM_Counters_kAvgIterationsRate\",$"},
+          {{"\"name\": \"BM_Counters_kAvgIterationsRate/threads:%int\",$"},
            {"\"family_index\": 11,$", MR_Next},
            {"\"per_family_instance_index\": 0,$", MR_Next},
-           {"\"run_name\": \"BM_Counters_kAvgIterationsRate\",$", MR_Next},
+           {"\"run_name\": \"BM_Counters_kAvgIterationsRate/threads:%int\",$",
+            MR_Next},
            {"\"run_type\": \"iteration\",$", MR_Next},
            {"\"repetitions\": 1,$", MR_Next},
            {"\"repetition_index\": 0,$", MR_Next},
-           {"\"threads\": 1,$", MR_Next},
+           {"\"threads\": %int,$", MR_Next},
            {"\"iterations\": %int,$", MR_Next},
            {"\"real_time\": %float,$", MR_Next},
            {"\"cpu_time\": %float,$", MR_Next},
@@ -568,18 +595,20 @@ ADD_CASES(TC_JSONOut,
            {"\"bar\": %float,$", MR_Next},
            {"\"foo\": %float$", MR_Next},
            {"}", MR_Next}});
-ADD_CASES(TC_CSVOut, {{"^\"BM_Counters_kAvgIterationsRate\",%csv_report,"
-                       "%float,%float$"}});
+ADD_CASES(TC_CSVOut,
+          {{"^\"BM_Counters_kAvgIterationsRate/threads:%int\",%csv_report,"
+            "%float,%float$"}});
 // VS2013 does not allow this function to be passed as a lambda argument
 // to CHECK_BENCHMARK_RESULTS()
 void CheckAvgIterationsRate(Results const& e) {
   double its = e.NumIterations();
-  double t = e.DurationCPUTime();  // this (and not real time) is the time used
+  // this (and not real time) is the time used
+  double t = e.DurationCPUTime() / e.NumThreads();
   // check that the values are within 0.1% of the expected values
-  CHECK_FLOAT_COUNTER_VALUE(e, "foo", EQ, 1. / its / t, 0.001);
-  CHECK_FLOAT_COUNTER_VALUE(e, "bar", EQ, 2. / its / t, 0.001);
+  CHECK_FLOAT_COUNTER_VALUE(e, "foo", EQ, 1. * e.NumThreads() / its / t, 0.001);
+  CHECK_FLOAT_COUNTER_VALUE(e, "bar", EQ, 2. * e.NumThreads() / its / t, 0.001);
 }
-CHECK_BENCHMARK_RESULTS("BM_Counters_kAvgIterationsRate",
+CHECK_BENCHMARK_RESULTS("BM_Counters_kAvgIterationsRate/threads:%int",
                         &CheckAvgIterationsRate);
 }  // end namespace
 

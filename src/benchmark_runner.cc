@@ -123,7 +123,12 @@ BenchmarkReporter::Run CreateRunReport(
               : 0;
     }
 
-    internal::Finish(&report.counters, results.iterations, seconds,
+    // The CPU time is the total time taken by all thread. If we used that as
+    // the denominator, we'd be calculating the rate per thread here. This is
+    // why we have to divide the total cpu_time by the number of threads for
+    // global counters to get a global rate.
+    const double thread_seconds = seconds / b.threads();
+    internal::Finish(&report.counters, results.iterations, thread_seconds,
                      b.threads());
   }
   return report;
