@@ -56,7 +56,7 @@ int AddCases(std::initializer_list<TestCase> const& v) {
 #define ADD_CASES(...) \
   const int CONCAT(dummy, __LINE__) = AddCases({__VA_ARGS__})
 
-using ReturnVal = benchmark::internal::Benchmark const* const;
+using ReturnVal = benchmark::Benchmark const* const;
 
 //----------------------------------------------------------------------------//
 // Test RegisterBenchmark with no additional arguments

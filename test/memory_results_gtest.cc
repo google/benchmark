@@ -5,13 +5,13 @@
 
 namespace {
 
+using benchmark::Benchmark;
 using benchmark::ClearRegisteredBenchmarks;
 using benchmark::ConsoleReporter;
 using benchmark::MemoryManager;
 using benchmark::RegisterBenchmark;
 using benchmark::RunSpecifiedBenchmarks;
 using benchmark::State;
-using benchmark::internal::Benchmark;
 
 constexpr int N_REPETITIONS = 100;
 constexpr int N_ITERATIONS = 1;

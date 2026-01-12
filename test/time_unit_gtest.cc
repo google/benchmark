@@ -6,7 +6,7 @@ namespace internal {
 
 namespace {
 
-class DummyBenchmark : public Benchmark {
+class DummyBenchmark : public benchmark::Benchmark {
  public:
   DummyBenchmark() : Benchmark("dummy") {}
   void Run(State& /*state*/) override {}

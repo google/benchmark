@@ -217,7 +217,8 @@ class ThreadRunnerDefault : public ThreadRunnerBase {
 };
 
 std::unique_ptr<ThreadRunnerBase> GetThreadRunner(
-    const threadrunner_factory& userThreadRunnerFactory, int num_threads) {
+    const benchmark::threadrunner_factory& userThreadRunnerFactory,
+    int num_threads) {
   return userThreadRunnerFactory
              ? userThreadRunnerFactory(num_threads)
              : std::make_unique<ThreadRunnerDefault>(num_threads);

@@ -51,7 +51,7 @@ BENCHMARK(BM_basic)->RangeMultiplier(4)->Range(-8, 8);
 BENCHMARK(BM_basic)->DenseRange(-2, 2, 1);
 BENCHMARK(BM_basic)->Ranges({{-64, 1}, {-8, -1}});
 
-void CustomArgs(benchmark::internal::Benchmark* b) {
+void CustomArgs(benchmark::Benchmark* b) {
   for (int i = 0; i < 10; ++i) {
     b->Arg(i);
   }
