@@ -36,8 +36,8 @@ std::vector<std::string> Initialize(const std::vector<std::string>& argv) {
   return remaining_argv;
 }
 
-benchmark::internal::Benchmark* RegisterBenchmark(const std::string& name,
-                                                  nb::callable f) {
+benchmark::Benchmark* RegisterBenchmark(const std::string& name,
+                                        nb::callable f) {
   return benchmark::RegisterBenchmark(
       name, [f](benchmark::State& state) { f(&state); });
 }
@@ -64,7 +64,7 @@ NB_MODULE(_benchmark, m) {
       .value("oLambda", BigO::oLambda)
       .export_values();
 
-  using benchmark::internal::Benchmark;
+  using benchmark::Benchmark;
   nb::class_<Benchmark>(m, "Benchmark")
       // For methods returning a pointer to the current object, reference
       // return policy is used to ask nanobind not to take ownership of the

@@ -75,7 +75,7 @@ class BenchmarkFamilies {
   static BenchmarkFamilies* GetInstance();
 
   // Registers a benchmark family and returns the index assigned to it.
-  size_t AddBenchmark(std::unique_ptr<Benchmark> family);
+  size_t AddBenchmark(std::unique_ptr<benchmark::Benchmark> family);
 
   // Clear all registered benchmark families.
   void ClearBenchmarks();
@@ -89,7 +89,7 @@ class BenchmarkFamilies {
  private:
   BenchmarkFamilies() {}
 
-  std::vector<std::unique_ptr<Benchmark>> families_;
+  std::vector<std::unique_ptr<benchmark::Benchmark>> families_;
   Mutex mutex_;
 };
 
@@ -98,7 +98,8 @@ BenchmarkFamilies* BenchmarkFamilies::GetInstance() {
   return &instance;
 }
 
-size_t BenchmarkFamilies::AddBenchmark(std::unique_ptr<Benchmark> family) {
+size_t BenchmarkFamilies::AddBenchmark(
+    std::unique_ptr<benchmark::Benchmark> family) {
   MutexLock l(mutex_);
   size_t index = families_.size();
   families_.push_back(std::move(family));
@@ -135,7 +136,7 @@ bool BenchmarkFamilies::FindBenchmarks(
   int next_family_index = 0;
 
   MutexLock l(mutex_);
-  for (std::unique_ptr<Benchmark>& family : families_) {
+  for (std::unique_ptr<benchmark::Benchmark>& family : families_) {
     int family_index = next_family_index;
     int per_family_instance_index = 0;
 
@@ -191,8 +192,9 @@ bool BenchmarkFamilies::FindBenchmarks(
   return true;
 }
 
-Benchmark* RegisterBenchmarkInternal(std::unique_ptr<Benchmark> bench) {
-  Benchmark* bench_ptr = bench.get();
+benchmark::Benchmark* RegisterBenchmarkInternal(
+    std::unique_ptr<benchmark::Benchmark> bench) {
+  benchmark::Benchmark* bench_ptr = bench.get();
   BenchmarkFamilies* families = BenchmarkFamilies::GetInstance();
   families->AddBenchmark(std::move(bench));
   return bench_ptr;
@@ -206,13 +208,15 @@ bool FindBenchmarksInternal(const std::string& re,
   return BenchmarkFamilies::GetInstance()->FindBenchmarks(re, benchmarks, Err);
 }
 
+}  // end namespace internal
+
 //=============================================================================//
 //                               Benchmark
 //=============================================================================//
 
 Benchmark::Benchmark(const std::string& name)
     : name_(name),
-      aggregation_report_mode_(ARM_Unspecified),
+      aggregation_report_mode_(internal::ARM_Unspecified),
       time_unit_(GetDefaultTimeUnit()),
       use_default_time_unit_(true),
       range_multiplier_(kRangeMultiplier),
@@ -253,7 +257,7 @@ Benchmark* Benchmark::Unit(TimeUnit unit) {
 Benchmark* Benchmark::Range(int64_t start, int64_t limit) {
   BM_CHECK(ArgsCnt() == -1 || ArgsCnt() == 1);
   std::vector<int64_t> arglist;
-  AddRange(&arglist, start, limit, range_multiplier_);
+  internal::AddRange(&arglist, start, limit, range_multiplier_);
 
   for (int64_t i : arglist) {
     args_.push_back({i});
@@ -266,8 +270,8 @@ Benchmark* Benchmark::Ranges(
   BM_CHECK(ArgsCnt() == -1 || ArgsCnt() == static_cast<int>(ranges.size()));
   std::vector<std::vector<int64_t>> arglists(ranges.size());
   for (std::size_t i = 0; i < ranges.size(); i++) {
-    AddRange(&arglists[i], ranges[i].first, ranges[i].second,
-             range_multiplier_);
+    internal::AddRange(&arglists[i], ranges[i].first, ranges[i].second,
+                       range_multiplier_);
   }
 
   ArgsProduct(arglists);
@@ -382,8 +386,8 @@ Benchmark* Benchmark::MinWarmUpTime(double t) {
 
 Benchmark* Benchmark::Iterations(IterationCount n) {
   BM_CHECK(n > 0);
-  BM_CHECK(IsZero(min_time_));
-  BM_CHECK(IsZero(min_warmup_time_));
+  BM_CHECK(internal::IsZero(min_time_));
+  BM_CHECK(internal::IsZero(min_warmup_time_));
   iterations_ = n;
   return this;
 }
@@ -395,21 +399,23 @@ Benchmark* Benchmark::Repetitions(int n) {
 }
 
 Benchmark* Benchmark::ReportAggregatesOnly(bool value) {
-  aggregation_report_mode_ = value ? ARM_ReportAggregatesOnly : ARM_Default;
+  aggregation_report_mode_ =
+      value ? internal::ARM_ReportAggregatesOnly : internal::ARM_Default;
   return this;
 }
 
 Benchmark* Benchmark::DisplayAggregatesOnly(bool value) {
   // If we were called, the report mode is no longer 'unspecified', in any case.
+  using internal::AggregationReportMode;
   aggregation_report_mode_ = static_cast<AggregationReportMode>(
-      aggregation_report_mode_ | ARM_Default);
+      aggregation_report_mode_ | internal::ARM_Default);
 
   if (value) {
     aggregation_report_mode_ = static_cast<AggregationReportMode>(
-        aggregation_report_mode_ | ARM_DisplayReportAggregatesOnly);
+        aggregation_report_mode_ | internal::ARM_DisplayReportAggregatesOnly);
   } else {
     aggregation_report_mode_ = static_cast<AggregationReportMode>(
-        aggregation_report_mode_ & ~ARM_DisplayReportAggregatesOnly);
+        aggregation_report_mode_ & ~internal::ARM_DisplayReportAggregatesOnly);
   }
 
   return this;
@@ -463,7 +469,7 @@ Benchmark* Benchmark::ThreadRange(int min_threads, int max_threads) {
   BM_CHECK_GT(min_threads, 0);
   BM_CHECK_GE(max_threads, min_threads);
 
-  AddRange(&thread_counts_, min_threads, max_threads, 2);
+  internal::AddRange(&thread_counts_, min_threads, max_threads, 2);
   return this;
 }
 
@@ -514,6 +520,8 @@ const char* Benchmark::GetArgName(int arg) const {
 TimeUnit Benchmark::GetTimeUnit() const {
   return use_default_time_unit_ ? GetDefaultTimeUnit() : time_unit_;
 }
+
+namespace internal {
 
 //=============================================================================//
 //                            FunctionBenchmark

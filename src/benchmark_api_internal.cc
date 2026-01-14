@@ -7,7 +7,8 @@
 namespace benchmark {
 namespace internal {
 
-BenchmarkInstance::BenchmarkInstance(Benchmark* benchmark, int family_idx,
+BenchmarkInstance::BenchmarkInstance(benchmark::Benchmark* benchmark,
+                                     int family_idx,
                                      int per_family_instance_idx,
                                      const std::vector<int64_t>& args,
                                      int thread_count)
