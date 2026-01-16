@@ -39,46 +39,77 @@
 namespace benchmark {
 namespace internal {
 
-// Typically, we can only read a small number of counters. There is also a
-// padding preceding counter values, when reading multiple counters with one
-// syscall (which is desirable). PerfCounterValues abstracts these details.
+// Typically, we only read a small number of counters. There is also a
+// specific format when reading multiple counters with one syscall
+// (which is desirable). PerfCounterValues abstracts these details.
 // The implementation ensures the storage is inlined, and allows 0-based
 // indexing into the counter values.
 // The object is used in conjunction with a PerfCounters object, by passing it
-// to Snapshot(). The Read() method relocates individual reads, discarding
-// the initial padding from each group leader in the values buffer such that
-// all user accesses through the [] operator are correct.
+// to Snapshot(). The Read() method reads in the appropriate fields into
+// the values buffer such that all user accesses through the [] operator are
+// correct.
+// The [] operator estimates the true value of the counter using the
+// time_enabled and time_running values (which will be equal if there is no
+// multiplexing, i.e only a single group).
 class BENCHMARK_EXPORT PerfCounterValues {
  public:
   explicit PerfCounterValues(size_t nr_counters) : nr_counters_(nr_counters) {
     BM_CHECK_LE(nr_counters_, kMaxCounters);
   }
 
-  // We are reading correctly now so the values don't need to skip padding
-  uint64_t operator[](size_t pos) const { return values_[pos]; }
+  double operator[](size_t pos) const { return values_[pos].GetEstimate(); }
+
+  PerfCounterValues operator-=(const PerfCounterValues& counter_values) {
+    for (size_t i = 0; i < nr_counters_; i++) {
+      values_[i] -= counter_values.values_[i];
+    }
+
+    return *this;
+  }
 
   // Increased the maximum to 32 only since the buffer
   // is std::array<> backed
   static constexpr size_t kMaxCounters = 32;
 
  private:
+  // Represents the value of a counter.
+  // time_enabled_ = time_running_ if there is no multiplexing,
+  // i.e only a single group.
+  class Value {
+   public:
+    void Set(uint64_t time_enabled, uint64_t time_running, uint64_t value) {
+      time_enabled_ = time_enabled;
+      time_running_ = time_running;
+      value_ = value;
+    }
+
+    double GetEstimate() const {
+      return static_cast<double>(value_ * time_enabled_) /
+             static_cast<double>(time_running_);
+    }
+
+    Value operator-=(const Value& value) {
+      time_enabled_ -= value.time_enabled_;
+      time_running_ -= value.time_running_;
+      value_ -= value.value_;
+
+      return *this;
+    }
+
+   private:
+    uint64_t time_enabled_;
+    uint64_t time_running_;
+    uint64_t value_;
+  };
+
   friend class PerfCounters;
-  // Get the byte buffer in which perf counters can be captured.
-  // This is used by PerfCounters::Read
-  std::pair<char*, size_t> get_data_buffer() {
-    return {reinterpret_cast<char*>(values_.data()),
-            sizeof(uint64_t) * (kPadding + nr_counters_)};
-  }
 
   // This reading is complex and as the goal of this class is to
   // abstract away the intrincacies of the reading process, this is
   // a better place for it
   size_t Read(const std::vector<int>& leaders);
 
-  // Move the padding to 2 due to the reading algorithm (1st padding plus a
-  // current read padding)
-  static constexpr size_t kPadding = 2;
-  std::array<uint64_t, kPadding + kMaxCounters> values_;
+  std::array<Value, kMaxCounters> values_;
   const size_t nr_counters_;
 };
 
@@ -174,10 +205,9 @@ class BENCHMARK_EXPORT PerfCountersMeasurement final {
     valid_read_ &= counters_.Snapshot(&end_values_);
     ClobberMemory();
 
+    end_values_ -= start_values_;
     for (size_t i = 0; i < counters_.names().size(); ++i) {
-      double measurement = static_cast<double>(end_values_[i]) -
-                           static_cast<double>(start_values_[i]);
-      measurements.push_back({counters_.names()[i], measurement});
+      measurements.push_back({counters_.names()[i], end_values_[i]});
     }
 
     return valid_read_;
