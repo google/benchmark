@@ -166,6 +166,26 @@ bool BenchmarkFamilies::FindBenchmarks(
       benchmarks->reserve(benchmarks->size() + family_size);
     }
 
+    // Optimization: Quick check if family name could match the filter
+    // before iterating through all args combinations
+    bool family_name_disabled = family->name_.rfind(kDisabledPrefix, 0) == 0;
+    bool family_could_match = false;
+    
+    if (!family_name_disabled) {
+      // Check if the filter spec starts with the family name
+      // or if the family name appears as a substring in the spec
+      family_could_match = spec.find(family->name_) != std::string::npos || 
+                           spec == "." ||
+                           family->name_.find(spec) == 0;  // spec is prefix of family name
+    }
+    
+    // For positive filters, skip family if it can't possibly match
+    // For negative filters, we need to process all since we're excluding matches
+    if (!is_negative_filter && !family_could_match && spec != ".") {
+      // Skip this entire family - no instances will match
+      continue;
+    }
+
     for (auto const& args : family->args_) {
       for (int num_threads : *thread_counts) {
         BenchmarkInstance instance(family.get(), family_index,
