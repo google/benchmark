@@ -15,6 +15,8 @@
 #ifndef BENCHMARK_RE_H_
 #define BENCHMARK_RE_H_
 
+#include <vector>
+
 #include "internal_macros.h"
 
 // clang-format off

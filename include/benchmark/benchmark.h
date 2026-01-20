@@ -171,7 +171,6 @@ BENCHMARK(BM_test)->Unit(benchmark::kMillisecond);
 #include <cassert>
 #include <cstddef>
 #include <functional>
-#include <initializer_list>
 #include <iosfwd>
 #include <limits>
 #include <map>
