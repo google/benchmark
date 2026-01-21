@@ -21,15 +21,11 @@ jobs:
     steps:
     - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
 
-    - name: mount bazel cache
-      uses: actions/cache@8b402f58fbc84540c8b491a91e594a4576fec3d7 # v5.0.2
-      env:
-        cache-name: bazel-cache
+    - uses: bazel-contrib/setup-bazel@0.18.0
       with:
-        path: "~/.cache/bazel"
-        key: ${{ env.cache-name }}-${{ matrix.os }}-${{ github.ref }}
-        restore-keys: |
-          ${{ env.cache-name }}-${{ matrix.os }}-main
+        bazelisk-cache: true
+        disk-cache: ${{ github.workflow }}
+        respository-cache: true
 
     - name: build
       run: |
