@@ -133,6 +133,11 @@ bool BenchmarkFamilies::FindBenchmarks(
   // Special list of thread counts to use when none are specified
   const std::vector<int> one_thread = {1};
 
+  // Optimization: Check if spec is a simple literal string (no regex metacharacters)
+  // If so, we can use faster string matching to skip families early
+  const std::string regex_meta = "^$.*+?[]{}()|\\";
+  bool is_literal = (spec.find_first_of(regex_meta) == std::string::npos);
+
   int next_family_index = 0;
 
   MutexLock l(mutex_);
@@ -164,6 +169,23 @@ bool BenchmarkFamilies::FindBenchmarks(
     // so worst case we reserve more than we need.
     if (spec == ".") {
       benchmarks->reserve(benchmarks->size() + family_size);
+    }
+
+    // Optimization: For literal string filters (no regex metacharacters),
+    // we can skip entire families if the family name doesn't contain the literal.
+    // This is safe because all instances will have names starting with the family name.
+    // For positive filters: skip if literal not found in family name
+    // For negative filters: skip if literal IS found (all instances will match the negative filter)
+    if (is_literal && !family->name_.empty()) {
+      bool family_contains_literal = family->name_.find(spec) != std::string::npos;
+      if (!is_negative_filter && !family_contains_literal) {
+        // Positive filter: family name doesn't contain literal, skip family
+        continue;
+      }
+      if (is_negative_filter && family_contains_literal) {
+        // Negative filter: family name contains literal, all instances will be excluded
+        continue;
+      }
     }
 
     for (auto const& args : family->args_) {
