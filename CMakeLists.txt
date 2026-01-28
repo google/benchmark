@@ -133,7 +133,12 @@ include(CheckCXXCompilerFlag)
 include(CheckLibraryExists)
 include(CXXFeatureCheck)
 
-check_library_exists(rt shm_open "" HAVE_LIB_RT)
+# Check for rt library, but explicitly disable for QNX
+if(QNXNTO)
+  set(HAVE_LIB_RT FALSE)
+else()
+  check_library_exists(rt shm_open "" HAVE_LIB_RT)
+endif()
 
 if (BENCHMARK_BUILD_32_BITS)
   add_required_cxx_compiler_flag(-m32)
