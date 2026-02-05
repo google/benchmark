@@ -15,7 +15,6 @@
 #include "perf_counters.h"
 
 #include <cstring>
-#include <memory>
 #include <vector>
 
 #if defined HAVE_LIBPFM
@@ -29,29 +28,37 @@ namespace internal {
 #if defined HAVE_LIBPFM
 
 size_t PerfCounterValues::Read(const std::vector<int>& leaders) {
-  // Create a pointer for multiple reads
-  const size_t bufsize = values_.size() * sizeof(values_[0]);
-  char* ptr = reinterpret_cast<char*>(values_.data());
-  size_t size = bufsize;
+  // See man page of perf_event_open for the exact data format
+  // We are using PERF_FORMAT_GROUP |
+  // PERF_FORMAT_TOTAL_TIME_ENABLED | PERF_FORMAT_TOTAL_TIME_RUNNING
+  struct {
+    uint64_t nr_;
+    uint64_t time_enabled_;
+    uint64_t time_running_;
+    std::array<uint64_t, kMaxCounters> values_;
+  } buffer{};
+
+  // Any valid read will have nr_, time_enabled_, time_running_,
+  // and at least one value_
+  const size_t minimum_read_size = 4 * sizeof(uint64_t);
+
+  Value* current_counter = values_.data();
   for (int lead : leaders) {
-    auto read_bytes = ::read(lead, ptr, size);
-    if (read_bytes >= ssize_t(sizeof(uint64_t))) {
-      // Actual data bytes are all bytes minus initial padding
-      std::size_t data_bytes =
-          static_cast<std::size_t>(read_bytes) - sizeof(uint64_t);
-      // This should be very cheap since it's in hot cache
-      std::memmove(ptr, ptr + sizeof(uint64_t), data_bytes);
-      // Increment our counters
-      ptr += data_bytes;
-      size -= data_bytes;
-    } else {
+    ssize_t read_bytes = ::read(lead, &buffer, sizeof(buffer));
+
+    if (read_bytes < static_cast<ssize_t>(minimum_read_size)) {
       int err = errno;
       GetErrorLogInstance() << "Error reading lead " << lead << " errno:" << err
                             << " " << ::strerror(err) << "\n";
       return 0;
     }
+
+    for (size_t i = 0; i < buffer.nr_; i++, current_counter++) {
+      current_counter->Set(buffer.time_enabled_, buffer.time_running_,
+                           buffer.values_[i]);
+    }
   }
-  return (bufsize - size) / sizeof(uint64_t);
+  return current_counter - values_.data();
 }
 
 const bool PerfCounters::kSupported = true;
@@ -125,7 +132,7 @@ PerfCounters PerfCounters::Create(
     }
 
     // Here first means first in group, ie the group leader
-    const bool is_first = (group_id < 0);
+    bool is_first = (group_id < 0);
 
     // This struct will be populated by libpfm from the counter string
     // and then fed into the syscall perf_event_open
@@ -149,14 +156,13 @@ PerfCounters PerfCounters::Create(
     // case.
     attr.disabled = is_first;
     attr.inherit = true;
-    attr.pinned = is_first;
     attr.exclude_kernel = true;
     attr.exclude_user = false;
     attr.exclude_hv = true;
 
     // Read all counters in a group in one read.
-    attr.read_format = PERF_FORMAT_GROUP;  //| PERF_FORMAT_TOTAL_TIME_ENABLED |
-                                           // PERF_FORMAT_TOTAL_TIME_RUNNING;
+    attr.read_format = PERF_FORMAT_GROUP | PERF_FORMAT_TOTAL_TIME_ENABLED |
+                       PERF_FORMAT_TOTAL_TIME_RUNNING;
 
     int id = -1;
     while (id < 0) {
@@ -175,6 +181,8 @@ PerfCounters PerfCounters::Create(
         if (group_id >= 0) {
           // Create a new group
           group_id = -1;
+          is_first = true;
+          attr.disabled = is_first;
         } else {
           // At this point we have already retried to set a new group id and
           // failed. We then give up.
