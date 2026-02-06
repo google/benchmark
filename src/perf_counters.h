@@ -152,7 +152,7 @@ class BENCHMARK_EXPORT PerfCountersMeasurement final {
 
   size_t num_counters() const { return counters_.num_counters(); }
 
-  std::vector<std::string> names() const { return counters_.names(); }
+  const std::vector<std::string>& names() const { return counters_.names(); }
 
   BENCHMARK_ALWAYS_INLINE bool Start() {
     if (num_counters() == 0) return true;
