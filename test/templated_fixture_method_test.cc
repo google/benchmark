@@ -1,6 +1,5 @@
 
 #include <cassert>
-#include <memory>
 
 #include "benchmark/benchmark.h"
 
