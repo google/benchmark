@@ -457,7 +457,8 @@ void RunBenchmarks(const std::vector<BenchmarkInstance>& benchmarks,
 
     // The use of performance counters with threads would be unintuitive for
     // the average user so we need to warn them about this case
-    if ((benchmarks_with_threads > 0) && (perfcounters.num_counters() > 0)) {
+    if ((benchmarks_with_threads > 0) && (perfcounters.num_counters() > 0) && 
+    FLAGS_benchmark_perf_counters_inherit) {
       GetErrorLogInstance()
           << "***WARNING*** There are " << benchmarks_with_threads
           << " benchmarks with threads and " << perfcounters.num_counters()
