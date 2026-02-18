@@ -38,7 +38,10 @@ class ThreadTimer {
   }
 
   // Called by each thread
-  void SetIterationTime(double seconds) { manual_time_used_ += seconds; }
+  void SetIterationTime(double seconds) {
+    manual_time_used_ += seconds;
+    manual_time_used_pow2_ += std::pow(seconds, 2.);
+  }
 
   bool running() const { return running_; }
 
@@ -60,6 +63,11 @@ class ThreadTimer {
     return manual_time_used_;
   }
 
+  double manual_time_used_pow2() const {
+    BM_CHECK(!running_);
+    return manual_time_used_pow2_;
+  }
+
  private:
   double ReadCpuTimerOfChoice() const {
     if (measure_process_cpu_time) return ProcessCPUUsage();
@@ -78,6 +86,7 @@ class ThreadTimer {
   double cpu_time_used_ = 0;
   // Manually set iteration time. User sets this with SetIterationTime(seconds).
   double manual_time_used_ = 0;
+  double manual_time_used_pow2_ = 0;
 };
 
 }  // namespace internal

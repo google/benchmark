@@ -221,6 +221,7 @@ Benchmark::Benchmark(const std::string& name)
       use_default_time_unit_(true),
       range_multiplier_(kRangeMultiplier),
       min_time_(0),
+      min_rel_accuracy_(0),
       min_warmup_time_(0),
       iterations_(0),
       repetitions_(0),
@@ -374,6 +375,14 @@ Benchmark* Benchmark::MinTime(double t) {
   BM_CHECK(t > 0.0);
   BM_CHECK(iterations_ == 0);
   min_time_ = t;
+  return this;
+}
+
+Benchmark* Benchmark::MinRelAccuracy(double r) {
+  BM_CHECK(r > 0.0);
+  BM_CHECK(iterations_ == 0);
+  BM_CHECK(use_manual_time_);
+  min_rel_accuracy_ = r;
   return this;
 }
 
