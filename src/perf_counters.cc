@@ -135,7 +135,7 @@ static std::vector<uint64_t> GetPMUTypesForEvent(const perf_event_attr& attr) {
 }
 
 PerfCounters PerfCounters::Create(
-    const std::vector<std::string>& counter_names) {
+    const std::vector<std::string>& counter_names, bool inherit) {
   if (!counter_names.empty()) {
     Initialize();
   }
@@ -202,8 +202,9 @@ PerfCounters PerfCounters::Create(
     // Note: the man page for perf_event_create suggests inherit = true and
     // read_format = PERF_FORMAT_GROUP don't work together, but that's not the
     // case.
+    
     attr.disabled = is_first;
-    attr.inherit = true;
+    attr.inherit = inherit;
     attr.pinned = is_first;
     attr.exclude_kernel = true;
     attr.exclude_user = false;
@@ -311,10 +312,11 @@ bool PerfCounters::Initialize() { return false; }
 bool PerfCounters::IsCounterSupported(const std::string&) { return false; }
 
 PerfCounters PerfCounters::Create(
-    const std::vector<std::string>& counter_names) {
+    const std::vector<std::string>& counter_names, bool inherit) {
   if (!counter_names.empty()) {
     GetErrorLogInstance() << "Performance counters not supported.\n";
   }
+  (void)inherit; // This just tells the compiler to ignore the variable
   return NoCounters();
 }
 
@@ -322,9 +324,9 @@ void PerfCounters::CloseCounters() const {}
 #endif  // defined HAVE_LIBPFM
 
 PerfCountersMeasurement::PerfCountersMeasurement(
-    const std::vector<std::string>& counter_names)
+    const std::vector<std::string>& counter_names, bool inherit)
     : start_values_(counter_names.size()), end_values_(counter_names.size()) {
-  counters_ = PerfCounters::Create(counter_names);
+  counters_ = PerfCounters::Create(counter_names, inherit);
 }
 
 PerfCounters& PerfCounters::operator=(PerfCounters&& other) noexcept {
