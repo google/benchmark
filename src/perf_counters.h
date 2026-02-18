@@ -113,7 +113,7 @@ class BENCHMARK_EXPORT PerfCounters final {
   // implementation and OS specific.
   // In case of failure, this method will in the worst case return an
   // empty object whose state will still be valid.
-  static PerfCounters Create(const std::vector<std::string>& counter_names);
+  static PerfCounters Create(const std::vector<std::string>& counter_names, bool inherit = true);
 
   // Take a snapshot of the current value of the counters into the provided
   // valid PerfCounterValues storage. The values are populated such that:
@@ -148,7 +148,7 @@ class BENCHMARK_EXPORT PerfCounters final {
 // Typical usage of the above primitives.
 class BENCHMARK_EXPORT PerfCountersMeasurement final {
  public:
-  PerfCountersMeasurement(const std::vector<std::string>& counter_names);
+  PerfCountersMeasurement(const std::vector<std::string>& counter_names, bool inherit);
 
   size_t num_counters() const { return counters_.num_counters(); }
 
