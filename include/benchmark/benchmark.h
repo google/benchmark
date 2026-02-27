@@ -1574,12 +1574,12 @@ BENCHMARK_RESTORE_COUNTER_WARNING
 // }
 // /* Registers a benchmark named "BM_Foo/my_variant" */
 // BENCHMARK_NAMED(BM_Foo, my_variant);
-#define BENCHMARK_NAMED(func, test_case_name)              \
-  BENCHMARK_PRIVATE_DECLARE(_benchmark_) =                 \
-      (::benchmark::internal::RegisterBenchmarkInternal(   \
-          ::benchmark::internal::make_unique<              \
-              ::benchmark::internal::FunctionBenchmark>(   \
-              #func "/" #test_case_name,                   \
+#define BENCHMARK_NAMED(func, test_case_name)            \
+  BENCHMARK_PRIVATE_DECLARE(_benchmark_) =               \
+      (::benchmark::internal::RegisterBenchmarkInternal( \
+          ::benchmark::internal::make_unique<            \
+              ::benchmark::internal::FunctionBenchmark>( \
+              #func "/" #test_case_name,                 \
               static_cast<::benchmark::internal::Function*>(func))))
 
 // This will register a benchmark for a templatized function.  For example:
