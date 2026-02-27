@@ -105,6 +105,20 @@ ReturnVal dummy3 = benchmark::RegisterBenchmark("DISABLED_BM_function_manual",
 // No need to add cases because we don't expect them to run.
 
 //----------------------------------------------------------------------------//
+// Test BENCHMARK_NAMED: verifies name format "func/test_case_name" and that
+// chaining (e.g. ->Threads()) works, without introducing a lambda.
+//----------------------------------------------------------------------------//
+void BM_named(benchmark::State& state) {
+  for (auto _ : state) {
+  }
+}
+BENCHMARK_NAMED(BM_named, variant_a);
+BENCHMARK_NAMED(BM_named, variant_b);
+BENCHMARK_NAMED(BM_named, variant_c)->Threads(2);
+ADD_CASES({"BM_named/variant_a"}, {"BM_named/variant_b"},
+          {"BM_named/variant_c/threads:2"});
+
+//----------------------------------------------------------------------------//
 // Test RegisterBenchmark with different callable types
 //----------------------------------------------------------------------------//
 

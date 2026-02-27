@@ -1560,6 +1560,28 @@ BENCHMARK_RESTORE_COUNTER_WARNING
               #func "/" #test_case_name,                 \
               [](::benchmark::State& st) { func(st, __VA_ARGS__); })))
 
+// Register a benchmark named `func/test_case_name` which invokes `func`
+// directly (no lambda, no extra arguments). Use this instead of
+// BENCHMARK_CAPTURE when you only need a custom name and do not need to
+// pass additional arguments. This avoids the lambda overhead that causes
+// compiler and linker scalability issues when registering large numbers of
+// benchmarks.
+//
+// For example:
+//
+// void BM_Foo(benchmark::State& state) {
+//   for (auto _ : state) {}
+// }
+// /* Registers a benchmark named "BM_Foo/my_variant" */
+// BENCHMARK_NAMED(BM_Foo, my_variant);
+#define BENCHMARK_NAMED(func, test_case_name)            \
+  BENCHMARK_PRIVATE_DECLARE(_benchmark_) =               \
+      (::benchmark::internal::RegisterBenchmarkInternal( \
+          ::benchmark::internal::make_unique<            \
+              ::benchmark::internal::FunctionBenchmark>( \
+              #func "/" #test_case_name,                 \
+              static_cast<::benchmark::internal::Function*>(func))))
+
 // This will register a benchmark for a templatized function.  For example:
 //
 // template<int arg>
