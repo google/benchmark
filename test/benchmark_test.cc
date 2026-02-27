@@ -234,7 +234,6 @@ void BM_non_template_args(benchmark::State& state, int, double) {
 }
 BENCHMARK_CAPTURE(BM_non_template_args, basic_test, 0, 0);
 
-
 template <class T, class U, class... ExtraArgs>
 void BM_template2_capture(benchmark::State& state, ExtraArgs&&... extra_args) {
   static_assert(std::is_same<T, void>::value, "");
