@@ -33,11 +33,11 @@ const int64_t kUnitsSize = arraysize(kBigSIUnits);
 
 void ToExponentAndMantissa(double val, int precision, double one_k,
                            std::string* mantissa, int64_t* exponent) {
-  std::stringstream mantissa_stream;
-
   if (val < 0) {
-    mantissa_stream << "-";
+    *mantissa = "-";
     val = -val;
+  } else {
+    mantissa->clear();
   }
 
   // Adjust threshold so that it never excludes things which can't be rendered
@@ -55,13 +55,12 @@ void ToExponentAndMantissa(double val, int precision, double one_k,
     for (size_t i = 0; i < arraysize(kBigSIUnits); ++i) {
       scaled /= one_k;
       if (scaled <= big_threshold) {
-        mantissa_stream << scaled;
+        *mantissa += StrFormat("%g", scaled);
         *exponent = static_cast<int64_t>(i + 1);
-        *mantissa = mantissa_stream.str();
         return;
       }
     }
-    mantissa_stream << val;
+    *mantissa += StrFormat("%g", val);
     *exponent = 0;
   } else if (val < small_threshold) {
     // Negative powers
@@ -70,20 +69,18 @@ void ToExponentAndMantissa(double val, int precision, double one_k,
       for (size_t i = 0; i < arraysize(kSmallSIUnits); ++i) {
         scaled *= one_k;
         if (scaled >= small_threshold) {
-          mantissa_stream << scaled;
+          *mantissa += StrFormat("%g", scaled);
           *exponent = -static_cast<int64_t>(i + 1);
-          *mantissa = mantissa_stream.str();
           return;
         }
       }
     }
-    mantissa_stream << val;
+    *mantissa += StrFormat("%g", val);
     *exponent = 0;
   } else {
-    mantissa_stream << val;
+    *mantissa += StrFormat("%g", val);
     *exponent = 0;
   }
-  *mantissa = mantissa_stream.str();
 }
 
 std::string ExponentToPrefix(int64_t exponent, bool iec) {
