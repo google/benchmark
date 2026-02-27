@@ -491,6 +491,25 @@ BENCHMARK_CAPTURE(BM_takes_args, int_test, 42, 43);
 Note that elements of `...args` may refer to global variables. Users should
 avoid modifying global state inside of a benchmark.
 
+### Naming a Benchmark Without Capturing Arguments
+
+If you only need to give a benchmark a custom name (without passing extra
+arguments), use `BENCHMARK_NAMED(func, test_case_name)`. Unlike
+`BENCHMARK_CAPTURE`, this macro does not create a lambda, which avoids
+compiler and linker scalability issues when registering thousands of
+benchmarks.
+
+```c++
+void BM_Foo(benchmark::State& state) {
+  for (auto _ : state) {}
+}
+// Registers a benchmark named "BM_Foo/my_variant"
+BENCHMARK_NAMED(BM_Foo, my_variant);
+```
+
+Use `BENCHMARK_CAPTURE` when you need to pass extra arguments; use
+`BENCHMARK_NAMED` when you only need the name.
+
 <a name="asymptotic-complexity" />
 
 ## Calculating Asymptotic Complexity (Big O)
