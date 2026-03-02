@@ -51,18 +51,20 @@ std::pair<std::string, int64_t> ToExponentAndMantissa(double val, int precision,
   // Values in ]simple_threshold,small_threshold[ will be printed as-is
   const double simple_threshold = 0.01;
 
+  auto format_mantissa = [&](double v) { mantissa += StrFormat("%g", v); };
+
   if (val > big_threshold) {
     // Positive powers
     double scaled = val;
     for (size_t i = 0; i < arraysize(kBigSIUnits); ++i) {
       scaled /= one_k;
       if (scaled <= big_threshold) {
-        mantissa += StrFormat("%g", scaled);
+        format_mantissa(scaled);
         exponent = static_cast<int64_t>(i + 1);
         return std::make_pair(mantissa, exponent);
       }
     }
-    mantissa += StrFormat("%g", val);
+    format_mantissa(val);
     exponent = 0;
   } else if (val < small_threshold) {
     // Negative powers
@@ -71,16 +73,16 @@ std::pair<std::string, int64_t> ToExponentAndMantissa(double val, int precision,
       for (size_t i = 0; i < arraysize(kSmallSIUnits); ++i) {
         scaled *= one_k;
         if (scaled >= small_threshold) {
-          mantissa += StrFormat("%g", scaled);
+          format_mantissa(scaled);
           exponent = -static_cast<int64_t>(i + 1);
           return std::make_pair(mantissa, exponent);
         }
       }
     }
-    mantissa += StrFormat("%g", val);
+    format_mantissa(val);
     exponent = 0;
   } else {
-    mantissa += StrFormat("%g", val);
+    format_mantissa(val);
     exponent = 0;
   }
   return std::make_pair(mantissa, exponent);
