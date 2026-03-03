@@ -26,6 +26,7 @@ BenchmarkInstance::BenchmarkInstance(benchmark::Benchmark* benchmark,
       statistics_(benchmark_.statistics_),
       repetitions_(benchmark_.repetitions_),
       min_time_(benchmark_.min_time_),
+      min_rel_accuracy_(benchmark_.min_rel_accuracy_),
       min_warmup_time_(benchmark_.min_warmup_time_),
       iterations_(benchmark_.iterations_),
       threads_(thread_count),
@@ -52,6 +53,11 @@ BenchmarkInstance::BenchmarkInstance(benchmark::Benchmark* benchmark,
 
   if (!IsZero(benchmark->min_time_)) {
     name_.min_time = StrFormat("min_time:%0.3f", benchmark_.min_time_);
+  }
+
+  if (!IsZero(benchmark->min_rel_accuracy_)) {
+    name_.min_rel_accuracy =
+        StrFormat("min_rel_accuracy:%0.3f", benchmark_.min_rel_accuracy_);
   }
 
   if (!IsZero(benchmark->min_warmup_time_)) {
