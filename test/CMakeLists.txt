@@ -184,7 +184,7 @@ compile_output_test(templated_fixture_method_test)
 benchmark_add_test(NAME templated_fixture_method_test COMMAND templated_fixture_method_test --benchmark_min_time=0.01s)
 
 compile_output_test(user_counters_test)
-benchmark_add_test(NAME user_counters_test COMMAND user_counters_test --benchmark_min_time=0.01s)
+benchmark_add_test(NAME user_counters_test COMMAND user_counters_test --benchmark_min_time=0.2s)
 
 compile_output_test(user_counters_threads_test)
 benchmark_add_test(NAME user_counters_threads_test COMMAND user_counters_threads_test --benchmark_min_time=0.2s)
