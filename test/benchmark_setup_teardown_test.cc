@@ -4,7 +4,9 @@
 #include <cstring>
 #include <string>
 
-#include "benchmark/benchmark.h"
+#include "benchmark/benchmark_api.h"
+#include "benchmark/registration.h"
+#include "benchmark/state.h"
 
 // Test that Setup() and Teardown() are called exactly once
 // for each benchmark run (single-threaded).

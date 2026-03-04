@@ -7,7 +7,10 @@
 #include <string>
 #include <vector>
 
-#include "benchmark/benchmark.h"
+#include "benchmark/benchmark_api.h"
+#include "benchmark/registration.h"
+#include "benchmark/reporter.h"
+#include "benchmark/state.h"
 
 // Tests that we can specify the min time with
 // --benchmark_min_time=<NUM> (no suffix needed) OR

@@ -3,7 +3,9 @@
 
 #include <atomic>
 
-#include "benchmark/benchmark.h"
+#include "benchmark/counter.h"
+#include "benchmark/statistics.h"
+#include "benchmark/types.h"
 #include "mutex.h"
 
 namespace benchmark {

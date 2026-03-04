@@ -16,12 +16,15 @@
 #define BENCHMARK_PERF_COUNTERS_H
 
 #include <array>
+#include <cassert>
 #include <cstdint>
 #include <cstring>
 #include <memory>
 #include <vector>
 
-#include "benchmark/benchmark.h"
+#include "benchmark/export.h"
+#include "benchmark/macros.h"
+#include "benchmark/utils.h"
 #include "check.h"
 #include "log.h"
 #include "mutex.h"

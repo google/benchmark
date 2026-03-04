@@ -4,7 +4,10 @@
 
 #include "../src/commandlineflags.h"
 #include "../src/string_util.h"
-#include "benchmark/benchmark.h"
+#include "benchmark/benchmark_api.h"
+#include "benchmark/registration.h"
+#include "benchmark/reporter.h"
+#include "benchmark/state.h"
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
 

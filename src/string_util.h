@@ -6,7 +6,7 @@
 #include <utility>
 #include <vector>
 
-#include "benchmark/benchmark.h"
+#include "benchmark/counter.h"
 #include "benchmark/export.h"
 #include "check.h"
 

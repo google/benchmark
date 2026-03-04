@@ -3,7 +3,9 @@
 #include <cmath>
 #include <cstdlib>
 
-#include "benchmark/benchmark.h"
+#include "benchmark/benchmark_api.h"
+#include "benchmark/registration.h"
+#include "benchmark/state.h"
 #include "output_test.h"
 
 namespace {

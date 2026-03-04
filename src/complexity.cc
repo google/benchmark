@@ -19,7 +19,9 @@
 
 #include <cmath>
 
-#include "benchmark/benchmark.h"
+#include "benchmark/reporter.h"
+#include "benchmark/statistics.h"
+#include "benchmark/types.h"
 #include "check.h"
 
 namespace benchmark {

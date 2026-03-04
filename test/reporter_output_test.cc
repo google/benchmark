@@ -1,6 +1,12 @@
 #undef NDEBUG
 
-#include "benchmark/benchmark.h"
+#include "benchmark/benchmark_api.h"
+#include "benchmark/registration.h"
+#include "benchmark/state.h"
+#include "benchmark/statistics.h"
+#include "benchmark/sysinfo.h"
+#include "benchmark/types.h"
+#include "benchmark/utils.h"
 #include "output_test.h"
 
 namespace {

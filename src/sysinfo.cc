@@ -77,7 +77,9 @@
 #include <sstream>
 #include <utility>
 
-#include "benchmark/benchmark.h"
+#include "benchmark/export.h"
+#include "benchmark/sysinfo.h"
+#include "benchmark/utils.h"
 #include "check.h"
 #include "cycleclock.h"
 #include "log.h"
