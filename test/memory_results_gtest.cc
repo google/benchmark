@@ -1,6 +1,9 @@
 #include <vector>
 
-#include "benchmark/benchmark.h"
+#include "benchmark/benchmark_api.h"
+#include "benchmark/managers.h"
+#include "benchmark/reporter.h"
+#include "benchmark/state.h"
 #include "gtest/gtest.h"
 
 namespace {

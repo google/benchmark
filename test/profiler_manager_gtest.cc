@@ -1,6 +1,9 @@
 #include <memory>
 
-#include "benchmark/benchmark.h"
+#include "benchmark/managers.h"
+#include "benchmark/registration.h"
+#include "benchmark/state.h"
+#include "benchmark/utils.h"
 #include "gtest/gtest.h"
 
 namespace {

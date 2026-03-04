@@ -36,7 +36,11 @@
 #include <sstream>
 #include <thread>
 
-#include "benchmark/benchmark.h"
+#include "benchmark/benchmark_api.h"
+#include "benchmark/registration.h"
+#include "benchmark/reporter.h"
+#include "benchmark/statistics.h"
+#include "benchmark/types.h"
 #include "benchmark_api_internal.h"
 #include "check.h"
 #include "commandlineflags.h"

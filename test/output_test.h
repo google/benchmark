@@ -11,7 +11,7 @@
 #include <vector>
 
 #include "../src/re.h"
-#include "benchmark/benchmark.h"
+#include "benchmark/benchmark_api.h"
 
 #define CONCAT2(x, y) x##y
 #define CONCAT(x, y) CONCAT2(x, y)

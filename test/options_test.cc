@@ -1,7 +1,10 @@
 #include <chrono>
 #include <thread>
 
-#include "benchmark/benchmark.h"
+#include "benchmark/benchmark_api.h"
+#include "benchmark/registration.h"
+#include "benchmark/state.h"
+#include "benchmark/types.h"
 
 #if defined(NDEBUG)
 #undef NDEBUG

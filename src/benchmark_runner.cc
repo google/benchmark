@@ -14,7 +14,11 @@
 
 #include "benchmark_runner.h"
 
-#include "benchmark/benchmark.h"
+#include "benchmark/benchmark_api.h"
+#include "benchmark/managers.h"
+#include "benchmark/reporter.h"
+#include "benchmark/state.h"
+#include "benchmark/types.h"
 #include "benchmark_api_internal.h"
 #include "internal_macros.h"
 

@@ -11,7 +11,7 @@
 #include <sstream>
 
 #include "arraysize.h"
-#include "benchmark/benchmark.h"
+#include "benchmark/types.h"
 
 namespace benchmark {
 namespace {

@@ -12,8 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "benchmark/benchmark.h"
-
+#include "benchmark/benchmark_api.h"
+#include "benchmark/registration.h"
+#include "benchmark/reporter.h"
+#include "benchmark/state.h"
+#include "benchmark/types.h"
 #include "benchmark_api_internal.h"
 #include "benchmark_runner.h"
 #include "internal_macros.h"

@@ -4,7 +4,10 @@
 #include <vector>
 
 #include "../src/check.h"  // NOTE: check.h is for internal use only!
-#include "benchmark/benchmark.h"
+#include "benchmark/benchmark_api.h"
+#include "benchmark/registration.h"
+#include "benchmark/reporter.h"
+#include "benchmark/state.h"
 
 namespace {
 

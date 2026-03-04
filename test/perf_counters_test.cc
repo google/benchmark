@@ -3,7 +3,10 @@
 
 #include "../src/commandlineflags.h"
 #include "../src/perf_counters.h"
-#include "benchmark/benchmark.h"
+#include "benchmark/benchmark_api.h"
+#include "benchmark/registration.h"
+#include "benchmark/state.h"
+#include "benchmark/utils.h"
 #include "output_test.h"
 
 namespace benchmark {

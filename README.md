@@ -11,7 +11,8 @@
 A library to benchmark code snippets, similar to unit tests. Example:
 
 ```c++
-#include <benchmark/benchmark.h>
+#include <benchmark/registration.h>
+#include <benchmark/state.h>
 
 static void BM_SomeFunction(benchmark::State& state) {
   // Perform setup here

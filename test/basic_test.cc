@@ -1,5 +1,8 @@
 
-#include "benchmark/benchmark.h"
+#include "benchmark/registration.h"
+#include "benchmark/state.h"
+#include "benchmark/types.h"
+#include "benchmark/utils.h"
 
 #define BASIC_BENCHMARK_TEST(x) BENCHMARK(x)->Arg(8)->Arg(512)->Arg(8192)
 

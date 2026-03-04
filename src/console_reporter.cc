@@ -21,7 +21,9 @@
 #include <tuple>
 #include <vector>
 
-#include "benchmark/benchmark.h"
+#include "benchmark/export.h"
+#include "benchmark/reporter.h"
+#include "benchmark/types.h"
 #include "check.h"
 #include "colorprint.h"
 #include "commandlineflags.h"

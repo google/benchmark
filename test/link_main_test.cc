@@ -1,4 +1,6 @@
-#include "benchmark/benchmark.h"
+#include "benchmark/registration.h"
+#include "benchmark/state.h"
+#include "benchmark/utils.h"
 
 namespace {
 void BM_empty(benchmark::State& state) {

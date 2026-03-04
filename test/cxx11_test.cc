@@ -1,4 +1,4 @@
-#include "benchmark/benchmark.h"
+#include "benchmark/benchmark_api.h"
 
 #if defined(_MSC_VER)
 #if _MSVC_LANG != 201402L

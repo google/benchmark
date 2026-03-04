@@ -22,7 +22,10 @@
 #include <tuple>
 #include <vector>
 
-#include "benchmark/benchmark.h"
+#include "benchmark/benchmark_api.h"
+#include "benchmark/export.h"
+#include "benchmark/reporter.h"
+#include "benchmark/types.h"
 #include "complexity.h"
 #include "string_util.h"
 #include "timers.h"
