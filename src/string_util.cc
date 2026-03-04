@@ -34,7 +34,7 @@ const int64_t kUnitsSize = arraysize(kBigSIUnits);
 std::pair<std::string, int64_t> ToExponentAndMantissa(double val, int precision,
                                                       double one_k) {
   std::string mantissa;
-  int64_t exponent;
+  int64_t exponent = 0;
   if (val < 0) {
     mantissa = "-";
     val = -val;
@@ -53,8 +53,8 @@ std::pair<std::string, int64_t> ToExponentAndMantissa(double val, int precision,
 
   auto format_mantissa = [&](double v) { mantissa += StrFormat("%g", v); };
 
+  // Positive powers
   if (val > big_threshold) {
-    // Positive powers
     double scaled = val;
     for (size_t i = 0; i < arraysize(kBigSIUnits); ++i) {
       scaled /= one_k;
@@ -66,8 +66,11 @@ std::pair<std::string, int64_t> ToExponentAndMantissa(double val, int precision,
     }
     format_mantissa(val);
     exponent = 0;
-  } else if (val < small_threshold) {
-    // Negative powers
+    return std::make_pair(mantissa, exponent);
+  }
+
+  // Negative powers
+  if (val < small_threshold) {
     if (val < simple_threshold) {
       double scaled = val;
       for (size_t i = 0; i < arraysize(kSmallSIUnits); ++i) {
@@ -81,10 +84,11 @@ std::pair<std::string, int64_t> ToExponentAndMantissa(double val, int precision,
     }
     format_mantissa(val);
     exponent = 0;
-  } else {
-    format_mantissa(val);
-    exponent = 0;
+    return std::make_pair(mantissa, exponent);
   }
+
+  format_mantissa(val);
+  exponent = 0;
   return std::make_pair(mantissa, exponent);
 }
 
@@ -106,11 +110,9 @@ std::string ExponentToPrefix(int64_t exponent, bool iec) {
 
 std::string ToBinaryStringFullySpecified(double value, int precision,
                                          Counter::OneK one_k) {
-  auto mantissa_and_exponent = ToExponentAndMantissa(
+  auto [mantissa, exponent] = ToExponentAndMantissa(
       value, precision, one_k == Counter::kIs1024 ? 1024.0 : 1000.0);
-  return mantissa_and_exponent.first +
-         ExponentToPrefix(mantissa_and_exponent.second,
-                          one_k == Counter::kIs1024);
+  return mantissa + ExponentToPrefix(exponent, one_k == Counter::kIs1024);
 }
 
 PRINTF_FORMAT_STRING_FUNC(1, 0)
