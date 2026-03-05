@@ -31,13 +31,15 @@ static_assert(arraysize(kSmallSIUnits) == arraysize(kBigSIUnits),
 
 const int64_t kUnitsSize = arraysize(kBigSIUnits);
 
-void ToExponentAndMantissa(double val, int precision, double one_k,
-                           std::string* mantissa, int64_t* exponent) {
-  std::stringstream mantissa_stream;
-
+std::pair<std::string, int64_t> ToExponentAndMantissa(double val, int precision,
+                                                      double one_k) {
+  std::string mantissa;
+  int64_t exponent = 0;
   if (val < 0) {
-    mantissa_stream << "-";
+    mantissa = "-";
     val = -val;
+  } else {
+    mantissa.clear();
   }
 
   // Adjust threshold so that it never excludes things which can't be rendered
@@ -49,41 +51,45 @@ void ToExponentAndMantissa(double val, int precision, double one_k,
   // Values in ]simple_threshold,small_threshold[ will be printed as-is
   const double simple_threshold = 0.01;
 
+  auto format_mantissa = [&](double v) { mantissa += StrFormat("%g", v); };
+
+  // Positive powers
   if (val > big_threshold) {
-    // Positive powers
     double scaled = val;
     for (size_t i = 0; i < arraysize(kBigSIUnits); ++i) {
       scaled /= one_k;
       if (scaled <= big_threshold) {
-        mantissa_stream << scaled;
-        *exponent = static_cast<int64_t>(i + 1);
-        *mantissa = mantissa_stream.str();
-        return;
+        format_mantissa(scaled);
+        exponent = static_cast<int64_t>(i + 1);
+        return std::make_pair(mantissa, exponent);
       }
     }
-    mantissa_stream << val;
-    *exponent = 0;
-  } else if (val < small_threshold) {
-    // Negative powers
+    format_mantissa(val);
+    exponent = 0;
+    return std::make_pair(mantissa, exponent);
+  }
+
+  // Negative powers
+  if (val < small_threshold) {
     if (val < simple_threshold) {
       double scaled = val;
       for (size_t i = 0; i < arraysize(kSmallSIUnits); ++i) {
         scaled *= one_k;
         if (scaled >= small_threshold) {
-          mantissa_stream << scaled;
-          *exponent = -static_cast<int64_t>(i + 1);
-          *mantissa = mantissa_stream.str();
-          return;
+          format_mantissa(scaled);
+          exponent = -static_cast<int64_t>(i + 1);
+          return std::make_pair(mantissa, exponent);
         }
       }
     }
-    mantissa_stream << val;
-    *exponent = 0;
-  } else {
-    mantissa_stream << val;
-    *exponent = 0;
+    format_mantissa(val);
+    exponent = 0;
+    return std::make_pair(mantissa, exponent);
   }
-  *mantissa = mantissa_stream.str();
+
+  format_mantissa(val);
+  exponent = 0;
+  return std::make_pair(mantissa, exponent);
 }
 
 std::string ExponentToPrefix(int64_t exponent, bool iec) {
@@ -104,11 +110,8 @@ std::string ExponentToPrefix(int64_t exponent, bool iec) {
 
 std::string ToBinaryStringFullySpecified(double value, int precision,
                                          Counter::OneK one_k) {
-  std::string mantissa;
-  int64_t exponent = 0;
-  ToExponentAndMantissa(value, precision,
-                        one_k == Counter::kIs1024 ? 1024.0 : 1000.0, &mantissa,
-                        &exponent);
+  auto [mantissa, exponent] = ToExponentAndMantissa(
+      value, precision, one_k == Counter::kIs1024 ? 1024.0 : 1000.0);
   return mantissa + ExponentToPrefix(exponent, one_k == Counter::kIs1024);
 }
 
