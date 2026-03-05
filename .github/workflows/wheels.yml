@@ -50,7 +50,7 @@ jobs:
         uses: astral-sh/setup-uv@5a095e7a2014a4212f075830d4f7277575a9d098 # v7.3.1
 
       - name: Build wheels on ${{ matrix.os }} using cibuildwheel
-        uses: pypa/cibuildwheel@298ed2fb2c105540f5ed055e8a6ad78d82dd3a7e # v3.3.1
+        uses: pypa/cibuildwheel@ee02a1537ce3071a004a6b08c41e72f0fdc42d9a # v3.4.0
         env:
           CIBW_BUILD: "cp310-* cp311-* cp312-*"
           CIBW_BUILD_FRONTEND: "build[uv]"
