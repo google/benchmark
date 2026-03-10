@@ -27,7 +27,8 @@
 #include <codecvt>
 #else
 #include <fcntl.h>
-#if !defined(BENCHMARK_OS_FUCHSIA) && !defined(BENCHMARK_OS_QURT)
+#if !defined(BENCHMARK_OS_FUCHSIA) && !defined(BENCHMARK_OS_QURT) && \
+    !defined(BENCHMARK_OS_WASI)
 #include <sys/resource.h>
 #endif
 #include <sys/time.h>
@@ -441,7 +442,8 @@ std::vector<CPUInfo::CacheInfo> GetCacheSizes() {
   return GetCacheSizesWindows();
 #elif defined(BENCHMARK_OS_QNX)
   return GetCacheSizesQNX();
-#elif defined(BENCHMARK_OS_QURT) || defined(__EMSCRIPTEN__)
+#elif defined(BENCHMARK_OS_QURT) || defined(BENCHMARK_OS_EMSCRIPTEN) || \
+    defined(BENCHMARK_OS_WASI)
   return std::vector<CPUInfo::CacheInfo>();
 #else
   return GetCacheSizesFromKVFS();
@@ -474,6 +476,8 @@ std::string GetSystemName() {
     str += std::to_string(arch_version_struct.arch_version);
   }
   return str;
+#elif defined(BENCHMARK_OS_WASI)
+  return std::string("wasi");
 #else
 #ifndef HOST_NAME_MAX
 #ifdef BENCHMARK_HAS_SYSCTL  // BSD/Mac doesn't have HOST_NAME_MAX defined

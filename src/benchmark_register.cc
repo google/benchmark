@@ -15,7 +15,8 @@
 #include "benchmark_register.h"
 
 #ifndef BENCHMARK_OS_WINDOWS
-#if !defined(BENCHMARK_OS_FUCHSIA) && !defined(BENCHMARK_OS_QURT)
+#if !defined(BENCHMARK_OS_FUCHSIA) && !defined(BENCHMARK_OS_QURT) && \
+    !defined(BENCHMARK_OS_WASI)
 #include <sys/resource.h>
 #endif
 #include <sys/time.h>
