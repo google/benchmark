@@ -331,6 +331,12 @@ cxx_feature_check(STEADY_CLOCK)
 # Ensure we have pthreads
 set(THREADS_PREFER_PTHREAD_FLAG ON)
 find_package(Threads REQUIRED)
+
+# cxx_feature_check relies on try_run to probe compiler features. Because this
+# check does not produce a real target, target_link_libraries cannot be applied.
+# Therefore, link libraries are forwarded to try_run through
+# BENCHMARK_CXX_LIBRARIES.
+list(APPEND BENCHMARK_CXX_LIBRARIES Threads::Threads)
 cxx_feature_check(PTHREAD_AFFINITY)
 
 if (BENCHMARK_ENABLE_LIBPFM)
