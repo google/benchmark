@@ -51,6 +51,9 @@
 #include <qurt.h>
 #endif
 #if defined(BENCHMARK_HAS_PTHREAD_AFFINITY)
+#if defined(BENCHMARK_OS_FREEBSD)
+#include <pthread_np.h>
+#endif
 #include <pthread.h>
 #endif
 

@@ -49,9 +49,6 @@ if(HAVE_PTHREAD_AFFINITY)
   target_compile_definitions(benchmark PRIVATE -DBENCHMARK_HAS_PTHREAD_AFFINITY)
 endif()
 
-# Link threads.
-target_link_libraries(benchmark PRIVATE Threads::Threads)
-
 target_link_libraries(benchmark PRIVATE ${BENCHMARK_CXX_LIBRARIES})
 
 if(HAVE_LIB_RT)
