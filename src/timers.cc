@@ -23,7 +23,8 @@
 #include <windows.h>
 #else
 #include <fcntl.h>
-#if !defined(BENCHMARK_OS_FUCHSIA) && !defined(BENCHMARK_OS_QURT)
+#if !defined(BENCHMARK_OS_FUCHSIA) && !defined(BENCHMARK_OS_QURT) && \
+    !defined(BENCHMARK_OS_WASI)
 #include <sys/resource.h>
 #endif
 #include <sys/time.h>
@@ -84,7 +85,8 @@ double MakeTime(FILETIME const& kernel_time, FILETIME const& user_time) {
           static_cast<double>(user.QuadPart)) *
          1e-7;
 }
-#elif !defined(BENCHMARK_OS_FUCHSIA) && !defined(BENCHMARK_OS_QURT)
+#elif !defined(BENCHMARK_OS_FUCHSIA) && !defined(BENCHMARK_OS_QURT) && \
+    !defined(BENCHMARK_OS_WASI)
 double MakeTime(struct rusage const& ru) {
   return (static_cast<double>(ru.ru_utime.tv_sec) +
           static_cast<double>(ru.ru_utime.tv_usec) * 1e-6 +
@@ -140,6 +142,14 @@ double ProcessCPUUsage() {
   // same as total time, but this is ok because there aren't long-latency
   // synchronous system calls in Emscripten.
   return emscripten_get_now() * 1e-3;
+#elif defined(BENCHMARK_OS_WASI)
+  // WASI lacks CLOCK_PROCESS_CPUTIME_ID and getrusage; use monotonic clock.
+  struct timespec ts {};
+  if (clock_gettime(CLOCK_MONOTONIC, &ts) == 0) {
+    return static_cast<double>(ts.tv_sec) +
+           (static_cast<double>(ts.tv_nsec) * 1e-9);
+  }
+  DiagnoseAndExit("clock_gettime(CLOCK_MONOTONIC, ...) failed");
 #elif defined(CLOCK_PROCESS_CPUTIME_ID) && !defined(BENCHMARK_OS_MACOSX)
   // FIXME We want to use clock_gettime, but its not available in MacOS 10.11.
   // See https://github.com/google/benchmark/pull/292
@@ -194,6 +204,9 @@ double ThreadCPUUsage() {
   return ProcessCPUUsage();
 #elif defined(BENCHMARK_OS_ZOS)
   // z/OS doesn't support CLOCK_THREAD_CPUTIME_ID.
+  return ProcessCPUUsage();
+#elif defined(BENCHMARK_OS_WASI)
+  // WASI doesn't support per-thread CPU timing; fall back to process time.
   return ProcessCPUUsage();
 #elif defined(BENCHMARK_OS_SOLARIS)
   struct rusage ru;

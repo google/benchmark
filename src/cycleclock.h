@@ -235,7 +235,7 @@ inline BENCHMARK_ALWAYS_INLINE int64_t Now() {
   struct timeval tv;
   gettimeofday(&tv, nullptr);
   return static_cast<int64_t>(tv.tv_sec) * 1000000 + tv.tv_usec;
-#elif defined(__hppa__) || defined(__linux__)
+#elif defined(__hppa__) || defined(__linux__) || defined(BENCHMARK_OS_WASI)
   // Fallback for all other architectures with a recent Linux kernel, e.g.:
   // HP PA-RISC provides a user-readable clock counter (cr16), but
   // it's not syncronized across CPUs and only 32-bit wide when programs
