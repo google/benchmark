@@ -1066,6 +1066,29 @@ BENCHMARK(BM_SetInsert_With_Timer_Control)->Ranges({{1<<10, 8<<10}, {128, 512}})
 ```
 <!-- {% endraw %} -->
 
+For convenience, a `ScopedPauseTiming` class is provided to manage pausing and
+resuming timers within a scope. This is less error-prone than manually calling
+`PauseTiming` and `ResumeTiming`.
+
+<!-- {% raw %} -->
+```c++
+static void BM_SetInsert_With_Scoped_Timer_Control(benchmark::State& state) {
+  std::set<int> data;
+  for (auto _ : state) {
+    {
+      benchmark::ScopedPauseTiming pause(state); // Pauses timing
+      data = ConstructRandomSet(state.range(0));
+    } // Timing resumes automatically when 'pause' goes out of scope
+
+    // The rest will be measured.
+    for (int j = 0; j < state.range(1); ++j)
+      data.insert(RandomNumber());
+  }
+}
+BENCHMARK(BM_SetInsert_With_Scoped_Timer_Control)->Ranges({{1<<10, 8<<10}, {128, 512}});
+```
+<!-- {% endraw %} -->
+
 <a name="manual-timing" />
 
 ## Manual Timing

@@ -225,6 +225,9 @@ benchmark_add_test(NAME complexity_benchmark COMMAND complexity_test --benchmark
 compile_output_test(locale_impermeability_test)
 benchmark_add_test(NAME locale_impermeability_test COMMAND locale_impermeability_test)
 
+compile_output_test(scoped_pause_test)
+benchmark_add_test(NAME scoped_pause_test COMMAND scoped_pause_test)
+
 ###############################################################################
 # GoogleTest Unit Tests
 ###############################################################################
