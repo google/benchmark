@@ -274,6 +274,10 @@ $ ./run_benchmarks.x --benchmark_min_time=0.5s
 $ ./run_benchmarks.x --benchmark_min_time=100x
 ```
 
+If a benchmark specifies its own `MinTime()` or `Iterations()` in code, those
+per-benchmark settings take precedence over the corresponding
+`--benchmark_min_time` command-line forms.
+
 Furthermore warming up a benchmark might be necessary in order to get
 stable results because of e.g caching effects of the code under benchmark.
 Warming up means running the benchmark a given amount of time, before
