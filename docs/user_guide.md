@@ -252,6 +252,32 @@ iterations is at least one, not more than 1e9, until CPU time is greater than
 the minimum time, or the wallclock time is 5x minimum time. The minimum time is
 set per benchmark by calling `MinTime` on the registered benchmark object.
 
+The minimum time can also be set for all benchmarks with the
+`--benchmark_min_time=<value>` command-line option. This flag supports two
+forms:
+
+* `--benchmark_min_time=<float>s` sets the minimum running time for each
+  benchmark repetition in seconds.
+* `--benchmark_min_time=<integer>x` runs each benchmark repetition for an
+  explicit number of iterations instead of using the dynamic time-based
+  iteration selection. This applies to benchmarks that do not already specify
+  an explicit iteration count in code.
+
+For compatibility, bare numeric values such as `--benchmark_min_time=0.5` are
+also interpreted as seconds, but the explicit `s` suffix is preferred for
+clarity.
+
+For example:
+
+```bash
+$ ./run_benchmarks.x --benchmark_min_time=0.5s
+$ ./run_benchmarks.x --benchmark_min_time=100x
+```
+
+If a benchmark specifies its own `MinTime()` or `Iterations()` in code, those
+per-benchmark settings take precedence over the corresponding
+`--benchmark_min_time` command-line forms.
+
 Furthermore warming up a benchmark might be necessary in order to get
 stable results because of e.g caching effects of the code under benchmark.
 Warming up means running the benchmark a given amount of time, before
