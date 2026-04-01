@@ -263,9 +263,13 @@ class ScopedPauseTiming {
   }
   ~ScopedPauseTiming() { state_.ResumeTiming(); }
 
- private:
   ScopedPauseTiming(const ScopedPauseTiming&) = delete;
   void operator=(const ScopedPauseTiming&) = delete;
+
+  ScopedPauseTiming(ScopedPauseTiming&&) = delete;
+  void operator=(ScopedPauseTiming&&) = delete;
+
+ private:
   State& state_;
 };
 
