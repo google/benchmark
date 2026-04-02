@@ -11,9 +11,10 @@ void BM_ScopedPause(benchmark::State& state) {
   for (auto _ : state) {
     benchmark::ScopedPauseTiming pause(state);
     std::this_thread::sleep_for(std::chrono::milliseconds(10));
+    state.SetIterationTime(0.0);
   }
 }
-BENCHMARK(BM_ScopedPause)->UseRealTime()->Iterations(1);
+BENCHMARK(BM_ScopedPause)->UseManualTime()->Iterations(1);
 
 void CheckResults(Results const& results) {
   // Check that the real time is much less than the 10ms sleep time.
