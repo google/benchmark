@@ -256,6 +256,23 @@ inline BENCHMARK_ALWAYS_INLINE State::StateIterator State::end() {
   return StateIterator();
 }
 
+class ScopedPauseTiming {
+ public:
+  explicit ScopedPauseTiming(State& state) : state_(state) {
+    state_.PauseTiming();
+  }
+  ~ScopedPauseTiming() { state_.ResumeTiming(); }
+
+  ScopedPauseTiming(const ScopedPauseTiming&) = delete;
+  void operator=(const ScopedPauseTiming&) = delete;
+
+  ScopedPauseTiming(ScopedPauseTiming&&) = delete;
+  void operator=(ScopedPauseTiming&&) = delete;
+
+ private:
+  State& state_;
+};
+
 }  // namespace benchmark
 
 #if defined(_MSC_VER)
