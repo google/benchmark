@@ -19,6 +19,7 @@
 #include <type_traits>
 #include <utility>
 
+#include "benchmark/export.h"
 #include "benchmark/macros.h"
 
 namespace benchmark {

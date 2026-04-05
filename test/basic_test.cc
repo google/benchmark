@@ -1,4 +1,5 @@
 
+#include "benchmark/macros.h"
 #include "benchmark/registration.h"
 #include "benchmark/state.h"
 #include "benchmark/types.h"
@@ -150,7 +151,7 @@ BENCHMARK(BM_RangedFor);
 template <typename T>
 void BM_OneTemplateFunc(benchmark::State& state) {
   auto arg = state.range(0);
-  T sum = 0;
+  BENCHMARK_UNUSED T sum = 0;
   for (auto _ : state) {
     sum += static_cast<T>(arg);
   }
@@ -161,8 +162,8 @@ BENCHMARK(BM_OneTemplateFunc<double>)->Arg(1);
 template <typename A, typename B>
 void BM_TwoTemplateFunc(benchmark::State& state) {
   auto arg = state.range(0);
-  A sum = 0;
-  B prod = 1;
+  BENCHMARK_UNUSED A sum = 0;
+  BENCHMARK_UNUSED B prod = 1;
   for (auto _ : state) {
     sum += static_cast<A>(arg);
     prod *= static_cast<B>(arg);
