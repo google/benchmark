@@ -1,3 +1,4 @@
+#include <mutex>
 #include <random>
 #include <thread>
 
@@ -283,7 +284,16 @@ void measure(size_t threadcount, std::map<std::string, uint64_t>* before,
   BM_CHECK_NE(before, nullptr);
   BM_CHECK_NE(after, nullptr);
   std::vector<std::thread> threads(threadcount);
-  auto work = [&]() { BM_CHECK(do_work() > 1000); };
+  // Because we do not care whether the threads execute concurrently, but we do
+  // care that they do all of their work between the SnapshotAndCombine calls,
+  // we serialize them with a mutex. See
+  // https://github.com/google/benchmark/issues/2173.
+  std::mutex mutex;
+  auto work = [&mutex]() {
+    mutex.lock();
+    BM_CHECK(do_work() > 1000);
+    mutex.unlock();
+  };
 
   // We need to first set up the counters, then start the threads, so the
   // threads would inherit the counters. But later, we need to first destroy
@@ -292,10 +302,12 @@ void measure(size_t threadcount, std::map<std::string, uint64_t>* before,
   // threadpool.
   auto counters =
       PerfCounters::Create({kGenericPerfEvent1, kGenericPerfEvent2});
+  mutex.lock();
   for (auto& t : threads) {
     t = std::thread(work);
   }
   *before = SnapshotAndCombine(counters);
+  mutex.unlock();
   for (auto& t : threads) {
     t.join();
   }
