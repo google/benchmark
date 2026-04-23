@@ -127,19 +127,19 @@ BENCHMARK_DEPRECATED_MSG(
     "undesired compiler optimizations in benchmarks")
 inline BENCHMARK_ALWAYS_INLINE void DoNotOptimize(Tp const& value) {
   internal::UseCharPointer(&reinterpret_cast<char const volatile&>(value));
-  _ReadWriteBarrier();
+  std::atomic_signal_fence(std::memory_order_acq_rel);
 }
 
 template <class Tp>
 inline BENCHMARK_ALWAYS_INLINE void DoNotOptimize(Tp& value) {
   internal::UseCharPointer(&reinterpret_cast<char const volatile&>(value));
-  _ReadWriteBarrier();
+  std::atomic_signal_fence(std::memory_order_acq_rel);
 }
 
 template <class Tp>
 inline BENCHMARK_ALWAYS_INLINE void DoNotOptimize(Tp&& value) {
   internal::UseCharPointer(&reinterpret_cast<char const volatile&>(value));
-  _ReadWriteBarrier();
+  std::atomic_signal_fence(std::memory_order_acq_rel);
 }
 #else
 template <class Tp>
