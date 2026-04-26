@@ -30,6 +30,10 @@ they are platform specific, but some (e.g. `CYCLES` or `INSTRUCTIONS`) are
 mapped by libpfm to platform-specifics - see libpfm
 [documentation](http://perfmon2.sourceforge.net/docs.html) for more details.
 
+By default, perf counters include work done by all benchmark-created threads.
+Pass `--benchmark_perf_counters_all_threads=false` to measure only the main
+benchmark thread.
+
 The counter values are reported back through the [User Counters](../README.md#custom-counters)
 mechanism, meaning, they are available in all the formats (e.g. JSON) supported
 by User Counters.

@@ -145,6 +145,9 @@ BM_DEFINE_bool(benchmark_counters_tabular, false);
 // information about libpfm: https://man7.org/linux/man-pages/man3/libpfm.3.html
 BM_DEFINE_string(benchmark_perf_counters, "");
 
+// Whether perf counters should include benchmark-created threads.
+BM_DEFINE_bool(benchmark_perf_counters_all_threads, true);
+
 // Extra context to include in the output formatted as comma-separated key-value
 // pairs. Kept internal as it's only used for parsing from env/command line.
 BM_DEFINE_kvpairs(benchmark_context, {});
@@ -427,8 +430,12 @@ void RunBenchmarks(const std::vector<BenchmarkInstance>& benchmarks,
 
     // This perfcounters object needs to be created before the runners vector
     // below so it outlasts their lifetime.
-    PerfCountersMeasurement perfcounters(
-        StrSplit(FLAGS_benchmark_perf_counters, ','));
+    const std::vector<std::string> perf_counter_names =
+        StrSplit(FLAGS_benchmark_perf_counters, ',');
+    PerfCountersMeasurement perfcounters =
+        FLAGS_benchmark_perf_counters_all_threads
+            ? PerfCountersMeasurement(perf_counter_names)
+            : PerfCountersMeasurement::ForCurrentThread(perf_counter_names);
 
     // Vector of benchmarks to run
     std::vector<internal::BenchmarkRunner> runners;
@@ -457,7 +464,8 @@ void RunBenchmarks(const std::vector<BenchmarkInstance>& benchmarks,
 
     // The use of performance counters with threads would be unintuitive for
     // the average user so we need to warn them about this case
-    if ((benchmarks_with_threads > 0) && (perfcounters.num_counters() > 0)) {
+    if ((benchmarks_with_threads > 0) && (perfcounters.num_counters() > 0) &&
+        FLAGS_benchmark_perf_counters_all_threads) {
       GetErrorLogInstance()
           << "***WARNING*** There are " << benchmarks_with_threads
           << " benchmarks with threads and " << perfcounters.num_counters()
@@ -783,6 +791,8 @@ void ParseCommandLineFlags(int* argc, char** argv) {
                       &FLAGS_benchmark_counters_tabular) ||
         ParseStringFlag(argv[i], "benchmark_perf_counters",
                         &FLAGS_benchmark_perf_counters) ||
+        ParseBoolFlag(argv[i], "benchmark_perf_counters_all_threads",
+                      &FLAGS_benchmark_perf_counters_all_threads) ||
         ParseKeyValueFlag(argv[i], "benchmark_context",
                           &FLAGS_benchmark_context) ||
         ParseStringFlag(argv[i], "benchmark_time_unit",
@@ -895,6 +905,7 @@ void PrintDefaultHelp() {
           "          [--benchmark_counters_tabular={true|false}]\n"
 #if defined HAVE_LIBPFM
           "          [--benchmark_perf_counters=<counter>,...]\n"
+          "          [--benchmark_perf_counters_all_threads={true|false}]\n"
 #endif
           "          [--benchmark_context=<key>=<value>,...]\n"
           "          [--benchmark_time_unit={ns|us|ms|s}]\n"
