@@ -87,43 +87,143 @@ BM_SetInsert/1024/8                        32065      32913      21375  949.487k
 BM_SetInsert/1024/10                       33157      33648      21431  1.13369MiB/s   290.225k items/s
 ```
 
-The JSON format outputs human readable json split into two top level attributes.
-The `context` attribute contains information about the run in general, including
-information about the CPU and the date.
-The `benchmarks` attribute contains a list of every benchmark run. Example json
-output looks like:
+The JSON format outputs human readable JSON split into two top level
+attributes: `context` and `benchmarks`.
+
+The `context` object contains information about the run in general, including
+information about the machine, library, and date:
+
+| Field | Type | Description |
+| ----- | ---- | ----------- |
+| `date` | string | Local date and time when the benchmark ran. |
+| `host_name` | string | Name of the host machine. |
+| `executable` | string | Benchmark executable path, when known. |
+| `num_cpus` | integer | Number of logical CPUs. |
+| `mhz_per_cpu` | integer | Approximate CPU frequency in MHz. |
+| `cpu_scaling_enabled` | boolean | Present when CPU scaling status is known. |
+| `aslr_enabled` | boolean | Present when ASLR status is known. |
+| `caches` | array | CPU cache descriptions. |
+| `load_avg` | array | System load averages reported by the platform. |
+| `library_version` | string | Version of the benchmark library. |
+| `library_build_type` | string | `debug` or `release`. |
+| `json_schema_version` | integer | JSON schema version. Currently `1`. |
+
+Each entry in `caches` has `type` (string), `level` (integer), `size`
+(integer), and `num_sharing` (integer). Extra context added with
+`benchmark::AddCustomContext` or `--benchmark_context` is emitted as additional
+string fields in `context`.
+
+The `benchmarks` array contains an object for each benchmark result. Every
+benchmark result contains:
+
+| Field | Type | Description |
+| ----- | ---- | ----------- |
+| `name` | string | Full benchmark result name. |
+| `family_index` | integer | Zero-based index of the benchmark family. |
+| `per_family_instance_index` | integer | Zero-based index within the benchmark family. |
+| `run_name` | string | Name shared by repetitions and aggregates for the same run. |
+| `run_type` | string | `iteration` for a measured run or `aggregate` for a computed aggregate. |
+| `repetitions` | integer | Number of configured repetitions. |
+| `repetition_index` | integer | Zero-based repetition index. Omitted for aggregate rows. |
+| `threads` | integer | Number of benchmark threads. |
+| `iterations` | integer | Number of measured iterations. Omitted for skipped/error-only results and complexity results. |
+| `real_time` | number | Real elapsed time, in `time_unit`. Omitted for skipped/error-only results and complexity results. |
+| `cpu_time` | number | CPU time, in `time_unit`. Omitted for skipped/error-only results and complexity results. |
+| `time_unit` | string | One of `s`, `ms`, `us`, or `ns`. Omitted for skipped/error-only results and RMS rows. |
+
+Additional fields can appear depending on benchmark configuration:
+
+| Field | Type | Description |
+| ----- | ---- | ----------- |
+| `aggregate_name` | string | Aggregate statistic name, such as `mean`, `median`, or `stddev`. Present when `run_type` is `aggregate`. |
+| `aggregate_unit` | string | `time` or `percentage`. Present when `run_type` is `aggregate`. |
+| `cpu_coefficient` | number | CPU coefficient for asymptotic complexity results. |
+| `real_coefficient` | number | Real-time coefficient for asymptotic complexity results. |
+| `big_o` | string | Complexity class for asymptotic complexity results. |
+| `rms` | number | Root mean square error for complexity results. |
+| `error_occurred` | boolean | Present and `true` when the benchmark called `SkipWithError`. |
+| `error_message` | string | Error message passed to `SkipWithError`. |
+| `skipped` | boolean | Present and `true` when the benchmark was skipped with a message. |
+| `skip_message` | string | Skip message for a skipped benchmark. |
+| `allocs_per_iter` | number | Allocations per iteration from a registered memory manager. |
+| `max_bytes_used` | integer | Maximum bytes used from a registered memory manager. |
+| `total_allocated_bytes` | integer | Total allocated bytes, when reported by the memory manager. |
+| `net_heap_growth` | integer | Net heap growth, when reported by the memory manager. |
+| `label` | string | Label set with `state.SetLabel`. |
+
+User counters, including rates such as `bytes_per_second` and
+`items_per_second`, are emitted as additional numeric fields on the benchmark
+object. User-requested performance counters are reported the same way.
+
+Example JSON output looks like:
 
 ```json
 {
   "context": {
     "date": "2015/03/17-18:40:25",
+    "host_name": "my-host",
     "num_cpus": 40,
     "mhz_per_cpu": 2801,
     "cpu_scaling_enabled": false,
-    "build_type": "debug"
+    "caches": [
+      {
+        "type": "Data",
+        "level": 1,
+        "size": 32768,
+        "num_sharing": 2
+      }
+    ],
+    "load_avg": [],
+    "library_version": "vX.Y.Z",
+    "library_build_type": "debug",
+    "json_schema_version": 1
   },
   "benchmarks": [
     {
       "name": "BM_SetInsert/1024/1",
+      "family_index": 0,
+      "per_family_instance_index": 0,
+      "run_name": "BM_SetInsert/1024/1",
+      "run_type": "iteration",
+      "repetitions": 1,
+      "repetition_index": 0,
+      "threads": 1,
       "iterations": 94877,
       "real_time": 29275,
       "cpu_time": 29836,
+      "time_unit": "ns",
       "bytes_per_second": 134066,
       "items_per_second": 33516
     },
     {
       "name": "BM_SetInsert/1024/8",
+      "family_index": 0,
+      "per_family_instance_index": 1,
+      "run_name": "BM_SetInsert/1024/8",
+      "run_type": "iteration",
+      "repetitions": 1,
+      "repetition_index": 0,
+      "threads": 1,
       "iterations": 21609,
       "real_time": 32317,
       "cpu_time": 32429,
+      "time_unit": "ns",
       "bytes_per_second": 986770,
       "items_per_second": 246693
     },
     {
       "name": "BM_SetInsert/1024/10",
+      "family_index": 0,
+      "per_family_instance_index": 2,
+      "run_name": "BM_SetInsert/1024/10",
+      "run_type": "iteration",
+      "repetitions": 1,
+      "repetition_index": 0,
+      "threads": 1,
       "iterations": 21393,
       "real_time": 32724,
       "cpu_time": 33355,
+      "time_unit": "ns",
       "bytes_per_second": 1199226,
       "items_per_second": 299807
     }
