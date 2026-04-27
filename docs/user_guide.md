@@ -87,43 +87,84 @@ BM_SetInsert/1024/8                        32065      32913      21375  949.487k
 BM_SetInsert/1024/10                       33157      33648      21431  1.13369MiB/s   290.225k items/s
 ```
 
-The JSON format outputs human readable json split into two top level attributes.
-The `context` attribute contains information about the run in general, including
-information about the CPU and the date.
-The `benchmarks` attribute contains a list of every benchmark run. Example json
-output looks like:
+The JSON format outputs human readable JSON split into two top level
+attributes: `context` and `benchmarks`. This format is useful for tools that
+need to consume benchmark results without parsing console output.
+
+The `context` object contains information about the run in general, including
+the date, host, CPU, caches, load average, benchmark library version, and
+`json_schema_version`. Extra context added with `benchmark::AddCustomContext` or
+`--benchmark_context` is emitted as additional string fields in `context`.
+
+The `benchmarks` array contains an object for each benchmark result. Iteration
+results commonly include fields such as `name`, `run_name`, `run_type`,
+`iterations`, `real_time`, `cpu_time`, `time_unit`, and `threads`. Depending on
+benchmark configuration, result objects can also include aggregate fields,
+asymptotic complexity fields, skip/error fields, memory metrics, labels, user
+counters, and user-requested performance counters.
+
+User counters, including rates such as `bytes_per_second` and
+`items_per_second`, are emitted as additional numeric fields on the benchmark
+object. User-requested performance counters are reported the same way.
+
+The JSON output may gain new fields over time. Consumers should ignore unknown
+fields and tolerate optional fields being absent. This allows the format to be
+extended while preserving compatibility for existing consumers.
+
+An abbreviated example JSON output looks like:
 
 ```json
 {
   "context": {
     "date": "2015/03/17-18:40:25",
+    "host_name": "my-host",
     "num_cpus": 40,
     "mhz_per_cpu": 2801,
     "cpu_scaling_enabled": false,
-    "build_type": "debug"
+    "caches": [
+      {
+        "type": "Data",
+        "level": 1,
+        "size": 32768,
+        "num_sharing": 2
+      }
+    ],
+    "load_avg": [],
+    "library_version": "vX.Y.Z",
+    "library_build_type": "debug",
+    "json_schema_version": 1
   },
   "benchmarks": [
     {
       "name": "BM_SetInsert/1024/1",
+      "run_name": "BM_SetInsert/1024/1",
+      "run_type": "iteration",
       "iterations": 94877,
       "real_time": 29275,
       "cpu_time": 29836,
+      "time_unit": "ns",
       "bytes_per_second": 134066,
       "items_per_second": 33516
     },
     {
       "name": "BM_SetInsert/1024/8",
+      "run_name": "BM_SetInsert/1024/8",
+      "run_type": "iteration",
       "iterations": 21609,
       "real_time": 32317,
       "cpu_time": 32429,
+      "time_unit": "ns",
       "bytes_per_second": 986770,
       "items_per_second": 246693
     },
     {
       "name": "BM_SetInsert/1024/10",
+      "run_name": "BM_SetInsert/1024/10",
+      "run_type": "iteration",
       "iterations": 21393,
       "real_time": 32724,
       "cpu_time": 33355,
+      "time_unit": "ns",
       "bytes_per_second": 1199226,
       "items_per_second": 299807
     }
@@ -485,6 +526,36 @@ static void CustomArguments(benchmark::Benchmark* b) {
 }
 BENCHMARK(BM_SetInsert)->Apply(CustomArguments);
 ```
+
+### Naming Benchmark Arguments
+
+When a benchmark takes one or more numeric arguments, the generated benchmark
+names can be made easier to read by naming those arguments. Use `ArgName` for a
+single argument and `ArgNames` for multiple arguments.
+
+```c++
+BENCHMARK(BM_memcpy)->Range(8, 512)->ArgName("bytes");
+```
+
+This changes names such as `BM_memcpy/8` and `BM_memcpy/512` to
+`BM_memcpy/bytes:8` and `BM_memcpy/bytes:512`.
+
+For benchmarks with more than one argument, each name labels the corresponding
+argument position.
+
+<!-- {% raw %} -->
+```c++
+BENCHMARK(BM_SetInsert)
+    ->Args({100, 128})
+    ->Args({200, 512})
+    ->ArgNames({"size", "inserts"});
+```
+<!-- {% endraw %} -->
+
+This produces names such as `BM_SetInsert/size:100/inserts:128` and
+`BM_SetInsert/size:200/inserts:512`. Empty argument names are allowed and leave
+that argument value unlabeled, for example `ArgNames({"size", ""})` produces
+names like `BM_SetInsert/size:100/128`.
 
 ### Passing Arbitrary Arguments to a Benchmark
 
