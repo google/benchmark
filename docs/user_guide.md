@@ -840,7 +840,18 @@ You can use `insert()` with `std::initializer_list`:
 
 In multithreaded benchmarks, each counter is set on the calling thread only.
 When the benchmark finishes, the counters from each thread will be summed.
-Counters that are configured with `kIsRate`, will report the average rate across all threads, while `kAvgThreadsRate` counters will report the average rate per thread.
+Counters that are configured with `kIsRate`, will report the average rate across
+all threads, while `kAvgThreadsRate` counters will report the average rate per
+thread.
+
+To inspect how evenly a counter is distributed across threads, pass
+`--benchmark_report_thread_counter_stats=true`. For multithreaded benchmarks,
+this adds one aggregate row per configured statistic, using the suffix
+`_thread_<statistic>`. For example, the default output includes rows named
+`BM_Foo/threads:8_thread_mean`, `BM_Foo/threads:8_thread_median`,
+`BM_Foo/threads:8_thread_stddev`, and `BM_Foo/threads:8_thread_cv`. The
+counters in these rows are computed from each thread's own counter value before
+the values are summed for the normal counter report.
 
 ### Counter Reporting
 
