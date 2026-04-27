@@ -103,6 +103,10 @@ benchmark configuration, result objects can also include aggregate fields,
 asymptotic complexity fields, skip/error fields, memory metrics, labels, user
 counters, and user-requested performance counters.
 
+User counters, including rates such as `bytes_per_second` and
+`items_per_second`, are emitted as additional numeric fields on the benchmark
+object. User-requested performance counters are reported the same way.
+
 The JSON output may gain new fields over time. Consumers should ignore unknown
 fields and tolerate optional fields being absent. This allows the format to be
 extended while preserving compatibility for existing consumers.
@@ -141,6 +145,28 @@ An abbreviated example JSON output looks like:
       "time_unit": "ns",
       "bytes_per_second": 134066,
       "items_per_second": 33516
+    },
+    {
+      "name": "BM_SetInsert/1024/8",
+      "run_name": "BM_SetInsert/1024/8",
+      "run_type": "iteration",
+      "iterations": 21609,
+      "real_time": 32317,
+      "cpu_time": 32429,
+      "time_unit": "ns",
+      "bytes_per_second": 986770,
+      "items_per_second": 246693
+    },
+    {
+      "name": "BM_SetInsert/1024/10",
+      "run_name": "BM_SetInsert/1024/10",
+      "run_type": "iteration",
+      "iterations": 21393,
+      "real_time": 32724,
+      "cpu_time": 33355,
+      "time_unit": "ns",
+      "bytes_per_second": 1199226,
+      "items_per_second": 299807
     }
   ]
 }
