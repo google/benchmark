@@ -31,8 +31,12 @@ mapped by libpfm to platform-specifics - see libpfm
 [documentation](http://perfmon2.sourceforge.net/docs.html) for more details.
 
 By default, perf counters include work done by all benchmark-created threads.
-Pass `--benchmark_perf_counters_all_threads=false` to measure only the main
-benchmark thread.
+This is useful when the counter values should represent the total work performed
+by the benchmark. When the benchmarked code creates worker threads but the
+measurement should focus on the benchmark thread itself, pass
+`--benchmark_perf_counters_all_threads=false`. This can be useful for measuring
+caller-side dispatch overhead, queue submission, polling, or coordination costs
+without including the work performed by spawned threads.
 
 The counter values are reported back through the [User Counters](../README.md#custom-counters)
 mechanism, meaning, they are available in all the formats (e.g. JSON) supported
