@@ -527,6 +527,36 @@ static void CustomArguments(benchmark::Benchmark* b) {
 BENCHMARK(BM_SetInsert)->Apply(CustomArguments);
 ```
 
+### Naming Benchmark Arguments
+
+When a benchmark takes one or more numeric arguments, the generated benchmark
+names can be made easier to read by naming those arguments. Use `ArgName` for a
+single argument and `ArgNames` for multiple arguments.
+
+```c++
+BENCHMARK(BM_memcpy)->Range(8, 512)->ArgName("bytes");
+```
+
+This changes names such as `BM_memcpy/8` and `BM_memcpy/512` to
+`BM_memcpy/bytes:8` and `BM_memcpy/bytes:512`.
+
+For benchmarks with more than one argument, each name labels the corresponding
+argument position.
+
+<!-- {% raw %} -->
+```c++
+BENCHMARK(BM_SetInsert)
+    ->Args({100, 128})
+    ->Args({200, 512})
+    ->ArgNames({"size", "inserts"});
+```
+<!-- {% endraw %} -->
+
+This produces names such as `BM_SetInsert/size:100/inserts:128` and
+`BM_SetInsert/size:200/inserts:512`. Empty argument names are allowed and leave
+that argument value unlabeled, for example `ArgNames({"size", ""})` produces
+names like `BM_SetInsert/size:100/128`.
+
 ### Passing Arbitrary Arguments to a Benchmark
 
 It is possible to define a benchmark that takes an arbitrary number
