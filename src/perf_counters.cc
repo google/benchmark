@@ -135,7 +135,7 @@ static std::vector<uint64_t> GetPMUTypesForEvent(const perf_event_attr& attr) {
 }
 
 PerfCounters PerfCounters::Create(
-    const std::vector<std::string>& counter_names) {
+    const std::vector<std::string>& counter_names, Scope scope) {
   if (!counter_names.empty()) {
     Initialize();
   }
@@ -203,7 +203,7 @@ PerfCounters PerfCounters::Create(
     // read_format = PERF_FORMAT_GROUP don't work together, but that's not the
     // case.
     attr.disabled = is_first;
-    attr.inherit = true;
+    attr.inherit = (scope == Scope::kAllThreads);
     attr.pinned = is_first;
     attr.exclude_kernel = true;
     attr.exclude_user = false;
@@ -290,6 +290,16 @@ PerfCounters PerfCounters::Create(
                       std::move(leader_ids));
 }
 
+PerfCounters PerfCounters::Create(
+    const std::vector<std::string>& counter_names) {
+  return Create(counter_names, Scope::kAllThreads);
+}
+
+PerfCounters PerfCounters::CreateForCurrentThread(
+    const std::vector<std::string>& counter_names) {
+  return Create(counter_names, Scope::kCurrentThread);
+}
+
 void PerfCounters::CloseCounters() const {
   if (counter_ids_.empty()) {
     return;
@@ -318,6 +328,11 @@ PerfCounters PerfCounters::Create(
   return NoCounters();
 }
 
+PerfCounters PerfCounters::CreateForCurrentThread(
+    const std::vector<std::string>& counter_names) {
+  return Create(counter_names);
+}
+
 void PerfCounters::CloseCounters() const {}
 #endif  // defined HAVE_LIBPFM
 
@@ -325,6 +340,18 @@ PerfCountersMeasurement::PerfCountersMeasurement(
     const std::vector<std::string>& counter_names)
     : start_values_(counter_names.size()), end_values_(counter_names.size()) {
   counters_ = PerfCounters::Create(counter_names);
+}
+
+PerfCountersMeasurement::PerfCountersMeasurement(
+    const std::vector<std::string>& counter_names, PerfCounters&& counters)
+    : counters_(std::move(counters)),
+      start_values_(counter_names.size()),
+      end_values_(counter_names.size()) {}
+
+PerfCountersMeasurement PerfCountersMeasurement::ForCurrentThread(
+    const std::vector<std::string>& counter_names) {
+  return PerfCountersMeasurement(
+      counter_names, PerfCounters::CreateForCurrentThread(counter_names));
 }
 
 PerfCounters& PerfCounters::operator=(PerfCounters&& other) noexcept {
