@@ -36,6 +36,7 @@ PER_SRC_COPTS = {
 TEST_ARGS = ["--benchmark_min_time=0.01s"]
 
 PER_SRC_TEST_ARGS = {
+    "thread_counter_statistics_test.cc": ["--benchmark_report_thread_counter_stats=true"],
     "user_counters_tabular_test.cc": ["--benchmark_counters_tabular=true"],
     "repetitions_test.cc": [" --benchmark_repetitions=3"],
     "spec_arg_test.cc": ["--benchmark_filter=BM_NotChosen"],

@@ -141,6 +141,10 @@ BM_DEFINE_string(benchmark_color, "auto");
 // Valid values: 'true'/'yes'/1, 'false'/'no'/0.  Defaults to false.
 BM_DEFINE_bool(benchmark_counters_tabular, false);
 
+// Whether to report statistics for each user counter across the threads in a
+// multithreaded benchmark.
+BM_DEFINE_bool(benchmark_report_thread_counter_stats, false);
+
 // List of additional perf counters to collect, in libpfm format. For more
 // information about libpfm: https://man7.org/linux/man-pages/man3/libpfm.3.html
 BM_DEFINE_string(benchmark_perf_counters, "");
@@ -371,6 +375,9 @@ void Report(BenchmarkReporter* display_reporter,
     if (!aggregates_only) {
       reporter->ReportRuns(results.non_aggregates);
     }
+    if (!results.thread_counter_stats.empty()) {
+      reporter->ReportRuns(results.thread_counter_stats);
+    }
     if (!results.aggregates_only.empty()) {
       reporter->ReportRuns(results.aggregates_only);
     }
@@ -401,6 +408,8 @@ void RunBenchmarks(const std::vector<BenchmarkInstance>& benchmarks,
     name_field_width =
         std::max<size_t>(name_field_width, benchmark.name().str().size());
     might_have_aggregates |= benchmark.repetitions() > 1;
+    might_have_aggregates |=
+        FLAGS_benchmark_report_thread_counter_stats && benchmark.threads() > 1;
 
     for (const auto& Stat : benchmark.statistics()) {
       stat_field_width = std::max<size_t>(stat_field_width, Stat.name_.size());
@@ -781,6 +790,8 @@ void ParseCommandLineFlags(int* argc, char** argv) {
         ParseStringFlag(argv[i], "benchmark_color", &FLAGS_benchmark_color) ||
         ParseBoolFlag(argv[i], "benchmark_counters_tabular",
                       &FLAGS_benchmark_counters_tabular) ||
+        ParseBoolFlag(argv[i], "benchmark_report_thread_counter_stats",
+                      &FLAGS_benchmark_report_thread_counter_stats) ||
         ParseStringFlag(argv[i], "benchmark_perf_counters",
                         &FLAGS_benchmark_perf_counters) ||
         ParseKeyValueFlag(argv[i], "benchmark_context",
@@ -893,6 +904,7 @@ void PrintDefaultHelp() {
           "          [--benchmark_out_format=<json|console|csv>]\n"
           "          [--benchmark_color={auto|true|false}]\n"
           "          [--benchmark_counters_tabular={true|false}]\n"
+          "          [--benchmark_report_thread_counter_stats={true|false}]\n"
 #if defined HAVE_LIBPFM
           "          [--benchmark_perf_counters=<counter>,...]\n"
 #endif
