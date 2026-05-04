@@ -1370,6 +1370,14 @@ a report on the number of allocations, bytes used, etc.
 This data will then be reported alongside other performance data, currently
 only when using JSON output.
 
+The memory manager does not collect allocations by itself. It is meant to
+bridge data from an allocator hook or profiler that already tracks memory
+activity. Reset that collector in `Start()`, then copy its final counters into
+`MemoryManager::Result` in `Stop()`.
+
+Use [Custom Counters](#custom-counters) instead when memory stats need to be
+reported in console or CSV output, or when you need allocator-specific columns.
+
 <a name="profiling" />
 
 ## Profiling
