@@ -2,6 +2,8 @@
 
 ## Command Line
 
+[Command Line Options](#command-line-options)
+
 [Output Formats](#output-formats)
 
 [Output Files](#output-files)
@@ -65,6 +67,209 @@
 [Disabling CPU Frequency Scaling](#disabling-cpu-frequency-scaling)
 
 [Reducing Variance in Benchmarks](reducing_variance.md)
+<a name="command-line-options" />
+
+## Command Line Options
+
+Benchmarks accept options that may be specified either through their command line interface or by setting environment variables before execution. For every `--option_flag=<value>` CLI switch, a corresponding environment variable `OPTION_FLAG=<value>` exists and is used as default if set (CLI switches always prevail).
+
+### Benchmark Selection and Execution
+
+#### `--benchmark_list_tests` (BENCHMARK_LIST_TESTS)
+
+Print a list of all benchmark names and exit. This option overrides all other options.
+
+**Example:**
+```bash
+$ ./benchmark --benchmark_list_tests
+BM_SomeFunction
+BM_AnotherFunction
+```
+
+#### `--benchmark_filter=<regex>` (BENCHMARK_FILTER)
+
+A regular expression that specifies the set of benchmarks to execute. If this flag is empty, or if this flag is the string "all", all benchmarks linked into the binary are run.
+
+**Example:**
+```bash
+$ ./benchmark --benchmark_filter=BM_memcpy/32
+```
+
+#### `--benchmark_dry_run` (BENCHMARK_DRY_RUN)
+
+If enabled, forces each benchmark to execute exactly one iteration and one repetition, bypassing any configured `MinTime()`, `MinWarmUpTime()`, `Iterations()`, or `Repetitions()`. This is useful for quickly verifying that benchmarks can run successfully without waiting for full execution.
+
+**Example:**
+```bash
+$ ./benchmark --benchmark_dry_run
+```
+
+#### `--benchmark_enable_random_interleaving` (BENCHMARK_ENABLE_RANDOM_INTERLEAVING)
+
+If set, enable random interleaving of repetitions of all benchmarks. This can help reduce the impact of system state changes on benchmark results. See [GitHub issue #1051](https://github.com/google/benchmark/issues/1051) for details.
+
+**Example:**
+```bash
+$ ./benchmark --benchmark_enable_random_interleaving
+```
+
+### Timing and Repetition Control
+
+#### `--benchmark_min_time=<seconds>` (BENCHMARK_MIN_TIME)
+
+Specifies the minimum amount of time (in seconds) that each benchmark should run. For CPU-time based tests, this is the lower bound on the total CPU time used by all threads that make up the test. For real-time based tests, this is the lower bound on the elapsed time of the benchmark execution, regardless of number of threads.
+
+**Default:** `0.5` seconds
+
+**Example:**
+```bash
+$ ./benchmark --benchmark_min_time=1.0
+```
+
+#### `--benchmark_min_warmup_time=<seconds>` (BENCHMARK_MIN_WARMUP_TIME)
+
+Minimum number of seconds a benchmark should be run before results should be taken into account. This can be necessary for benchmarks of code which needs to fill some form of cache before performance is of interest. Results gathered within this period are discarded and not used for the reported result.
+
+**Default:** `0.0` seconds
+
+**Example:**
+```bash
+$ ./benchmark --benchmark_min_warmup_time=0.5
+```
+
+#### `--benchmark_repetitions=<count>` (BENCHMARK_REPETITIONS)
+
+The number of runs of each benchmark. If greater than 1, the mean and standard deviation of the runs will be reported.
+
+**Default:** `1`
+
+**Example:**
+```bash
+$ ./benchmark --benchmark_repetitions=5
+```
+
+### Output Formatting
+
+#### `--benchmark_format=<console|json|csv>` (BENCHMARK_FORMAT)
+
+The format to use for console output. Valid values are 'console', 'json', or 'csv'. See [Output Formats](#output-formats) for more details.
+
+**Default:** `console`
+
+**Example:**
+```bash
+$ ./benchmark --benchmark_format=json
+```
+
+#### `--benchmark_out=<filename>` (BENCHMARK_OUT)
+
+The file to write additional output to. The output format is controlled by `--benchmark_out_format`. Specifying this option does not suppress console output.
+
+**Example:**
+```bash
+$ ./benchmark --benchmark_out=results.json
+```
+
+#### `--benchmark_out_format=<console|json|csv>` (BENCHMARK_OUT_FORMAT)
+
+The format to use for file output specified by `--benchmark_out`. Valid values are 'console', 'json', or 'csv'.
+
+**Default:** `json`
+
+**Example:**
+```bash
+$ ./benchmark --benchmark_out=results.csv --benchmark_out_format=csv
+```
+
+#### `--benchmark_color=<auto|true|false>` (BENCHMARK_COLOR)
+
+Whether to use colors in the output. Valid values are 'true'/'yes'/1, 'false'/'no'/0, and 'auto'. 'auto' means to use colors if the output is being sent to a terminal and the TERM environment variable is set to a terminal type that supports colors.
+
+**Default:** `auto`
+
+**Example:**
+```bash
+$ ./benchmark --benchmark_color=false
+```
+
+#### `--benchmark_time_unit=<ns|us|ms|s>` (BENCHMARK_TIME_UNIT)
+
+Set the default time unit to use for reports. Valid values are 'ns' (nanoseconds), 'us' (microseconds), 'ms' (milliseconds), or 's' (seconds).
+
+**Default:** (empty, uses automatic selection)
+
+**Example:**
+```bash
+$ ./benchmark --benchmark_time_unit=us
+```
+
+### Reporting Options
+
+#### `--benchmark_report_aggregates_only` (BENCHMARK_REPORT_AGGREGATES_ONLY)
+
+When enabled, only the mean, standard deviation, and other statistics are reported for repeated benchmarks. This affects all reporters (both console and file output).
+
+**Default:** `false`
+
+**Example:**
+```bash
+$ ./benchmark --benchmark_repetitions=5 --benchmark_report_aggregates_only
+```
+
+#### `--benchmark_display_aggregates_only` (BENCHMARK_DISPLAY_AGGREGATES_ONLY)
+
+When enabled, only the mean, standard deviation, and other statistics are displayed for repeated benchmarks. Unlike `--benchmark_report_aggregates_only`, this only affects the display (console) reporter, not the file reporter, which will still contain all output.
+
+**Default:** `false`
+
+**Example:**
+```bash
+$ ./benchmark --benchmark_repetitions=5 --benchmark_display_aggregates_only
+```
+
+#### `--benchmark_counters_tabular` (BENCHMARK_COUNTERS_TABULAR)
+
+Whether to use tabular format when printing user counters to the console. Valid values: 'true'/'yes'/1, 'false'/'no'/0.
+
+**Default:** `false`
+
+**Example:**
+```bash
+$ ./benchmark --benchmark_counters_tabular=true
+```
+
+### Performance Counters and Context
+
+#### `--benchmark_perf_counters=<list>` (BENCHMARK_PERF_COUNTERS)
+
+List of additional performance counters to collect, in libpfm format. For more information about libpfm, see the [libpfm documentation](https://man7.org/linux/man-pages/man3/libpfm.3.html).
+
+**Example:**
+```bash
+$ ./benchmark --benchmark_perf_counters=cycles,instructions,cache-misses
+```
+
+#### `--benchmark_context=<key=value,...>` (BENCHMARK_CONTEXT)
+
+Extra context to include in the output, formatted as comma-separated key-value pairs. This context is included in the JSON output's `context` object.
+
+**Example:**
+```bash
+$ ./benchmark --benchmark_context=compiler=clang,version=13
+```
+
+### Miscellaneous
+
+#### `-v` (V)
+
+The level of verbose logging to output. Higher values produce more verbose output.
+
+**Default:** `0`
+
+**Example:**
+```bash
+$ ./benchmark -v
+```
 
 <a name="output-formats" />
 
