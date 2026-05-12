@@ -189,6 +189,9 @@ benchmark_add_test(NAME user_counters_test COMMAND user_counters_test --benchmar
 compile_output_test(user_counters_threads_test)
 benchmark_add_test(NAME user_counters_threads_test COMMAND user_counters_threads_test --benchmark_min_time=0.2s)
 
+compile_output_test(thread_counter_statistics_test)
+benchmark_add_test(NAME thread_counter_statistics_test COMMAND thread_counter_statistics_test --benchmark_report_thread_counter_stats=true --benchmark_min_time=0.01s)
+
 compile_output_test(perf_counters_test)
 benchmark_add_test(NAME perf_counters_test COMMAND perf_counters_test --benchmark_min_time=0.01s --benchmark_perf_counters=CYCLES,INSTRUCTIONS)
 
