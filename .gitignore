@@ -5,7 +5,7 @@
 *.exe
 *.dylib
 *.cmake
-!/cmake/*.cmake
+!/cmake/**/*.cmake
 !/test/AssemblyTests.cmake
 *~
 *.swp
