@@ -864,6 +864,11 @@ void MaybeReenterWithoutASLR(int /*argc*/, char** argv) {
   if ((internal::get_as_unsigned(new_personality) & ADDR_NO_RANDOMIZE) == 0)
     return;
 
+  // Some security profiles clear ADDR_NO_RANDOMIZE across exec even though the
+  // personality appears updated here. Avoid re-entering forever in that case.
+  constexpr const char* kAslrReexecEnv = "BENCHMARK_ASLR_NO_REEXEC";
+  if (std::getenv(kAslrReexecEnv) != nullptr) return;
+  if (setenv(kAslrReexecEnv, "1", 1) != 0) return;
   execv(argv[0], argv);
   // The exec() functions return only if an error has occurred,
   // in which case we want to just continue as-is.
