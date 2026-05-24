@@ -112,13 +112,13 @@ std::vector<BenchmarkReporter::Run> ComputeStats(
   typedef BenchmarkReporter::Run Run;
   std::vector<Run> results;
 
-  auto successful_run = std::find_if(reports.begin(), reports.end(),
-                                     [](Run const& run) {
-                                       return run.skipped == 0u;
-                                     });
-  const auto successful_count = std::count_if(
-      reports.begin(), reports.end(),
-      [](Run const& run) { return run.skipped == 0u; });
+  const auto is_successful = [](Run const& run) {
+    return run.skipped == internal::NotSkipped;
+  };
+  auto successful_run =
+      std::find_if(reports.begin(), reports.end(), is_successful);
+  const auto successful_count =
+      std::count_if(reports.begin(), reports.end(), is_successful);
 
   if (successful_count < 2) {
     // We don't report aggregated data if there was a single run.
@@ -142,7 +142,7 @@ std::vector<BenchmarkReporter::Run> ComputeStats(
   };
   std::map<std::string, CounterStat> counter_stats;
   for (Run const& r : reports) {
-    if (r.skipped != 0u) {
+    if (!is_successful(r)) {
       continue;
     }
     for (auto const& cnt : r.counters) {
@@ -162,7 +162,7 @@ std::vector<BenchmarkReporter::Run> ComputeStats(
   // Populate the accumulators.
   for (Run const& run : reports) {
     BM_CHECK_EQ(successful_run->benchmark_name(), run.benchmark_name());
-    if (run.skipped != 0u) {
+    if (!is_successful(run)) {
       continue;
     }
     BM_CHECK_EQ(run_iterations, run.iterations);
@@ -179,7 +179,7 @@ std::vector<BenchmarkReporter::Run> ComputeStats(
   // Only add label if it is same for all runs
   std::string report_label = successful_run->report_label;
   for (const Run& run : reports) {
-    if (run.skipped != 0u) {
+    if (!is_successful(run)) {
       continue;
     }
     if (run.report_label != report_label) {
