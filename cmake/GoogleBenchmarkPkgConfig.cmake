@@ -1,7 +1,0 @@
-function(benchmark_make_pkgconfig_path output_var install_dir)
-  if(IS_ABSOLUTE "${install_dir}")
-    set("${output_var}" "${install_dir}" PARENT_SCOPE)
-  else()
-    set("${output_var}" "\${prefix}/${install_dir}" PARENT_SCOPE)
-  endif()
-endfunction()

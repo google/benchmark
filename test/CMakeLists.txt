@@ -231,7 +231,9 @@ benchmark_add_test(NAME scoped_pause_test COMMAND scoped_pause_test)
 benchmark_add_test(
   NAME pkg_config_path_test
   COMMAND ${CMAKE_COMMAND}
-          -DPROJECT_SOURCE_DIR=${PROJECT_SOURCE_DIR}
+          -DPROJECT_BINARY_DIR=${PROJECT_BINARY_DIR}
+          -DCMAKE_INSTALL_LIBDIR=${CMAKE_INSTALL_LIBDIR}
+          -DCMAKE_INSTALL_INCLUDEDIR=${CMAKE_INSTALL_INCLUDEDIR}
           -P ${PROJECT_SOURCE_DIR}/test/pkg_config_test.cmake)
 
 ###############################################################################

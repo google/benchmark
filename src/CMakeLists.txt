@@ -93,7 +93,6 @@ set(targets_export_name "${PROJECT_NAME}Targets")
 set(namespace "${PROJECT_NAME}::")
 
 include(CMakePackageConfigHelpers)
-include(GoogleBenchmarkPkgConfig)
 
 configure_package_config_file (
   ${PROJECT_SOURCE_DIR}/cmake/Config.cmake.in
@@ -132,8 +131,16 @@ if(NOT BUILD_SHARED_LIBS)
   endif()
 endif()
 
-benchmark_make_pkgconfig_path(BENCHMARK_PKG_CONFIG_LIBDIR "${CMAKE_INSTALL_LIBDIR}")
-benchmark_make_pkgconfig_path(BENCHMARK_PKG_CONFIG_INCLUDEDIR "${CMAKE_INSTALL_INCLUDEDIR}")
+if(IS_ABSOLUTE "${CMAKE_INSTALL_LIBDIR}")
+  set(BENCHMARK_PKG_CONFIG_LIBDIR "${CMAKE_INSTALL_LIBDIR}")
+else()
+  set(BENCHMARK_PKG_CONFIG_LIBDIR "\${exec_prefix}/${CMAKE_INSTALL_LIBDIR}")
+endif()
+if(IS_ABSOLUTE "${CMAKE_INSTALL_INCLUDEDIR}")
+  set(BENCHMARK_PKG_CONFIG_INCLUDEDIR "${CMAKE_INSTALL_INCLUDEDIR}")
+else()
+  set(BENCHMARK_PKG_CONFIG_INCLUDEDIR "\${prefix}/${CMAKE_INSTALL_INCLUDEDIR}")
+endif()
 configure_file("${PROJECT_SOURCE_DIR}/cmake/benchmark.pc.in" "${pkg_config}" @ONLY)
 configure_file("${PROJECT_SOURCE_DIR}/cmake/benchmark_main.pc.in" "${pkg_config_main}" @ONLY)
 
