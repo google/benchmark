@@ -219,11 +219,8 @@ Either way, link to the library as follows.
 target_link_libraries(MyTarget benchmark::benchmark)
 ```
 
-If benchmark registrations live outside the final executable, make sure the
-benchmark object files are linked into it. The `BENCHMARK` macro registers
-benchmarks through static initialization, and many linkers do not pull
-otherwise-unused object files out of a static library. Prefer an object library
-so CMake links the registration objects directly:
+When benchmark sources are shared through an intermediate CMake target, prefer
+an object library:
 
 ```cmake
 add_library(my_benchmarks OBJECT bench.cc)
@@ -231,3 +228,8 @@ target_link_libraries(my_benchmarks benchmark::benchmark_main)
 add_executable(my_benchmark)
 target_link_libraries(my_benchmark my_benchmarks)
 ```
+
+This links the object file that contains `BENCHMARK` registrations into the
+final executable. If those registrations are placed only in an intermediate
+static library, the linker may omit the otherwise-unused object file and the
+benchmarks will not be registered at runtime.
