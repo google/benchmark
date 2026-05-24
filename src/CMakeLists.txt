@@ -143,6 +143,7 @@ benchmark_make_pkgconfig_path(
   BENCHMARK_PKG_CONFIG_LIBDIR "${CMAKE_INSTALL_LIBDIR}" "exec_prefix")
 benchmark_make_pkgconfig_path(
   BENCHMARK_PKG_CONFIG_INCLUDEDIR "${CMAKE_INSTALL_INCLUDEDIR}" "prefix")
+
 configure_file("${PROJECT_SOURCE_DIR}/cmake/benchmark.pc.in" "${pkg_config}" @ONLY)
 configure_file("${PROJECT_SOURCE_DIR}/cmake/benchmark_main.pc.in" "${pkg_config_main}" @ONLY)
 
