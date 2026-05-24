@@ -149,6 +149,11 @@ BM_DEFINE_string(benchmark_perf_counters, "");
 // pairs. Kept internal as it's only used for parsing from env/command line.
 BM_DEFINE_kvpairs(benchmark_context, {});
 
+#ifdef BENCHMARK_OS_LINUX
+constexpr const char* kAslrReexecAttemptedEnv =
+    "BENCHMARK_ASLR_REEXEC_ATTEMPTED";
+#endif
+
 // Set the default time unit to use for reports
 // Valid values are 'ns', 'us', 'ms' or 's'
 BM_DEFINE_string(benchmark_time_unit, "");
@@ -836,6 +841,9 @@ void MaybeReenterWithoutASLR(int /*argc*/, char** argv) {
   if (!argv) return;
 
 #ifdef BENCHMARK_OS_LINUX
+  // The no-ASLR personality can be reset across exec by security policies.
+  if (getenv(kAslrReexecAttemptedEnv) != nullptr) return;
+
   const auto curr_personality = personality(0xffffffff);
 
   // We should never fail to read-only query the current personality,
@@ -853,14 +861,16 @@ void MaybeReenterWithoutASLR(int /*argc*/, char** argv) {
   // Have we failed to change the personality? That may happen.
   if (prev_personality == -1) return;
 
-  // Make sure the parsona has been updated with the no-ASLR flag,
+  // Make sure the persona has been updated with the no-ASLR flag,
   // otherwise we will try to reenter infinitely.
   // This seems impossible, but can happen in some docker configurations.
   const auto new_personality = personality(0xffffffff);
   if ((internal::get_as_unsigned(new_personality) & ADDR_NO_RANDOMIZE) == 0)
     return;
 
+  if (setenv(kAslrReexecAttemptedEnv, "1", 1) != 0) return;
   execv(argv[0], argv);
+  unsetenv(kAslrReexecAttemptedEnv);
   // The exec() functions return only if an error has occurred,
   // in which case we want to just continue as-is.
 #else

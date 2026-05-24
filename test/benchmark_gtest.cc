@@ -1,8 +1,10 @@
+#include <cstdlib>
 #include <map>
 #include <string>
 #include <vector>
 
 #include "../src/benchmark_register.h"
+#include "../src/internal_macros.h"
 #include "benchmark/benchmark_api.h"
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
@@ -163,6 +165,21 @@ TEST(AddCustomContext, DuplicateKey) {
   delete global_context;
   global_context = nullptr;
 }
+
+#ifndef BENCHMARK_OS_WINDOWS
+TEST(MaybeReenterWithoutASLRTest, ReexecSentinelPreventsAnotherExec) {
+  constexpr const char* kAslrReexecAttemptedEnv =
+      "BENCHMARK_ASLR_REEXEC_ATTEMPTED";
+  ASSERT_EQ(setenv(kAslrReexecAttemptedEnv, "1", 1), 0);
+
+  char program[] = "benchmark_gtest";
+  char* argv[] = {program, nullptr};
+  benchmark::MaybeReenterWithoutASLR(1, argv);
+
+  EXPECT_STREQ(getenv(kAslrReexecAttemptedEnv), "1");
+  ASSERT_EQ(unsetenv(kAslrReexecAttemptedEnv), 0);
+}
+#endif
 
 }  // namespace
 }  // namespace internal
