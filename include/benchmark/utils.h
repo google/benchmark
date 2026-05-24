@@ -39,8 +39,8 @@ inline BENCHMARK_ALWAYS_INLINE void ClobberMemory() {
 
 #define BENCHMARK_DONOTOPTIMIZE_CONST_REF_DEPRECATED_MSG                     \
   "DoNotOptimize(T const&) can permit undesired compiler optimizations. "    \
-  "Store the expression result in a local non-const variable and pass that " \
-  "lvalue instead."
+  "Pass a non-const lvalue instead; if the argument is an expression result, " \
+  "store it in a local variable first."
 
 #ifndef BENCHMARK_HAS_NO_INLINE_ASSEMBLY
 #if !defined(__GNUC__) || defined(__llvm__) || defined(__INTEL_COMPILER)

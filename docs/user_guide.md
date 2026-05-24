@@ -1462,12 +1462,12 @@ known. For example:
   // while (...) DoNotOptimize(__result__);
 ```
 
-Passing a temporary or `const` value may call the deprecated const-reference
-overload. Store the value in a local non-const variable and pass that lvalue to
-make the result observable:
+If `DoNotOptimize` warns about the deprecated const-reference overload, pass it
+a non-const lvalue instead. For an expression result, store the result in a
+local variable before calling `DoNotOptimize`:
 
 ```c++
-  // Avoid: calls the deprecated const-reference overload for the temporary.
+  // Avoid: may call the deprecated const-reference overload.
   while (...) DoNotOptimize(foo(0));
 
   // Prefer: materialize the result, then pass the local lvalue.
