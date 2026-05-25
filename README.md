@@ -219,7 +219,7 @@ Either way, link to the library as follows.
 target_link_libraries(MyTarget benchmark::benchmark)
 ```
 
-When benchmark sources are shared through an intermediate CMake target, prefer
+When benchmark sources are shared through an intermediate CMake target, choose
 an object library instead of a static library:
 
 ```cmake
@@ -231,5 +231,5 @@ target_link_libraries(runnable_benchmarks shared_benchmarks)
 
 This links the object file that contains `BENCHMARK` registrations into the
 final executable. If those registrations are placed only in an intermediate
-`STATIC` library, the linker may omit the otherwise-unused object file and the
-benchmarks will not be registered at runtime.
+`STATIC` library, the linker may not copy static registration symbols, and thus
+benchmarks will not be part of the final executable.
