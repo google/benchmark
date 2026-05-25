@@ -7,7 +7,6 @@
 *.cmake
 !/cmake/**/*.cmake
 !/test/AssemblyTests.cmake
-!/test/pkg_config_test.cmake
 *~
 *.swp
 *.pyc

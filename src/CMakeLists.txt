@@ -131,20 +131,21 @@ if(NOT BUILD_SHARED_LIBS)
   endif()
 endif()
 
-function(benchmark_make_pkgconfig_path output_var install_dir path_prefix)
+function(_cmake_path output_var install_dir path_prefix)
   if(IS_ABSOLUTE "${install_dir}")
     set("${output_var}" "${install_dir}" PARENT_SCOPE)
   else()
+    # FIXME: Use cmake_path(APPEND) once the minimum CMake version is 3.20.
     set("${output_var}" "\${${path_prefix}}/${install_dir}" PARENT_SCOPE)
   endif()
 endfunction()
 
-benchmark_make_pkgconfig_path(
-  BENCHMARK_PKG_CONFIG_LIBDIR "${CMAKE_INSTALL_LIBDIR}" "exec_prefix")
-benchmark_make_pkgconfig_path(
-  BENCHMARK_PKG_CONFIG_INCLUDEDIR "${CMAKE_INSTALL_INCLUDEDIR}" "prefix")
+_cmake_path(BENCHMARK_PKG_CONFIG_LIBDIR "${CMAKE_INSTALL_LIBDIR}" "exec_prefix")
+
+_cmake_path(BENCHMARK_PKG_CONFIG_INCLUDEDIR "${CMAKE_INSTALL_INCLUDEDIR}" "prefix")
 
 configure_file("${PROJECT_SOURCE_DIR}/cmake/benchmark.pc.in" "${pkg_config}" @ONLY)
+
 configure_file("${PROJECT_SOURCE_DIR}/cmake/benchmark_main.pc.in" "${pkg_config_main}" @ONLY)
 
 export (
