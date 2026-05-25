@@ -225,17 +225,16 @@ void BM_SkippedFirstRepetition(benchmark::State& state) {
 }
 BENCHMARK(BM_SkippedFirstRepetition)->Repetitions(3);
 
-ADD_CASES(TC_ConsoleOut,
-          {{"^BM_SkippedFirstRepetition/repeats:3[ ]+ERROR OCCURRED: "
-            "'skipped first repetition'$"},
-           {"^BM_SkippedFirstRepetition/repeats:3 %console_report$", MR_Next},
-           {"^BM_SkippedFirstRepetition/repeats:3 %console_report$", MR_Next},
-           {"^BM_SkippedFirstRepetition/repeats:3_mean %console_report$",
-            MR_Next},
-           {"^BM_SkippedFirstRepetition/repeats:3_median %console_report$",
-            MR_Next},
-           {"^BM_SkippedFirstRepetition/repeats:3_stddev %console_report$",
-            MR_Next}});
+ADD_CASES(
+    TC_ConsoleOut,
+    {{"^BM_SkippedFirstRepetition/repeats:3[ ]+ERROR OCCURRED: "
+      "'skipped first repetition'$"},
+     {"^BM_SkippedFirstRepetition/repeats:3 %console_report$", MR_Next},
+     {"^BM_SkippedFirstRepetition/repeats:3 %console_report$", MR_Next},
+     {"^BM_SkippedFirstRepetition/repeats:3_mean %console_report$", MR_Next},
+     {"^BM_SkippedFirstRepetition/repeats:3_median %console_report$", MR_Next},
+     {"^BM_SkippedFirstRepetition/repeats:3_stddev %console_report$",
+      MR_Next}});
 ADD_CASES(TC_JSONOut,
           {{"\"name\": \"BM_SkippedFirstRepetition/repeats:3_mean\",$"},
            {"\"run_type\": \"aggregate\",$"},
