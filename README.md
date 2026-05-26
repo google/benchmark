@@ -218,3 +218,39 @@ Either way, link to the library as follows.
 ```cmake
 target_link_libraries(MyTarget benchmark::benchmark)
 ```
+
+#### Embedding Google Benchmark in another CMake project
+
+There are two common ways to consume Google Benchmark from a CMake project:
+
+* Use an installed or package-managed copy, for example from a system package
+  manager or vcpkg, and import it with `find_package(benchmark REQUIRED)`.
+* Add this repository to the source tree, for example as a submodule or
+  `FetchContent` dependency, and call `add_subdirectory`.
+
+The installed form keeps Google Benchmark's build separate from the parent
+project and is usually the simplest choice for system packages and vcpkg. The
+source-tree form is useful when the parent project wants to pin a specific
+commit or build Google Benchmark as part of its normal CMake configure step.
+
+When embedding from source, most projects should turn off Google Benchmark's
+tests and install rules:
+
+```cmake
+set(BENCHMARK_ENABLE_GTEST_TESTS OFF CACHE BOOL "" FORCE)
+set(BENCHMARK_ENABLE_TESTING OFF CACHE BOOL "" FORCE)
+set(BENCHMARK_ENABLE_INSTALL OFF CACHE BOOL "" FORCE)
+add_subdirectory(third_party/benchmark)
+target_link_libraries(MyTarget benchmark::benchmark)
+```
+
+If Google Test is not already provided by the parent build, either check out the
+Google Test sources under `benchmark/googletest` or configure with
+`BENCHMARK_DOWNLOAD_DEPENDENCIES=ON`. For projects that only link the benchmark
+library and do not build Google Benchmark's tests, disabling
+`BENCHMARK_ENABLE_GTEST_TESTS` avoids the Google Test dependency.
+
+Google Benchmark follows CMake's `BUILD_SHARED_LIBS` setting when selecting
+static or shared library output. On Windows, keep this setting consistent with
+the rest of the project and make sure the same runtime library configuration is
+used across the benchmark library and the targets that link it.
