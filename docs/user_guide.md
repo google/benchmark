@@ -1462,9 +1462,10 @@ known. For example:
   // while (...) DoNotOptimize(__result__);
 ```
 
-If `DoNotOptimize` warns about the deprecated const-reference overload, pass it
-a non-const lvalue instead. For an expression result, store the result in a
-local variable before calling `DoNotOptimize`:
+Since that is not the behavior the user intended, such problematic cases
+produce a compile-time diagnostic. Pass a non-const lvalue instead. For an
+expression result, store the result in a local variable before calling
+`DoNotOptimize`:
 
 ```c++
   // Avoid: may call the deprecated const-reference overload.
