@@ -223,3 +223,18 @@ target_link_libraries(MyTarget benchmark::benchmark)
 # Or, when you do not define your own main:
 target_link_libraries(MyTarget benchmark::benchmark_main)
 ```
+
+When benchmark sources are shared through an intermediate CMake target, choose
+an object library instead of a static library:
+
+```cmake
+add_library(shared_benchmarks OBJECT bench.cc)
+target_link_libraries(shared_benchmarks benchmark::benchmark_main)
+add_executable(runnable_benchmarks)
+target_link_libraries(runnable_benchmarks shared_benchmarks)
+```
+
+This links the object file that contains `BENCHMARK` registrations into the
+final executable. If those registrations are placed only in an intermediate
+`STATIC` library, the linker may not copy static registration symbols, and thus
+benchmarks will not be part of the final executable.
