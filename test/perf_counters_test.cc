@@ -25,11 +25,9 @@ bool HasRequiredPerfCounters() {
     return false;
   }
   benchmark::internal::PerfCounters::Initialize();
-  auto counters =
-      benchmark::internal::PerfCounters::Create({kGenericPerfEvent1,
-                                                 kGenericPerfEvent2});
-  std::set<std::string> names{counters.names().begin(),
-                              counters.names().end()};
+  auto counters = benchmark::internal::PerfCounters::Create(
+      {kGenericPerfEvent1, kGenericPerfEvent2});
+  std::set<std::string> names{counters.names().begin(), counters.names().end()};
   return names.find(kGenericPerfEvent1) != names.end() &&
          names.find(kGenericPerfEvent2) != names.end();
 }
