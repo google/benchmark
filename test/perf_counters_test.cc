@@ -24,7 +24,6 @@ bool HasRequiredPerfCounters() {
   if (!benchmark::internal::PerfCounters::kSupported) {
     return false;
   }
-  benchmark::internal::PerfCounters::Initialize();
   auto counters = benchmark::internal::PerfCounters::Create(
       {kGenericPerfEvent1, kGenericPerfEvent2});
   std::set<std::string> names{counters.names().begin(), counters.names().end()};
