@@ -117,7 +117,7 @@ std::vector<BenchmarkReporter::Run> ComputeStats(
   };
   auto successful_run =
       std::find_if(reports.begin(), reports.end(), is_successful);
-  const auto successful_count = static_cast<std::vector<Run>::size_type>(
+  const auto successful_count = static_cast<size_t>(
       std::count_if(reports.begin(), reports.end(), is_successful));
 
   if (successful_count < 2) {
