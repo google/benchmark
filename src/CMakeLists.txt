@@ -113,13 +113,39 @@ if(NOT BUILD_SHARED_LIBS)
     foreach(LIB IN LISTS LINK_LIBS)
       if(NOT TARGET "${LIB}" AND LIB MATCHES "^[a-zA-Z0-9_.-]+$")
         list(APPEND BENCHMARK_PRIVATE_LINK_LIBRARIES "-l${LIB}")
+      elseif(TARGET "${LIB}")
+        get_target_property(_target_type "${LIB}" TYPE)
+        if(_target_type MATCHES "^(UNKNOWN|STATIC|SHARED|MODULE)_LIBRARY$")
+          get_target_property(_imported_loc "${LIB}" IMPORTED_LOCATION)
+          if(_imported_loc)
+            get_filename_component(_imported_dir "${_imported_loc}" DIRECTORY)
+            get_filename_component(_imported_name "${_imported_loc}" NAME)
+            string(REGEX REPLACE "^lib" "" _imported_name "${_imported_name}")
+            string(REGEX REPLACE "\\.(so|a|dylib)([0-9.]*)$" "" _imported_name "${_imported_name}")
+            list(APPEND BENCHMARK_PRIVATE_LINK_LIBRARIES "-L${_imported_dir}" "-l${_imported_name}")
+          endif()
+        endif()
       endif()
     endforeach()
     string(JOIN " " BENCHMARK_PRIVATE_LINK_LIBRARIES ${BENCHMARK_PRIVATE_LINK_LIBRARIES})
   endif()
 endif()
 
+function(_cmake_path output_var install_dir path_prefix)
+  if(IS_ABSOLUTE "${install_dir}")
+    set("${output_var}" "${install_dir}" PARENT_SCOPE)
+  else()
+    # FIXME: Use cmake_path(APPEND) once the minimum CMake version is 3.20.
+    set("${output_var}" "\${${path_prefix}}/${install_dir}" PARENT_SCOPE)
+  endif()
+endfunction()
+
+_cmake_path(BENCHMARK_PKG_CONFIG_LIBDIR "${CMAKE_INSTALL_LIBDIR}" "exec_prefix")
+
+_cmake_path(BENCHMARK_PKG_CONFIG_INCLUDEDIR "${CMAKE_INSTALL_INCLUDEDIR}" "prefix")
+
 configure_file("${PROJECT_SOURCE_DIR}/cmake/benchmark.pc.in" "${pkg_config}" @ONLY)
+
 configure_file("${PROJECT_SOURCE_DIR}/cmake/benchmark_main.pc.in" "${pkg_config_main}" @ONLY)
 
 export (
