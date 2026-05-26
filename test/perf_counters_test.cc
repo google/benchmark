@@ -1,5 +1,4 @@
 #include <cstdarg>
-#include <set>
 #include <string>
 #undef NDEBUG
 
@@ -10,6 +9,7 @@
 #include "benchmark/state.h"
 #include "benchmark/utils.h"
 #include "output_test.h"
+#include "perf_counters_test_utils.h"
 
 namespace benchmark {
 
@@ -19,17 +19,6 @@ BM_DECLARE_string(benchmark_perf_counters);
 namespace {
 const char kGenericPerfEvent1[] = "CYCLES";
 const char kGenericPerfEvent2[] = "INSTRUCTIONS";
-
-bool HasRequiredPerfCounters() {
-  if (!benchmark::internal::PerfCounters::kSupported) {
-    return false;
-  }
-  auto counters = benchmark::internal::PerfCounters::Create(
-      {kGenericPerfEvent1, kGenericPerfEvent2});
-  std::set<std::string> names{counters.names().begin(), counters.names().end()};
-  return names.find(kGenericPerfEvent1) != names.end() &&
-         names.find(kGenericPerfEvent2) != names.end();
-}
 
 void BM_Simple(benchmark::State& state) {
   for (auto _ : state) {
@@ -100,7 +89,8 @@ CHECK_BENCHMARK_RESULTS("BM_WithPauseResume", &SaveInstrCountWithResume);
 
 int main(int argc, char* argv[]) {
   benchmark::MaybeReenterWithoutASLR(argc, argv);
-  if (!HasRequiredPerfCounters()) {
+  if (!benchmark::internal::test::HasRequiredPerfCounters(
+          {kGenericPerfEvent1, kGenericPerfEvent2})) {
     return 0;
   }
   benchmark::FLAGS_benchmark_perf_counters =

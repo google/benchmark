@@ -7,6 +7,7 @@
 #include "../src/perf_counters.h"
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
+#include "perf_counters_test_utils.h"
 
 #ifndef GTEST_SKIP
 struct MsgHandler {
@@ -18,6 +19,8 @@ struct MsgHandler {
 using benchmark::internal::PerfCounters;
 using benchmark::internal::PerfCountersMeasurement;
 using benchmark::internal::PerfCounterValues;
+using benchmark::internal::test::HasRequiredPerfCounters;
+using benchmark::internal::test::UniqueCounterNames;
 using ::testing::AllOf;
 using ::testing::Gt;
 using ::testing::Lt;
@@ -30,38 +33,9 @@ TEST(PerfCountersTest, Init) {
   EXPECT_EQ(PerfCounters::Initialize(), PerfCounters::kSupported);
 }
 
-// Generic events will have as many counters as there are CPU PMUs, and each
-// will have the same name. In order to make these tests independent of the
-// number of CPU PMUs in the system, we uniquify the counter names before
-// testing them.
-static std::set<std::string> UniqueCounterNames(const PerfCounters& pc) {
-  std::set<std::string> names{pc.names().begin(), pc.names().end()};
-  return names;
-}
-
-static bool HasUniqueCounterNames(const PerfCounters& pc,
-                                  const std::set<std::string>& names) {
-  auto actual = UniqueCounterNames(pc);
-  for (const auto& name : names) {
-    if (actual.find(name) == actual.end()) {
-      return false;
-    }
-  }
-  return true;
-}
-
-static bool HasRequiredPerfCounters(const std::vector<std::string>& names) {
-  if (!PerfCounters::kSupported) {
-    return false;
-  }
-  auto counters = PerfCounters::Create(names);
-  const std::set<std::string> required_names(names.begin(), names.end());
-  return HasUniqueCounterNames(counters, required_names);
-}
-
 TEST(PerfCountersTest, OneCounter) {
   if (!HasRequiredPerfCounters({kGenericPerfEvent1})) {
-    GTEST_SKIP() << "Requested performance counters are not available.\n";
+    GTEST_SKIP() << "Requested performance counters are not available.";
   }
   auto counter = PerfCounters::Create({kGenericPerfEvent1});
   EXPECT_EQ(UniqueCounterNames(counter).size(), 1);
@@ -73,7 +47,7 @@ TEST(PerfCountersTest, NegativeTest) {
     return;
   }
   if (!HasRequiredPerfCounters({kGenericPerfEvent2, kGenericPerfEvent1})) {
-    GTEST_SKIP() << "Requested performance counters are not available.\n";
+    GTEST_SKIP() << "Requested performance counters are not available.";
   }
   // Safety checks
   // Create() will always create a valid object, even if passed no or
@@ -134,7 +108,7 @@ static std::map<std::string, uint64_t> SnapshotAndCombine(
 
 TEST(PerfCountersTest, Read1Counter) {
   if (!HasRequiredPerfCounters({kGenericPerfEvent1})) {
-    GTEST_SKIP() << "Requested performance counters are not available.\n";
+    GTEST_SKIP() << "Requested performance counters are not available.";
   }
   auto counters = PerfCounters::Create({kGenericPerfEvent1});
   auto values1 = SnapshotAndCombine(counters);
@@ -148,13 +122,13 @@ TEST(PerfCountersTest, Read1Counter) {
 
 TEST(PerfCountersTest, Read1CounterEachCPU) {
   if (!HasRequiredPerfCounters({kGenericPerfEvent1})) {
-    GTEST_SKIP() << "Requested performance counters are not available.\n";
+    GTEST_SKIP() << "Requested performance counters are not available.";
   }
 #ifdef __linux__
   cpu_set_t saved_set;
   if (sched_getaffinity(0, sizeof(saved_set), &saved_set) != 0) {
     // This can happen e.g. if there are more than CPU_SETSIZE CPUs.
-    GTEST_SKIP() << "Could not save CPU affinity mask.\n";
+    GTEST_SKIP() << "Could not save CPU affinity mask.";
   }
 
   for (size_t cpu = 0; cpu != CPU_SETSIZE; ++cpu) {
@@ -177,13 +151,13 @@ TEST(PerfCountersTest, Read1CounterEachCPU) {
 
   EXPECT_EQ(sched_setaffinity(0, sizeof(saved_set), &saved_set), 0);
 #else
-  GTEST_SKIP() << "Test skipped on non-Linux.\n";
+  GTEST_SKIP() << "Test skipped on non-Linux.";
 #endif
 }
 
 TEST(PerfCountersTest, Read2Counters) {
   if (!HasRequiredPerfCounters({kGenericPerfEvent1, kGenericPerfEvent2})) {
-    GTEST_SKIP() << "Requested performance counters are not available.\n";
+    GTEST_SKIP() << "Requested performance counters are not available.";
   }
   auto counters =
       PerfCounters::Create({kGenericPerfEvent1, kGenericPerfEvent2});
@@ -204,7 +178,7 @@ TEST(PerfCountersTest, ReopenExistingCounters) {
   // This test works in recent and old Intel hardware, Pixel 3, and Pixel 6.
   // However we cannot make assumptions beyond 2 HW counters due to Pixel 6.
   if (!HasRequiredPerfCounters({kGenericPerfEvent1})) {
-    GTEST_SKIP() << "Requested performance counters are not available.\n";
+    GTEST_SKIP() << "Requested performance counters are not available.";
   }
   std::vector<std::string> kMetrics({kGenericPerfEvent1});
   std::vector<PerfCounters> counters(2);
@@ -222,7 +196,7 @@ TEST(PerfCountersTest, CreateExistingMeasurements) {
   // counters) at this date,
   // the same as previous test ReopenExistingCounters.
   if (!PerfCounters::kSupported) {
-    GTEST_SKIP() << "Test skipped because libpfm is not supported.\n";
+    GTEST_SKIP() << "Test skipped because libpfm is not supported.";
   }
 
   // This means we will try 10 counters but we can only guarantee
@@ -236,7 +210,7 @@ TEST(PerfCountersTest, CreateExistingMeasurements) {
   // on all platforms
   const std::vector<std::string> kMetrics{"cycles"};
   if (!HasRequiredPerfCounters(kMetrics)) {
-    GTEST_SKIP() << "Requested performance counters are not available.\n";
+    GTEST_SKIP() << "Requested performance counters are not available.";
   }
 
   // Cannot create a vector of actual objects because the
@@ -336,7 +310,7 @@ void measure(size_t threadcount, std::map<std::string, uint64_t>* before,
 
 TEST(PerfCountersTest, MultiThreaded) {
   if (!HasRequiredPerfCounters({kGenericPerfEvent1, kGenericPerfEvent2})) {
-    GTEST_SKIP() << "Requested performance counters are not available.\n";
+    GTEST_SKIP() << "Requested performance counters are not available.";
   }
   std::map<std::string, uint64_t> before, after;
 
@@ -376,7 +350,7 @@ TEST(PerfCountersTest, HardwareLimits) {
   // counters) at this date,
   // the same as previous test ReopenExistingCounters.
   if (!PerfCounters::kSupported) {
-    GTEST_SKIP() << "Test skipped because libpfm is not supported.\n";
+    GTEST_SKIP() << "Test skipped because libpfm is not supported.";
   }
   EXPECT_TRUE(PerfCounters::Initialize());
 
