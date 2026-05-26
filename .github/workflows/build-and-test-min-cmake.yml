@@ -21,7 +21,7 @@ jobs:
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
-      - uses: lukka/get-cmake@7bfc9baacbbdcb5e37957ad05c3546b3e222be3c # latest
+      - uses: lukka/get-cmake@591817e96fcad43505fb4eae36172462abb3a42e # latest
         with:
           cmakeVersion: 3.13.0
 
