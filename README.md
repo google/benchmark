@@ -202,8 +202,11 @@ flag for option information or see the [User Guide](docs/user_guide.md).
 ### Usage with CMake
 
 If using CMake, it is recommended to link against the project-provided
-`benchmark::benchmark` and `benchmark::benchmark_main` targets using
-`target_link_libraries`.
+`benchmark::benchmark` or `benchmark::benchmark_main` targets using
+`target_link_libraries`. Link to `benchmark::benchmark` when your target
+defines its own `main` function, or link to `benchmark::benchmark_main` to use
+the default benchmark entry point. The `benchmark::benchmark_main` target links
+`benchmark::benchmark` transitively.
 It is possible to use ```find_package``` to import an installed version of the
 library.
 ```cmake
@@ -217,4 +220,6 @@ add_subdirectory(benchmark)
 Either way, link to the library as follows.
 ```cmake
 target_link_libraries(MyTarget benchmark::benchmark)
+# Or, when you do not define your own main:
+target_link_libraries(MyTarget benchmark::benchmark_main)
 ```
