@@ -117,8 +117,8 @@ std::vector<BenchmarkReporter::Run> ComputeStats(
   };
   auto successful_run =
       std::find_if(reports.begin(), reports.end(), is_successful);
-  const auto successful_count =
-      std::count_if(reports.begin(), reports.end(), is_successful);
+  const auto successful_count = static_cast<std::vector<Run>::size_type>(
+      std::count_if(reports.begin(), reports.end(), is_successful));
 
   if (successful_count < 2) {
     // We don't report aggregated data if there was a single run.
@@ -129,8 +129,8 @@ std::vector<BenchmarkReporter::Run> ComputeStats(
   std::vector<double> real_accumulated_time_stat;
   std::vector<double> cpu_accumulated_time_stat;
 
-  real_accumulated_time_stat.reserve(reports.size());
-  cpu_accumulated_time_stat.reserve(reports.size());
+  real_accumulated_time_stat.reserve(successful_count);
+  cpu_accumulated_time_stat.reserve(successful_count);
 
   // All repetitions should be run with the same number of iterations so we
   // can take this information from the first benchmark.
@@ -152,7 +152,7 @@ std::vector<BenchmarkReporter::Run> ComputeStats(
                  .emplace(cnt.first,
                           CounterStat{cnt.second, std::vector<double>{}})
                  .first;
-        it->second.s.reserve(reports.size());
+        it->second.s.reserve(successful_count);
       } else {
         BM_CHECK_EQ(it->second.c.flags, cnt.second.flags);
       }
