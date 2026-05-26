@@ -105,6 +105,10 @@ BenchmarkReporter::Run CreateRunReport(
   report.repetition_index = repetition_index;
   report.repetitions = repeats;
 
+  // Set `statistics` for every report, skipped or not, so the pointer is
+  // always valid in aggregation paths.
+  report.statistics = &b.statistics();
+
   if (report.skipped == 0u) {
     if (b.use_manual_time()) {
       report.real_accumulated_time = results.manual_time_used;
@@ -116,7 +120,6 @@ BenchmarkReporter::Run CreateRunReport(
     report.complexity_n = results.complexity_n;
     report.complexity = b.complexity();
     report.complexity_lambda = b.complexity_lambda();
-    report.statistics = &b.statistics();
     report.counters = results.counters;
 
     if (memory_iterations > 0) {
