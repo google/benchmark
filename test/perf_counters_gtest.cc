@@ -1,8 +1,6 @@
 #include <mutex>
 #include <random>
-#include <set>
 #include <thread>
-#include <vector>
 
 #include "../src/perf_counters.h"
 #include "gmock/gmock.h"
