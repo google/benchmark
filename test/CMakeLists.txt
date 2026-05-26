@@ -143,6 +143,9 @@ benchmark_add_test(NAME diagnostics_test COMMAND diagnostics_test --benchmark_mi
 compile_benchmark_test(skip_with_error_test)
 benchmark_add_test(NAME skip_with_error_test COMMAND skip_with_error_test --benchmark_min_time=0.01s)
 
+compile_benchmark_test(skipped_repetition_test)
+benchmark_add_test(NAME skipped_repetition_test COMMAND skipped_repetition_test --benchmark_min_time=0.01s --benchmark_repetitions=3)
+
 compile_benchmark_test(donotoptimize_test)
 # Enable errors for deprecated deprecations (DoNotOptimize(Tp const& value)).
 check_cxx_compiler_flag(-Werror=deprecated-declarations BENCHMARK_HAS_DEPRECATED_DECLARATIONS_FLAG)
