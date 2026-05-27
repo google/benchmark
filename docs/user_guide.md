@@ -1462,6 +1462,22 @@ known. For example:
   // while (...) DoNotOptimize(__result__);
 ```
 
+Since that is not the behaviour the user intended,
+such problematic cases will result in a diagnostic
+at compile time. The correct approach, for an expression result,
+is to use an intermediate local variable:
+
+```c++
+  // Avoid: may call the deprecated const-reference overload.
+  while (...) DoNotOptimize(foo(0));
+
+  // Prefer: materialize the result, then pass the local lvalue.
+  while (...) {
+    auto result = foo(0);
+    DoNotOptimize(result);
+  }
+```
+
 The second tool for preventing optimizations is `ClobberMemory()`. In essence
 `ClobberMemory()` forces the compiler to perform all pending writes to global
 memory. Memory managed by block scope objects must be "escaped" using
