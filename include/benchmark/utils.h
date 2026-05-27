@@ -37,8 +37,8 @@ inline BENCHMARK_ALWAYS_INLINE void ClobberMemory() {
   std::atomic_signal_fence(std::memory_order_acq_rel);
 }
 
-#define BENCHMARK_DONOTOPTIMIZE_CONST_REF_DEPRECATED_MSG                     \
-  "DoNotOptimize(T const&) can permit undesired compiler optimizations. "    \
+#define BENCHMARK_DONOTOPTIMIZE_CONST_REF_DEPRECATED_MSG                       \
+  "DoNotOptimize(T const&) can permit undesired compiler optimizations. "      \
   "Pass a non-const lvalue instead; if the argument is an expression result, " \
   "store it in a local variable first."
 
