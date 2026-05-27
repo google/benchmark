@@ -56,7 +56,7 @@ of your first [pull request][].
 
 ## AI usage ##
 
-Please consult [AGENTS.md][] file.
+Please consult [AGENTS](AGENTS.md) file.
 
 [forking]: https://help.github.com/articles/fork-a-repo
 [well-formed commit messages]: http://tbaggery.com/2008/04/19/a-note-about-git-commit-messages.html
