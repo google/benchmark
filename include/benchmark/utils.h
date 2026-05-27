@@ -37,12 +37,15 @@ inline BENCHMARK_ALWAYS_INLINE void ClobberMemory() {
   std::atomic_signal_fence(std::memory_order_acq_rel);
 }
 
+#define BENCHMARK_DONOTOPTIMIZE_CONST_REF_DEPRECATED_MSG                       \
+  "DoNotOptimize(T const&) can permit undesired compiler optimizations. "      \
+  "Pass a non-const lvalue instead; if the argument is an expression result, " \
+  "store it in a local variable first."
+
 #ifndef BENCHMARK_HAS_NO_INLINE_ASSEMBLY
 #if !defined(__GNUC__) || defined(__llvm__) || defined(__INTEL_COMPILER)
 template <class Tp>
-BENCHMARK_DEPRECATED_MSG(
-    "The const-ref version of this method can permit "
-    "undesired compiler optimizations in benchmarks")
+BENCHMARK_DEPRECATED_MSG(BENCHMARK_DONOTOPTIMIZE_CONST_REF_DEPRECATED_MSG)
 inline BENCHMARK_ALWAYS_INLINE void DoNotOptimize(Tp const& value) {
   asm volatile("" : : "r,m"(value) : "memory");
 }
@@ -66,9 +69,7 @@ inline BENCHMARK_ALWAYS_INLINE void DoNotOptimize(Tp&& value) {
 }
 #elif (__GNUC__ >= 5)
 template <class Tp>
-BENCHMARK_DEPRECATED_MSG(
-    "The const-ref version of this method can permit "
-    "undesired compiler optimizations in benchmarks")
+BENCHMARK_DEPRECATED_MSG(BENCHMARK_DONOTOPTIMIZE_CONST_REF_DEPRECATED_MSG)
 inline BENCHMARK_ALWAYS_INLINE
     typename std::enable_if<std::is_trivially_copyable<Tp>::value &&
                             (sizeof(Tp) <= sizeof(Tp*))>::type
@@ -77,9 +78,7 @@ inline BENCHMARK_ALWAYS_INLINE
 }
 
 template <class Tp>
-BENCHMARK_DEPRECATED_MSG(
-    "The const-ref version of this method can permit "
-    "undesired compiler optimizations in benchmarks")
+BENCHMARK_DEPRECATED_MSG(BENCHMARK_DONOTOPTIMIZE_CONST_REF_DEPRECATED_MSG)
 inline BENCHMARK_ALWAYS_INLINE
     typename std::enable_if<!std::is_trivially_copyable<Tp>::value ||
                             (sizeof(Tp) > sizeof(Tp*))>::type
@@ -122,9 +121,7 @@ inline BENCHMARK_ALWAYS_INLINE
 
 #elif defined(_MSC_VER)
 template <class Tp>
-BENCHMARK_DEPRECATED_MSG(
-    "The const-ref version of this method can permit "
-    "undesired compiler optimizations in benchmarks")
+BENCHMARK_DEPRECATED_MSG(BENCHMARK_DONOTOPTIMIZE_CONST_REF_DEPRECATED_MSG)
 inline BENCHMARK_ALWAYS_INLINE void DoNotOptimize(Tp const& value) {
   internal::UseCharPointer(&reinterpret_cast<char const volatile&>(value));
   ClobberMemory();
@@ -147,6 +144,8 @@ inline BENCHMARK_ALWAYS_INLINE void DoNotOptimize(Tp&& value) {
   internal::UseCharPointer(&reinterpret_cast<char const volatile&>(value));
 }
 #endif
+
+#undef BENCHMARK_DONOTOPTIMIZE_CONST_REF_DEPRECATED_MSG
 
 }  // end namespace benchmark
 
