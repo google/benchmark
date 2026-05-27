@@ -1462,10 +1462,10 @@ known. For example:
   // while (...) DoNotOptimize(__result__);
 ```
 
-Since that is not the behavior the user intended, such problematic cases
-produce a compile-time diagnostic. Pass a non-const lvalue instead. For an
-expression result, store the result in a local variable before calling
-`DoNotOptimize`:
+Since that is not the behaviour the user intended,
+such problematic cases will result in a diagnostic
+at compile time. The correct approach, for an expression result,
+is to use an intermediate local variable:
 
 ```c++
   // Avoid: may call the deprecated const-reference overload.
