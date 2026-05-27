@@ -1,5 +1,7 @@
 #include <cstdarg>
+#include <set>
 #include <string>
+#include <vector>
 #undef NDEBUG
 
 #include "../src/commandlineflags.h"
@@ -9,7 +11,6 @@
 #include "benchmark/state.h"
 #include "benchmark/utils.h"
 #include "output_test.h"
-#include "perf_counters_test_utils.h"
 
 namespace benchmark {
 
@@ -19,6 +20,25 @@ BM_DECLARE_string(benchmark_perf_counters);
 namespace {
 const char kGenericPerfEvent1[] = "CYCLES";
 const char kGenericPerfEvent2[] = "INSTRUCTIONS";
+
+std::set<std::string> UniqueCounterNames(
+    const benchmark::internal::PerfCounters& counters) {
+  return {counters.names().begin(), counters.names().end()};
+}
+
+bool HasRequiredPerfCounters(const std::vector<std::string>& names) {
+  if (!benchmark::internal::PerfCounters::kSupported) {
+    return false;
+  }
+  auto counters = benchmark::internal::PerfCounters::Create(names);
+  auto actual_names = UniqueCounterNames(counters);
+  for (const auto& name : names) {
+    if (actual_names.find(name) == actual_names.end()) {
+      return false;
+    }
+  }
+  return true;
+}
 
 void BM_Simple(benchmark::State& state) {
   for (auto _ : state) {
@@ -89,8 +109,7 @@ CHECK_BENCHMARK_RESULTS("BM_WithPauseResume", &SaveInstrCountWithResume);
 
 int main(int argc, char* argv[]) {
   benchmark::MaybeReenterWithoutASLR(argc, argv);
-  if (!benchmark::internal::test::HasRequiredPerfCounters(
-          {kGenericPerfEvent1, kGenericPerfEvent2})) {
+  if (!HasRequiredPerfCounters({kGenericPerfEvent1, kGenericPerfEvent2})) {
     return 0;
   }
   benchmark::FLAGS_benchmark_perf_counters =

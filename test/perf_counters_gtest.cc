@@ -1,11 +1,13 @@
 #include <mutex>
 #include <random>
+#include <set>
+#include <string>
 #include <thread>
+#include <vector>
 
 #include "../src/perf_counters.h"
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
-#include "perf_counters_test_utils.h"
 
 #ifndef GTEST_SKIP
 struct MsgHandler {
@@ -17,8 +19,6 @@ struct MsgHandler {
 using benchmark::internal::PerfCounters;
 using benchmark::internal::PerfCountersMeasurement;
 using benchmark::internal::PerfCounterValues;
-using benchmark::internal::test::HasRequiredPerfCounters;
-using benchmark::internal::test::UniqueCounterNames;
 using ::testing::AllOf;
 using ::testing::Gt;
 using ::testing::Lt;
@@ -26,6 +26,24 @@ using ::testing::Lt;
 namespace {
 const char kGenericPerfEvent1[] = "CYCLES";
 const char kGenericPerfEvent2[] = "INSTRUCTIONS";
+
+std::set<std::string> UniqueCounterNames(const PerfCounters& counters) {
+  return {counters.names().begin(), counters.names().end()};
+}
+
+bool HasRequiredPerfCounters(const std::vector<std::string>& names) {
+  if (!PerfCounters::kSupported) {
+    return false;
+  }
+  auto counters = PerfCounters::Create(names);
+  auto actual_names = UniqueCounterNames(counters);
+  for (const auto& name : names) {
+    if (actual_names.find(name) == actual_names.end()) {
+      return false;
+    }
+  }
+  return true;
+}
 
 TEST(PerfCountersTest, Init) {
   EXPECT_EQ(PerfCounters::Initialize(), PerfCounters::kSupported);
