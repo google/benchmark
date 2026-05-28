@@ -41,6 +41,7 @@ option(BENCHMARK_ENABLE_GTEST_TESTS "Enable building the unit tests which depend
 option(BENCHMARK_USE_BUNDLED_GTEST "Use bundled GoogleTest. If disabled, the find_package(GTest) will be used." ON)
 
 option(BENCHMARK_ENABLE_LIBPFM "Enable performance counters provided by libpfm" OFF)
+option(BENCHMARK_ENABLE_RUST_BINDINGS "Enable building and testing the Rust bindings (requires cargo)" OFF)
 
 # Export only public symbols
 set(CMAKE_CXX_VISIBILITY_PRESET hidden)
@@ -365,4 +366,21 @@ if (BENCHMARK_ENABLE_TESTING)
     endif()
   endif()
   add_subdirectory(test)
+endif()
+
+if(BENCHMARK_ENABLE_RUST_BINDINGS)
+  find_program(CARGO_EXE cargo)
+  if(NOT CARGO_EXE)
+    message(FATAL_ERROR
+      "BENCHMARK_ENABLE_RUST_BINDINGS is ON but cargo was not found. "
+      "Install the Rust toolchain (https://rustup.rs) and re-run CMake.")
+  endif()
+  message(STATUS "Rust bindings enabled. cargo: ${CARGO_EXE}")
+  add_custom_target(benchmark_rust_bindings ALL
+    COMMAND ${CARGO_EXE} test --manifest-path
+            ${CMAKE_CURRENT_SOURCE_DIR}/bindings/rust/Cargo.toml
+    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/bindings/rust
+    COMMENT "Building and testing Rust bindings"
+    VERBATIM
+  )
 endif()

@@ -1,0 +1,17 @@
+[package]
+name = "google-benchmark"
+version = "0.1.0"
+edition = "2021"
+description = "Rust bindings for the google/benchmark C++ microbenchmarking library"
+license = "Apache-2.0"
+repository = "https://github.com/google/benchmark"
+
+[dependencies]
+cxx = "1"
+
+[build-dependencies]
+cxx-build = "1"
+cmake = "0.1"
+
+[[example]]
+name = "basic"
