@@ -35,8 +35,8 @@ by running this command:
 cpupower frequency-info -o proc
 ```
 
-The benchmarks you subsequently run will usually have less variance. Do not
-assume that the governor setting is the only frequency control that matters:
+Do not assume that the governor setting is the only frequency control that
+matters:
 boost settings, SMT/Hyperthreading, firmware, and kernel behavior can still
 change the observed CPU frequency. For sensitive measurements, monitor the
 actual per-CPU frequency during the benchmark run and keep the configuration
