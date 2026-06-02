@@ -30,6 +30,10 @@
 #include <unistd.h>
 #endif
 
+#ifdef __ANDROID_NDK__
+#include <malloc.h>
+#endif
+
 #ifdef BENCHMARK_OS_LINUX
 #include <sys/personality.h>
 #endif
@@ -902,6 +906,24 @@ void PrintDefaultHelp() {
 }
 
 void Initialize(int* argc, char** argv, void (*HelperPrintf)()) {
+#ifdef __ANDROID_NDK__
+  // We want standalone android benchmarks to match the performance properties
+  // of the production environment, so match that configuration here.
+
+  // Android 12 (API level 31) introduced zeroing of allocated memory in bionic
+  // as a hardening feature; however, this is not enabled for apps.
+  if (__builtin_available(android 31, *)) {
+    BM_CHECK_EQ(mallopt(M_BIONIC_ZERO_INIT, 0), 1);
+  }
+
+  // The default configuration of bionic is to return pages to the OS as soon
+  // as they are freed. But application processes are configured to run with a
+  // delay before returning memory to avoid excessive faulting on repeated
+  // allocation and deallocation, which is common in repeated benchmark runs.
+  if (__builtin_available(android 27, *)) {
+    BM_CHECK_EQ(mallopt(M_DECAY_TIME, 1), 1);
+  }
+#endif
   internal::HelperPrintf = HelperPrintf;
   internal::ParseCommandLineFlags(argc, argv);
   internal::LogLevel() = FLAGS_v;
