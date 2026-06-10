@@ -22,6 +22,8 @@
 namespace benchmark {
 
 namespace internal {
+double Finish(Counter const& c, IterationCount iterations, double time,
+              double num_threads);
 void Finish(UserCounters* l, IterationCount iterations, double time,
             double num_threads);
 void Increment(UserCounters* l, UserCounters const& r);

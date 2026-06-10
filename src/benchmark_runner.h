@@ -32,6 +32,7 @@ extern ProfilerManager* profiler_manager;
 
 struct RunResults {
   std::vector<BenchmarkReporter::Run> non_aggregates;
+  std::vector<BenchmarkReporter::Run> thread_counter_stats;
   std::vector<BenchmarkReporter::Run> aggregates_only;
 
   bool display_report_aggregates_only = false;
@@ -100,6 +101,7 @@ class BenchmarkRunner {
 
   struct IterationResults {
     internal::ThreadManager::Result results;
+    std::vector<internal::ThreadManager::ThreadResult> thread_results;
     IterationCount iters;
     double seconds;
   };

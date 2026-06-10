@@ -42,10 +42,12 @@
 #include <functional>
 #include <iostream>
 #include <limits>
+#include <map>
 #include <memory>
 #include <string>
 #include <thread>
 #include <utility>
+#include <vector>
 
 #include "check.h"
 #include "colorprint.h"
@@ -69,6 +71,7 @@ BM_DECLARE_double(benchmark_min_warmup_time);
 BM_DECLARE_int32(benchmark_repetitions);
 BM_DECLARE_bool(benchmark_report_aggregates_only);
 BM_DECLARE_bool(benchmark_display_aggregates_only);
+BM_DECLARE_bool(benchmark_report_thread_counter_stats);
 BM_DECLARE_string(benchmark_perf_counters);
 
 namespace internal {
@@ -139,6 +142,112 @@ BenchmarkReporter::Run CreateRunReport(
   return report;
 }
 
+std::vector<BenchmarkReporter::Run> CreateThreadCounterStats(
+    const benchmark::internal::BenchmarkInstance& b,
+    const std::vector<internal::ThreadManager::ThreadResult>& thread_results,
+    int64_t repeats) {
+  if (!FLAGS_benchmark_report_thread_counter_stats || b.threads() <= 1) {
+    return {};
+  }
+
+  struct CounterStats {
+    Counter counter;
+    std::vector<double> values;
+  };
+  std::map<std::string, CounterStats> counter_stats;
+
+  for (const auto& thread_result : thread_results) {
+    for (const auto& cnt : thread_result.counters) {
+      auto it = counter_stats.find(cnt.first);
+      if (it == counter_stats.end()) {
+        it = counter_stats
+                 .emplace(cnt.first,
+                          CounterStats{cnt.second, std::vector<double>{}})
+                 .first;
+        it->second.values.reserve(thread_results.size());
+      } else {
+        BM_CHECK_EQ(it->second.counter.flags, cnt.second.flags);
+        BM_CHECK_EQ(it->second.counter.oneK, cnt.second.oneK);
+      }
+    }
+  }
+  if (counter_stats.empty()) {
+    return {};
+  }
+
+  for (const auto& thread_result : thread_results) {
+    if (thread_result.iterations == 0) {
+      return {};
+    }
+    double thread_seconds_used = thread_result.cpu_time_used;
+    if (b.use_manual_time()) {
+      thread_seconds_used = thread_result.manual_time_used;
+    } else if (b.use_real_time()) {
+      thread_seconds_used = thread_result.real_time_used;
+    }
+    for (auto& kv : counter_stats) {
+      auto counter_it = thread_result.counters.find(kv.first);
+      const Counter thread_counter =
+          counter_it == thread_result.counters.end()
+              ? Counter(0.0, kv.second.counter.flags, kv.second.counter.oneK)
+              : counter_it->second;
+      kv.second.values.push_back(internal::Finish(
+          thread_counter, thread_result.iterations, thread_seconds_used, 1.0));
+    }
+  }
+
+  std::vector<BenchmarkReporter::Run> results;
+  results.reserve(b.statistics().size());
+  std::vector<double> real_accumulated_time_stat;
+  std::vector<double> cpu_accumulated_time_stat;
+  real_accumulated_time_stat.reserve(thread_results.size());
+  cpu_accumulated_time_stat.reserve(thread_results.size());
+  for (const auto& thread_result : thread_results) {
+    const double iterations = static_cast<double>(thread_result.iterations);
+    real_accumulated_time_stat.push_back(thread_result.real_time_used /
+                                         iterations);
+    cpu_accumulated_time_stat.push_back(thread_result.cpu_time_used /
+                                        iterations);
+  }
+
+  for (const auto& stat : b.statistics()) {
+    BenchmarkReporter::Run data;
+    data.run_name = b.name();
+    data.family_index = b.family_index();
+    data.per_family_instance_index = b.per_family_instance_index();
+    data.run_type = BenchmarkReporter::Run::RT_Aggregate;
+    data.threads = b.threads();
+    data.repetitions = repeats;
+    data.repetition_index = BenchmarkReporter::Run::no_repetition_index;
+    data.aggregate_name = "thread_" + stat.name_;
+    data.aggregate_unit = stat.unit_;
+    data.iterations = static_cast<IterationCount>(thread_results.size());
+    data.time_unit = b.time_unit();
+    if (stat.unit_ == StatisticUnit::kTime) {
+      data.real_accumulated_time =
+          stat.compute_(real_accumulated_time_stat) *
+          static_cast<double>(data.iterations);
+      data.cpu_accumulated_time = stat.compute_(cpu_accumulated_time_stat) *
+                                  static_cast<double>(data.iterations);
+    } else {
+      data.real_accumulated_time = stat.compute_(real_accumulated_time_stat);
+      data.cpu_accumulated_time = stat.compute_(cpu_accumulated_time_stat);
+    }
+
+    for (const auto& kv : counter_stats) {
+      const Counter counter =
+          stat.unit_ == StatisticUnit::kPercentage
+              ? Counter(stat.compute_(kv.second.values))
+              : Counter(stat.compute_(kv.second.values),
+                        kv.second.counter.flags, kv.second.counter.oneK);
+      data.counters[kv.first] = counter;
+    }
+
+    results.push_back(data);
+  }
+  return results;
+}
+
 // Execute one thread of benchmark b for the specified number of iterations.
 // Adds the stats collected for the thread into manager->results.
 void RunInThread(const BenchmarkInstance* b, IterationCount iters,
@@ -166,6 +275,9 @@ void RunInThread(const BenchmarkInstance* b, IterationCount iters,
     results.manual_time_used += timer.manual_time_used();
     results.complexity_n += st.complexity_length_n();
     internal::Increment(&results.counters, st.counters);
+    manager->thread_results.push_back(internal::ThreadManager::ThreadResult{
+        st.iterations(), timer.real_time_used(), timer.cpu_time_used(),
+        timer.manual_time_used(), st.counters});
   }
   manager->NotifyThreadComplete();
 }
@@ -347,6 +459,7 @@ BenchmarkRunner::IterationResults BenchmarkRunner::DoNIterations() {
   {
     MutexLock l(manager->GetBenchmarkMutex());
     i.results = manager->results;
+    i.thread_results = manager->thread_results;
   }
 
   // And get rid of the manager.
@@ -557,6 +670,8 @@ void BenchmarkRunner::DoOneRepetition() {
   BenchmarkReporter::Run report =
       CreateRunReport(b, i.results, memory_iterations, memory_result, i.seconds,
                       num_repetitions_done, repeats);
+  std::vector<BenchmarkReporter::Run> thread_counter_stats =
+      CreateThreadCounterStats(b, i.thread_results, repeats);
 
   if (reports_for_family != nullptr) {
     ++reports_for_family->num_runs_done;
@@ -566,6 +681,9 @@ void BenchmarkRunner::DoOneRepetition() {
   }
 
   run_results.non_aggregates.push_back(report);
+  run_results.thread_counter_stats.insert(run_results.thread_counter_stats.end(),
+                                          thread_counter_stats.begin(),
+                                          thread_counter_stats.end());
 
   ++num_repetitions_done;
 }

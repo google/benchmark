@@ -2,6 +2,7 @@
 #define BENCHMARK_THREAD_MANAGER_H
 
 #include <atomic>
+#include <vector>
 
 #include "benchmark/counter.h"
 #include "benchmark/statistics.h"
@@ -34,7 +35,15 @@ class ThreadManager {
     internal::Skipped skipped_ = internal::NotSkipped;
     UserCounters counters;
   };
+  struct ThreadResult {
+    IterationCount iterations = 0;
+    double real_time_used = 0;
+    double cpu_time_used = 0;
+    double manual_time_used = 0;
+    UserCounters counters;
+  };
   GUARDED_BY(GetBenchmarkMutex()) Result results;
+  GUARDED_BY(GetBenchmarkMutex()) std::vector<ThreadResult> thread_results;
 
  private:
   mutable Mutex benchmark_mutex_;
