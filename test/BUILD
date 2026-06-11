@@ -36,11 +36,16 @@ PER_SRC_COPTS = {
 TEST_ARGS = ["--benchmark_min_time=0.01s"]
 
 PER_SRC_TEST_ARGS = {
-    "user_counters_tabular_test.cc": ["--benchmark_counters_tabular=true"],
+    "user_counters_tabular_test.cc": [
+        "--benchmark_counters_tabular=true",
+        "--benchmark_min_time=0.2s",
+    ],
     "repetitions_test.cc": [" --benchmark_repetitions=3"],
     "spec_arg_test.cc": ["--benchmark_filter=BM_NotChosen"],
     "spec_arg_verbosity_test.cc": ["--v=42"],
     "complexity_test.cc": ["--benchmark_min_time=1000000x"],
+    "user_counters_test.cc": ["--benchmark_min_time=0.2s"],
+    "user_counters_threads_test.cc": ["--benchmark_min_time=0.2s"],
 }
 
 cc_library(
