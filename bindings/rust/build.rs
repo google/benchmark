@@ -1,10 +1,19 @@
 fn main() {
-    let dst = cmake::Config::new("../../")
+    let mut config = cmake::Config::new("../../");
+    config
         .define("BENCHMARK_ENABLE_TESTING", "OFF")
         .define("BENCHMARK_ENABLE_LTO", "OFF")
         .define("BENCHMARK_ENABLE_WERROR", "OFF")
-        .build_target("benchmark")
-        .build();
+        .build_target("benchmark");
+
+    // Rust defaults to the Release CRT (/MD) on Windows even in Debug mode.
+    // Force CMake to use the Release profile so `google/benchmark` uses `/MD`,
+    // avoiding a mismatch with `cxx_build` (which uses `/MD`).
+    if cfg!(target_os = "windows") {
+        config.profile("Release");
+    }
+
+    let dst = config.build();
 
     println!("cargo:rustc-link-search=native={}/build/src", dst.display());
     println!("cargo:rustc-link-search=native={}/build/src/Debug", dst.display());
