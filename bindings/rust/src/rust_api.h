@@ -10,5 +10,5 @@ void RegisterBenchmark(rust::Str name, rust::Fn<void(benchmark::State&)> func);
 void Initialize(int* argc, size_t argv);
 void SkipWithError(benchmark::State& state, rust::Str msg);
 
-} // namespace rust_api
-} // namespace benchmark
+}  // namespace rust_api
+}  // namespace benchmark
