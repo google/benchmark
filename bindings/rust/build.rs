@@ -16,7 +16,12 @@ fn main() {
         .include("../../include")
         .include("src")
         .std("c++17")
+        .define("BENCHMARK_STATIC_DEFINE", None)
         .compile("benchmark_rust_ffi");
+
+    if cfg!(target_os = "windows") {
+        println!("cargo:rustc-link-lib=shlwapi");
+    }
 
     println!("cargo:rerun-if-changed=src/ffi.rs");
     println!("cargo:rerun-if-changed=src/rust_api.cc");
