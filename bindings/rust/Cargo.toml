@@ -1,5 +1,5 @@
 [package]
-name = "benchmark-rs"
+name = "google-benchmark-rs"
 version = "1.9.5"
 edition = "2021"
 description = "Rust bindings for google/benchmark"
