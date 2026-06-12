@@ -9,15 +9,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "940b3a0ca603d1eade50a4846a2afffd5ef57a9feac2c0e2ec2e14f9ead76000"
 
 [[package]]
-name = "benchmark-rs"
-version = "1.9.5"
-dependencies = [
- "cmake",
- "cxx",
- "cxx-build",
-]
-
-[[package]]
 name = "cc"
 version = "1.2.63"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -152,6 +143,15 @@ name = "foldhash"
 version = "0.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "77ce24cb58228fbb8aa041425bb1050850ac19177686ea6e0f41a70416f56fdb"
+
+[[package]]
+name = "google-benchmark-rs"
+version = "1.9.5"
+dependencies = [
+ "cmake",
+ "cxx",
+ "cxx-build",
+]
 
 [[package]]
 name = "hashbrown"

@@ -56,5 +56,5 @@ jobs:
         working-directory: bindings/rust
       - name: Run Rust tests via CMake target
         run: |
-          cmake -S . -B build -DBENCHMARK_ENABLE_RUST_BINDINGS=ON
+          cmake -S . -B build -DBENCHMARK_ENABLE_RUST_BINDINGS=ON -DBENCHMARK_DOWNLOAD_DEPENDENCIES=ON
           cmake --build build --target test_rust_bindings
