@@ -70,4 +70,3 @@ uv.lock
 
 # Rust build stuff
 /bindings/rust/target/
-/bindings/rust/Cargo.lock
