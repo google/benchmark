@@ -1,4 +1,4 @@
-use benchmark_rs::{initialize, register_benchmark, run_specified_benchmarks, State};
+use google_benchmark_rs::{initialize, register_benchmark, run_specified_benchmarks, State};
 
 fn my_benchmark(state: &mut State) {
     while state.keep_running() {
