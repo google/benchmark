@@ -41,6 +41,7 @@ option(BENCHMARK_ENABLE_GTEST_TESTS "Enable building the unit tests which depend
 option(BENCHMARK_USE_BUNDLED_GTEST "Use bundled GoogleTest. If disabled, the find_package(GTest) will be used." ON)
 
 option(BENCHMARK_ENABLE_LIBPFM "Enable performance counters provided by libpfm" OFF)
+option(BENCHMARK_ENABLE_RUST_BINDINGS "Enable testing of the Rust bindings" OFF)
 
 # Export only public symbols
 set(CMAKE_CXX_VISIBILITY_PRESET hidden)

@@ -67,3 +67,6 @@ CMakeSettings.json
 dist/
 *.egg-info*
 uv.lock
+
+# Rust build stuff
+/bindings/rust/target/

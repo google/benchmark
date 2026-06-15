@@ -326,3 +326,12 @@ if (${CMAKE_BUILD_TYPE_LOWER} MATCHES "coverage")
       "  --coverage flag: ${CXX_FLAG_COVERAGE_MESSAGE}")
   endif()
 endif()
+
+if (BENCHMARK_ENABLE_RUST_BINDINGS)
+  find_program(CARGO_EXECUTABLE cargo REQUIRED)
+  add_custom_target(test_rust_bindings ALL
+    COMMAND ${CARGO_EXECUTABLE} test
+    WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/bindings/rust
+    COMMENT "Running Rust bindings tests"
+  )
+endif()

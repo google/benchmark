@@ -1,0 +1,13 @@
+[package]
+name = "google-benchmark-rs"
+version = "1.9.5"
+edition = "2021"
+description = "Rust bindings for google/benchmark"
+license = "Apache-2.0"
+
+[dependencies]
+cxx = "1.0"
+
+[build-dependencies]
+cmake = "0.1"
+cxx-build = "1.0"
