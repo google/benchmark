@@ -10,9 +10,10 @@
 
 namespace {
 void BM_ostream(benchmark::State& state) {
-#if !defined(__MINGW64__) || defined(__clang__)
-  // GCC-based versions of MINGW64 do not support locale manipulations,
-  // don't run the test under them.
+#if !defined(__GLIBCXX__) || defined(__GLIBC__) || defined(__DragonFly__)
+  // libstdc++ only supports locale manipulations on GNU and
+  // DragonflyBSD platforms at the time of writing, don't run the test
+  // on other platforms when using libstdc++.
   std::locale::global(std::locale("en_US.UTF-8"));
 #endif
   while (state.KeepRunning()) {

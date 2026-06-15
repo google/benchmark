@@ -2,6 +2,8 @@
 
 ## Command Line
 
+[Command Line Options](#command-line-options)
+
 [Output Formats](#output-formats)
 
 [Output Files](#output-files)
@@ -65,6 +67,209 @@
 [Disabling CPU Frequency Scaling](#disabling-cpu-frequency-scaling)
 
 [Reducing Variance in Benchmarks](reducing_variance.md)
+<a name="command-line-options" />
+
+## Command Line Options
+
+Benchmarks accept options that may be specified either through their command line interface or by setting environment variables before execution. For every `--option_flag=<value>` CLI switch, a corresponding environment variable `OPTION_FLAG=<value>` exists and is used as default if set (CLI switches always prevail).
+
+### Benchmark Selection and Execution
+
+#### `--benchmark_list_tests` (BENCHMARK_LIST_TESTS)
+
+Print a list of all benchmark names and exit. This option overrides all other options.
+
+**Example:**
+```bash
+$ ./benchmark --benchmark_list_tests
+BM_SomeFunction
+BM_AnotherFunction
+```
+
+#### `--benchmark_filter=<regex>` (BENCHMARK_FILTER)
+
+A regular expression that specifies the set of benchmarks to execute. If this flag is empty, or if this flag is the string "all", all benchmarks linked into the binary are run.
+
+**Example:**
+```bash
+$ ./benchmark --benchmark_filter=BM_memcpy/32
+```
+
+#### `--benchmark_dry_run` (BENCHMARK_DRY_RUN)
+
+If enabled, forces each benchmark to execute exactly one iteration and one repetition, bypassing any configured `MinTime()`, `MinWarmUpTime()`, `Iterations()`, or `Repetitions()`. This is useful for quickly verifying that benchmarks can run successfully without waiting for full execution.
+
+**Example:**
+```bash
+$ ./benchmark --benchmark_dry_run
+```
+
+#### `--benchmark_enable_random_interleaving` (BENCHMARK_ENABLE_RANDOM_INTERLEAVING)
+
+If set, enable random interleaving of repetitions of all benchmarks. This can help reduce the impact of system state changes on benchmark results. See [GitHub issue #1051](https://github.com/google/benchmark/issues/1051) for details.
+
+**Example:**
+```bash
+$ ./benchmark --benchmark_enable_random_interleaving
+```
+
+### Timing and Repetition Control
+
+#### `--benchmark_min_time=<seconds>` (BENCHMARK_MIN_TIME)
+
+Specifies the minimum amount of time (in seconds) that each benchmark should run. For CPU-time based tests, this is the lower bound on the total CPU time used by all threads that make up the test. For real-time based tests, this is the lower bound on the elapsed time of the benchmark execution, regardless of number of threads.
+
+**Default:** `0.5` seconds
+
+**Example:**
+```bash
+$ ./benchmark --benchmark_min_time=1.0
+```
+
+#### `--benchmark_min_warmup_time=<seconds>` (BENCHMARK_MIN_WARMUP_TIME)
+
+Minimum number of seconds a benchmark should be run before results should be taken into account. This can be necessary for benchmarks of code which needs to fill some form of cache before performance is of interest. Results gathered within this period are discarded and not used for the reported result.
+
+**Default:** `0.0` seconds
+
+**Example:**
+```bash
+$ ./benchmark --benchmark_min_warmup_time=0.5
+```
+
+#### `--benchmark_repetitions=<count>` (BENCHMARK_REPETITIONS)
+
+The number of runs of each benchmark. If greater than 1, the mean and standard deviation of the runs will be reported.
+
+**Default:** `1`
+
+**Example:**
+```bash
+$ ./benchmark --benchmark_repetitions=5
+```
+
+### Output Formatting
+
+#### `--benchmark_format=<console|json|csv>` (BENCHMARK_FORMAT)
+
+The format to use for console output. Valid values are 'console', 'json', or 'csv'. See [Output Formats](#output-formats) for more details.
+
+**Default:** `console`
+
+**Example:**
+```bash
+$ ./benchmark --benchmark_format=json
+```
+
+#### `--benchmark_out=<filename>` (BENCHMARK_OUT)
+
+The file to write additional output to. The output format is controlled by `--benchmark_out_format`. Specifying this option does not suppress console output.
+
+**Example:**
+```bash
+$ ./benchmark --benchmark_out=results.json
+```
+
+#### `--benchmark_out_format=<console|json|csv>` (BENCHMARK_OUT_FORMAT)
+
+The format to use for file output specified by `--benchmark_out`. Valid values are 'console', 'json', or 'csv'.
+
+**Default:** `json`
+
+**Example:**
+```bash
+$ ./benchmark --benchmark_out=results.csv --benchmark_out_format=csv
+```
+
+#### `--benchmark_color=<auto|true|false>` (BENCHMARK_COLOR)
+
+Whether to use colors in the output. Valid values are 'true'/'yes'/1, 'false'/'no'/0, and 'auto'. 'auto' means to use colors if the output is being sent to a terminal and the TERM environment variable is set to a terminal type that supports colors.
+
+**Default:** `auto`
+
+**Example:**
+```bash
+$ ./benchmark --benchmark_color=false
+```
+
+#### `--benchmark_time_unit=<ns|us|ms|s>` (BENCHMARK_TIME_UNIT)
+
+Set the default time unit to use for reports. Valid values are 'ns' (nanoseconds), 'us' (microseconds), 'ms' (milliseconds), or 's' (seconds).
+
+**Default:** (empty, uses automatic selection)
+
+**Example:**
+```bash
+$ ./benchmark --benchmark_time_unit=us
+```
+
+### Reporting Options
+
+#### `--benchmark_report_aggregates_only` (BENCHMARK_REPORT_AGGREGATES_ONLY)
+
+When enabled, only the mean, standard deviation, and other statistics are reported for repeated benchmarks. This affects all reporters (both console and file output).
+
+**Default:** `false`
+
+**Example:**
+```bash
+$ ./benchmark --benchmark_repetitions=5 --benchmark_report_aggregates_only
+```
+
+#### `--benchmark_display_aggregates_only` (BENCHMARK_DISPLAY_AGGREGATES_ONLY)
+
+When enabled, only the mean, standard deviation, and other statistics are displayed for repeated benchmarks. Unlike `--benchmark_report_aggregates_only`, this only affects the display (console) reporter, not the file reporter, which will still contain all output.
+
+**Default:** `false`
+
+**Example:**
+```bash
+$ ./benchmark --benchmark_repetitions=5 --benchmark_display_aggregates_only
+```
+
+#### `--benchmark_counters_tabular` (BENCHMARK_COUNTERS_TABULAR)
+
+Whether to use tabular format when printing user counters to the console. Valid values: 'true'/'yes'/1, 'false'/'no'/0.
+
+**Default:** `false`
+
+**Example:**
+```bash
+$ ./benchmark --benchmark_counters_tabular=true
+```
+
+### Performance Counters and Context
+
+#### `--benchmark_perf_counters=<list>` (BENCHMARK_PERF_COUNTERS)
+
+List of additional performance counters to collect, in libpfm format. For more information about libpfm, see the [libpfm documentation](https://man7.org/linux/man-pages/man3/libpfm.3.html).
+
+**Example:**
+```bash
+$ ./benchmark --benchmark_perf_counters=cycles,instructions,cache-misses
+```
+
+#### `--benchmark_context=<key=value,...>` (BENCHMARK_CONTEXT)
+
+Extra context to include in the output, formatted as comma-separated key-value pairs. This context is included in the JSON output's `context` object.
+
+**Example:**
+```bash
+$ ./benchmark --benchmark_context=compiler=clang,version=13
+```
+
+### Miscellaneous
+
+#### `-v` (V)
+
+The level of verbose logging to output. Higher values produce more verbose output.
+
+**Default:** `0`
+
+**Example:**
+```bash
+$ ./benchmark -v
+```
 
 <a name="output-formats" />
 
@@ -87,43 +292,84 @@ BM_SetInsert/1024/8                        32065      32913      21375  949.487k
 BM_SetInsert/1024/10                       33157      33648      21431  1.13369MiB/s   290.225k items/s
 ```
 
-The JSON format outputs human readable json split into two top level attributes.
-The `context` attribute contains information about the run in general, including
-information about the CPU and the date.
-The `benchmarks` attribute contains a list of every benchmark run. Example json
-output looks like:
+The JSON format outputs human readable JSON split into two top level
+attributes: `context` and `benchmarks`. This format is useful for tools that
+need to consume benchmark results without parsing console output.
+
+The `context` object contains information about the run in general, including
+the date, host, CPU, caches, load average, benchmark library version, and
+`json_schema_version`. Extra context added with `benchmark::AddCustomContext` or
+`--benchmark_context` is emitted as additional string fields in `context`.
+
+The `benchmarks` array contains an object for each benchmark result. Iteration
+results commonly include fields such as `name`, `run_name`, `run_type`,
+`iterations`, `real_time`, `cpu_time`, `time_unit`, and `threads`. Depending on
+benchmark configuration, result objects can also include aggregate fields,
+asymptotic complexity fields, skip/error fields, memory metrics, labels, user
+counters, and user-requested performance counters.
+
+User counters, including rates such as `bytes_per_second` and
+`items_per_second`, are emitted as additional numeric fields on the benchmark
+object. User-requested performance counters are reported the same way.
+
+The JSON output may gain new fields over time. Consumers should ignore unknown
+fields and tolerate optional fields being absent. This allows the format to be
+extended while preserving compatibility for existing consumers.
+
+An abbreviated example JSON output looks like:
 
 ```json
 {
   "context": {
     "date": "2015/03/17-18:40:25",
+    "host_name": "my-host",
     "num_cpus": 40,
     "mhz_per_cpu": 2801,
     "cpu_scaling_enabled": false,
-    "build_type": "debug"
+    "caches": [
+      {
+        "type": "Data",
+        "level": 1,
+        "size": 32768,
+        "num_sharing": 2
+      }
+    ],
+    "load_avg": [],
+    "library_version": "vX.Y.Z",
+    "library_build_type": "debug",
+    "json_schema_version": 1
   },
   "benchmarks": [
     {
       "name": "BM_SetInsert/1024/1",
+      "run_name": "BM_SetInsert/1024/1",
+      "run_type": "iteration",
       "iterations": 94877,
       "real_time": 29275,
       "cpu_time": 29836,
+      "time_unit": "ns",
       "bytes_per_second": 134066,
       "items_per_second": 33516
     },
     {
       "name": "BM_SetInsert/1024/8",
+      "run_name": "BM_SetInsert/1024/8",
+      "run_type": "iteration",
       "iterations": 21609,
       "real_time": 32317,
       "cpu_time": 32429,
+      "time_unit": "ns",
       "bytes_per_second": 986770,
       "items_per_second": 246693
     },
     {
       "name": "BM_SetInsert/1024/10",
+      "run_name": "BM_SetInsert/1024/10",
+      "run_type": "iteration",
       "iterations": 21393,
       "real_time": 32724,
       "cpu_time": 33355,
+      "time_unit": "ns",
       "bytes_per_second": 1199226,
       "items_per_second": 299807
     }
@@ -485,6 +731,36 @@ static void CustomArguments(benchmark::Benchmark* b) {
 }
 BENCHMARK(BM_SetInsert)->Apply(CustomArguments);
 ```
+
+### Naming Benchmark Arguments
+
+When a benchmark takes one or more numeric arguments, the generated benchmark
+names can be made easier to read by naming those arguments. Use `ArgName` for a
+single argument and `ArgNames` for multiple arguments.
+
+```c++
+BENCHMARK(BM_memcpy)->Range(8, 512)->ArgName("bytes");
+```
+
+This changes names such as `BM_memcpy/8` and `BM_memcpy/512` to
+`BM_memcpy/bytes:8` and `BM_memcpy/bytes:512`.
+
+For benchmarks with more than one argument, each name labels the corresponding
+argument position.
+
+<!-- {% raw %} -->
+```c++
+BENCHMARK(BM_SetInsert)
+    ->Args({100, 128})
+    ->Args({200, 512})
+    ->ArgNames({"size", "inserts"});
+```
+<!-- {% endraw %} -->
+
+This produces names such as `BM_SetInsert/size:100/inserts:128` and
+`BM_SetInsert/size:200/inserts:512`. Empty argument names are allowed and leave
+that argument value unlabeled, for example `ArgNames({"size", ""})` produces
+names like `BM_SetInsert/size:100/128`.
 
 ### Passing Arbitrary Arguments to a Benchmark
 
@@ -1184,6 +1460,22 @@ known. For example:
   while (...) DoNotOptimize(bar(0)); // Optimized to:
   // int __result__ = bar(0);
   // while (...) DoNotOptimize(__result__);
+```
+
+Since that is not the behaviour the user intended,
+such problematic cases will result in a diagnostic
+at compile time. The correct approach, for an expression result,
+is to use an intermediate local variable:
+
+```c++
+  // Avoid: may call the deprecated const-reference overload.
+  while (...) DoNotOptimize(foo(0));
+
+  // Prefer: materialize the result, then pass the local lvalue.
+  while (...) {
+    auto result = foo(0);
+    DoNotOptimize(result);
+  }
 ```
 
 The second tool for preventing optimizations is `ClobberMemory()`. In essence

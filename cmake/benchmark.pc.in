@@ -1,7 +1,7 @@
 prefix=@CMAKE_INSTALL_PREFIX@
 exec_prefix=${prefix}
-libdir=@CMAKE_INSTALL_FULL_LIBDIR@
-includedir=@CMAKE_INSTALL_FULL_INCLUDEDIR@
+libdir=@BENCHMARK_PKG_CONFIG_LIBDIR@
+includedir=@BENCHMARK_PKG_CONFIG_INCLUDEDIR@
 
 Name: @PROJECT_NAME@
 Description: Google microbenchmark framework
