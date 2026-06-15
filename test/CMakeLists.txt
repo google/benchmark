@@ -329,9 +329,13 @@ endif()
 
 if (BENCHMARK_ENABLE_RUST_BINDINGS)
   find_program(CARGO_EXECUTABLE cargo REQUIRED)
-  add_custom_target(test_rust_bindings ALL
+  add_custom_target(build_rust_bindings ALL
+    COMMAND ${CARGO_EXECUTABLE} build --tests
+    WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/bindings/rust
+    COMMENT "Building Rust bindings and tests"
+  )
+  add_test(NAME rust_bindings_tests
     COMMAND ${CARGO_EXECUTABLE} test
     WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/bindings/rust
-    COMMENT "Running Rust bindings tests"
   )
 endif()

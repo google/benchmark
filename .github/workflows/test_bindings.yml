@@ -54,7 +54,8 @@ jobs:
       - name: Run Rust tests natively via Cargo
         run: cargo test
         working-directory: bindings/rust
-      - name: Run Rust tests via CMake target
+      - name: Run Rust tests via CMake
         run: |
           cmake -S . -B build -DBENCHMARK_ENABLE_RUST_BINDINGS=ON -DBENCHMARK_DOWNLOAD_DEPENDENCIES=ON
-          cmake --build build --target test_rust_bindings
+          cmake --build build
+          cd build && ctest -R rust_bindings_tests
