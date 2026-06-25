@@ -20,6 +20,8 @@ jobs:
 
     steps:
     - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+      with:
+        persist-credentials: false
 
     - name: configure msan env
       if: matrix.sanitizer == 'msan'
@@ -69,7 +71,9 @@ jobs:
         echo "EXTRA_CXX_FLAGS=-stdlib=libc++ -L${GITHUB_WORKSPACE}/llvm-build/lib -lc++abi -I${GITHUB_WORKSPACE}/llvm-build/include/c++/v1 -Isystem${GITHUB_WORKSPACE}/llvm-build/include/c++/v1 -Wl,-rpath,${GITHUB_WORKSPACE}/llvm-build/lib" >> $GITHUB_ENV
 
     - name: create build environment
-      run: cmake -E make_directory ${{ runner.workspace }}/_build
+      run: cmake -E make_directory ${RUNNER_WORKSPACE}/_build
+      env:
+        RUNNER_WORKSPACE: ${{ runner.workspace }}
 
     - name: configure cmake
       shell: bash
@@ -80,10 +84,10 @@ jobs:
         -DBENCHMARK_ENABLE_ASSEMBLY_TESTS=OFF
         -DBENCHMARK_ENABLE_LIBPFM=OFF
         -DBENCHMARK_DOWNLOAD_DEPENDENCIES=ON
-        -DCMAKE_C_COMPILER=${{ env.CC }}
-        -DCMAKE_CXX_COMPILER=${{ env.CXX }}
-        -DCMAKE_C_FLAGS="${{ env.EXTRA_FLAGS }}"
-        -DCMAKE_CXX_FLAGS="${{ env.EXTRA_FLAGS }} ${{ env.EXTRA_CXX_FLAGS }}"
+        -DCMAKE_C_COMPILER=${CC}
+        -DCMAKE_CXX_COMPILER=${CXX}
+        -DCMAKE_C_FLAGS="${EXTRA_FLAGS}"
+        -DCMAKE_CXX_FLAGS="${EXTRA_FLAGS} ${EXTRA_CXX_FLAGS}"
         -DCMAKE_BUILD_TYPE=${{ matrix.build_type }}
 
     - name: build
