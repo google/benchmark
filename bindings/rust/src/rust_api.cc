@@ -15,7 +15,14 @@ void RegisterBenchmark(rust::Str name, rust::Fn<void(benchmark::State&)> func) {
 }
 
 void Initialize(int* argc, size_t argv) {
-  ::benchmark::Initialize(argc, (char**)argv);
+  char** argv_ptr = reinterpret_cast<char**>(argv);
+  if (argc != nullptr && *argc > 0 && argv_ptr != nullptr &&
+      argv_ptr[0] != nullptr) {
+    static std::string executable_name;
+    executable_name = argv_ptr[0];
+    argv_ptr[0] = executable_name.data();
+  }
+  ::benchmark::Initialize(argc, argv_ptr);
 }
 
 void SkipWithError(benchmark::State& state, rust::Str msg) {
