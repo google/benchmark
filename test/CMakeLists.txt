@@ -128,6 +128,9 @@ add_filter_test(filter_regex_begin2_negative "-^N" 4)
 add_filter_test(filter_regex_end ".*Ba$" 1)
 add_filter_test(filter_regex_end_negative "-.*Ba$" 4)
 
+compile_benchmark_test(filter_optimization_test)
+benchmark_add_test(NAME filter_optimization_benefit COMMAND filter_optimization_test)
+
 compile_benchmark_test(options_test)
 benchmark_add_test(NAME options_benchmarks COMMAND options_test --benchmark_min_time=0.01s)
 
