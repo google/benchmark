@@ -117,6 +117,8 @@ class BENCHMARK_EXPORT PerfCounters final {
   // In case of failure, this method will in the worst case return an
   // empty object whose state will still be valid.
   static PerfCounters Create(const std::vector<std::string>& counter_names);
+  static PerfCounters CreateForCurrentThread(
+      const std::vector<std::string>& counter_names);
 
   // Take a snapshot of the current value of the counters into the provided
   // valid PerfCounterValues storage. The values are populated such that:
@@ -135,6 +137,11 @@ class BENCHMARK_EXPORT PerfCounters final {
   size_t num_counters() const { return counter_names_.size(); }
 
  private:
+  enum class Scope { kCurrentThread, kAllThreads };
+
+  static PerfCounters Create(const std::vector<std::string>& counter_names,
+                             Scope scope);
+
   PerfCounters(const std::vector<std::string>& counter_names,
                std::vector<int>&& counter_ids, std::vector<int>&& leader_ids)
       : counter_ids_(std::move(counter_ids)),
@@ -152,6 +159,8 @@ class BENCHMARK_EXPORT PerfCounters final {
 class BENCHMARK_EXPORT PerfCountersMeasurement final {
  public:
   PerfCountersMeasurement(const std::vector<std::string>& counter_names);
+  static PerfCountersMeasurement ForCurrentThread(
+      const std::vector<std::string>& counter_names);
 
   size_t num_counters() const { return counters_.num_counters(); }
 
@@ -187,6 +196,9 @@ class BENCHMARK_EXPORT PerfCountersMeasurement final {
   }
 
  private:
+  PerfCountersMeasurement(const std::vector<std::string>& counter_names,
+                          PerfCounters&& counters);
+
   PerfCounters counters_;
   bool valid_read_ = true;
   PerfCounterValues start_values_;
