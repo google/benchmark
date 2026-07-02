@@ -838,21 +838,23 @@ std::make_unsigned_t<T> get_as_unsigned(T v) {
 }  // end namespace internal
 
 void MaybeReenterWithoutASLR(int argc, char** argv) {
-  (void)argc;
   // On e.g. Hexagon simulator, argv may be NULL.
   if (!argv) return;
 
 #ifdef BENCHMARK_OS_LINUX
+  static constexpr const char kTestChildArg[] = "--benchmark_aslr_test_child=";
+  static constexpr size_t kTestChildArgLen = sizeof(kTestChildArg) - 1;
+
   // Check if we are a test child process that should report personality and exit
   for (int i = 1; i < argc; ++i) {
-    if (std::strncmp(argv[i], "--benchmark_aslr_test_child=", 28) == 0) {
-      const int write_fd = std::atoi(argv[i] + 28);
+    if (std::strncmp(argv[i], kTestChildArg, kTestChildArgLen) == 0) {
+      const int write_fd = std::atoi(argv[i] + kTestChildArgLen);
       const auto test_personality = personality(0xffffffff);
       // Write 1 if ADDR_NO_RANDOMIZE is set, 0 otherwise
       char result = ((test_personality != -1) &&
                      (internal::get_as_unsigned(test_personality) & ADDR_NO_RANDOMIZE))
                         ? 1 : 0;
-      write(write_fd, &result, 1);
+      (void)write(write_fd, &result, 1);
       close(write_fd);
       std::exit(0);
     }
@@ -901,29 +903,16 @@ void MaybeReenterWithoutASLR(int argc, char** argv) {
     // Child: prepare to exec with test argument
     close(pipefd[0]);
 
-    // Count existing arguments
-    int arg_count = 0;
-    while (argv[arg_count] != nullptr) ++arg_count;
-
-    // Build new argv with test argument (allocate on heap to survive exec)
-    char** new_argv = static_cast<char**>(
-        malloc(sizeof(char*) * (arg_count + 2)));
-    if (!new_argv) _exit(1);
-
-    for (int i = 0; i < arg_count; ++i) {
-      new_argv[i] = argv[i];
-    }
-
-    // Add test argument with pipe write fd (allocate on heap)
-    char* test_arg = static_cast<char*>(malloc(64));
-    if (!test_arg) _exit(1);
-    std::snprintf(test_arg, 64,
+    // Build test argument on stack (safe before exec)
+    char test_arg[64];
+    std::snprintf(test_arg, sizeof(test_arg),
                   "--benchmark_aslr_test_child=%d", pipefd[1]);
-    new_argv[arg_count] = test_arg;
-    new_argv[arg_count + 1] = nullptr;
 
-    execv(argv[0], new_argv);
-    // If exec fails, exit (no need to free since we're exiting)
+    // Simple argv with just the executable and test argument
+    char* child_argv[] = {argv[0], test_arg, nullptr};
+
+    execv(argv[0], child_argv);
+    // If exec fails, exit
     _exit(1);
   }
 
