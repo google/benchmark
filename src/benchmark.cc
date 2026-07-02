@@ -36,6 +36,7 @@
 
 #ifdef BENCHMARK_OS_LINUX
 #include <sys/personality.h>
+#include <sys/wait.h>
 #endif
 
 #include <algorithm>
@@ -43,6 +44,7 @@
 #include <condition_variable>
 #include <cstdio>
 #include <cstdlib>
+#include <cstring>
 #include <fstream>
 #include <iostream>
 #include <limits>
@@ -835,11 +837,26 @@ std::make_unsigned_t<T> get_as_unsigned(T v) {
 
 }  // end namespace internal
 
-void MaybeReenterWithoutASLR(int /*argc*/, char** argv) {
+void MaybeReenterWithoutASLR(int argc, char** argv) {
   // On e.g. Hexagon simulator, argv may be NULL.
   if (!argv) return;
 
 #ifdef BENCHMARK_OS_LINUX
+  // Check if we are a test child process that should report personality and exit
+  for (int i = 1; i < argc; ++i) {
+    if (std::strncmp(argv[i], "--benchmark_aslr_test_child=", 28) == 0) {
+      const int write_fd = std::atoi(argv[i] + 28);
+      const auto test_personality = personality(0xffffffff);
+      // Write 1 if ADDR_NO_RANDOMIZE is set, 0 otherwise
+      char result = ((test_personality != -1) &&
+                     (internal::get_as_unsigned(test_personality) & ADDR_NO_RANDOMIZE))
+                        ? 1 : 0;
+      write(write_fd, &result, 1);
+      close(write_fd);
+      std::exit(0);
+    }
+  }
+
   const auto curr_personality = personality(0xffffffff);
 
   // We should never fail to read-only query the current personality,
@@ -864,9 +881,68 @@ void MaybeReenterWithoutASLR(int /*argc*/, char** argv) {
   if ((internal::get_as_unsigned(new_personality) & ADDR_NO_RANDOMIZE) == 0)
     return;
 
-  execv(argv[0], argv);
-  // The exec() functions return only if an error has occurred,
-  // in which case we want to just continue as-is.
+  // Verify that the personality change survives exec() by testing in a child.
+  // Some LSMs (e.g., AppArmor) may reset personality flags during execve(),
+  // even though they were successfully set in the parent process.
+  // This prevents infinite re-exec loops when the kernel silently resets
+  // the personality after each exec.
+  int pipefd[2];
+  if (pipe(pipefd) == -1) return;
+
+  pid_t pid = fork();
+  if (pid == -1) {
+    close(pipefd[0]);
+    close(pipefd[1]);
+    return;
+  }
+
+  if (pid == 0) {
+    // Child: prepare to exec with test argument
+    close(pipefd[0]);
+
+    // Count existing arguments
+    int arg_count = 0;
+    while (argv[arg_count] != nullptr) ++arg_count;
+
+    // Build new argv with test argument (allocate on heap to survive exec)
+    char** new_argv = static_cast<char**>(
+        malloc(sizeof(char*) * (arg_count + 2)));
+    if (!new_argv) _exit(1);
+
+    for (int i = 0; i < arg_count; ++i) {
+      new_argv[i] = argv[i];
+    }
+
+    // Add test argument with pipe write fd (allocate on heap)
+    char* test_arg = static_cast<char*>(malloc(64));
+    if (!test_arg) _exit(1);
+    std::snprintf(test_arg, 64,
+                  "--benchmark_aslr_test_child=%d", pipefd[1]);
+    new_argv[arg_count] = test_arg;
+    new_argv[arg_count + 1] = nullptr;
+
+    execv(argv[0], new_argv);
+    // If exec fails, exit (no need to free since we're exiting)
+    _exit(1);
+  }
+
+  // Parent: wait for child to report back
+  close(pipefd[1]);
+
+  char result = 0;
+  ssize_t nread = read(pipefd[0], &result, 1);
+  close(pipefd[0]);
+
+  int status;
+  waitpid(pid, &status, 0);
+
+  // If we successfully read the result and it indicates ADDR_NO_RANDOMIZE
+  // survived exec, proceed with re-exec. Otherwise, skip to avoid infinite loop.
+  if (nread == 1 && result == 1) {
+    execv(argv[0], argv);
+  }
+
+  // Personality doesn't survive exec boundary, skip re-exec.
 #else
   return;
 #endif
