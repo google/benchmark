@@ -17,8 +17,10 @@ default Google Benchmark entry point.
 With Bzlmod enabled, add Google Benchmark to your `MODULE.bazel` file:
 
 ```starlark
-bazel_dep(name = "google_benchmark", version = "1.9.5")
+bazel_dep(name = "google_benchmark", version = "<VERSION>")
 ```
+
+Replace `<VERSION>` with the Google Benchmark release version you want to use.
 
 Then depend on the Bazel target from a `cc_binary` or `cc_test`:
 
@@ -69,8 +71,8 @@ load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 
 http_archive(
     name = "google_benchmark",
-    strip_prefix = "benchmark-1.9.5",
-    urls = ["https://github.com/google/benchmark/archive/refs/tags/v1.9.5.tar.gz"],
+    strip_prefix = "benchmark-<VERSION>",
+    urls = ["https://github.com/google/benchmark/archive/refs/tags/v<VERSION>.tar.gz"],
     # Add sha256 for reproducible builds.
 )
 
@@ -78,6 +80,8 @@ load("@google_benchmark//:bazel/benchmark_deps.bzl", "benchmark_deps")
 
 benchmark_deps()
 ```
+
+Use the same `<VERSION>` value without the leading `v`; the archive URL adds the tag prefix explicitly.
 
 After declaring the repository, use the same target labels shown above:
 `@google_benchmark//:benchmark` or `@google_benchmark//:benchmark_main`.

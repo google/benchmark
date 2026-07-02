@@ -279,8 +279,10 @@ used across the benchmark library and the targets that link it.
 If using Bazel with Bzlmod, add Google Benchmark to your `MODULE.bazel` file:
 
 ```starlark
-bazel_dep(name = "google_benchmark", version = "1.9.5")
+bazel_dep(name = "google_benchmark", version = "<VERSION>")
 ```
+
+Replace `<VERSION>` with the Google Benchmark release version you want to use.
 
 Then link a `cc_binary` or `cc_test` against one of the provided targets:
 
