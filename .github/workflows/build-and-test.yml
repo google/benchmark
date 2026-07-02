@@ -31,6 +31,8 @@ jobs:
         run: brew install ninja
 
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          persist-credentials: false
 
       - name: build
         uses: threeal/cmake-action@725d1314ccf9ea922805d7e3f9d9bcbca892b406 # v2.1.0
@@ -78,21 +80,29 @@ jobs:
 
     steps:
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          persist-credentials: false
 
       - uses: lukka/get-cmake@f5b8fbb4d77cec1acc5a5f9f0df4beffaf5d98d9 # latest
 
       - name: configure cmake
         run: >
-          cmake -S . -B ${{ runner.workspace }}/_build/
+          cmake -S . -B $env:RUNNER_WORKSPACE/_build/
           -G "${{ matrix.generator }}"
           -DBENCHMARK_DOWNLOAD_DEPENDENCIES=ON
           -DBUILD_SHARED_LIBS=${{ matrix.lib == 'shared' }}
+        env:
+          RUNNER_WORKSPACE: ${{ runner.workspace }}
 
       - name: build
-        run: cmake --build ${{ runner.workspace }}/_build/ --config ${{ matrix.build_type }}
+        run: cmake --build $env:RUNNER_WORKSPACE/_build/ --config ${{ matrix.build_type }}
+        env:
+          RUNNER_WORKSPACE: ${{ runner.workspace }}
 
       - name: test
-        run: ctest --test-dir ${{ runner.workspace }}/_build/ -C ${{ matrix.build_type }} -VV
+        run: ctest --test-dir $env:RUNNER_WORKSPACE/_build/ -C ${{ matrix.build_type }} -VV
+        env:
+          RUNNER_WORKSPACE: ${{ runner.workspace }}
 
   msys2:
     name: ${{ matrix.os }}.${{ matrix.build_type }}.${{ matrix.lib }}.${{ matrix.msys2.msystem }}
@@ -132,6 +142,8 @@ jobs:
             ninja:p
 
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          persist-credentials: false
 
       # NOTE: we can't use cmake actions here as we need to do everything in msys2 shell.
       - name: configure cmake
