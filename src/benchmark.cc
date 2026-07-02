@@ -838,6 +838,7 @@ std::make_unsigned_t<T> get_as_unsigned(T v) {
 }  // end namespace internal
 
 void MaybeReenterWithoutASLR(int argc, char** argv) {
+  (void)argc;
   // On e.g. Hexagon simulator, argv may be NULL.
   if (!argv) return;
 
