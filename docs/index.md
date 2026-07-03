@@ -1,6 +1,7 @@
 # Benchmark
 
 * [Assembly Tests](AssemblyTests.md)
+* [Bazel](bazel.md)
 * [Dependencies](dependencies.md)
 * [Perf Counters](perf_counters.md)
 * [Platform Specific Build Instructions](platform_specific_build_instructions.md)

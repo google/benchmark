@@ -273,3 +273,32 @@ Google Benchmark follows CMake's `BUILD_SHARED_LIBS` setting when selecting
 static or shared library output. On Windows, keep this setting consistent with
 the rest of the project and make sure the same runtime library configuration is
 used across the benchmark library and the targets that link it.
+
+### Usage with Bazel
+
+If using Bazel with Bzlmod, add Google Benchmark to your `MODULE.bazel` file:
+
+```starlark
+bazel_dep(name = "google_benchmark", version = "<VERSION>")
+```
+
+Replace `<VERSION>` with the Google Benchmark release version you want to use.
+
+Then link a `cc_binary` or `cc_test` against one of the provided targets:
+
+```starlark
+load("@rules_cc//cc:defs.bzl", "cc_binary")
+
+cc_binary(
+    name = "my_benchmark",
+    srcs = ["my_benchmark.cc"],
+    deps = ["@google_benchmark//:benchmark_main"],
+)
+```
+
+Use `@google_benchmark//:benchmark` when your target defines its own `main`
+function, including through `BENCHMARK_MAIN()`. Use
+`@google_benchmark//:benchmark_main` to use the default Google Benchmark entry
+point.
+
+For WORKSPACE setup and more examples, see [Bazel](docs/bazel.md).
