@@ -846,7 +846,7 @@ bool ValidateNoASLRPersonalitySticks(char* argv0) {
   // This prevents infinite re-exec loops when the kernel silently resets
   // the personality after each exec.
   int pipefd[2];
-  if (pipe(pipefd) == -1) return false;
+  if (pipe(pipefd) != 0) return false;
 
   pid_t pid = fork();
   if (pid == -1) {
