@@ -951,7 +951,8 @@ void MaybeReenterWithoutASLR(int argc, char** argv) {
   // at least so that there is a warning in the output,
   // and continue as-is.
   const auto restored_personality =
-      internal::get_as_unsigned(new_personality) & ~ADDR_NO_RANDOMIZE;
+      internal::get_as_unsigned(new_personality) &
+      ~internal::get_as_unsigned(ADDR_NO_RANDOMIZE);
   personality(restored_personality);
   // This may or may not have failed, but we're out of options here.
 #else
