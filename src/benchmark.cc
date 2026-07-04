@@ -837,6 +837,58 @@ std::make_unsigned_t<T> get_as_unsigned(T v) {
 
 }  // end namespace internal
 
+#ifdef BENCHMARK_OS_LINUX
+static constexpr const char kTestChildArg[] = "--benchmark_aslr_test_child=";
+bool ValidateNoASLRPersonalitySticks(char* argv0) {
+  // Verify that the personality change survives exec() by testing in a child.
+  // Some LSMs (e.g., AppArmor) may reset personality flags during execve(),
+  // even though they were successfully set in the parent process.
+  // This prevents infinite re-exec loops when the kernel silently resets
+  // the personality after each exec.
+  int pipefd[2];
+  if (pipe(pipefd) == -1) return false;
+
+  pid_t pid = fork();
+  if (pid == -1) {
+    close(pipefd[0]);
+    close(pipefd[1]);
+    return false;
+  }
+
+  if (pid == 0) {
+    // Child: prepare to exec with test argument
+    close(pipefd[0]);
+
+    // Build test argument on stack (safe before exec)
+    char test_arg[64];
+    int test_arg_len = std::snprintf(test_arg, sizeof(test_arg), "%s%d",
+                                     kTestChildArg, pipefd[1]);
+    BM_CHECK_LT(test_arg_len, sizeof(test_arg));
+    (void)test_arg_len;
+
+    // Simple argv with just the executable and test argument
+    char* child_argv[] = {argv0, test_arg, nullptr};
+
+    execv(argv0, child_argv);
+    // If exec fails, exit
+    _exit(1);
+  }
+
+  // Parent: wait for child to report back
+  close(pipefd[1]);
+
+  char result = 0;
+  ssize_t nread = read(pipefd[0], &result, 1);
+  close(pipefd[0]);
+
+  int status;
+  waitpid(pid, &status, 0);
+
+  // Did we successfully read the result and it indicates ADDR_NO_RANDOMIZE?
+  return status == 0 && nread == 1 && result == 1;
+}
+#endif
+
 void MaybeReenterWithoutASLR(int argc, char** argv) {
   (void)argc;
   // On e.g. Hexagon simulator, argv may be NULL.
@@ -934,6 +986,74 @@ void MaybeReenterWithoutASLR(int argc, char** argv) {
   }
 
   // Personality doesn't survive exec boundary, skip re-exec.
+#else
+  return;
+#endif
+void MaybeReenterWithoutASLR(int argc, char** argv) {
+  (void)argc;
+
+  // On e.g. Hexagon simulator, argv may be NULL.
+  if (!argv) return;
+
+#ifdef BENCHMARK_OS_LINUX
+  static constexpr size_t kTestChildArgLen = sizeof(kTestChildArg) - 1;
+
+  // Check if we are a test child process that should report personality and
+  // exit
+  if (argc == 2 &&
+      std::strncmp(argv[1], kTestChildArg, kTestChildArgLen) == 0) {
+    const int write_fd = std::atoi(argv[1] + kTestChildArgLen);
+    const auto test_personality = personality(0xffffffff);
+    // Write 1 if ADDR_NO_RANDOMIZE is set, 0 otherwise
+    char result =
+        ((test_personality != -1) &&
+         (internal::get_as_unsigned(test_personality) & ADDR_NO_RANDOMIZE))
+            ? 1
+            : 0;
+    const auto nbytes = write(write_fd, &result, 1);
+    close(write_fd);
+    if (test_personality == -1 || nbytes != 1) std::exit(1);
+    std::exit(0);
+  }
+
+  const auto curr_personality = personality(0xffffffff);
+
+  // We should never fail to read-only query the current personality,
+  // but let's be cautious.
+  if (curr_personality == -1) return;
+
+  // If ASLR is already disabled, we have nothing more to do.
+  if (internal::get_as_unsigned(curr_personality) & ADDR_NO_RANDOMIZE) return;
+
+  // Try to change the personality to disable ASLR.
+  const auto proposed_personality =
+      internal::get_as_unsigned(curr_personality) | ADDR_NO_RANDOMIZE;
+  const auto prev_personality = personality(proposed_personality);
+
+  // Have we failed to change the personality? That may happen.
+  if (prev_personality == -1) return;
+
+  // Make sure the parsona has been updated with the no-ASLR flag,
+  // otherwise we will try to reenter infinitely.
+  // This seems impossible, but can happen in some docker configurations.
+  const auto new_personality = personality(0xffffffff);
+  if (new_personality == -1) return;
+  if ((internal::get_as_unsigned(new_personality) & ADDR_NO_RANDOMIZE) == 0)
+    return;
+
+  // Additionally, ensure that the personality change would survive exec().
+  if (ValidateNoASLRPersonalitySticks(argv[0])) {
+    execv(argv[0], argv);
+  }
+
+  // Personality doesn't survive exec() boundary, or execv() failed.
+  // We need to try to un-change the personality to "re-enable" ASLR,
+  // at least so that there is a warning in the output,
+  // and continue as-is.
+  const auto restored_personality =
+      internal::get_as_unsigned(new_personality) & ~ADDR_NO_RANDOMIZE;
+  personality(restored_personality);
+  // This may or may not have failed, but we're out of options here.
 #else
   return;
 #endif
