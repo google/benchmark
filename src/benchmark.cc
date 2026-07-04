@@ -863,7 +863,7 @@ bool ValidateNoASLRPersonalitySticks(char* argv0) {
     char test_arg[64];
     int test_arg_len = std::snprintf(test_arg, sizeof(test_arg), "%s%d",
                                      kTestChildArg, pipefd[1]);
-    BM_CHECK_LT(test_arg_len, sizeof(test_arg));
+    BM_CHECK_LT(static_cast<size_t>(test_arg_len), sizeof(test_arg));
     (void)test_arg_len;
 
     // Simple argv with just the executable and test argument
