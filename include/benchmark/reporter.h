@@ -36,6 +36,10 @@
 
 namespace benchmark {
 
+namespace internal {
+class BenchmarkInstance;
+}  // namespace internal
+
 struct BENCHMARK_EXPORT BenchmarkName {
   std::string function_name;
   std::string args;
@@ -132,6 +136,11 @@ class BENCHMARK_EXPORT BenchmarkReporter {
   virtual void ReportRuns(const std::vector<Run>& report) = 0;
   virtual void Finalize() {}
 
+  // Called instead of running the benchmarks when `--benchmark_list_tests`
+  // is specified, with the benchmarks that were selected to run. The default
+  // implementation prints one benchmark name per line without any markup.
+  virtual void List(const std::vector<internal::BenchmarkInstance>& benchmarks);
+
   void SetOutputStream(std::ostream* out) {
     assert(out);
     output_stream_ = out;
@@ -181,6 +190,8 @@ class BENCHMARK_EXPORT JSONReporter : public BenchmarkReporter {
   bool ReportContext(const Context& context) override;
   void ReportRuns(const std::vector<Run>& reports) override;
   void Finalize() override;
+  void List(
+      const std::vector<internal::BenchmarkInstance>& benchmarks) override;
 
  private:
   void PrintRunData(const Run& run);
@@ -194,6 +205,8 @@ class BENCHMARK_EXPORT BENCHMARK_DEPRECATED_MSG(
   CSVReporter() : printed_header_(false) {}
   bool ReportContext(const Context& context) override;
   void ReportRuns(const std::vector<Run>& reports) override;
+  void List(
+      const std::vector<internal::BenchmarkInstance>& benchmarks) override;
 
  private:
   void PrintRunData(const Run& run);

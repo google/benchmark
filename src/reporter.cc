@@ -22,6 +22,7 @@
 #include <vector>
 
 #include "benchmark/benchmark_api.h"
+#include "benchmark_api_internal.h"
 #include "benchmark/sysinfo.h"
 #include "check.h"
 #include "string_util.h"
@@ -131,6 +132,14 @@ double BenchmarkReporter::Run::GetAdjustedCPUTime() const {
     new_time /= static_cast<double>(iterations);
   }
   return new_time;
+}
+
+void BenchmarkReporter::List(
+    const std::vector<internal::BenchmarkInstance>& benchmarks) {
+  std::ostream& out = GetOutputStream();
+  for (const internal::BenchmarkInstance& benchmark : benchmarks) {
+    out << benchmark.name().str() << "\n";
+  }
 }
 
 }  // end namespace benchmark
