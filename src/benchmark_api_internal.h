@@ -77,6 +77,7 @@ class BenchmarkInstance {
   callback_function teardown_;
 };
 
+BENCHMARK_EXPORT
 bool FindBenchmarksInternal(const std::string& re,
                             std::vector<BenchmarkInstance>* benchmarks,
                             std::ostream* Err);

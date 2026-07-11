@@ -23,10 +23,10 @@
 #include <vector>
 
 #include "benchmark/benchmark_api.h"
-#include "benchmark_api_internal.h"
 #include "benchmark/export.h"
 #include "benchmark/reporter.h"
 #include "benchmark/types.h"
+#include "benchmark_api_internal.h"
 #include "complexity.h"
 #include "string_util.h"
 #include "timers.h"

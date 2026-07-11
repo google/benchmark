@@ -22,8 +22,8 @@
 #include <vector>
 
 #include "benchmark/benchmark_api.h"
-#include "benchmark_api_internal.h"
 #include "benchmark/sysinfo.h"
+#include "benchmark_api_internal.h"
 #include "check.h"
 #include "string_util.h"
 #include "timers.h"
