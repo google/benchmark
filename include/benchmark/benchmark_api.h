@@ -54,6 +54,8 @@ BENCHMARK_EXPORT void SetBenchmarkFilter(std::string value);
 
 BENCHMARK_EXPORT int32_t GetBenchmarkVerbosity();
 
+// Creates the display reporter selected by --benchmark_format. Returns a
+// fresh instance on every call; the caller owns and frees it.
 BENCHMARK_EXPORT BenchmarkReporter* CreateDefaultDisplayReporter();
 
 BENCHMARK_EXPORT size_t RunSpecifiedBenchmarks();

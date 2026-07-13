@@ -586,11 +586,11 @@ ConsoleReporter::OutputOptions GetOutputOptions(bool force_no_color) {
 }  // end namespace internal
 
 BenchmarkReporter* CreateDefaultDisplayReporter() {
-  static auto* default_display_reporter =
-      internal::CreateReporter(FLAGS_benchmark_format,
-                               internal::GetOutputOptions())
-          .release();
-  return default_display_reporter;
+  // Each caller owns the returned reporter, so never cache it in a static:
+  // the first caller would free it and later calls would dangle (#2240).
+  return internal::CreateReporter(FLAGS_benchmark_format,
+                                  internal::GetOutputOptions())
+      .release();
 }
 
 size_t RunSpecifiedBenchmarks() {

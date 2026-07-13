@@ -213,6 +213,9 @@ benchmark_add_test(NAME user_counters_thousands_test COMMAND user_counters_thous
 compile_output_test(memory_manager_test)
 benchmark_add_test(NAME memory_manager_test COMMAND memory_manager_test --benchmark_min_time=0.01s)
 
+compile_benchmark_test(default_display_reporter_test)
+benchmark_add_test(NAME default_display_reporter_test COMMAND default_display_reporter_test)
+
 compile_output_test(profiler_manager_test)
 benchmark_add_test(NAME profiler_manager_test COMMAND profiler_manager_test --benchmark_min_time=0.01s)
 
