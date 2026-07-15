@@ -2,6 +2,7 @@
 
 #include <cassert>
 #include <memory>
+#include <string>
 
 #include "benchmark/benchmark_api.h"
 #include "benchmark/managers.h"
@@ -13,11 +14,15 @@
 namespace {
 class TestProfilerManager : public benchmark::ProfilerManager {
  public:
-  void AfterSetupStart() override { ++start_called; }
+  void AfterSetupStart() override {
+    ++start_called;
+    benchmark_name = GetState().name();
+  }
   void BeforeTeardownStop() override { ++stop_called; }
 
   int start_called = 0;
   int stop_called = 0;
+  std::string benchmark_name;
 };
 
 void BM_empty(benchmark::State& state) {
@@ -55,4 +60,5 @@ int main(int argc, char* argv[]) {
 
   assert(pm->start_called == 1);
   assert(pm->stop_called == 1);
+  assert(pm->benchmark_name == "BM_empty");
 }
