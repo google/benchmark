@@ -14,6 +14,8 @@
 
 #include "counter.h"
 
+#include <algorithm>
+
 namespace benchmark {
 namespace internal {
 
@@ -74,12 +76,10 @@ bool SameNames(UserCounters const& l, UserCounters const& r) {
   if (l.size() != r.size()) {
     return false;
   }
-  for (auto const& c : l) {
-    if (r.find(c.first) == r.end()) {
-      return false;
-    }
-  }
-  return true;
+  return std::all_of(l.begin(), l.end(),
+                     [&r](const UserCounters::value_type& c) {
+                       return r.find(c.first) != r.end();
+                     });
 }
 
 }  // end namespace internal
