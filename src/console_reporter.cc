@@ -99,16 +99,18 @@ void ConsoleReporter::ReportRuns(const std::vector<Run>& reports) {
   }
 }
 
+namespace {
+
 PRINTF_FORMAT_STRING_FUNC(3, 4)
-static void IgnoreColorPrint(std::ostream& out, LogColor /*unused*/,
-                             const char* fmt, ...) {
+void IgnoreColorPrint(std::ostream& out, LogColor /*unused*/, const char* fmt,
+                      ...) {
   va_list args;
   va_start(args, fmt);
   out << FormatString(fmt, args);
   va_end(args);
 }
 
-static std::string FormatTime(double time) {
+std::string FormatTime(double time) {
   // For the time columns of the console printer 13 digits are reserved. One of
   // them is a space and max two of them are the time unit (e.g ns). That puts
   // us at 10 digits usable for the number.
@@ -129,6 +131,8 @@ static std::string FormatTime(double time) {
   }
   return FormatString("%10.0f", time);
 }
+
+}  // namespace
 
 BENCHMARK_EXPORT
 void ConsoleReporter::PrintRunData(const Run& result) {
