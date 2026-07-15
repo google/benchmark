@@ -23,6 +23,7 @@
 
 #include <cassert>
 #include <iostream>
+#include <map>
 #include <set>
 #include <string>
 #include <vector>
@@ -115,6 +116,7 @@ class BENCHMARK_EXPORT BenchmarkReporter {
     UserCounters counters;
     MemoryManager::Result memory_result;
     double allocs_per_iter;
+    std::map<std::string, std::string> custom_context;
   };
 
   struct PerFamilyRunReports {

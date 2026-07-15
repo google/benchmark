@@ -104,6 +104,7 @@ BenchmarkReporter::Run CreateRunReport(
   report.threads = b.threads();
   report.repetition_index = repetition_index;
   report.repetitions = repeats;
+  report.custom_context = b.custom_context();
 
   if (report.skipped == 0u) {
     if (b.use_manual_time()) {

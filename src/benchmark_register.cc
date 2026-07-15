@@ -464,6 +464,15 @@ Benchmark* Benchmark::ComputeStatistics(const std::string& name,
   return this;
 }
 
+Benchmark* Benchmark::AddCustomContext(const std::string& key,
+                                       const std::string& value) {
+  if (!custom_context_.emplace(key, value).second) {
+    std::cerr << "Failed to add custom context \"" << key << "\" as it already "
+              << "exists with value \"" << custom_context_.at(key) << "\"\n";
+  }
+  return this;
+}
+
 Benchmark* Benchmark::Threads(int t) {
   BM_CHECK_GT(t, 0);
   thread_counts_.push_back(t);

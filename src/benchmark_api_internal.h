@@ -4,6 +4,7 @@
 #include <cmath>
 #include <iosfwd>
 #include <limits>
+#include <map>
 #include <memory>
 #include <string>
 #include <vector>
@@ -36,6 +37,9 @@ class BenchmarkInstance {
   BigO complexity() const { return complexity_; }
   BigOFunc* complexity_lambda() const { return complexity_lambda_; }
   const std::vector<Statistics>& statistics() const { return statistics_; }
+  const std::map<std::string, std::string>& custom_context() const {
+    return benchmark_.custom_context_;
+  }
   int repetitions() const { return repetitions_; }
   double min_time() const { return min_time_; }
   double min_warmup_time() const { return min_warmup_time_; }

@@ -306,7 +306,9 @@ results commonly include fields such as `name`, `run_name`, `run_type`,
 `iterations`, `real_time`, `cpu_time`, `time_unit`, and `threads`. Depending on
 benchmark configuration, result objects can also include aggregate fields,
 asymptotic complexity fields, skip/error fields, memory metrics, labels, user
-counters, and user-requested performance counters.
+counters, and user-requested performance counters. Per-benchmark context added
+with `Benchmark::AddCustomContext` is emitted as a `custom_context` object with
+string fields.
 
 User counters, including rates such as `bytes_per_second` and
 `items_per_second`, are emitted as additional numeric fields on the benchmark
@@ -480,6 +482,24 @@ You can get the same effect with the API:
 
 Note that attempts to add a second value with the same key will fail with an
 error message.
+
+Context can also be attached to an individual benchmark instead of the whole
+run. It is reported with every result of that benchmark, currently only in
+the JSON output, as a `custom_context` object:
+
+```c++
+BENCHMARK(BM_memcpy)->AddCustomContext("variant", "sse2");
+```
+
+```json
+{
+  "name": "BM_memcpy",
+  ...
+  "custom_context": {
+    "variant": "sse2"
+  }
+}
+```
 
 <a name="runtime-and-reporting-considerations" />
 

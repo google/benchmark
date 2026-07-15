@@ -205,6 +205,7 @@ std::vector<BenchmarkReporter::Run> ComputeStats(
     data.aggregate_name = Stat.name_;
     data.aggregate_unit = Stat.unit_;
     data.report_label = report_label;
+    data.custom_context = successful_run->custom_context;
 
     // It is incorrect to say that an aggregate is computed over
     // run's iterations, because those iterations already got averaged.

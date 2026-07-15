@@ -337,6 +337,18 @@ void JSONReporter::PrintRunData(Run const& run) {
     report_if_present("net_heap_growth", memory_result.net_heap_growth);
   }
 
+  if (!run.custom_context.empty()) {
+    out << ",\n" << indent << "\"custom_context\": {\n";
+    std::string inner_indent(8, ' ');
+    for (auto it = run.custom_context.begin();
+         it != run.custom_context.end();) {
+      out << inner_indent << FormatKV(it->first, it->second);
+      ++it;
+      out << (it != run.custom_context.end() ? ",\n" : "\n");
+    }
+    out << indent << '}';
+  }
+
   if (!run.report_label.empty()) {
     out << ",\n" << indent << FormatKV("label", run.report_label);
   }

@@ -21,6 +21,7 @@
 #endif
 
 #include <functional>
+#include <map>
 #include <memory>
 #include <string>
 #include <utility>
@@ -141,6 +142,12 @@ class BENCHMARK_EXPORT Benchmark {
   Benchmark* DenseThreadRange(int min_threads, int max_threads, int stride = 1);
   Benchmark* ThreadPerCpu();
   Benchmark* ThreadRunner(threadrunner_factory&& factory);
+  // Adds a key-value pair that is reported alongside every result of this
+  // benchmark, currently only in the JSON output. Unlike
+  // benchmark::AddCustomContext(), which applies to the whole run, this
+  // context is per-benchmark. Attempts to add a second value with the same
+  // key fail with an error message.
+  Benchmark* AddCustomContext(const std::string& key, const std::string& value);
 
   virtual void Run(State& state) = 0;
 
@@ -184,6 +191,8 @@ class BENCHMARK_EXPORT Benchmark {
   callback_function teardown_;
 
   threadrunner_factory threadrunner_;
+
+  std::map<std::string, std::string> custom_context_;
 
   BENCHMARK_DISALLOW_COPY_AND_ASSIGN(Benchmark);
 };

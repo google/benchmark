@@ -1132,6 +1132,37 @@ void BM_CSV_Format(benchmark::State& state) {
 }
 BENCHMARK(BM_CSV_Format);
 ADD_CASES(TC_CSVOut, {{"^\"BM_CSV_Format\",,,,,,,,true,\"\"\"freedom\"\"\"$"}});
+
+// ========================================================================= //
+// -------------------- Testing Custom Context Output ---------------------- //
+// ========================================================================= //
+
+void BM_CustomContext(benchmark::State& state) {
+  for (auto _ : state) {
+  }
+}
+BENCHMARK(BM_CustomContext)
+    ->AddCustomContext("run_group", "alpha")
+    ->AddCustomContext("variant", "sse2");
+ADD_CASES(TC_ConsoleOut, {{"^BM_CustomContext %console_report$"}});
+ADD_CASES(TC_JSONOut, {{"\"name\": \"BM_CustomContext\",$"},
+                       {"\"family_index\": %int,$", MR_Next},
+                       {"\"per_family_instance_index\": 0,$", MR_Next},
+                       {"\"run_name\": \"BM_CustomContext\",$", MR_Next},
+                       {"\"run_type\": \"iteration\",$", MR_Next},
+                       {"\"repetitions\": 1,$", MR_Next},
+                       {"\"repetition_index\": 0,$", MR_Next},
+                       {"\"threads\": 1,$", MR_Next},
+                       {"\"iterations\": %int,$", MR_Next},
+                       {"\"real_time\": %float,$", MR_Next},
+                       {"\"cpu_time\": %float,$", MR_Next},
+                       {"\"time_unit\": \"ns\",$", MR_Next},
+                       {"\"custom_context\": \\{$", MR_Next},
+                       {"\"run_group\": \"alpha\",$", MR_Next},
+                       {"\"variant\": \"sse2\"$", MR_Next},
+                       {"}", MR_Next},
+                       {"}", MR_Next}});
+ADD_CASES(TC_CSVOut, {{"^\"BM_CustomContext\",%csv_report$"}});
 }  // end namespace
 
 // ========================================================================= //
