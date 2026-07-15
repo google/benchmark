@@ -158,7 +158,7 @@ void RunInThread(const BenchmarkInstance* b, IterationCount iters,
         "'SkipWithXXX` in your benchmark as appropriate.");
   }
   {
-    MutexLock l(manager->GetBenchmarkMutex());
+    MutexLock const l(manager->GetBenchmarkMutex());
     internal::ThreadManager::Result& results = manager->results;
     results.iterations += st.iterations();
     results.cpu_time_used += timer.cpu_time_used();
@@ -244,7 +244,7 @@ BenchTimeType ParseBenchMinTime(const std::string& value) {
     char* p_end = nullptr;
     // Reset errno before it's changed by strtol.
     errno = 0;
-    IterationCount num_iters = std::strtol(value.c_str(), &p_end, 10);
+    IterationCount const num_iters = std::strtol(value.c_str(), &p_end, 10);
 
     // After a valid parse, p_end should have been set to
     // point to the 'x' suffix.
@@ -257,7 +257,7 @@ BenchTimeType ParseBenchMinTime(const std::string& value) {
     return ret;
   }
 
-  bool has_suffix = value.back() == 's';
+  bool const has_suffix = value.back() == 's';
   if (!has_suffix) {
     BM_VLOG(0) << "Value passed to --benchmark_min_time should have a suffix. "
                   "Eg., `30s` for 30-seconds.";
@@ -266,7 +266,7 @@ BenchTimeType ParseBenchMinTime(const std::string& value) {
   char* p_end = nullptr;
   // Reset errno before it's changed by strtod.
   errno = 0;
-  double min_time = std::strtod(value.c_str(), &p_end);
+  double const min_time = std::strtod(value.c_str(), &p_end);
 
   // After a successful parse, p_end should point to the suffix 's',
   // or the end of the string if the suffix was omitted.
@@ -345,7 +345,7 @@ BenchmarkRunner::IterationResults BenchmarkRunner::DoNIterations() {
   IterationResults i;
   // Acquire the measurements/counters from the manager, UNDER THE LOCK!
   {
-    MutexLock l(manager->GetBenchmarkMutex());
+    MutexLock const l(manager->GetBenchmarkMutex());
     i.results = manager->results;
   }
 
@@ -554,7 +554,7 @@ void BenchmarkRunner::DoOneRepetition() {
   }
 
   // Ok, now actually report.
-  BenchmarkReporter::Run report =
+  BenchmarkReporter::Run const report =
       CreateRunReport(b, i.results, memory_iterations, memory_result, i.seconds,
                       num_repetitions_done, repeats);
 

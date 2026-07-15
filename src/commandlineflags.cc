@@ -308,7 +308,7 @@ bool IsFlag(const char* str, const char* flag) {
 BENCHMARK_EXPORT
 bool IsTruthyFlagValue(const std::string& value) {
   if (value.size() == 1) {
-    char v = value[0];
+    char const v = value[0];
     return isalnum(v) &&
            !(v == '0' || v == 'f' || v == 'F' || v == 'n' || v == 'N');
   }

@@ -141,7 +141,7 @@ std::string StrFormatImp(const char* msg, va_list args) {
 
   // we did not provide a long enough buffer on our first attempt.
   // add 1 to size to account for null-byte in size cast to prevent overflow
-  std::size_t size = static_cast<std::size_t>(ret) + 1;
+  std::size_t const size = static_cast<std::size_t>(ret) + 1;
   auto buff_ptr = std::unique_ptr<char[]>(new char[size]);
   // 2015-10-08: vsnprintf is used instead of snd::vsnprintf due to a limitation
   // in the android-ndk

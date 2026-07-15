@@ -226,7 +226,7 @@ double ThreadCPUUsage() {
 std::string LocalDateTimeString() {
   // Write the local time in RFC3339 format yyyy-mm-ddTHH:MM:SS+/-HH:MM.
   typedef std::chrono::system_clock Clock;
-  std::time_t now = Clock::to_time_t(Clock::now());
+  std::time_t const now = Clock::to_time_t(Clock::now());
   const std::size_t kTzOffsetLen = 6;
   const std::size_t kTimestampLen = 19;
 

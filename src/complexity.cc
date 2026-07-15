@@ -94,7 +94,7 @@ LeastSq MinimalLeastSq(const std::vector<ComplexityN>& n,
 
   // Calculate least square fitting parameter
   for (size_t i = 0; i < n.size(); ++i) {
-    double gn_i = fitting_curve(n[i]);
+    double const gn_i = fitting_curve(n[i]);
     sigma_gn_squared += gn_i * gn_i;
     sigma_time += time[i];
     sigma_time_gn += time[i] * gn_i;
@@ -109,12 +109,12 @@ LeastSq MinimalLeastSq(const std::vector<ComplexityN>& n,
   // Calculate RMS
   double rms = 0.0;
   for (size_t i = 0; i < n.size(); ++i) {
-    double fit = result.coef * fitting_curve(n[i]);
+    double const fit = result.coef * fitting_curve(n[i]);
     rms += std::pow((time[i] - fit), 2);
   }
 
   // Normalized RMS by the mean of the observed values
-  double mean = sigma_time / static_cast<double>(n.size());
+  double const mean = sigma_time / static_cast<double>(n.size());
   result.rms = std::sqrt(rms / static_cast<double>(n.size())) / mean;
 
   return result;
@@ -137,7 +137,8 @@ LeastSq MinimalLeastSq(const std::vector<ComplexityN>& n,
   LeastSq best_fit;
 
   if (complexity == oAuto) {
-    std::vector<BigO> fit_curves = {oLogN, oN, oNLogN, oNSquared, oNCubed};
+    std::vector<BigO> const fit_curves = {oLogN, oN, oNLogN, oNSquared,
+                                          oNCubed};
 
     // Take o1 as default best fitting curve
     best_fit = MinimalLeastSq(n, time, FittingCurve(o1));
@@ -145,7 +146,7 @@ LeastSq MinimalLeastSq(const std::vector<ComplexityN>& n,
 
     // Compute all possible fitting curves and stick to the best one
     for (const auto& fit : fit_curves) {
-      LeastSq current_fit = MinimalLeastSq(n, time, FittingCurve(fit));
+      LeastSq const current_fit = MinimalLeastSq(n, time, FittingCurve(fit));
       if (current_fit.rms < best_fit.rms) {
         best_fit = current_fit;
         best_fit.complexity = fit;
@@ -235,7 +236,7 @@ std::vector<BenchmarkReporter::Run> ComputeBigO(
   // should not be multiplied at all. So, here, we _divide_ it by the
   // multiplier so that when it is multiplied later the result is the
   // correct one.
-  double multiplier = GetTimeUnitMultiplier(reports[0].time_unit);
+  double const multiplier = GetTimeUnitMultiplier(reports[0].time_unit);
 
   // Only add label to mean/stddev if it is same for all runs
   Run rms;

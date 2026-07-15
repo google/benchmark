@@ -258,7 +258,7 @@ int CountSetBitsInCPUMap(std::string val) {
   auto CountBits = [](std::string part) {
     using CPUMask = std::bitset<sizeof(std::uintptr_t) * CHAR_BIT>;
     part = "0x" + part;
-    CPUMask mask(benchmark::stoul(part, nullptr, 16));
+    CPUMask const mask(benchmark::stoul(part, nullptr, 16));
     return static_cast<int>(mask.count());
   };
   std::size_t pos = 0;
@@ -276,11 +276,11 @@ int CountSetBitsInCPUMap(std::string val) {
 BENCHMARK_MAYBE_UNUSED
 std::vector<CPUInfo::CacheInfo> GetCacheSizesFromKVFS() {
   std::vector<CPUInfo::CacheInfo> res;
-  std::string dir = "/sys/devices/system/cpu/cpu0/cache/";
+  std::string const dir = "/sys/devices/system/cpu/cpu0/cache/";
   int idx = 0;
   while (true) {
     CPUInfo::CacheInfo info;
-    std::string fpath = StrCat(dir, "index", idx++, "/");
+    std::string const fpath = StrCat(dir, "index", idx++, "/");
     std::ifstream f(StrCat(fpath, "size").c_str());
     if (!f.is_open()) {
       break;
@@ -354,7 +354,7 @@ std::vector<CPUInfo::CacheInfo> GetCacheSizesWindows() {
 
   using UPtr = std::unique_ptr<PInfo, decltype(&std::free)>;
   GetLogicalProcessorInformation(nullptr, &buffer_size);
-  UPtr buff(static_cast<PInfo*>(std::malloc(buffer_size)), &std::free);
+  UPtr const buff(static_cast<PInfo*>(std::malloc(buffer_size)), &std::free);
   if (!GetLogicalProcessorInformation(buff.get(), &buffer_size)) {
     PrintErrorAndDie("Failed during call to GetLogicalProcessorInformation: ",
                      GetLastError());
@@ -368,7 +368,7 @@ std::vector<CPUInfo::CacheInfo> GetCacheSizesWindows() {
       continue;
     }
     using BitSet = std::bitset<sizeof(ULONG_PTR) * CHAR_BIT>;
-    BitSet b(it->ProcessorMask);
+    BitSet const b(it->ProcessorMask);
     // To prevent duplicates, only consider caches where CPU 0 is specified
     if (!b.test(0)) continue;
     const CInfo& cache = it->Cache;
@@ -594,7 +594,7 @@ class ThreadAffinityGuard final {
       return;
     }
 #elif defined(BENCHMARK_OS_WINDOWS_WIN32)
-    DWORD_PTR ret = SetThreadAffinityMask(self, previous_affinity);
+    DWORD_PTR const ret = SetThreadAffinityMask(self, previous_affinity);
     if (ret != 0) {
       return;
     }
@@ -641,7 +641,8 @@ class ThreadAffinityGuard final {
     return ret == 0;
 #elif defined(BENCHMARK_OS_WINDOWS_WIN32)
     self = GetCurrentThread();
-    DWORD_PTR mask = static_cast<DWORD_PTR>(1) << GetCurrentProcessorNumber();
+    DWORD_PTR const mask = static_cast<DWORD_PTR>(1)
+                           << GetCurrentProcessorNumber();
     previous_affinity = SetThreadAffinityMask(self, mask);
     return previous_affinity != 0;
 #else
@@ -836,7 +837,7 @@ double GetCPUCyclesPerSecond(CPUInfo::Scaling scaling) {
   // Make sure to use the same cycle counter when starting and stopping the
   // cycle timer. We just pin the current thread to a cpu in the previous
   // affinity set.
-  ThreadAffinityGuard affinity_guard;
+  ThreadAffinityGuard const affinity_guard;
 
   static constexpr double estimate_time_s = 1.0;
   const double start_time = ChronoClockNow();

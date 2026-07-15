@@ -73,7 +73,7 @@ void ConsoleReporter::PrintHeader(const Run& run) {
       str += " UserCounters...";
     }
   }
-  std::string line = std::string(str.length(), '-');
+  std::string const line = std::string(str.length(), '-');
   GetOutputStream() << line << "\n" << str << "\n" << line << "\n";
 }
 
@@ -160,7 +160,7 @@ void ConsoleReporter::PrintRunData(const Run& result) {
   const std::string cpu_time_str = FormatTime(cpu_time);
 
   if (result.report_big_o) {
-    std::string big_o = GetBigOString(result.complexity);
+    std::string const big_o = GetBigOString(result.complexity);
     printer(Out, COLOR_YELLOW, "%10.2f %-4s %10.2f %-4s ", real_time,
             big_o.c_str(), cpu_time, big_o.c_str());
   } else if (result.report_rms) {

@@ -105,14 +105,14 @@ BenchmarkFamilies* BenchmarkFamilies::GetInstance() {
 
 size_t BenchmarkFamilies::AddBenchmark(
     std::unique_ptr<benchmark::Benchmark> family) {
-  MutexLock l(mutex_);
-  size_t index = families_.size();
+  MutexLock const l(mutex_);
+  size_t const index = families_.size();
   families_.push_back(std::move(family));
   return index;
 }
 
 void BenchmarkFamilies::ClearBenchmarks() {
-  MutexLock l(mutex_);
+  MutexLock const l(mutex_);
   families_.clear();
   families_.shrink_to_fit();
 }
@@ -140,9 +140,9 @@ bool BenchmarkFamilies::FindBenchmarks(
 
   int next_family_index = 0;
 
-  MutexLock l(mutex_);
+  MutexLock const l(mutex_);
   for (std::unique_ptr<benchmark::Benchmark>& family : families_) {
-    int family_index = next_family_index;
+    int const family_index = next_family_index;
     int per_family_instance_index = 0;
 
     // Family was deleted or benchmark doesn't match
@@ -172,7 +172,7 @@ bool BenchmarkFamilies::FindBenchmarks(
     }
 
     for (auto const& args : family->args_) {
-      for (int num_threads : *thread_counts) {
+      for (int const num_threads : *thread_counts) {
         BenchmarkInstance instance(family.get(), family_index,
                                    per_family_instance_index, args,
                                    num_threads);
@@ -264,7 +264,7 @@ Benchmark* Benchmark::Range(int64_t start, int64_t limit) {
   std::vector<int64_t> arglist;
   internal::AddRange(&arglist, start, limit, range_multiplier_);
 
-  for (int64_t i : arglist) {
+  for (int64_t const i : arglist) {
     args_.push_back({i});
   }
   return this;
@@ -517,7 +517,7 @@ int Benchmark::ArgsCnt() const {
 
 const char* Benchmark::GetArgName(int arg) const {
   BM_CHECK_GE(arg, 0);
-  size_t uarg = static_cast<size_t>(arg);
+  size_t const uarg = static_cast<size_t>(arg);
   BM_CHECK_LT(uarg, arg_names_.size());
   return arg_names_[uarg].c_str();
 }

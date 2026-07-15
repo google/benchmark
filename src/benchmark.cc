@@ -290,7 +290,7 @@ void State::ResumeTiming() {
 void State::SkipWithMessage(const std::string& msg) {
   skipped_ = internal::SkippedWithMessage;
   {
-    MutexLock l(manager_->GetBenchmarkMutex());
+    MutexLock const l(manager_->GetBenchmarkMutex());
     if (internal::NotSkipped == manager_->results.skipped_) {
       manager_->results.skip_message_ = msg;
       manager_->results.skipped_ = skipped_;
@@ -305,7 +305,7 @@ void State::SkipWithMessage(const std::string& msg) {
 void State::SkipWithError(const std::string& msg) {
   skipped_ = internal::SkippedWithError;
   {
-    MutexLock l(manager_->GetBenchmarkMutex());
+    MutexLock const l(manager_->GetBenchmarkMutex());
     if (internal::NotSkipped == manager_->results.skipped_) {
       manager_->results.skip_message_ = msg;
       manager_->results.skipped_ = skipped_;
@@ -322,7 +322,7 @@ void State::SetIterationTime(double seconds) {
 }
 
 void State::SetLabel(const std::string& label) {
-  MutexLock l(manager_->GetBenchmarkMutex());
+  MutexLock const l(manager_->GetBenchmarkMutex());
   manager_->results.report_label_ = label;
 }
 
@@ -452,7 +452,7 @@ void RunBenchmarks(const std::vector<BenchmarkInstance>& benchmarks,
       }
       benchmarks_with_threads += static_cast<int>(benchmark.threads() > 1);
       runners.emplace_back(benchmark, &perfcounters, reports_for_family);
-      int num_repeats_of_this_instance = runners.back().GetNumRepeats();
+      int const num_repeats_of_this_instance = runners.back().GetNumRepeats();
       num_repetitions_total +=
           static_cast<size_t>(num_repeats_of_this_instance);
       if (reports_for_family != nullptr) {
@@ -489,7 +489,7 @@ void RunBenchmarks(const std::vector<BenchmarkInstance>& benchmarks,
       std::shuffle(repetition_indices.begin(), repetition_indices.end(), g);
     }
 
-    for (size_t repetition_index : repetition_indices) {
+    for (size_t const repetition_index : repetition_indices) {
       internal::BenchmarkRunner& runner = runners[repetition_index];
       runner.DoOneRepetition();
       if (runner.HasRepeatsRemaining()) {
@@ -823,7 +823,7 @@ void ParseCommandLineFlags(int* argc, char** argv) {
 }  // end namespace
 
 int InitializeStreams() {
-  static std::ios_base::Init init;
+  static std::ios_base::Init const init;
   return 0;
 }
 
