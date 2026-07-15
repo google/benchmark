@@ -17,6 +17,9 @@ int iteration_count = 0;
 int end_profiler_iteration_count = 0;
 
 class TestProfilerManager : public benchmark::ProfilerManager {
+  using benchmark::ProfilerManager::AfterSetupStart;
+  using benchmark::ProfilerManager::BeforeTeardownStop;
+
   void AfterSetupStart() override { iteration_count = 0; }
   void BeforeTeardownStop() override {
     end_profiler_iteration_count = iteration_count;

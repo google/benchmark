@@ -24,6 +24,8 @@
 
 namespace benchmark {
 
+class State;
+
 class MemoryManager {
  public:
   static constexpr int64_t TombstoneValue = std::numeric_limits<int64_t>::max();
@@ -54,8 +56,20 @@ void RegisterMemoryManager(MemoryManager* memory_manager);
 class ProfilerManager {
  public:
   virtual ~ProfilerManager() {}
-  virtual void AfterSetupStart() = 0;
-  virtual void BeforeTeardownStop() = 0;
+  // Kept for backwards compatibility; new code should override the
+  // State-taking overloads below. Note that a subclass overriding only one
+  // overload of a pair hides the other; add
+  // `using benchmark::ProfilerManager::AfterSetupStart;` (respectively
+  // `BeforeTeardownStop`) to silence -Woverloaded-virtual.
+  virtual void AfterSetupStart() {}
+  virtual void BeforeTeardownStop() {}
+  // Called with the State of the benchmark run being profiled, giving
+  // access to e.g. the benchmark name. The default implementations forward
+  // to the parameterless hooks above.
+  virtual void AfterSetupStart(const State& /*state*/) { AfterSetupStart(); }
+  virtual void BeforeTeardownStop(const State& /*state*/) {
+    BeforeTeardownStop();
+  }
 };
 
 BENCHMARK_EXPORT

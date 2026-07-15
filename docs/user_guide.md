@@ -1604,6 +1604,15 @@ If set, the `ProfilerManager::AfterSetupStart` and
 end of a separate benchmark run to allow user code to collect and report
 user-provided profile metrics.
 
+Each method has two overloads: a parameterless one and one taking a
+`const benchmark::State&`, which gives access to run information such as the
+benchmark name (e.g. for registering named profiling regions). Override
+whichever variant you need; the `State`-taking overloads forward to the
+parameterless ones by default. When overriding only one overload of a pair,
+add a `using benchmark::ProfilerManager::AfterSetupStart;` (respectively
+`BeforeTeardownStop`) declaration to your class to avoid hiding the other
+overload.
+
 Output collected from this profiling run must be reported separately.
 
 <a name="using-register-benchmark" />

@@ -10,6 +10,9 @@ namespace {
 
 class TestProfilerManager : public benchmark::ProfilerManager {
  public:
+  using benchmark::ProfilerManager::AfterSetupStart;
+  using benchmark::ProfilerManager::BeforeTeardownStop;
+
   void AfterSetupStart() override { ++start_called; }
   void BeforeTeardownStop() override { ++stop_called; }
 
