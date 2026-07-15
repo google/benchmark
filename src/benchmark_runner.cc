@@ -105,7 +105,7 @@ BenchmarkReporter::Run CreateRunReport(
   report.repetition_index = repetition_index;
   report.repetitions = repeats;
 
-  if (report.skipped == 0u) {
+  if (report.skipped == 0U) {
     if (b.use_manual_time()) {
       report.real_accumulated_time = results.manual_time_used;
     } else {
@@ -321,10 +321,10 @@ BenchmarkRunner::BenchmarkRunner(
   if (b.aggregation_report_mode() != internal::ARM_Unspecified) {
     run_results.display_report_aggregates_only =
         ((b.aggregation_report_mode() &
-          internal::ARM_DisplayReportAggregatesOnly) != 0u);
+          internal::ARM_DisplayReportAggregatesOnly) != 0U);
     run_results.file_report_aggregates_only =
         ((b.aggregation_report_mode() &
-          internal::ARM_FileReportAggregatesOnly) != 0u);
+          internal::ARM_FileReportAggregatesOnly) != 0U);
     BM_CHECK(FLAGS_benchmark_perf_counters.empty() ||
              (perf_counters_measurement_ptr->num_counters() == 0))
         << "Perf counters were requested but could not be set up.";
@@ -399,7 +399,7 @@ bool BenchmarkRunner::ShouldReportIterationResults(
   // Determine if this run should be reported;
   // Either it has run for a sufficient amount of time
   // or because an error was reported.
-  return (i.results.skipped_ != 0u) || FLAGS_benchmark_dry_run ||
+  return (i.results.skipped_ != 0U) || FLAGS_benchmark_dry_run ||
          i.iters >= kMaxIterations ||  // Too many iterations already.
          i.seconds >=
              GetMinTimeToApply() ||  // The elapsed time is large enough.
@@ -560,7 +560,7 @@ void BenchmarkRunner::DoOneRepetition() {
 
   if (reports_for_family != nullptr) {
     ++reports_for_family->num_runs_done;
-    if (report.skipped == 0u) {
+    if (report.skipped == 0U) {
       reports_for_family->Runs.push_back(report);
     }
   }
