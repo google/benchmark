@@ -42,6 +42,7 @@
 #include <algorithm>
 #include <atomic>
 #include <condition_variable>
+#include <cstddef>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
@@ -222,42 +223,17 @@ State::State(std::string name, IterationCount max_iters,
     }
   }
 
-  // Note: The use of offsetof below is technically undefined until C++17
-  // because State is not a standard layout type. However, all compilers
-  // currently provide well-defined behavior as an extension (which is
-  // demonstrated since constexpr evaluation must diagnose all undefined
-  // behavior). However, GCC and Clang also warn about this use of offsetof,
-  // which must be suppressed.
-#if defined(__INTEL_COMPILER)
-#pragma warning push
-#pragma warning(disable : 1875)
-#elif defined(__GNUC__) || defined(__clang__)
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Winvalid-offsetof"
-#endif
-#if defined(__NVCC__)
-#pragma nv_diagnostic push
-#pragma nv_diag_suppress 1427
-#endif
-#if defined(__NVCOMPILER)
-#pragma diagnostic push
-#pragma diag_suppress offset_in_non_POD_nonstandard
-#endif
-  // Offset tests to ensure commonly accessed data is on the first cache line.
-  const int cache_line_size = 64;
-  static_assert(
-      offsetof(State, skipped_) <= (cache_line_size - sizeof(skipped_)), "");
-#if defined(__INTEL_COMPILER)
-#pragma warning pop
-#elif defined(__GNUC__) || defined(__clang__)
-#pragma GCC diagnostic pop
-#endif
-#if defined(__NVCC__)
-#pragma nv_diagnostic pop
-#endif
-#if defined(__NVCOMPILER)
-#pragma diagnostic pop
-#endif
+  // Ensure that commonly accessed data (everything up to and including
+  // skipped_) is on the first cache line. State is not a standard-layout
+  // type, so offsetof-based static_asserts are only conditionally-supported
+  // and used to require suppressing warnings on every compiler vendor
+  // (see #1877). Instead, check the layout at runtime in debug builds;
+  // BM_CHECK compiles away entirely under NDEBUG.
+  // 64 is the cache line size assumed here.
+  BM_CHECK_LE(reinterpret_cast<const char*>(&skipped_) -
+                  reinterpret_cast<const char*>(this),
+              static_cast<std::ptrdiff_t>(64 - sizeof(skipped_)))
+      << "The commonly accessed members of State must fit in one cache line.";
 }
 
 void State::PauseTiming() {
