@@ -27,6 +27,21 @@ struct BitRef {
   BitRef(int i, unsigned char& b) : index(i), byte(b) {}
 };
 
+// Types with const data members cannot be used as an asm output operand, so
+// DoNotOptimize must degrade to an input-only constraint for them.
+// See https://github.com/google/benchmark/issues/1997.
+struct ConstMember {
+  ConstMember() : value{} {}
+  const int value;
+};
+
+// Same, for a type too large to be register-sized.
+struct BigConstMember {
+  BigConstMember() : value{} {}
+  const int value;
+  int padding[16] = {};
+};
+
 int main(int argc, char* argv[]) {
   benchmark::MaybeReenterWithoutASLR(argc, argv);
 
@@ -67,4 +82,14 @@ int main(int argc, char* argv[]) {
 
   // Check that accept rvalue.
   benchmark::DoNotOptimize(BitRef::Make());
+
+  // Non-assignable types (const data members) must compile as lvalues and
+  // rvalues, including through deduced (non-const) references (#1997).
+  ConstMember cm;
+  benchmark::DoNotOptimize(cm);
+  benchmark::DoNotOptimize(ConstMember{});
+  BigConstMember bcm;
+  benchmark::DoNotOptimize(bcm);
+  benchmark::DoNotOptimize(BigConstMember{});
+  [](auto& v) { benchmark::DoNotOptimize(v); }(cm);
 }
