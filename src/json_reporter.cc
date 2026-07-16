@@ -26,6 +26,7 @@
 #include "benchmark/export.h"
 #include "benchmark/reporter.h"
 #include "benchmark/types.h"
+#include "benchmark_api_internal.h"
 #include "complexity.h"
 #include "string_util.h"
 #include "timers.h"
@@ -341,6 +342,26 @@ void JSONReporter::PrintRunData(Run const& run) {
     out << ",\n" << indent << FormatKV("label", run.report_label);
   }
   out << '\n';
+}
+
+void JSONReporter::List(
+    const std::vector<internal::BenchmarkInstance>& benchmarks) {
+  std::ostream& out = GetOutputStream();
+  std::string inner_indent(2, ' ');
+  std::string indent(4, ' ');
+  std::string entry_indent(6, ' ');
+
+  // Mirror the structure of the regular output so that consumers can read
+  // the names from the same "benchmarks" array in both modes.
+  out << "{\n" << inner_indent << "\"benchmarks\": [";
+  bool first = true;
+  for (const internal::BenchmarkInstance& benchmark : benchmarks) {
+    out << (first ? "\n" : ",\n") << indent << "{\n";
+    out << entry_indent << FormatKV("name", benchmark.name().str()) << "\n";
+    out << indent << "}";
+    first = false;
+  }
+  out << "\n" << inner_indent << "]\n}\n";
 }
 
 }  // end namespace benchmark

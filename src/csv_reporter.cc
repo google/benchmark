@@ -18,6 +18,7 @@
 
 #include "benchmark/export.h"
 #include "benchmark/reporter.h"
+#include "benchmark_api_internal.h"
 #include "check.h"
 #include "complexity.h"
 
@@ -166,6 +167,16 @@ void CSVReporter::PrintRunData(const Run& run) {
     }
   }
   Out << '\n';
+}
+
+BENCHMARK_EXPORT
+void CSVReporter::List(
+    const std::vector<internal::BenchmarkInstance>& benchmarks) {
+  std::ostream& out = GetOutputStream();
+  out << "name\n";
+  for (const internal::BenchmarkInstance& benchmark : benchmarks) {
+    out << CsvEscape(benchmark.name().str()) << "\n";
+  }
 }
 
 }  // end namespace benchmark
