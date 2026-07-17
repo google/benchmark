@@ -83,7 +83,7 @@ jobs:
         with:
           persist-credentials: false
 
-      - uses: lukka/get-cmake@f5b8fbb4d77cec1acc5a5f9f0df4beffaf5d98d9 # latest
+      - uses: lukka/get-cmake@e6906078ebd1ccb8ce51ab4626ac46a1b5a517e3 # latest
 
       - name: configure cmake
         run: >
