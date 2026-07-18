@@ -113,6 +113,11 @@ class BenchmarkRunner {
 
   bool ShouldReportIterationResults(const IterationResults& i) const;
 
+  // Returns the elapsed time, in seconds, that the min-time stopping decision
+  // should be based on. real/manual time (and whole-process CPU time) are
+  // accumulated across all threads, so this returns the per-thread value.
+  double GetTimeForDecision(const IterationResults& i) const;
+
   double GetMinTimeToApply() const;
 
   void FinishWarmUp(const IterationCount& i);

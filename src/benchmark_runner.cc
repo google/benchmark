@@ -370,17 +370,36 @@ BenchmarkRunner::IterationResults BenchmarkRunner::DoNIterations() {
   return i;
 }
 
+double BenchmarkRunner::GetTimeForDecision(const IterationResults& i) const {
+  // real_time and manual_time are accumulated per thread in RunInThread (i.e.
+  // summed across all threads), and so is whole-process CPU time. To decide
+  // whether each thread has run for at least min_time we need the per-thread
+  // (wall-clock-equivalent) duration, so divide the summed value by the number
+  // of threads. Per-thread CPU time (the default) is left untouched. The summed
+  // values in i.results are kept intact for reporting, where they are divided
+  // by the total iteration count across all threads. This mirrors the scaling
+  // that was applied unconditionally before #1836 removed it from the reported
+  // path.
+  double seconds = i.seconds;
+  if (b.use_manual_time() || b.use_real_time() ||
+      b.measure_process_cpu_time()) {
+    seconds /= b.threads();
+  }
+  return seconds;
+}
+
 IterationCount BenchmarkRunner::PredictNumItersNeeded(
     const IterationResults& i) const {
+  const double seconds = GetTimeForDecision(i);
   // See how much iterations should be increased by.
   // Note: Avoid division by zero with max(seconds, 1ns).
-  double multiplier = GetMinTimeToApply() * 1.4 / std::max(i.seconds, 1e-9);
+  double multiplier = GetMinTimeToApply() * 1.4 / std::max(seconds, 1e-9);
   // If our last run was at least 10% of FLAGS_benchmark_min_time then we
   // use the multiplier directly.
   // Otherwise we use at most 10 times expansion.
   // NOTE: When the last run was at least 10% of the min time the max
   // expansion should be 14x.
-  const bool is_significant = (i.seconds / GetMinTimeToApply()) > 0.1;
+  const bool is_significant = (seconds / GetMinTimeToApply()) > 0.1;
   multiplier = is_significant ? multiplier : 10.0;
 
   // So what seems to be the sufficiently-large iteration count? Round up.
@@ -399,15 +418,17 @@ bool BenchmarkRunner::ShouldReportIterationResults(
   // Determine if this run should be reported;
   // Either it has run for a sufficient amount of time
   // or because an error was reported.
+  const double seconds = GetTimeForDecision(i);
+  // real_time_used is accumulated across all threads; use the per-thread value
+  // so the guard below scales the same way regardless of thread count.
+  const double real_time_used = i.results.real_time_used / b.threads();
   return (i.results.skipped_ != 0u) || FLAGS_benchmark_dry_run ||
-         i.iters >= kMaxIterations ||  // Too many iterations already.
-         i.seconds >=
-             GetMinTimeToApply() ||  // The elapsed time is large enough.
+         i.iters >= kMaxIterations ||       // Too many iterations already.
+         seconds >= GetMinTimeToApply() ||  // The elapsed time is large enough.
          // CPU time is specified but the elapsed real time greatly exceeds
          // the minimum time.
          // Note that user provided timers are except from this test.
-         ((i.results.real_time_used >= 5 * GetMinTimeToApply()) &&
-          !b.use_manual_time());
+         ((real_time_used >= 5 * GetMinTimeToApply()) && !b.use_manual_time());
 }
 
 double BenchmarkRunner::GetMinTimeToApply() const {
