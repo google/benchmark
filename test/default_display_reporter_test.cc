@@ -13,10 +13,10 @@ int main(int argc, char** argv) {
   benchmark::MaybeReenterWithoutASLR(argc, argv);
   benchmark::Initialize(&argc, argv);
 
-  std::unique_ptr<benchmark::BenchmarkReporter> first(
-      benchmark::CreateDefaultDisplayReporter());
-  std::unique_ptr<benchmark::BenchmarkReporter> second(
-      benchmark::CreateDefaultDisplayReporter());
+  const std::unique_ptr<benchmark::BenchmarkReporter> first =
+      benchmark::CreateDefaultDisplayReporter();
+  const std::unique_ptr<benchmark::BenchmarkReporter> second =
+      benchmark::CreateDefaultDisplayReporter();
 
   if (first == nullptr || second == nullptr || first.get() == second.get()) {
     std::cerr << "CreateDefaultDisplayReporter must return a fresh, "
