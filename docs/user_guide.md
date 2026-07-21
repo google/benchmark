@@ -1604,10 +1604,10 @@ If set, the `ProfilerManager::AfterSetupStart` and
 end of a separate benchmark run to allow user code to collect and report
 user-provided profile metrics.
 
-From within either hook, `ProfilerManager::GetState()` returns the
-`benchmark::State` of the run being profiled, which gives access to run
+From within either hook, `ProfilerManager::GetState()` returns a pointer to
+the `benchmark::State` of the run being profiled, which gives access to run
 information such as the benchmark name (e.g. for registering named profiling
-regions).
+regions). Outside of the two hooks it returns `nullptr`.
 
 Output collected from this profiling run must be reported separately.
 

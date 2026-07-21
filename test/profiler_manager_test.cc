@@ -16,9 +16,15 @@ class TestProfilerManager : public benchmark::ProfilerManager {
  public:
   void AfterSetupStart() override {
     ++start_called;
-    benchmark_name = GetState().name();
+    if (GetState() != nullptr) {
+      benchmark_name = GetState()->name();
+    }
   }
   void BeforeTeardownStop() override { ++stop_called; }
+
+  // Expose the protected accessor so the harness can verify it yields
+  // nullptr outside the hooks.
+  const benchmark::State* StateOutsideHooks() const { return GetState(); }
 
   int start_called = 0;
   int stop_called = 0;
@@ -61,4 +67,6 @@ int main(int argc, char* argv[]) {
   assert(pm->start_called == 1);
   assert(pm->stop_called == 1);
   assert(pm->benchmark_name == "BM_empty");
+  // Outside the hooks the state must not be observable.
+  assert(pm->StateOutsideHooks() == nullptr);
 }

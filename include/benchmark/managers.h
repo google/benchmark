@@ -61,9 +61,10 @@ class ProfilerManager {
 
  protected:
   // The State of the benchmark run being profiled, giving access to e.g. the
-  // benchmark name (for a named profiling region). Only valid to call from
-  // within AfterSetupStart() and BeforeTeardownStop().
-  const State& GetState() const { return *state_; }
+  // benchmark name (for a named profiling region). Non-null only while
+  // AfterSetupStart() or BeforeTeardownStop() is executing; any other caller
+  // observes nullptr.
+  const State* GetState() const { return state_; }
 
  private:
   friend class State;

@@ -333,6 +333,7 @@ void State::StartKeepRunning() {
   if (BENCHMARK_BUILTIN_EXPECT(profiler_manager_ != nullptr, false)) {
     profiler_manager_->state_ = this;
     profiler_manager_->AfterSetupStart();
+    profiler_manager_->state_ = nullptr;
   }
   manager_->StartStopBarrier();
   if (!skipped()) {
@@ -352,6 +353,7 @@ void State::FinishKeepRunning() {
   if (BENCHMARK_BUILTIN_EXPECT(profiler_manager_ != nullptr, false)) {
     profiler_manager_->state_ = this;
     profiler_manager_->BeforeTeardownStop();
+    profiler_manager_->state_ = nullptr;
   }
 }
 
