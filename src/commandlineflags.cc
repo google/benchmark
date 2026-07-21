@@ -309,8 +309,8 @@ BENCHMARK_EXPORT
 bool IsTruthyFlagValue(const std::string& value) {
   if (value.size() == 1) {
     char const v = value[0];
-    return isalnum(v) &&
-           v != '0' && v != 'f' && v != 'F' && v != 'n' && v != 'N';
+    return isalnum(v) && v != '0' && v != 'f' && v != 'F' && v != 'n' &&
+           v != 'N';
   }
   if (!value.empty()) {
     std::string value_lower(value);
