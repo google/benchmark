@@ -34,6 +34,9 @@ Documentation = "https://github.com/google/benchmark/tree/main/docs"
 Repository = "https://github.com/google/benchmark.git"
 Discord = "https://discord.gg/cz7UX7wKC2"
 
+[tool.codespell]
+ignore-words-list = ["bion", "globa", "wron"]
+
 [tool.setuptools]
 package-dir = { "" = "bindings/python" }
 zip-safe = false

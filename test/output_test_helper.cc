@@ -30,7 +30,7 @@ using TestCaseList = std::vector<TestCase>;
 using SubMap = std::vector<std::pair<std::string, std::string>>;
 
 TestCaseList& GetTestCaseList(TestCaseID ID) {
-  // Uses function-local statics to ensure initialization occurs
+  // Uses function-local statistics to ensure initialization occurs
   // before first use.
   static TestCaseList lists[TC_NumID];
   return lists[ID];
