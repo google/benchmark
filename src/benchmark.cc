@@ -586,11 +586,14 @@ ConsoleReporter::OutputOptions GetOutputOptions(bool force_no_color) {
 }  // end namespace internal
 
 BenchmarkReporter* CreateDefaultDisplayReporter() {
-  static auto* default_display_reporter =
-      internal::CreateReporter(FLAGS_benchmark_format,
-                               internal::GetOutputOptions())
-          .release();
-  return default_display_reporter;
+  // Ownership of the returned reporter is transferred to the caller (note the
+  // `.release()` below and the `unique_ptr` in `RunSpecifiedBenchmarks`).
+  // Do NOT cache this in a `static`: the caller deletes the reporter, which
+  // would leave a cached pointer dangling and cause a use-after-free on the
+  // next call. Create a fresh reporter each time instead.
+  return internal::CreateReporter(FLAGS_benchmark_format,
+                                  internal::GetOutputOptions())
+      .release();
 }
 
 size_t RunSpecifiedBenchmarks() {
