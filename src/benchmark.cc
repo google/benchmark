@@ -585,12 +585,9 @@ ConsoleReporter::OutputOptions GetOutputOptions(bool force_no_color) {
 
 }  // end namespace internal
 
-BenchmarkReporter* CreateDefaultDisplayReporter() {
-  static auto* default_display_reporter =
-      internal::CreateReporter(FLAGS_benchmark_format,
-                               internal::GetOutputOptions())
-          .release();
-  return default_display_reporter;
+std::unique_ptr<BenchmarkReporter> CreateDefaultDisplayReporter() {
+  return internal::CreateReporter(FLAGS_benchmark_format,
+                                  internal::GetOutputOptions());
 }
 
 size_t RunSpecifiedBenchmarks() {
@@ -629,7 +626,7 @@ size_t RunSpecifiedBenchmarks(BenchmarkReporter* display_reporter,
   std::unique_ptr<BenchmarkReporter> default_display_reporter;
   std::unique_ptr<BenchmarkReporter> default_file_reporter;
   if (display_reporter == nullptr) {
-    default_display_reporter.reset(CreateDefaultDisplayReporter());
+    default_display_reporter = CreateDefaultDisplayReporter();
     display_reporter = default_display_reporter.get();
   }
   auto& Out = display_reporter->GetOutputStream();
