@@ -999,7 +999,9 @@ void Initialize(int* argc, char** argv, void (*HelperPrintf)()) {
   // Android 12 (API level 31) introduced zeroing of allocated memory in bionic
   // as a hardening feature; however, this is not enabled for apps.
   if (__builtin_available(android 31, *)) {
-    BM_CHECK_EQ(mallopt(M_BIONIC_ZERO_INIT, 0), 1);
+    // Not asserting on the return value, as sanitizers interpose the allocator
+    // and always return 0
+    (void)mallopt(M_BIONIC_ZERO_INIT, 0);
   }
 
   // The default configuration of bionic is to return pages to the OS as soon
@@ -1007,7 +1009,7 @@ void Initialize(int* argc, char** argv, void (*HelperPrintf)()) {
   // delay before returning memory to avoid excessive faulting on repeated
   // allocation and deallocation, which is common in repeated benchmark runs.
   if (__builtin_available(android 27, *)) {
-    BM_CHECK_EQ(mallopt(M_DECAY_TIME, 1), 1);
+    (void)mallopt(M_DECAY_TIME, 1);
   }
 #endif
   internal::HelperPrintf = HelperPrintf;
