@@ -143,7 +143,7 @@ def load_benchmark_results(fname, benchmark_filter):
             json_schema_version = results["context"]["json_schema_version"]
             if json_schema_version != 1:
                 print(
-                    f"In {fname}, got unnsupported JSON schema version:"
+                    f"In {fname}, got unsupported JSON schema version:"
                     f" {json_schema_version}, expected 1"
                 )
                 sys.exit(1)
