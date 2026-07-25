@@ -1,34 +1,51 @@
+// Unit tests for Zig bindings to google-benchmark.
+//
+// Each test registers a single benchmark function, runs it, and verifies
+// that the benchmark library executes without errors. Tests cover all
+// major API surface: keepRunning, keepRunningBatch, pause/resume timing,
+// throughput metrics, parameterized benchmarks, threading, and error skipping.
+//
+// Note: google-benchmark is designed for single-process execution.
+// Tests that call clearRegisteredBenchmarks() + run() sequentially may
+// exhibit state isolation issues in some environments.
+
 const std = @import("std");
 const benchmark = @import("benchmark");
 
+/// Prevent the compiler from optimizing away a variable or computation.
+/// Used in benchmarks to ensure the measured code is not eliminated.
 fn volatile_sink(ptr: anytype) void {
     @as(*volatile @TypeOf(ptr.*), ptr).* = ptr.*;
 }
 
-// ---- Benchmark functions ----
+// ---- Benchmark functions (callbacks passed to registerBenchmark) ----
 
+/// Minimal no-op benchmark: measures bare loop overhead.
 fn bm_empty(state: *benchmark.State) void {
     while (state.keepRunning()) {}
 }
 
+/// Benchmark using batch iteration (processes 64 iterations per call).
 fn bm_with_batch(state: *benchmark.State) void {
     while (state.keepRunningBatch(64)) {}
 }
 
+/// Benchmark with pause/resume timing: setup phase is excluded from measurement.
 fn bm_pause_resume(state: *benchmark.State) void {
     while (state.keepRunning()) {
         state.pauseTiming();
-        // "expensive" setup
+        // "expensive" setup — not timed
         var sink: i64 = 0;
         for (0..100) |i| {
             sink += @intCast(i);
         }
         state.resumeTiming();
-        // Prevent the optimizer from removing the loop above
+        // Prevent optimizer from removing the setup loop
         volatile_sink(&sink);
     }
 }
 
+/// Throughput benchmark: reports bytes processed per iteration.
 fn bm_bytes_processed(state: *benchmark.State) void {
     const n: i64 = state.range(0);
     while (state.keepRunning()) {
@@ -38,6 +55,7 @@ fn bm_bytes_processed(state: *benchmark.State) void {
     state.setBytesProcessed(n * state.iterations());
 }
 
+/// Throughput benchmark: reports items processed per iteration.
 fn bm_items_processed(state: *benchmark.State) void {
     while (state.keepRunning()) {
         // simulate processing items
@@ -45,26 +63,31 @@ fn bm_items_processed(state: *benchmark.State) void {
     state.setItemsProcessed(state.iterations() * 10);
 }
 
+/// Benchmark with a custom label in output.
 fn bm_with_label(state: *benchmark.State) void {
     while (state.keepRunning()) {}
     state.setLabel("my_label");
 }
 
+/// Benchmark that reads a range parameter.
 fn bm_range_1(state: *benchmark.State) void {
     _ = state.range(0);
     while (state.keepRunning()) {}
 }
 
+/// Multi-threaded benchmark stub.
 fn bm_threads_fn(state: *benchmark.State) void {
     while (state.keepRunning()) {}
 }
 
+/// Benchmark that immediately skips with an error message.
 fn bm_skip(state: *benchmark.State) void {
     state.skipWithError("not supported on this platform");
 }
 
-// ---- Tests ----
+// ---- Unit tests ----
 
+/// Verify basic benchmark registration and execution.
 test "basic benchmark runs" {
     benchmark.clearRegisteredBenchmarks();
     _ = benchmark.registerBenchmark("BM_Empty", bm_empty);
@@ -72,6 +95,7 @@ test "basic benchmark runs" {
     try std.testing.expect(count > 0);
 }
 
+/// Verify batch iteration mode works.
 test "benchmark with batch" {
     benchmark.clearRegisteredBenchmarks();
     _ = benchmark.registerBenchmark("BM_Batch", bm_with_batch);
@@ -79,6 +103,7 @@ test "benchmark with batch" {
     try std.testing.expect(count > 0);
 }
 
+/// Verify pause/resume timing doesn't crash.
 test "pause and resume timing" {
     benchmark.clearRegisteredBenchmarks();
     _ = benchmark.registerBenchmark("BM_PauseResume", bm_pause_resume);
@@ -86,6 +111,7 @@ test "pause and resume timing" {
     try std.testing.expect(count > 0);
 }
 
+/// Verify bytes_processed metric reporting.
 test "bytes processed" {
     benchmark.clearRegisteredBenchmarks();
     _ = benchmark.registerBenchmark("BM_BytesProcessed", bm_bytes_processed)
@@ -94,6 +120,7 @@ test "bytes processed" {
     try std.testing.expect(count > 0);
 }
 
+/// Verify items_processed metric reporting.
 test "items processed" {
     benchmark.clearRegisteredBenchmarks();
     _ = benchmark.registerBenchmark("BM_ItemsProcessed", bm_items_processed);
@@ -101,6 +128,7 @@ test "items processed" {
     try std.testing.expect(count > 0);
 }
 
+/// Verify setLabel works without errors.
 test "set label" {
     benchmark.clearRegisteredBenchmarks();
     _ = benchmark.registerBenchmark("BM_Label", bm_with_label);
@@ -108,6 +136,7 @@ test "set label" {
     try std.testing.expect(count > 0);
 }
 
+/// Verify range parameter is passed correctly.
 test "range parameter" {
     benchmark.clearRegisteredBenchmarks();
     _ = benchmark.registerBenchmark("BM_Range", bm_range_1)
@@ -116,6 +145,7 @@ test "range parameter" {
     try std.testing.expect(count > 0);
 }
 
+/// Verify multiple benchmarks can be registered and run together.
 test "multiple benchmarks" {
     benchmark.clearRegisteredBenchmarks();
     _ = benchmark.registerBenchmark("BM_Multi1", bm_empty);
@@ -125,6 +155,7 @@ test "multiple benchmarks" {
     try std.testing.expect(count >= 3);
 }
 
+/// Verify multi-threaded benchmark execution.
 test "threaded benchmark" {
     benchmark.clearRegisteredBenchmarks();
     _ = benchmark.registerBenchmark("BM_Threads", bm_threads_fn)
@@ -133,6 +164,7 @@ test "threaded benchmark" {
     try std.testing.expect(count > 0);
 }
 
+/// Verify TimeUnit enum is passed correctly.
 test "time unit" {
     benchmark.clearRegisteredBenchmarks();
     _ = benchmark.registerBenchmark("BM_MicroSecond", bm_empty)
@@ -141,6 +173,7 @@ test "time unit" {
     try std.testing.expect(count > 0);
 }
 
+/// Verify skipWithError gracefully skips the benchmark.
 test "skip with error" {
     benchmark.clearRegisteredBenchmarks();
     _ = benchmark.registerBenchmark("BM_Skip", bm_skip);
@@ -148,6 +181,7 @@ test "skip with error" {
     try std.testing.expect(count > 0);
 }
 
+/// Verify benchmark name is retrievable after registration.
 test "benchmark name" {
     benchmark.clearRegisteredBenchmarks();
     const b = benchmark.registerBenchmark("BM_Named", bm_empty);
@@ -158,6 +192,7 @@ test "benchmark name" {
     }
 }
 
+/// Verify denseRange parameter works.
 test "dense range" {
     benchmark.clearRegisteredBenchmarks();
     _ = benchmark.registerBenchmark("BM_DenseRange", bm_empty)
@@ -166,6 +201,7 @@ test "dense range" {
     try std.testing.expect(count > 0);
 }
 
+/// Verify useRealTime flag works.
 test "use real time" {
     benchmark.clearRegisteredBenchmarks();
     _ = benchmark.registerBenchmark("BM_RealTime", bm_empty)

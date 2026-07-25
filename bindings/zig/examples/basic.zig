@@ -1,11 +1,28 @@
+// Usage examples for Zig bindings to google-benchmark.
+//
+// This file demonstrates common benchmarking patterns:
+//   1. Basic no-op benchmark (measures loop overhead)
+//   2. Throughput benchmark with bytes processed
+//   3. Throughput benchmark with items processed
+//   4. Parameterized benchmark with variable input size
+//   5. Pause/resume timing (exclude setup from measurement)
+//   6. Multi-threaded benchmark
+//   7. Platform-specific skip
+//
+// Run with: zig run examples/basic.zig
+// The benchmark library parses its own CLI flags (e.g., --benchmark_filter).
+
 const std = @import("std");
 const benchmark = @import("benchmark");
 
+/// Prevent the compiler from optimizing away a value.
+/// Uses volatile pointer cast to force the value to exist in memory.
 fn volatile_sink(ptr: anytype) void {
     @as(*volatile @TypeOf(ptr.*), ptr).* = ptr.*;
 }
 
 // ---- Example 1: Basic benchmark ----
+// Measures the overhead of the benchmark loop itself.
 
 fn BM_string_creation(state: *benchmark.State) void {
     while (state.keepRunning()) {
@@ -15,6 +32,7 @@ fn BM_string_creation(state: *benchmark.State) void {
 }
 
 // ---- Example 2: Throughput benchmark ----
+// Reports bytes processed per second for memory bandwidth measurement.
 
 fn BM_memory_write(state: *benchmark.State) void {
     const n: usize = @intCast(state.range(0));
@@ -28,6 +46,7 @@ fn BM_memory_write(state: *benchmark.State) void {
 }
 
 // ---- Example 3: Throughput with items ----
+// Reports items processed per second.
 
 fn BM_vector_push_back(state: *benchmark.State) void {
     while (state.keepRunning()) {
@@ -41,6 +60,7 @@ fn BM_vector_push_back(state: *benchmark.State) void {
 }
 
 // ---- Example 4: Parameterized benchmark ----
+// Runs the benchmark with different input sizes via .range().
 
 fn BM_sort_merge(state: *benchmark.State) void {
     const n: usize = @intCast(state.range(0));
@@ -60,6 +80,7 @@ fn BM_sort_merge(state: *benchmark.State) void {
 }
 
 // ---- Example 5: Pause/resume timing ----
+// The setup phase (data allocation, etc.) is excluded from timing.
 
 fn BM_with_setup(state: *benchmark.State) void {
     while (state.keepRunning()) {
@@ -75,6 +96,7 @@ fn BM_with_setup(state: *benchmark.State) void {
 }
 
 // ---- Example 6: Threaded benchmark ----
+// Runs with 1, 2, and 4 threads to measure parallel scaling.
 
 fn BM_threaded(state: *benchmark.State) void {
     while (state.keepRunning()) {
@@ -88,6 +110,7 @@ fn BM_threaded(state: *benchmark.State) void {
 }
 
 // ---- Example 7: Skip benchmark ----
+// Conditionally skip a benchmark based on platform or feature detection.
 
 fn BM_platform_specific(state: *benchmark.State) void {
     if (comptime !std.Target.current.os.tag.isLinux()) {
@@ -98,6 +121,7 @@ fn BM_platform_specific(state: *benchmark.State) void {
 }
 
 // ---- Main ----
+// Parses CLI args, initializes the library, registers benchmarks, and runs.
 
 pub fn main() void {
     const args = std.process.argsAlloc(std.heap.page_allocator) catch return;
