@@ -77,12 +77,18 @@ jobs:
       - name: Install Zig
         uses: mlugg/setup-zig@v1
         with:
-          version: 0.13.0
-      - name: Run Zig tests natively
+          version: 0.14.0
+      - name: Build libbenchmark via CMake
+        run: |
+          cmake -S bindings/zig -B bindings/zig/cmake-build \
+            -DBENCHMARK_ENABLE_TESTING=OFF \
+            -DBENCHMARK_ENABLE_LTO=OFF \
+            -DBENCHMARK_ENABLE_WERROR=OFF \
+            -DCMAKE_BUILD_TYPE=Release
+        working-directory: .
+      - name: Build combined archive
+        run: cmake --build bindings/zig/cmake-build --config Release --parallel
+        working-directory: .
+      - name: Run Zig tests
         run: zig build test
         working-directory: bindings/zig
-      - name: Run Zig tests via CMake
-        run: |
-          cmake -S . -B build -DBENCHMARK_ENABLE_ZIG_BINDINGS=ON -DBENCHMARK_DOWNLOAD_DEPENDENCIES=ON
-          cmake --build build
-          cd build && ctest -R zig_bindings_tests
