@@ -5,6 +5,7 @@
 // symbol names for Zig's @cImport.
 
 #include "zig_api.h"
+
 #include "benchmark/benchmark.h"
 
 // ---- Lifecycle ----
@@ -21,36 +22,43 @@ extern "C" void benchmark_zig_clear_registered_benchmarks(void) {
   ::benchmark::ClearRegisteredBenchmarks();
 }
 
-extern "C" void benchmark_zig_add_custom_context(const char* key, const char* value) {
+extern "C" void benchmark_zig_add_custom_context(const char* key,
+                                                 const char* value) {
   ::benchmark::AddCustomContext(key, value);
 }
 
 // ---- Benchmark registration ----
 
-// Wraps benchmark::RegisterBenchmark with a lambda that forwards the C callback.
-// The lambda captures the C function pointer and bridges the C++ State& to void*.
-extern "C" void* benchmark_zig_register_benchmark(const char* name, benchmark_zig_fn fn) {
+// Wraps benchmark::RegisterBenchmark with a lambda that forwards the C
+// callback. The lambda captures the C function pointer and bridges the C++
+// State& to void*.
+extern "C" void* benchmark_zig_register_benchmark(const char* name,
+                                                  benchmark_zig_fn fn) {
   return ::benchmark::RegisterBenchmark(
       name, [fn](benchmark::State& st) { fn(&st); });
 }
 
 // ---- Benchmark configuration ----
 // Each method casts void* to benchmark::Benchmark* and calls the corresponding
-// C++ method. Return type is void; Zig implements fluent chaining by returning self.
+// C++ method. Return type is void; Zig implements fluent chaining by returning
+// self.
 
 extern "C" void benchmark_zig_benchmark_arg(void* b, int64_t x) {
   static_cast<benchmark::Benchmark*>(b)->Arg(x);
 }
 
-extern "C" void benchmark_zig_benchmark_range(void* b, int64_t start, int64_t limit) {
+extern "C" void benchmark_zig_benchmark_range(void* b, int64_t start,
+                                              int64_t limit) {
   static_cast<benchmark::Benchmark*>(b)->Range(start, limit);
 }
 
-extern "C" void benchmark_zig_benchmark_dense_range(void* b, int64_t start, int64_t limit, int step) {
+extern "C" void benchmark_zig_benchmark_dense_range(void* b, int64_t start,
+                                                    int64_t limit, int step) {
   static_cast<benchmark::Benchmark*>(b)->DenseRange(start, limit, step);
 }
 
-extern "C" void benchmark_zig_benchmark_args(void* b, const int64_t* args, size_t len) {
+extern "C" void benchmark_zig_benchmark_args(void* b, const int64_t* args,
+                                             size_t len) {
   std::vector<int64_t> v(args, args + len);
   static_cast<benchmark::Benchmark*>(b)->Args(v);
 }
@@ -64,7 +72,8 @@ extern "C" void benchmark_zig_benchmark_threads(void* b, int t) {
   static_cast<benchmark::Benchmark*>(b)->Threads(t);
 }
 
-extern "C" void benchmark_zig_benchmark_thread_range(void* b, int min_threads, int max_threads) {
+extern "C" void benchmark_zig_benchmark_thread_range(void* b, int min_threads,
+                                                     int max_threads) {
   static_cast<benchmark::Benchmark*>(b)->ThreadRange(min_threads, max_threads);
 }
 
@@ -120,11 +129,13 @@ extern "C" void benchmark_zig_state_skip_with_error(void* s, const char* msg) {
   static_cast<benchmark::State*>(s)->SkipWithError(msg);
 }
 
-extern "C" void benchmark_zig_state_set_bytes_processed(void* s, int64_t bytes) {
+extern "C" void benchmark_zig_state_set_bytes_processed(void* s,
+                                                        int64_t bytes) {
   static_cast<benchmark::State*>(s)->SetBytesProcessed(bytes);
 }
 
-extern "C" void benchmark_zig_state_set_items_processed(void* s, int64_t items) {
+extern "C" void benchmark_zig_state_set_items_processed(void* s,
+                                                        int64_t items) {
   static_cast<benchmark::State*>(s)->SetItemsProcessed(items);
 }
 
