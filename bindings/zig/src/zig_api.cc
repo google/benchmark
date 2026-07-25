@@ -1,3 +1,9 @@
+// C adapter implementation for Zig bindings to google-benchmark.
+//
+// Each function wraps a C++ benchmark:: method, casting the opaque void* back
+// to the appropriate C++ type. The extern "C" linkage ensures C-compatible
+// symbol names for Zig's @cImport.
+
 #include "zig_api.h"
 #include "benchmark/benchmark.h"
 
@@ -21,12 +27,16 @@ extern "C" void benchmark_zig_add_custom_context(const char* key, const char* va
 
 // ---- Benchmark registration ----
 
+// Wraps benchmark::RegisterBenchmark with a lambda that forwards the C callback.
+// The lambda captures the C function pointer and bridges the C++ State& to void*.
 extern "C" void* benchmark_zig_register_benchmark(const char* name, benchmark_zig_fn fn) {
   return ::benchmark::RegisterBenchmark(
       name, [fn](benchmark::State& st) { fn(&st); });
 }
 
 // ---- Benchmark configuration ----
+// Each method casts void* to benchmark::Benchmark* and calls the corresponding
+// C++ method. Return type is void; Zig implements fluent chaining by returning self.
 
 extern "C" void benchmark_zig_benchmark_arg(void* b, int64_t x) {
   static_cast<benchmark::Benchmark*>(b)->Arg(x);
@@ -88,6 +98,7 @@ extern "C" const char* benchmark_zig_benchmark_name(void* b) {
 }
 
 // ---- State methods ----
+// Each method casts void* to benchmark::State* and delegates to the C++ method.
 
 extern "C" bool benchmark_zig_state_keep_running(void* s) {
   return static_cast<benchmark::State*>(s)->KeepRunning();

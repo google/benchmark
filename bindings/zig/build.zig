@@ -1,12 +1,25 @@
+// Build system for Zig bindings to google-benchmark.
+//
+// Strategy: build libbenchmark + C adapter via CMake (all with g++),
+// producing a combined static archive. Zig links against this archive
+// without compiling any C++ itself, avoiding ABI mismatches.
+//
+// Usage:
+//   zig build              — build and run tests
+//   zig build test         — run unit tests only
+//   zig build cmake        — rebuild the combined archive only
+//   zig build -Dbenchmark_path=/path/to/lib.a  — use pre-built archive
+
 const std = @import("std");
 
 pub fn build(b: *std.Build) void {
     const target = b.standardTargetOptions(.{});
     const optimize = b.standardOptimizeOption(.{});
 
+    // Optional: path to a pre-built combined archive (skips cmake build).
     const benchmark_path = b.option([]const u8, "benchmark_path", "Path to pre-built combined archive") orelse "";
 
-    // ---- Build via CMake (g++ compiles ALL C++ — produces combined .a) ----
+    // ---- CMake step: builds libbenchmark + adapter into combined .a ----
     const cmake_step = b.step("cmake", "Build combined archive via CMake");
     var lib_path: []const u8 = undefined;
     if (benchmark_path.len > 0) {
@@ -27,7 +40,7 @@ pub fn build(b: *std.Build) void {
         lib_path = "cmake-build/libbenchmark_combined.a";
     }
 
-    // ---- Zig module ----
+    // ---- Zig module: public API for users to depend on ----
     const benchmark_module = b.addModule("benchmark", .{
         .root_source_file = b.path("src/benchmark.zig"),
     });
@@ -40,9 +53,9 @@ pub fn build(b: *std.Build) void {
         .optimize = optimize,
     });
     tests.root_module.addImport("benchmark", benchmark_module);
-    // Link the combined archive with full path
+    // Link the combined archive containing all C++ symbols
     tests.addObjectFile(.{ .cwd_relative = lib_path });
-    // Link system C++ runtime — use full path to static libstdc++
+    // Link system libraries needed by libbenchmark
     tests.addObjectFile(.{ .cwd_relative = "/usr/lib/gcc/x86_64-linux-gnu/14/libstdc++.a" });
     tests.linkSystemLibrary("m");
     tests.linkSystemLibrary("pthread");
