@@ -1,8 +1,8 @@
 // Build system for Zig bindings to google-benchmark.
 //
-// Strategy: build libbenchmark + C adapter via CMake (all with g++),
-// producing a combined static archive. Zig links against this archive
-// without compiling any C++ itself, avoiding ABI mismatches.
+// Strategy: build libbenchmark + C adapter via CMake (using the system's
+// default C++ compiler), producing a combined static archive. Zig links
+// against this archive without compiling any C++ itself.
 //
 // Usage:
 //   zig build              — build and run tests
@@ -55,11 +55,27 @@ pub fn build(b: *std.Build) void {
     tests.root_module.addImport("benchmark", benchmark_module);
     // Link the combined archive containing all C++ symbols
     tests.addObjectFile(.{ .cwd_relative = lib_path });
-    // Link system libraries needed by libbenchmark
-    tests.addObjectFile(.{ .cwd_relative = "/usr/lib/gcc/x86_64-linux-gnu/14/libstdc++.a" });
-    tests.linkSystemLibrary("m");
-    tests.linkSystemLibrary("pthread");
-    tests.linkSystemLibrary("gcc_s");
+    // Link the C++ runtime matching the compiler used to build libbenchmark.
+    // cmake uses the system default compiler (g++ on Linux, clang++ on macOS).
+    // We detect the platform and link accordingly.
+    const os_tag = target.result.os.tag;
+    if (os_tag == .macos) {
+        // macOS: system default is clang++ which uses libc++
+        tests.linkLibCpp();
+        tests.linkFramework("System");
+    } else if (os_tag == .linux) {
+        // Linux: system default is g++ which uses libstdc++
+        // Find the system libstdc++ by running g++ to get its library path
+        tests.addLibraryPath(.{ .cwd_relative = "/usr/lib/gcc/x86_64-linux-gnu/14" });
+        tests.linkSystemLibrary("stdc++");
+        tests.linkSystemLibrary("pthread");
+        tests.linkSystemLibrary("m");
+    } else {
+        // Fallback for other platforms
+        tests.linkLibCpp();
+        tests.linkSystemLibrary("m");
+        tests.linkSystemLibrary("pthread");
+    }
     tests.step.dependOn(cmake_step);
 
     const run_tests = b.addRunArtifact(tests);
