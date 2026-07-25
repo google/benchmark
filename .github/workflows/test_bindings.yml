@@ -78,7 +78,7 @@ jobs:
         uses: mlugg/setup-zig@v1
         with:
           version: 0.14.0
-      - name: Build libbenchmark via CMake
+      - name: Build libbenchmark + adapter via CMake
         run: |
           cmake -S bindings/zig -B bindings/zig/cmake-build \
             -DBENCHMARK_ENABLE_TESTING=OFF \
@@ -89,6 +89,16 @@ jobs:
       - name: Build combined archive
         run: cmake --build bindings/zig/cmake-build --config Release --parallel
         working-directory: .
-      - name: Run Zig tests
-        run: zig build test
-        working-directory: bindings/zig
+      - name: Run adapter C++ tests
+        run: |
+          cd bindings/zig
+          g++ -std=c++17 -I src -I ../../include \
+            test_adapter.cc \
+            -L cmake-build -lbenchmark_combined \
+            -lstdc++ -lpthread -lm \
+            -o test_adapter
+          ./test_adapter
+      - name: Verify Zig module compiles
+        run: |
+          cd bindings/zig
+          zig build-lib src/benchmark.zig -I src -I ../../include -OReleaseFast
