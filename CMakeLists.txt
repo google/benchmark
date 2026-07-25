@@ -42,6 +42,7 @@ option(BENCHMARK_USE_BUNDLED_GTEST "Use bundled GoogleTest. If disabled, the fin
 
 option(BENCHMARK_ENABLE_LIBPFM "Enable performance counters provided by libpfm" OFF)
 option(BENCHMARK_ENABLE_RUST_BINDINGS "Enable testing of the Rust bindings" OFF)
+option(BENCHMARK_ENABLE_ZIG_BINDINGS "Enable testing of the Zig bindings" OFF)
 
 # Export only public symbols
 set(CMAKE_CXX_VISIBILITY_PRESET hidden)

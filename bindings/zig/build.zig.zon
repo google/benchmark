@@ -1,0 +1,11 @@
+.{
+    .name = "google-benchmark-zig",
+    .version = "1.9.5",
+    .paths = .{
+        "build.zig",
+        "build.zig.zon",
+        "src",
+        "examples",
+        "docs",
+    },
+}

@@ -340,3 +340,16 @@ if (BENCHMARK_ENABLE_RUST_BINDINGS)
     WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/bindings/rust
   )
 endif()
+
+if (BENCHMARK_ENABLE_ZIG_BINDINGS)
+  find_program(ZIG_EXECUTABLE zig REQUIRED)
+  add_custom_target(build_zig_bindings ALL
+    COMMAND ${ZIG_EXECUTABLE} build
+    WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/bindings/zig
+    COMMENT "Building Zig bindings and tests"
+  )
+  add_test(NAME zig_bindings_tests
+    COMMAND ${ZIG_EXECUTABLE} build test
+    WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/bindings/zig
+  )
+endif()

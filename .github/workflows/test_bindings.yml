@@ -61,3 +61,28 @@ jobs:
           cmake -S . -B build -DBENCHMARK_ENABLE_RUST_BINDINGS=ON -DBENCHMARK_DOWNLOAD_DEPENDENCIES=ON
           cmake --build build
           cd build && ctest -R rust_bindings_tests
+
+  zig_bindings:
+    name: Test Zig bindings on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ ubuntu-latest, macos-latest ]
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Install Zig
+        uses: mlugg/setup-zig@v1
+        with:
+          version: 0.13.0
+      - name: Run Zig tests natively
+        run: zig build test
+        working-directory: bindings/zig
+      - name: Run Zig tests via CMake
+        run: |
+          cmake -S . -B build -DBENCHMARK_ENABLE_ZIG_BINDINGS=ON -DBENCHMARK_DOWNLOAD_DEPENDENCIES=ON
+          cmake --build build
+          cd build && ctest -R zig_bindings_tests
