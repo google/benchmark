@@ -197,13 +197,12 @@ pub const Benchmark = struct {
 
 /// Initialize the benchmark library with command-line arguments.
 /// Must be called before registerBenchmark() and run().
-pub fn initialize(args: []const [*:0]const u8) void {
+pub fn initialize(args: []const [:0]const u8) void {
     var argc: c_int = @intCast(args.len);
     var argv_buf: [64][*c]u8 = undefined;
-    const argc_usize: usize = @intCast(args.len);
-    const limit = @min(argc_usize, argv_buf.len);
+    const limit = @min(args.len, argv_buf.len);
     for (0..limit) |i| {
-        argv_buf[i] = @constCast(@ptrCast(args[i]));
+        argv_buf[i] = @constCast(args[i].ptr);
     }
     argv_buf[limit] = null;
     c.benchmark_zig_initialize(&argc, &argv_buf);
