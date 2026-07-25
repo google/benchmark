@@ -1,5 +1,6 @@
 .{
-    .name = "google-benchmark-zig",
+    .name = .google_benchmark_zig,
+    .fingerprint = 0x5751c7f65a8cd06f,
     .version = "1.9.5",
     .paths = .{
         "build.zig",

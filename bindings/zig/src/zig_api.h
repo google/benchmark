@@ -20,21 +20,21 @@ void benchmark_zig_add_custom_context(const char* key, const char* value);
 typedef void (*benchmark_zig_fn)(void* state);
 void* benchmark_zig_register_benchmark(const char* name, benchmark_zig_fn fn);
 
-// ---- Benchmark configuration (fluent — returns void* for chaining) ----
+// ---- Benchmark configuration (void return — Zig returns self for chaining) ----
 
-void* benchmark_zig_benchmark_arg(void* benchmark, int64_t x);
-void* benchmark_zig_benchmark_range(void* benchmark, int64_t start, int64_t limit);
-void* benchmark_zig_benchmark_dense_range(void* benchmark, int64_t start, int64_t limit, int step);
-void* benchmark_zig_benchmark_args(void* benchmark, const int64_t* args, size_t len);
-void* benchmark_zig_benchmark_unit(void* benchmark, int unit);
-void* benchmark_zig_benchmark_threads(void* benchmark, int t);
-void* benchmark_zig_benchmark_thread_range(void* benchmark, int min_threads, int max_threads);
-void* benchmark_zig_benchmark_min_time(void* benchmark, double t);
-void* benchmark_zig_benchmark_iterations(void* benchmark, int64_t n);
-void* benchmark_zig_benchmark_repetitions(void* benchmark, int n);
-void* benchmark_zig_benchmark_use_real_time(void* benchmark);
-void* benchmark_zig_benchmark_use_manual_time(void* benchmark);
-void* benchmark_zig_benchmark_complexity(void* benchmark, int complexity);
+void benchmark_zig_benchmark_arg(void* benchmark, int64_t x);
+void benchmark_zig_benchmark_range(void* benchmark, int64_t start, int64_t limit);
+void benchmark_zig_benchmark_dense_range(void* benchmark, int64_t start, int64_t limit, int step);
+void benchmark_zig_benchmark_args(void* benchmark, const int64_t* args, size_t len);
+void benchmark_zig_benchmark_unit(void* benchmark, int unit);
+void benchmark_zig_benchmark_threads(void* benchmark, int t);
+void benchmark_zig_benchmark_thread_range(void* benchmark, int min_threads, int max_threads);
+void benchmark_zig_benchmark_min_time(void* benchmark, double t);
+void benchmark_zig_benchmark_iterations(void* benchmark, int64_t n);
+void benchmark_zig_benchmark_repetitions(void* benchmark, int n);
+void benchmark_zig_benchmark_use_real_time(void* benchmark);
+void benchmark_zig_benchmark_use_manual_time(void* benchmark);
+void benchmark_zig_benchmark_complexity(void* benchmark, int complexity);
 const char* benchmark_zig_benchmark_name(void* benchmark);
 
 // ---- State methods ----

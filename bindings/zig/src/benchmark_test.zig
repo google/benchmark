@@ -1,6 +1,10 @@
 const std = @import("std");
 const benchmark = @import("benchmark");
 
+fn volatile_sink(ptr: anytype) void {
+    @as(*volatile @TypeOf(ptr.*), ptr).* = ptr.*;
+}
+
 // ---- Benchmark functions ----
 
 fn bm_empty(state: *benchmark.State) void {
@@ -15,17 +19,18 @@ fn bm_pause_resume(state: *benchmark.State) void {
     while (state.keepRunning()) {
         state.pauseTiming();
         // "expensive" setup
-        var sum: i64 = 0;
+        var sink: i64 = 0;
         for (0..100) |i| {
-            sum += @intCast(i);
+            sink += @intCast(i);
         }
         state.resumeTiming();
-        _ = sum;
+        // Prevent the optimizer from removing the loop above
+        volatile_sink(&sink);
     }
 }
 
 fn bm_bytes_processed(state: *benchmark.State) void {
-    const n: usize = @intCast(state.range(0));
+    const n: i64 = state.range(0);
     while (state.keepRunning()) {
         const data: [1024]u8 = [_]u8{0x42} ** 1024;
         _ = data;

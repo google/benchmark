@@ -1,12 +1,16 @@
 const std = @import("std");
 const benchmark = @import("benchmark");
 
+fn volatile_sink(ptr: anytype) void {
+    @as(*volatile @TypeOf(ptr.*), ptr).* = ptr.*;
+}
+
 // ---- Example 1: Basic benchmark ----
 
 fn BM_string_creation(state: *benchmark.State) void {
     while (state.keepRunning()) {
         const s = "Hello, World!";
-        std.mem.doNotOptimizeAway(s);
+        volatile_sink(&s.ptr);
     }
 }
 
@@ -61,12 +65,12 @@ fn BM_with_setup(state: *benchmark.State) void {
     while (state.keepRunning()) {
         state.pauseTiming();
         // Expensive setup that should not be timed
-        var sum: i64 = 0;
+        var sink: i64 = 0;
         for (0..1000) |i| {
-            sum +%= @intCast(i);
+            sink +%= @intCast(i);
         }
         state.resumeTiming();
-        _ = sum;
+        volatile_sink(&sink);
     }
 }
 
@@ -79,7 +83,7 @@ fn BM_threaded(state: *benchmark.State) void {
         for (0..10000) |i| {
             sum +%= @intCast(i);
         }
-        std.mem.doNotOptimizeAway(sum);
+        volatile_sink(&sum);
     }
 }
 
@@ -104,8 +108,7 @@ pub fn main() void {
     _ = benchmark.registerBenchmark("BM_string_creation", BM_string_creation);
 
     _ = benchmark.registerBenchmark("BM_memory_write", BM_memory_write)
-        .range(1 << 10, 1 << 20)
-        .unit(.kilobyte);
+        .range(1 << 10, 1 << 20);
 
     _ = benchmark.registerBenchmark("BM_vector_push_back", BM_vector_push_back);
 
