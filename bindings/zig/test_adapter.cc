@@ -2,9 +2,10 @@
 // This test links against the combined archive using the system compiler,
 // avoiding Zig's linker limitations with system C++ libraries.
 
-#include "zig_api.h"
 #include <cassert>
 #include <cstdio>
+
+#include "zig_api.h"
 
 // Simple benchmark function for testing
 static void test_benchmark(void* state) {
