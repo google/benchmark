@@ -33,7 +33,7 @@ jobs:
         sudo apt -y install libpfm4-dev
 
     - name: create build environment
-      run: cmake -E make_directory ${{ runner.workspace }}/_build
+      run: cmake -E make_directory $RUNNER_WORKSPACE/_build
 
     - name: configure cmake
       shell: bash
