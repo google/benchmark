@@ -4,6 +4,9 @@ on:
   push: {}
   pull_request: {}
 
+permissions:
+  contents: read
+
 env:
   CMAKE_GENERATOR: Ninja
   UBSAN_OPTIONS: "print_stacktrace=1"

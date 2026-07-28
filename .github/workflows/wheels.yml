@@ -9,6 +9,9 @@ on:
 env:
   CMAKE_GENERATOR: Ninja
 
+permissions:
+  contents: read
+
 jobs:
   build_sdist:
     name: Build source distribution
