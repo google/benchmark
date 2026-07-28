@@ -230,7 +230,7 @@ inline BENCHMARK_ALWAYS_INLINE int64_t Now() {
   // Alpha has a cycle counter, the PCC register, but it is an unsigned 32-bit
   // integer and thus wraps every ~4s, making using it for tick counts
   // unreliable beyond this time range.  The real-time clock is low-precision,
-  // roughtly ~1ms, but it is the only option that can reasonable count
+  // roughly ~1ms, but it is the only option that can reasonable count
   // indefinitely.
   struct timeval tv;
   gettimeofday(&tv, nullptr);
@@ -238,7 +238,7 @@ inline BENCHMARK_ALWAYS_INLINE int64_t Now() {
 #elif defined(__hppa__) || defined(__linux__) || defined(BENCHMARK_OS_WASI)
   // Fallback for all other architectures with a recent Linux kernel, e.g.:
   // HP PA-RISC provides a user-readable clock counter (cr16), but
-  // it's not syncronized across CPUs and only 32-bit wide when programs
+  // it's not synchronized across CPUs and only 32-bit wide when programs
   // are built as 32-bit binaries.
   // Same for SH-4 and possibly others.
   // Use clock_gettime(CLOCK_MONOTONIC, ...) instead of gettimeofday
