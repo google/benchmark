@@ -1,3 +1,4 @@
+#include <array>
 #include <mutex>
 #include <random>
 #include <set>
@@ -6,6 +7,12 @@
 #include <vector>
 
 #include "../src/perf_counters.h"
+#if defined HAVE_LIBPFM
+#include <linux/perf_event.h>
+
+#include "../src/perf_counters_libpfm.h"
+#include "perfmon/pfmlib.h"
+#endif
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
 
@@ -19,6 +26,9 @@ struct MsgHandler {
 using benchmark::internal::PerfCounters;
 using benchmark::internal::PerfCountersMeasurement;
 using benchmark::internal::PerfCounterValues;
+#if defined HAVE_LIBPFM
+using benchmark::internal::ConfigurePerfEventAttr;
+#endif
 using ::testing::AllOf;
 using ::testing::Gt;
 using ::testing::Lt;
@@ -48,6 +58,43 @@ bool HasRequiredPerfCounters(const std::vector<std::string>& names) {
 TEST(PerfCountersTest, Init) {
   EXPECT_EQ(PerfCounters::Initialize(), PerfCounters::kSupported);
 }
+
+#if defined HAVE_LIBPFM
+TEST(PerfCountersTest, PreservesLibpfmPrivilegeModifiers) {
+  ASSERT_TRUE(PerfCounters::Initialize());
+
+  struct ExpectedPrivilegeMode {
+    const char* event_name;
+    bool exclude_user;
+    bool exclude_kernel;
+  };
+  const std::array<ExpectedPrivilegeMode, 4> modes = {{
+      {"INSTRUCTIONS", false, true},
+      {"INSTRUCTIONS:u", false, true},
+      {"INSTRUCTIONS:k", true, false},
+      {"INSTRUCTIONS:u:k", false, false},
+  }};
+
+  for (const auto& mode : modes) {
+    perf_event_attr attr{};
+    ASSERT_EQ(ConfigurePerfEventAttr(mode.event_name, true, &attr), PFM_SUCCESS)
+        << mode.event_name;
+    EXPECT_EQ(attr.exclude_user, mode.exclude_user) << mode.event_name;
+    EXPECT_EQ(attr.exclude_kernel, mode.exclude_kernel) << mode.event_name;
+    EXPECT_TRUE(attr.exclude_hv) << mode.event_name;
+    EXPECT_TRUE(attr.disabled) << mode.event_name;
+    EXPECT_TRUE(attr.inherit) << mode.event_name;
+    EXPECT_TRUE(attr.pinned) << mode.event_name;
+    EXPECT_EQ(attr.read_format, PERF_FORMAT_GROUP) << mode.event_name;
+  }
+
+  perf_event_attr follower_attr{};
+  ASSERT_EQ(ConfigurePerfEventAttr("INSTRUCTIONS", false, &follower_attr),
+            PFM_SUCCESS);
+  EXPECT_FALSE(follower_attr.disabled);
+  EXPECT_FALSE(follower_attr.pinned);
+}
+#endif
 
 TEST(PerfCountersTest, OneCounter) {
   if (!HasRequiredPerfCounters({kGenericPerfEvent1})) {
