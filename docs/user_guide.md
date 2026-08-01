@@ -1342,6 +1342,12 @@ BENCHMARK(BM_SetInsert_With_Timer_Control)->Ranges({{1<<10, 8<<10}, {128, 512}})
 ```
 <!-- {% endraw %} -->
 
+Both calls are only valid inside the benchmark loop. Calling them outside it
+stops a timer that was never started, which adds an absolute clock reading to
+the reported time instead of a duration. This is asserted, and the assertion is
+compiled into the benchmark rather than into the library, so it fires whenever
+the benchmark itself is built without `NDEBUG`.
+
 For convenience, a `ScopedPauseTiming` class is provided to manage pausing and
 resuming timers within a scope. This is less error-prone than manually calling
 `PauseTiming` and `ResumeTiming`.

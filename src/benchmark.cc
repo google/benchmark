@@ -260,9 +260,8 @@ State::State(std::string name, IterationCount max_iters,
 #endif
 }
 
-void State::PauseTiming() {
+void State::PauseTimingImpl() {
   // Add in time accumulated so far
-  BM_CHECK(started_ && !finished_ && !skipped());
   timer_->StopTimer();
   if (perf_counters_measurement_ != nullptr) {
     std::vector<std::pair<std::string, double>> measurements;
@@ -279,8 +278,7 @@ void State::PauseTiming() {
   }
 }
 
-void State::ResumeTiming() {
-  BM_CHECK(started_ && !finished_ && !skipped());
+void State::ResumeTimingImpl() {
   timer_->StartTimer();
   if (perf_counters_measurement_ != nullptr) {
     perf_counters_measurement_->Start();
