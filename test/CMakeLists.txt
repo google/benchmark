@@ -137,8 +137,6 @@ benchmark_add_test(NAME basic_benchmark COMMAND basic_test --benchmark_min_time=
 compile_output_test(repetitions_test)
 benchmark_add_test(NAME repetitions_benchmark COMMAND repetitions_test --benchmark_min_time=0.01s --benchmark_repetitions=3)
 
-compile_benchmark_test(diagnostics_test)
-benchmark_add_test(NAME diagnostics_test COMMAND diagnostics_test --benchmark_min_time=0.01s)
 
 compile_benchmark_test(skip_with_error_test)
 benchmark_add_test(NAME skip_with_error_test COMMAND skip_with_error_test --benchmark_min_time=0.01s)
@@ -263,6 +261,7 @@ if (BENCHMARK_ENABLE_GTEST_TESTS)
   add_gtest(benchmark_setup_teardown_cb_types_gtest)
   add_gtest(memory_results_gtest)
   add_gtest(memory_manager_ordering_gtest)
+  add_gtest(diagnostics_gtest)
 endif(BENCHMARK_ENABLE_GTEST_TESTS)
 
 ###############################################################################
