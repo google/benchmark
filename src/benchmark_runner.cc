@@ -142,7 +142,8 @@ BenchmarkReporter::Run CreateRunReport(
 // Execute one thread of benchmark b for the specified number of iterations.
 // Adds the stats collected for the thread into manager->results.
 void RunInThread(const BenchmarkInstance* b, IterationCount iters,
-                 int thread_id, ThreadManager* manager,
+                 int thread_id, int repetition_index, int repetitions,
+                 ThreadManager* manager,
                  PerfCountersMeasurement* perf_counters_measurement,
                  ProfilerManager* profiler_manager_) {
   internal::ThreadTimer timer(
@@ -150,8 +151,8 @@ void RunInThread(const BenchmarkInstance* b, IterationCount iters,
           ? internal::ThreadTimer::CreateProcessCpuTime()
           : internal::ThreadTimer::Create());
 
-  State st = b->Run(iters, thread_id, &timer, manager,
-                    perf_counters_measurement, profiler_manager_);
+  State st = b->Run(iters, thread_id, repetition_index, repetitions, &timer,
+                    manager, perf_counters_measurement, profiler_manager_);
   if (!(st.skipped() || st.iterations() >= st.max_iterations)) {
     st.SkipWithError(
         "The benchmark didn't run, nor was it explicitly skipped. Please call "
@@ -338,8 +339,9 @@ BenchmarkRunner::IterationResults BenchmarkRunner::DoNIterations() {
   manager.reset(new internal::ThreadManager(b.threads()));
 
   thread_runner->RunThreads([&](int thread_idx) {
-    RunInThread(&b, iters, thread_idx, manager.get(),
-                perf_counters_measurement_ptr, /*profiler_manager=*/nullptr);
+    RunInThread(&b, iters, thread_idx, num_repetitions_done, repeats,
+                manager.get(), perf_counters_measurement_ptr,
+                /*profiler_manager=*/nullptr);
   });
 
   IterationResults i;
@@ -437,9 +439,9 @@ void BenchmarkRunner::RunWarmUp() {
   const IterationCount i_backup = iters;
 
   for (;;) {
-    b.Setup();
+    b.Setup(num_repetitions_done, repeats);
     i_warmup = DoNIterations();
-    b.Teardown();
+    b.Teardown(num_repetitions_done, repeats);
 
     const bool finish = ShouldReportIterationResults(i_warmup);
 
@@ -465,12 +467,12 @@ MemoryManager::Result BenchmarkRunner::RunMemoryManager(
   memory_manager->Start();
   std::unique_ptr<internal::ThreadManager> manager;
   manager.reset(new internal::ThreadManager(1));
-  b.Setup();
-  RunInThread(&b, memory_iterations, 0, manager.get(),
-              perf_counters_measurement_ptr,
+  b.Setup(num_repetitions_done, repeats);
+  RunInThread(&b, memory_iterations, 0, num_repetitions_done, repeats,
+              manager.get(), perf_counters_measurement_ptr,
               /*profiler_manager=*/nullptr);
   manager.reset();
-  b.Teardown();
+  b.Teardown(num_repetitions_done, repeats);
   MemoryManager::Result memory_result;
   memory_manager->Stop(memory_result);
   memory_result.memory_iterations = memory_iterations;
@@ -480,12 +482,13 @@ MemoryManager::Result BenchmarkRunner::RunMemoryManager(
 void BenchmarkRunner::RunProfilerManager(IterationCount profile_iterations) {
   std::unique_ptr<internal::ThreadManager> manager;
   manager.reset(new internal::ThreadManager(1));
-  b.Setup();
-  RunInThread(&b, profile_iterations, 0, manager.get(),
+  b.Setup(num_repetitions_done, repeats);
+  RunInThread(&b, profile_iterations, 0, num_repetitions_done, repeats,
+              manager.get(),
               /*perf_counters_measurement_ptr=*/nullptr,
               /*profiler_manager=*/profiler_manager);
   manager.reset();
-  b.Teardown();
+  b.Teardown(num_repetitions_done, repeats);
 }
 
 void BenchmarkRunner::DoOneRepetition() {
@@ -510,9 +513,9 @@ void BenchmarkRunner::DoOneRepetition() {
   // is *only* calculated for the *first* repetition, and other repetitions
   // simply use that precomputed iteration count.
   for (;;) {
-    b.Setup();
+    b.Setup(num_repetitions_done, repeats);
     i = DoNIterations();
-    b.Teardown();
+    b.Teardown(num_repetitions_done, repeats);
 
     // Do we consider the results to be significant?
     // If we are doing repetitions, and the first repetition was already done,

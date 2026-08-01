@@ -120,6 +120,24 @@ class BENCHMARK_EXPORT BENCHMARK_INTERNAL_CACHELINE_ALIGNED State {
   BENCHMARK_ALWAYS_INLINE
   int thread_index() const { return thread_index_; }
 
+  // Index of the benchmark family this run belongs to, i.e. of the
+  // BENCHMARK() registration, in registration order.
+  BENCHMARK_ALWAYS_INLINE
+  int family_index() const { return family_index_; }
+
+  // Index of this instance within its family. Families with several argument
+  // sets or thread counts produce one instance per combination.
+  BENCHMARK_ALWAYS_INLINE
+  int per_family_instance_index() const { return per_family_instance_index_; }
+
+  // Zero-based index of the repetition being run, in [0, repetitions()).
+  BENCHMARK_ALWAYS_INLINE
+  int repetition_index() const { return repetition_index_; }
+
+  // Total number of repetitions this instance is run for.
+  BENCHMARK_ALWAYS_INLINE
+  int repetitions() const { return repetitions_; }
+
   BENCHMARK_ALWAYS_INLINE
   IterationCount iterations() const {
     if (BENCHMARK_BUILTIN_EXPECT(!started_, false)) {
@@ -156,7 +174,9 @@ class BENCHMARK_EXPORT BENCHMARK_INTERNAL_CACHELINE_ALIGNED State {
  private:
   State(std::string name, IterationCount max_iters,
         const std::vector<int64_t>& ranges, int thread_i, int n_threads,
-        internal::ThreadTimer* timer, internal::ThreadManager* manager,
+        int family_i, int per_family_instance_i, int repetition_i,
+        int n_repetitions, internal::ThreadTimer* timer,
+        internal::ThreadManager* manager,
         internal::PerfCountersMeasurement* perf_counters_measurement,
         ProfilerManager* profiler_manager);
 
@@ -167,6 +187,10 @@ class BENCHMARK_EXPORT BENCHMARK_INTERNAL_CACHELINE_ALIGNED State {
   const std::string name_;
   const int thread_index_;
   const int threads_;
+  const int family_index_;
+  const int per_family_instance_index_;
+  const int repetition_index_;
+  const int repetitions_;
 
   internal::ThreadTimer* const timer_;
   internal::ThreadManager* const manager_;

@@ -50,6 +50,8 @@
 
 [Preventing Optimization](#preventing-optimization)
 
+[Identifying the Current Run](#identifying-the-current-run)
+
 [Reporting Statistics](#reporting-statistics)
 
 [Custom Statistics](#custom-statistics)
@@ -1499,6 +1501,41 @@ static void BM_vector_push_back(benchmark::State& state) {
 ```
 
 Note that `ClobberMemory()` is only available for GNU or MSVC based compilers.
+
+<a name="identifying-the-current-run" />
+
+## Identifying the Current Run
+
+Besides `name()`, `threads()` and `thread_index()`, the `State` tells a
+benchmark which of the runs of the binary it is, using the same indices the
+reporters emit for that run:
+
+| Accessor | Meaning |
+|----------|---------|
+| `family_index()` | Index of the `BENCHMARK()` registration, in registration order. |
+| `per_family_instance_index()` | Index of this instance within its family; a family registered with several argument sets or thread counts has one instance per combination. |
+| `repetition_index()` | Zero-based index of the repetition being run. |
+| `repetitions()` | Total number of repetitions this instance runs. |
+
+This is useful when a benchmark needs a location of its own to work in, or
+needs to do something only on the first or last repetition:
+
+<!-- {% raw %} -->
+```c++
+static void BM_WriteToScratchFile(benchmark::State& state) {
+  const std::string path =
+      StrCat("bench-", state.family_index(), "-",
+             state.per_family_instance_index(), "-", state.repetition_index());
+  ...
+  if (state.repetition_index() + 1 == state.repetitions()) {
+    // Last repetition: clean up.
+  }
+}
+```
+<!-- {% endraw %} -->
+
+The same values are visible from the `Setup`/`Teardown` callbacks, which run
+once per repetition around the benchmark they bracket.
 
 <a name="reporting-statistics" />
 
