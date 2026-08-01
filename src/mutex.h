@@ -8,6 +8,21 @@
 
 // Enable thread safety attributes only with clang.
 // The attributes can be safely erased when compiling with other compilers.
+//
+// Whether the annotations below are needed is a property of the compiler, not
+// of the build: whoever compiles this may pass -Wthread-safety without saying
+// so (Bazel's default toolchain adds it whenever the compiler accepts it), and
+// the wrappers then get analyzed with their own annotations erased -- so
+// Mutex::lock() is seen acquiring mut_ and never releasing it, which is an
+// error wherever the standard library annotates std::mutex itself (libc++).
+// Setting the macro from a build file cannot fix that in general, because the
+// same build file also has to serve compilers that reject the attributes.
+// Deciding it here keeps the two in step. A definition from the outside still
+// wins.
+#if !defined(HAVE_THREAD_SAFETY_ATTRIBUTES) && defined(__clang__)
+#define HAVE_THREAD_SAFETY_ATTRIBUTES
+#endif
+
 #if defined(HAVE_THREAD_SAFETY_ATTRIBUTES)
 #define THREAD_ANNOTATION_ATTRIBUTE_(x) __attribute__((x))
 #else
