@@ -331,7 +331,9 @@ void State::StartKeepRunning() {
   started_ = true;
   total_iterations_ = skipped() ? 0 : max_iterations;
   if (BENCHMARK_BUILTIN_EXPECT(profiler_manager_ != nullptr, false)) {
+    profiler_manager_->state_ = this;
     profiler_manager_->AfterSetupStart();
+    profiler_manager_->state_ = nullptr;
   }
   manager_->StartStopBarrier();
   if (!skipped()) {
@@ -349,7 +351,9 @@ void State::FinishKeepRunning() {
   finished_ = true;
   manager_->StartStopBarrier();
   if (BENCHMARK_BUILTIN_EXPECT(profiler_manager_ != nullptr, false)) {
+    profiler_manager_->state_ = this;
     profiler_manager_->BeforeTeardownStop();
+    profiler_manager_->state_ = nullptr;
   }
 }
 

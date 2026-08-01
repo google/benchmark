@@ -24,6 +24,8 @@
 
 namespace benchmark {
 
+class State;
+
 class MemoryManager {
  public:
   static constexpr int64_t TombstoneValue = std::numeric_limits<int64_t>::max();
@@ -56,6 +58,17 @@ class ProfilerManager {
   virtual ~ProfilerManager() {}
   virtual void AfterSetupStart() = 0;
   virtual void BeforeTeardownStop() = 0;
+
+ protected:
+  // The State of the benchmark run being profiled, giving access to e.g. the
+  // benchmark name (for a named profiling region). Non-null only while
+  // AfterSetupStart() or BeforeTeardownStop() is executing; any other caller
+  // observes nullptr.
+  const State* GetState() const { return state_; }
+
+ private:
+  friend class State;
+  const State* state_ = nullptr;
 };
 
 BENCHMARK_EXPORT

@@ -2,6 +2,7 @@
 
 #include <cassert>
 #include <memory>
+#include <string>
 
 #include "benchmark/benchmark_api.h"
 #include "benchmark/managers.h"
@@ -13,11 +14,21 @@
 namespace {
 class TestProfilerManager : public benchmark::ProfilerManager {
  public:
-  void AfterSetupStart() override { ++start_called; }
+  void AfterSetupStart() override {
+    ++start_called;
+    if (GetState() != nullptr) {
+      benchmark_name = GetState()->name();
+    }
+  }
   void BeforeTeardownStop() override { ++stop_called; }
+
+  // Expose the protected accessor so the harness can verify it yields
+  // nullptr outside the hooks.
+  const benchmark::State* StateOutsideHooks() const { return GetState(); }
 
   int start_called = 0;
   int stop_called = 0;
+  std::string benchmark_name;
 };
 
 void BM_empty(benchmark::State& state) {
@@ -55,4 +66,7 @@ int main(int argc, char* argv[]) {
 
   assert(pm->start_called == 1);
   assert(pm->stop_called == 1);
+  assert(pm->benchmark_name == "BM_empty");
+  // Outside the hooks the state must not be observable.
+  assert(pm->StateOutsideHooks() == nullptr);
 }
