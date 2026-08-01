@@ -79,21 +79,29 @@ class CheckHandler {
 }  // end namespace internal
 }  // end namespace benchmark
 
-// The BM_CHECK macro returns a std::ostream object that can have extra
-// information written to it.
-#ifndef NDEBUG
-#define BM_CHECK(b)                                          \
+// Checks the condition in every build configuration, NDEBUG included, and
+// aborts if it does not hold. Reserved for preconditions whose violation the
+// library cannot recover from or report later -- and only away from the
+// measured loop, since the check is never compiled out.
+#define BM_CHECK_RUNTIME(b)                                  \
   (b ? ::benchmark::internal::GetNullLogInstance()           \
      : ::benchmark::internal::CheckHandler(                  \
            std::string_view(#b), std::string_view(__FILE__), \
            std::string_view(__func__), __LINE__)             \
            .GetLog())
+
+// The BM_CHECK macro returns a std::ostream object that can have extra
+// information written to it.
+#ifndef NDEBUG
+#define BM_CHECK(b) BM_CHECK_RUNTIME(b)
 #else
 #define BM_CHECK(b) ::benchmark::internal::GetNullLogInstance()
 #endif
 
 // clang-format off
 // preserve whitespacing between operators for alignment
+#define BM_CHECK_RUNTIME_GE(a, b) BM_CHECK_RUNTIME((a) >= (b))
+
 #define BM_CHECK_EQ(a, b) BM_CHECK((a) == (b))
 #define BM_CHECK_NE(a, b) BM_CHECK((a) != (b))
 #define BM_CHECK_GE(a, b) BM_CHECK((a) >= (b))

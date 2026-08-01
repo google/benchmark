@@ -1,11 +1,18 @@
 #include <map>
+#include <stdexcept>
 #include <string>
 #include <vector>
 
 #include "../src/benchmark_register.h"
+#include "../src/check.h"
 #include "benchmark/benchmark_api.h"
+#include "benchmark/registration.h"
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
+
+#if defined(__GNUC__) && !defined(__EXCEPTIONS)
+#define TEST_HAS_NO_EXCEPTIONS
+#endif
 
 namespace benchmark {
 namespace internal {
@@ -149,6 +156,40 @@ TEST(AddCustomContext, Simple) {
   delete global_context;
   global_context = nullptr;
 }
+
+#ifndef TEST_HAS_NO_EXCEPTIONS
+// A range multiplier that does not grow the value used to spin forever in
+// release builds, where the BM_CHECK guarding it was compiled out.
+// See https://github.com/google/benchmark/issues/1504.
+class AbortsAsThrows : public ::testing::Test {
+ public:
+  void SetUp() override {
+    previous_handler_ = GetAbortHandler();
+    GetAbortHandler() = &ThrowingHandler;
+  }
+  void TearDown() override { GetAbortHandler() = previous_handler_; }
+
+ private:
+  [[noreturn]] static void ThrowingHandler() { throw std::logic_error(""); }
+
+  AbortHandlerT* previous_handler_ = nullptr;
+};
+
+TEST_F(AbortsAsThrows, AddRangeRejectsNonGrowingMultiplier) {
+  std::vector<int> dst;
+  EXPECT_THROW(AddRange(&dst, 1, 2, 1), std::logic_error);
+  EXPECT_THROW(AddRange(&dst, 1, 8, 0), std::logic_error);
+  EXPECT_THROW(AddRange(&dst, 1, 8, -2), std::logic_error);
+}
+
+TEST_F(AbortsAsThrows, RangeMultiplierRejectsNonGrowingMultiplier) {
+  Benchmark* b = RegisterBenchmarkInternal(std::unique_ptr<Benchmark>(
+      new FunctionBenchmark("BM_check", [](State&) {})));
+  EXPECT_THROW(b->RangeMultiplier(1), std::logic_error);
+  EXPECT_THROW(b->RangeMultiplier(0), std::logic_error);
+  ClearRegisteredBenchmarks();
+}
+#endif  // TEST_HAS_NO_EXCEPTIONS
 
 TEST(AddCustomContext, DuplicateKey) {
   std::map<std::string, std::string>*& global_context = GetGlobalContext();

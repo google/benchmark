@@ -18,7 +18,9 @@ typename std::vector<T>::iterator AddPowers(std::vector<T>* dst, T lo, T hi,
                                             int mult) {
   BM_CHECK_GE(lo, 0);
   BM_CHECK_GE(hi, lo);
-  BM_CHECK_GE(mult, 2);
+  // Checked in every build configuration: a multiplier that does not grow the
+  // value never reaches `hi`, so the loop below would never terminate.
+  BM_CHECK_RUNTIME_GE(mult, 2);
 
   const size_t start_offset = dst->size();
 
@@ -63,7 +65,7 @@ void AddRange(std::vector<T>* dst, T lo, T hi, int mult) {
                 "Args type must be a signed integer");
 
   BM_CHECK_GE(hi, lo);
-  BM_CHECK_GE(mult, 2);
+  BM_CHECK_RUNTIME_GE(mult, 2);
 
   // Add "lo"
   dst->push_back(lo);

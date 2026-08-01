@@ -370,7 +370,9 @@ Benchmark* Benchmark::Teardown(const callback_function& teardown) {
 }
 
 Benchmark* Benchmark::RangeMultiplier(int multiplier) {
-  BM_CHECK(multiplier > 1);
+  // Checked in every build configuration: a multiplier of 1 or less makes the
+  // range generation in AddRange() unable to terminate.
+  BM_CHECK_RUNTIME(multiplier > 1);
   range_multiplier_ = multiplier;
   return this;
 }
