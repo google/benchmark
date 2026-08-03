@@ -462,17 +462,17 @@ void BenchmarkRunner::RunWarmUp() {
 
 MemoryManager::Result BenchmarkRunner::RunMemoryManager(
     IterationCount memory_iterations) {
-  memory_manager->Start();
   std::unique_ptr<internal::ThreadManager> manager;
   manager.reset(new internal::ThreadManager(1));
   b.Setup();
+  memory_manager->Start();
   RunInThread(&b, memory_iterations, 0, manager.get(),
               perf_counters_measurement_ptr,
               /*profiler_manager=*/nullptr);
-  manager.reset();
-  b.Teardown();
   MemoryManager::Result memory_result;
   memory_manager->Stop(memory_result);
+  manager.reset();
+  b.Teardown();
   memory_result.memory_iterations = memory_iterations;
   return memory_result;
 }

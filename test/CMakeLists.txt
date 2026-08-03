@@ -262,6 +262,7 @@ if (BENCHMARK_ENABLE_GTEST_TESTS)
   add_gtest(profiler_manager_gtest)
   add_gtest(benchmark_setup_teardown_cb_types_gtest)
   add_gtest(memory_results_gtest)
+  add_gtest(memory_manager_ordering_gtest)
 endif(BENCHMARK_ENABLE_GTEST_TESTS)
 
 ###############################################################################
