@@ -54,7 +54,8 @@ BENCHMARK_EXPORT void SetBenchmarkFilter(std::string value);
 
 BENCHMARK_EXPORT int32_t GetBenchmarkVerbosity();
 
-BENCHMARK_EXPORT BenchmarkReporter* CreateDefaultDisplayReporter();
+BENCHMARK_EXPORT std::unique_ptr<BenchmarkReporter>
+CreateDefaultDisplayReporter();
 
 BENCHMARK_EXPORT size_t RunSpecifiedBenchmarks();
 BENCHMARK_EXPORT size_t RunSpecifiedBenchmarks(std::string spec);
