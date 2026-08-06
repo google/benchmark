@@ -278,8 +278,8 @@ TEST(PerfCountersTest, CreateExistingMeasurements) {
 // to this pool as well.
 
 BENCHMARK_DONT_OPTIMIZE size_t do_work() {
-  static std::mt19937 rd{std::random_device{}()};
-  static std::uniform_int_distribution<size_t> mrand(0, 10);
+  thread_local std::mt19937 rd{std::random_device{}()};
+  thread_local std::uniform_int_distribution<size_t> mrand(0, 10);
   const size_t kNumLoops = 1000000;
   size_t sum = 0;
   for (size_t j = 0; j < kNumLoops; ++j) {
