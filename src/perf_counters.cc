@@ -25,6 +25,7 @@
 #include <linux/perf_event.h>
 #include <sys/stat.h>
 
+#include "perf_counters_libpfm.h"
 #include "perfmon/pfmlib.h"
 #include "perfmon/pfmlib_perf_event.h"
 #endif
@@ -149,8 +150,6 @@ PerfCounters PerfCounters::Create(
   valid_names.reserve(counter_names.size());
   counter_ids.reserve(counter_names.size());
 
-  const int kCounterMode = PFM_PLM3;  // user mode only
-
   // Group leads will be assigned on demand. The idea is that once we cannot
   // create a counter descriptor, the reason is that this group has maxed out
   // so we set the group_id again to -1 and retry - giving the algorithm a
@@ -182,36 +181,15 @@ PerfCounters PerfCounters::Create(
     // Here first means first in group, ie the group leader
     const bool is_first = (group_id < 0);
 
-    // This struct will be populated by libpfm from the counter string
-    // and then fed into the syscall perf_event_open
+    // This struct will be populated by libpfm from the counter string and then
+    // fed into the syscall perf_event_open.
     struct perf_event_attr attr {};
-    attr.size = sizeof(attr);
-
-    // This is the input struct to libpfm.
-    pfm_perf_encode_arg_t arg{};
-    arg.attr = &attr;
-    const int pfm_get = pfm_get_os_event_encoding(name.c_str(), kCounterMode,
-                                                  PFM_OS_PERF_EVENT, &arg);
+    const int pfm_get = ConfigurePerfEventAttr(name.c_str(), is_first, &attr);
     if (pfm_get != PFM_SUCCESS) {
       GetErrorLogInstance()
           << "Unknown performance counter name: " << name << "\n";
       continue;
     }
-
-    // We then proceed to populate the remaining fields in our attribute struct
-    // Note: the man page for perf_event_create suggests inherit = true and
-    // read_format = PERF_FORMAT_GROUP don't work together, but that's not the
-    // case.
-    attr.disabled = is_first;
-    attr.inherit = true;
-    attr.pinned = is_first;
-    attr.exclude_kernel = true;
-    attr.exclude_user = false;
-    attr.exclude_hv = true;
-
-    // Read all counters in a group in one read.
-    attr.read_format = PERF_FORMAT_GROUP;  //| PERF_FORMAT_TOTAL_TIME_ENABLED |
-                                           // PERF_FORMAT_TOTAL_TIME_RUNNING;
 
     uint64_t base_config = attr.config;
     for (uint64_t pmu : GetPMUTypesForEvent(attr)) {
