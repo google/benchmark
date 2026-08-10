@@ -79,8 +79,17 @@ bool PerfCounters::IsCounterSupported(const std::string& name) {
   pfm_perf_encode_arg_t arg;
   std::memset(&arg, 0, sizeof(arg));
   arg.attr = &attr;
-  const int mode = PFM_PLM3;  // user mode only
-  int ret = pfm_get_os_event_encoding(name.c_str(), mode, PFM_OS_PERF_EVENT_EXT,
+  
+  // Parse base name for modifiers
+  std::string base_name = name;
+  size_t colon_pos = name.find(':');
+  if (colon_pos != std::string::npos) {
+    base_name = name.substr(0, colon_pos);
+  }
+  
+  // Use PFM_PLM0|PFM_PLM3 to allow libpfm to encode for both user and kernel
+  constexpr int kLibpfmMode = PFM_PLM0 | PFM_PLM3;
+  int ret = pfm_get_os_event_encoding(base_name.c_str(), kLibpfmMode, PFM_OS_PERF_EVENT_EXT,
                                       &arg);
   return (ret == PFM_SUCCESS);
 }
@@ -182,15 +191,45 @@ PerfCounters PerfCounters::Create(
     // Here first means first in group, ie the group leader
     const bool is_first = (group_id < 0);
 
+    // Parse counter name for privilege level modifiers (:u, :k, :h)
+    // Default is user+kernel (no modifier) as per perf_event default
+    bool exclude_user = false;
+    bool exclude_kernel = false;
+    bool exclude_hv = true;
+    
+    // Extract base counter name and modifiers
+    std::string base_name = name;
+    size_t colon_pos = name.find(':');
+    if (colon_pos != std::string::npos) {
+      base_name = name.substr(0, colon_pos);
+      std::string modifiers = name.substr(colon_pos + 1);
+      // Check for modifiers - any combination of u, k, h
+      bool has_u = modifiers.find('u') != std::string::npos;
+      bool has_k = modifiers.find('k') != std::string::npos;
+      bool has_h = modifiers.find('h') != std::string::npos;
+      
+      // If no modifiers specified, default to user+kernel (both false)
+      // If modifiers specified, only include those specified
+      if (has_u || has_k || has_h) {
+        exclude_user = !has_u;
+        exclude_kernel = !has_k;
+        exclude_hv = !has_h;
+      }
+      // else: default is user+kernel (exclude_user=false, exclude_kernel=false)
+    }
+
     // This struct will be populated by libpfm from the counter string
     // and then fed into the syscall perf_event_open
     struct perf_event_attr attr {};
     attr.size = sizeof(attr);
 
     // This is the input struct to libpfm.
+    // Use PFM_PLM0|PFM_PLM3 to allow libpfm to encode for both user and kernel,
+    // the actual privilege level will be controlled by the attr.exclude_* flags below.
+    constexpr int kLibpfmMode = PFM_PLM0 | PFM_PLM3;
     pfm_perf_encode_arg_t arg{};
     arg.attr = &attr;
-    const int pfm_get = pfm_get_os_event_encoding(name.c_str(), kCounterMode,
+    const int pfm_get = pfm_get_os_event_encoding(base_name.c_str(), kLibpfmMode,
                                                   PFM_OS_PERF_EVENT, &arg);
     if (pfm_get != PFM_SUCCESS) {
       GetErrorLogInstance()
@@ -205,9 +244,9 @@ PerfCounters PerfCounters::Create(
     attr.disabled = is_first;
     attr.inherit = true;
     attr.pinned = is_first;
-    attr.exclude_kernel = true;
-    attr.exclude_user = false;
-    attr.exclude_hv = true;
+    attr.exclude_user = exclude_user;
+    attr.exclude_kernel = exclude_kernel;
+    attr.exclude_hv = exclude_hv;
 
     // Read all counters in a group in one read.
     attr.read_format = PERF_FORMAT_GROUP;  //| PERF_FORMAT_TOTAL_TIME_ENABLED |
