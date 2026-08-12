@@ -18,7 +18,6 @@ nanobind_extension(
 
 nanobind_stubgen(
     name = "benchmark_stubgen",
-    marker_file = "bindings/python/google_benchmark/py.typed",
     module = ":_benchmark",
 )
 

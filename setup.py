@@ -88,7 +88,7 @@ class BuildBazelExtension(build_ext.build_ext):
         do again in the `build_ext` base class.
         """
 
-    def bazel_build(self, ext: BazelExtension) -> None:  # noqa: C901
+    def bazel_build(self, ext: BazelExtension) -> None:
         """Runs the bazel build to create the package."""
         temp_path = Path(self.build_temp)
 
@@ -143,17 +143,10 @@ class BuildBazelExtension(build_ext.build_ext):
 
             for f in files:
                 fp = Path(f)
-                should_copy = False
                 # we do not want the bare .so file included
                 # when building for ABI3, so we require a
                 # full and exact match on the file extension.
                 if "".join(fp.suffixes) == suffix or fp.suffix == ".pyi":
-                    should_copy = True
-                elif Path(root) == srcdir and f == "py.typed":
-                    # copy py.typed, but only at the package root.
-                    should_copy = True
-
-                if should_copy:
                     shutil.copyfile(root / fp, libdir / fp)
 
 
