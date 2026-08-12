@@ -34,9 +34,13 @@ BigOFunc* FittingCurve(BigO complexity) {
     case oN:
       return [](IterationCount n) -> double { return static_cast<double>(n); };
     case oNSquared:
-      return [](IterationCount n) -> double { return std::pow(n, 2); };
+      return [](IterationCount n) -> double {
+        return std::pow(static_cast<double>(n), 2);
+      };
     case oNCubed:
-      return [](IterationCount n) -> double { return std::pow(n, 3); };
+      return [](IterationCount n) -> double {
+        return std::pow(static_cast<double>(n), 3);
+      };
     case oLogN:
       return [](IterationCount n) -> double {
         return std::log2(static_cast<double>(n));
