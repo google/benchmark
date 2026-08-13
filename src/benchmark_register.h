@@ -34,8 +34,7 @@ typename std::vector<T>::iterator AddPowers(std::vector<T>* dst, T lo, T hi,
     if (i > kmax / mult) break;
   }
 
-  return dst->begin() +
-         static_cast<typename std::vector<T>::difference_type>(start_offset);
+  return dst->begin() + start_offset;
 }
 
 template <typename T>
