@@ -1,7 +1,6 @@
 #undef NDEBUG
 #include <cassert>
-#include <cmath>
-#include <cstdlib>
+#include <locale>
 
 #include "benchmark/benchmark_api.h"
 #include "benchmark/registration.h"
