@@ -30,6 +30,11 @@ they are platform specific, but some (e.g. `CYCLES` or `INSTRUCTIONS`) are
 mapped by libpfm to platform-specifics - see libpfm
 [documentation](http://perfmon2.sourceforge.net/docs.html) for more details.
 
+By default, counters measure user-mode events only. libpfm privilege modifiers
+can select a different scope: `:u` measures user mode, `:k` measures kernel
+mode, and `:u:k` measures both. Access to kernel-mode counters depends on the
+host's `perf_event_paranoid` setting and the process capabilities.
+
 The counter values are reported back through the [User Counters](../README.md#custom-counters)
 mechanism, meaning, they are available in all the formats (e.g. JSON) supported
 by User Counters.
