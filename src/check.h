@@ -79,15 +79,20 @@ class CheckHandler {
 }  // end namespace internal
 }  // end namespace benchmark
 
-// The BM_CHECK macro returns a std::ostream object that can have extra
-// information written to it.
-#ifndef NDEBUG
-#define BM_CHECK(b)                                          \
+// Like BM_CHECK, but enabled in every build configuration. Reserved for
+// invariants that are cheap enough to verify unconditionally and that must not
+// be violated silently in a release build.
+#define BM_CHECK_ALWAYS(b)                                   \
   (b ? ::benchmark::internal::GetNullLogInstance()           \
      : ::benchmark::internal::CheckHandler(                  \
            std::string_view(#b), std::string_view(__FILE__), \
            std::string_view(__func__), __LINE__)             \
            .GetLog())
+
+// The BM_CHECK macro returns a std::ostream object that can have extra
+// information written to it.
+#ifndef NDEBUG
+#define BM_CHECK(b) BM_CHECK_ALWAYS(b)
 #else
 #define BM_CHECK(b) ::benchmark::internal::GetNullLogInstance()
 #endif
