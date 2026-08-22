@@ -191,6 +191,8 @@ def calculate_geomean(json):
     for benchmark in json["benchmarks"]:
         if "run_type" in benchmark and benchmark["run_type"] == "aggregate":
             continue
+        if "skip_message" in benchmark:
+            continue
         times.append(
             [
                 get_timedelta_field_as_seconds(benchmark, "real_time"),
