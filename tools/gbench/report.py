@@ -161,13 +161,17 @@ def partition_benchmarks(json1, json2):
         lhs = [
             x
             for x in json1["benchmarks"]
-            if x["name"] == name and x["time_unit"] == time_unit
+            if x["name"] == name and x["time_unit"] == time_unit and not x.get("skipped", False)
         ]
         rhs = [
             x
             for x in json2["benchmarks"]
-            if x["name"] == name and x["time_unit"] == time_unit
+            if x["name"] == name and x["time_unit"] == time_unit and not x.get("skipped", False)
         ]
+
+        if  len(lhs) == 0 or len(rhs) == 0:
+            continue
+
         partitions.append([lhs, rhs])
     return partitions
 
