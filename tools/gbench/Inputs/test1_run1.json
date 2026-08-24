@@ -132,6 +132,15 @@
       "time_unit": "s",
 	  "skipped": true,
       "skip_message": "Some message"
+    },
+    {
+      "name": "BM_error",
+      "iterations": 1,
+      "real_time": 0,
+      "cpu_time": 0,
+      "time_unit": "s",
+	  "error_occurred": true,
+      "error_message": "Something happened"
     }
   ]
 }
