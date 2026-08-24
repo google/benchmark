@@ -191,7 +191,7 @@ def calculate_geomean(json):
     for benchmark in json["benchmarks"]:
         if "run_type" in benchmark and benchmark["run_type"] == "aggregate":
             continue
-        if "skip_message" in benchmark:
+        if benchmark.get("skipped", False):
             continue
         times.append(
             [
