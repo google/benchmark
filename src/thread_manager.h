@@ -2,6 +2,7 @@
 #define BENCHMARK_THREAD_MANAGER_H
 
 #include <atomic>
+#include <vector>
 
 #include "benchmark/counter.h"
 #include "benchmark/statistics.h"
@@ -13,7 +14,12 @@ namespace internal {
 
 class ThreadManager {
  public:
-  explicit ThreadManager(int num_threads) : start_stop_barrier_(num_threads) {}
+  explicit ThreadManager(int num_threads, bool collect_per_thread = false)
+      : start_stop_barrier_(num_threads) {
+    if (collect_per_thread && num_threads > 1) {
+      per_thread_results.resize(static_cast<size_t>(num_threads));
+    }
+  }
 
   Mutex& GetBenchmarkMutex() const RETURN_CAPABILITY(benchmark_mutex_) {
     return benchmark_mutex_;
@@ -35,6 +41,8 @@ class ThreadManager {
     UserCounters counters;
   };
   GUARDED_BY(GetBenchmarkMutex()) Result results;
+  // Populated only when collect_per_thread is true and num_threads > 1.
+  GUARDED_BY(GetBenchmarkMutex()) std::vector<Result> per_thread_results;
 
  private:
   mutable Mutex benchmark_mutex_;

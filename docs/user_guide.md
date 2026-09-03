@@ -36,6 +36,8 @@
 
 [Custom Counters](#custom-counters)
 
+[Cross-thread statistics](#cross-thread-statistics)
+
 [Multithreaded Benchmarks](#multithreaded-benchmarks)
 
 [CPU Timers](#cpu-timers)
@@ -225,6 +227,17 @@ When enabled, only the mean, standard deviation, and other statistics are displa
 **Example:**
 ```bash
 $ ./benchmark --benchmark_repetitions=5 --benchmark_display_aggregates_only
+```
+
+#### `--benchmark_report_thread_statistics` (BENCHMARK_REPORT_THREAD_STATISTICS)
+
+When enabled, multithreaded benchmarks also report mean, median, standard deviation, and coefficient of variation **across threads** of that run (user counters and times). The usual summed result row is unchanged. See [Cross-thread statistics](#cross-thread-statistics).
+
+**Default:** `false`
+
+**Example:**
+```bash
+$ ./benchmark --benchmark_report_thread_statistics=true
 ```
 
 #### `--benchmark_counters_tabular` (BENCHMARK_COUNTERS_TABULAR)
@@ -1117,6 +1130,40 @@ You can use `insert()` with `std::initializer_list`:
 In multithreaded benchmarks, each counter is set on the calling thread only.
 When the benchmark finishes, the counters from each thread will be summed.
 Counters that are configured with `kIsRate`, will report the average rate across all threads, while `kAvgThreadsRate` counters will report the average rate per thread.
+
+<a name="cross-thread-statistics" />
+
+### Cross-thread statistics
+
+By default the library only reports that summed (then normalized) view. To also
+see how values are distributed across the N threads of **one** multithreaded
+run, enable thread statistics:
+
+```c++
+BENCHMARK(BM_Fairness)
+    ->Threads(8)
+    ->ReportThreadStatistics();
+```
+
+or pass `--benchmark_report_thread_statistics=true`. The per-benchmark setter
+overrides the flag.
+
+When enabled and the instance uses more than one thread, extra aggregate rows
+are printed after that run, named with a `thread_` prefix so they do not collide
+with repetition statistics:
+
+```
+BM_Fairness/threads:8
+BM_Fairness/threads:8_thread_mean
+BM_Fairness/threads:8_thread_median
+BM_Fairness/threads:8_thread_stddev
+BM_Fairness/threads:8_thread_cv
+```
+
+Each thread's counters are finished independently (`num_threads = 1`) before
+mean/median/stddev/cv are computed, so the extra rows describe per-thread
+contributions. Custom statistics registered with `ComputeStatistics` are
+included as `thread_<name>`.
 
 ### Counter Reporting
 

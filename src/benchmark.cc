@@ -126,6 +126,10 @@ BM_DEFINE_bool(benchmark_report_aggregates_only, false);
 // all the output.
 BM_DEFINE_bool(benchmark_display_aggregates_only, false);
 
+// If true, also report mean/median/stddev/cv of per-thread counters and times
+// for multithreaded benchmarks. Default output (the summed row) is unchanged.
+BM_DEFINE_bool(benchmark_report_thread_statistics, false);
+
 // The format to use for console output.
 // Valid values are 'console', 'json', or 'csv'.
 BM_DEFINE_string(benchmark_format, "console");
@@ -407,9 +411,16 @@ void RunBenchmarks(const std::vector<BenchmarkInstance>& benchmarks,
     name_field_width =
         std::max<size_t>(name_field_width, benchmark.name().str().size());
     might_have_aggregates |= benchmark.repetitions() > 1;
+    const bool thread_stats =
+        benchmark.report_thread_statistics() && benchmark.threads() > 1;
+    might_have_aggregates |= thread_stats;
 
     for (const auto& Stat : benchmark.statistics()) {
-      stat_field_width = std::max<size_t>(stat_field_width, Stat.name_.size());
+      size_t name_size = Stat.name_.size();
+      if (thread_stats) {
+        name_size += sizeof("thread_") - 1;
+      }
+      stat_field_width = std::max<size_t>(stat_field_width, name_size);
     }
   }
   if (might_have_aggregates) {
@@ -775,6 +786,8 @@ void ParseCommandLineFlags(int* argc, char** argv) {
                       &FLAGS_benchmark_report_aggregates_only) ||
         ParseBoolFlag(argv[i], "benchmark_display_aggregates_only",
                       &FLAGS_benchmark_display_aggregates_only) ||
+        ParseBoolFlag(argv[i], "benchmark_report_thread_statistics",
+                      &FLAGS_benchmark_report_thread_statistics) ||
         ParseStringFlag(argv[i], "benchmark_format", &FLAGS_benchmark_format) ||
         ParseStringFlag(argv[i], "benchmark_out", &FLAGS_benchmark_out) ||
         ParseStringFlag(argv[i], "benchmark_out_format",
@@ -975,6 +988,7 @@ void PrintDefaultHelp() {
           "          [--benchmark_enable_random_interleaving={true|false}]\n"
           "          [--benchmark_report_aggregates_only={true|false}]\n"
           "          [--benchmark_display_aggregates_only={true|false}]\n"
+          "          [--benchmark_report_thread_statistics={true|false}]\n"
           "          [--benchmark_format=<console|json|csv>]\n"
           "          [--benchmark_out=<filename>]\n"
           "          [--benchmark_out_format=<json|console|csv>]\n"

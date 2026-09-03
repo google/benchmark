@@ -233,7 +233,9 @@ Benchmark::Benchmark(const std::string& name)
       use_real_time_(false),
       use_manual_time_(false),
       complexity_(oNone),
-      complexity_lambda_(nullptr) {
+      complexity_lambda_(nullptr),
+      report_thread_statistics_specified_(false),
+      report_thread_statistics_(false) {
   ComputeStatistics("mean", StatisticsMean);
   ComputeStatistics("median", StatisticsMedian);
   ComputeStatistics("stddev", StatisticsStdDev);
@@ -423,6 +425,12 @@ Benchmark* Benchmark::DisplayAggregatesOnly(bool value) {
         aggregation_report_mode_ & ~internal::ARM_DisplayReportAggregatesOnly);
   }
 
+  return this;
+}
+
+Benchmark* Benchmark::ReportThreadStatistics(bool value) {
+  report_thread_statistics_specified_ = true;
+  report_thread_statistics_ = value;
   return this;
 }
 

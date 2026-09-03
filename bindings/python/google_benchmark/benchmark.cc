@@ -98,6 +98,8 @@ NB_MODULE(_benchmark, m) {
            nb::rv_policy::reference, nb::arg("value") = true)
       .def("display_aggregates_only", &Benchmark::DisplayAggregatesOnly,
            nb::rv_policy::reference, nb::arg("value") = true)
+      .def("report_thread_statistics", &Benchmark::ReportThreadStatistics,
+           nb::rv_policy::reference, nb::arg("value") = true)
       .def("measure_process_cpu_time", &Benchmark::MeasureProcessCPUTime,
            nb::rv_policy::reference)
       .def("use_real_time", &Benchmark::UseRealTime, nb::rv_policy::reference)

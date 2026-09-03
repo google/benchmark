@@ -129,6 +129,7 @@ class BENCHMARK_EXPORT Benchmark {
   Benchmark* Repetitions(int n);
   Benchmark* ReportAggregatesOnly(bool value = true);
   Benchmark* DisplayAggregatesOnly(bool value = true);
+  Benchmark* ReportThreadStatistics(bool value = true);
   Benchmark* MeasureProcessCPUTime();
   Benchmark* UseRealTime();
   Benchmark* UseManualTime();
@@ -180,6 +181,8 @@ class BENCHMARK_EXPORT Benchmark {
   BigOFunc* complexity_lambda_;
   std::vector<internal::Statistics> statistics_;
   std::vector<int> thread_counts_;
+  bool report_thread_statistics_specified_;
+  bool report_thread_statistics_;
 
   callback_function setup_;
   callback_function teardown_;
