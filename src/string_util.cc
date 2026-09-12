@@ -267,4 +267,69 @@ double stod(const std::string& str, size_t* pos) {
 }
 #endif
 
+namespace internal {
+
+std::string CsvEscape(const std::string& s) {
+  std::string tmp;
+  tmp.reserve(s.size() + 2);
+  if (!s.empty() &&
+      (s[0] == '=' || s[0] == '+' || s[0] == '-' || s[0] == '@')) {
+    tmp += '\'';
+  }
+  for (char c : s) {
+    switch (c) {
+      case '"':
+        tmp += "\"\"";
+        break;
+      default:
+        tmp += c;
+        break;
+    }
+  }
+  return '"' + tmp + '"';
+}
+
+std::string JsonStrEscape(const std::string& s) {
+  std::string tmp;
+  tmp.reserve(s.size());
+  for (char c : s) {
+    switch (c) {
+      case '\b':
+        tmp += "\\b";
+        break;
+      case '\f':
+        tmp += "\\f";
+        break;
+      case '\n':
+        tmp += "\\n";
+        break;
+      case '\r':
+        tmp += "\\r";
+        break;
+      case '\t':
+        tmp += "\\t";
+        break;
+      case '\\':
+        tmp += "\\\\";
+        break;
+      case '"':
+        tmp += "\\\"";
+        break;
+      default:
+        if (static_cast<unsigned char>(c) < 0x20) {
+          char buf[7];
+          snprintf(buf, sizeof(buf), "\\u%04x",
+                   static_cast<unsigned int>(static_cast<unsigned char>(c)));
+          tmp += buf;
+        } else {
+          tmp += c;
+        }
+        break;
+    }
+  }
+  return tmp;
+}
+
+}  // end namespace internal
+
 }  // end namespace benchmark

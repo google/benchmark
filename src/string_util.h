@@ -58,6 +58,16 @@ using std::stoul;  // NOLINT(misc-unused-using-decls)
 #endif
 // NOLINTEND
 
+namespace internal {
+
+BENCHMARK_EXPORT
+std::string CsvEscape(const std::string& s);
+
+BENCHMARK_EXPORT
+std::string JsonStrEscape(const std::string& s);
+
+}  // end namespace internal
+
 }  // end namespace benchmark
 
 #endif  // BENCHMARK_STRING_UTIL_H_

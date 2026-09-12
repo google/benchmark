@@ -21,6 +21,7 @@
 #include "benchmark_api_internal.h"
 #include "check.h"
 #include "complexity.h"
+#include "string_util.h"
 
 // File format reference: http://edoceo.com/utilitas/csv-file-format.
 
@@ -33,19 +34,7 @@ const std::vector<const char*> elements = {
     "error_occurred", "error_message"};
 
 std::string CsvEscape(const std::string& s) {
-  std::string tmp;
-  tmp.reserve(s.size() + 2);
-  for (char c : s) {
-    switch (c) {
-      case '"':
-        tmp += "\"\"";
-        break;
-      default:
-        tmp += c;
-        break;
-    }
-  }
-  return '"' + tmp + '"';
+  return internal::CsvEscape(s);
 }
 }  // namespace
 
@@ -80,7 +69,7 @@ void CSVReporter::ReportRuns(const std::vector<Run>& reports) {
     }
     for (auto B = user_counter_names_.begin();
          B != user_counter_names_.end();) {
-      Out << ",\"" << *B++ << "\"";
+      Out << "," << CsvEscape(*B++);
     }
     Out << "\n";
 
