@@ -12,6 +12,7 @@ import os
 import sys
 import unittest
 from argparse import ArgumentParser
+from unittest.mock import patch
 
 import gbench
 from gbench import report, util
@@ -56,6 +57,45 @@ def check_inputs(in1, in2, flags):
         sys.exit(1)
 
 
+def enable_virtual_terminal_processing():
+    """
+    On Windows, enable ENABLE_VIRTUAL_TERMINAL_PROCESSING on the console
+    output handle to allow ANSI escape sequences to be rendered natively.
+    Returns True if VT processing is enabled or on non-Windows; False otherwise.
+    """
+    if sys.platform == "win32":
+        try:
+            import ctypes
+
+            kernel32 = ctypes.windll.kernel32
+            handle = kernel32.GetStdHandle(-11)  # STD_OUTPUT_HANDLE
+            mode = ctypes.c_ulong()
+            if kernel32.GetConsoleMode(handle, ctypes.byref(mode)):
+                # ENABLE_VIRTUAL_TERMINAL_PROCESSING = 0x0004
+                return bool(
+                    kernel32.SetConsoleMode(handle, mode.value | 0x0004)
+                )
+            return False
+        except Exception:
+            return False
+    return True
+
+
+def should_use_color():
+    """
+    Determine whether terminal color output should be enabled by default.
+    Follows the NO_COLOR specification (https://no-color.org/), verifies that
+    stdout is a TTY, and checks that the Windows console supports VT processing.
+    """
+    if "NO_COLOR" in os.environ:
+        return False
+    if not hasattr(sys.stdout, "isatty") or not sys.stdout.isatty():
+        return False
+    if sys.platform == "win32":
+        return enable_virtual_terminal_processing()
+    return os.environ.get("TERM", "") != "dumb"
+
+
 def create_parser():
     parser = ArgumentParser(
         description="versatile benchmark output compare tool"
@@ -76,7 +116,7 @@ def create_parser():
     parser.add_argument(
         "--no-color",
         dest="color",
-        default=True,
+        default=should_use_color(),
         action="store_false",
         help="Do not use colors in the terminal output",
     )
@@ -533,6 +573,39 @@ class TestParser(unittest.TestCase):
         self.assertEqual(parsed.test_contender[0].name, self.testInput1)
         self.assertEqual(parsed.filter_contender[0], "e")
         self.assertEqual(parsed.benchmark_options[0], "g")
+
+    def test_benchmarks_no_color_flag(self):
+        parsed = self.parser.parse_args(
+            ["--no-color", "benchmarks", self.testInput0, self.testInput1]
+        )
+        self.assertFalse(parsed.color)
+
+    @patch.dict(os.environ, {"NO_COLOR": "1"})
+    def test_benchmarks_color_default_no_color_env(self):
+        parser = create_parser()
+        parsed = parser.parse_args(
+            ["benchmarks", self.testInput0, self.testInput1]
+        )
+        self.assertFalse(parsed.color)
+
+    @patch.dict(os.environ, {}, clear=True)
+    @patch("sys.stdout.isatty", return_value=False)
+    def test_benchmarks_color_default_not_a_tty(self, mock_isatty):
+        parser = create_parser()
+        parsed = parser.parse_args(
+            ["benchmarks", self.testInput0, self.testInput1]
+        )
+        self.assertFalse(parsed.color)
+
+    @patch.dict(os.environ, {}, clear=True)
+    @patch("compare.enable_virtual_terminal_processing", return_value=True)
+    @patch("sys.stdout.isatty", return_value=True)
+    def test_benchmarks_color_default_tty(self, mock_isatty, mock_vt):
+        parser = create_parser()
+        parsed = parser.parse_args(
+            ["benchmarks", self.testInput0, self.testInput1]
+        )
+        self.assertTrue(parsed.color)
 
 
 if __name__ == "__main__":
