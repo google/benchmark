@@ -480,7 +480,7 @@ void RunOutputTests(int argc, char* argv[]) {
 BENCHMARK_RESTORE_DEPRECATED_WARNING
 
 int SubstrCnt(const std::string& haystack, const std::string& pat) {
-  if (pat.length() == 0) {
+  if (pat.empty()) {
     return 0;
   }
   int count = 0;
