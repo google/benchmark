@@ -192,7 +192,9 @@ void ConsoleReporter::PrintRunData(const Run& result) {
       s = StrFormat("%.2f", 100. * c.second.value);
       unit = "%";
     } else {
-      s = HumanReadableNumber(c.second.value, c.second.oneK);
+      s = HumanReadableNumber(
+          c.second.value, c.second.oneK,
+          (c.second.flags & Counter::kStringifyExponent) != 0);
       if ((c.second.flags & Counter::kIsRate) != 0) {
         unit = (c.second.flags & Counter::kInvert) != 0 ? "s" : "/s";
       }
