@@ -35,37 +35,7 @@ namespace benchmark {
 namespace {
 
 std::string StrEscape(const std::string& s) {
-  std::string tmp;
-  tmp.reserve(s.size());
-  for (char c : s) {
-    switch (c) {
-      case '\b':
-        tmp += "\\b";
-        break;
-      case '\f':
-        tmp += "\\f";
-        break;
-      case '\n':
-        tmp += "\\n";
-        break;
-      case '\r':
-        tmp += "\\r";
-        break;
-      case '\t':
-        tmp += "\\t";
-        break;
-      case '\\':
-        tmp += "\\\\";
-        break;
-      case '"':
-        tmp += "\\\"";
-        break;
-      default:
-        tmp += c;
-        break;
-    }
-  }
-  return tmp;
+  return internal::JsonStrEscape(s);
 }
 
 std::string FormatKV(std::string const& key, std::string const& value) {

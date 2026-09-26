@@ -82,6 +82,47 @@ TEST(ReporterListTest, CSVListsNameColumn) {
   BENCHMARK_RESTORE_DEPRECATED_WARNING
 }
 
+const std::vector<BenchmarkInstance>& ListEscapedBenchmarks() {
+  static const std::vector<BenchmarkInstance>* const benchmarks = [] {
+    RegisterBenchmark("=FormulaInjection", BM_ReporterListDummy);
+    RegisterBenchmark("+PlusPrefix", BM_ReporterListDummy);
+    RegisterBenchmark("-MinusPrefix", BM_ReporterListDummy);
+    RegisterBenchmark("@AtPrefix", BM_ReporterListDummy);
+    RegisterBenchmark("BM_ANSI_\x1b[31mRed\x1b[0m", BM_ReporterListDummy);
+    auto* result = new std::vector<BenchmarkInstance>();
+    std::ostringstream err_stream;
+    FindBenchmarksInternal(
+        "(=FormulaInjection|\\+PlusPrefix|-MinusPrefix|@AtPrefix|BM_ANSI_).*",
+        result, &err_stream);
+    return result;
+  }();
+  return *benchmarks;
+}
+
+TEST(ReporterListTest, CSVEscapesFormulaPrefixes) {
+  BENCHMARK_DISABLE_DEPRECATED_WARNING
+  CSVReporter reporter;
+  std::ostringstream out;
+  reporter.SetOutputStream(&out);
+  reporter.List(ListEscapedBenchmarks());
+  std::string s = out.str();
+  EXPECT_NE(s.find("\"'=FormulaInjection\"\n"), std::string::npos);
+  EXPECT_NE(s.find("\"'+PlusPrefix\"\n"), std::string::npos);
+  EXPECT_NE(s.find("\"'-MinusPrefix\"\n"), std::string::npos);
+  EXPECT_NE(s.find("\"'@AtPrefix\"\n"), std::string::npos);
+  BENCHMARK_RESTORE_DEPRECATED_WARNING
+}
+
+TEST(ReporterListTest, JSONEscapesC0ControlChars) {
+  JSONReporter reporter;
+  std::ostringstream out;
+  reporter.SetOutputStream(&out);
+  reporter.List(ListEscapedBenchmarks());
+  std::string s = out.str();
+  EXPECT_NE(s.find("\"name\": \"BM_ANSI_\\u001b[31mRed\\u001b[0m\""),
+            std::string::npos);
+}
+
 }  // namespace
 }  // namespace internal
 }  // namespace benchmark

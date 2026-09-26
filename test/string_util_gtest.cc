@@ -200,4 +200,62 @@ TEST_P(HumanReadableFixture, HumanReadableNumber) {
   ASSERT_THAT(str, ::testing::MatchesRegex(std::get<2>(GetParam())));
 }
 
+TEST(StringUtilTest, CsvEscape) {
+  // Empty string
+  EXPECT_EQ(benchmark::internal::CsvEscape(""), "\"\"");
+
+  // Standard safe strings
+  EXPECT_EQ(benchmark::internal::CsvEscape("BM_basic"), "\"BM_basic\"");
+  EXPECT_EQ(benchmark::internal::CsvEscape("hello world"), "\"hello world\"");
+
+  // Embedded double-quotes
+  EXPECT_EQ(benchmark::internal::CsvEscape("foo\"bar"), "\"foo\"\"bar\"");
+
+  // Formula prefixes neutralized with leading single-quote
+  EXPECT_EQ(benchmark::internal::CsvEscape("=1+1"), "\"'=1+1\"");
+  EXPECT_EQ(benchmark::internal::CsvEscape("=SUM(A1:A2)"), "\"'=SUM(A1:A2)\"");
+  EXPECT_EQ(benchmark::internal::CsvEscape("+cmd"), "\"'+cmd\"");
+  EXPECT_EQ(benchmark::internal::CsvEscape("-10"), "\"'-10\"");
+  EXPECT_EQ(benchmark::internal::CsvEscape("@admin"), "\"'@admin\"");
+
+  // Formula prefix with embedded quotes and carriage return
+  EXPECT_EQ(benchmark::internal::CsvEscape("=cmd|' /C calc'!A0"),
+            "\"'=cmd|' /C calc'!A0\"");
+  EXPECT_EQ(benchmark::internal::CsvEscape("=foo\r\n\"bar\""),
+            "\"'=foo\r\n\"\"bar\"\"\"");
+}
+
+TEST(StringUtilTest, JsonStrEscape) {
+  // Empty string
+  EXPECT_EQ(benchmark::internal::JsonStrEscape(""), "");
+
+  // Safe strings
+  EXPECT_EQ(benchmark::internal::JsonStrEscape("hello world"), "hello world");
+
+  // Standard short escapes
+  EXPECT_EQ(benchmark::internal::JsonStrEscape("\"quoted\\backslash\""),
+            "\\\"quoted\\\\backslash\\\"");
+  EXPECT_EQ(benchmark::internal::JsonStrEscape(
+                "tab\tnewline\nreturn\rbackspace\bformfeed\f"),
+            "tab\\tnewline\\nreturn\\rbackspace\\bformfeed\\f");
+
+  // C0 control characters (RFC 8259 Section 7: 0x00 to 0x1F)
+  EXPECT_EQ(benchmark::internal::JsonStrEscape(std::string("\x00", 1)),
+            "\\u0000");
+  EXPECT_EQ(benchmark::internal::JsonStrEscape("\x01"), "\\u0001");
+  EXPECT_EQ(benchmark::internal::JsonStrEscape("\x07"), "\\u0007");
+  EXPECT_EQ(benchmark::internal::JsonStrEscape("\x0b"), "\\u000b");
+  EXPECT_EQ(benchmark::internal::JsonStrEscape("\x1b"), "\\u001b");
+  EXPECT_EQ(benchmark::internal::JsonStrEscape("\x1f"), "\\u001f");
+
+  // ANSI escape sequences in skip/error messages
+  EXPECT_EQ(benchmark::internal::JsonStrEscape("\x1b[31mred text\x1b[0m"),
+            "\\u001b[31mred text\\u001b[0m");
+
+  // Printable ASCII and UTF-8 multi-byte characters remain unescaped
+  EXPECT_EQ(benchmark::internal::JsonStrEscape(" 0123456789!@#$%^&*()~`"),
+            " 0123456789!@#$%^&*()~`");
+  EXPECT_EQ(benchmark::internal::JsonStrEscape("中文测试"), "中文测试");
+}
+
 }  // end namespace

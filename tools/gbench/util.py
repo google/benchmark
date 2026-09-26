@@ -8,6 +8,7 @@ import re
 import subprocess
 import sys
 import tempfile
+import unittest
 
 # Input file type enumeration
 IT_Invalid = 0
@@ -118,6 +119,70 @@ def remove_benchmark_flags(prefix, benchmark_flags):
     return [f for f in benchmark_flags if not f.startswith(prefix)]
 
 
+VALID_TIME_UNITS = {"ns", "us", "ms", "s"}
+
+
+def check_benchmark_results(results, fname):
+    """
+    Validate the shape and types of a benchmark output artifact.
+    Fails with an informative diagnostic if the artifact is malformed.
+    """
+    if not isinstance(results, dict):
+        print(
+            f"In {fname}, expected root JSON to be an object, got"
+            f" {type(results).__name__}"
+        )
+        sys.exit(1)
+    context = results.get("context")
+    if context is not None and not isinstance(context, dict):
+        print(
+            f"In {fname}, 'context' must be an object, got"
+            f" {type(context).__name__}"
+        )
+        sys.exit(1)
+    if "benchmarks" not in results:
+        print(f"In {fname}, missing required 'benchmarks' array")
+        sys.exit(1)
+    if not isinstance(results["benchmarks"], list):
+        print(
+            f"In {fname}, 'benchmarks' must be an array, got"
+            f" {type(results['benchmarks']).__name__}"
+        )
+        sys.exit(1)
+    for i, run in enumerate(results["benchmarks"]):
+        if not isinstance(run, dict):
+            print(
+                f"In {fname}, run[{i}] must be an object, got"
+                f" {type(run).__name__}"
+            )
+            sys.exit(1)
+        name = run.get("name")
+        if name is None:
+            print(f"In {fname}, run[{i}] missing 'name'")
+            sys.exit(1)
+        if not isinstance(name, str):
+            print(
+                f"In {fname}, run[{i}].name is not a string, got"
+                f" {type(name).__name__}"
+            )
+            sys.exit(1)
+        if run.get("error_occurred", False):
+            continue
+        for time_key in ("real_time", "cpu_time"):
+            if time_key in run and not isinstance(run[time_key], (int, float)):
+                print(
+                    f"In {fname}, run[{i}].{time_key} must be numeric, got"
+                    f" {type(run[time_key]).__name__}"
+                )
+                sys.exit(1)
+        if "time_unit" in run and run["time_unit"] not in VALID_TIME_UNITS:
+            print(
+                f"In {fname}, run[{i}].time_unit '{run['time_unit']}' is unknown"
+                f" (expected one of: {', '.join(sorted(VALID_TIME_UNITS))})"
+            )
+            sys.exit(1)
+
+
 def load_benchmark_results(fname, benchmark_filter):
     """
     Read benchmark output from a file and return the JSON object.
@@ -147,10 +212,10 @@ def load_benchmark_results(fname, benchmark_filter):
                     f" {json_schema_version}, expected 1"
                 )
                 sys.exit(1)
-        if "benchmarks" in results:
-            results["benchmarks"] = list(
-                filter(benchmark_wanted, results["benchmarks"])
-            )
+        check_benchmark_results(results, fname)
+        results["benchmarks"] = list(
+            filter(benchmark_wanted, results["benchmarks"])
+        )
         return results
 
 
@@ -227,3 +292,92 @@ def run_or_load_benchmark(filename, benchmark_flags):
     if ftype == IT_Executable:
         return run_benchmark(filename, benchmark_flags)
     raise ValueError("Unknown file type %s" % ftype)
+
+
+class TestCheckBenchmarkResults(unittest.TestCase):
+    def test_valid_results(self):
+        valid = {
+            "context": {"json_schema_version": 1},
+            "benchmarks": [
+                {
+                    "name": "BM_test",
+                    "real_time": 10.0,
+                    "cpu_time": 10.0,
+                    "time_unit": "ns",
+                },
+                {
+                    "name": "BM_error",
+                    "error_occurred": True,
+                    "error_message": "some error",
+                },
+            ],
+        }
+        # Should not raise SystemExit
+        check_benchmark_results(valid, "valid.json")
+
+    def test_root_not_dict(self):
+        with self.assertRaises(SystemExit):
+            check_benchmark_results(["not", "a", "dict"], "test.json")
+
+    def test_context_not_dict(self):
+        with self.assertRaises(SystemExit):
+            check_benchmark_results(
+                {"context": "bad", "benchmarks": []}, "test.json"
+            )
+
+    def test_missing_benchmarks(self):
+        with self.assertRaises(SystemExit):
+            check_benchmark_results({}, "test.json")
+
+    def test_benchmarks_not_list(self):
+        with self.assertRaises(SystemExit):
+            check_benchmark_results({"benchmarks": "bad"}, "test.json")
+
+    def test_run_not_dict(self):
+        with self.assertRaises(SystemExit):
+            check_benchmark_results({"benchmarks": ["bad_run"]}, "test.json")
+
+    def test_run_missing_name(self):
+        with self.assertRaises(SystemExit):
+            check_benchmark_results(
+                {"benchmarks": [{"real_time": 10}]}, "test.json"
+            )
+
+    def test_run_name_not_string(self):
+        with self.assertRaises(SystemExit):
+            check_benchmark_results(
+                {"benchmarks": [{"name": 123}]}, "test.json"
+            )
+
+    def test_run_time_not_numeric(self):
+        with self.assertRaises(SystemExit):
+            check_benchmark_results(
+                {
+                    "benchmarks": [
+                        {
+                            "name": "BM_bad",
+                            "real_time": "fast",
+                            "cpu_time": 10,
+                            "time_unit": "ns",
+                        }
+                    ]
+                },
+                "test.json",
+            )
+
+    def test_run_unknown_time_unit(self):
+        with self.assertRaises(SystemExit):
+            check_benchmark_results(
+                {
+                    "benchmarks": [
+                        {
+                            "name": "BM_bad",
+                            "real_time": 10,
+                            "cpu_time": 10,
+                            "time_unit": "hours",
+                        }
+                    ]
+                },
+                "test.json",
+            )
+

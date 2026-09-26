@@ -1489,7 +1489,10 @@ class TestReportSorting(unittest.TestCase):
         cls.json = load_result()
 
     def test_json_diff_report_pretty_printing(self):
-        import util
+        try:
+            from gbench import util
+        except ImportError:
+            import util
 
         expected_names = [
             "99 family 0 instance 0 repetition 0",
