@@ -55,7 +55,8 @@ inline BENCHMARK_ALWAYS_INLINE void DoNotOptimize(Tp& value) {
 #if defined(__clang__)
   asm volatile("" : "+r,m"(value) : : "memory");
 #else
-  asm volatile("" : "+m,r"(value) : : "memory");
+  // Force memory operand; "+m,r" lets GCC 16 DCE stores (issue #2282).
+  asm volatile("" : "+m"(value) : : "memory");
 #endif
 }
 
@@ -64,7 +65,7 @@ inline BENCHMARK_ALWAYS_INLINE void DoNotOptimize(Tp&& value) {
 #if defined(__clang__)
   asm volatile("" : "+r,m"(value) : : "memory");
 #else
-  asm volatile("" : "+m,r"(value) : : "memory");
+  asm volatile("" : "+m"(value) : : "memory");
 #endif
 }
 #elif (__GNUC__ >= 5)
@@ -91,7 +92,10 @@ inline BENCHMARK_ALWAYS_INLINE
     typename std::enable_if<std::is_trivially_copyable<Tp>::value &&
                             (sizeof(Tp) <= sizeof(Tp*))>::type
     DoNotOptimize(Tp& value) {
-  asm volatile("" : "+m,r"(value) : : "memory");
+  // Prefer a memory operand only. With "+m,r", GCC 16 may pick a register
+  // and dead-store-eliminate writes such as DoNotOptimize(a[i] = 10).
+  // See https://github.com/google/benchmark/issues/2282
+  asm volatile("" : "+m"(value) : : "memory");
 }
 
 template <class Tp>
@@ -107,7 +111,8 @@ inline BENCHMARK_ALWAYS_INLINE
     typename std::enable_if<std::is_trivially_copyable<Tp>::value &&
                             (sizeof(Tp) <= sizeof(Tp*))>::type
     DoNotOptimize(Tp&& value) {
-  asm volatile("" : "+m,r"(value) : : "memory");
+  // See DoNotOptimize(Tp&): force memory so stores are not DCE'd (GCC 16+).
+  asm volatile("" : "+m"(value) : : "memory");
 }
 
 template <class Tp>
