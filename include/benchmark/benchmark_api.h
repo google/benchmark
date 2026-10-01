@@ -138,7 +138,7 @@ class BENCHMARK_EXPORT Benchmark {
                                StatisticsFunc* statistics,
                                StatisticUnit unit = kTime);
   Benchmark* Threads(int t);
-  Benchmark* ThreadRange(int min_threads, int max_threads);
+  Benchmark* ThreadRange(int min_threads, int max_threads, int mult = 2);
   Benchmark* DenseThreadRange(int min_threads, int max_threads, int stride = 1);
   Benchmark* ThreadPerCpu();
   Benchmark* ThreadRunner(threadrunner_factory&& factory);

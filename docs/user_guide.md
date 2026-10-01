@@ -1218,14 +1218,28 @@ BENCHMARK(BM_MultiThreaded)->Threads(2);
 ```
 
 To run the benchmark across a range of thread counts, instead of `Threads`, use
-`ThreadRange`. This takes two parameters (`min_threads` and `max_threads`) and
-runs the benchmark once for values in the inclusive range. For example:
+`ThreadRange`. This takes two parameters (`min_threads` and `max_threads`), and an
+optional geometric multiplier `mult` (defaulting to 2), and runs the benchmark once
+for values in the inclusive range. For example:
 
 ```c++
 BENCHMARK(BM_MultiThreaded)->ThreadRange(1, 8);
 ```
 
-will run `BM_MultiThreaded` with thread counts 1, 2, 4, and 8.
+will run `BM_MultiThreaded` with thread counts 1, 2, 4, and 8, while:
+
+```c++
+BENCHMARK(BM_MultiThreaded)->ThreadRange(1, 16, 4);
+```
+
+will run `BM_MultiThreaded` with thread counts 1, 4, and 16.
+
+You can also use `DenseThreadRange(min_threads, max_threads, stride = 1)` to step
+by an arithmetic stride:
+
+```c++
+BENCHMARK(BM_MultiThreaded)->DenseThreadRange(1, 4);
+```
 
 If the benchmarked code itself uses threads and you want to compare it to
 single-threaded code, you may want to use real-time ("wallclock") measurements
