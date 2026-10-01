@@ -15,9 +15,11 @@ On QNX, the pthread library is part of libc and usually included automatically
 [`pthread_create()`](https://www.qnx.com/developers/docs/7.1/index.html#com.qnx.doc.neutrino.lib_ref/topic/p/pthread_create.html)).
 There's no separate pthread library to link.
 
-## Building with Visual Studio 2015, 2017 or 2022
+## Building on Windows (Visual Studio, MinGW, Clang)
 
-The `shlwapi` library (`-lshlwapi`) is required to support a call to `CPUInfo` which reads the registry. Either add `shlwapi.lib` under `[ Configuration Properties > Linker > Input ]`, or use the following:
+When building or linking against the static library on Windows (using Visual Studio, MinGW, or Clang), make sure to define `BENCHMARK_STATIC_DEFINE` in your preprocessor definitions / compiler flags (e.g. `-DBENCHMARK_STATIC_DEFINE` or under `[Configuration Properties > C/C++ > Preprocessor > Preprocessor Definitions]`). Without this definition, headers will default to `__declspec(dllimport)` and cause unresolved symbol errors during linking.
+
+The `shlwapi` library (`-lshlwapi` or `Shlwapi.lib`) is required to support a call to `CPUInfo` which reads the registry. Either add `shlwapi.lib` under `[ Configuration Properties > Linker > Input ]`, add `-lshlwapi` to your linker command line, or use the following:
 
 ```
 // Alternatively, can add libraries using linker options.
@@ -32,8 +34,6 @@ The `shlwapi` library (`-lshlwapi`) is required to support a call to `CPUInfo` w
 #endif
 #endif
 ```
-
-When using the static library, make sure to add `BENCHMARK_STATIC_DEFINE` under `[Configuration Properties > C/C++ > Preprocessor > Preprocessor Definitions]`
 
 Can also use the graphical version of CMake:
 * Open `CMake GUI`.
