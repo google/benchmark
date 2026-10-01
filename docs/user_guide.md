@@ -1628,6 +1628,11 @@ If set, the `ProfilerManager::AfterSetupStart` and
 end of a separate benchmark run to allow user code to collect and report
 user-provided profile metrics.
 
+If your profiler needs the current benchmark name or other run state, override
+`ProfilerManager::AfterSetupStartWithState(const State&)` and
+`ProfilerManager::BeforeTeardownStopWithState(const State&)`. The legacy
+no-argument hooks still work and remain the fallback.
+
 Output collected from this profiling run must be reported separately.
 
 <a name="using-register-benchmark" />
