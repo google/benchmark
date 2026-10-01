@@ -470,11 +470,12 @@ Benchmark* Benchmark::Threads(int t) {
   return this;
 }
 
-Benchmark* Benchmark::ThreadRange(int min_threads, int max_threads) {
+Benchmark* Benchmark::ThreadRange(int min_threads, int max_threads, int mult) {
   BM_CHECK_GT(min_threads, 0);
   BM_CHECK_GE(max_threads, min_threads);
+  BM_CHECK_GE(mult, 2);
 
-  internal::AddRange(&thread_counts_, min_threads, max_threads, 2);
+  internal::AddRange(&thread_counts_, min_threads, max_threads, mult);
   return this;
 }
 
