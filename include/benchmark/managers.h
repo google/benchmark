@@ -24,6 +24,8 @@
 
 namespace benchmark {
 
+class State;
+
 class MemoryManager {
  public:
   static constexpr int64_t TombstoneValue = std::numeric_limits<int64_t>::max();
@@ -54,8 +56,12 @@ void RegisterMemoryManager(MemoryManager* memory_manager);
 class ProfilerManager {
  public:
   virtual ~ProfilerManager() {}
-  virtual void AfterSetupStart() = 0;
-  virtual void BeforeTeardownStop() = 0;
+  virtual void AfterSetupStart() {}
+  virtual void BeforeTeardownStop() {}
+  virtual void AfterSetupStartWithState(const State&) { AfterSetupStart(); }
+  virtual void BeforeTeardownStopWithState(const State&) {
+    BeforeTeardownStop();
+  }
 };
 
 BENCHMARK_EXPORT
