@@ -1,5 +1,4 @@
 #include <cassert>
-
 #include <string>
 #include <vector>
 
@@ -62,8 +61,8 @@ int main(int argc, char* argv[]) {
 
   StateProfilerManager state_profiler;
   benchmark::RegisterProfilerManager(&state_profiler);
-  size_t run_count = benchmark::RunSpecifiedBenchmarks(&null_reporter,
-                                                       "BM_Profiled$");
+  size_t run_count =
+      benchmark::RunSpecifiedBenchmarks(&null_reporter, "BM_Profiled$");
   benchmark::RegisterProfilerManager(nullptr);
 
   assert(run_count == 1);

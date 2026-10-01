@@ -20,11 +20,10 @@
 #include <limits>
 
 #include "benchmark/macros.h"
+#include "benchmark/state.h"
 #include "benchmark/types.h"
 
 namespace benchmark {
-
-class State;
 
 class MemoryManager {
  public:
