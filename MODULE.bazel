@@ -7,7 +7,14 @@ bazel_dep(name = "bazel_skylib", version = "1.9.0")
 bazel_dep(name = "platforms", version = "0.0.11")
 bazel_dep(name = "rules_cc", version = "0.1.5")
 
-bazel_dep(name = "rules_python", version = "1.7.0", dev_dependency = True)
+bazel_dep(name = "rules_python", version = "2.4.0-rc3", dev_dependency = True)
+archive_override(
+    module_name = "rules_python",
+    sha256 = "acf425401f347cec1e2a5efbb97f1fa4930e180996ab00594e19c300dfa45319",
+    strip_prefix = "rules_python-2.4.0-rc3",
+    urls = ["https://github.com/bazel-contrib/rules_python/releases/download/2.4.0-rc3/rules_python-2.4.0-rc3.tar.gz"],
+)
+
 bazel_dep(name = "googletest", version = "1.14.0", dev_dependency = True, repo_name = "com_google_googletest")
 
 bazel_dep(name = "libpfm", version = "4.11.0.bcr.1")
@@ -28,6 +35,7 @@ python.toolchain(
 )
 python.toolchain(python_version = "3.13")
 python.toolchain(python_version = "3.14")
+python.toolchain(python_version = "3.15")
 
 pip = use_extension("@rules_python//python/extensions:pip.bzl", "pip", dev_dependency = True)
 pip.parse(
@@ -39,4 +47,10 @@ use_repo(pip, "tools_pip_deps")
 
 # -- bazel_dep definitions -- #
 
-bazel_dep(name = "nanobind_bazel", version = "2.12.0", dev_dependency = True)
+bazel_dep(name = "nanobind_bazel", version = "3.1.0", dev_dependency = True)
+single_version_override(
+    module_name = "nanobind_bazel",
+    patch_strip = 1,
+    patches = ["//:nanobind_bazel.patch"],
+    version = "3.1.0",
+)
