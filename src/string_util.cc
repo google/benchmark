@@ -270,10 +270,13 @@ double stod(const std::string& str, size_t* pos) {
 namespace internal {
 
 std::string CsvEscape(const std::string& s) {
+  const bool needs_formula_escape =
+      !s.empty() &&
+      (s[0] == '=' || s[0] == '+' || s[0] == '-' || s[0] == '@');
   std::string tmp;
-  tmp.reserve(s.size() + 2);
-  if (!s.empty() &&
-      (s[0] == '=' || s[0] == '+' || s[0] == '-' || s[0] == '@')) {
+  tmp.reserve(s.size() + (needs_formula_escape ? 3 : 2));
+  tmp += '"';
+  if (needs_formula_escape) {
     tmp += '\'';
   }
   for (char c : s) {
@@ -286,7 +289,8 @@ std::string CsvEscape(const std::string& s) {
         break;
     }
   }
-  return '"' + tmp + '"';
+  tmp += '"';
+  return tmp;
 }
 
 std::string JsonStrEscape(const std::string& s) {
