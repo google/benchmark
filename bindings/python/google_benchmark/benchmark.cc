@@ -123,6 +123,7 @@ NB_MODULE(_benchmark, m) {
       .value("kAvgIterations", Counter::Flags::kAvgIterations)
       .value("kAvgIterationsRate", Counter::Flags::kAvgIterationsRate)
       .value("kStringifyExponent", Counter::Flags::kStringifyExponent)
+      .value("kHasNoUnit", Counter::Flags::kHasNoUnit)
       .value("kInvert", Counter::Flags::kInvert)
       .export_values();
 

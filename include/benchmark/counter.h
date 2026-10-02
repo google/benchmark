@@ -40,6 +40,9 @@ class BENCHMARK_EXPORT Counter {
     kAvgIterations = 1 << 3,
     kAvgIterationsRate = kIsRate | kAvgIterations,
     kStringifyExponent = 1 << 4,
+    // The value is still computed per flags (e.g. divided by time for
+    // kIsRate), but no unit suffix is printed by the console reporter.
+    kHasNoUnit = 1 << 5,
     kInvert = 1 << 31
   };
 

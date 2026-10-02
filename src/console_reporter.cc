@@ -195,7 +195,8 @@ void ConsoleReporter::PrintRunData(const Run& result) {
       s = HumanReadableNumber(
           c.second.value, c.second.oneK,
           (c.second.flags & Counter::kStringifyExponent) != 0);
-      if ((c.second.flags & Counter::kIsRate) != 0) {
+      if ((c.second.flags & Counter::kIsRate) != 0 &&
+          (c.second.flags & Counter::kHasNoUnit) == 0) {
         unit = (c.second.flags & Counter::kInvert) != 0 ? "s" : "/s";
       }
     }
