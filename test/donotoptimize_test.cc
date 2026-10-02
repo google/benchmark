@@ -27,6 +27,27 @@ struct BitRef {
   BitRef(int i, unsigned char& b) : index(i), byte(b) {}
 };
 
+// A type with a const data member cannot be an asm output operand; passing one
+// to DoNotOptimize used to fail to compile. See issue #1997.
+struct ConstMember {
+  ConstMember() : value() {}
+  const int value;
+};
+
+// Same, but too large to be passed in a register.
+struct BigConstMember {
+  BigConstMember() : value(), padding() {}
+  const int value;
+  int padding[16];
+};
+
+// DoNotOptimize is typically reached through a deduced non-const reference,
+// which is how the types above escape the deprecated const-ref overload.
+template <class Tp>
+void PassByReference(Tp& value) {
+  benchmark::DoNotOptimize(value);
+}
+
 int main(int argc, char* argv[]) {
   benchmark::MaybeReenterWithoutASLR(argc, argv);
 
@@ -67,4 +88,14 @@ int main(int argc, char* argv[]) {
 
   // Check that accept rvalue.
   benchmark::DoNotOptimize(BitRef::Make());
+
+  ConstMember cm;
+  benchmark::DoNotOptimize(cm);
+  PassByReference(cm);
+  benchmark::DoNotOptimize(ConstMember());
+
+  BigConstMember bcm;
+  benchmark::DoNotOptimize(bcm);
+  PassByReference(bcm);
+  benchmark::DoNotOptimize(BigConstMember());
 }
