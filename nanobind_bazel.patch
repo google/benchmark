@@ -1,0 +1,68 @@
+diff --git a/helpers.bzl b/helpers.bzl
+index 997445d..787ec82 100644
+--- a/helpers.bzl
++++ b/helpers.bzl
+@@ -66,7 +66,10 @@ def extension_name(name):
+ # Optionally add a define for free-threaded nanobind builds.
+ def nb_free_threading():
+     return select({
+-        "@rules_python//python/config_settings:is_py_freethreaded": ["NB_FREE_THREADED"],
++        "@rules_python//python/config_settings:is_py_freethreaded": [
++            "NB_FREE_THREADED",
++            "Py_GIL_DISABLED=1",
++        ],
+         "//conditions:default": [],
+     })
+ 
+diff --git a/nanobind_backend.BUILD b/nanobind_backend.BUILD
+new file mode 100644
+index 0000000..405962d
+--- /dev/null
++++ b/nanobind_backend.BUILD
+@@ -0,0 +1,21 @@
++load("@rules_python//python:defs.bzl", "py_library")
++
++package(default_visibility = ["//visibility:public"])
++
++py_library(
++    name = "lib",
++    srcs = glob(["nanobind_backend/**/*.py"]),
++    data = glob(
++        [
++            "nanobind_backend/**/*.so",
++            "nanobind_backend/**/*.pyd",
++            # Shared libraries vendored by wheel repair tools:
++            # delvewheel (Windows) and auditwheel (Linux) use a sibling
++            # `nanobind_backend.libs` directory, delocate (macOS) uses `.dylibs`.
++            "nanobind_backend.libs/**",
++            "nanobind_backend/.dylibs/**",
++        ],
++        allow_empty = True,
++    ),
++    imports = ["."],
++)
+diff --git a/stubgen_wrapper.py b/stubgen_wrapper.py
+index fe8a09e..dbdcaa5 100644
+--- a/stubgen_wrapper.py
++++ b/stubgen_wrapper.py
+@@ -56,15 +56,14 @@ def wrapper():
+                     ".so, .abi3.so, .abi3t.so, or .pyd are supported"
+                 )
+ 
+-            modulepath = Path(r.Rlocation(fname))
+-            real_modpath = modulepath.resolve()
+-            binloc = modulepath.parts.index("bin")
+-            # this gets us the module path relative to bindir.
+-            modulepath = Path(*modulepath.parts[binloc + 1 :])
++            rpath = Path(r.Rlocation(fname)).resolve()
++            binloc = rpath.parts.index("bin")
++            bindir = Path(*rpath.parts[: binloc + 1])
++            modulepath = Path(*Path(fname).parts[1:])
+             args[i + 1] = convert_path_to_module(modulepath)
+             if "-o" not in args and "-O" not in args:
+                 modname = modulepath.with_suffix("").stem
+-                stub_out = str(real_modpath.with_name(modname + ".pyi"))
++                stub_out = str((bindir / modulepath).with_name(modname + ".pyi"))
+ 
+     if stub_out is not None:
+         args.extend(["-o", stub_out])
