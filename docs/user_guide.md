@@ -1096,6 +1096,9 @@ is 1k a 1000 (default, `benchmark::Counter::OneK::kIs1000`), or 1024
   // Meaning: how many seconds it takes to process one 'foo'?
   state.counters["FooInvRate"] = Counter(numFoos, benchmark::Counter::kIsRate | benchmark::Counter::kInvert);
 
+  // Set the counter as a rate, but without the '/s' suffix in the console output.
+  state.counters["FooRatePerDollar"] = Counter(numFoos, benchmark::Counter::kIsRate | benchmark::Counter::kHasNoUnit);
+
   // Set the counter as a thread-average quantity. It will
   // be presented divided by the number of threads.
   state.counters["FooAvg"] = Counter(numFoos, benchmark::Counter::kAvgThreads);
@@ -1112,6 +1115,8 @@ is 1k a 1000 (default, `benchmark::Counter::OneK::kIs1000`), or 1024
   // Stringified exponents can also be combined with rates:
   state.counters["ErrorRate"] = Counter(absError, benchmark::Counter::kStringifyExponent | benchmark::Counter::kIsRate);
 ```
+
+Use `kHasNoUnit` with `kIsRate` when the value should still be divided by the benchmark duration but should not print `/s` or `s` in the console output, for example operations per dollar.
 
 You can use `insert()` with `std::initializer_list`:
 
