@@ -2,10 +2,18 @@
 
 #include <cinttypes>
 
+#include "commandlineflags.h"
 #include "string_util.h"
 
 namespace benchmark {
+BM_DECLARE_bool(benchmark_report_thread_statistics);
 namespace internal {
+
+bool BenchmarkInstance::report_thread_statistics() const {
+  return report_thread_statistics_specified_
+             ? report_thread_statistics_
+             : FLAGS_benchmark_report_thread_statistics;
+}
 
 BenchmarkInstance::BenchmarkInstance(benchmark::Benchmark* benchmark,
                                      int family_idx,
@@ -29,6 +37,9 @@ BenchmarkInstance::BenchmarkInstance(benchmark::Benchmark* benchmark,
       min_warmup_time_(benchmark_.min_warmup_time_),
       iterations_(benchmark_.iterations_),
       threads_(thread_count),
+      report_thread_statistics_specified_(
+          benchmark_.report_thread_statistics_specified_),
+      report_thread_statistics_(benchmark_.report_thread_statistics_),
       setup_(benchmark_.setup_),
       teardown_(benchmark_.teardown_) {
   name_.function_name = benchmark_.name_;
