@@ -282,7 +282,9 @@ class ScopedPauseTiming {
   explicit ScopedPauseTiming(State& state) : state_(state) {
     state_.PauseTiming();
   }
-  ~ScopedPauseTiming() { state_.ResumeTiming(); }
+  ~ScopedPauseTiming() {
+    if (!state_.skipped()) state_.ResumeTiming();
+  }
 
   ScopedPauseTiming(const ScopedPauseTiming&) = delete;
   void operator=(const ScopedPauseTiming&) = delete;
