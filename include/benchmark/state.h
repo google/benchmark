@@ -58,7 +58,7 @@ class BENCHMARK_EXPORT BENCHMARK_INTERNAL_CACHELINE_ALIGNED State {
   // State is exported, and MSVC otherwise calls the copy of this function
   // inside benchmark.dll, which was built with the library's NDEBUG.
   inline BENCHMARK_ALWAYS_INLINE void PauseTiming() {
-    assert(started_ && !finished_ && !skipped() &&
+    assert(in_timed_section() &&
            "PauseTiming() called outside of the benchmark loop");
     PauseTimingImpl();
   }
@@ -66,7 +66,7 @@ class BENCHMARK_EXPORT BENCHMARK_INTERNAL_CACHELINE_ALIGNED State {
   // Only valid while the benchmark loop is running. Forced inline for the
   // same reason as PauseTiming().
   inline BENCHMARK_ALWAYS_INLINE void ResumeTiming() {
-    assert(started_ && !finished_ && !skipped() &&
+    assert(in_timed_section() &&
            "ResumeTiming() called outside of the benchmark loop");
     ResumeTimingImpl();
   }
@@ -76,6 +76,8 @@ class BENCHMARK_EXPORT BENCHMARK_INTERNAL_CACHELINE_ALIGNED State {
   void SkipWithError(const std::string& msg);
 
   bool skipped() const { return internal::NotSkipped != skipped_; }
+
+  bool in_timed_section() const { return started_ && !finished_ && !skipped(); }
 
   bool error_occurred() const { return internal::SkippedWithError == skipped_; }
 
