@@ -122,6 +122,7 @@ NB_MODULE(_benchmark, m) {
              Counter::Flags::kIsIterationInvariantRate)
       .value("kAvgIterations", Counter::Flags::kAvgIterations)
       .value("kAvgIterationsRate", Counter::Flags::kAvgIterationsRate)
+      .value("kStringifyExponent", Counter::Flags::kStringifyExponent)
       .value("kInvert", Counter::Flags::kInvert)
       .export_values();
 

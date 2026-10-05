@@ -1105,6 +1105,12 @@ is 1k a 1000 (default, `benchmark::Counter::OneK::kIs1000`), or 1024
 
   // This says that we process with the rate of state.range(0) bytes every iteration:
   state.counters["BytesProcessed"] = Counter(state.range(0), benchmark::Counter::kIsIterationInvariantRate, benchmark::Counter::OneK::kIs1024);
+
+  // Set the counter to stringify the exponent explicitly without SI prefixes (e.g. 1.2345e-04):
+  state.counters["Error"] = Counter(absError, benchmark::Counter::kStringifyExponent);
+
+  // Stringified exponents can also be combined with rates:
+  state.counters["ErrorRate"] = Counter(absError, benchmark::Counter::kStringifyExponent | benchmark::Counter::kIsRate);
 ```
 
 You can use `insert()` with `std::initializer_list`:
@@ -1218,14 +1224,28 @@ BENCHMARK(BM_MultiThreaded)->Threads(2);
 ```
 
 To run the benchmark across a range of thread counts, instead of `Threads`, use
-`ThreadRange`. This takes two parameters (`min_threads` and `max_threads`) and
-runs the benchmark once for values in the inclusive range. For example:
+`ThreadRange`. This takes two parameters (`min_threads` and `max_threads`), and an
+optional geometric multiplier `mult` (defaulting to 2), and runs the benchmark once
+for values in the inclusive range. For example:
 
 ```c++
 BENCHMARK(BM_MultiThreaded)->ThreadRange(1, 8);
 ```
 
-will run `BM_MultiThreaded` with thread counts 1, 2, 4, and 8.
+will run `BM_MultiThreaded` with thread counts 1, 2, 4, and 8, while:
+
+```c++
+BENCHMARK(BM_MultiThreaded)->ThreadRange(1, 16, 4);
+```
+
+will run `BM_MultiThreaded` with thread counts 1, 4, and 16.
+
+You can also use `DenseThreadRange(min_threads, max_threads, stride = 1)` to step
+by an arithmetic stride:
+
+```c++
+BENCHMARK(BM_MultiThreaded)->DenseThreadRange(1, 4);
+```
 
 If the benchmarked code itself uses threads and you want to compare it to
 single-threaded code, you may want to use real-time ("wallclock") measurements
@@ -1613,6 +1633,11 @@ If set, the `ProfilerManager::AfterSetupStart` and
 `ProfilerManager::BeforeTeardownStop` methods will be called at the start and
 end of a separate benchmark run to allow user code to collect and report
 user-provided profile metrics.
+
+If your profiler needs the current benchmark name or other run state, override
+`ProfilerManager::AfterSetupStartWithState(const State&)` and
+`ProfilerManager::BeforeTeardownStopWithState(const State&)`. The legacy
+no-argument hooks still work and remain the fallback.
 
 Output collected from this profiling run must be reported separately.
 

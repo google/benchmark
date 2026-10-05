@@ -39,6 +39,7 @@ class BENCHMARK_EXPORT Counter {
     kIsIterationInvariantRate = kIsRate | kIsIterationInvariant,
     kAvgIterations = 1 << 3,
     kAvgIterationsRate = kIsRate | kAvgIterations,
+    kStringifyExponent = 1 << 4,
     kInvert = 1 << 31
   };
 
