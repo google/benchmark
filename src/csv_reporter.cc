@@ -115,47 +115,46 @@ void CSVReporter::PrintRunData(const Run& run) {
   if (run.skipped != 0u) {
     Out << std::string(elements.size() - 3, ',');
     Out << std::boolalpha << (internal::SkippedWithError == run.skipped) << ",";
-    Out << CsvEscape(run.skip_message) << "\n";
-    return;
-  }
-
-  // Do not print iteration on bigO and RMS report
-  if (!run.report_big_o && !run.report_rms) {
-    Out << run.iterations;
-  }
-  Out << ",";
-
-  if (run.run_type != Run::RT_Aggregate ||
-      run.aggregate_unit == StatisticUnit::kTime) {
-    Out << run.GetAdjustedRealTime() << ",";
-    Out << run.GetAdjustedCPUTime() << ",";
+    Out << CsvEscape(run.skip_message);
   } else {
-    assert(run.aggregate_unit == StatisticUnit::kPercentage);
-    Out << run.real_accumulated_time << ",";
-    Out << run.cpu_accumulated_time << ",";
-  }
+    // Do not print iteration on bigO and RMS report
+    if (!run.report_big_o && !run.report_rms) {
+      Out << run.iterations;
+    }
+    Out << ",";
 
-  // Do not print timeLabel on bigO and RMS report
-  if (run.report_big_o) {
-    Out << GetBigOString(run.complexity);
-  } else if (!run.report_rms &&
-             run.aggregate_unit != StatisticUnit::kPercentage) {
-    Out << GetTimeUnitString(run.time_unit);
-  }
-  Out << ",";
+    if (run.run_type != Run::RT_Aggregate ||
+        run.aggregate_unit == StatisticUnit::kTime) {
+      Out << run.GetAdjustedRealTime() << ",";
+      Out << run.GetAdjustedCPUTime() << ",";
+    } else {
+      assert(run.aggregate_unit == StatisticUnit::kPercentage);
+      Out << run.real_accumulated_time << ",";
+      Out << run.cpu_accumulated_time << ",";
+    }
 
-  if (run.counters.find("bytes_per_second") != run.counters.end()) {
-    Out << run.counters.at("bytes_per_second");
+    // Do not print timeLabel on bigO and RMS report
+    if (run.report_big_o) {
+      Out << GetBigOString(run.complexity);
+    } else if (!run.report_rms &&
+               run.aggregate_unit != StatisticUnit::kPercentage) {
+      Out << GetTimeUnitString(run.time_unit);
+    }
+    Out << ",";
+
+    if (run.counters.find("bytes_per_second") != run.counters.end()) {
+      Out << run.counters.at("bytes_per_second");
+    }
+    Out << ",";
+    if (run.counters.find("items_per_second") != run.counters.end()) {
+      Out << run.counters.at("items_per_second");
+    }
+    Out << ",";
+    if (!run.report_label.empty()) {
+      Out << CsvEscape(run.report_label);
+    }
+    Out << ",,";  // for error_occurred and error_message
   }
-  Out << ",";
-  if (run.counters.find("items_per_second") != run.counters.end()) {
-    Out << run.counters.at("items_per_second");
-  }
-  Out << ",";
-  if (!run.report_label.empty()) {
-    Out << CsvEscape(run.report_label);
-  }
-  Out << ",,";  // for error_occurred and error_message
 
   // Print user counters
   for (const auto& ucn : user_counter_names_) {

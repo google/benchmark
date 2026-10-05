@@ -1,6 +1,9 @@
 
 #undef NDEBUG
 #include <cassert>
+#include <cmath>
+#include <map>
+#include <string>
 #include <vector>
 
 #include "../src/check.h"  // NOTE: check.h is for internal use only!
@@ -33,6 +36,7 @@ struct TestCase {
   std::string name;
   bool error_occurred;
   std::string error_message;
+  std::map<std::string, double> counters{};
 
   typedef benchmark::BenchmarkReporter::Run Run;
 
@@ -46,6 +50,11 @@ struct TestCase {
       // BM_CHECK(run.iterations == 0);
     } else {
       BM_CHECK(run.iterations != 0);
+    }
+    for (const auto& c : counters) {
+      BM_CHECK(run.counters.find(c.first) != run.counters.end())
+          << "expected counter " << c.first << " to be present";
+      BM_CHECK_FLOAT_EQ(c.second, run.counters.at(c.first).value, 0.001);
     }
   }
 };
@@ -183,6 +192,14 @@ ADD_CASES("BM_error_while_paused", {{"/1/threads:1", true, "error message"},
                                     {"/2/threads:2", false, ""},
                                     {"/2/threads:4", false, ""},
                                     {"/2/threads:8", false, ""}});
+
+void BM_error_with_counter(benchmark::State& state) {
+  state.counters["foo"] = 42;
+  state.SkipWithError("error message");
+}
+BENCHMARK(BM_error_with_counter);
+ADD_CASES("BM_error_with_counter",
+          {{"", true, "error message", {{"foo", 42}}}});
 
 void BM_malformed(benchmark::State& /*unused*/) {
   // NOTE: empty body wanted. No thing else.

@@ -104,6 +104,7 @@ BenchmarkReporter::Run CreateRunReport(
   report.threads = b.threads();
   report.repetition_index = repetition_index;
   report.repetitions = repeats;
+  report.counters = results.counters;
 
   if (report.skipped == 0u) {
     if (b.use_manual_time()) {
@@ -117,7 +118,6 @@ BenchmarkReporter::Run CreateRunReport(
     report.complexity = b.complexity();
     report.complexity_lambda = b.complexity_lambda();
     report.statistics = &b.statistics();
-    report.counters = results.counters;
 
     if (memory_iterations > 0) {
       report.memory_result = memory_result;
