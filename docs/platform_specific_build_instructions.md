@@ -1,5 +1,18 @@
 # Platform Specific Build Instructions
 
+## Building with CMake
+
+CMake is the supported build system. See the
+[installation instructions](../README.md#installation) for building the library.
+
+When linking your benchmarks through the `benchmark::benchmark` or
+`benchmark::benchmark_main` CMake targets, the required platform libraries and
+compile definitions are supplied automatically, including
+`BENCHMARK_STATIC_DEFINE` for static builds. See
+[Usage with CMake](../README.md#usage-with-cmake) for instructions.
+
+For manual linking, see the platform-specific requirements below.
+
 ## Building with GCC
 
 When the library is built using GCC it is necessary to link with the pthread
@@ -15,7 +28,7 @@ On QNX, the pthread library is part of libc and usually included automatically
 [`pthread_create()`](https://www.qnx.com/developers/docs/7.1/index.html#com.qnx.doc.neutrino.lib_ref/topic/p/pthread_create.html)).
 There's no separate pthread library to link.
 
-## Building on Windows
+## Building with Visual Studio 2015, 2017 or 2022
 
 The `shlwapi` library (`-lshlwapi`) is required to support a call to `CPUInfo` which reads the registry. Either add `shlwapi.lib` under `[ Configuration Properties > Linker > Input ]`, or use the following:
 
@@ -34,10 +47,6 @@ The `shlwapi` library (`-lshlwapi`) is required to support a call to `CPUInfo` w
 ```
 
 When using the static library, make sure to add `BENCHMARK_STATIC_DEFINE` under `[Configuration Properties > C/C++ > Preprocessor > Preprocessor Definitions]`
-
-When linking through the CMake targets `benchmark::benchmark` or
-`benchmark::benchmark_main`, `BENCHMARK_STATIC_DEFINE` is already defined for
-static builds, so nothing has to be added manually.
 
 Can also use the graphical version of CMake:
 * Open `CMake GUI`.
