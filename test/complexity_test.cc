@@ -298,6 +298,42 @@ ADD_COMPLEXITY_CASES(n_ms_test_name, big_o_n_ms_test_name, rms_o_n_ms_test_name,
                      enum_auto_big_o_n, /*family_index=*/10, "ms",
                      "1\\.[0-9]+e-03");
 
+void BM_Complexity_O1_ZeroTime(benchmark::State& state) {
+  for (auto _ : state) {
+    state.SetIterationTime(0.0);
+  }
+  state.SetComplexityN(state.range(0));
+}
+BENCHMARK(BM_Complexity_O1_ZeroTime)
+    ->Range(1, 2)
+    ->UseManualTime()
+    ->Complexity(benchmark::o1);
+BENCHMARK(BM_Complexity_O1_ZeroTime)
+    ->Range(1, 2)
+    ->UseManualTime()
+    ->Complexity();
+BENCHMARK(BM_Complexity_O1_ZeroTime)
+    ->Range(1, 2)
+    ->UseManualTime()
+    ->Complexity([](benchmark::IterationCount) { return 1.0; });
+
+constexpr char one_test_name_zero_time[] =
+    "BM_Complexity_O1_ZeroTime/manual_time";
+constexpr char big_o_1_test_name_zero_time[] =
+    "BM_Complexity_O1_ZeroTime/manual_time_BigO";
+constexpr char rms_o_1_test_name_zero_time[] =
+    "BM_Complexity_O1_ZeroTime/manual_time_RMS";
+
+ADD_COMPLEXITY_CASES(one_test_name_zero_time, big_o_1_test_name_zero_time,
+                     rms_o_1_test_name_zero_time, enum_auto_big_o_1, 11, "ns",
+                     "%float");
+ADD_COMPLEXITY_CASES(one_test_name_zero_time, big_o_1_test_name_zero_time,
+                     rms_o_1_test_name_zero_time, enum_auto_big_o_1, 12, "ns",
+                     "%float");
+ADD_COMPLEXITY_CASES(one_test_name_zero_time, big_o_1_test_name_zero_time,
+                     rms_o_1_test_name_zero_time, lambda_big_o_1, 13, "ns",
+                     "%float");
+
 }  // end namespace
 
 // ========================================================================= //
