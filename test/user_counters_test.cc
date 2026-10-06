@@ -637,6 +637,50 @@ void CheckStringifyExponent(Results const& e) {
 }
 CHECK_BENCHMARK_RESULTS("BM_Counters_kStringifyExponent",
                         &CheckStringifyExponent);
+
+void BM_Counters_RateNoUnit(benchmark::State& state) {
+  for (auto _ : state) {
+    // This test requires a non-zero CPU time to avoid divide-by-zero
+    auto iterations = static_cast<double>(state.iterations()) *
+                      static_cast<double>(state.iterations());
+    benchmark::DoNotOptimize(iterations);
+  }
+  namespace bm = benchmark;
+  state.counters["foo"] =
+      bm::Counter{1, bm::Counter::kIsRate | bm::Counter::kHasNoUnit};
+  state.counters["bar"] =
+      bm::Counter{2, bm::Counter::kIsRate | bm::Counter::kHasNoUnit};
+}
+BENCHMARK(BM_Counters_RateNoUnit);
+ADD_CASES(TC_ConsoleOut,
+          {{"^BM_Counters_RateNoUnit %console_report bar=%hrfloat "
+            "foo=%hrfloat$"}});
+ADD_CASES(TC_JSONOut, {{"\"name\": \"BM_Counters_RateNoUnit\",$"},
+                       {"\"family_index\": 13,$", MR_Next},
+                       {"\"per_family_instance_index\": 0,$", MR_Next},
+                       {"\"run_name\": \"BM_Counters_RateNoUnit\",$", MR_Next},
+                       {"\"run_type\": \"iteration\",$", MR_Next},
+                       {"\"repetitions\": 1,$", MR_Next},
+                       {"\"repetition_index\": 0,$", MR_Next},
+                       {"\"threads\": 1,$", MR_Next},
+                       {"\"iterations\": %int,$", MR_Next},
+                       {"\"real_time\": %float,$", MR_Next},
+                       {"\"cpu_time\": %float,$", MR_Next},
+                       {"\"time_unit\": \"ns\",$", MR_Next},
+                       {"\"bar\": %float,$", MR_Next},
+                       {"\"foo\": %float$", MR_Next},
+                       {"}", MR_Next}});
+ADD_CASES(TC_CSVOut,
+          {{"^\"BM_Counters_RateNoUnit\",%csv_report,%float,%float$"}});
+// VS2013 does not allow this function to be passed as a lambda argument
+// to CHECK_BENCHMARK_RESULTS()
+void CheckRateNoUnit(Results const& e) {
+  double t = e.DurationCPUTime();  // this (and not real time) is the time used
+  // check that the values are within 0.1% of the expected values
+  CHECK_FLOAT_COUNTER_VALUE(e, "foo", EQ, 1. / t, 0.001);
+  CHECK_FLOAT_COUNTER_VALUE(e, "bar", EQ, 2. / t, 0.001);
+}
+CHECK_BENCHMARK_RESULTS("BM_Counters_RateNoUnit", &CheckRateNoUnit);
 }  // end namespace
 
 // ========================================================================= //
