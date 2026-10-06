@@ -2,6 +2,7 @@
 #undef NDEBUG
 
 #include <chrono>
+#include <ratio>
 #include <thread>
 
 #include "../src/timers.h"
