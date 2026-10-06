@@ -730,8 +730,9 @@ void SetDefaultTimeUnitFromFlag(const std::string& time_unit_flag) {
 
 void ParseCommandLineFlags(int* argc, char** argv) {
   using namespace benchmark;
-  BenchmarkReporter::Context::executable_name =
-      ((argc != nullptr) && *argc > 0) ? argv[0] : "unknown";
+  static std::string executable_name;
+  executable_name = ((argc != nullptr) && *argc > 0) ? argv[0] : "unknown";
+  BenchmarkReporter::Context::executable_name = executable_name.c_str();
   for (int i = 1; (argc != nullptr) && i < *argc; ++i) {
     if (ParseBoolFlag(argv[i], "benchmark_list_tests",
                       &FLAGS_benchmark_list_tests) ||
