@@ -3,6 +3,7 @@
 * [Assembly Tests](AssemblyTests.md)
 * [Bazel](bazel.md)
 * [Dependencies](dependencies.md)
+* [JSON Format](json_format.md)
 * [Perf Counters](perf_counters.md)
 * [Platform Specific Build Instructions](platform_specific_build_instructions.md)
 * [Python Bindings](python_bindings.md)
