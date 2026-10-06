@@ -50,7 +50,7 @@ jobs:
           fetch-depth: 0
           persist-credentials: false
       - name: Install Rust toolchain
-        uses: dtolnay/rust-toolchain@4cda84d5c5c54efe2404f9d843567869ab1699d4
+        uses: dtolnay/rust-toolchain@329b3806ac63fa6366e5b012d0875f3d5ee9bd5c
         with:
           toolchain: stable
       - name: Install Ninja (macOS)
