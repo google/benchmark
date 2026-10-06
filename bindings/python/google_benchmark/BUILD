@@ -4,10 +4,13 @@ load("@rules_python//python:defs.bzl", "py_library", "py_test")
 py_library(
     name = "google_benchmark",
     srcs = ["__init__.py"],
+    data = [":_benchmark"],
+    imports = [".."],
     visibility = ["//visibility:public"],
-    deps = [
-        ":_benchmark",
-    ],
+    deps = select({
+        "@nanobind_bazel//:with_split_mode": ["@nanobind_bazel//:nanobind_backend"],
+        "//conditions:default": [],
+    }),
 )
 
 nanobind_extension(
