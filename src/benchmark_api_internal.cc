@@ -93,25 +93,28 @@ State BenchmarkInstance::Run(
     IterationCount iters, int thread_id, internal::ThreadTimer* timer,
     internal::ThreadManager* manager,
     internal::PerfCountersMeasurement* perf_counters_measurement,
-    ProfilerManager* profiler_manager) const {
-  State st(name_.function_name, iters, args_, thread_id, threads_, timer,
+    ProfilerManager* profiler_manager, int thread_count) const {
+  const int n_threads = thread_count > 0 ? thread_count : threads_;
+  State st(name_.function_name, iters, args_, thread_id, n_threads, timer,
            manager, perf_counters_measurement, profiler_manager);
   benchmark_.Run(st);
   return st;
 }
 
-void BenchmarkInstance::Setup() const {
+void BenchmarkInstance::Setup(int thread_count) const {
   if (setup_ != nullptr) {
-    State st(name_.function_name, /*iters*/ 1, args_, /*thread_id*/ 0, threads_,
-             nullptr, nullptr, nullptr, nullptr);
+    const int n_threads = thread_count > 0 ? thread_count : threads_;
+    State st(name_.function_name, /*iters*/ 1, args_, /*thread_id*/ 0,
+             n_threads, nullptr, nullptr, nullptr, nullptr);
     setup_(st);
   }
 }
 
-void BenchmarkInstance::Teardown() const {
+void BenchmarkInstance::Teardown(int thread_count) const {
   if (teardown_ != nullptr) {
-    State st(name_.function_name, /*iters*/ 1, args_, /*thread_id*/ 0, threads_,
-             nullptr, nullptr, nullptr, nullptr);
+    const int n_threads = thread_count > 0 ? thread_count : threads_;
+    State st(name_.function_name, /*iters*/ 1, args_, /*thread_id*/ 0,
+             n_threads, nullptr, nullptr, nullptr, nullptr);
     teardown_(st);
   }
 }

@@ -144,14 +144,14 @@ BenchmarkReporter::Run CreateRunReport(
 void RunInThread(const BenchmarkInstance* b, IterationCount iters,
                  int thread_id, ThreadManager* manager,
                  PerfCountersMeasurement* perf_counters_measurement,
-                 ProfilerManager* profiler_manager_) {
+                 ProfilerManager* profiler_manager_, int thread_count = -1) {
   internal::ThreadTimer timer(
       b->measure_process_cpu_time()
           ? internal::ThreadTimer::CreateProcessCpuTime()
           : internal::ThreadTimer::Create());
 
   State st = b->Run(iters, thread_id, &timer, manager,
-                    perf_counters_measurement, profiler_manager_);
+                    perf_counters_measurement, profiler_manager_, thread_count);
   if (!(st.skipped() || st.iterations() >= st.max_iterations)) {
     st.SkipWithError(
         "The benchmark didn't run, nor was it explicitly skipped. Please call "
@@ -464,15 +464,16 @@ MemoryManager::Result BenchmarkRunner::RunMemoryManager(
     IterationCount memory_iterations) {
   std::unique_ptr<internal::ThreadManager> manager;
   manager.reset(new internal::ThreadManager(1));
-  b.Setup();
+  b.Setup(/*thread_count=*/1);
   memory_manager->Start();
   RunInThread(&b, memory_iterations, 0, manager.get(),
               perf_counters_measurement_ptr,
-              /*profiler_manager=*/nullptr);
+              /*profiler_manager=*/nullptr,
+              /*thread_count=*/1);
   MemoryManager::Result memory_result;
   memory_manager->Stop(memory_result);
   manager.reset();
-  b.Teardown();
+  b.Teardown(/*thread_count=*/1);
   memory_result.memory_iterations = memory_iterations;
   return memory_result;
 }
@@ -480,12 +481,13 @@ MemoryManager::Result BenchmarkRunner::RunMemoryManager(
 void BenchmarkRunner::RunProfilerManager(IterationCount profile_iterations) {
   std::unique_ptr<internal::ThreadManager> manager;
   manager.reset(new internal::ThreadManager(1));
-  b.Setup();
+  b.Setup(/*thread_count=*/1);
   RunInThread(&b, profile_iterations, 0, manager.get(),
               /*perf_counters_measurement_ptr=*/nullptr,
-              /*profiler_manager=*/profiler_manager);
+              /*profiler_manager=*/profiler_manager,
+              /*thread_count=*/1);
   manager.reset();
-  b.Teardown();
+  b.Teardown(/*thread_count=*/1);
 }
 
 void BenchmarkRunner::DoOneRepetition() {

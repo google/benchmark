@@ -41,8 +41,8 @@ class BenchmarkInstance {
   double min_warmup_time() const { return min_warmup_time_; }
   IterationCount iterations() const { return iterations_; }
   int threads() const { return threads_; }
-  void Setup() const;
-  void Teardown() const;
+  void Setup(int thread_count = -1) const;
+  void Teardown(int thread_count = -1) const;
   const auto& GetUserThreadRunnerFactory() const {
     return benchmark_.threadrunner_;
   }
@@ -50,7 +50,7 @@ class BenchmarkInstance {
   State Run(IterationCount iters, int thread_id, internal::ThreadTimer* timer,
             internal::ThreadManager* manager,
             internal::PerfCountersMeasurement* perf_counters_measurement,
-            ProfilerManager* profiler_manager) const;
+            ProfilerManager* profiler_manager, int thread_count = -1) const;
 
  private:
   BenchmarkName name_;
