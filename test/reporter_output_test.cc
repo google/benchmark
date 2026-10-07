@@ -97,34 +97,42 @@ ADD_CASES(TC_CSVOut, {{"^\"BM_basic\",%csv_report$"}});
 // ------------------------ Testing Bytes per Second Output ---------------- //
 // ========================================================================= //
 
+constexpr double kIterationTime = 150e-9;
+
 void BM_bytes_per_second(benchmark::State& state) {
   for (auto _ : state) {
-    // This test requires a non-zero CPU time to avoid divide-by-zero
-    auto iterations = static_cast<double>(state.iterations()) *
-                      static_cast<double>(state.iterations());
-    benchmark::DoNotOptimize(iterations);
+    state.SetIterationTime(kIterationTime);
   }
   state.SetBytesProcessed(1);
 }
-BENCHMARK(BM_bytes_per_second);
+BENCHMARK(BM_bytes_per_second)->UseManualTime();
 
-ADD_CASES(TC_ConsoleOut, {{"^BM_bytes_per_second %console_report "
+ADD_CASES(TC_ConsoleOut, {{"^BM_bytes_per_second/manual_time %console_report "
                            "bytes_per_second=%float[kM]{0,1}/s$"}});
-ADD_CASES(TC_JSONOut, {{"\"name\": \"BM_bytes_per_second\",$"},
-                       {"\"family_index\": 1,$", MR_Next},
-                       {"\"per_family_instance_index\": 0,$", MR_Next},
-                       {"\"run_name\": \"BM_bytes_per_second\",$", MR_Next},
-                       {"\"run_type\": \"iteration\",$", MR_Next},
-                       {"\"repetitions\": 1,$", MR_Next},
-                       {"\"repetition_index\": 0,$", MR_Next},
-                       {"\"threads\": 1,$", MR_Next},
-                       {"\"iterations\": %int,$", MR_Next},
-                       {"\"real_time\": %float,$", MR_Next},
-                       {"\"cpu_time\": %float,$", MR_Next},
-                       {"\"time_unit\": \"ns\",$", MR_Next},
-                       {"\"bytes_per_second\": %float$", MR_Next},
-                       {"}", MR_Next}});
-ADD_CASES(TC_CSVOut, {{"^\"BM_bytes_per_second\",%csv_bytes_report$"}});
+ADD_CASES(TC_JSONOut,
+          {{"\"name\": \"BM_bytes_per_second/manual_time\",$"},
+           {"\"family_index\": 1,$", MR_Next},
+           {"\"per_family_instance_index\": 0,$", MR_Next},
+           {"\"run_name\": \"BM_bytes_per_second/manual_time\",$", MR_Next},
+           {"\"run_type\": \"iteration\",$", MR_Next},
+           {"\"repetitions\": 1,$", MR_Next},
+           {"\"repetition_index\": 0,$", MR_Next},
+           {"\"threads\": 1,$", MR_Next},
+           {"\"iterations\": %int,$", MR_Next},
+           {"\"real_time\": %float,$", MR_Next},
+           {"\"cpu_time\": %float,$", MR_Next},
+           {"\"time_unit\": \"ns\",$", MR_Next},
+           {"\"bytes_per_second\": %float$", MR_Next},
+           {"}", MR_Next}});
+ADD_CASES(TC_CSVOut,
+          {{"^\"BM_bytes_per_second/manual_time\",%csv_bytes_report$"}});
+
+void BM_bytes_per_second_results(Results const& e) {
+  CHECK_FLOAT_RESULT_VALUE(e, "bytes_per_second", EQ,
+                           1.0 / (e.NumIterations() * kIterationTime), 0.001);
+}
+CHECK_BENCHMARK_RESULTS("BM_bytes_per_second/manual_time",
+                        &BM_bytes_per_second_results);
 
 // ========================================================================= //
 // ------------------------ Testing Items per Second Output ---------------- //
@@ -132,32 +140,38 @@ ADD_CASES(TC_CSVOut, {{"^\"BM_bytes_per_second\",%csv_bytes_report$"}});
 
 void BM_items_per_second(benchmark::State& state) {
   for (auto _ : state) {
-    // This test requires a non-zero CPU time to avoid divide-by-zero
-    auto iterations = static_cast<double>(state.iterations()) *
-                      static_cast<double>(state.iterations());
-    benchmark::DoNotOptimize(iterations);
+    state.SetIterationTime(kIterationTime);
   }
   state.SetItemsProcessed(1);
 }
-BENCHMARK(BM_items_per_second);
+BENCHMARK(BM_items_per_second)->UseManualTime();
 
-ADD_CASES(TC_ConsoleOut, {{"^BM_items_per_second %console_report "
+ADD_CASES(TC_ConsoleOut, {{"^BM_items_per_second/manual_time %console_report "
                            "items_per_second=%float[kM]{0,1}/s$"}});
-ADD_CASES(TC_JSONOut, {{"\"name\": \"BM_items_per_second\",$"},
-                       {"\"family_index\": 2,$", MR_Next},
-                       {"\"per_family_instance_index\": 0,$", MR_Next},
-                       {"\"run_name\": \"BM_items_per_second\",$", MR_Next},
-                       {"\"run_type\": \"iteration\",$", MR_Next},
-                       {"\"repetitions\": 1,$", MR_Next},
-                       {"\"repetition_index\": 0,$", MR_Next},
-                       {"\"threads\": 1,$", MR_Next},
-                       {"\"iterations\": %int,$", MR_Next},
-                       {"\"real_time\": %float,$", MR_Next},
-                       {"\"cpu_time\": %float,$", MR_Next},
-                       {"\"time_unit\": \"ns\",$", MR_Next},
-                       {"\"items_per_second\": %float$", MR_Next},
-                       {"}", MR_Next}});
-ADD_CASES(TC_CSVOut, {{"^\"BM_items_per_second\",%csv_items_report$"}});
+ADD_CASES(TC_JSONOut,
+          {{"\"name\": \"BM_items_per_second/manual_time\",$"},
+           {"\"family_index\": 2,$", MR_Next},
+           {"\"per_family_instance_index\": 0,$", MR_Next},
+           {"\"run_name\": \"BM_items_per_second/manual_time\",$", MR_Next},
+           {"\"run_type\": \"iteration\",$", MR_Next},
+           {"\"repetitions\": 1,$", MR_Next},
+           {"\"repetition_index\": 0,$", MR_Next},
+           {"\"threads\": 1,$", MR_Next},
+           {"\"iterations\": %int,$", MR_Next},
+           {"\"real_time\": %float,$", MR_Next},
+           {"\"cpu_time\": %float,$", MR_Next},
+           {"\"time_unit\": \"ns\",$", MR_Next},
+           {"\"items_per_second\": %float$", MR_Next},
+           {"}", MR_Next}});
+ADD_CASES(TC_CSVOut,
+          {{"^\"BM_items_per_second/manual_time\",%csv_items_report$"}});
+
+void BM_items_per_second_results(Results const& e) {
+  CHECK_FLOAT_RESULT_VALUE(e, "items_per_second", EQ,
+                           1.0 / (e.NumIterations() * kIterationTime), 0.001);
+}
+CHECK_BENCHMARK_RESULTS("BM_items_per_second/manual_time",
+                        &BM_items_per_second_results);
 
 // ========================================================================= //
 // ------------------------ Testing Label Output --------------------------- //
@@ -830,7 +844,7 @@ const auto UserStatistics = [](const std::vector<double>& v) {
 };
 void BM_UserStats(benchmark::State& state) {
   for (auto _ : state) {
-    state.SetIterationTime(150 / 10e8);
+    state.SetIterationTime(kIterationTime);
   }
 }
 // clang-format off
@@ -961,7 +975,7 @@ const auto UserPercentStatistics = [](const std::vector<double>&) {
 };
 void BM_UserPercentStats(benchmark::State& state) {
   for (auto _ : state) {
-    state.SetIterationTime(150 / 10e8);
+    state.SetIterationTime(kIterationTime);
   }
 }
 // clang-format off
