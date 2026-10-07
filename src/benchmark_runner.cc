@@ -463,12 +463,14 @@ void BenchmarkRunner::RunWarmUp() {
 MemoryManager::Result BenchmarkRunner::RunMemoryManager(
     IterationCount memory_iterations) {
   std::unique_ptr<internal::ThreadManager> manager;
-  manager.reset(new internal::ThreadManager(1));
+  manager.reset(new internal::ThreadManager(b.threads()));
   b.Setup();
   memory_manager->Start();
-  RunInThread(&b, memory_iterations, 0, manager.get(),
-              perf_counters_measurement_ptr,
-              /*profiler_manager=*/nullptr);
+  thread_runner->RunThreads([&](int thread_idx) {
+    RunInThread(&b, memory_iterations, thread_idx, manager.get(),
+                perf_counters_measurement_ptr,
+                /*profiler_manager=*/nullptr);
+  });
   MemoryManager::Result memory_result;
   memory_manager->Stop(memory_result);
   manager.reset();
@@ -479,11 +481,13 @@ MemoryManager::Result BenchmarkRunner::RunMemoryManager(
 
 void BenchmarkRunner::RunProfilerManager(IterationCount profile_iterations) {
   std::unique_ptr<internal::ThreadManager> manager;
-  manager.reset(new internal::ThreadManager(1));
+  manager.reset(new internal::ThreadManager(b.threads()));
   b.Setup();
-  RunInThread(&b, profile_iterations, 0, manager.get(),
-              /*perf_counters_measurement_ptr=*/nullptr,
-              /*profiler_manager=*/profiler_manager);
+  thread_runner->RunThreads([&](int thread_idx) {
+    RunInThread(&b, profile_iterations, thread_idx, manager.get(),
+                /*perf_counters_measurement_ptr=*/nullptr,
+                /*profiler_manager=*/profiler_manager);
+  });
   manager.reset();
   b.Teardown();
 }
