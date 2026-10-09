@@ -1,6 +1,6 @@
-// Setup()/Teardown() must run outside the MemoryManager Start()/Stop()
-// window, as they already do outside the timed region. See #2149.
-
+#include <chrono>
+#include <condition_variable>
+#include <mutex>
 #include <vector>
 
 #include "benchmark/benchmark.h"
@@ -47,6 +47,47 @@ void BM_ordering(State& state) {
   }
 }
 BENCHMARK(BM_ordering)->Iterations(1)->Setup(DoSetup)->Teardown(DoTeardown);
+
+// Regression test for #1849: multithreaded benchmarks with memory manager
+// must execute all configured threads, not just thread 0.
+class MultithreadedOrderingFixture : public Fixture {
+ public:
+  void SetUp(const State& state) override { Sync(state.threads()); }
+
+  void TearDown(const State& state) override { Sync(state.threads()); }
+
+ protected:
+  void BenchmarkCase(State& state) override {
+    for (auto _ : state) {
+    }
+  }
+
+ private:
+  void Sync(int thread_count) {
+    std::unique_lock<std::mutex> lock(mutex_);
+    int gen = generation_;
+    if (++arrived_ == thread_count) {
+      arrived_ = 0;
+      ++generation_;
+      cv_.notify_all();
+    } else {
+      ASSERT_TRUE(cv_.wait_for(lock, std::chrono::seconds(5), [&] {
+        return generation_ != gen;
+      })) << "Timed out waiting for all threads; not all threads were launched";
+    }
+  }
+
+  std::mutex mutex_;
+  std::condition_variable cv_;
+  int arrived_ = 0;
+  int generation_ = 0;
+};
+
+BENCHMARK_DEFINE_F(MultithreadedOrderingFixture, BM_MultithreadedSync)
+(State&) {}
+BENCHMARK_REGISTER_F(MultithreadedOrderingFixture, BM_MultithreadedSync)
+    ->Iterations(1)
+    ->Threads(4);
 
 // Swallows reporter output.
 class NullReporter : public BenchmarkReporter {
