@@ -266,9 +266,7 @@ TEST(BarrierTest, MultiThreadedWaitAndTeardown) {
     std::vector<std::thread> threads;
     threads.reserve(kNumThreads);
     for (int t = 0; t < kNumThreads; ++t) {
-      threads.emplace_back([&barrier]() {
-        barrier->wait();
-      });
+      threads.emplace_back([&barrier]() { barrier->wait(); });
     }
     for (auto& thread : threads) {
       thread.join();
@@ -283,13 +281,9 @@ TEST(BarrierTest, MultiThreadedRemoveThreadAndTeardown) {
     std::vector<std::thread> threads;
     threads.reserve(kNumThreads);
     for (int t = 0; t < kNumThreads - 1; ++t) {
-      threads.emplace_back([&barrier]() {
-        barrier->wait();
-      });
+      threads.emplace_back([&barrier]() { barrier->wait(); });
     }
-    threads.emplace_back([&barrier]() {
-      barrier->removeThread();
-    });
+    threads.emplace_back([&barrier]() { barrier->removeThread(); });
     for (auto& thread : threads) {
       thread.join();
     }
