@@ -1,8 +1,10 @@
 #include <map>
 #include <string>
+#include <thread>
 #include <vector>
 
 #include "../src/benchmark_register.h"
+#include "../src/mutex.h"
 #include "benchmark/benchmark.h"
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
@@ -248,6 +250,44 @@ TEST(TimingTest, PauseAndResumeInLoopReportSaneTime) {
   EXPECT_LT(runs[0].real_accumulated_time, 1.0);
   EXPECT_GE(runs[0].cpu_accumulated_time, 0.0);
   EXPECT_LT(runs[0].cpu_accumulated_time, 1.0);
+}
+
+TEST(BarrierTest, SingleThreadedWaitAndTeardown) {
+  for (int i = 0; i < 100; ++i) {
+    auto barrier = std::make_unique<Barrier>(1);
+    EXPECT_TRUE(barrier->wait());
+  }
+}
+
+TEST(BarrierTest, MultiThreadedWaitAndTeardown) {
+  constexpr int kNumThreads = 8;
+  for (int i = 0; i < 100; ++i) {
+    auto barrier = std::make_unique<Barrier>(kNumThreads);
+    std::vector<std::thread> threads;
+    threads.reserve(kNumThreads);
+    for (int t = 0; t < kNumThreads; ++t) {
+      threads.emplace_back([&barrier]() { barrier->wait(); });
+    }
+    for (auto& thread : threads) {
+      thread.join();
+    }
+  }
+}
+
+TEST(BarrierTest, MultiThreadedRemoveThreadAndTeardown) {
+  constexpr int kNumThreads = 4;
+  for (int i = 0; i < 100; ++i) {
+    auto barrier = std::make_unique<Barrier>(kNumThreads);
+    std::vector<std::thread> threads;
+    threads.reserve(kNumThreads);
+    for (int t = 0; t < kNumThreads - 1; ++t) {
+      threads.emplace_back([&barrier]() { barrier->wait(); });
+    }
+    threads.emplace_back([&barrier]() { barrier->removeThread(); });
+    for (auto& thread : threads) {
+      thread.join();
+    }
+  }
 }
 
 }  // namespace
