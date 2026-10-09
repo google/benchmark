@@ -1,4 +1,5 @@
 #include <map>
+#include <sstream>
 #include <string>
 #include <vector>
 
@@ -11,6 +12,31 @@ namespace benchmark {
 namespace internal {
 
 namespace {
+
+TEST(Initialize, OwnsExecutableName) {
+  for (const std::string& expected :
+       {std::string(200, 'x'), std::string("short"), std::string(400, 'y')}) {
+    auto reports_expected_name = [&expected]() {
+      ::benchmark::JSONReporter reporter;
+      std::ostringstream output;
+      reporter.SetOutputStream(&output);
+      ::benchmark::RunSpecifiedBenchmarks(&reporter,
+                                          "BM_pause_and_resume_in_loop");
+      return output.str().find("\"executable\": \"" + expected + "\"") !=
+             std::string::npos;
+    };
+    {
+      std::vector<char> argument(expected.begin(), expected.end());
+      argument.push_back('\0');
+      char* arguments[] = {argument.data()};
+      int count = 1;
+      ::benchmark::Initialize(&count, arguments);
+      argument[0] = 'z';
+      ASSERT_EQ(reports_expected_name(), true);
+    }
+    EXPECT_EQ(reports_expected_name(), true);
+  }
+}
 
 TEST(AddRangeTest, Simple) {
   std::vector<int> dst;
