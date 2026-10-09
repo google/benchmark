@@ -15,9 +15,10 @@ On QNX, the pthread library is part of libc and usually included automatically
 [`pthread_create()`](https://www.qnx.com/developers/docs/7.1/index.html#com.qnx.doc.neutrino.lib_ref/topic/p/pthread_create.html)).
 There's no separate pthread library to link.
 
-## Building with Visual Studio 2015, 2017 or 2022
+## Building on Windows
 
-The `shlwapi` library (`-lshlwapi`) is required to support a call to `CPUInfo` which reads the registry. Either add `shlwapi.lib` under `[ Configuration Properties > Linker > Input ]`, or use the following:
+The `shlwapi` library (`-lshlwapi`) is required to support a call to `CPUInfo` which reads the registry.
+If you are building with Visual Studio (2015, 2017 or 2022) either add `shlwapi.lib` under `[ Configuration Properties > Linker > Input ]`, or use the following:
 
 ```
 // Alternatively, can add libraries using linker options.
@@ -33,7 +34,11 @@ The `shlwapi` library (`-lshlwapi`) is required to support a call to `CPUInfo` w
 #endif
 ```
 
-When using the static library, make sure to add `BENCHMARK_STATIC_DEFINE` under `[Configuration Properties > C/C++ > Preprocessor > Preprocessor Definitions]`
+When using the static library, make sure to add `BENCHMARK_STATIC_DEFINE` (For Visual Studio under `[Configuration Properties > C/C++ > Preprocessor > Preprocessor Definitions]`).
+
+When using MingGW GCC toolchain for your project, compilation command might look like this (libbenchmark.a in the same directory as test_benchmark.cpp):
+
+`g++ test_benchmark.cpp -DBENCHMARK_STATIC_DEFINE -isystem "C:\\Program Files\\vcpkg\\installed\\x64-mingw-static\\include" -L "C:\\Program Files\\vcpkg\\installed\\x64-mingw-static\\lib" -lbenchmark -lpthread -o benchmark_test.exe`
 
 Can also use the graphical version of CMake:
 * Open `CMake GUI`.
