@@ -117,11 +117,8 @@ class Barrier {
 
   // Called by each thread
   bool wait() EXCLUDES(lock_) {
-    bool last_thread = false;
-    {
-      MutexLock ml(lock_);
-      last_thread = createBarrier(ml);
-    }
+    MutexLock ml(lock_);
+    bool last_thread = createBarrier(ml);
     if (last_thread) phase_condition_.notify_all();
     return last_thread;
   }
