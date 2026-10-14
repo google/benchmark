@@ -29,7 +29,7 @@ jobs:
       - run: python -m pip install build
       - name: Build sdist
         run: python -m build --sdist
-      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: dist-sdist
           path: dist/*.tar.gz
@@ -72,7 +72,7 @@ jobs:
           MACOSX_DEPLOYMENT_TARGET: ${{ matrix.os == 'macos-15-intel' && 10.14 || 11.0 }}
 
       - name: Upload Google Benchmark ${{ matrix.os }} wheels
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: dist-${{ matrix.os }}
           path: wheelhouse/*.whl
