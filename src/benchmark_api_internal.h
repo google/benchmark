@@ -41,6 +41,7 @@ class BenchmarkInstance {
   double min_warmup_time() const { return min_warmup_time_; }
   IterationCount iterations() const { return iterations_; }
   int threads() const { return threads_; }
+  bool report_thread_statistics() const;
   void Setup() const;
   void Teardown() const;
   const auto& GetUserThreadRunnerFactory() const {
@@ -72,6 +73,8 @@ class BenchmarkInstance {
   double min_warmup_time_;
   IterationCount iterations_;
   int threads_;  // Number of concurrent threads to us
+  bool report_thread_statistics_specified_;
+  bool report_thread_statistics_;
 
   callback_function setup_;
   callback_function teardown_;

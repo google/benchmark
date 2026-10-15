@@ -77,6 +77,8 @@ class BenchmarkRunner {
 
  private:
   RunResults run_results;
+  std::vector<std::vector<BenchmarkReporter::Run>>
+      thread_stats_per_repetition_;
 
   const benchmark::internal::BenchmarkInstance& b;
   BenchmarkReporter::PerFamilyRunReports* reports_for_family;
@@ -87,6 +89,7 @@ class BenchmarkRunner {
   bool warmup_done;
   const int repeats;
   const bool has_explicit_iteration_count;
+  const bool report_thread_statistics;
 
   int num_repetitions_done = 0;
 
@@ -100,6 +103,7 @@ class BenchmarkRunner {
 
   struct IterationResults {
     internal::ThreadManager::Result results;
+    std::vector<internal::ThreadManager::Result> thread_results;
     IterationCount iters;
     double seconds;
   };
