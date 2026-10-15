@@ -122,9 +122,9 @@ BenchmarkReporter::Run CreateRunReport(
     if (memory_iterations > 0) {
       report.memory_result = memory_result;
       report.allocs_per_iter =
-          memory_iterations != 0
+          memory_result.memory_iterations != 0
               ? static_cast<double>(memory_result.num_allocs) /
-                    static_cast<double>(memory_iterations)
+                    static_cast<double>(memory_result.memory_iterations)
               : 0;
     }
 
@@ -471,9 +471,12 @@ MemoryManager::Result BenchmarkRunner::RunMemoryManager(
               /*profiler_manager=*/nullptr);
   MemoryManager::Result memory_result;
   memory_manager->Stop(memory_result);
+  {
+    MutexLock l(manager->GetBenchmarkMutex());
+    memory_result.memory_iterations = manager->results.iterations;
+  }
   manager.reset();
   b.Teardown();
-  memory_result.memory_iterations = memory_iterations;
   return memory_result;
 }
 
