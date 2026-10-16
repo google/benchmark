@@ -139,6 +139,12 @@ bool JSONReporter::ReportContext(const Context& context) {
   CPUInfo const& info = context.cpu_info;
   out << indent << FormatKV("num_cpus", static_cast<int64_t>(info.num_cpus))
       << ",\n";
+  if (info.num_cpus_in_affinity_mask > 0) {
+    out << indent
+        << FormatKV("num_cpus_in_affinity_mask",
+                    static_cast<int64_t>(info.num_cpus_in_affinity_mask))
+        << ",\n";
+  }
   out << indent
       << FormatKV("mhz_per_cpu",
                   RoundDouble(info.cycles_per_second / 1000000.0))
