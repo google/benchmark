@@ -588,6 +588,58 @@ CHECK_BENCHMARK_RESULTS("BM_Counters_kAvgIterationsRate",
 }  // end namespace
 
 // ========================================================================= //
+// ----------------- Stringify Exponent Counters Output -------------------- //
+// ========================================================================= //
+
+namespace {
+void BM_Counters_kStringifyExponent(benchmark::State& state) {
+  for (auto _ : state) {
+    // This test requires a non-zero CPU time to avoid divide-by-zero
+    auto iterations = static_cast<double>(state.iterations()) *
+                      static_cast<double>(state.iterations());
+    benchmark::DoNotOptimize(iterations);
+  }
+  namespace bm = benchmark;
+  state.counters["foo"] =
+      bm::Counter{1.2345e-4, bm::Counter::kStringifyExponent};
+  state.counters["bar"] = bm::Counter{
+      2.3456e4, bm::Counter::kStringifyExponent | bm::Counter::kIsRate};
+}
+BENCHMARK(BM_Counters_kStringifyExponent);
+ADD_CASES(TC_ConsoleOut,
+          {{"^BM_Counters_kStringifyExponent "
+            "%console_report bar=[0-9]+([.][0-9]+)?e[+-]?[0-9]+/s "
+            "foo=[0-9]+([.][0-9]+)?e[+-]?[0-9]+$"}});
+ADD_CASES(TC_JSONOut,
+          {{"\"name\": \"BM_Counters_kStringifyExponent\",$"},
+           {"\"family_index\": 12,$", MR_Next},
+           {"\"per_family_instance_index\": 0,$", MR_Next},
+           {"\"run_name\": \"BM_Counters_kStringifyExponent\",$", MR_Next},
+           {"\"run_type\": \"iteration\",$", MR_Next},
+           {"\"repetitions\": 1,$", MR_Next},
+           {"\"repetition_index\": 0,$", MR_Next},
+           {"\"threads\": 1,$", MR_Next},
+           {"\"iterations\": %int,$", MR_Next},
+           {"\"real_time\": %float,$", MR_Next},
+           {"\"cpu_time\": %float,$", MR_Next},
+           {"\"time_unit\": \"ns\",$", MR_Next},
+           {"\"bar\": %float,$", MR_Next},
+           {"\"foo\": %float$", MR_Next},
+           {"}", MR_Next}});
+ADD_CASES(TC_CSVOut, {{"^\"BM_Counters_kStringifyExponent\",%csv_report,"
+                       "%float,%float$"}});
+// VS2013 does not allow this function to be passed as a lambda argument
+// to CHECK_BENCHMARK_RESULTS()
+void CheckStringifyExponent(Results const& e) {
+  double t = e.DurationCPUTime();
+  CHECK_FLOAT_COUNTER_VALUE(e, "foo", EQ, 1.2345e-4, 0.001);
+  CHECK_FLOAT_COUNTER_VALUE(e, "bar", EQ, 2.3456e4 / t, 0.001);
+}
+CHECK_BENCHMARK_RESULTS("BM_Counters_kStringifyExponent",
+                        &CheckStringifyExponent);
+}  // end namespace
+
+// ========================================================================= //
 // --------------------------- TEST CASES END ------------------------------ //
 // ========================================================================= //
 

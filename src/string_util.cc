@@ -109,9 +109,16 @@ std::string ExponentToPrefix(int64_t exponent, bool iec) {
 }
 
 std::string ToBinaryStringFullySpecified(double value, int precision,
-                                         Counter::OneK one_k) {
+                                         Counter::OneK one_k,
+                                         bool stringify_exponent = false) {
   auto [mantissa, exponent] = ToExponentAndMantissa(
       value, precision, one_k == Counter::kIs1024 ? 1024.0 : 1000.0);
+  if (stringify_exponent) {
+    const int64_t factor = (one_k == Counter::kIs1024 ? 10 : 3);
+    return StrFormat("%s%s%i", mantissa.c_str(),
+                     (one_k == Counter::kIs1024 ? "*2^" : "e"),
+                     static_cast<int>(exponent * factor));
+  }
   return mantissa + ExponentToPrefix(exponent, one_k == Counter::kIs1024);
 }
 
@@ -154,8 +161,9 @@ std::string StrFormatImp(const char* msg, va_list args) {
 
 }  // end namespace
 
-std::string HumanReadableNumber(double n, Counter::OneK one_k) {
-  return ToBinaryStringFullySpecified(n, 1, one_k);
+std::string HumanReadableNumber(double n, Counter::OneK one_k,
+                                bool stringify_exponent) {
+  return ToBinaryStringFullySpecified(n, 1, one_k, stringify_exponent);
 }
 
 std::string StrFormat(const char* format, ...) {

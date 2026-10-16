@@ -200,4 +200,63 @@ TEST_P(HumanReadableFixture, HumanReadableNumber) {
   ASSERT_THAT(str, ::testing::MatchesRegex(std::get<2>(GetParam())));
 }
 
+using HumanReadableStringifyExponentFixture = ::testing::TestWithParam<
+    std::tuple<double, benchmark::Counter::OneK, std::string>>;
+
+INSTANTIATE_TEST_SUITE_P(
+    HumanReadableStringifyExponentTests, HumanReadableStringifyExponentFixture,
+    ::testing::Values(
+        // Base 1024 positive powers
+        std::make_tuple(0.0, benchmark::Counter::kIs1024, "0*2^0"),
+        std::make_tuple(999.0, benchmark::Counter::kIs1024, "999*2^0"),
+        std::make_tuple(1000.0, benchmark::Counter::kIs1024, "1000*2^0"),
+        std::make_tuple(1024.0, benchmark::Counter::kIs1024, "1*2^10"),
+        std::make_tuple(1000 * 1000.0, benchmark::Counter::kIs1024,
+                        "976.562*2^10"),
+        std::make_tuple(1024 * 1024.0, benchmark::Counter::kIs1024, "1*2^20"),
+        std::make_tuple(1000 * 1000 * 1000.0, benchmark::Counter::kIs1024,
+                        "953.674*2^20"),
+        std::make_tuple(1024 * 1024 * 1024.0, benchmark::Counter::kIs1024,
+                        "1*2^30"),
+        // Base 1024 negative powers
+        std::make_tuple(1.0 / 1024.0, benchmark::Counter::kIs1024, "1*2^-10"),
+        std::make_tuple(1.0 / (1024.0 * 1024.0), benchmark::Counter::kIs1024,
+                        "1*2^-20"),
+        std::make_tuple(1.0 / (1024.0 * 1024.0 * 1024.0),
+                        benchmark::Counter::kIs1024, "1*2^-30"),
+        std::make_tuple(1.0 / 1000.0, benchmark::Counter::kIs1024,
+                        "1.024*2^-10"),
+        std::make_tuple(1.0 / (1000.0 * 1000.0), benchmark::Counter::kIs1024,
+                        "1.04858*2^-20"),
+        std::make_tuple(1.0 / (1000.0 * 1000.0 * 1000.0),
+                        benchmark::Counter::kIs1024, "1.07374*2^-30"),
+        // Base 1000 positive powers
+        std::make_tuple(0.0, benchmark::Counter::kIs1000, "0e0"),
+        std::make_tuple(999.0, benchmark::Counter::kIs1000, "999e0"),
+        std::make_tuple(1000.0, benchmark::Counter::kIs1000, "1e3"),
+        std::make_tuple(1024.0, benchmark::Counter::kIs1000, "1.024e3"),
+        std::make_tuple(1000 * 1000.0, benchmark::Counter::kIs1000, "1e6"),
+        std::make_tuple(1024 * 1024.0, benchmark::Counter::kIs1000,
+                        "1.04858e6"),
+        std::make_tuple(1000 * 1000 * 1000.0, benchmark::Counter::kIs1000,
+                        "1e9"),
+        std::make_tuple(1024 * 1024 * 1024.0, benchmark::Counter::kIs1000,
+                        "1.07374e9"),
+        // Base 1000 negative powers
+        std::make_tuple(1e-3, benchmark::Counter::kIs1000, "1e-3"),
+        std::make_tuple(1e-6, benchmark::Counter::kIs1000, "1e-6"),
+        std::make_tuple(1e-9, benchmark::Counter::kIs1000, "1e-9"),
+        std::make_tuple(1.0 / 1024.0, benchmark::Counter::kIs1000,
+                        "976.562e-6"),
+        std::make_tuple(1.0 / (1024.0 * 1024.0), benchmark::Counter::kIs1000,
+                        "953.674e-9")));
+
+TEST_P(HumanReadableStringifyExponentFixture,
+       HumanReadableNumberStringifyExponent) {
+  std::string str = benchmark::HumanReadableNumber(std::get<0>(GetParam()),
+                                                   std::get<1>(GetParam()),
+                                                   /*stringify_exponent=*/true);
+  EXPECT_EQ(str, std::get<2>(GetParam()));
+}
+
 }  // end namespace

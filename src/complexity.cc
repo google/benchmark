@@ -115,7 +115,9 @@ LeastSq MinimalLeastSq(const std::vector<ComplexityN>& n,
 
   // Normalized RMS by the mean of the observed values
   double mean = sigma_time / static_cast<double>(n.size());
-  result.rms = std::sqrt(rms / static_cast<double>(n.size())) / mean;
+  result.rms = std::fpclassify(mean) == FP_ZERO
+                   ? 0.0
+                   : std::sqrt(rms / static_cast<double>(n.size())) / mean;
 
   return result;
 }

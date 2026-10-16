@@ -4,21 +4,35 @@ import platform
 import re
 import shutil
 import sys
+import sysconfig
 from collections.abc import Generator
 from pathlib import Path
 from typing import Any
 
 import setuptools
-from setuptools.command import build_ext
+from setuptools.command import bdist_wheel, build_ext
 
 IS_WINDOWS = platform.system() == "Windows"
 IS_MAC = platform.system() == "Darwin"
 IS_LINUX = platform.system() == "Linux"
+IS_FREE_THREADED = bool(sysconfig.get_config_var("Py_GIL_DISABLED"))
 
-# hardcoded SABI-related options. Requires that each Python interpreter
-# (hermetic or not) participating is of the same major-minor version.
-py_limited_api = sys.version_info >= (3, 12)
-options = {"bdist_wheel": {"py_limited_api": "cp312"}} if py_limited_api else {}
+# Build in nanobind 3 split mode targeting stable ABI for:
+# - Standard CPython 3.10+ (cp310-abi3)
+# - Free-threaded CPython 3.15t+ (cp315-abi3t, PEP 803)
+# Free-threaded CPython 3.14t has no stable ABI and is built in linked mode.
+SPLIT_MODE = not IS_FREE_THREADED or sys.version_info >= (3, 15)
+SABI_TARGET = "cp315t" if IS_FREE_THREADED else "cp310"
+if IS_WINDOWS:
+    EXT_SUFFIX = ".pyd"
+elif SPLIT_MODE:
+    EXT_SUFFIX = ".abi3t.so" if IS_FREE_THREADED else ".abi3.so"
+else:
+    EXT_SUFFIX = ".so"
+py_limited_api = SPLIT_MODE
+options = (
+    {"bdist_wheel": {"py_limited_api": "cp310"}} if not IS_FREE_THREADED else {}
+)
 
 
 def is_cibuildwheel() -> bool:
@@ -72,6 +86,16 @@ class BazelExtension(setuptools.Extension):
         self.relpath, self.target_name = stripped_target.split(":")
 
 
+class BdistWheel(bdist_wheel.bdist_wheel):
+    """Custom bdist_wheel command to handle PEP 803 abi3t wheel tags."""
+
+    def get_tag(self) -> tuple[str, str, str]:
+        python, abi, plat = super().get_tag()
+        if IS_FREE_THREADED and sys.version_info >= (3, 15):
+            return "cp315", "abi3t", plat
+        return python, abi, plat
+
+
 class BuildBazelExtension(build_ext.build_ext):
     """A command that runs Bazel to build a C/C++ extension."""
 
@@ -107,8 +131,16 @@ class BuildBazelExtension(build_ext.build_ext):
             f"--@rules_python//python/config_settings:python_version={python_version}",
         ]
 
-        if ext.py_limited_api:
-            bazel_argv += ["--@nanobind_bazel//:py-limited-api=cp312"]
+        if IS_FREE_THREADED:
+            bazel_argv.append(
+                "--@rules_python//python/config_settings:py_freethreaded=yes"
+            )
+
+        if SPLIT_MODE:
+            bazel_argv += [
+                f"--@nanobind_bazel//:py-limited-api={SABI_TARGET}",
+                "--@nanobind_bazel//:split-mode=True",
+            ]
 
         if IS_WINDOWS:
             # Link with python*.lib.
@@ -120,11 +152,6 @@ class BuildBazelExtension(build_ext.build_ext):
 
         with _maybe_patch_toolchains():
             self.spawn(bazel_argv)
-
-        if IS_WINDOWS:
-            suffix = ".pyd"
-        else:
-            suffix = ".abi3.so" if ext.py_limited_api else ".so"
 
         # copy the Bazel build artifacts into setuptools' libdir,
         # from where the wheel is built.
@@ -146,12 +173,13 @@ class BuildBazelExtension(build_ext.build_ext):
                 # we do not want the bare .so file included
                 # when building for ABI3, so we require a
                 # full and exact match on the file extension.
-                if "".join(fp.suffixes) == suffix or fp.suffix == ".pyi":
+                if "".join(fp.suffixes) == EXT_SUFFIX or fp.suffix == ".pyi":
                     shutil.copyfile(root / fp, libdir / fp)
 
 
 setuptools.setup(
-    cmdclass={"build_ext": BuildBazelExtension},
+    cmdclass={"build_ext": BuildBazelExtension, "bdist_wheel": BdistWheel},
+    install_requires=["nanobind-backend>=1.0"] if SPLIT_MODE else [],
     package_data={"google_benchmark": ["py.typed", "*.pyi"]},
     ext_modules=[
         BazelExtension(

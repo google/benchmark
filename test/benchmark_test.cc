@@ -261,6 +261,29 @@ void BM_template1_capture(benchmark::State& state, ExtraArgs&&... extra_args) {
 BENCHMARK_TEMPLATE1_CAPTURE(BM_template1_capture, void, foo, 24UL);
 BENCHMARK_CAPTURE(BM_template1_capture<void>, foo, 24UL);
 
+void BM_ThreadRanges(benchmark::State& st) {
+  switch (st.range(0)) {
+    case 1:
+      assert(st.threads() == 1 || st.threads() == 2 || st.threads() == 4 ||
+             st.threads() == 8);
+      break;
+    case 2:
+      assert(st.threads() == 1 || st.threads() == 4 || st.threads() == 16);
+      break;
+    case 3:
+      assert(st.threads() == 2 || st.threads() == 4 || st.threads() == 16 ||
+             st.threads() == 32);
+      break;
+    default:
+      assert(false && "Invalid test case number");
+  }
+  while (st.KeepRunning()) {
+  }
+}
+BENCHMARK(BM_ThreadRanges)->Arg(1)->ThreadRange(1, 8);
+BENCHMARK(BM_ThreadRanges)->Arg(2)->ThreadRange(1, 16, 4);
+BENCHMARK(BM_ThreadRanges)->Arg(3)->ThreadRange(2, 32, 4);
+
 void BM_DenseThreadRanges(benchmark::State& st) {
   switch (st.range(0)) {
     case 1:

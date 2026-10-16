@@ -19,11 +19,15 @@ classifiers = [
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
+    "Programming Language :: Python :: 3.15",
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: Free Threading",
     "Topic :: Software Development :: Testing",
     "Topic :: System :: Benchmark",
 ]
 
-dynamic = ["readme", "version"]
+dynamic = ["dependencies", "readme", "version"]
 
 [dependency-groups]
 dev = ["pre-commit>=3.3.3"]

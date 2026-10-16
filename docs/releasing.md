@@ -9,7 +9,8 @@
       commits between the last annotated tag and HEAD
     * Pick the most interesting.
 * Create one last commit that updates the version saved in `CMakeLists.txt`, `MODULE.bazel`,
-  `bindings/python/google_benchmark/__init__.py`, and `bindings/rust/Cargo.toml` to the release version you're creating.
+  `bindings/python/google_benchmark/__init__.py`, `bindings/rust/Cargo.toml`, and
+  `bindings/rust/Cargo.lock` to the release version you're creating.
   (This version will be used if benchmark is installed from the archive you'll be creating
   in the next step.)
 
@@ -30,6 +31,13 @@ __version__ = "1.9.0"
 
 ```toml
 # bindings/rust/Cargo.toml
+version = "1.9.0"
+```
+
+```toml
+# bindings/rust/Cargo.lock
+[[package]]
+name = "google-benchmark-rs"
 version = "1.9.0"
 ```
 

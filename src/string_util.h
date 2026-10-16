@@ -13,7 +13,8 @@
 namespace benchmark {
 
 BENCHMARK_EXPORT
-std::string HumanReadableNumber(double n, Counter::OneK one_k);
+std::string HumanReadableNumber(double n, Counter::OneK one_k,
+                                bool stringify_exponent = false);
 
 BENCHMARK_EXPORT
 std::string StrFormat(const char* format, ...) PRINTF_FORMAT_STRING_FUNC(1, 2);

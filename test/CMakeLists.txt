@@ -217,6 +217,9 @@ benchmark_add_test(NAME profiler_manager_test COMMAND profiler_manager_test --be
 compile_benchmark_test(profiler_manager_iterations_test)
 benchmark_add_test(NAME profiler_manager_iterations COMMAND profiler_manager_iterations_test)
 
+compile_benchmark_test(profiler_manager_state_test)
+benchmark_add_test(NAME profiler_manager_state COMMAND profiler_manager_state_test)
+
 compile_output_test(complexity_test)
 benchmark_add_test(NAME complexity_benchmark COMMAND complexity_test --benchmark_min_time=1000000x)
 
