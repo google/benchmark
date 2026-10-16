@@ -17,6 +17,7 @@
 
 #include "complexity.h"
 
+#include <algorithm>
 #include <cmath>
 
 #include "benchmark/reporter.h"
@@ -168,7 +169,15 @@ std::vector<BenchmarkReporter::Run> ComputeBigO(
   typedef BenchmarkReporter::Run Run;
   std::vector<Run> results;
 
-  if (reports.size() < 2) {
+  const auto is_successful = [](Run const& run) {
+    return run.skipped == internal::NotSkipped && run.iterations > 0;
+  };
+  auto successful_run =
+      std::find_if(reports.begin(), reports.end(), is_successful);
+  const auto successful_count = static_cast<size_t>(
+      std::count_if(reports.begin(), reports.end(), is_successful));
+
+  if (successful_count < 2) {
     return results;
   }
 
@@ -179,6 +188,9 @@ std::vector<BenchmarkReporter::Run> ComputeBigO(
 
   // Populate the accumulators.
   for (const Run& run : reports) {
+    if (!is_successful(run)) {
+      continue;
+    }
     BM_CHECK_GT(run.complexity_n, 0)
         << "Did you forget to call SetComplexityN?";
     n.push_back(run.complexity_n);
@@ -191,13 +203,13 @@ std::vector<BenchmarkReporter::Run> ComputeBigO(
   LeastSq result_cpu;
   LeastSq result_real;
 
-  if (reports[0].complexity == oLambda) {
-    result_cpu = MinimalLeastSq(n, cpu_time, reports[0].complexity_lambda);
-    result_real = MinimalLeastSq(n, real_time, reports[0].complexity_lambda);
+  if (successful_run->complexity == oLambda) {
+    result_cpu = MinimalLeastSq(n, cpu_time, successful_run->complexity_lambda);
+    result_real = MinimalLeastSq(n, real_time, successful_run->complexity_lambda);
   } else {
-    const BigO* InitialBigO = &reports[0].complexity;
+    const BigO* InitialBigO = &successful_run->complexity;
     const bool use_real_time_for_initial_big_o =
-        reports[0].use_real_time_for_initial_big_o;
+        successful_run->use_real_time_for_initial_big_o;
     if (use_real_time_for_initial_big_o) {
       result_real = MinimalLeastSq(n, real_time, *InitialBigO);
       InitialBigO = &result_real.complexity;
@@ -211,55 +223,55 @@ std::vector<BenchmarkReporter::Run> ComputeBigO(
   }
 
   // Drop the 'args' when reporting complexity.
-  auto run_name = reports[0].run_name;
+  auto run_name = successful_run->run_name;
   run_name.args.clear();
 
   // Get the data from the accumulator to BenchmarkReporter::Run's.
   Run big_o;
   big_o.run_name = run_name;
-  big_o.family_index = reports[0].family_index;
-  big_o.per_family_instance_index = reports[0].per_family_instance_index;
+  big_o.family_index = successful_run->family_index;
+  big_o.per_family_instance_index = successful_run->per_family_instance_index;
   big_o.run_type = BenchmarkReporter::Run::RT_Aggregate;
-  big_o.repetitions = reports[0].repetitions;
+  big_o.repetitions = successful_run->repetitions;
   big_o.repetition_index = Run::no_repetition_index;
-  big_o.threads = reports[0].threads;
+  big_o.threads = successful_run->threads;
   big_o.aggregate_name = "BigO";
   big_o.aggregate_unit = StatisticUnit::kTime;
-  big_o.report_label = reports[0].report_label;
+  big_o.report_label = successful_run->report_label;
   big_o.iterations = 0;
   big_o.real_accumulated_time = result_real.coef;
   big_o.cpu_accumulated_time = result_cpu.coef;
   big_o.report_big_o = true;
   big_o.complexity = result_cpu.complexity;
-  big_o.time_unit = reports[0].time_unit;
+  big_o.time_unit = successful_run->time_unit;
 
   // All the time results are reported after being multiplied by the
   // time unit multiplier. But since RMS is a relative quantity it
   // should not be multiplied at all. So, here, we _divide_ it by the
   // multiplier so that when it is multiplied later the result is the
   // correct one.
-  double multiplier = GetTimeUnitMultiplier(reports[0].time_unit);
+  double multiplier = GetTimeUnitMultiplier(successful_run->time_unit);
 
   // Only add label to mean/stddev if it is same for all runs
   Run rms;
   rms.run_name = run_name;
-  rms.family_index = reports[0].family_index;
-  rms.per_family_instance_index = reports[0].per_family_instance_index;
+  rms.family_index = successful_run->family_index;
+  rms.per_family_instance_index = successful_run->per_family_instance_index;
   rms.run_type = BenchmarkReporter::Run::RT_Aggregate;
   rms.aggregate_name = "RMS";
   rms.aggregate_unit = StatisticUnit::kPercentage;
   rms.report_label = big_o.report_label;
   rms.iterations = 0;
   rms.repetition_index = Run::no_repetition_index;
-  rms.repetitions = reports[0].repetitions;
-  rms.threads = reports[0].threads;
+  rms.repetitions = successful_run->repetitions;
+  rms.threads = successful_run->threads;
   rms.real_accumulated_time = result_real.rms / multiplier;
   rms.cpu_accumulated_time = result_cpu.rms / multiplier;
   rms.report_rms = true;
   rms.complexity = result_cpu.complexity;
   // don't forget to keep the time unit, or we won't be able to
   // recover the correct value.
-  rms.time_unit = reports[0].time_unit;
+  rms.time_unit = successful_run->time_unit;
 
   results.push_back(big_o);
   results.push_back(rms);
