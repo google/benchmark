@@ -251,7 +251,6 @@ if (BENCHMARK_ENABLE_GTEST_TESTS)
   endmacro()
 
   add_gtest(benchmark_gtest)
-  add_gtest(benchmark_warmup_gtest)
   add_gtest(benchmark_name_gtest)
   add_gtest(benchmark_random_interleaving_gtest)
   add_gtest(commandlineflags_gtest)
