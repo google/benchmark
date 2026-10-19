@@ -35,6 +35,7 @@
 #include <sys/sysctl.h>
 #endif
 #if defined(BENCHMARK_OS_MACOSX)
+#include <Availability.h>
 #include <mach/mach_init.h>
 #include <mach/mach_port.h>
 #include <mach/thread_act.h>
@@ -150,9 +151,7 @@ double ProcessCPUUsage() {
            (static_cast<double>(ts.tv_nsec) * 1e-9);
   }
   DiagnoseAndExit("clock_gettime(CLOCK_MONOTONIC, ...) failed");
-#elif defined(CLOCK_PROCESS_CPUTIME_ID) && !defined(BENCHMARK_OS_MACOSX)
-  // FIXME We want to use clock_gettime, but its not available in MacOS 10.11.
-  // See https://github.com/google/benchmark/pull/292
+#elif defined(CLOCK_PROCESS_CPUTIME_ID)
   struct timespec spec {};
   if (clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &spec) == 0) {
     return MakeTime(spec);
@@ -183,9 +182,11 @@ double ThreadCPUUsage() {
   return static_cast<double>(
              qurt_timer_timetick_to_us(qurt_sysclock_get_hw_ticks())) *
          1.0e-6;
-#elif defined(BENCHMARK_OS_MACOSX)
-  // FIXME We want to use clock_gettime, but its not available in MacOS 10.11.
-  // See https://github.com/google/benchmark/pull/292
+#elif defined(BENCHMARK_OS_MACOSX) &&             \
+    (!defined(__MAC_OS_X_VERSION_MIN_REQUIRED) || \
+     __MAC_OS_X_VERSION_MIN_REQUIRED < 101200)
+  // clock_gettime is available since macOS 10.12, older deployment targets
+  // and other Apple platforms read mach's thread_info, which is slower.
   mach_msg_type_number_t count = THREAD_BASIC_INFO_COUNT;
   thread_basic_info_data_t info;
   mach_port_t thread = pthread_mach_thread_np(pthread_self());
