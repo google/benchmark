@@ -34,12 +34,6 @@
     defined BENCHMARK_OS_MACOSX
 #include <sys/sysctl.h>
 #endif
-#if defined(BENCHMARK_OS_MACOSX)
-#include <Availability.h>
-#include <mach/mach_init.h>
-#include <mach/mach_port.h>
-#include <mach/thread_act.h>
-#endif
 #if defined(BENCHMARK_OS_QURT)
 #include <qurt.h>
 #endif
@@ -93,14 +87,6 @@ double MakeTime(struct rusage const& ru) {
           static_cast<double>(ru.ru_utime.tv_usec) * 1e-6 +
           static_cast<double>(ru.ru_stime.tv_sec) +
           static_cast<double>(ru.ru_stime.tv_usec) * 1e-6);
-}
-#endif
-#if defined(BENCHMARK_OS_MACOSX)
-double MakeTime(thread_basic_info_data_t const& info) {
-  return (static_cast<double>(info.user_time.seconds) +
-          static_cast<double>(info.user_time.microseconds) * 1e-6 +
-          static_cast<double>(info.system_time.seconds) +
-          static_cast<double>(info.system_time.microseconds) * 1e-6);
 }
 #endif
 #if defined(CLOCK_PROCESS_CPUTIME_ID) || defined(CLOCK_THREAD_CPUTIME_ID)
