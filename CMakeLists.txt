@@ -126,7 +126,7 @@ message(STATUS "Google Benchmark version: ${VERSION}, normalized to ${NORMALIZED
 
 # The version of the libraries
 set(GENERIC_LIB_VERSION ${NORMALIZED_VERSION})
-string(SUBSTRING ${NORMALIZED_VERSION} 0 1 GENERIC_LIB_SOVERSION)
+set(GENERIC_LIB_SOVERSION ${NORMALIZED_VERSION})
 
 # Import our CMake modules
 include(AddCXXCompilerFlag)
