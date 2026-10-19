@@ -182,20 +182,6 @@ double ThreadCPUUsage() {
   return static_cast<double>(
              qurt_timer_timetick_to_us(qurt_sysclock_get_hw_ticks())) *
          1.0e-6;
-#elif defined(BENCHMARK_OS_MACOSX) &&             \
-    (!defined(__MAC_OS_X_VERSION_MIN_REQUIRED) || \
-     __MAC_OS_X_VERSION_MIN_REQUIRED < 101200)
-  // clock_gettime is available since macOS 10.12, older deployment targets
-  // and other Apple platforms read mach's thread_info, which is slower.
-  mach_msg_type_number_t count = THREAD_BASIC_INFO_COUNT;
-  thread_basic_info_data_t info;
-  mach_port_t thread = pthread_mach_thread_np(pthread_self());
-  if (thread_info(thread, THREAD_BASIC_INFO,
-                  reinterpret_cast<thread_info_t>(&info),
-                  &count) == KERN_SUCCESS) {
-    return MakeTime(info);
-  }
-  DiagnoseAndExit("ThreadCPUUsage() failed when evaluating thread_info");
 #elif defined(BENCHMARK_OS_EMSCRIPTEN)
   // Emscripten doesn't support traditional threads
   return ProcessCPUUsage();
