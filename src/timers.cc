@@ -34,11 +34,6 @@
     defined BENCHMARK_OS_MACOSX
 #include <sys/sysctl.h>
 #endif
-#if defined(BENCHMARK_OS_MACOSX)
-#include <mach/mach_init.h>
-#include <mach/mach_port.h>
-#include <mach/thread_act.h>
-#endif
 #if defined(BENCHMARK_OS_QURT)
 #include <qurt.h>
 #endif
@@ -94,14 +89,6 @@ double MakeTime(struct rusage const& ru) {
           static_cast<double>(ru.ru_stime.tv_usec) * 1e-6);
 }
 #endif
-#if defined(BENCHMARK_OS_MACOSX)
-double MakeTime(thread_basic_info_data_t const& info) {
-  return (static_cast<double>(info.user_time.seconds) +
-          static_cast<double>(info.user_time.microseconds) * 1e-6 +
-          static_cast<double>(info.system_time.seconds) +
-          static_cast<double>(info.system_time.microseconds) * 1e-6);
-}
-#endif
 #if defined(CLOCK_PROCESS_CPUTIME_ID) || defined(CLOCK_THREAD_CPUTIME_ID)
 double MakeTime(struct timespec const& ts) {
   return static_cast<double>(ts.tv_sec) +
@@ -150,9 +137,7 @@ double ProcessCPUUsage() {
            (static_cast<double>(ts.tv_nsec) * 1e-9);
   }
   DiagnoseAndExit("clock_gettime(CLOCK_MONOTONIC, ...) failed");
-#elif defined(CLOCK_PROCESS_CPUTIME_ID) && !defined(BENCHMARK_OS_MACOSX)
-  // FIXME We want to use clock_gettime, but its not available in MacOS 10.11.
-  // See https://github.com/google/benchmark/pull/292
+#elif defined(CLOCK_PROCESS_CPUTIME_ID)
   struct timespec spec {};
   if (clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &spec) == 0) {
     return MakeTime(spec);
@@ -183,18 +168,6 @@ double ThreadCPUUsage() {
   return static_cast<double>(
              qurt_timer_timetick_to_us(qurt_sysclock_get_hw_ticks())) *
          1.0e-6;
-#elif defined(BENCHMARK_OS_MACOSX)
-  // FIXME We want to use clock_gettime, but its not available in MacOS 10.11.
-  // See https://github.com/google/benchmark/pull/292
-  mach_msg_type_number_t count = THREAD_BASIC_INFO_COUNT;
-  thread_basic_info_data_t info;
-  mach_port_t thread = pthread_mach_thread_np(pthread_self());
-  if (thread_info(thread, THREAD_BASIC_INFO,
-                  reinterpret_cast<thread_info_t>(&info),
-                  &count) == KERN_SUCCESS) {
-    return MakeTime(info);
-  }
-  DiagnoseAndExit("ThreadCPUUsage() failed when evaluating thread_info");
 #elif defined(BENCHMARK_OS_EMSCRIPTEN)
   // Emscripten doesn't support traditional threads
   return ProcessCPUUsage();
