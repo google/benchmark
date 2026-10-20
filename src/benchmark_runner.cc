@@ -291,12 +291,11 @@ BenchmarkRunner::BenchmarkRunner(
       min_time(FLAGS_benchmark_dry_run
                    ? 0
                    : ComputeMinTime(b_, parsed_benchtime_flag)),
-      min_warmup_time(
-          FLAGS_benchmark_dry_run
-              ? 0
-              : ((!IsZero(b.min_time()) && b.min_warmup_time() > 0.0)
-                     ? b.min_warmup_time()
-                     : FLAGS_benchmark_min_warmup_time)),
+      min_warmup_time(FLAGS_benchmark_dry_run
+                          ? 0
+                          : (b.min_warmup_time() > 0.0
+                                 ? b.min_warmup_time()
+                                 : FLAGS_benchmark_min_warmup_time)),
       warmup_done(FLAGS_benchmark_dry_run ? true : !(min_warmup_time > 0.0)),
       repeats(FLAGS_benchmark_dry_run
                   ? 1
