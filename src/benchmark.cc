@@ -32,7 +32,9 @@
 
 #ifdef __ANDROID_NDK__
 #include <malloc.h>
+#if __ANDROID_API__ < 26
 extern "C" __attribute__((weak)) int mallopt(int, int);
+#endif
 #endif
 
 #ifdef BENCHMARK_OS_LINUX
@@ -973,9 +975,7 @@ void Initialize(int* argc, char** argv, void (*HelperPrintf)()) {
   if (__builtin_available(android 31, *)) {
     // Not asserting on the return value, as sanitizers interpose the allocator
     // and always return 0
-    if (&mallopt != nullptr) {
-      (void)mallopt(M_BIONIC_ZERO_INIT, 0);
-    }
+    (void)mallopt(M_BIONIC_ZERO_INIT, 0);
   }
 
   // The default configuration of bionic is to return pages to the OS as soon
@@ -983,9 +983,7 @@ void Initialize(int* argc, char** argv, void (*HelperPrintf)()) {
   // delay before returning memory to avoid excessive faulting on repeated
   // allocation and deallocation, which is common in repeated benchmark runs.
   if (__builtin_available(android 27, *)) {
-    if (&mallopt != nullptr) {
-      (void)mallopt(M_DECAY_TIME, 1);
-    }
+    (void)mallopt(M_DECAY_TIME, 1);
   }
 #endif
   internal::HelperPrintf = HelperPrintf;
