@@ -32,6 +32,9 @@
 
 #ifdef __ANDROID_NDK__
 #include <malloc.h>
+#if __ANDROID_API__ < 26
+extern "C" __attribute__((weak)) int mallopt(int, int);
+#endif
 #endif
 
 #ifdef BENCHMARK_OS_LINUX
