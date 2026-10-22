@@ -204,6 +204,12 @@ void BM_pause_and_resume_in_loop(benchmark::State& state) {
 }
 BENCHMARK(BM_pause_and_resume_in_loop)->Iterations(1);
 
+void BM_complexity_no_set_complexity_n(benchmark::State& state) {
+  for (auto _ : state) {
+  }
+}
+BENCHMARK(BM_complexity_no_set_complexity_n)->Range(1, 2)->Complexity();
+
 class CapturingReporter : public BenchmarkReporter {
  public:
   bool ReportContext(const Context& /*context*/) override { return true; }
@@ -237,6 +243,13 @@ TEST(TimingDeathTest, ResumeBeforeLoop) {
 
 TEST(TimingDeathTest, ResumeAfterLoop) {
   ASSERT_DEBUG_DEATH(RunOne("BM_resume_after_loop"), "ResumeTiming");
+}
+
+TEST(ComplexityDeathTest, NoSetComplexityN) {
+#ifndef TEST_BENCHMARK_LIBRARY_HAS_NO_ASSERTIONS
+  ASSERT_DEBUG_DEATH(RunOne("BM_complexity_no_set_complexity_n"),
+                     "Did you forget to call SetComplexityN\\?");
+#endif
 }
 
 TEST(TimingTest, PauseAndResumeInLoopReportSaneTime) {

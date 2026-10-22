@@ -334,6 +334,65 @@ ADD_COMPLEXITY_CASES(one_test_name_zero_time, big_o_1_test_name_zero_time,
                      rms_o_1_test_name_zero_time, lambda_big_o_1, 13, "ns",
                      "%float");
 
+// ========================================================================= //
+// ------------------- Testing BigO with range including 0 ----------------- //
+// ========================================================================= //
+
+void BM_Complexity_Zero_Range(benchmark::State& state) {
+  for (auto _ : state) {
+    // This test requires a non-zero CPU time to avoid divide-by-zero
+    benchmark::DoNotOptimize(state.iterations());
+    double tmp = static_cast<double>(state.iterations());
+    benchmark::DoNotOptimize(tmp);
+    for (benchmark::IterationCount i = 0; i < state.iterations(); ++i) {
+      benchmark::DoNotOptimize(state.iterations());
+      tmp *= static_cast<double>(state.iterations());
+      benchmark::DoNotOptimize(tmp);
+    }
+
+    state.SetIterationTime(static_cast<double>(state.range(0)) * 42 * 1e-9);
+  }
+  state.SetComplexityN(state.range(0));
+}
+BENCHMARK(BM_Complexity_Zero_Range)
+    ->Range(0, 1 << 10)
+    ->UseManualTime()
+    ->Complexity(benchmark::oN);
+BENCHMARK(BM_Complexity_Zero_Range)
+    ->Range(0, 1 << 10)
+    ->UseManualTime()
+    ->Complexity();
+BENCHMARK(BM_Complexity_Zero_Range)
+    ->Range(0, 1 << 10)
+    ->UseManualTime()
+    ->Complexity([](benchmark::IterationCount n) -> double {
+      return static_cast<double>(n);
+    });
+BENCHMARK(BM_Complexity_Zero_Range)
+    ->Range(0, 1)
+    ->UseManualTime()
+    ->Complexity(benchmark::oLogN);
+
+constexpr char zero_range_test_name[] = "BM_Complexity_Zero_Range/manual_time";
+constexpr char big_o_zero_range_test_name[] =
+    "BM_Complexity_Zero_Range/manual_time_BigO";
+constexpr char rms_zero_range_test_name[] =
+    "BM_Complexity_Zero_Range/manual_time_RMS";
+constexpr char enum_auto_big_o_log_n[] = "lgN";
+
+ADD_COMPLEXITY_CASES(zero_range_test_name, big_o_zero_range_test_name,
+                     rms_zero_range_test_name, enum_auto_big_o_n, 14, "ns",
+                     "%float");
+ADD_COMPLEXITY_CASES(zero_range_test_name, big_o_zero_range_test_name,
+                     rms_zero_range_test_name, enum_auto_big_o_n, 15, "ns",
+                     "%float");
+ADD_COMPLEXITY_CASES(zero_range_test_name, big_o_zero_range_test_name,
+                     rms_zero_range_test_name, lambda_big_o_n, 16, "ns",
+                     "%float");
+ADD_COMPLEXITY_CASES(zero_range_test_name, big_o_zero_range_test_name,
+                     rms_zero_range_test_name, enum_auto_big_o_log_n, 17, "ns",
+                     "%float");
+
 }  // end namespace
 
 // ========================================================================= //
