@@ -96,6 +96,8 @@ class BENCHMARK_EXPORT BENCHMARK_INTERNAL_CACHELINE_ALIGNED State {
     return 0;
   }
 
+  // Set the size of the benchmarked problem (complexity_n >= 0).
+  // Used to calculate Big-O and RMS time complexity.
   BENCHMARK_ALWAYS_INLINE
   void SetComplexityN(ComplexityN complexity_n) {
     complexity_n_ = complexity_n;
