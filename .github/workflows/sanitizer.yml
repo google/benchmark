@@ -57,7 +57,7 @@ jobs:
         echo "ASAN_OPTIONS=alloc_dealloc_mismatch=0" >> $GITHUB_ENV
 
     - name: setup clang
-      uses: egor-tensin/setup-clang@23bc15cd4207e45f1566447deb48f4ff3ef932cb # v2.3
+      uses: egor-tensin/setup-clang@c806e5e95b4f097c34622c07201b4aac45d8c897 # v2.3
       with:
         version: latest
         platform: x64
