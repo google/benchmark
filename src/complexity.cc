@@ -32,24 +32,24 @@ namespace {
 BigOFunc* FittingCurve(BigO complexity) {
   switch (complexity) {
     case oN:
-      return [](IterationCount n) -> double { return static_cast<double>(n); };
+      return [](ComplexityN n) -> double { return static_cast<double>(n); };
     case oNSquared:
-      return [](IterationCount n) -> double { return std::pow(n, 2); };
+      return [](ComplexityN n) -> double { return std::pow(n, 2); };
     case oNCubed:
-      return [](IterationCount n) -> double { return std::pow(n, 3); };
+      return [](ComplexityN n) -> double { return std::pow(n, 3); };
     case oLogN:
-      return [](IterationCount n) -> double {
+      return [](ComplexityN n) -> double {
         if (n <= 1) return 0.0;
         return std::log2(static_cast<double>(n));
       };
     case oNLogN:
-      return [](IterationCount n) -> double {
+      return [](ComplexityN n) -> double {
         if (n <= 1) return 0.0;
         return static_cast<double>(n) * std::log2(static_cast<double>(n));
       };
     case o1:
     default:
-      return [](IterationCount) { return 1.0; };
+      return [](ComplexityN) { return 1.0; };
   }
 }
 

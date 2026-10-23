@@ -164,10 +164,11 @@ void RunInThread(const BenchmarkInstance* b, IterationCount iters,
     results.cpu_time_used += timer.cpu_time_used();
     results.real_time_used += timer.real_time_used();
     results.manual_time_used += timer.manual_time_used();
-    if (st.complexity_length_n() >= 0) {
-      if (results.complexity_n < 0) {
-        results.complexity_n = 0;
-      }
+    if (results.complexity_n < 0) {
+      results.complexity_n = st.complexity_length_n();
+    } else if (st.complexity_length_n() < 0) {
+      results.complexity_n = -1;
+    } else {
       results.complexity_n += st.complexity_length_n();
     }
     internal::Increment(&results.counters, st.counters);

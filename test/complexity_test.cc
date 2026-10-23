@@ -97,7 +97,7 @@ BENCHMARK(BM_Complexity_O1)->Range(1, 1 << 18)->UseManualTime()->Complexity();
 BENCHMARK(BM_Complexity_O1)
     ->Range(1, 1 << 18)
     ->UseManualTime()
-    ->Complexity([](benchmark::IterationCount) { return 1.0; });
+    ->Complexity([](benchmark::ComplexityN) { return 1.0; });
 
 constexpr char one_test_name[] = "BM_Complexity_O1/manual_time";
 constexpr char big_o_1_test_name[] = "BM_Complexity_O1/manual_time_BigO";
@@ -152,7 +152,7 @@ BENCHMARK(BM_Complexity_O_N)
     ->RangeMultiplier(2)
     ->Range(1 << 10, 1 << 20)
     ->UseManualTime()
-    ->Complexity([](benchmark::IterationCount n) -> double {
+    ->Complexity([](benchmark::ComplexityN n) -> double {
       return static_cast<double>(n);
     });
 
@@ -210,7 +210,7 @@ BENCHMARK(BM_Complexity_O_N_log_N)
     ->RangeMultiplier(2)
     ->Range(1 << 10, 1U << 24)
     ->UseManualTime()
-    ->Complexity([](benchmark::IterationCount n) {
+    ->Complexity([](benchmark::ComplexityN n) {
       return kLog2E * static_cast<double>(n) * std::log(static_cast<double>(n));
     });
 
@@ -315,7 +315,7 @@ BENCHMARK(BM_Complexity_O1_ZeroTime)
 BENCHMARK(BM_Complexity_O1_ZeroTime)
     ->Range(1, 2)
     ->UseManualTime()
-    ->Complexity([](benchmark::IterationCount) { return 1.0; });
+    ->Complexity([](benchmark::ComplexityN) { return 1.0; });
 
 constexpr char one_test_name_zero_time[] =
     "BM_Complexity_O1_ZeroTime/manual_time";
@@ -365,7 +365,7 @@ BENCHMARK(BM_Complexity_Zero_Range)
 BENCHMARK(BM_Complexity_Zero_Range)
     ->Range(0, 1 << 10)
     ->UseManualTime()
-    ->Complexity([](benchmark::IterationCount n) -> double {
+    ->Complexity([](benchmark::ComplexityN n) -> double {
       return static_cast<double>(n);
     });
 BENCHMARK(BM_Complexity_Zero_Range)
