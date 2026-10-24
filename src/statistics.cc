@@ -17,8 +17,10 @@
 
 #include <algorithm>
 #include <cmath>
+#include <map>
 #include <numeric>
 #include <string>
+#include <utility>
 #include <vector>
 
 #include "benchmark/reporter.h"
@@ -107,6 +109,58 @@ double StatisticsCV(const std::vector<double>& v) {
   return stddev / mean;
 }
 
+std::vector<BenchmarkReporter::Run> ComputeAggregateReports(
+    const BenchmarkReporter::Run& base,
+    const std::vector<internal::Statistics>& statistics,
+    const std::vector<double>& real_times, const std::vector<double>& cpu_times,
+    const std::map<std::string, AggregateCounterSamples>& counters,
+    IterationCount iterations_per_sample, const std::string& name_prefix,
+    int64_t repetition_index, const std::string& report_label) {
+  typedef BenchmarkReporter::Run Run;
+  std::vector<Run> results;
+  if (real_times.empty()) {
+    return results;
+  }
+
+  const IterationCount rescale_iterations =
+      iterations_per_sample == 0 ? 1 : iterations_per_sample;
+  const double iteration_rescale_factor =
+      static_cast<double>(real_times.size()) /
+      static_cast<double>(rescale_iterations);
+
+  for (const auto& Stat : statistics) {
+    Run data;
+    data.run_name = base.run_name;
+    data.family_index = base.family_index;
+    data.per_family_instance_index = base.per_family_instance_index;
+    data.run_type = BenchmarkReporter::Run::RT_Aggregate;
+    data.threads = base.threads;
+    data.repetitions = base.repetitions;
+    data.repetition_index = repetition_index;
+    data.aggregate_name = name_prefix + Stat.name_;
+    data.aggregate_unit = Stat.unit_;
+    data.report_label = report_label;
+    // Report the number of samples, not the iterations already averaged
+    // inside each sample. See ComputeStats for the same rule.
+    data.iterations = static_cast<IterationCount>(real_times.size());
+    data.real_accumulated_time = Stat.compute_(real_times);
+    data.cpu_accumulated_time = Stat.compute_(cpu_times);
+    if (data.aggregate_unit == StatisticUnit::kTime) {
+      data.real_accumulated_time *= iteration_rescale_factor;
+      data.cpu_accumulated_time *= iteration_rescale_factor;
+    }
+    data.time_unit = base.time_unit;
+    for (const auto& kv : counters) {
+      // Do *NOT* rescale the custom counters. They are already properly scaled.
+      const auto uc_stat = Stat.compute_(kv.second.values);
+      data.counters[kv.first] =
+          Counter(uc_stat, kv.second.counter.flags, kv.second.counter.oneK);
+    }
+    results.push_back(std::move(data));
+  }
+  return results;
+}
+
 std::vector<BenchmarkReporter::Run> ComputeStats(
     const std::vector<BenchmarkReporter::Run>& reports) {
   typedef BenchmarkReporter::Run Run;
@@ -136,11 +190,7 @@ std::vector<BenchmarkReporter::Run> ComputeStats(
   // can take this information from the first benchmark.
   const IterationCount run_iterations = successful_run->iterations;
   // create stats for user counters
-  struct CounterStat {
-    Counter c;
-    std::vector<double> s;
-  };
-  std::map<std::string, CounterStat> counter_stats;
+  std::map<std::string, AggregateCounterSamples> counter_stats;
   for (Run const& r : reports) {
     if (!is_successful(r)) {
       continue;
@@ -150,11 +200,11 @@ std::vector<BenchmarkReporter::Run> ComputeStats(
       if (it == counter_stats.end()) {
         it = counter_stats
                  .emplace(cnt.first,
-                          CounterStat{cnt.second, std::vector<double>{}})
+                          AggregateCounterSamples{cnt.second, {}})
                  .first;
-        it->second.s.reserve(successful_count);
+        it->second.values.reserve(successful_count);
       } else {
-        BM_CHECK_EQ(it->second.c.flags, cnt.second.flags);
+        BM_CHECK_EQ(it->second.counter.flags, cnt.second.flags);
       }
     }
   }
@@ -172,7 +222,7 @@ std::vector<BenchmarkReporter::Run> ComputeStats(
     for (auto const& cnt : run.counters) {
       auto it = counter_stats.find(cnt.first);
       BM_CHECK_NE(it, counter_stats.end());
-      it->second.s.emplace_back(cnt.second);
+      it->second.values.emplace_back(cnt.second);
     }
   }
 
@@ -188,59 +238,14 @@ std::vector<BenchmarkReporter::Run> ComputeStats(
     }
   }
 
-  const double iteration_rescale_factor =
-      static_cast<double>(successful_count) /
-      static_cast<double>(run_iterations);
-
-  for (const auto& Stat : *successful_run->statistics) {
-    // Get the data from the accumulator to BenchmarkReporter::Run's.
-    Run data;
-    data.run_name = successful_run->run_name;
-    data.family_index = successful_run->family_index;
-    data.per_family_instance_index = successful_run->per_family_instance_index;
-    data.run_type = BenchmarkReporter::Run::RT_Aggregate;
-    data.threads = successful_run->threads;
-    data.repetitions = successful_run->repetitions;
-    data.repetition_index = Run::no_repetition_index;
-    data.aggregate_name = Stat.name_;
-    data.aggregate_unit = Stat.unit_;
-    data.report_label = report_label;
-
-    // It is incorrect to say that an aggregate is computed over
-    // run's iterations, because those iterations already got averaged.
-    // Similarly, if there are N repetitions with 1 iterations each,
-    // an aggregate will be computed over N measurements, not 1.
-    // Thus it is best to simply use the count of separate reports.
-    data.iterations = static_cast<IterationCount>(successful_count);
-
-    data.real_accumulated_time = Stat.compute_(real_accumulated_time_stat);
-    data.cpu_accumulated_time = Stat.compute_(cpu_accumulated_time_stat);
-
-    if (data.aggregate_unit == StatisticUnit::kTime) {
-      // We will divide these times by data.iterations when reporting, but the
-      // data.iterations is not necessarily the scale of these measurements,
-      // because in each repetition, these timers are sum over all the iters.
-      // And if we want to say that the stats are over N repetitions and not
-      // M iterations, we need to multiply these by (N/M).
-      data.real_accumulated_time *= iteration_rescale_factor;
-      data.cpu_accumulated_time *= iteration_rescale_factor;
-    }
-
-    data.time_unit = successful_run->time_unit;
-
-    // user counters
-    for (auto const& kv : counter_stats) {
-      // Do *NOT* rescale the custom counters. They are already properly scaled.
-      const auto uc_stat = Stat.compute_(kv.second.s);
-      auto c = Counter(uc_stat, counter_stats[kv.first].c.flags,
-                       counter_stats[kv.first].c.oneK);
-      data.counters[kv.first] = c;
-    }
-
-    results.push_back(data);
-  }
-
-  return results;
+  // It is incorrect to say that an aggregate is computed over a run's
+  // iterations, because those iterations already got averaged. Time statistics
+  // are rescaled by (sample count / iterations) inside ComputeAggregateReports
+  // so the reported unit stays "per iteration" while iterations counts samples.
+  return ComputeAggregateReports(
+      *successful_run, *successful_run->statistics, real_accumulated_time_stat,
+      cpu_accumulated_time_stat, counter_stats, run_iterations,
+      /*name_prefix=*/"", Run::no_repetition_index, report_label);
 }
 
 }  // end namespace benchmark
