@@ -15,6 +15,9 @@
 #ifndef BENCHMARK_STATISTICS_H_
 #define BENCHMARK_STATISTICS_H_
 
+#include <cstdint>
+#include <cstdio>
+#include <cstdlib>
 #include <string>
 #include <vector>
 
@@ -25,6 +28,32 @@ namespace benchmark {
 enum BigO { oNone, o1, oN, oNSquared, oNCubed, oLogN, oNLogN, oAuto, oLambda };
 
 typedef int64_t ComplexityN;
+
+class OptionalComplexityN {
+ public:
+  constexpr OptionalComplexityN() noexcept : n_(-1) {}
+
+  explicit OptionalComplexityN(ComplexityN n) : n_(n) {
+    if (!has_value()) {
+      std::fprintf(stderr, "Complexity N must be non-negative: %lld\n",
+                   static_cast<long long>(n));
+      std::abort();
+    }
+  }
+
+  constexpr bool has_value() const noexcept { return n_ >= 0; }
+
+  ComplexityN value() const {
+    if (!has_value()) {
+      std::fprintf(stderr, "Did you forget to call SetComplexityN?\n");
+      std::abort();
+    }
+    return n_;
+  }
+
+ private:
+  ComplexityN n_;
+};
 
 enum StatisticUnit { kTime, kPercentage };
 

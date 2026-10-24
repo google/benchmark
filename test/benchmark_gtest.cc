@@ -252,6 +252,26 @@ TEST(ComplexityDeathTest, NoSetComplexityN) {
 #endif
 }
 
+TEST(OptionalComplexityNTest, DefaultHasNoValue) {
+  OptionalComplexityN cn;
+  EXPECT_FALSE(cn.has_value());
+}
+
+TEST(OptionalComplexityNTest, ZeroIsValid) {
+  OptionalComplexityN cn(0);
+  EXPECT_TRUE(cn.has_value());
+  EXPECT_EQ(cn.value(), 0);
+}
+
+TEST(OptionalComplexityNDeathTest, ValueOnUnsetAborts) {
+  OptionalComplexityN cn;
+  ASSERT_DEATH(cn.value(), "Did you forget to call SetComplexityN\\?");
+}
+
+TEST(OptionalComplexityNDeathTest, NegativeConstructionAborts) {
+  ASSERT_DEATH(OptionalComplexityN(-1), "Complexity N must be non-negative");
+}
+
 TEST(TimingTest, PauseAndResumeInLoopReportSaneTime) {
   const std::vector<BenchmarkReporter::Run> runs =
       RunOne("BM_pause_and_resume_in_loop");

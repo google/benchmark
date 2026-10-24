@@ -2,7 +2,6 @@
 #define BENCHMARK_THREAD_MANAGER_H
 
 #include <atomic>
-#include <optional>
 
 #include "benchmark/counter.h"
 #include "benchmark/statistics.h"
@@ -29,7 +28,7 @@ class ThreadManager {
     double real_time_used = 0;
     double cpu_time_used = 0;
     double manual_time_used = 0;
-    std::optional<ComplexityN> complexity_n = std::nullopt;
+    OptionalComplexityN complexity_n;
     std::string report_label_;
     std::string skip_message_;
     internal::Skipped skipped_ = internal::NotSkipped;

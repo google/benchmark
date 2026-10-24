@@ -98,11 +98,11 @@ class BENCHMARK_EXPORT BENCHMARK_INTERNAL_CACHELINE_ALIGNED State {
 
   BENCHMARK_ALWAYS_INLINE
   void SetComplexityN(ComplexityN complexity_n) {
-    complexity_n_ = complexity_n;
+    complexity_n_ = OptionalComplexityN(complexity_n);
   }
 
   BENCHMARK_ALWAYS_INLINE
-  ComplexityN complexity_length_n() const { return complexity_n_; }
+  OptionalComplexityN complexity_length_n() const { return complexity_n_; }
 
   BENCHMARK_ALWAYS_INLINE
   void SetItemsProcessed(int64_t items) {
@@ -165,7 +165,7 @@ class BENCHMARK_EXPORT BENCHMARK_INTERNAL_CACHELINE_ALIGNED State {
 
   std::vector<int64_t> range_;
 
-  ComplexityN complexity_n_;
+  OptionalComplexityN complexity_n_;
 
  public:
   UserCounters counters;

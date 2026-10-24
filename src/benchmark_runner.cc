@@ -43,7 +43,6 @@
 #include <iostream>
 #include <limits>
 #include <memory>
-#include <optional>
 #include <string>
 #include <thread>
 #include <utility>
@@ -114,7 +113,7 @@ BenchmarkReporter::Run CreateRunReport(
     }
     report.use_real_time_for_initial_big_o = b.use_manual_time();
     report.cpu_accumulated_time = results.cpu_time_used;
-    report.complexity_n = results.complexity_n.value_or(-1);
+    report.complexity_n = results.complexity_n;
     report.complexity = b.complexity();
     report.complexity_lambda = b.complexity_lambda();
     report.statistics = &b.statistics();
@@ -165,16 +164,14 @@ void RunInThread(const BenchmarkInstance* b, IterationCount iters,
     results.cpu_time_used += timer.cpu_time_used();
     results.real_time_used += timer.real_time_used();
     results.manual_time_used += timer.manual_time_used();
-    const std::optional<ComplexityN> thread_complexity_n =
-        st.complexity_length_n() >= 0
-            ? std::make_optional(st.complexity_length_n())
-            : std::nullopt;
+    const OptionalComplexityN thread_complexity_n = st.complexity_length_n();
     if (!results.complexity_n.has_value()) {
       results.complexity_n = thread_complexity_n;
     } else if (!thread_complexity_n.has_value()) {
-      results.complexity_n = std::nullopt;
+      results.complexity_n = OptionalComplexityN();
     } else {
-      *results.complexity_n += *thread_complexity_n;
+      results.complexity_n = OptionalComplexityN(results.complexity_n.value() +
+                                                 thread_complexity_n.value());
     }
     internal::Increment(&results.counters, st.counters);
   }
