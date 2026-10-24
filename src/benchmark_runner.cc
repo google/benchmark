@@ -70,7 +70,6 @@ BM_DECLARE_double(benchmark_min_warmup_time);
 BM_DECLARE_int32(benchmark_repetitions);
 BM_DECLARE_bool(benchmark_report_aggregates_only);
 BM_DECLARE_bool(benchmark_display_aggregates_only);
-BM_DECLARE_bool(benchmark_report_thread_statistics);
 BM_DECLARE_string(benchmark_perf_counters);
 
 namespace internal {
@@ -144,9 +143,8 @@ BenchmarkReporter::Run CreateRunReport(
 std::vector<BenchmarkReporter::Run> CreateThreadStatReports(
     const BenchmarkInstance& b, const BenchmarkReporter::Run& base,
     const std::vector<internal::ThreadManager::Result>& thread_results) {
-  std::vector<BenchmarkReporter::Run> out;
   if (base.skipped != 0u || thread_results.size() < 2) {
-    return out;
+    return {};
   }
 
   const size_t n = thread_results.size();
@@ -178,19 +176,15 @@ std::vector<BenchmarkReporter::Run> CreateThreadStatReports(
     cpu_times.push_back(tr.cpu_time_used);
   }
 
-  struct CounterStat {
-    Counter c;
-    std::vector<double> s;
-  };
-  std::map<std::string, CounterStat> counter_stats;
+  std::map<std::string, AggregateCounterSamples> counter_stats;
   for (const auto& fc : finished) {
     for (const auto& cnt : fc) {
       auto it = counter_stats.find(cnt.first);
       if (it == counter_stats.end()) {
         it = counter_stats
-                 .emplace(cnt.first, CounterStat{cnt.second, std::vector<double>{}})
+                 .emplace(cnt.first, AggregateCounterSamples{cnt.second, {}})
                  .first;
-        it->second.s.reserve(n);
+        it->second.values.reserve(n);
       }
     }
   }
@@ -198,47 +192,22 @@ std::vector<BenchmarkReporter::Run> CreateThreadStatReports(
     for (auto& kv : counter_stats) {
       auto it = fc.find(kv.first);
       if (it != fc.end()) {
-        kv.second.s.push_back(it->second);
+        kv.second.values.push_back(it->second);
       }
     }
   }
-
-  const double iteration_rescale_factor =
-      static_cast<double>(n) /
-      static_cast<double>(thread_iters != 0 ? thread_iters : 1);
-
-  for (const auto& Stat : b.statistics()) {
-    BenchmarkReporter::Run data;
-    data.run_name = base.run_name;
-    data.family_index = base.family_index;
-    data.per_family_instance_index = base.per_family_instance_index;
-    data.run_type = BenchmarkReporter::Run::RT_Aggregate;
-    data.threads = base.threads;
-    data.repetitions = base.repetitions;
-    data.repetition_index = base.repetition_index;
-    data.aggregate_name = "thread_" + Stat.name_;
-    data.aggregate_unit = Stat.unit_;
-    data.iterations = static_cast<IterationCount>(n);
-    data.time_unit = base.time_unit;
-    data.statistics = base.statistics;
-
-    data.real_accumulated_time = Stat.compute_(real_times);
-    data.cpu_accumulated_time = Stat.compute_(cpu_times);
-    if (data.aggregate_unit == StatisticUnit::kTime) {
-      data.real_accumulated_time *= iteration_rescale_factor;
-      data.cpu_accumulated_time *= iteration_rescale_factor;
+  for (auto it = counter_stats.begin(); it != counter_stats.end();) {
+    if (it->second.values.size() != n) {
+      it = counter_stats.erase(it);
+    } else {
+      ++it;
     }
-    for (const auto& kv : counter_stats) {
-      if (kv.second.s.size() != n) {
-        continue;
-      }
-      const auto uc_stat = Stat.compute_(kv.second.s);
-      data.counters[kv.first] =
-          Counter(uc_stat, kv.second.c.flags, kv.second.c.oneK);
-    }
-    out.push_back(std::move(data));
   }
-  return out;
+
+  return ComputeAggregateReports(base, b.statistics(), real_times, cpu_times,
+                                 counter_stats, thread_iters,
+                                 /*name_prefix=*/"thread_",
+                                 base.repetition_index, base.report_label);
 }
 
 // Execute one thread of benchmark b for the specified number of iterations.
@@ -418,7 +387,6 @@ BenchmarkRunner::BenchmarkRunner(
       has_explicit_iteration_count(b.iterations() != 0 ||
                                    parsed_benchtime_flag.tag ==
                                        BenchTimeType::ITERS),
-      report_thread_statistics(b.report_thread_statistics()),
       thread_runner(
           GetThreadRunner(b.GetUserThreadRunnerFactory(), b.threads())),
       iters(FLAGS_benchmark_dry_run
@@ -450,7 +418,7 @@ BenchmarkRunner::IterationResults BenchmarkRunner::DoNIterations() {
 
   std::unique_ptr<internal::ThreadManager> manager;
   manager.reset(new internal::ThreadManager(b.threads(),
-                                            report_thread_statistics));
+                                            b.report_thread_statistics()));
 
   thread_runner->RunThreads([&](int thread_idx) {
     RunInThread(&b, iters, thread_idx, manager.get(),

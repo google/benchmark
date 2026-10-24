@@ -89,7 +89,6 @@ class BenchmarkRunner {
   bool warmup_done;
   const int repeats;
   const bool has_explicit_iteration_count;
-  const bool report_thread_statistics;
 
   int num_repetitions_done = 0;
 

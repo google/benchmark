@@ -1145,8 +1145,12 @@ BENCHMARK(BM_Fairness)
     ->ReportThreadStatistics();
 ```
 
-or pass `--benchmark_report_thread_statistics=true`. The per-benchmark setter
-overrides the flag.
+or pass `--benchmark_report_thread_statistics=true`. Either source turns
+the extra rows on. `ReportThreadStatistics(false)` does not disable the flag.
+
+`Repetitions`, `UseRealTime`, `UseManualTime`, and `ComputeStatistics` combine
+with this. `ReportAggregatesOnly` and `DisplayAggregatesOnly` hide the thread
+rows together with the iteration row they describe.
 
 When enabled and the instance uses more than one thread, extra aggregate rows
 are printed after that run, named with a `thread_` prefix so they do not collide

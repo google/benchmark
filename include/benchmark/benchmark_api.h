@@ -181,7 +181,6 @@ class BENCHMARK_EXPORT Benchmark {
   BigOFunc* complexity_lambda_;
   std::vector<internal::Statistics> statistics_;
   std::vector<int> thread_counts_;
-  bool report_thread_statistics_specified_;
   bool report_thread_statistics_;
 
   callback_function setup_;

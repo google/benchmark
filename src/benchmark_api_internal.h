@@ -73,7 +73,6 @@ class BenchmarkInstance {
   double min_warmup_time_;
   IterationCount iterations_;
   int threads_;  // Number of concurrent threads to us
-  bool report_thread_statistics_specified_;
   bool report_thread_statistics_;
 
   callback_function setup_;

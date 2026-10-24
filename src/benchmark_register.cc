@@ -234,7 +234,6 @@ Benchmark::Benchmark(const std::string& name)
       use_manual_time_(false),
       complexity_(oNone),
       complexity_lambda_(nullptr),
-      report_thread_statistics_specified_(false),
       report_thread_statistics_(false) {
   ComputeStatistics("mean", StatisticsMean);
   ComputeStatistics("median", StatisticsMedian);
@@ -429,7 +428,11 @@ Benchmark* Benchmark::DisplayAggregatesOnly(bool value) {
 }
 
 Benchmark* Benchmark::ReportThreadStatistics(bool value) {
-  report_thread_statistics_specified_ = true;
+  // One bool is enough: the default is false, and the global flag is OR'd in
+  // at run time. Repetitions, UseRealTime, UseManualTime, and
+  // ComputeStatistics all compose with this. ReportAggregatesOnly and
+  // DisplayAggregatesOnly hide these rows together with the iteration row
+  // they describe, which is the same rule as any other per-run output.
   report_thread_statistics_ = value;
   return this;
 }

@@ -1,6 +1,4 @@
 
-#undef NDEBUG
-
 #include "benchmark/benchmark_api.h"
 #include "benchmark/counter.h"
 #include "benchmark/registration.h"
