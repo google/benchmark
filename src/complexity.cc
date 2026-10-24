@@ -32,22 +32,24 @@ namespace {
 BigOFunc* FittingCurve(BigO complexity) {
   switch (complexity) {
     case oN:
-      return [](IterationCount n) -> double { return static_cast<double>(n); };
+      return [](ComplexityN n) -> double { return static_cast<double>(n); };
     case oNSquared:
-      return [](IterationCount n) -> double { return std::pow(n, 2); };
+      return [](ComplexityN n) -> double { return std::pow(n, 2); };
     case oNCubed:
-      return [](IterationCount n) -> double { return std::pow(n, 3); };
+      return [](ComplexityN n) -> double { return std::pow(n, 3); };
     case oLogN:
-      return [](IterationCount n) -> double {
+      return [](ComplexityN n) -> double {
+        if (n <= 1) return 0.0;
         return std::log2(static_cast<double>(n));
       };
     case oNLogN:
-      return [](IterationCount n) -> double {
+      return [](ComplexityN n) -> double {
+        if (n <= 1) return 0.0;
         return static_cast<double>(n) * std::log2(static_cast<double>(n));
       };
     case o1:
     default:
-      return [](IterationCount) { return 1.0; };
+      return [](ComplexityN) { return 1.0; };
   }
 }
 
@@ -104,7 +106,9 @@ LeastSq MinimalLeastSq(const std::vector<ComplexityN>& n,
   result.complexity = oLambda;
 
   // Calculate complexity.
-  result.coef = sigma_time_gn / sigma_gn_squared;
+  result.coef = std::fpclassify(sigma_gn_squared) == FP_ZERO
+                    ? 0.0
+                    : (sigma_time_gn / sigma_gn_squared);
 
   // Calculate RMS
   double rms = 0.0;
@@ -179,7 +183,7 @@ std::vector<BenchmarkReporter::Run> ComputeBigO(
 
   // Populate the accumulators.
   for (const Run& run : reports) {
-    BM_CHECK_GT(run.complexity_n, 0)
+    BM_CHECK_GE(run.complexity_n, 0)
         << "Did you forget to call SetComplexityN?";
     n.push_back(run.complexity_n);
     real_time.push_back(run.real_accumulated_time /
