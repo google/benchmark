@@ -30,11 +30,13 @@ typedef int64_t ComplexityN;
 
 class BENCHMARK_EXPORT OptionalComplexityN {
  public:
+  static constexpr bool is_valid_value(int64_t v) noexcept { return v >= 0; }
+
   constexpr OptionalComplexityN() noexcept : n_(-1) {}
 
-  explicit OptionalComplexityN(ComplexityN n);
+  explicit OptionalComplexityN(int64_t n);
 
-  constexpr bool has_value() const noexcept { return n_ >= 0; }
+  constexpr bool has_value() const noexcept { return is_valid_value(n_); }
 
   ComplexityN value() const;
 

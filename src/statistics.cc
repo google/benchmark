@@ -28,8 +28,8 @@
 
 namespace benchmark {
 
-OptionalComplexityN::OptionalComplexityN(ComplexityN n) : n_(n) {
-  BM_CHECK(has_value()) << "Complexity N must be non-negative: " << n;
+OptionalComplexityN::OptionalComplexityN(int64_t n) : n_(n) {
+  BM_CHECK(is_valid_value(n)) << "Complexity N must be non-negative: " << n;
 }
 
 ComplexityN OptionalComplexityN::value() const {

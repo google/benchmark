@@ -166,7 +166,7 @@ NB_MODULE(_benchmark, m) {
             return nb::int_(state.complexity_length_n().value());
           },
           [](State& state, int64_t n) {
-            if (n < 0) {
+            if (!benchmark::OptionalComplexityN::is_valid_value(n)) {
               throw nb::value_error("complexity_n must be non-negative");
             }
             state.SetComplexityN(n);

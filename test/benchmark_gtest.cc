@@ -258,6 +258,8 @@ TEST(OptionalComplexityNTest, DefaultHasNoValue) {
 }
 
 TEST(OptionalComplexityNTest, ZeroIsValid) {
+  EXPECT_TRUE(OptionalComplexityN::is_valid_value(0));
+  EXPECT_FALSE(OptionalComplexityN::is_valid_value(-1));
   OptionalComplexityN cn(0);
   EXPECT_TRUE(cn.has_value());
   EXPECT_EQ(cn.value(), 0);
