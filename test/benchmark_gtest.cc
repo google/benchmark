@@ -246,10 +246,8 @@ TEST(TimingDeathTest, ResumeAfterLoop) {
 }
 
 TEST(ComplexityDeathTest, NoSetComplexityN) {
-#ifndef TEST_BENCHMARK_LIBRARY_HAS_NO_ASSERTIONS
   ASSERT_DEBUG_DEATH(RunOne("BM_complexity_no_set_complexity_n"),
                      "Did you forget to call SetComplexityN\\?");
-#endif
 }
 
 TEST(OptionalComplexityNTest, DefaultHasNoValue) {
@@ -265,16 +263,15 @@ TEST(OptionalComplexityNTest, ZeroIsValid) {
   EXPECT_EQ(cn.value(), 0);
 }
 
-#ifndef TEST_BENCHMARK_LIBRARY_HAS_NO_ASSERTIONS
 TEST(OptionalComplexityNDeathTest, ValueOnUnsetAborts) {
   OptionalComplexityN cn;
-  ASSERT_DEATH(cn.value(), "Did you forget to call SetComplexityN\\?");
+  ASSERT_DEBUG_DEATH(cn.value(), "Did you forget to call SetComplexityN\\?");
 }
 
 TEST(OptionalComplexityNDeathTest, NegativeConstructionAborts) {
-  ASSERT_DEATH(OptionalComplexityN(-1), "Complexity N must be non-negative");
+  ASSERT_DEBUG_DEATH(OptionalComplexityN(-1),
+                     "Complexity N must be non-negative");
 }
-#endif
 
 TEST(TimingTest, PauseAndResumeInLoopReportSaneTime) {
   const std::vector<BenchmarkReporter::Run> runs =

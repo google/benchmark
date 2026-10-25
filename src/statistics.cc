@@ -28,15 +28,6 @@
 
 namespace benchmark {
 
-OptionalComplexityN::OptionalComplexityN(int64_t n) : n_(n) {
-  BM_CHECK(is_valid_value(n)) << "Complexity N must be non-negative: " << n;
-}
-
-ComplexityN OptionalComplexityN::value() const {
-  BM_CHECK(has_value()) << "Did you forget to call SetComplexityN?";
-  return n_;
-}
-
 const auto StatisticsSum = [](const std::vector<double>& v) {
   return std::accumulate(v.begin(), v.end(), 0.0);
 };
