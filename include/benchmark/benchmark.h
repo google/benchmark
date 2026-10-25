@@ -15,6 +15,7 @@
 #ifndef BENCHMARK_BENCHMARK_H_
 #define BENCHMARK_BENCHMARK_H_
 
+// IWYU pragma: begin_exports
 #include "benchmark/benchmark_api.h"
 #include "benchmark/counter.h"
 #include "benchmark/macros.h"
@@ -26,5 +27,6 @@
 #include "benchmark/sysinfo.h"
 #include "benchmark/types.h"
 #include "benchmark/utils.h"
+// IWYU pragma: end_exports
 
 #endif  // BENCHMARK_BENCHMARK_H_
