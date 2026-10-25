@@ -183,8 +183,6 @@ std::vector<BenchmarkReporter::Run> ComputeBigO(
 
   // Populate the accumulators.
   for (const Run& run : reports) {
-    BM_CHECK(run.complexity_n.has_value())
-        << "Did you forget to call SetComplexityN?";
     n.push_back(run.complexity_n.value());
     real_time.push_back(run.real_accumulated_time /
                         static_cast<double>(run.iterations));

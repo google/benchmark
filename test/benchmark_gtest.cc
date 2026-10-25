@@ -263,6 +263,7 @@ TEST(OptionalComplexityNTest, ZeroIsValid) {
   EXPECT_EQ(cn.value(), 0);
 }
 
+#ifndef TEST_BENCHMARK_LIBRARY_HAS_NO_ASSERTIONS
 TEST(OptionalComplexityNDeathTest, ValueOnUnsetAborts) {
   OptionalComplexityN cn;
   ASSERT_DEATH(cn.value(), "Did you forget to call SetComplexityN\\?");
@@ -271,6 +272,7 @@ TEST(OptionalComplexityNDeathTest, ValueOnUnsetAborts) {
 TEST(OptionalComplexityNDeathTest, NegativeConstructionAborts) {
   ASSERT_DEATH(OptionalComplexityN(-1), "Complexity N must be non-negative");
 }
+#endif
 
 TEST(TimingTest, PauseAndResumeInLoopReportSaneTime) {
   const std::vector<BenchmarkReporter::Run> runs =
