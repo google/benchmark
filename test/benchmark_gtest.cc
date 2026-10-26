@@ -246,8 +246,10 @@ TEST(TimingDeathTest, ResumeAfterLoop) {
 }
 
 TEST(ComplexityDeathTest, NoSetComplexityN) {
+#ifndef TEST_BENCHMARK_LIBRARY_HAS_NO_ASSERTIONS
   ASSERT_DEBUG_DEATH(RunOne("BM_complexity_no_set_complexity_n"),
                      "Did you forget to call SetComplexityN\\?");
+#endif
 }
 
 TEST(OptionalComplexityNTest, DefaultHasNoValue) {
