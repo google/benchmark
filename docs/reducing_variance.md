@@ -155,9 +155,12 @@ are different ones.
    amount, so a check based on the spread between repetitions does not catch it. Check for
    it explicitly and record the result:
    ```sh
-   adb shell "ps -A -T -o STAT,CMD | grep -E '^R.*(dex2oat|Compiler driver)'"
+   adb shell pgrep dex2oat
    ```
-   If that prints anything, wait. On a retail device there is no reliable way to stop it:
+   If that prints anything, wait. `pgrep` is deliberate here: listing every thread with
+   `ps -A -T` is enough work on a device with a few thousand threads that it can leave
+   `adbd` unresponsive, which is a poor way to find out your device is busy. The compiler
+   threads belong to `dex2oat`, so matching the process is sufficient. On a retail device there is no reliable way to stop it:
    `cmd package cancel-bg-dexopt-job` and `cmd package bg-dexopt-job --disable` are not
    available on every build, and `cmd jobscheduler cancel android 800` cancels the AOSP job
    while vendor-scheduled compilation continues. A `userdebug` build or a rooted device can
