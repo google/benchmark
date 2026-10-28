@@ -78,8 +78,11 @@ please refer to their documentation.
 
 The Linux CPU frequency governor [discussed
 above](user_guide#disabling-cpu-frequency-scaling) is not the only source
-of noise in benchmarks.  Some, but not all, of the sources of variance
-include:
+of noise in benchmarks.  The advice in this section assumes a desktop or
+server; on a mobile device most of it does not apply, and the dominant
+sources of variance are different ones, so see [Reducing Variance on
+Android](#reducing-variance-on-android).  Some, but not all, of the sources
+of variance include:
 
 1. On multi-core machines not all CPUs/CPU cores/CPU threads run the same
    speed, so running a benchmark one time and then again may give a
@@ -137,12 +140,13 @@ Further resources on this topic:
 1. The Arch Wiki [Cpu frequency
 scaling](https://wiki.archlinux.org/title/CPU_frequency_scaling) page.
 
+<a name="reducing-variance-on-android" />
+
 ## Reducing Variance on Android
 
-Most of the advice above assumes a desktop or server. On an Android device little of it
-applies: there is no `cpupower`, `scaling_governor` is often not readable or writable by the
-`shell` user, there is no BIOS in which to disable SMT, and the largest sources of variance
-are different ones.
+On Android there is no `cpupower`, `scaling_governor` is often not readable or writable by
+the `shell` user, and there is no BIOS in which to disable SMT. None of the following needs
+root.
 
 1. **Wait for background application compilation to finish.** Android compiles installed
    applications ahead of time in a background job gated on the device being idle and
@@ -160,12 +164,31 @@ are different ones.
    If that prints anything, wait. `pgrep` is deliberate here: listing every thread with
    `ps -A -T` is enough work on a device with a few thousand threads that it can leave
    `adbd` unresponsive, which is a poor way to find out your device is busy. The compiler
-   threads belong to `dex2oat`, so matching the process is sufficient. On a retail device there is no reliable way to stop it:
+   threads belong to `dex2oat`, so matching the process is sufficient.
+
+   On a retail device there is no reliable way to *stop* it:
    `cmd package cancel-bg-dexopt-job` and `cmd package bg-dexopt-job --disable` are not
    available on every build, and `cmd jobscheduler cancel android 800` cancels the AOSP job
    while vendor-scheduled compilation continues. A `userdebug` build or a rooted device can
    stop the framework outright with `adb shell stop`, which is the stronger remedy where it
    is available.
+
+   You can, however, *wait* for it programmatically, which is what a harness should do
+   rather than leaving it to the operator to remember. This blocks until the device has
+   been quiet for three consecutive checks, and combines it with item 2 below:
+   ```sh
+   adb shell '
+     busy() {  # percentage of total CPU capacity busy over a 3 second window
+       set -- $(head -1 /proc/stat); t0=$(($2+$3+$4+$5+$6+$7+$8+$9)); i0=$(($5+$6))
+       sleep 3
+       set -- $(head -1 /proc/stat); t1=$(($2+$3+$4+$5+$6+$7+$8+$9)); i1=$(($5+$6))
+       d=$((t1-t0)); echo $(( 100 * (d - (i1-i0)) / d ))
+     }
+     n=0
+     while [ $n -lt 3 ]; do
+       if [ -z "$(pgrep dex2oat)" ] && [ "$(busy)" -le 10 ]; then n=$((n+1)); else n=0; fi
+     done'
+   ```
 2. **Measure whether the device is quiet rather than assuming it.** Sample `/proc/stat`
    twice and compute the fraction of CPU capacity that was busy over the window. Do not use
    the load average: on Android it counts threads blocked in `D` state, and it read 19 to 21
