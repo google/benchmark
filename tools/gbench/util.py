@@ -201,14 +201,16 @@ def run_benchmark(exe_name, benchmark_flags):
 
     cmd = [exe_name, *benchmark_flags]
     print("RUNNING: %s" % " ".join(cmd))
-    exitCode = subprocess.call(cmd)
-    if exitCode != 0:
-        print("TEST FAILED...")
-        sys.exit(exitCode)
-    json_res = load_benchmark_results(output_name, None)
-    if is_temp_output:
-        os.unlink(output_name)
-    return json_res
+    try:
+        exitCode = subprocess.call(cmd)
+        if exitCode != 0:
+            print("TEST FAILED...")
+            sys.exit(exitCode)
+        json_res = load_benchmark_results(output_name, None)
+        return json_res
+    finally:
+        if is_temp_output and os.path.exists(output_name):
+            os.unlink(output_name)
 
 
 def run_or_load_benchmark(filename, benchmark_flags):
