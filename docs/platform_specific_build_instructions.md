@@ -35,6 +35,14 @@ The `shlwapi` library (`-lshlwapi`) is required to support a call to `CPUInfo` w
 
 When using the static library, make sure to add `BENCHMARK_STATIC_DEFINE` under `[Configuration Properties > C/C++ > Preprocessor > Preprocessor Definitions]`
 
+By default the library links against the DLL C runtime (`/MD`, `/MDd`). To use the static C runtime (`/MT`, `/MTd`) instead, set CMake's [`CMAKE_MSVC_RUNTIME_LIBRARY`](https://cmake.org/cmake/help/latest/variable/CMAKE_MSVC_RUNTIME_LIBRARY.html) (CMake 3.15 or newer) when configuring. It applies to `benchmark`, `benchmark_main` and the downloaded GoogleTest alike:
+
+```
+cmake -S . -B build -DBENCHMARK_DOWNLOAD_DEPENDENCIES=ON -DCMAKE_MSVC_RUNTIME_LIBRARY="MultiThreaded$<$<CONFIG:Debug>:Debug>"
+```
+
+Combine it with the static library (`BUILD_SHARED_LIBS=OFF`), since a DLL with its own static C runtime can't safely share C runtime objects with the executable.
+
 Can also use the graphical version of CMake:
 * Open `CMake GUI`.
 * Under `Where to build the binaries`, same path as source plus `build`.
