@@ -41,7 +41,7 @@ By default the library links against the DLL C runtime (`/MD`, `/MDd`). To use t
 cmake -S . -B build -DBENCHMARK_DOWNLOAD_DEPENDENCIES=ON -DCMAKE_MSVC_RUNTIME_LIBRARY="MultiThreaded$<$<CONFIG:Debug>:Debug>"
 ```
 
-Use this instead of adding `/MT` to `CMAKE_CXX_FLAGS`; CMake selects the runtime from this setting. Combine it with the static library (`BUILD_SHARED_LIBS=OFF`), since a DLL with its own static C runtime can't safely share C runtime objects with the executable.
+Combine it with the static library (`BUILD_SHARED_LIBS=OFF`), since a DLL with its own static C runtime can't safely share C runtime objects with the executable.
 
 Can also use the graphical version of CMake:
 * Open `CMake GUI`.
