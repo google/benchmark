@@ -16,6 +16,8 @@
 #ifndef STATISTICS_H_
 #define STATISTICS_H_
 
+#include <map>
+#include <string>
 #include <vector>
 
 #include "benchmark/export.h"
@@ -39,6 +41,25 @@ BENCHMARK_EXPORT
 double StatisticsStdDev(const std::vector<double>& v);
 BENCHMARK_EXPORT
 double StatisticsCV(const std::vector<double>& v);
+
+// One user counter sampled across the runs being aggregated.
+struct AggregateCounterSamples {
+  Counter counter;
+  std::vector<double> values;
+};
+
+// Build one aggregate Run per statistic from already-collected samples.
+// `iterations_per_sample` is the iteration count each time sample already
+// covers, used only to rescale kTime statistics the same way ComputeStats does.
+// `name_prefix` is prepended to each statistic name (empty for repetitions,
+// "thread_" for cross-thread statistics).
+std::vector<BenchmarkReporter::Run> ComputeAggregateReports(
+    const BenchmarkReporter::Run& base,
+    const std::vector<internal::Statistics>& statistics,
+    const std::vector<double>& real_times, const std::vector<double>& cpu_times,
+    const std::map<std::string, AggregateCounterSamples>& counters,
+    IterationCount iterations_per_sample, const std::string& name_prefix,
+    int64_t repetition_index, const std::string& report_label);
 
 }  // end namespace benchmark
 
