@@ -86,7 +86,6 @@ const double kDefaultMinTime =
 BenchmarkReporter::Run CreateRunReport(
     const benchmark::internal::BenchmarkInstance& b,
     const internal::ThreadManager::Result& results,
-    IterationCount memory_iterations,
     const MemoryManager::Result& memory_result, double seconds,
     int64_t repetition_index, int64_t repeats) {
   // Create report about this benchmark run.
@@ -119,14 +118,12 @@ BenchmarkReporter::Run CreateRunReport(
     report.statistics = &b.statistics();
     report.counters = results.counters;
 
-    if (memory_iterations > 0) {
-      report.memory_result = memory_result;
-      report.allocs_per_iter =
-          memory_iterations != 0
-              ? static_cast<double>(memory_result.num_allocs) /
-                    static_cast<double>(memory_iterations)
-              : 0;
-    }
+    report.memory_result = memory_result;
+    report.allocs_per_iter =
+        memory_result.memory_iterations != 0
+            ? static_cast<double>(memory_result.num_allocs) /
+                  static_cast<double>(memory_result.memory_iterations)
+            : 0;
 
     // The CPU time is the total time taken by all thread. If we used that as
     // the denominator, we'd be calculating the rate per thread here. This is
@@ -470,9 +467,12 @@ MemoryManager::Result BenchmarkRunner::RunMemoryManager(
               /*profiler_manager=*/nullptr);
   MemoryManager::Result memory_result;
   memory_manager->Stop(memory_result);
+  {
+    MutexLock l(manager->GetBenchmarkMutex());
+    memory_result.memory_iterations = manager->results.iterations;
+  }
   manager.reset();
   b.Teardown();
-  memory_result.memory_iterations = memory_iterations;
   return memory_result;
 }
 
@@ -537,11 +537,11 @@ void BenchmarkRunner::DoOneRepetition() {
 
   // Produce memory measurements if requested.
   MemoryManager::Result memory_result;
-  IterationCount memory_iterations = 0;
   if (memory_manager != nullptr) {
     // Only run a few iterations to reduce the impact of one-time
     // allocations in benchmarks that are not properly managed.
-    memory_iterations = std::min<IterationCount>(16, iters);
+    const IterationCount memory_iterations =
+        std::min<IterationCount>(16, iters);
     memory_result = RunMemoryManager(memory_iterations);
   }
 
@@ -553,9 +553,8 @@ void BenchmarkRunner::DoOneRepetition() {
   }
 
   // Ok, now actually report.
-  BenchmarkReporter::Run report =
-      CreateRunReport(b, i.results, memory_iterations, memory_result, i.seconds,
-                      num_repetitions_done, repeats);
+  BenchmarkReporter::Run report = CreateRunReport(
+      b, i.results, memory_result, i.seconds, num_repetitions_done, repeats);
 
   if (reports_for_family != nullptr) {
     ++reports_for_family->num_runs_done;
