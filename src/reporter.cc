@@ -54,7 +54,13 @@ void BenchmarkReporter::PrintBasicContext(std::ostream* out,
   const CPUInfo& info = context.cpu_info;
   Out << "Run on (" << info.num_cpus << " X "
       << (info.cycles_per_second / 1000000.0) << " MHz CPU "
-      << ((info.num_cpus > 1) ? "s" : "") << ")\n";
+      << ((info.num_cpus > 1) ? "s" : "");
+  // Only mention the affinity mask when it actually restricts the process.
+  if (info.num_cpus_in_affinity_mask > 0 &&
+      info.num_cpus_in_affinity_mask < info.num_cpus) {
+    Out << ", " << info.num_cpus_in_affinity_mask << " in affinity mask";
+  }
+  Out << ")\n";
   if (!info.caches.empty()) {
     Out << "CPU Caches:\n";
     for (const auto& CInfo : info.caches) {
