@@ -82,6 +82,37 @@ TEST(ReporterListTest, CSVListsNameColumn) {
   BENCHMARK_RESTORE_DEPRECATED_WARNING
 }
 
+
+const std::vector<BenchmarkInstance>& ListControlCharBenchmarks() {
+  static const std::vector<BenchmarkInstance>* const benchmarks = [] {
+    std::string name = "BM_ControlChar_";
+    name += '\x01';
+    name += "_";
+    name += '\x1f';
+    RegisterBenchmark(name, BM_ReporterListDummy);
+    auto* result = new std::vector<BenchmarkInstance>();
+    std::ostringstream err_stream;
+    FindBenchmarksInternal("^BM_ControlChar.*", result, &err_stream);
+    return result;
+  }();
+  return *benchmarks;
+}
+
+TEST(ReporterListTest, JSONEscapesC0ControlCharacters) {
+  JSONReporter reporter;
+  std::ostringstream out;
+  reporter.SetOutputStream(&out);
+  reporter.List(ListControlCharBenchmarks());
+  EXPECT_EQ(out.str(),
+            "{\n"
+            "  \"benchmarks\": [\n"
+            "    {\n"
+            "      \"name\": \"BM_ControlChar_\\u0001_\\u001f\"\n"
+            "    }\n"
+            "  ]\n"
+            "}\n");
+}
+
 }  // namespace
 }  // namespace internal
 }  // namespace benchmark
