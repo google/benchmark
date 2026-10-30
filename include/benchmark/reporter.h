@@ -80,7 +80,6 @@ class BENCHMARK_EXPORT BenchmarkReporter {
           use_real_time_for_initial_big_o(false),
           complexity(oNone),
           complexity_lambda(),
-          complexity_n(0),
           statistics(),
           report_big_o(false),
           report_rms(false),
@@ -112,7 +111,7 @@ class BENCHMARK_EXPORT BenchmarkReporter {
     bool use_real_time_for_initial_big_o;
     BigO complexity;
     BigOFunc* complexity_lambda;
-    ComplexityN complexity_n;
+    OptionalComplexityN complexity_n;
     const std::vector<internal::Statistics>* statistics;
     bool report_big_o;
     bool report_rms;
