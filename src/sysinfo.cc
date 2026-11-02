@@ -574,6 +574,34 @@ int GetNumCPUs() {
   return num_cpus;
 }
 
+int GetNumCPUsInAffinityMask() {
+#if defined(BENCHMARK_HAS_PTHREAD_AFFINITY)
+  cpu_set_t affinity;
+  if (pthread_getaffinity_np(pthread_self(), sizeof(affinity), &affinity) !=
+      0) {
+    return 0;
+  }
+  int num_cpus = 0;
+  for (int i = 0; i < CPU_SETSIZE; ++i) {
+    if (CPU_ISSET(i, &affinity)) {
+      ++num_cpus;
+    }
+  }
+  return num_cpus;
+#elif defined(BENCHMARK_OS_WINDOWS_WIN32)
+  DWORD_PTR process_mask = 0;
+  DWORD_PTR system_mask = 0;
+  if (GetProcessAffinityMask(GetCurrentProcess(), &process_mask,
+                             &system_mask) == 0) {
+    return 0;
+  }
+  return static_cast<int>(
+      std::bitset<sizeof(DWORD_PTR) * CHAR_BIT>(process_mask).count());
+#else
+  return 0;
+#endif
+}
+
 class ThreadAffinityGuard final {
  public:
   ThreadAffinityGuard() : reset_affinity(SetAffinity()) {
@@ -896,6 +924,7 @@ const CPUInfo& CPUInfo::Get() {
 
 CPUInfo::CPUInfo()
     : num_cpus(GetNumCPUs()),
+      num_cpus_in_affinity_mask(GetNumCPUsInAffinityMask()),
       scaling(CpuScaling(num_cpus)),
       cycles_per_second(GetCPUCyclesPerSecond(scaling)),
       caches(GetCacheSizes()),
