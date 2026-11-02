@@ -56,7 +56,7 @@ jobs:
         run: ctest -C ${{ matrix.build_type }} -VV
 
   msvc:
-    name: ${{ matrix.os }}.${{ matrix.build_type }}.${{ matrix.lib }}.${{ matrix.msvc }}
+    name: ${{ matrix.os }}.${{ matrix.build_type }}.${{ matrix.lib }}.${{ matrix.crt }}.${{ matrix.msvc }}
     runs-on: ${{ matrix.os }}
     defaults:
         run:
@@ -73,7 +73,18 @@ jobs:
         lib:
           - shared
           - static
+        crt:
+          - MD
+          - MT
+        exclude:
+          # a DLL with its own static CRT can't safely share CRT objects with the exe
+          - lib: shared
+            crt: MT
         include:
+          - crt: MD
+            runtime: 'MultiThreaded$<$<CONFIG:Debug>:Debug>DLL'
+          - crt: MT
+            runtime: 'MultiThreaded$<$<CONFIG:Debug>:Debug>'
           - msvc: VS-18-2025
             os: windows-2025
             generator: 'Visual Studio 18 2026'
@@ -94,6 +105,7 @@ jobs:
           -G "${{ matrix.generator }}"
           -DBENCHMARK_DOWNLOAD_DEPENDENCIES=ON
           -DBUILD_SHARED_LIBS=${{ matrix.lib == 'shared' }}
+          '-DCMAKE_MSVC_RUNTIME_LIBRARY=${{ matrix.runtime }}'
         env:
           RUNNER_WORKSPACE: ${{ runner.workspace }}
 

@@ -157,8 +157,20 @@ NB_MODULE(_benchmark, m) {
       .def("set_iteration_time", &State::SetIterationTime)
       .def_prop_rw("bytes_processed", &State::bytes_processed,
                    &State::SetBytesProcessed)
-      .def_prop_rw("complexity_n", &State::complexity_length_n,
-                   &State::SetComplexityN)
+      .def_prop_rw(
+          "complexity_n",
+          [](const State& state) -> nb::object {
+            if (!state.complexity_length_n().has_value()) {
+              return nb::none();
+            }
+            return nb::int_(state.complexity_length_n().value());
+          },
+          [](State& state, int64_t n) {
+            if (!benchmark::OptionalComplexityN::is_valid_value(n)) {
+              throw nb::value_error("complexity_n must be non-negative");
+            }
+            state.SetComplexityN(n);
+          })
       .def_prop_rw("items_processed", &State::items_processed,
                    &State::SetItemsProcessed)
       .def("set_label", &State::SetLabel)

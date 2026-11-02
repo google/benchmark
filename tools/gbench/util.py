@@ -2,6 +2,7 @@
 benchmarks
 """
 
+import contextlib
 import json
 import os
 import re
@@ -199,16 +200,18 @@ def run_benchmark(exe_name, benchmark_flags):
             "--benchmark_out=%s" % output_name,
         ]
 
-    cmd = [exe_name, *benchmark_flags]
-    print("RUNNING: %s" % " ".join(cmd))
-    exitCode = subprocess.call(cmd)
-    if exitCode != 0:
-        print("TEST FAILED...")
-        sys.exit(exitCode)
-    json_res = load_benchmark_results(output_name, None)
-    if is_temp_output:
-        os.unlink(output_name)
-    return json_res
+    try:
+        cmd = [exe_name, *benchmark_flags]
+        print("RUNNING: %s" % " ".join(cmd))
+        exitCode = subprocess.call(cmd)
+        if exitCode != 0:
+            print("TEST FAILED...")
+            sys.exit(exitCode)
+        return load_benchmark_results(output_name, None)
+    finally:
+        if is_temp_output:
+            with contextlib.suppress(FileNotFoundError):
+                os.unlink(output_name)
 
 
 def run_or_load_benchmark(filename, benchmark_flags):

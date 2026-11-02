@@ -15,6 +15,8 @@
 #ifndef BENCHMARK_STATISTICS_H_
 #define BENCHMARK_STATISTICS_H_
 
+#include <cassert>
+#include <cstdint>
 #include <string>
 #include <vector>
 
@@ -25,6 +27,27 @@ namespace benchmark {
 enum BigO { oNone, o1, oN, oNSquared, oNCubed, oLogN, oNLogN, oAuto, oLambda };
 
 typedef int64_t ComplexityN;
+
+class OptionalComplexityN {
+ public:
+  static constexpr bool is_valid_value(int64_t v) noexcept { return v >= 0; }
+
+  constexpr OptionalComplexityN() noexcept : n_(-1) {}
+
+  explicit OptionalComplexityN(int64_t n) : n_(n) {
+    assert(is_valid_value(n) && "Complexity N must be non-negative");
+  }
+
+  constexpr bool has_value() const noexcept { return is_valid_value(n_); }
+
+  ComplexityN value() const {
+    assert(has_value() && "Did you forget to call SetComplexityN?");
+    return n_;
+  }
+
+ private:
+  ComplexityN n_;
+};
 
 enum StatisticUnit { kTime, kPercentage };
 

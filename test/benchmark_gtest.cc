@@ -204,6 +204,12 @@ void BM_pause_and_resume_in_loop(benchmark::State& state) {
 }
 BENCHMARK(BM_pause_and_resume_in_loop)->Iterations(1);
 
+void BM_complexity_no_set_complexity_n(benchmark::State& state) {
+  for (auto _ : state) {
+  }
+}
+BENCHMARK(BM_complexity_no_set_complexity_n)->Range(1, 2)->Complexity();
+
 class CapturingReporter : public BenchmarkReporter {
  public:
   bool ReportContext(const Context& /*context*/) override { return true; }
@@ -237,6 +243,36 @@ TEST(TimingDeathTest, ResumeBeforeLoop) {
 
 TEST(TimingDeathTest, ResumeAfterLoop) {
   ASSERT_DEBUG_DEATH(RunOne("BM_resume_after_loop"), "ResumeTiming");
+}
+
+TEST(ComplexityDeathTest, NoSetComplexityN) {
+#ifndef TEST_BENCHMARK_LIBRARY_HAS_NO_ASSERTIONS
+  ASSERT_DEBUG_DEATH(RunOne("BM_complexity_no_set_complexity_n"),
+                     "Did you forget to call SetComplexityN\\?");
+#endif
+}
+
+TEST(OptionalComplexityNTest, DefaultHasNoValue) {
+  OptionalComplexityN cn;
+  EXPECT_FALSE(cn.has_value());
+}
+
+TEST(OptionalComplexityNTest, ZeroIsValid) {
+  EXPECT_TRUE(OptionalComplexityN::is_valid_value(0));
+  EXPECT_FALSE(OptionalComplexityN::is_valid_value(-1));
+  OptionalComplexityN cn(0);
+  EXPECT_TRUE(cn.has_value());
+  EXPECT_EQ(cn.value(), 0);
+}
+
+TEST(OptionalComplexityNDeathTest, ValueOnUnsetAborts) {
+  OptionalComplexityN cn;
+  ASSERT_DEBUG_DEATH(cn.value(), "Did you forget to call SetComplexityN\\?");
+}
+
+TEST(OptionalComplexityNDeathTest, NegativeConstructionAborts) {
+  ASSERT_DEBUG_DEATH(OptionalComplexityN(-1),
+                     "Complexity N must be non-negative");
 }
 
 TEST(TimingTest, PauseAndResumeInLoopReportSaneTime) {
