@@ -119,6 +119,64 @@ def remove_benchmark_flags(prefix, benchmark_flags):
     return [f for f in benchmark_flags if not f.startswith(prefix)]
 
 
+_VALID_TIME_UNITS = {"s", "ms", "us", "ns"}
+
+
+def _check_benchmark_run(fname, idx, benchmark):
+    if not isinstance(benchmark, dict):
+        print(f"In {fname}, run[{idx}] is not an object")
+        sys.exit(1)
+
+    name = benchmark.get("name")
+    run_name = benchmark.get("run_name")
+    if name is None and run_name is None:
+        print(f"In {fname}, run[{idx}] is missing 'name'")
+        sys.exit(1)
+    if name is not None and not isinstance(name, str):
+        print(f"In {fname}, run[{idx}].name is not a string")
+        sys.exit(1)
+    if run_name is not None and not isinstance(run_name, str):
+        print(f"In {fname}, run[{idx}].run_name is not a string")
+        sys.exit(1)
+
+    for time_field in ("real_time", "cpu_time"):
+        if time_field in benchmark:
+            val = benchmark[time_field]
+            if not isinstance(val, int | float) or isinstance(val, bool):
+                print(f"In {fname}, run[{idx}].{time_field} is not numeric")
+                sys.exit(1)
+
+    if "time_unit" in benchmark:
+        unit = benchmark["time_unit"]
+        if unit not in _VALID_TIME_UNITS:
+            expected = ", ".join(sorted(_VALID_TIME_UNITS))
+            print(
+                f"In {fname}, run[{idx}].time_unit '{unit}' is unknown"
+                f" (expected one of: {expected})"
+            )
+            sys.exit(1)
+
+
+def check_benchmark_results(fname, results):
+    """
+    Validate that the loaded benchmark results object conforms to the expected
+    schema shape, providing clear diagnostics if any required fields or types
+    are invalid.
+    """
+    if not isinstance(results, dict):
+        print(f"In {fname}, expected top-level JSON object")
+        sys.exit(1)
+
+    if "benchmarks" not in results or not isinstance(
+        results["benchmarks"], list
+    ):
+        print(f"In {fname}, missing or invalid 'benchmarks' array")
+        sys.exit(1)
+
+    for idx, benchmark in enumerate(results["benchmarks"]):
+        _check_benchmark_run(fname, idx, benchmark)
+
+
 def load_benchmark_results(fname, benchmark_filter):
     """
     Read benchmark output from a file and return the JSON object.
@@ -148,10 +206,10 @@ def load_benchmark_results(fname, benchmark_filter):
                     f" {json_schema_version}, expected 1"
                 )
                 sys.exit(1)
-        if "benchmarks" in results:
-            results["benchmarks"] = list(
-                filter(benchmark_wanted, results["benchmarks"])
-            )
+        check_benchmark_results(fname, results)
+        results["benchmarks"] = list(
+            filter(benchmark_wanted, results["benchmarks"])
+        )
         return results
 
 
