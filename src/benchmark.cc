@@ -490,8 +490,7 @@ void RunBenchmarks(const std::vector<BenchmarkInstance>& benchmarks,
           run_results.aggregates_only.insert(run_results.aggregates_only.end(),
                                              additional_run_stats.begin(),
                                              additional_run_stats.end());
-          per_family_reports.erase(
-              static_cast<int>(reports_for_family->Runs.front().family_index));
+          per_family_reports.erase(benchmarks[repetition_index].family_index());
         }
       }
 
