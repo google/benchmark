@@ -15,6 +15,7 @@
 #include "perf_counters.h"
 
 #include <cstring>
+#include <ios>
 #include <memory>
 #include <optional>
 #include <vector>
@@ -117,6 +118,8 @@ static std::optional<std::vector<uint64_t>> QueryCPUPMUTypes() {
         closedir(dir);
         return std::nullopt;
       }
+      BM_VLOG(1) << "perf_counters: found CPU PMU " << name_str << " type "
+                 << type << "\n";
       types.push_back(type);
     }
   }
@@ -156,6 +159,13 @@ PerfCounters PerfCounters::Create(
   // so we set the group_id again to -1 and retry - giving the algorithm a
   // chance to create a new group leader to hold the next set of counters.
   int group_id = -1;
+
+  // Whether the kernel accepts extended hardware event types (a PMU type in
+  // the upper bits of `config`). This requires PERF_PMU_CAP_EXTENDED_HW_TYPE,
+  // which e.g. the arm_pmu driver in some Android kernels does not set, in
+  // which case perf_event_open fails (with ENOENT or EINVAL). We stop trying
+  // once it fails and fall back to plain hardware events.
+  bool try_extended_hw_type = true;
 
   // Loop through all performance counters
   for (size_t i = 0; i < counter_names.size(); ++i) {
@@ -214,16 +224,27 @@ PerfCounters PerfCounters::Create(
                                            // PERF_FORMAT_TOTAL_TIME_RUNNING;
 
     uint64_t base_config = attr.config;
-    for (uint64_t pmu : GetPMUTypesForEvent(attr)) {
+    std::vector<uint64_t> pmus = {0};
+    if (try_extended_hw_type) {
+      pmus = GetPMUTypesForEvent(attr);
+    }
+    const int saved_group_id = group_id;
+    bool opened_any = false;
+    for (size_t pmu_index = 0; pmu_index < pmus.size(); ++pmu_index) {
+      const uint64_t pmu = pmus[pmu_index];
       attr.config = (pmu << PERF_PMU_TYPE_SHIFT) | base_config;
       int id = -1;
+      // errno from the last perf_event_open call, saved immediately since
+      // anything else (including logging) may clobber it.
+      int open_errno = 0;
       while (id < 0) {
         static constexpr size_t kNrOfSyscallRetries = 5;
         // Retry syscall as it was interrupted often (b/64774091).
         for (size_t num_retries = 0; num_retries < kNrOfSyscallRetries;
              ++num_retries) {
           id = perf_event_open(&attr, 0, -1, group_id, 0);
-          if (id >= 0 || errno != EINTR) {
+          open_errno = errno;
+          if (id >= 0 || open_errno != EINTR) {
             break;
           }
         }
@@ -244,6 +265,24 @@ PerfCounters PerfCounters::Create(
       // We failed to get a new file descriptor. We might have reached a hard
       // hardware limit that cannot be resolved even with group multiplexing
       if (id < 0) {
+        BM_VLOG(1) << "perf_counters: could not open " << name << " (pmu "
+                   << pmu << ", type " << attr.type << ", config 0x" << std::hex
+                   << attr.config << std::dec << "): " << ::strerror(open_errno)
+                   << "\n";
+        if (pmu != 0) {
+          if (!opened_any && pmu_index + 1 == pmus.size()) {
+            // None of the extended hardware types worked; the kernel most
+            // likely does not support them. Fall back to a plain hardware
+            // event.
+            BM_VLOG(1) << "perf_counters: extended hardware event types "
+                          "appear to be unsupported, falling back to plain "
+                          "hardware events\n";
+            try_extended_hw_type = false;
+            group_id = saved_group_id;
+            pmus.push_back(0);
+          }
+          continue;
+        }
         GetErrorLogInstance() << "***WARNING** Failed to get a file descriptor "
                                  "for performance counter "
                               << name << ". Ignoring\n";
@@ -252,6 +291,9 @@ PerfCounters PerfCounters::Create(
         // as the others would be fine
         continue;
       }
+      BM_VLOG(1) << "perf_counters: opened " << name << " (pmu " << pmu
+                 << ") as fd " << id << "\n";
+      opened_any = true;
       if (group_id < 0) {
         // This is a leader, store and assign it to the current file descriptor
         leader_ids.push_back(id);
