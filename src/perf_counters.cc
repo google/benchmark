@@ -15,7 +15,6 @@
 #include "perf_counters.h"
 
 #include <cstring>
-#include <ios>
 #include <memory>
 #include <optional>
 #include <vector>
@@ -127,14 +126,13 @@ static std::optional<std::vector<uint64_t>> QueryCPUPMUTypes() {
   return types;
 }
 
+// Returns the CPU PMUs on which to replicate `attr` if it is a generic hardware
+// event, or an empty vector otherwise.
 static std::vector<uint64_t> GetPMUTypesForEvent(const perf_event_attr& attr) {
-  // Replicate generic hardware events on all CPU PMUs.
   if (attr.type == PERF_TYPE_HARDWARE && attr.config < PERF_COUNT_HW_MAX) {
-    if (auto types = QueryCPUPMUTypes()) {
-      return *types;
-    }
+    return QueryCPUPMUTypes().value_or(std::vector<uint64_t>{});
   }
-  return {0};
+  return {};
 }
 
 PerfCounters PerfCounters::Create(
@@ -160,12 +158,46 @@ PerfCounters PerfCounters::Create(
   // chance to create a new group leader to hold the next set of counters.
   int group_id = -1;
 
-  // Whether the kernel accepts extended hardware event types (a PMU type in
-  // the upper bits of `config`). This requires PERF_PMU_CAP_EXTENDED_HW_TYPE,
-  // which e.g. the arm_pmu driver in some Android kernels does not set, in
-  // which case perf_event_open fails (with ENOENT or EINVAL). We stop trying
-  // once it fails and fall back to plain hardware events.
-  bool try_extended_hw_type = true;
+  // Opens the counter `attr` and adds it to the current group, or to a new
+  // group if the current one is full. Returns 0 if it could be opened, or else
+  // the errno of the last failed perf_event_open call.
+  auto add_counter = [&](perf_event_attr* attr, const std::string& name) {
+    int group = group_id;
+    int id = -1;
+    int open_errno = 0;
+    while (id < 0) {
+      static constexpr size_t kNrOfSyscallRetries = 5;
+      // Retry syscall as it was interrupted often (b/64774091).
+      for (size_t num_retries = 0; num_retries < kNrOfSyscallRetries;
+           ++num_retries) {
+        id = perf_event_open(attr, 0, -1, group, 0);
+        open_errno = errno;
+        if (id >= 0 || open_errno != EINTR) {
+          break;
+        }
+      }
+      if (id < 0) {
+        // If the file descriptor is negative we might have reached a limit
+        // in the current group. Retry in a new group.
+        if (group >= 0) {
+          group = -1;
+        } else {
+          // At this point we have already retried in a new group and failed.
+          // We then give up.
+          return open_errno;
+        }
+      }
+    }
+    if (group < 0) {
+      // This is a leader, store and assign it to the current file descriptor
+      leader_ids.push_back(id);
+      group_id = id;
+    }
+    // This is a valid counter, add it to our descriptor's list
+    counter_ids.push_back(id);
+    valid_names.push_back(name);
+    return 0;
+  };
 
   // Loop through all performance counters
   for (size_t i = 0; i < counter_names.size(); ++i) {
@@ -223,85 +255,29 @@ PerfCounters PerfCounters::Create(
     attr.read_format = PERF_FORMAT_GROUP;  //| PERF_FORMAT_TOTAL_TIME_ENABLED |
                                            // PERF_FORMAT_TOTAL_TIME_RUNNING;
 
-    uint64_t base_config = attr.config;
-    std::vector<uint64_t> pmus = {0};
-    if (try_extended_hw_type) {
-      pmus = GetPMUTypesForEvent(attr);
-    }
-    const int saved_group_id = group_id;
-    bool opened_any = false;
-    for (size_t pmu_index = 0; pmu_index < pmus.size(); ++pmu_index) {
-      const uint64_t pmu = pmus[pmu_index];
-      attr.config = (pmu << PERF_PMU_TYPE_SHIFT) | base_config;
-      int id = -1;
-      // errno from the last perf_event_open call, saved immediately since
-      // anything else (including logging) may clobber it.
-      int open_errno = 0;
-      while (id < 0) {
-        static constexpr size_t kNrOfSyscallRetries = 5;
-        // Retry syscall as it was interrupted often (b/64774091).
-        for (size_t num_retries = 0; num_retries < kNrOfSyscallRetries;
-             ++num_retries) {
-          id = perf_event_open(&attr, 0, -1, group_id, 0);
-          open_errno = errno;
-          if (id >= 0 || open_errno != EINTR) {
-            break;
-          }
-        }
-        if (id < 0) {
-          // If the file descriptor is negative we might have reached a limit
-          // in the current group. Set the group_id to -1 and retry
-          if (group_id >= 0) {
-            // Create a new group
-            group_id = -1;
-          } else {
-            // At this point we have already retried to set a new group id and
-            // failed. We then give up.
-            break;
-          }
-        }
+    // Replicate generic hardware events on all CPU PMUs, with the PMU type in
+    // the upper bits of `config`. This requires PERF_PMU_CAP_EXTENDED_HW_TYPE,
+    // which not all PMU drivers support (e.g. arm_pmu in Linux 6.1), so if no
+    // copy can be opened, open a plain event, on a CPU PMU of the kernel's
+    // choosing, instead.
+    bool opened = false;
+    for (uint64_t pmu : GetPMUTypesForEvent(attr)) {
+      perf_event_attr pmu_attr = attr;
+      pmu_attr.config |= pmu << PERF_PMU_TYPE_SHIFT;
+      if (const int open_errno = add_counter(&pmu_attr, name);
+          open_errno != 0) {
+        BM_VLOG(1) << "perf_counters: cannot open " << name << " on PMU type "
+                   << pmu << ": " << ::strerror(open_errno) << "\n";
+      } else {
+        opened = true;
       }
-
+    }
+    if (!opened && add_counter(&attr, name) != 0) {
       // We failed to get a new file descriptor. We might have reached a hard
       // hardware limit that cannot be resolved even with group multiplexing
-      if (id < 0) {
-        BM_VLOG(1) << "perf_counters: could not open " << name << " (pmu "
-                   << pmu << ", type " << attr.type << ", config 0x" << std::hex
-                   << attr.config << std::dec << "): " << ::strerror(open_errno)
-                   << "\n";
-        if (pmu != 0) {
-          if (!opened_any && pmu_index + 1 == pmus.size()) {
-            // None of the extended hardware types worked; the kernel most
-            // likely does not support them. Fall back to a plain hardware
-            // event.
-            BM_VLOG(1) << "perf_counters: extended hardware event types "
-                          "appear to be unsupported, falling back to plain "
-                          "hardware events\n";
-            try_extended_hw_type = false;
-            group_id = saved_group_id;
-            pmus.push_back(0);
-          }
-          continue;
-        }
-        GetErrorLogInstance() << "***WARNING** Failed to get a file descriptor "
-                                 "for performance counter "
-                              << name << ". Ignoring\n";
-
-        // We give up on this counter but try to keep going
-        // as the others would be fine
-        continue;
-      }
-      BM_VLOG(1) << "perf_counters: opened " << name << " (pmu " << pmu
-                 << ") as fd " << id << "\n";
-      opened_any = true;
-      if (group_id < 0) {
-        // This is a leader, store and assign it to the current file descriptor
-        leader_ids.push_back(id);
-        group_id = id;
-      }
-      // This is a valid counter, add it to our descriptor's list
-      counter_ids.push_back(id);
-      valid_names.push_back(name);
+      GetErrorLogInstance() << "***WARNING** Failed to get a file descriptor "
+                               "for performance counter "
+                            << name << ". Ignoring\n";
     }
   }
 
