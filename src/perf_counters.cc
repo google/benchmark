@@ -14,9 +14,15 @@
 
 #include "perf_counters.h"
 
+#include <cerrno>
+#include <cinttypes>
+#include <cstdint>
+#include <cstdio>
 #include <cstring>
-#include <memory>
 #include <optional>
+#include <string>
+#include <string_view>
+#include <utility>
 #include <vector>
 
 #if defined HAVE_LIBPFM
@@ -126,11 +132,12 @@ static std::optional<std::vector<uint64_t>> QueryCPUPMUTypes() {
   return types;
 }
 
-// Returns the CPU PMUs on which to replicate `attr` if it is a generic hardware
-// event, or an empty vector otherwise.
 static std::vector<uint64_t> GetPMUTypesForEvent(const perf_event_attr& attr) {
+  // Replicate generic hardware events on all CPU PMUs.
   if (attr.type == PERF_TYPE_HARDWARE && attr.config < PERF_COUNT_HW_MAX) {
-    return QueryCPUPMUTypes().value_or(std::vector<uint64_t>{});
+    if (auto types = QueryCPUPMUTypes()) {
+      return *types;
+    }
   }
   return {};
 }
@@ -226,7 +233,7 @@ PerfCounters PerfCounters::Create(
 
     // This struct will be populated by libpfm from the counter string
     // and then fed into the syscall perf_event_open
-    struct perf_event_attr attr {};
+    struct perf_event_attr attr{};
     attr.size = sizeof(attr);
 
     // This is the input struct to libpfm.
@@ -257,9 +264,7 @@ PerfCounters PerfCounters::Create(
 
     // Replicate generic hardware events on all CPU PMUs, with the PMU type in
     // the upper bits of `config`. This requires PERF_PMU_CAP_EXTENDED_HW_TYPE,
-    // which not all PMU drivers support (e.g. arm_pmu in Linux 6.1), so if no
-    // copy can be opened, open a plain event, on a CPU PMU of the kernel's
-    // choosing, instead.
+    // which not all PMU drivers support (e.g. arm_pmu in Linux 6.1).
     bool opened = false;
     for (uint64_t pmu : GetPMUTypesForEvent(attr)) {
       perf_event_attr pmu_attr = attr;
@@ -272,6 +277,11 @@ PerfCounters PerfCounters::Create(
         opened = true;
       }
     }
+    // Only if the event could not be opened on any CPU PMU (e.g. because they
+    // do not support extended types), or is not replicated, open it as a plain
+    // event, on a CPU PMU of the kernel's choosing. Also opening it on some
+    // PMUs would count twice on that PMU, since the counts of all PMUs are
+    // summed.
     if (!opened && add_counter(&attr, name) != 0) {
       // We failed to get a new file descriptor. We might have reached a hard
       // hardware limit that cannot be resolved even with group multiplexing
