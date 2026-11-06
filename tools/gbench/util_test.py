@@ -143,3 +143,128 @@ raise SystemExit(7)
 
         self.assertEqual(error.exception.code, 7)
         self.assert_temporary_output_removed()
+
+
+class TestCheckBenchmarkResults(unittest.TestCase):
+    def setUp(self):
+        self.stdout_mock = io.StringIO()
+        stdout_patch = patch("sys.stdout", new=self.stdout_mock)
+        stdout_patch.start()
+        self.addCleanup(stdout_patch.stop)
+
+    def test_valid_benchmark_results(self):
+        valid = {
+            "benchmarks": [
+                {
+                    "name": "BM_Test",
+                    "run_name": "BM_Test/1",
+                    "real_time": 10.5,
+                    "cpu_time": 10,
+                    "time_unit": "ns",
+                }
+            ]
+        }
+        util.check_benchmark_results("dummy.json", valid)
+        self.assertEqual(self.stdout_mock.getvalue(), "")
+
+    def test_invalid_top_level_object(self):
+        with self.assertRaises(SystemExit) as error:
+            util.check_benchmark_results("dummy.json", ["not", "a", "dict"])
+        self.assertEqual(error.exception.code, 1)
+        self.assertIn(
+            "expected top-level JSON object", self.stdout_mock.getvalue()
+        )
+
+    def test_missing_benchmarks_array(self):
+        with self.assertRaises(SystemExit) as error:
+            util.check_benchmark_results("dummy.json", {})
+        self.assertEqual(error.exception.code, 1)
+        self.assertIn(
+            "missing or invalid 'benchmarks' array", self.stdout_mock.getvalue()
+        )
+
+    def test_benchmarks_not_a_list(self):
+        with self.assertRaises(SystemExit) as error:
+            util.check_benchmark_results(
+                "dummy.json", {"benchmarks": "not_list"}
+            )
+        self.assertEqual(error.exception.code, 1)
+        self.assertIn(
+            "missing or invalid 'benchmarks' array", self.stdout_mock.getvalue()
+        )
+
+    def test_run_not_an_object(self):
+        with self.assertRaises(SystemExit) as error:
+            util.check_benchmark_results("dummy.json", {"benchmarks": ["item"]})
+        self.assertEqual(error.exception.code, 1)
+        self.assertIn("run[0] is not an object", self.stdout_mock.getvalue())
+
+    def test_run_missing_name(self):
+        with self.assertRaises(SystemExit) as error:
+            util.check_benchmark_results("dummy.json", {"benchmarks": [{}]})
+        self.assertEqual(error.exception.code, 1)
+        self.assertIn("run[0] is missing 'name'", self.stdout_mock.getvalue())
+
+    def test_run_name_not_a_string(self):
+        with self.assertRaises(SystemExit) as error:
+            util.check_benchmark_results(
+                "dummy.json", {"benchmarks": [{"name": 123}]}
+            )
+        self.assertEqual(error.exception.code, 1)
+        self.assertIn(
+            "run[0].name is not a string", self.stdout_mock.getvalue()
+        )
+
+    def test_run_name_alias_not_a_string(self):
+        with self.assertRaises(SystemExit) as error:
+            util.check_benchmark_results(
+                "dummy.json", {"benchmarks": [{"name": "bm", "run_name": 123}]}
+            )
+        self.assertEqual(error.exception.code, 1)
+        self.assertIn(
+            "run[0].run_name is not a string", self.stdout_mock.getvalue()
+        )
+
+    def test_run_real_time_not_numeric(self):
+        with self.assertRaises(SystemExit) as error:
+            util.check_benchmark_results(
+                "dummy.json",
+                {"benchmarks": [{"name": "bm", "real_time": "10ms"}]},
+            )
+        self.assertEqual(error.exception.code, 1)
+        self.assertIn(
+            "run[0].real_time is not numeric", self.stdout_mock.getvalue()
+        )
+
+    def test_run_real_time_bool_rejected(self):
+        with self.assertRaises(SystemExit) as error:
+            util.check_benchmark_results(
+                "dummy.json",
+                {"benchmarks": [{"name": "bm", "real_time": True}]},
+            )
+        self.assertEqual(error.exception.code, 1)
+        self.assertIn(
+            "run[0].real_time is not numeric", self.stdout_mock.getvalue()
+        )
+
+    def test_run_cpu_time_not_numeric(self):
+        with self.assertRaises(SystemExit) as error:
+            util.check_benchmark_results(
+                "dummy.json",
+                {"benchmarks": [{"name": "bm", "cpu_time": None}]},
+            )
+        self.assertEqual(error.exception.code, 1)
+        self.assertIn(
+            "run[0].cpu_time is not numeric", self.stdout_mock.getvalue()
+        )
+
+    def test_run_unknown_time_unit(self):
+        with self.assertRaises(SystemExit) as error:
+            util.check_benchmark_results(
+                "dummy.json",
+                {"benchmarks": [{"name": "bm", "time_unit": "minutes"}]},
+            )
+        self.assertEqual(error.exception.code, 1)
+        self.assertIn(
+            "run[0].time_unit 'minutes' is unknown", self.stdout_mock.getvalue()
+        )
