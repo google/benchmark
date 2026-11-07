@@ -15,9 +15,13 @@ On QNX, the pthread library is part of libc and usually included automatically
 [`pthread_create()`](https://www.qnx.com/developers/docs/7.1/index.html#com.qnx.doc.neutrino.lib_ref/topic/p/pthread_create.html)).
 There's no separate pthread library to link.
 
-## Building with Visual Studio 2015, 2017 or 2022
+## Building on Windows (Visual Studio, MinGW, Clang)
 
-The `shlwapi` library (`-lshlwapi`) is required to support a call to `CPUInfo` which reads the registry. Either add `shlwapi.lib` under `[ Configuration Properties > Linker > Input ]`, or use the following:
+The `shlwapi` library (`-lshlwapi`) is required on Windows to support a call to `CPUInfo` which reads the registry.
+
+### Visual Studio (MSVC)
+
+Either add `shlwapi.lib` under `[ Configuration Properties > Linker > Input ]`, or use the following:
 
 ```
 // Alternatively, can add libraries using linker options.
@@ -33,7 +37,7 @@ The `shlwapi` library (`-lshlwapi`) is required to support a call to `CPUInfo` w
 #endif
 ```
 
-When using the static library, make sure to add `BENCHMARK_STATIC_DEFINE` under `[Configuration Properties > C/C++ > Preprocessor > Preprocessor Definitions]`
+When using the static library, make sure to add `BENCHMARK_STATIC_DEFINE` under `[Configuration Properties > C/C++ > Preprocessor > Preprocessor Definitions]`.
 
 By default the library links against the DLL C runtime (`/MD`, `/MDd`). To use the static C runtime (`/MT`, `/MTd`) instead, set CMake's [`CMAKE_MSVC_RUNTIME_LIBRARY`](https://cmake.org/cmake/help/latest/variable/CMAKE_MSVC_RUNTIME_LIBRARY.html) (CMake 3.15 or newer) when configuring. It applies to `benchmark`, `benchmark_main` and the downloaded GoogleTest alike:
 
@@ -49,6 +53,23 @@ Can also use the graphical version of CMake:
 * Under `CMAKE_INSTALL_PREFIX`, same path as source plus `install`.
 * Click `Configure`, `Generate`, `Open Project`.
 * If build fails, try deleting entire directory and starting again, or unticking options to build less.
+
+### MinGW / MSYS2
+
+When compiling and linking against the static library (`libbenchmark.a`) using GCC or Clang under MinGW / MSYS2:
+
+1. Pass `-DBENCHMARK_STATIC_DEFINE` during compilation so headers avoid declaring symbols with `__declspec(dllimport)`.
+2. Link against `shlwapi` and `pthread` by adding `-lshlwapi -pthread` (or `-lpthread`) to your linker flags.
+
+If using `pkg-config` (with `PKG_CONFIG_PATH` pointing to the directory containing `benchmark.pc`):
+```sh
+clang++ main.cpp -DBENCHMARK_STATIC_DEFINE $(pkg-config --cflags --libs --static benchmark) -o main.exe
+```
+
+When invoking the compiler directly without `pkg-config`:
+```sh
+c++ main.cpp -isystem "<path-to-benchmark>/include" -L"<path-to-benchmark>/build/src" -DBENCHMARK_STATIC_DEFINE -lbenchmark -lshlwapi -pthread -o main.exe
+```
 
 ## Building with Intel 2015 Update 1 or Intel System Studio Update 4
 
