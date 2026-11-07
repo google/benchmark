@@ -56,6 +56,8 @@
 
 namespace benchmark {
 
+BM_DECLARE_string(benchmark_tags);
+
 namespace {
 // For non-dense Range, intermediate values are powers of kRangeMultiplier.
 constexpr int kRangeMultiplier = 8;
@@ -65,6 +67,51 @@ constexpr int kRangeMultiplier = 8;
 constexpr size_t kMaxFamilySize = 100;
 
 constexpr char kDisabledPrefix[] = "DISABLED_";
+
+// --benchmark_tags=a,b,-c: tags to include (any of) and to exclude.
+struct TagSelection {
+  std::vector<std::string> include;
+  std::vector<std::string> exclude;
+};
+
+TagSelection ParseTagSelection(const std::string& spec) {
+  TagSelection selection;
+  if (spec.empty()) {
+    return selection;
+  }
+  for (std::string tag : StrSplit(spec, ',')) {
+    // Trim, so that "a, b" selects tag "b" rather than " b".
+    const size_t first = tag.find_first_not_of(" \t");
+    tag = first == std::string::npos
+              ? std::string()
+              : tag.substr(first, tag.find_last_not_of(" \t") - first + 1);
+    if (tag.empty() || tag == "-") {
+      continue;
+    }
+    if (tag[0] == '-') {
+      selection.exclude.push_back(tag.substr(1));
+    } else {
+      selection.include.push_back(tag);
+    }
+  }
+  return selection;
+}
+
+bool HasAnyTag(const std::vector<std::string>& tags,
+               const std::vector<std::string>& wanted) {
+  return std::any_of(tags.begin(), tags.end(), [&](const std::string& tag) {
+    return std::find(wanted.begin(), wanted.end(), tag) != wanted.end();
+  });
+}
+
+// Exclusion wins; untagged benchmarks only run when nothing is included.
+bool IsSelectedByTags(const std::vector<std::string>& tags,
+                      const TagSelection& selection) {
+  if (HasAnyTag(tags, selection.exclude)) {
+    return false;
+  }
+  return selection.include.empty() || HasAnyTag(tags, selection.include);
+}
 }  // end namespace
 
 namespace internal {
@@ -138,6 +185,8 @@ bool BenchmarkFamilies::FindBenchmarks(
   // Special list of thread counts to use when none are specified
   const std::vector<int> one_thread = {1};
 
+  const TagSelection tag_selection = ParseTagSelection(FLAGS_benchmark_tags);
+
   int next_family_index = 0;
 
   MutexLock l(mutex_);
@@ -147,6 +196,11 @@ bool BenchmarkFamilies::FindBenchmarks(
 
     // Family was deleted or benchmark doesn't match
     if (!family) {
+      continue;
+    }
+
+    // Tags belong to the whole family, so skip it before expanding instances.
+    if (!IsSelectedByTags(family->tags_, tag_selection)) {
       continue;
     }
 
@@ -499,6 +553,22 @@ Benchmark* Benchmark::ThreadPerCpu() {
 
 Benchmark* Benchmark::ThreadRunner(threadrunner_factory&& factory) {
   threadrunner_ = std::move(factory);
+  return this;
+}
+
+Benchmark* Benchmark::Tag(const std::string& tag) {
+  // Always checked: a malformed tag would otherwise silently never match.
+  BM_CHECK_ALWAYS(!tag.empty()) << "Tag must not be empty";
+  BM_CHECK_ALWAYS(tag.find(',') == std::string::npos)
+      << "Tag must not contain ',': " << tag;
+  BM_CHECK_ALWAYS(tag[0] != '-') << "Tag must not start with '-': " << tag;
+  // The flag parser trims items, so such a tag could never be selected.
+  BM_CHECK_ALWAYS(tag.find_first_of(" \t") != 0 &&
+                  tag.find_last_of(" \t") != tag.size() - 1)
+      << "Tag must not start or end with whitespace: '" << tag << "'";
+  if (std::find(tags_.begin(), tags_.end(), tag) == tags_.end()) {
+    tags_.push_back(tag);
+  }
   return this;
 }
 

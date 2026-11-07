@@ -198,6 +198,7 @@ std::vector<BenchmarkReporter::Run> ComputeStats(
     data.run_name = successful_run->run_name;
     data.family_index = successful_run->family_index;
     data.per_family_instance_index = successful_run->per_family_instance_index;
+    data.tags = successful_run->tags;
     data.run_type = BenchmarkReporter::Run::RT_Aggregate;
     data.threads = successful_run->threads;
     data.repetitions = successful_run->repetitions;
