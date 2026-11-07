@@ -61,14 +61,9 @@ When compiling and linking against the static library (`libbenchmark.a`) using G
 1. Pass `-DBENCHMARK_STATIC_DEFINE` during compilation so headers avoid declaring symbols with `__declspec(dllimport)`.
 2. Link against `shlwapi` and `pthread` by adding `-lshlwapi -pthread` (or `-lpthread`) to your linker flags.
 
-If using `pkg-config` (with `PKG_CONFIG_PATH` pointing to the directory containing `benchmark.pc`):
+If using `pkg-config`:
 ```sh
-clang++ main.cpp -DBENCHMARK_STATIC_DEFINE $(pkg-config --cflags --libs --static benchmark) -o main.exe
-```
-
-When invoking the compiler directly without `pkg-config`:
-```sh
-c++ main.cpp -isystem "<path-to-benchmark>/include" -L"<path-to-benchmark>/build/src" -DBENCHMARK_STATIC_DEFINE -lbenchmark -lshlwapi -pthread -o main.exe
+clang++ main.cpp -DBENCHMARK_STATIC_DEFINE $(pkg-config --cflags --libs --static <path-to-benchmark-build>/benchmark.pc) -o main.exe
 ```
 
 ## Building with Intel 2015 Update 1 or Intel System Studio Update 4
