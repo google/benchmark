@@ -15,6 +15,7 @@
 #include <algorithm>
 #include <cmath>
 #include <cstdint>
+#include <cstdio>
 #include <iomanip>  // for setprecision
 #include <iostream>
 #include <limits>
@@ -60,9 +61,18 @@ std::string StrEscape(const std::string& s) {
       case '"':
         tmp += "\\\"";
         break;
-      default:
-        tmp += c;
+      default: {
+        auto uc = static_cast<unsigned char>(c);
+        if (uc < 0x20) {
+          char buf[7];
+          std::snprintf(buf, sizeof(buf), "\\u%04x",
+                        static_cast<unsigned int>(uc));
+          tmp += buf;
+        } else {
+          tmp += c;
+        }
         break;
+      }
     }
   }
   return tmp;
