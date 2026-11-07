@@ -94,6 +94,7 @@ BenchmarkReporter::Run CreateRunReport(
   report.run_name = b.name();
   report.family_index = b.family_index();
   report.per_family_instance_index = b.per_family_instance_index();
+  report.tags = b.tags();
   report.skipped = results.skipped_;
   report.skip_message = results.skip_message_;
   report.report_label = results.report_label_;

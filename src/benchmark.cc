@@ -82,6 +82,10 @@ BM_DEFINE_bool(benchmark_list_tests, false);
 // linked into the binary are run.
 BM_DEFINE_string(benchmark_filter, "");
 
+// Comma-separated tags to select benchmarks by. A benchmark runs if it has any
+// listed tag; tags prefixed with '-' exclude. Empty means no tag filtering.
+BM_DEFINE_string(benchmark_tags, "");
+
 // Specification of how long to run the benchmark.
 //
 // It can be either an exact number of iterations (specified as `<integer>x`),
@@ -737,6 +741,7 @@ void ParseCommandLineFlags(int* argc, char** argv) {
     if (ParseBoolFlag(argv[i], "benchmark_list_tests",
                       &FLAGS_benchmark_list_tests) ||
         ParseStringFlag(argv[i], "benchmark_filter", &FLAGS_benchmark_filter) ||
+        ParseStringFlag(argv[i], "benchmark_tags", &FLAGS_benchmark_tags) ||
         ParseStringFlag(argv[i], "benchmark_min_time",
                         &FLAGS_benchmark_min_time) ||
         ParseDoubleFlag(argv[i], "benchmark_min_warmup_time",
@@ -943,6 +948,7 @@ void PrintDefaultHelp() {
           "benchmark"
           " [--benchmark_list_tests={true|false}]\n"
           "          [--benchmark_filter=<regex>]\n"
+          "          [--benchmark_tags=<tag>[,-<tag>...]]\n"
           "          [--benchmark_min_time=`<integer>x` OR `<float>s` ]\n"
           "          [--benchmark_min_warmup_time=<min_warmup_time>]\n"
           "          [--benchmark_repetitions=<num_repetitions>]\n"
