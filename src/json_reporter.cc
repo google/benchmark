@@ -256,6 +256,14 @@ void JSONReporter::PrintRunData(Run const& run) {
       << FormatKV("per_family_instance_index", run.per_family_instance_index)
       << ",\n";
   out << indent << FormatKV("run_name", run.run_name.str()) << ",\n";
+  // Omitted when empty so output for untagged benchmarks is unchanged.
+  if (!run.tags.empty()) {
+    out << indent << "\"tags\": [";
+    for (size_t i = 0; i < run.tags.size(); ++i) {
+      out << (i == 0 ? "" : ", ") << '"' << StrEscape(run.tags[i]) << '"';
+    }
+    out << "],\n";
+  }
   out << indent << FormatKV("run_type", [&run]() -> const char* {
     switch (run.run_type) {
       case BenchmarkReporter::Run::RT_Iteration:
