@@ -140,8 +140,11 @@ std::vector<BenchmarkReporter::Run> ComputeAggregateReports(
     data.aggregate_name = name_prefix + Stat.name_;
     data.aggregate_unit = Stat.unit_;
     data.report_label = report_label;
-    // Report the number of samples, not the iterations already averaged
-    // inside each sample. See ComputeStats for the same rule.
+    // It is incorrect to say that an aggregate is computed over a run's
+    // iterations, because those iterations already got averaged.
+    // Similarly, if there are N repetitions with 1 iteration each,
+    // an aggregate will be computed over N measurements, not 1.
+    // Thus it is best to simply use the count of separate reports.
     data.iterations = static_cast<IterationCount>(real_times.size());
     data.real_accumulated_time = Stat.compute_(real_times);
     data.cpu_accumulated_time = Stat.compute_(cpu_times);
@@ -238,10 +241,6 @@ std::vector<BenchmarkReporter::Run> ComputeStats(
     }
   }
 
-  // It is incorrect to say that an aggregate is computed over a run's
-  // iterations, because those iterations already got averaged. Time statistics
-  // are rescaled by (sample count / iterations) inside ComputeAggregateReports
-  // so the reported unit stays "per iteration" while iterations counts samples.
   return ComputeAggregateReports(
       *successful_run, *successful_run->statistics, real_accumulated_time_stat,
       cpu_accumulated_time_stat, counter_stats, run_iterations,
