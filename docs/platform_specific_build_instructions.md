@@ -1,60 +1,15 @@
 # Platform Specific Build Instructions
 
-## Building with GCC
+The library can be built with CMake build system, and Bazel build system,
 
-When the library is built using GCC it is necessary to link with the pthread
-library due to how GCC implements `std::thread`. Failing to link to pthread will
-lead to runtime exceptions (unless you're using libc++), not linker errors. See
-[issue #67](https://github.com/google/benchmark/issues/67) for more details. You
-can link to pthread by adding `-pthread` to your linker command. Note, you can
-also use `-lpthread`, but there are potential issues with ordering of command
-line parameters if you use that.
+It can either be built as a subproject of a parent build system,
+or can you build it separately, and then use the pkg-config `.pc` file
+produced by the build system to link to the resulting library.
+Additionally, CMake build system produces a CMake config.
 
-On QNX, the pthread library is part of libc and usually included automatically
-(see
-[`pthread_create()`](https://www.qnx.com/developers/docs/7.1/index.html#com.qnx.doc.neutrino.lib_ref/topic/p/pthread_create.html)).
-There's no separate pthread library to link.
+These are all the supported cases. Unless there's an exceptional circumstances,
+you should not need to use any alternative approaches.
 
-## Building with Visual Studio 2015, 2017 or 2022
-
-The `shlwapi` library (`-lshlwapi`) is required to support a call to `CPUInfo` which reads the registry. Either add `shlwapi.lib` under `[ Configuration Properties > Linker > Input ]`, or use the following:
-
-```
-// Alternatively, can add libraries using linker options.
-
-// First, Add the path to the generated library files (directory containing the `benchmark.lib`) in `[Configuration Properties > Linker > General > Additional Library Directories]`. Then do the following:
-#ifdef _WIN32
-#pragma comment ( lib, "Shlwapi.lib" )
-#ifdef _DEBUG
-#pragma comment ( lib, "benchmark.lib" )
-#else
-#pragma comment ( lib, "benchmark.lib" )
-#endif
-#endif
-```
-
-When using the static library, make sure to add `BENCHMARK_STATIC_DEFINE` under `[Configuration Properties > C/C++ > Preprocessor > Preprocessor Definitions]`
-
-By default the library links against the DLL C runtime (`/MD`, `/MDd`). To use the static C runtime (`/MT`, `/MTd`) instead, set CMake's [`CMAKE_MSVC_RUNTIME_LIBRARY`](https://cmake.org/cmake/help/latest/variable/CMAKE_MSVC_RUNTIME_LIBRARY.html) (CMake 3.15 or newer) when configuring. It applies to `benchmark`, `benchmark_main` and the downloaded GoogleTest alike:
-
-```
-cmake -S . -B build -DBENCHMARK_DOWNLOAD_DEPENDENCIES=ON -DCMAKE_MSVC_RUNTIME_LIBRARY="MultiThreaded$<$<CONFIG:Debug>:Debug>"
-```
-
-Combine it with the static library (`BUILD_SHARED_LIBS=OFF`), since a DLL with its own static C runtime can't safely share C runtime objects with the executable.
-
-Can also use the graphical version of CMake:
-* Open `CMake GUI`.
-* Under `Where to build the binaries`, same path as source plus `build`.
-* Under `CMAKE_INSTALL_PREFIX`, same path as source plus `install`.
-* Click `Configure`, `Generate`, `Open Project`.
-* If build fails, try deleting entire directory and starting again, or unticking options to build less.
-
-## Building with Intel 2015 Update 1 or Intel System Studio Update 4
-
-See instructions for building with Visual Studio. Once built, right click on the solution and change the build to Intel.
-
-## Building on Solaris
-
-If you're running benchmarks on solaris, you'll want the kstat library linked in
-too (`-lkstat`).
+If for some reason you can not use any of these approaches,
+you'll need to manually inspect the `.pc` file and manually
+adapt your compiler invocations with information encoded in that file.
