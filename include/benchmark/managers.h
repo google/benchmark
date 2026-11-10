@@ -30,7 +30,7 @@ class MemoryManager {
   static constexpr int64_t TombstoneValue = std::numeric_limits<int64_t>::max();
 
   struct Result {
-    Result()
+    constexpr Result()
         : num_allocs(0),
           max_bytes_used(0),
           total_allocated_bytes(TombstoneValue),
