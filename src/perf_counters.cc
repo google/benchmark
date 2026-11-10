@@ -14,9 +14,15 @@
 
 #include "perf_counters.h"
 
+#include <cerrno>
+#include <cinttypes>
+#include <cstdint>
+#include <cstdio>
 #include <cstring>
-#include <memory>
 #include <optional>
+#include <string>
+#include <string_view>
+#include <utility>
 #include <vector>
 
 #if defined HAVE_LIBPFM
@@ -117,6 +123,8 @@ static std::optional<std::vector<uint64_t>> QueryCPUPMUTypes() {
         closedir(dir);
         return std::nullopt;
       }
+      BM_VLOG(1) << "perf_counters: found CPU PMU " << name_str << " type "
+                 << type << "\n";
       types.push_back(type);
     }
   }
@@ -131,7 +139,7 @@ static std::vector<uint64_t> GetPMUTypesForEvent(const perf_event_attr& attr) {
       return *types;
     }
   }
-  return {0};
+  return {};
 }
 
 PerfCounters PerfCounters::Create(
@@ -156,6 +164,47 @@ PerfCounters PerfCounters::Create(
   // so we set the group_id again to -1 and retry - giving the algorithm a
   // chance to create a new group leader to hold the next set of counters.
   int group_id = -1;
+
+  // Opens the counter `attr` and adds it to the current group, or to a new
+  // group if the current one is full. Returns 0 if it could be opened, or else
+  // the errno of the last failed perf_event_open call.
+  auto add_counter = [&](perf_event_attr* attr, const std::string& name) {
+    int group = group_id;
+    int id = -1;
+    int open_errno = 0;
+    while (id < 0) {
+      static constexpr size_t kNrOfSyscallRetries = 5;
+      // Retry syscall as it was interrupted often (b/64774091).
+      for (size_t num_retries = 0; num_retries < kNrOfSyscallRetries;
+           ++num_retries) {
+        id = perf_event_open(attr, 0, -1, group, 0);
+        open_errno = errno;
+        if (id >= 0 || open_errno != EINTR) {
+          break;
+        }
+      }
+      if (id < 0) {
+        // If the file descriptor is negative we might have reached a limit
+        // in the current group. Retry in a new group.
+        if (group >= 0) {
+          group = -1;
+        } else {
+          // At this point we have already retried in a new group and failed.
+          // We then give up.
+          return open_errno;
+        }
+      }
+    }
+    if (group < 0) {
+      // This is a leader, store and assign it to the current file descriptor
+      leader_ids.push_back(id);
+      group_id = id;
+    }
+    // This is a valid counter, add it to our descriptor's list
+    counter_ids.push_back(id);
+    valid_names.push_back(name);
+    return 0;
+  };
 
   // Loop through all performance counters
   for (size_t i = 0; i < counter_names.size(); ++i) {
@@ -213,53 +262,32 @@ PerfCounters PerfCounters::Create(
     attr.read_format = PERF_FORMAT_GROUP;  //| PERF_FORMAT_TOTAL_TIME_ENABLED |
                                            // PERF_FORMAT_TOTAL_TIME_RUNNING;
 
-    uint64_t base_config = attr.config;
+    // Replicate generic hardware events on all CPU PMUs, with the PMU type in
+    // the upper bits of `config`. This requires PERF_PMU_CAP_EXTENDED_HW_TYPE,
+    // which not all PMU drivers support (e.g. arm_pmu in Linux 6.1).
+    bool opened = false;
     for (uint64_t pmu : GetPMUTypesForEvent(attr)) {
-      attr.config = (pmu << PERF_PMU_TYPE_SHIFT) | base_config;
-      int id = -1;
-      while (id < 0) {
-        static constexpr size_t kNrOfSyscallRetries = 5;
-        // Retry syscall as it was interrupted often (b/64774091).
-        for (size_t num_retries = 0; num_retries < kNrOfSyscallRetries;
-             ++num_retries) {
-          id = perf_event_open(&attr, 0, -1, group_id, 0);
-          if (id >= 0 || errno != EINTR) {
-            break;
-          }
-        }
-        if (id < 0) {
-          // If the file descriptor is negative we might have reached a limit
-          // in the current group. Set the group_id to -1 and retry
-          if (group_id >= 0) {
-            // Create a new group
-            group_id = -1;
-          } else {
-            // At this point we have already retried to set a new group id and
-            // failed. We then give up.
-            break;
-          }
-        }
+      perf_event_attr pmu_attr = attr;
+      pmu_attr.config |= pmu << PERF_PMU_TYPE_SHIFT;
+      if (const int open_errno = add_counter(&pmu_attr, name);
+          open_errno != 0) {
+        BM_VLOG(1) << "perf_counters: cannot open " << name << " on PMU type "
+                   << pmu << ": " << ::strerror(open_errno) << "\n";
+      } else {
+        opened = true;
       }
-
+    }
+    // Only if the event could not be opened on any CPU PMU (e.g. because they
+    // do not support extended types), or is not replicated, open it as a plain
+    // event, on a CPU PMU of the kernel's choosing. Also opening it on some
+    // PMUs would count twice on that PMU, since the counts of all PMUs are
+    // summed.
+    if (!opened && add_counter(&attr, name) != 0) {
       // We failed to get a new file descriptor. We might have reached a hard
       // hardware limit that cannot be resolved even with group multiplexing
-      if (id < 0) {
-        GetErrorLogInstance() << "***WARNING** Failed to get a file descriptor "
-                                 "for performance counter "
-                              << name << ". Ignoring\n";
-
-        // We give up on this counter but try to keep going
-        // as the others would be fine
-        continue;
-      }
-      if (group_id < 0) {
-        // This is a leader, store and assign it to the current file descriptor
-        leader_ids.push_back(id);
-        group_id = id;
-      }
-      // This is a valid counter, add it to our descriptor's list
-      counter_ids.push_back(id);
-      valid_names.push_back(name);
+      GetErrorLogInstance() << "***WARNING** Failed to get a file descriptor "
+                               "for performance counter "
+                            << name << ". Ignoring\n";
     }
   }
 
