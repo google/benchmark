@@ -157,10 +157,17 @@ TEST(AddCustomContext, DuplicateKey) {
   EXPECT_THAT(global_context, nullptr);
 
   AddCustomContext("foo", "bar");
+  testing::internal::CaptureStderr();
   AddCustomContext("foo", "qux");
+  const std::string err = testing::internal::GetCapturedStderr();
 
   EXPECT_THAT(*global_context,
               testing::UnorderedElementsAre(testing::Pair("foo", "bar")));
+  // The warning must report the value that is already stored, not the one
+  // that was rejected.
+  EXPECT_EQ(err,
+            "Failed to add custom context \"foo\" as it already exists with "
+            "value \"bar\"\n");
 
   delete global_context;
   global_context = nullptr;
