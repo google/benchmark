@@ -545,7 +545,7 @@ void BenchmarkRunner::DoOneRepetition() {
 
   // Produce memory measurements if requested.
   MemoryManager::Result memory_result;
-  if (memory_manager != nullptr) {
+  if (memory_manager != nullptr && i.results.skipped_ == internal::NotSkipped) {
     // Only run a few iterations to reduce the impact of one-time
     // allocations in benchmarks that are not properly managed.
     const IterationCount memory_iterations =
