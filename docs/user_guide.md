@@ -1202,7 +1202,12 @@ not have the same counter set as ``BM_UserCounter``.
 ## Multithreaded Benchmarks
 
 In a multithreaded test (benchmark invoked by multiple threads simultaneously),
-it is guaranteed that none of the threads will start until all have reached
+Google Benchmark runs self-contained benchmark instances, one per thread.
+Because each thread has its own benchmark state, per-thread data and
+allocations can cause the process memory footprint to grow with the thread
+count.
+
+It is guaranteed that none of the threads will start until all have reached
 the start of the benchmark loop, and all will have finished before any thread
 exits the benchmark loop. (This behavior is also provided by the `KeepRunning()`
 API) As such, any global setup or teardown can be wrapped in a check against the thread

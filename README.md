@@ -199,6 +199,12 @@ Alternatively, link against the `benchmark_main` library and remove
 The compiled executable will run all benchmarks by default. Pass the `--help`
 flag for option information or see the [User Guide](docs/user_guide.md).
 
+When using multithreaded benchmarks, Google Benchmark runs self-contained
+benchmark instances per thread, so the process memory footprint can grow with
+the number of threads. See
+[Multithreaded Benchmarks](docs/user_guide.md#multithreaded-benchmarks) for
+details and setup/teardown guidance.
+
 ### Usage with CMake
 
 If using CMake, it is recommended to link against the project-provided
