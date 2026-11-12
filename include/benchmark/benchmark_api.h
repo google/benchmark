@@ -143,6 +143,8 @@ class BENCHMARK_EXPORT Benchmark {
   Benchmark* ThreadPerCpu();
   Benchmark* ThreadRunner(threadrunner_factory&& factory);
 
+  Benchmark* Tag(const std::string& tag);
+
   virtual void Run(State& state) = 0;
 
   TimeUnit GetTimeUnit() const;
@@ -180,6 +182,7 @@ class BENCHMARK_EXPORT Benchmark {
   BigOFunc* complexity_lambda_;
   std::vector<internal::Statistics> statistics_;
   std::vector<int> thread_counts_;
+  std::vector<std::string> tags_;
 
   callback_function setup_;
   callback_function teardown_;
