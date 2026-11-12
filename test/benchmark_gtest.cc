@@ -1,3 +1,4 @@
+#include <chrono>
 #include <map>
 #include <string>
 #include <thread>
@@ -210,6 +211,22 @@ void BM_complexity_no_set_complexity_n(benchmark::State& state) {
 }
 BENCHMARK(BM_complexity_no_set_complexity_n)->Range(1, 2)->Complexity();
 
+void BM_complexity_n_set_by_one_thread(benchmark::State& state) {
+  for (auto _ : state) {
+  }
+  if (state.thread_index() == 0) {
+    state.SetComplexityN(state.range(0));
+  } else {
+    // Make the non-setting thread report after thread 0.
+    std::this_thread::sleep_for(std::chrono::milliseconds(50));
+  }
+}
+BENCHMARK(BM_complexity_n_set_by_one_thread)
+    ->Threads(2)
+    ->Iterations(1)
+    ->Range(1, 2)
+    ->Complexity();
+
 class CapturingReporter : public BenchmarkReporter {
  public:
   bool ReportContext(const Context& /*context*/) override { return true; }
@@ -250,6 +267,19 @@ TEST(ComplexityDeathTest, NoSetComplexityN) {
   ASSERT_DEBUG_DEATH(RunOne("BM_complexity_no_set_complexity_n"),
                      "Did you forget to call SetComplexityN\\?");
 #endif
+}
+
+TEST(ComplexityTest, SetComplexityNOnOneThread) {
+  std::vector<ComplexityN> complexity_ns;
+  for (const BenchmarkReporter::Run& run :
+       RunOne("BM_complexity_n_set_by_one_thread")) {
+    if (run.run_type != BenchmarkReporter::Run::RT_Iteration) {
+      continue;
+    }
+    ASSERT_TRUE(run.complexity_n.has_value()) << run.benchmark_name();
+    complexity_ns.push_back(run.complexity_n.value());
+  }
+  EXPECT_THAT(complexity_ns, testing::ElementsAre(1, 2));
 }
 
 TEST(OptionalComplexityNTest, DefaultHasNoValue) {
