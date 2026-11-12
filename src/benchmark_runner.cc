@@ -471,7 +471,8 @@ MemoryManager::Result BenchmarkRunner::RunMemoryManager(
   b.Setup();
   memory_manager->Start();
   RunInThread(&b, memory_iterations, 0, manager.get(),
-              perf_counters_measurement_ptr,
+              // memory manager doesn't use perf counters
+              /*perf_counters_measurement=*/nullptr,
               /*profiler_manager=*/nullptr);
   MemoryManager::Result memory_result;
   memory_manager->Stop(memory_result);
