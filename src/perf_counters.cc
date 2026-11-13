@@ -19,6 +19,7 @@
 #include <cstdint>
 #include <cstdio>
 #include <cstring>
+#include <iterator>
 #include <optional>
 #include <string>
 #include <string_view>
@@ -29,6 +30,7 @@
 #include <dirent.h>
 #include <fcntl.h>
 #include <linux/perf_event.h>
+#include <sched.h>
 #include <sys/stat.h>
 
 #include "perfmon/pfmlib.h"
@@ -142,6 +144,22 @@ static std::vector<uint64_t> GetPMUTypesForEvent(const perf_event_attr& attr) {
   return {};
 }
 
+// Returns the CPUs that the calling thread may run on, or an empty vector if
+// they cannot be determined.
+static std::vector<int> GetAffinityCPUs() {
+  std::vector<int> cpus;
+  cpu_set_t affinity;
+  CPU_ZERO(&affinity);
+  if (sched_getaffinity(0, sizeof(affinity), &affinity) == 0) {
+    for (int cpu = 0; cpu < CPU_SETSIZE; ++cpu) {
+      if (CPU_ISSET(cpu, &affinity)) {
+        cpus.push_back(cpu);
+      }
+    }
+  }
+  return cpus;
+}
+
 PerfCounters PerfCounters::Create(
     const std::vector<std::string>& counter_names) {
   if (!counter_names.empty()) {
@@ -153,10 +171,11 @@ PerfCounters PerfCounters::Create(
   // Group leads will be assigned on demand. The idea is that once we cannot
   // create a counter descriptor, the reason is that this group has maxed out
   // so we create a new group leader to hold the next set of counters. Events
-  // on different PMUs cannot share a group, so there is a current group per
-  // PMU.
+  // on different PMUs, or bound to different CPUs, cannot share a group, so
+  // there is a current group per PMU and CPU.
   struct Group {
     uint64_t pmu;
+    int cpu;
     int leader;
     std::vector<int> counter_ids;
     std::vector<std::string> names;
@@ -164,14 +183,15 @@ PerfCounters PerfCounters::Create(
   std::vector<Group> groups;
   size_t num_counters = 0;
 
-  // Opens the counter `attr` and adds it to the current group for `pmu`, or to
-  // a new group if there is none or it is full. Returns 0 if it could be
-  // opened, or else the errno of the last failed perf_event_open call.
-  auto add_counter = [&](perf_event_attr attr, uint64_t pmu,
+  // Opens the counter `attr`, counting only on `cpu` unless it is -1, and adds
+  // it to the current group for `pmu` and `cpu`, or to a new group if there is
+  // none or it is full. Returns 0 if it could be opened, or else the errno of
+  // the last failed perf_event_open call.
+  auto add_counter = [&](perf_event_attr attr, uint64_t pmu, int cpu,
                          const std::string& name) {
     Group* group = nullptr;
     for (auto it = groups.rbegin(); it != groups.rend(); ++it) {
-      if (it->pmu == pmu) {
+      if (it->pmu == pmu && it->cpu == cpu) {
         group = &*it;
         break;
       }
@@ -188,7 +208,7 @@ PerfCounters PerfCounters::Create(
       // Retry syscall as it was interrupted often (b/64774091).
       for (size_t num_retries = 0; num_retries < kNrOfSyscallRetries;
            ++num_retries) {
-        id = perf_event_open(&attr, 0, -1, group_id, 0);
+        id = perf_event_open(&attr, 0, cpu, group_id, 0);
         open_errno = errno;
         if (id >= 0 || open_errno != EINTR) {
           break;
@@ -208,7 +228,7 @@ PerfCounters PerfCounters::Create(
     }
     if (group_id < 0) {
       // This is a leader, start a new group for it
-      groups.push_back({pmu, id, {}, {}});
+      groups.push_back({pmu, cpu, id, {}, {}});
       group = &groups.back();
     }
     // This is a valid counter, add it to its group
@@ -216,6 +236,24 @@ PerfCounters PerfCounters::Create(
     group->names.push_back(name);
     ++num_counters;
     return 0;
+  };
+
+  // Closes the counter most recently added by add_counter() for `pmu` and
+  // `cpu`, and removes it from its group (which is then empty if it was the
+  // leader).
+  auto remove_last_counter = [&](uint64_t pmu, int cpu) {
+    for (auto it = groups.rbegin(); it != groups.rend(); ++it) {
+      if (it->pmu == pmu && it->cpu == cpu) {
+        ::close(it->counter_ids.back());
+        it->counter_ids.pop_back();
+        it->names.pop_back();
+        --num_counters;
+        if (it->counter_ids.empty()) {
+          groups.erase(std::next(it).base());
+        }
+        return;
+      }
+    }
   };
 
   // Loop through all performance counters
@@ -273,14 +311,15 @@ PerfCounters PerfCounters::Create(
     // the upper bits of `config`. This requires PERF_PMU_CAP_EXTENDED_HW_TYPE,
     // which not all PMU drivers support (e.g. arm_pmu in Linux 6.1).
     bool opened = false;
-    for (uint64_t pmu : GetPMUTypesForEvent(attr)) {
+    const std::vector<uint64_t> pmus = GetPMUTypesForEvent(attr);
+    for (uint64_t pmu : pmus) {
       // Each PMU's event is a separate counter, so check the maximum again.
       if (num_counters == PerfCounterValues::kMaxCounters) {
         break;
       }
       perf_event_attr pmu_attr = attr;
       pmu_attr.config |= pmu << PERF_PMU_TYPE_SHIFT;
-      if (const int open_errno = add_counter(pmu_attr, pmu, name);
+      if (const int open_errno = add_counter(pmu_attr, pmu, /*cpu=*/-1, name);
           open_errno != 0) {
         BM_VLOG(1) << "perf_counters: cannot open " << name << " on PMU type "
                    << pmu << ": " << ::strerror(open_errno) << "\n";
@@ -288,13 +327,48 @@ PerfCounters PerfCounters::Create(
         opened = true;
       }
     }
-    // Only if the event could not be opened on any CPU PMU (e.g. because they
-    // do not support extended types), or is not replicated, open it as a plain
-    // event, on a CPU PMU of the kernel's choosing. Also opening it on some
-    // PMUs would count twice on that PMU, since the counts of all PMUs are
-    // summed.
+    // Otherwise, if there are several CPU PMUs, open the event once per CPU
+    // that the thread may run on, bound to that CPU: the kernel then opens it
+    // on the PMU of that CPU, and maps the generic event to that PMU's event.
+    // This uses the thread's affinity when the counters are created. If the
+    // event could not be opened on some of these CPUs, it would silently not
+    // count while the thread runs on them, so then it is not opened at all.
+    if (!opened && pmus.size() > 1) {
+      const std::vector<int> cpus = GetAffinityCPUs();
+      if (num_counters + cpus.size() > PerfCounterValues::kMaxCounters) {
+        GetErrorLogInstance()
+            << "***WARNING*** Opening performance counter " << name
+            << " on each of " << cpus.size()
+            << " CPUs would exceed the maximum of "
+            << PerfCounterValues::kMaxCounters << " counters. Ignoring\n";
+        continue;
+      }
+      size_t num_opened = 0;
+      for (int cpu : cpus) {
+        if (const int open_errno = add_counter(attr, 0, cpu, name);
+            open_errno != 0) {
+          GetErrorLogInstance()
+              << "***WARNING*** Failed to open performance counter " << name
+              << " on CPU " << cpu << ": " << ::strerror(open_errno)
+              << ". Ignoring\n";
+          break;
+        }
+        ++num_opened;
+      }
+      if (num_opened < cpus.size()) {
+        while (num_opened > 0) {
+          remove_last_counter(0, cpus[--num_opened]);
+        }
+        continue;
+      }
+      opened = !cpus.empty();
+    }
+    // Only if the event could not be opened on any CPU PMU or CPU, or is not
+    // replicated, open it as a plain event, on a CPU PMU of the kernel's
+    // choosing (the only one, if there is just one). Also opening it on some
+    // PMUs or CPUs would count twice there, since all counts are summed.
     if (!opened && num_counters < PerfCounterValues::kMaxCounters &&
-        add_counter(attr, 0, name) != 0) {
+        add_counter(attr, 0, /*cpu=*/-1, name) != 0) {
       // We failed to get a new file descriptor. We might have reached a hard
       // hardware limit that cannot be resolved even with group multiplexing
       GetErrorLogInstance() << "***WARNING** Failed to get a file descriptor "
