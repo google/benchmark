@@ -32,9 +32,6 @@
 
 #ifdef __ANDROID_NDK__
 #include <malloc.h>
-#if __ANDROID_API__ < 26
-extern "C" __attribute__((weak)) int mallopt(int, int);
-#endif
 #endif
 
 #ifdef BENCHMARK_OS_LINUX
@@ -964,7 +961,8 @@ void PrintDefaultHelp() {
 }
 
 void Initialize(int* argc, char** argv, void (*HelperPrintf)()) {
-#ifdef __ANDROID_NDK__
+#if defined(__ANDROID_NDK__) && \
+    (__ANDROID_MIN_SDK_VERSION__ >= 26 || defined(__ANDROID_UNAVAILABLE_SYMBOLS_ARE_WEAK__))
   // We want standalone android benchmarks to match the performance properties
   // of the production environment, so match that configuration here.
 
