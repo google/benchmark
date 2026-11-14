@@ -1,4 +1,13 @@
 #!/usr/bin/env python3
+#
+# /// script
+# requires-python = ">=3.15"
+# dependencies = [
+#     "numpy>=2.5.4",
+#     "scipy>=1.18.1",
+# ]
+# ///
+
 
 # type: ignore
 
