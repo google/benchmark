@@ -161,14 +161,15 @@ void RunInThread(const BenchmarkInstance* b, IterationCount iters,
     results.cpu_time_used += timer.cpu_time_used();
     results.real_time_used += timer.real_time_used();
     results.manual_time_used += timer.manual_time_used();
+    // Threads that did not call SetComplexityN() contribute nothing, so the
+    // result is independent of the order in which threads report.
     const OptionalComplexityN thread_complexity_n = st.complexity_length_n();
-    if (!results.complexity_n.has_value()) {
-      results.complexity_n = thread_complexity_n;
-    } else if (!thread_complexity_n.has_value()) {
-      results.complexity_n = OptionalComplexityN();
-    } else {
-      results.complexity_n = OptionalComplexityN(results.complexity_n.value() +
-                                                 thread_complexity_n.value());
+    if (thread_complexity_n.has_value()) {
+      results.complexity_n =
+          results.complexity_n.has_value()
+              ? OptionalComplexityN(results.complexity_n.value() +
+                                    thread_complexity_n.value())
+              : thread_complexity_n;
     }
     internal::Increment(&results.counters, st.counters);
   }
@@ -471,7 +472,8 @@ MemoryManager::Result BenchmarkRunner::RunMemoryManager(
   b.Setup();
   memory_manager->Start();
   RunInThread(&b, memory_iterations, 0, manager.get(),
-              perf_counters_measurement_ptr,
+              // memory manager doesn't use perf counters
+              /*perf_counters_measurement=*/nullptr,
               /*profiler_manager=*/nullptr);
   MemoryManager::Result memory_result;
   memory_manager->Stop(memory_result);
