@@ -377,6 +377,8 @@ An abbreviated example JSON output looks like:
 }
 ```
 
+For a complete field-by-field reference, see [JSON Format](json_format.md).
+
 The CSV format outputs comma-separated values. The `context` is output on stderr
 and the CSV itself on stdout. Example CSV output looks like:
 
