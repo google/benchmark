@@ -260,7 +260,7 @@ $ ./benchmark --benchmark_context=compiler=clang,version=13
 
 ### Miscellaneous
 
-#### `-v` (V)
+#### `--v` (V)
 
 The level of verbose logging to output. Higher values produce more verbose output.
 
@@ -268,7 +268,7 @@ The level of verbose logging to output. Higher values produce more verbose outpu
 
 **Example:**
 ```bash
-$ ./benchmark -v
+$ ./benchmark --v=2
 ```
 
 <a name="output-formats" />
