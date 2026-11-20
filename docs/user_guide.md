@@ -12,6 +12,8 @@
 
 [Running a Subset of Benchmarks](#running-a-subset-of-benchmarks)
 
+[Selecting Benchmarks by Tag](#selecting-benchmarks-by-tag)
+
 [Result Comparison](#result-comparison)
 
 [Extra Context](#extra-context)
@@ -93,6 +95,15 @@ A regular expression that specifies the set of benchmarks to execute. If this fl
 **Example:**
 ```bash
 $ ./benchmark --benchmark_filter=BM_memcpy/32
+```
+
+#### `--benchmark_tags=<tags>` (BENCHMARK_TAGS)
+
+A comma-separated list of tags that selects which benchmarks to execute. A benchmark runs if it has any listed tag; tags prefixed with `-` exclude. If this flag is empty, no tag filtering is applied. See [Selecting Benchmarks by Tag](#selecting-benchmarks-by-tag).
+
+**Example:**
+```bash
+$ ./benchmark --benchmark_tags=lib1,-slow
 ```
 
 #### `--benchmark_dry_run` (BENCHMARK_DRY_RUN)
@@ -439,6 +450,35 @@ BM_memcpy/32k       2181 ns       2185 ns     324074
 BM_memcpy/32          12 ns         12 ns   54687500
 BM_memcpy/32k       1834 ns       1837 ns     357143
 ```
+
+<a name="selecting-benchmarks-by-tag" />
+
+## Selecting Benchmarks by Tag
+
+Benchmarks can be labelled with one or more tags:
+
+```c++
+BENCHMARK(BM_SortStd)->Tag("std");
+BENCHMARK(BM_SortLib1)->Tag("lib1")->Tag("slow");
+```
+
+The `--benchmark_tags=<tags>` option (or `BENCHMARK_TAGS=<tags>` environment
+variable) takes a comma-separated list. A benchmark runs if it has any of the
+listed tags. Tags prefixed with `-` exclude benchmarks, and an exclusion always
+wins. When only exclusions are given, untagged benchmarks still run.
+
+```bash
+$ ./run_benchmarks.x --benchmark_tags=std,lib1   # tagged std or lib1
+$ ./run_benchmarks.x --benchmark_tags=-slow      # everything not tagged slow
+$ ./run_benchmarks.x --benchmark_tags=lib1,-slow # lib1, but not slow
+```
+
+`--benchmark_tags` combines with `--benchmark_filter`: a benchmark must match
+both. Spaces around each item are ignored, as are empty items and a lone `-`,
+so `--benchmark_tags="std, -slow,"` is the same as `std,-slow`. Tags must be
+non-empty, must not contain `,`, must not start with `-` and must not start or
+end with whitespace; this is checked in every build type.
+Tags appear as a `"tags"` list in JSON output; benchmarks without tags omit it.
 
 ## Disabling Benchmarks
 

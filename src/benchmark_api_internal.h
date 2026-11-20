@@ -41,6 +41,7 @@ class BenchmarkInstance {
   double min_warmup_time() const { return min_warmup_time_; }
   IterationCount iterations() const { return iterations_; }
   int threads() const { return threads_; }
+  const std::vector<std::string>& tags() const { return benchmark_.tags_; }
   void Setup() const;
   void Teardown() const;
   const auto& GetUserThreadRunnerFactory() const {
