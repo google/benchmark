@@ -89,7 +89,7 @@ TEST(MemoryManagerOrdering, SetupTeardownRunOutsideMeasurementWindow) {
   EXPECT_FALSE(in_measurement_window);
 }
 
-TEST(MemoryManagerOrdering, SkippedBeforeLoopCurrentlyRunsMemoryManager) {
+TEST(MemoryManagerOrdering, SkippedBeforeLoopDoesNotStartMemoryManager) {
   ResetState();
   OrderingMemoryManager mm;
   RegisterMemoryManager(&mm);
@@ -98,11 +98,8 @@ TEST(MemoryManagerOrdering, SkippedBeforeLoopCurrentlyRunsMemoryManager) {
   RegisterMemoryManager(nullptr);
 
   EXPECT_EQ(ran, 1u);
-  // Current behavior: DoOneRepetition() runs RunMemoryManager() even when the
-  // timed run was skipped, though CreateRunReport() discards the result.
-  EXPECT_TRUE(memory_manager_ran);
+  EXPECT_FALSE(memory_manager_ran);
   ASSERT_EQ(reporter.recorded.size(), 1u);
-  // Memory runner results were discarded.
   EXPECT_EQ(reporter.recorded[0].memory_result.memory_iterations, 0);
 }
 
