@@ -1,0 +1,38 @@
+name: tools
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  tools_tests:
+    name: Test Python tools on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2 # v10.3.3
+        with:
+          python-version: "3.12"
+
+      - name: Run tools unit tests
+        shell: bash
+        working-directory: tools
+        env:
+          PYTHONPATH: .
+        run: |
+          uv run --with-requirements requirements.txt python compare_test.py -v
+          uv run --with-requirements requirements.txt python gbench/report.py -v
+          uv run --with-requirements requirements.txt python gbench/util_test.py -v

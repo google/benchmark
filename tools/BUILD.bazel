@@ -1,9 +1,12 @@
-load("@rules_python//python:defs.bzl", "py_binary", "py_library")
+load("@rules_python//python:defs.bzl", "py_binary", "py_library", "py_test")
 load("@tools_pip_deps//:requirements.bzl", "requirement")
 
 py_library(
     name = "gbench",
-    srcs = glob(["gbench/*.py"]),
+    srcs = glob(
+        ["gbench/*.py"],
+        exclude = ["gbench/*_test.py"],
+    ),
     deps = [
         requirement("numpy"),
         requirement("scipy"),
@@ -15,6 +18,46 @@ py_binary(
     srcs = ["compare.py"],
     imports = ["."],
     python_version = "PY3",
+    deps = [
+        ":gbench",
+    ],
+)
+
+py_test(
+    name = "compare_test",
+    size = "small",
+    srcs = [
+        "compare.py",
+        "compare_test.py",
+    ],
+    data = glob(["gbench/Inputs/*.json"]),
+    imports = ["."],
+    main = "compare_test.py",
+    deps = [
+        ":gbench",
+    ],
+)
+
+py_test(
+    name = "report_test",
+    size = "small",
+    srcs = ["gbench/report.py"],
+    data = glob(["gbench/Inputs/*.json"]),
+    imports = [
+        ".",
+        "gbench",
+    ],
+    main = "gbench/report.py",
+    deps = [
+        ":gbench",
+    ],
+)
+
+py_test(
+    name = "util_test",
+    size = "small",
+    srcs = ["gbench/util_test.py"],
+    imports = ["."],
     deps = [
         ":gbench",
     ],

@@ -5,10 +5,10 @@ module(
 
 bazel_dep(name = "bazel_skylib", version = "1.9.0")
 bazel_dep(name = "platforms", version = "0.0.11")
-bazel_dep(name = "rules_cc", version = "0.1.5")
+bazel_dep(name = "rules_cc", version = "0.2.17")
 
 bazel_dep(name = "rules_python", version = "2.4.0", dev_dependency = True)
-bazel_dep(name = "googletest", version = "1.14.0", dev_dependency = True, repo_name = "com_google_googletest")
+bazel_dep(name = "googletest", version = "1.15.2", dev_dependency = True, repo_name = "com_google_googletest")
 
 bazel_dep(name = "libpfm", version = "4.11.0.bcr.1")
 
@@ -16,6 +16,9 @@ bazel_dep(name = "libpfm", version = "4.11.0.bcr.1")
 # versions >=3.10 are problematic.
 # A second reason for this is to be able to build Python hermetically instead
 # of relying on the changing default version from rules_python.
+
+rules_python_config = use_extension("@rules_python//python/extensions:config.bzl", "config", dev_dependency = True)
+rules_python_config.explicit_init_py(default = True)
 
 python = use_extension("@rules_python//python/extensions:python.bzl", "python", dev_dependency = True)
 python.toolchain(python_version = "3.8")
