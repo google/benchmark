@@ -547,7 +547,7 @@ void BenchmarkRunner::DoOneRepetition() {
 
   // Produce memory measurements if requested.
   MemoryManager::Result memory_result;
-  if (memory_manager != nullptr) {
+  if (memory_manager != nullptr && i.results.skipped_ == internal::NotSkipped) {
     // Only run a few iterations to reduce the impact of one-time
     // allocations in benchmarks that are not properly managed.
     const IterationCount memory_iterations =
@@ -555,7 +555,8 @@ void BenchmarkRunner::DoOneRepetition() {
     memory_result = RunMemoryManager(memory_iterations);
   }
 
-  if (profiler_manager != nullptr) {
+  if (profiler_manager != nullptr &&
+      i.results.skipped_ == internal::NotSkipped) {
     // We want to externally profile the benchmark for the same number of
     // iterations because, for example, if we're tracing the benchmark then we
     // want trace data to reasonably match PMU data.
