@@ -1,66 +1,35 @@
 // Setup()/Teardown() must run outside the MemoryManager Start()/Stop()
 // window, as they already do outside the timed region. See #2149.
 
+#include <cstddef>
 #include <vector>
 
-#include "benchmark/benchmark.h"
+#include "benchmark/benchmark_api.h"
+#include "benchmark/managers.h"
+#include "benchmark/reporter.h"
+#include "benchmark/state.h"
 #include "gtest/gtest.h"
 
 namespace benchmark {
 namespace {
 
-// Everything below runs on the main thread, so no synchronization is needed.
-bool in_measurement_window = false;
-
-// Recorded so tests fail rather than pass vacuously when a code path is
-// never reached.
-bool memory_manager_ran = false;
-bool setup_ran = false;
-bool teardown_ran = false;
-
-void ResetState() {
-  in_measurement_window = false;
-  memory_manager_ran = false;
-  setup_ran = false;
-  teardown_ran = false;
-}
-
 class OrderingMemoryManager : public MemoryManager {
  public:
   void Start() override {
     in_measurement_window = true;
-    memory_manager_ran = true;
+    ran = true;
   }
+
   void Stop(Result& result) override {
+    EXPECT_TRUE(in_measurement_window);
     in_measurement_window = false;
     result.num_allocs = 0;
     result.max_bytes_used = 0;
   }
+
+  bool in_measurement_window = false;
+  bool ran = false;
 };
-
-void DoSetup(const State&) {
-  EXPECT_FALSE(in_measurement_window)
-      << "Setup ran inside the MemoryManager Start/Stop window";
-  setup_ran = true;
-}
-void DoTeardown(const State&) {
-  EXPECT_FALSE(in_measurement_window)
-      << "Teardown ran inside the MemoryManager Start/Stop window";
-  teardown_ran = true;
-}
-
-void BM_ordering(State& state) {
-  for (auto _ : state) {
-  }
-}
-BENCHMARK(BM_ordering)->Iterations(1)->Setup(DoSetup)->Teardown(DoTeardown);
-
-void BM_skip_before_loop(State& state) {
-  state.SkipWithError("skip before loop");
-  for (auto _ : state) {
-  }
-}
-BENCHMARK(BM_skip_before_loop)->Iterations(1);
 
 // Records reported runs without printing.
 class RecordingReporter : public BenchmarkReporter {
@@ -72,33 +41,64 @@ class RecordingReporter : public BenchmarkReporter {
   std::vector<Run> recorded;
 };
 
+class MemoryManagerOrdering : public testing::Test {
+ protected:
+  void TearDown() override {
+    RegisterMemoryManager(nullptr);
+    ClearRegisteredBenchmarks();
+  }
+};
+
 }  // namespace
 
-TEST(MemoryManagerOrdering, SetupTeardownRunOutsideMeasurementWindow) {
-  ResetState();
+TEST_F(MemoryManagerOrdering, SetupTeardownRunOutsideMeasurementWindow) {
   OrderingMemoryManager mm;
+  bool setup_ran = false;
+  bool teardown_ran = false;
+
+  RegisterBenchmark("BM_ordering",
+                    [](State& state) {
+                      for (auto _ : state) {
+                      }
+                    })
+      ->Iterations(1)
+      ->Setup([&](const State&) {
+        EXPECT_FALSE(mm.in_measurement_window)
+            << "Setup ran inside the MemoryManager Start/Stop window";
+        setup_ran = true;
+      })
+      ->Teardown([&](const State&) {
+        EXPECT_FALSE(mm.in_measurement_window)
+            << "Teardown ran inside the MemoryManager Start/Stop window";
+        teardown_ran = true;
+      });
+
   RegisterMemoryManager(&mm);
   RecordingReporter reporter;
-  const size_t ran = RunSpecifiedBenchmarks(&reporter, "^BM_ordering/");
-  RegisterMemoryManager(nullptr);
-
-  EXPECT_GT(ran, 0u);
-  EXPECT_TRUE(memory_manager_ran) << "MemoryManager measurement pass never ran";
-  EXPECT_TRUE(setup_ran) << "Setup callback never ran";
-  EXPECT_TRUE(teardown_ran) << "Teardown callback never ran";
-  EXPECT_FALSE(in_measurement_window);
-}
-
-TEST(MemoryManagerOrdering, SkippedBeforeLoopDoesNotStartMemoryManager) {
-  ResetState();
-  OrderingMemoryManager mm;
-  RegisterMemoryManager(&mm);
-  RecordingReporter reporter;
-  const size_t ran = RunSpecifiedBenchmarks(&reporter, "^BM_skip_before_loop/");
-  RegisterMemoryManager(nullptr);
+  const size_t ran = RunSpecifiedBenchmarks(&reporter);
 
   EXPECT_EQ(ran, 1u);
-  EXPECT_FALSE(memory_manager_ran);
+  EXPECT_TRUE(mm.ran) << "MemoryManager measurement pass never ran";
+  EXPECT_TRUE(setup_ran) << "Setup callback never ran";
+  EXPECT_TRUE(teardown_ran) << "Teardown callback never ran";
+  EXPECT_FALSE(mm.in_measurement_window);
+}
+
+TEST_F(MemoryManagerOrdering, SkippedBeforeLoopDoesNotStartMemoryManager) {
+  OrderingMemoryManager mm;
+
+  RegisterBenchmark("BM_skip_before_loop", [](State& state) {
+    state.SkipWithError("skip before loop");
+    for (auto _ : state) {
+    }
+  })->Iterations(1);
+
+  RegisterMemoryManager(&mm);
+  RecordingReporter reporter;
+  const size_t ran = RunSpecifiedBenchmarks(&reporter);
+
+  EXPECT_EQ(ran, 1u);
+  EXPECT_FALSE(mm.ran);
   ASSERT_EQ(reporter.recorded.size(), 1u);
   EXPECT_EQ(reporter.recorded[0].memory_result.memory_iterations, 0);
 }
