@@ -5,13 +5,15 @@ report.py - Utilities for reporting statistics about benchmark results
 """
 
 import copy
+import math
 import os
 import random
 import re
 import unittest
+import unittest.mock
 
-from numpy import array
-from scipy.stats import gmean, mannwhitneyu
+from numpy import array, median
+from scipy.stats import binom, gmean, mannwhitneyu
 
 
 class BenchmarkColor:
@@ -70,6 +72,21 @@ def color_format(use_color, fmt_str, *args, **kwargs):
             for key, arg in kwargs.items()
         }
     return fmt_str.format(*args, **kwargs)
+
+
+def get_color(res):
+    """
+    Return the color for the relative change 'res'; None means that there is
+    no change to report.
+    """
+    if res is None:
+        return BC_NONE
+    if res > 0.05:
+        return BC_FAIL
+    elif res > -0.07:
+        return BC_WHITE
+    else:
+        return BC_CYAN
 
 
 def find_longest_name(benchmark_list):
@@ -403,14 +420,6 @@ def print_difference_report(
     """
     assert utest is True or utest is False
 
-    def get_color(res):
-        if res > 0.05:
-            return BC_FAIL
-        elif res > -0.07:
-            return BC_WHITE
-        else:
-            return BC_CYAN
-
     first_col_width = find_longest_name(json_diff_report)
     first_col_width = max(first_col_width, len("Benchmark"))
     first_col_width += len(UTEST_COL_NAME)
@@ -465,6 +474,272 @@ def print_difference_report(
                 use_color=use_color,
             )
 
+    return output_strs
+
+
+def format_with_suffix(val):
+    """
+    Format a numeric value with {:.2f} and a decimal SI suffix (K, M, G, etc.).
+    Returns 'N/A' if val is None.
+    """
+    if val is None:
+        return "N/A"
+    suffixes = ("", "K", "M", "G", "T", "P", "E")
+    v = float(val)
+    abs_v = abs(v)
+    idx = 0
+    while round(abs_v, 2) >= 1000.0 and idx < len(suffixes) - 1:
+        abs_v /= 1000.0
+        v /= 1000.0
+        idx += 1
+    return f"{v:.2f}{suffixes[idx]}"
+
+
+def format_time_s(seconds):
+    """
+    Format a duration in seconds using SI time units (s, ms, us, ns).
+    """
+    if seconds is None:
+        return "N/A"
+    # Pick the unit and the precision from the rounded value, so that a value
+    # just below a boundary is not printed as e.g. '1000.0ms' or '100.00us'.
+    for unit, per_second in (("ns", 1e9), ("us", 1e6), ("ms", 1e3), ("s", 1)):
+        v = seconds * per_second
+        digits = 2 if round(abs(v), 2) < 100 else 1
+        if round(abs(v), digits) < 1000 or unit == "s":
+            return f"{v:.{digits}f}{unit}"
+
+
+def summarize_sample(values, confidence=0.95):
+    """
+    Return (median_value, pct_range_str) using a non-parametric binomial
+    quantile confidence interval around the sample median (like benchstat).
+    """
+    vals = sorted(float(v) for v in values)
+    n = len(vals)
+    med = float(median(vals))
+    if n < 2:
+        return med, None
+    tail = (1.0 - confidence) / 2.0
+    lo_i = int(binom.ppf(tail, n, 0.5)) - 1
+    hi_i = int(binom.isf(tail, n, 0.5))
+    lo, hi = (
+        (vals[0], vals[-1])
+        if (lo_i < 0 or hi_i >= n)
+        else (vals[lo_i], vals[hi_i])
+    )
+    if med == 0:
+        return med, ("0%" if lo == hi == 0 else "?")
+    if (med > 0) != (lo > 0) or (med > 0) != (hi > 0):
+        return med, "?"
+    pct = max(hi / med - 1.0, 1.0 - lo / med)
+    return med, f"{100.0 * pct:.0f}%"
+
+
+def _format_vs_base(old_med, new_med, lhs_vals, rhs_vals, utest, utest_alpha):
+    n1, n2 = len(lhs_vals), len(rhs_vals)
+    n_str = f"n={n1}" if n1 == n2 else f"n={n1}+{n2}"
+    change = calculate_change(old_med, new_med)
+    if not utest or min(n1, n2) < UTEST_MIN_REPETITIONS:
+        return f"{change:+.2%}", f"({n_str})", change
+    pval = mannwhitneyu(lhs_vals, rhs_vals, alternative="two-sided").pvalue
+    # Depending on the scipy version, the p-value is NaN if all the values are
+    # identical. There is no difference to detect then.
+    if math.isnan(pval):
+        pval = 1.0
+    if pval > utest_alpha:
+        return "~", f"(p={pval:.3f} {n_str})", None
+    return f"{change:+.2%}", f"(p={pval:.3f} {n_str})", change
+
+
+def _extract_metric_values(runs, extractor):
+    return [v for r in runs if (v := extractor(r)) is not None]
+
+
+def _collect_benchstat_rows(partitions, extractor, fmt_fn, utest, utest_alpha):
+    rows = []
+    pos_meds = []
+    for lhs, rhs in partitions:
+        l_vals = _extract_metric_values(lhs, extractor)
+        r_vals = _extract_metric_values(rhs, extractor)
+        if not l_vals or not r_vals:
+            continue
+        old_m, old_ci = summarize_sample(l_vals)
+        new_m, new_ci = summarize_sample(r_vals)
+        old_s = f"{fmt_fn(old_m)} ± {old_ci}" if old_ci else fmt_fn(old_m)
+        new_s = f"{fmt_fn(new_m)} ± {new_ci}" if new_ci else fmt_fn(new_m)
+        delta_s, p_s, chg = _format_vs_base(
+            old_m, new_m, l_vals, r_vals, utest, utest_alpha
+        )
+        rows.append((lhs[0]["name"], old_s, new_s, delta_s, p_s, chg))
+        if old_m > 0 and new_m > 0:
+            pos_meds.append((old_m, new_m))
+    return rows, pos_meds
+
+
+def _render_benchstat_table(title, rows, pos_meds, fmt_fn, use_color):
+    name_w = max(len("geomean"), *(len(r[0]) for r in rows))
+    col_w = max(len(title), *(max(len(r[1]), len(r[2])) for r in rows))
+    header = (
+        f"{'name':<{name_w}s}  {title:>{col_w}s}  {title:>{col_w}s}  vs base"
+    )
+    lines = [header]
+    row_fmt = "{}{:<{}s}{endc}  {:>{}s}  {:>{}s}  {}{:>8s}{endc} {}"
+    for bname, old_s, new_s, delta_s, p_s, chg in rows:
+        lines.append(
+            color_format(
+                use_color,
+                row_fmt,
+                BC_HEADER,
+                bname,
+                name_w,
+                old_s,
+                col_w,
+                new_s,
+                col_w,
+                get_color(chg),
+                delta_s,
+                p_s,
+                endc=BC_ENDC,
+            )
+        )
+    if pos_meds:
+        gm_old = float(gmean([m[0] for m in pos_meds]))
+        gm_new = float(gmean([m[1] for m in pos_meds]))
+        gm_chg = calculate_change(gm_old, gm_new)
+        gm_fmt = "{}{:<{}s}{endc}  {:>{}s}  {:>{}s}  {}{:+8.2%}{endc}"
+        lines.append(
+            color_format(
+                use_color,
+                gm_fmt,
+                BC_HEADER,
+                "geomean",
+                name_w,
+                fmt_fn(gm_old),
+                col_w,
+                fmt_fn(gm_new),
+                col_w,
+                get_color(gm_chg),
+                gm_chg,
+                endc=BC_ENDC,
+            )
+        )
+    return lines
+
+
+# The numeric fields that the JSON reporter itself writes for a run. Any other
+# numeric field is a user counter, e.g. one of --benchmark_perf_counters.
+_NON_COUNTER_FIELDS = frozenset(
+    (
+        "family_index",
+        "per_family_instance_index",
+        "repetitions",
+        "repetition_index",
+        "threads",
+        "iterations",
+        "real_time",
+        "cpu_time",
+        "cpu_coefficient",
+        "real_coefficient",
+        "rms",
+        "memory_iterations",
+        "allocs_per_iter",
+        "max_bytes_used",
+        "total_allocated_bytes",
+        "net_heap_growth",
+    )
+)
+
+
+def _get_counter_names(runs):
+    """
+    While *keeping* the order, give the names of all the user counters
+    reported by the given runs.
+    """
+    return list(
+        dict.fromkeys(
+            key
+            for run in runs
+            for key, value in run.items()
+            if key not in _NON_COUNTER_FIELDS
+            and isinstance(value, (int, float))
+            and not isinstance(value, bool)
+        )
+    )
+
+
+def _select_benchstat_runs(json1, json2):
+    """
+    Give the runs of both inputs to summarize: the individual repetitions, or,
+    if an input only has the aggregates (e.g. because of
+    --benchmark_report_aggregates_only), the means. The other aggregates
+    (median, stddev, cv, ...) are not benchmarks of their own, and are never
+    compared.
+    """
+
+    def select(json, wanted):
+        return {"benchmarks": [b for b in json["benchmarks"] if wanted(b)]}
+
+    def is_repetition(run):
+        return run.get("run_type") != "aggregate"
+
+    def is_mean(run):
+        return not is_repetition(run) and run.get("aggregate_name") == "mean"
+
+    selected = [select(json, is_repetition) for json in (json1, json2)]
+    if not all(s["benchmarks"] for s in selected):
+        selected = [select(json, is_mean) for json in (json1, json2)]
+    return selected
+
+
+def print_benchstat_report(
+    json1, json2, utest=True, utest_alpha=0.05, use_color=True
+):
+    """
+    Format benchmark comparisons as compact benchstat per-metric tables
+    (cpu/op, time/op, one per user counter reported by both inputs,
+    allocs/op, peak-mem(B)) with median ± 95% CI, Mann-Whitney U-test
+    p-values, and geomean.
+    """
+    assert utest is True or utest is False
+    partitions = partition_benchmarks(*_select_benchstat_runs(json1, json2))
+    counters = intersect(
+        _get_counter_names(run for lhs, _ in partitions for run in lhs),
+        _get_counter_names(run for _, rhs in partitions for run in rhs),
+    )
+    metrics = [
+        (
+            "cpu/op",
+            lambda r: get_timedelta_field_as_seconds(r, "cpu_time"),
+            format_time_s,
+        ),
+        (
+            "time/op",
+            lambda r: get_timedelta_field_as_seconds(r, "real_time"),
+            format_time_s,
+        ),
+    ]
+    metrics += [
+        (name, lambda r, name=name: r.get(name), format_with_suffix)
+        for name in counters
+    ]
+    metrics += [
+        ("allocs/op", lambda r: r.get("allocs_per_iter"), format_with_suffix),
+        ("peak-mem(B)", lambda r: r.get("max_bytes_used"), format_with_suffix),
+    ]
+    output_strs = []
+    for title, extractor, fmt_fn in metrics:
+        rows, pos_meds = _collect_benchstat_rows(
+            partitions, extractor, fmt_fn, utest, utest_alpha
+        )
+        if rows:
+            if output_strs:
+                output_strs.append("")
+            output_strs.extend(
+                _render_benchstat_table(
+                    title, rows, pos_meds, fmt_fn, use_color
+                )
+            )
     return output_strs
 
 
@@ -1639,6 +1914,240 @@ def assert_measurements(unittest_instance, lhs, rhs):
         # and therefore we must use almost-equal pattern.
         unittest_instance.assertAlmostEqual(m1["time"], m2["time"], places=4)
         unittest_instance.assertAlmostEqual(m1["cpu"], m2["cpu"], places=4)
+
+
+class TestBenchstatFormatHelpers(unittest.TestCase):
+    def test_get_color(self):
+        self.assertIs(get_color(None), BC_NONE)
+        self.assertIs(get_color(0.06), BC_FAIL)
+        self.assertIs(get_color(0.0), BC_WHITE)
+        self.assertIs(get_color(-0.08), BC_CYAN)
+
+    def test_format_with_suffix(self):
+        self.assertEqual(format_with_suffix(None), "N/A")
+        self.assertEqual(format_with_suffix(0), "0.00")
+        self.assertEqual(format_with_suffix(12), "12.00")
+        self.assertEqual(format_with_suffix(999.9), "999.90")
+        self.assertEqual(format_with_suffix(1000), "1.00K")
+        self.assertEqual(format_with_suffix(8256525), "8.26M")
+        self.assertEqual(format_with_suffix(4868373980), "4.87G")
+        self.assertEqual(format_with_suffix(1234567890123), "1.23T")
+
+    def test_format_time_s(self):
+        self.assertEqual(format_time_s(None), "N/A")
+        self.assertEqual(format_time_s(0.0), "0.00ns")
+        self.assertEqual(format_time_s(4.25e-8), "42.50ns")
+        self.assertEqual(format_time_s(1.5e-4), "150.0us")
+        self.assertEqual(format_time_s(0.1147), "114.7ms")
+        self.assertEqual(format_time_s(3.071), "3.07s")
+        # Rounding up to a boundary moves on to the next unit / precision.
+        self.assertEqual(format_time_s(9.99996e-7), "1.00us")
+        self.assertEqual(format_time_s(0.99996), "1.00s")
+        self.assertEqual(format_time_s(9.9999e-5), "100.0us")
+
+
+class TestBenchstatReport(unittest.TestCase):
+    def _make_run(
+        self,
+        name,
+        rep_idx,
+        real_ns,
+        cpu_ns,
+        allocs=None,
+        peak_mem=None,
+        counters=None,
+    ):
+        entry = {
+            "name": name,
+            "family_index": 0,
+            "per_family_instance_index": 0,
+            "run_name": name,
+            "run_type": "iteration",
+            "repetitions": 10,
+            "repetition_index": rep_idx,
+            "threads": 1,
+            "iterations": 1,
+            "real_time": real_ns,
+            "cpu_time": cpu_ns,
+            "time_unit": "ns",
+        }
+        entry.update(counters or {})
+        if allocs is not None or peak_mem is not None:
+            entry["memory_iterations"] = 1
+        if allocs is not None:
+            entry["allocs_per_iter"] = allocs
+        if peak_mem is not None:
+            entry["max_bytes_used"] = peak_mem
+        return entry
+
+    def _make_aggregate(self, name, aggregate_name, value, unit="time"):
+        return {
+            "name": f"{name}_{aggregate_name}",
+            "run_name": name,
+            "run_type": "aggregate",
+            "aggregate_name": aggregate_name,
+            "aggregate_unit": unit,
+            "real_time": value,
+            "cpu_time": value,
+            "time_unit": "ns",
+        }
+
+    def _table_titles(self, lines):
+        return [ln.split()[1] for ln in lines if ln.startswith("name ")]
+
+    def test_multi_metric_tables_and_aggregates_ignored(self):
+        json1 = {"benchmarks": []}
+        json2 = {"benchmarks": []}
+        for i in range(10):
+            json1["benchmarks"].append(
+                self._make_run(
+                    "BM_Kernel",
+                    i,
+                    real_ns=100_000_000 + i * 100_000,
+                    cpu_ns=200_000_000 + i * 100_000,
+                    allocs=15_000 + i * 12,
+                    peak_mem=1_000_000_000,
+                    counters={
+                        "INSTRUCTIONS": 500_000_000 + i * 1_000,
+                        "CYCLES": 250_000_000 + i * 1_000,
+                    },
+                )
+            )
+            json2["benchmarks"].append(
+                self._make_run(
+                    "BM_Kernel",
+                    i,
+                    real_ns=100_050_000 + i * 100_000,
+                    cpu_ns=150_000_000 + i * 100_000,
+                    allocs=30_000 + i * 12,
+                    peak_mem=500_000_000,
+                    counters={
+                        "INSTRUCTIONS": 400_000_000 + i * 1_000,
+                        "CYCLES": 200_000_000 + i * 1_000,
+                    },
+                )
+            )
+        # Aggregate rows without memory fields must not hide iteration metrics.
+        for j in (json1, json2):
+            j["benchmarks"].append(
+                self._make_aggregate("BM_Kernel", "mean", 100_000_000)
+            )
+
+        lines = print_benchstat_report(
+            json1, json2, utest=True, utest_alpha=0.05, use_color=False
+        )
+        joined = "\n".join(lines)
+        self.assertEqual(
+            self._table_titles(lines),
+            [
+                "cpu/op",
+                "time/op",
+                "INSTRUCTIONS",
+                "CYCLES",
+                "allocs/op",
+                "peak-mem(B)",
+            ],
+        )
+        self.assertNotIn("BM_Kernel_mean", joined)
+        # Non-significant real_time change renders '~'
+        self.assertIn("~ (p=", joined)
+        # Significant allocs doubling (+99.64%) and memory halving (-50.00%)
+        self.assertIn("15.05K ±", joined)
+        self.assertIn("30.05K ±", joined)
+        self.assertIn("+99.64%", joined)
+        self.assertIn("1.00G ± 0%", joined)
+        self.assertIn("500.00M ± 0%", joined)
+        self.assertIn("-50.00%", joined)
+        self.assertEqual(joined.count("geomean"), 6)
+
+    def test_optional_tables_omitted_when_absent(self):
+        json1 = {
+            "benchmarks": [self._make_run("BM_TimeOnly", 0, 1000.0, 2000.0)]
+        }
+        json2 = {
+            "benchmarks": [self._make_run("BM_TimeOnly", 0, 500.0, 1000.0)]
+        }
+        lines = print_benchstat_report(
+            json1, json2, utest=True, use_color=False
+        )
+        self.assertEqual(self._table_titles(lines), ["cpu/op", "time/op"])
+        self.assertIn("-50.00% (n=1)", "\n".join(lines))
+
+    def test_table_per_user_counter_in_both_inputs(self):
+        json1 = {
+            "benchmarks": [
+                self._make_run(
+                    "BM_Counters",
+                    i,
+                    100.0,
+                    100.0,
+                    counters={"cache-misses": 50 + i, "OnlyInBaseline": 1},
+                )
+                for i in range(5)
+            ]
+        }
+        json2 = {
+            "benchmarks": [
+                self._make_run(
+                    "BM_Counters",
+                    i,
+                    100.0,
+                    100.0,
+                    counters={"OnlyInContender": 1, "cache-misses": 70 + i},
+                )
+                for i in range(5)
+            ]
+        }
+        lines = print_benchstat_report(json1, json2, use_color=False)
+        self.assertEqual(
+            self._table_titles(lines), ["cpu/op", "time/op", "cache-misses"]
+        )
+        self.assertIn("52.00 ± 4%", "\n".join(lines))
+        self.assertIn("72.00 ± 3%", "\n".join(lines))
+
+    def test_aggregates_only_inputs_compare_means(self):
+        def make_json(mean, stddev):
+            return {
+                "benchmarks": [
+                    self._make_aggregate("BM_X", "mean", mean),
+                    self._make_aggregate("BM_X", "median", mean),
+                    self._make_aggregate("BM_X", "stddev", stddev),
+                    self._make_aggregate(
+                        "BM_X", "cv", stddev / mean, unit="percentage"
+                    ),
+                ]
+            }
+
+        lines = print_benchstat_report(
+            make_json(100, 5), make_json(90, 9), use_color=False
+        )
+        self.assertEqual(
+            [ln.split()[0] for ln in lines if ln],
+            ["name", "BM_X_mean", "geomean"] * 2,
+        )
+        self.assertEqual("\n".join(lines).count("-10.00% (n=1)"), 2)
+
+    def test_identical_samples_of_different_sizes(self):
+        json1 = {
+            "benchmarks": [
+                self._make_run("BM_Same", i, 100.0, 100.0) for i in range(3)
+            ]
+        }
+        json2 = {
+            "benchmarks": [
+                self._make_run("BM_Same", i, 100.0, 100.0) for i in range(4)
+            ]
+        }
+
+        def count_insignificant():
+            lines = print_benchstat_report(json1, json2, use_color=False)
+            return "\n".join(lines).count("~ (p=1.000 n=3+4)")
+
+        self.assertEqual(count_insignificant(), 2)
+        # Depending on its version, scipy gives a NaN p-value for such samples.
+        with unittest.mock.patch(f"{__name__}.mannwhitneyu") as utest_mock:
+            utest_mock.return_value.pvalue = float("nan")
+            self.assertEqual(count_insignificant(), 2)
 
 
 if __name__ == "__main__":
