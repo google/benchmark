@@ -141,14 +141,16 @@ BenchmarkReporter::Run CreateRunReport(
 void RunInThread(const BenchmarkInstance* b, IterationCount iters,
                  int thread_id, ThreadManager* manager,
                  PerfCountersMeasurement* perf_counters_measurement,
-                 ProfilerManager* profiler_manager_) {
+                 ProfilerManager* profiler_manager_,
+                 MemoryManager* memory_manager_ = nullptr) {
   internal::ThreadTimer timer(
       b->measure_process_cpu_time()
           ? internal::ThreadTimer::CreateProcessCpuTime()
           : internal::ThreadTimer::Create());
 
-  State st = b->Run(iters, thread_id, &timer, manager,
-                    perf_counters_measurement, profiler_manager_);
+  State st =
+      b->Run(iters, thread_id, &timer, manager, perf_counters_measurement,
+             profiler_manager_, memory_manager_);
   if (!(st.skipped() || st.iterations() >= st.max_iterations)) {
     st.SkipWithError(
         "The benchmark didn't run, nor was it explicitly skipped. Please call "
@@ -172,6 +174,15 @@ void RunInThread(const BenchmarkInstance* b, IterationCount iters,
               : thread_complexity_n;
     }
     internal::Increment(&results.counters, st.counters);
+    if (memory_manager_ != nullptr) {
+      // SkipWith* zeroes total_iterations_, so st.iterations() stays non-zero
+      // on skipped runs; discard partial or unstarted memory results instead.
+      if (st.skipped()) {
+        results.memory_result = MemoryManager::Result();
+      } else {
+        results.memory_result.memory_iterations = st.iterations();
+      }
+    }
   }
   manager->NotifyThreadComplete();
 }
@@ -470,16 +481,15 @@ MemoryManager::Result BenchmarkRunner::RunMemoryManager(
   std::unique_ptr<internal::ThreadManager> manager;
   manager.reset(new internal::ThreadManager(1));
   b.Setup();
-  memory_manager->Start();
   RunInThread(&b, memory_iterations, 0, manager.get(),
               // memory manager doesn't use perf counters
               /*perf_counters_measurement=*/nullptr,
-              /*profiler_manager=*/nullptr);
+              /*profiler_manager=*/nullptr,
+              /*memory_manager=*/memory_manager);
   MemoryManager::Result memory_result;
-  memory_manager->Stop(memory_result);
   {
     MutexLock l(manager->GetBenchmarkMutex());
-    memory_result.memory_iterations = manager->results.iterations;
+    memory_result = manager->results.memory_result;
   }
   manager.reset();
   b.Teardown();

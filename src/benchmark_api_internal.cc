@@ -93,10 +93,14 @@ State BenchmarkInstance::Run(
     IterationCount iters, int thread_id, internal::ThreadTimer* timer,
     internal::ThreadManager* manager,
     internal::PerfCountersMeasurement* perf_counters_measurement,
-    ProfilerManager* profiler_manager) const {
+    ProfilerManager* profiler_manager, MemoryManager* memory_manager) const {
   State st(name_.function_name, iters, args_, thread_id, threads_, timer,
-           manager, perf_counters_measurement, profiler_manager);
+           manager, perf_counters_measurement, profiler_manager,
+           memory_manager);
   benchmark_.Run(st);
+  // Ensure MemoryManager::Stop() runs even if the benchmark exited the loop
+  // early (e.g. via break/return) without reaching FinishKeepRunning().
+  st.StopMemoryManager();
   return st;
 }
 
