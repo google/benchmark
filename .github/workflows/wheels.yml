@@ -81,8 +81,21 @@ jobs:
     needs: [build_sdist, build_wheels]
     runs-on: ubuntu-latest
     permissions:
+      contents: read
       id-token: write
     steps:
+      - name: Check out the pinned uploader lock
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+          fetch-depth: 1
+
+      - name: Install hash-pinned Twine before authentication
+        # Supply-chain guard: install a pinned, hash-verified uploader before
+        # the auth step mints any Google Cloud credentials.
+        run: |
+          python3 -m pip install --require-hashes --no-deps -r .github/workflows/twine-requirements.lock
+
       - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
         with:
           path: dist
@@ -139,7 +152,6 @@ jobs:
           set -euo pipefail
           shopt -s globstar nullglob
           DIST_FILES=(dist/**/*.whl dist/**/*.tar.gz)
-          python3 -m pip install --upgrade twine
           TWINE_PASSWORD="$(gcloud auth print-access-token)"
           python3 -m twine upload \
             --repository-url "https://us-python.pkg.dev/oss-exit-gate-prod/benchmark--pypi/" \
