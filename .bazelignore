@@ -1,0 +1,13 @@
+# Out-of-source CMake build folders.
+build
+_build
+
+# In-source dependencies.
+googletest
+
+# Python virtualenv and build artifacts.
+.venv
+dist
+
+# Rust Cargo build artifacts.
+bindings/rust/target

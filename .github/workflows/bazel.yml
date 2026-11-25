@@ -40,3 +40,29 @@ jobs:
     - name: test
       run: |
         bazel test --test_output=all //test/...
+
+  build_all:
+    name: bazel.build_all
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      with:
+        persist-credentials: false
+
+    - name: mount bazel cache
+      uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+      env:
+        cache-name: bazel-build-all-cache
+      with:
+        path: "~/.cache/bazel"
+        key: ${{ env.cache-name }}-ubuntu-latest-${{ github.ref }}
+        restore-keys: |
+          ${{ env.cache-name }}-ubuntu-latest-main
+
+    - name: build all targets
+      run: |
+        bazel build //...
+
+    - name: test tools
+      run: |
+        bazel test --test_output=all //tools/...

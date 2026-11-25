@@ -1,0 +1,7 @@
+common --enable_platform_specific_config
+
+build:linux --cxxopt=-std=c++17
+build:macos --cxxopt=-std=c++17 --macos_minimum_os=10.14
+build:windows --cxxopt=/std:c++17
+build:freebsd --cxxopt=-std=c++17
+build:openbsd --cxxopt=-std=c++17

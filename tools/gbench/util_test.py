@@ -268,3 +268,7 @@ class TestCheckBenchmarkResults(unittest.TestCase):
         self.assertIn(
             "run[0].time_unit 'minutes' is unknown", self.stdout_mock.getvalue()
         )
+
+
+if __name__ == "__main__":
+    unittest.main()
