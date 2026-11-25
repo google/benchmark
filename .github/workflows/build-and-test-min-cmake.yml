@@ -26,7 +26,7 @@ jobs:
         with:
           persist-credentials: false
 
-      - uses: lukka/get-cmake@16e8153a8b4918849d92aad131befe67a3705daa # latest
+      - uses: lukka/get-cmake@a1a8216777d3cbbf5602c73b9ddd3e98257ecdc4 # latest
         with:
           cmakeVersion: 3.13.0
 
