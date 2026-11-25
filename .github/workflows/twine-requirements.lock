@@ -1,7 +1,7 @@
 # Hash-pinned uploader environment for OSS Exit Gate PyPI staging.
 # Installed with `pip install --require-hashes --no-deps -r .github/workflows/twine-requirements.lock`
 # before any cloud credentials are minted.
-# Regenerate with tools/update-twine-lock.sh.
+# Regenerate with .github/update-twine-lock.sh.
 backports-tarfile==1.2.0 \
     --hash=sha256:77e284d754527b01fb1e6fa8a1afe577858ebe4e9dad8919e34c862cb399bc34
 certifi==2026.10.23 \
