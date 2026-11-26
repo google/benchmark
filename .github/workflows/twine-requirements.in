@@ -1,0 +1,3 @@
+# Input for .github/update-twine-lock.sh.
+# Do not install this file directly; use the generated lock file.
+twine==7.0.0
