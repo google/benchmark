@@ -19,6 +19,8 @@
 #include <iomanip>  // for setprecision
 #include <iostream>
 #include <limits>
+#include <locale>
+#include <sstream>
 #include <string>
 #include <tuple>
 #include <vector>
@@ -107,6 +109,7 @@ std::string FormatKV(std::string const& key, int value) {
 
 std::string FormatKV(std::string const& key, double value) {
   std::stringstream ss;
+  ss.imbue(std::locale::classic());
   ss << '"' << StrEscape(key) << "\": ";
 
   if (std::isnan(value)) {
@@ -191,13 +194,17 @@ bool JSONReporter::ReportContext(const Context& context) {
   indent = std::string(4, ' ');
   out << indent << "],\n";
   out << indent << "\"load_avg\": [";
+  std::stringstream load_avg;
+  load_avg.flags(out.flags());
+  load_avg.precision(out.precision());
+  load_avg.imbue(std::locale::classic());
   for (auto it = info.load_avg.begin(); it != info.load_avg.end();) {
-    out << *it++;
+    load_avg << *it++;
     if (it != info.load_avg.end()) {
-      out << ",";
+      load_avg << ",";
     }
   }
-  out << "],\n";
+  out << load_avg.str() << "],\n";
 
   out << indent << FormatKV("library_version", GetBenchmarkVersion());
   out << ",\n";
