@@ -38,6 +38,7 @@ struct BENCHMARK_EXPORT CPUInfo {
   enum Scaling { UNKNOWN, ENABLED, DISABLED };
 
   int num_cpus;
+  int num_cpus_in_affinity_mask;
   Scaling scaling;
   double cycles_per_second;
   std::vector<CacheInfo> caches;

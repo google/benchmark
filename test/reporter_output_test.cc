@@ -22,7 +22,9 @@ int AddContextCases() {
            {
                {"^%int-%int-%intT%int:%int:%int[-+]%int:%int$", MR_Default},
                {"Running .*(/|\\\\)reporter_output_test(\\.exe)?$", MR_Next},
-               {"Run on \\(%int X %float MHz CPU s?\\)", MR_Next},
+               {"Run on \\(%int X %float MHz CPU s?"
+                "(, %int in affinity mask)?\\)",
+                MR_Next},
            });
   AddCases(TC_JSONOut,
            {{"^\\{", MR_Default},
@@ -31,10 +33,14 @@ int AddContextCases() {
             {"\"host_name\":", MR_Next},
             {"\"executable\": \".*(/|\\\\)reporter_output_test(\\.exe)?\",",
              MR_Next},
-            {"\"num_cpus\": %int,$", MR_Next},
-            {"\"mhz_per_cpu\": %float,$", MR_Next},
-            {"\"caches\": \\[$", MR_Default}});
+            {"\"num_cpus\": %int,$", MR_Next}});
   auto const& Info = benchmark::CPUInfo::Get();
+  // The affinity field is only emitted when it could be determined.
+  if (Info.num_cpus_in_affinity_mask > 0) {
+    AddCases(TC_JSONOut, {{"\"num_cpus_in_affinity_mask\": %int,$", MR_Next}});
+  }
+  AddCases(TC_JSONOut, {{"\"mhz_per_cpu\": %float,$", MR_Next},
+                        {"\"caches\": \\[$", MR_Default}});
   auto const& Caches = Info.caches;
   if (!Caches.empty()) {
     AddCases(TC_ConsoleErr, {{"CPU Caches:$", MR_Next}});
