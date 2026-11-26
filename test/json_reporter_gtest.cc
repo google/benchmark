@@ -2,10 +2,17 @@
 #include <sstream>
 #include <string>
 
-#include "benchmark/reporter.h"
+#include "benchmark/benchmark.h"
 #include "gtest/gtest.h"
 
 namespace {
+
+void BM_JSONReporterLocale(benchmark::State& state) {
+  for (auto ignored : state) {
+    (void)ignored;
+  }
+}
+BENCHMARK(BM_JSONReporterLocale)->Iterations(1);
 
 class CommaDecimal : public std::numpunct<char> {
  protected:
@@ -26,8 +33,8 @@ class JSONReporterLocaleTest : public testing::Test {
 
   void CheckLoadAverages(std::ios_base::fmtflags floatfield,
                          std::streamsize precision) {
-    benchmark::BenchmarkReporter::Context context;
-    if (context.cpu_info.load_avg.empty()) {
+    const auto& load_averages = benchmark::CPUInfo::Get().load_avg;
+    if (load_averages.empty()) {
       GTEST_SKIP() << "Load averages are unavailable on this platform";
     }
 
@@ -42,16 +49,17 @@ class JSONReporterLocaleTest : public testing::Test {
     expected.flags(flags);
     expected.precision(precision);
     expected << "\"load_avg\": [";
-    for (size_t i = 0; i < context.cpu_info.load_avg.size(); ++i) {
+    for (size_t i = 0; i < load_averages.size(); ++i) {
       if (i != 0) expected << ',';
-      expected << context.cpu_info.load_avg[i];
+      expected << load_averages[i];
     }
     expected << ']';
 
     benchmark::JSONReporter reporter;
     reporter.SetOutputStream(&out);
-    ASSERT_TRUE(reporter.ReportContext(context));
-    reporter.Finalize();
+    const auto count =
+        benchmark::RunSpecifiedBenchmarks(&reporter, "^BM_JSONReporterLocale");
+    ASSERT_EQ(count, 1u);
 
     EXPECT_NE(out.str().find(expected.str()), std::string::npos) << out.str();
     EXPECT_EQ(out.getloc(), comma_locale_);
