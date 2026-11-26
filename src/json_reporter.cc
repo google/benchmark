@@ -20,6 +20,7 @@
 #include <iostream>
 #include <limits>
 #include <locale>
+#include <sstream>
 #include <string>
 #include <tuple>
 #include <vector>
