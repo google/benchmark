@@ -110,7 +110,9 @@ def create_parser():
         " actual runs, and the aggregates computed. Sometimes, it is "
         "desirable to only view the aggregates. E.g. when there are a lot "
         "of repetitions. Do note that only the display is affected. "
-        "Internally, all the actual runs are still used, e.g. for U test.",
+        "Internally, all the actual runs are still used, e.g. for U test. "
+        "Has no effect on the '--format=benchstat' report, which always "
+        "summarizes the actual runs.",
     )
 
     parser.add_argument(
@@ -128,6 +130,21 @@ def create_parser():
         help=(
             "Additionally, dump benchmark comparison output to this file in"
             " JSON format."
+        ),
+    )
+
+    parser.add_argument(
+        "--format",
+        dest="output_format",
+        choices=["default", "benchstat"],
+        default="default",
+        help=(
+            "Output format to use: 'default' for the classic side-by-side"
+            " table, or 'benchstat' for compact per-metric tables (cpu/op,"
+            " time/op, one per user counter reported by both inputs,"
+            " allocs/op, peak-mem(B)) with median ± 95%% CI, U-test p-values,"
+            " and geomean. The 'benchstat' report ignores"
+            " --display_aggregates_only. (default: 'default')"
         ),
     )
 
@@ -285,6 +302,24 @@ def create_parser():
     return parser
 
 
+def _get_output_lines(args, json1, json2, diff_report):
+    if args.output_format == "benchstat":
+        return gbench.report.print_benchstat_report(
+            json1,
+            json2,
+            utest=args.utest,
+            utest_alpha=args.utest_alpha,
+            use_color=args.color,
+        )
+    return gbench.report.print_difference_report(
+        diff_report,
+        args.display_aggregates_only,
+        args.utest,
+        args.utest_alpha,
+        args.color,
+    )
+
+
 def main():
     # Parse the command line flags
     parser = create_parser()
@@ -341,6 +376,12 @@ def main():
 
     check_inputs(test_baseline, test_contender, benchmark_options)
 
+    if args.display_aggregates_only and args.output_format == "benchstat":
+        print(
+            "WARNING: '--display_aggregates_only' has no effect on the "
+            "'--format=benchstat' report"
+        )
+
     if args.display_aggregates_only:
         benchmark_options += ["--benchmark_display_aggregates_only=true"]
 
@@ -373,14 +414,14 @@ def main():
             json2_orig, filter_contender, replacement
         )
 
-    diff_report = gbench.report.get_difference_report(json1, json2, args.utest)
-    output_lines = gbench.report.print_difference_report(
-        diff_report,
-        args.display_aggregates_only,
-        args.utest,
-        args.utest_alpha,
-        args.color,
-    )
+    # The benchstat report is made straight from the runs. The difference
+    # report is only needed for the default output and for the JSON dump.
+    diff_report = None
+    if args.output_format == "default" or args.dump_to_json is not None:
+        diff_report = gbench.report.get_difference_report(
+            json1, json2, args.utest
+        )
+    output_lines = _get_output_lines(args, json1, json2, diff_report)
     print(description)
     for ln in output_lines:
         print(ln)
@@ -606,6 +647,53 @@ class TestParser(unittest.TestCase):
             ["benchmarks", self.testInput0, self.testInput1]
         )
         self.assertTrue(parsed.color)
+
+    def test_format_option(self):
+        parsed_default = self.parser.parse_args(
+            ["benchmarks", self.testInput0, self.testInput1]
+        )
+        self.assertEqual(parsed_default.output_format, "default")
+
+        parsed_explicit = self.parser.parse_args(
+            [
+                "--format=default",
+                "benchmarks",
+                self.testInput0,
+                self.testInput1,
+            ]
+        )
+        self.assertEqual(parsed_explicit.output_format, "default")
+
+        parsed_benchstat = self.parser.parse_args(
+            [
+                "--format=benchstat",
+                "benchmarks",
+                self.testInput0,
+                self.testInput1,
+            ]
+        )
+        self.assertEqual(parsed_benchstat.output_format, "benchstat")
+
+        parsed_space = self.parser.parse_args(
+            [
+                "--format",
+                "benchstat",
+                "benchmarks",
+                self.testInput0,
+                self.testInput1,
+            ]
+        )
+        self.assertEqual(parsed_space.output_format, "benchstat")
+
+        with self.assertRaises(SystemExit):
+            self.parser.parse_args(
+                [
+                    "--format=invalid",
+                    "benchmarks",
+                    self.testInput0,
+                    self.testInput1,
+                ]
+            )
 
 
 if __name__ == "__main__":

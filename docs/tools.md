@@ -17,7 +17,8 @@ displayment of the normal iterations vs the aggregates. When passed, it will
 be passthrough to the benchmark binaries to be run, and will be accounted for
 in the tool itself; only the aggregates will be displayed, but not normal runs.
 It only affects the display, the separate runs will still be used to calculate
-the U test.
+the U test. It has no effect on the [`--format=benchstat`](#benchstat-format)
+report.
 
 ### Modes of operation
 
@@ -341,3 +342,72 @@ aren't identical.
 
 **WARNING**: requires **LARGE** (no less than 9) number of repetitions to be
 meaningful!
+
+### benchstat format
+
+By default the tool prints one side-by-side table, as shown above. With
+`--format=benchstat` it instead prints one compact table per metric, in the
+style of Go's [benchstat](https://pkg.go.dev/golang.org/x/perf/cmd/benchstat).
+The option goes before the mode of operation:
+
+```
+$ ./compare.py --format=benchstat benchmarks baseline.json contender.json
+Comparing baseline.json to contender.json
+name                  cpu/op        cpu/op  vs base
+BM_memcpy/8     35.57ns ± 1%  36.01ns ± 1%    +1.23% (p=0.011 n=10)
+BM_memcpy/64    75.74ns ± 1%  71.48ns ± 2%    -5.62% (p=0.000 n=10)
+BM_memcpy/8192  640.4ns ± 1%  528.3ns ± 1%   -17.51% (p=0.000 n=10)
+BM_copy/8       220.8ns ± 1%  220.7ns ± 1%         ~ (p=0.910 n=10)
+BM_copy/8192    198.7us ± 1%  215.1us ± 2%    +8.23% (p=0.000 n=10)
+geomean              596.8ns       578.1ns    -3.14%
+
+name                 time/op       time/op  vs base
+BM_memcpy/8     35.80ns ± 1%  36.25ns ± 1%    +1.26% (p=0.007 n=10)
+BM_memcpy/64    76.20ns ± 1%  71.74ns ± 1%    -5.86% (p=0.000 n=10)
+BM_memcpy/8192  644.9ns ± 1%  532.1ns ± 1%   -17.49% (p=0.000 n=10)
+BM_copy/8       221.8ns ± 1%  222.3ns ± 1%         ~ (p=0.850 n=10)
+BM_copy/8192    199.9us ± 1%  216.0us ± 1%    +8.06% (p=0.000 n=10)
+geomean              600.4ns       581.4ns    -3.15%
+
+name                  CYCLES        CYCLES  vs base
+BM_memcpy/8      150.02 ± 2%   150.26 ± 2%         ~ (p=0.850 n=10)
+BM_memcpy/64     318.12 ± 2%   299.42 ± 1%    -5.88% (p=0.000 n=10)
+BM_memcpy/8192    2.71K ± 1%    2.21K ± 2%   -18.35% (p=0.000 n=10)
+BM_copy/8        939.74 ± 1%   930.10 ± 1%         ~ (p=0.089 n=10)
+BM_copy/8192    833.06K ± 1%  904.86K ± 1%    +8.62% (p=0.000 n=10)
+geomean                2.52K         2.42K    -3.72%
+```
+
+The tables are:
+
+  * `cpu/op` and `time/op`: the CPU time and the real time.
+  * One table per user counter that both inputs report, titled with the name
+    of the counter. This includes the counters from
+    `--benchmark_perf_counters`, like `CYCLES` above.
+  * `allocs/op` and `peak-mem(B)`: the allocations per iteration and the peak
+    memory use in bytes over the whole run, if a memory manager was
+    registered.
+
+A table is only printed if both inputs have the metric. In each table:
+
+  * The first column of values is the baseline, the second is the contender.
+    Each value is the median of the repetitions, followed by the spread of the
+    95% confidence interval of the median, relative to the median. The spread
+    is omitted if there is only one repetition.
+  * `vs base` is the change of the median, calculated as
+    `(new - old) / |old|`, with the p-value of the [U test](#u-test) and the
+    number of repetitions (`n=10+8` if the two inputs differ). If the p-value
+    is above the significance level (`--alpha`), the change is not
+    statistically significant, and `~` is printed instead of it. With
+    `--no-utest`, or with fewer than 2 repetitions, the change is printed
+    without a p-value.
+  * `geomean` is the geometric mean of the medians of the table.
+
+Only the individual repetitions are used; the aggregates in the inputs are
+ignored. If an input has nothing but aggregates (e.g. it was produced with
+`--benchmark_report_aggregates_only=true`), the `_mean` aggregates of the two
+inputs are compared instead, as single measurements.
+
+`--display_aggregates_only` has no effect on this report, and the tool prints a
+warning if both are passed. `--dump_to_json` still dumps the same comparison as
+with the default format.
