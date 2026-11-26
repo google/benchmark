@@ -128,6 +128,26 @@ add_filter_test(filter_regex_begin2_negative "-^N" 4)
 add_filter_test(filter_regex_end ".*Ba$" 1)
 add_filter_test(filter_regex_end_negative "-.*Ba$" 4)
 
+compile_benchmark_test(tag_filter_test)
+macro(add_tag_test name tags expect)
+  benchmark_add_test(NAME ${name} COMMAND tag_filter_test --benchmark_min_time=1x --benchmark_tags=${tags} ${ARGN} ${expect})
+  benchmark_add_test(NAME ${name}_list_only COMMAND tag_filter_test --benchmark_list_tests --benchmark_tags=${tags} ${ARGN} ${expect})
+endmacro(add_tag_test)
+
+add_tag_test(tags_none "" 5)
+add_tag_test(tags_single "std" 2)
+add_tag_test(tags_any_of "std,lib1" 4)
+add_tag_test(tags_spaces " std , lib1 " 4)
+add_tag_test(tags_empty_items ",-slow,-," 3)
+add_tag_test(tags_unknown "monkey" 0)
+add_tag_test(tags_exclude "-slow" 3)
+add_tag_test(tags_exclude_all "-std,-lib1" 1)
+add_tag_test(tags_exclude_wins "lib1,-slow" 1)
+add_tag_test(tags_with_filter "std" 1 --benchmark_filter=Slow)
+
+compile_output_test(tags_output_test)
+benchmark_add_test(NAME tags_output_test COMMAND tags_output_test --benchmark_min_time=1x)
+
 compile_benchmark_test(options_test)
 benchmark_add_test(NAME options_benchmarks COMMAND options_test --benchmark_min_time=0.01s)
 
@@ -265,6 +285,7 @@ if (BENCHMARK_ENABLE_GTEST_TESTS)
   add_gtest(memory_results_gtest)
   add_gtest(memory_manager_iterations_gtest)
   add_gtest(memory_manager_ordering_gtest)
+  add_gtest(tag_gtest)
 endif(BENCHMARK_ENABLE_GTEST_TESTS)
 
 ###############################################################################

@@ -118,6 +118,7 @@ class BENCHMARK_EXPORT BenchmarkReporter {
     UserCounters counters;
     MemoryManager::Result memory_result;
     double allocs_per_iter;
+    std::vector<std::string> tags;
   };
 
   struct PerFamilyRunReports {
