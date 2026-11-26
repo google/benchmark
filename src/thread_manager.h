@@ -4,6 +4,7 @@
 #include <atomic>
 
 #include "benchmark/counter.h"
+#include "benchmark/managers.h"
 #include "benchmark/statistics.h"
 #include "benchmark/types.h"
 #include "mutex.h"
@@ -33,6 +34,7 @@ class ThreadManager {
     std::string skip_message_;
     internal::Skipped skipped_ = internal::NotSkipped;
     UserCounters counters;
+    MemoryManager::Result memory_result;
   };
   GUARDED_BY(GetBenchmarkMutex()) Result results;
 

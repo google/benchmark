@@ -9,6 +9,7 @@
 #include <vector>
 
 #include "benchmark/benchmark_api.h"
+#include "benchmark/managers.h"
 #include "benchmark/reporter.h"
 #include "benchmark/sysinfo.h"
 #include "commandlineflags.h"
@@ -50,7 +51,8 @@ class BenchmarkInstance {
   State Run(IterationCount iters, int thread_id, internal::ThreadTimer* timer,
             internal::ThreadManager* manager,
             internal::PerfCountersMeasurement* perf_counters_measurement,
-            ProfilerManager* profiler_manager) const;
+            ProfilerManager* profiler_manager,
+            MemoryManager* memory_manager = nullptr) const;
 
  private:
   BenchmarkName name_;

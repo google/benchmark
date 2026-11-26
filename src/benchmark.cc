@@ -13,6 +13,7 @@
 // limitations under the License.
 
 #include "benchmark/benchmark_api.h"
+#include "benchmark/managers.h"
 #include "benchmark/registration.h"
 #include "benchmark/reporter.h"
 #include "benchmark/state.h"
@@ -192,7 +193,7 @@ State::State(std::string name, IterationCount max_iters,
              const std::vector<int64_t>& ranges, int thread_i, int n_threads,
              internal::ThreadTimer* timer, internal::ThreadManager* manager,
              internal::PerfCountersMeasurement* perf_counters_measurement,
-             ProfilerManager* profiler_manager)
+             ProfilerManager* profiler_manager, MemoryManager* memory_manager)
     : total_iterations_(0),
       batch_leftover_(0),
       max_iterations(max_iters),
@@ -206,7 +207,9 @@ State::State(std::string name, IterationCount max_iters,
       timer_(timer),
       manager_(manager),
       perf_counters_measurement_(perf_counters_measurement),
-      profiler_manager_(profiler_manager) {
+      profiler_manager_(profiler_manager),
+      memory_manager_(memory_manager),
+      memory_manager_active_(false) {
   BM_CHECK(max_iterations != 0) << "At least one iteration must be run";
   BM_CHECK_LT(thread_index_, threads_)
       << "thread_index must be less than threads";
@@ -260,6 +263,26 @@ void State::ResumeTimingImpl() {
   }
 }
 
+void State::StartMemoryManager() {
+  BM_CHECK(!memory_manager_active_);
+  if (BENCHMARK_BUILTIN_EXPECT(memory_manager_ != nullptr, false)) {
+    memory_manager_->Start();
+    memory_manager_active_ = true;
+  }
+}
+
+void State::StopMemoryManager() {
+  if (BENCHMARK_BUILTIN_EXPECT(memory_manager_active_, false)) {
+    MemoryManager::Result result;
+    memory_manager_->Stop(result);
+    {
+      MutexLock l(manager_->GetBenchmarkMutex());
+      manager_->results.memory_result = result;
+    }
+    memory_manager_active_ = false;
+  }
+}
+
 void State::SkipWithMessage(const std::string& msg) {
   skipped_ = internal::SkippedWithMessage;
   {
@@ -273,6 +296,7 @@ void State::SkipWithMessage(const std::string& msg) {
   if (timer_->running()) {
     timer_->StopTimer();
   }
+  StopMemoryManager();
 }
 
 void State::SkipWithError(const std::string& msg) {
@@ -288,6 +312,7 @@ void State::SkipWithError(const std::string& msg) {
   if (timer_->running()) {
     timer_->StopTimer();
   }
+  StopMemoryManager();
 }
 
 void State::SetIterationTime(double seconds) {
@@ -309,12 +334,14 @@ void State::StartKeepRunning() {
   manager_->StartStopBarrier();
   if (!skipped()) {
     ResumeTiming();
+    StartMemoryManager();
   }
 }
 
 void State::FinishKeepRunning() {
   BM_CHECK(started_ && (!finished_ || skipped()));
   if (!skipped()) {
+    StopMemoryManager();
     PauseTiming();
   }
   // Total iterations has now wrapped around past 0. Fix this.

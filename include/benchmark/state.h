@@ -38,6 +38,7 @@ class ThreadManager;
 class PerfCountersMeasurement;
 }  // namespace internal
 
+class MemoryManager;
 class ProfilerManager;
 
 class BENCHMARK_EXPORT BENCHMARK_INTERNAL_CACHELINE_ALIGNED State {
@@ -175,11 +176,18 @@ class BENCHMARK_EXPORT BENCHMARK_INTERNAL_CACHELINE_ALIGNED State {
         const std::vector<int64_t>& ranges, int thread_i, int n_threads,
         internal::ThreadTimer* timer, internal::ThreadManager* manager,
         internal::PerfCountersMeasurement* perf_counters_measurement,
-        ProfilerManager* profiler_manager);
+        ProfilerManager* profiler_manager,
+        MemoryManager* memory_manager = nullptr);
 
   void StartKeepRunning();
   inline bool KeepRunningInternal(IterationCount n, bool is_batch);
   void FinishKeepRunning();
+
+  // Starts memory measurement when `memory_manager_` is set.
+  void StartMemoryManager();
+  // Stops memory measurement if active and records the result on `manager_`.
+  // Idempotent so normal exit, SkipWith*, and early loop exit can all call it.
+  void StopMemoryManager();
 
   // The checked entry points above forward here; keeping the bodies out of
   // line keeps the assertions with the caller, whose NDEBUG decides whether
@@ -195,6 +203,8 @@ class BENCHMARK_EXPORT BENCHMARK_INTERNAL_CACHELINE_ALIGNED State {
   internal::ThreadManager* const manager_;
   internal::PerfCountersMeasurement* const perf_counters_measurement_;
   ProfilerManager* const profiler_manager_;
+  MemoryManager* const memory_manager_;
+  bool memory_manager_active_;
 
   friend class internal::BenchmarkInstance;
 };
