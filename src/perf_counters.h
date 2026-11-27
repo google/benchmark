@@ -16,12 +16,15 @@
 #define BENCHMARK_PERF_COUNTERS_H
 
 #include <array>
+#include <cassert>
 #include <cstdint>
 #include <cstring>
 #include <memory>
 #include <vector>
 
-#include "benchmark/benchmark.h"
+#include "benchmark/export.h"
+#include "benchmark/macros.h"
+#include "benchmark/utils.h"
 #include "check.h"
 #include "log.h"
 #include "mutex.h"
@@ -57,9 +60,14 @@ class BENCHMARK_EXPORT PerfCounterValues {
   // We are reading correctly now so the values don't need to skip padding
   uint64_t operator[](size_t pos) const { return values_[pos]; }
 
-  // Increased the maximum to 32 only since the buffer
-  // is std::array<> backed
-  static constexpr size_t kMaxCounters = 32;
+  // The buffer is std::array<> backed. Generic hardware events may be opened
+  // once per CPU (see PerfCounters::Create()), so allow for a core's worth of
+  // hardware counters (e.g. 6 programmable counters and a cycle counter on
+  // many ARM cores; any more are multiplexed) on each of up to 16 CPUs (phones
+  // with several types of cores typically have 8).
+  static constexpr size_t kHardwareCountersPerCPU = 8;
+  static constexpr size_t kCPUsToFit = 16;
+  static constexpr size_t kMaxCounters = kHardwareCountersPerCPU * kCPUsToFit;
 
  private:
   friend class PerfCounters;
@@ -152,7 +160,7 @@ class BENCHMARK_EXPORT PerfCountersMeasurement final {
 
   size_t num_counters() const { return counters_.num_counters(); }
 
-  std::vector<std::string> names() const { return counters_.names(); }
+  const std::vector<std::string>& names() const { return counters_.names(); }
 
   BENCHMARK_ALWAYS_INLINE bool Start() {
     if (num_counters() == 0) return true;

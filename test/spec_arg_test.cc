@@ -8,7 +8,10 @@
 #include <string>
 #include <vector>
 
-#include "benchmark/benchmark.h"
+#include "benchmark/benchmark_api.h"
+#include "benchmark/registration.h"
+#include "benchmark/reporter.h"
+#include "benchmark/state.h"
 
 // Tests that we can override benchmark-spec value from FLAGS_benchmark_filter
 // with argument to RunSpecifiedBenchmarks(...).

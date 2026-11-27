@@ -161,13 +161,23 @@ def partition_benchmarks(json1, json2):
         lhs = [
             x
             for x in json1["benchmarks"]
-            if x["name"] == name and x["time_unit"] == time_unit
+            if x["name"] == name
+            and x["time_unit"] == time_unit
+            and not x.get("skipped", False)
+            and not x.get("error_occurred", False)
         ]
         rhs = [
             x
             for x in json2["benchmarks"]
-            if x["name"] == name and x["time_unit"] == time_unit
+            if x["name"] == name
+            and x["time_unit"] == time_unit
+            and not x.get("skipped", False)
+            and not x.get("error_occurred", False)
         ]
+
+        if len(lhs) == 0 or len(rhs) == 0:
+            continue
+
         partitions.append([lhs, rhs])
     return partitions
 
@@ -190,6 +200,10 @@ def calculate_geomean(json):
     times = []
     for benchmark in json["benchmarks"]:
         if "run_type" in benchmark and benchmark["run_type"] == "aggregate":
+            continue
+        if benchmark.get("skipped", False) or benchmark.get(
+            "error_occurred", False
+        ):
             continue
         times.append(
             [

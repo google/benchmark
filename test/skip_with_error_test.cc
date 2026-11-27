@@ -4,7 +4,11 @@
 #include <vector>
 
 #include "../src/check.h"  // NOTE: check.h is for internal use only!
-#include "benchmark/benchmark.h"
+#include "benchmark/benchmark_api.h"
+#include "benchmark/registration.h"
+#include "benchmark/reporter.h"
+#include "benchmark/state.h"
+#include "benchmark/utils.h"
 
 namespace {
 
@@ -179,6 +183,17 @@ ADD_CASES("BM_error_while_paused", {{"/1/threads:1", true, "error message"},
                                     {"/2/threads:2", false, ""},
                                     {"/2/threads:4", false, ""},
                                     {"/2/threads:8", false, ""}});
+
+void BM_error_complexity_all_skipped(benchmark::State& state) {
+  state.SkipWithError("error message");
+  for (auto _ : state) {
+    assert(false);
+  }
+  state.SetComplexityN(state.range(0));
+}
+BENCHMARK(BM_error_complexity_all_skipped)->Arg(1)->Arg(2)->Complexity();
+ADD_CASES("BM_error_complexity_all_skipped",
+          {{"/1", true, "error message"}, {"/2", true, "error message"}});
 
 void BM_malformed(benchmark::State& /*unused*/) {
   // NOTE: empty body wanted. No thing else.

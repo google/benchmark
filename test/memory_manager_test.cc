@@ -1,6 +1,10 @@
 #include <memory>
 
-#include "benchmark/benchmark.h"
+#include "benchmark/benchmark_api.h"
+#include "benchmark/managers.h"
+#include "benchmark/registration.h"
+#include "benchmark/state.h"
+#include "benchmark/utils.h"
 #include "output_test.h"
 
 namespace {
@@ -35,6 +39,7 @@ ADD_CASES(TC_JSONOut, {{"\"name\": \"BM_empty\",$"},
                        {"\"real_time\": %float,$", MR_Next},
                        {"\"cpu_time\": %float,$", MR_Next},
                        {"\"time_unit\": \"ns\",$", MR_Next},
+                       {"\"memory_iterations\": %int,$", MR_Next},
                        {"\"allocs_per_iter\": %float,$", MR_Next},
                        {"\"max_bytes_used\": 42000$", MR_Next},
                        {"}", MR_Next}});

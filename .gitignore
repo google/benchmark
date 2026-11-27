@@ -5,7 +5,7 @@
 *.exe
 *.dylib
 *.cmake
-!/cmake/*.cmake
+!/cmake/**/*.cmake
 !/test/AssemblyTests.cmake
 *~
 *.swp
@@ -67,3 +67,6 @@ CMakeSettings.json
 dist/
 *.egg-info*
 uv.lock
+
+# Rust build stuff
+/bindings/rust/target/

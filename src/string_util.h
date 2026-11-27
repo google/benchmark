@@ -6,23 +6,18 @@
 #include <utility>
 #include <vector>
 
-#include "benchmark/benchmark.h"
+#include "benchmark/counter.h"
 #include "benchmark/export.h"
 #include "check.h"
 
 namespace benchmark {
 
 BENCHMARK_EXPORT
-std::string HumanReadableNumber(double n, Counter::OneK one_k);
+std::string HumanReadableNumber(double n, Counter::OneK one_k,
+                                bool stringify_exponent = false);
 
 BENCHMARK_EXPORT
-#if defined(__MINGW32__)
-__attribute__((format(__MINGW_PRINTF_FORMAT, 1, 2)))
-#elif defined(__GNUC__)
-__attribute__((format(printf, 1, 2)))
-#endif
-std::string
-StrFormat(const char* format, ...);
+std::string StrFormat(const char* format, ...) PRINTF_FORMAT_STRING_FUNC(1, 2);
 
 inline std::ostream& StrCatImp(std::ostream& out) BENCHMARK_NOEXCEPT {
   return out;

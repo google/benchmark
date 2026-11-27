@@ -137,8 +137,6 @@ benchmark_add_test(NAME basic_benchmark COMMAND basic_test --benchmark_min_time=
 compile_output_test(repetitions_test)
 benchmark_add_test(NAME repetitions_benchmark COMMAND repetitions_test --benchmark_min_time=0.01s --benchmark_repetitions=3)
 
-compile_benchmark_test(diagnostics_test)
-benchmark_add_test(NAME diagnostics_test COMMAND diagnostics_test --benchmark_min_time=0.01s)
 
 compile_benchmark_test(skip_with_error_test)
 benchmark_add_test(NAME skip_with_error_test COMMAND skip_with_error_test --benchmark_min_time=0.01s)
@@ -184,10 +182,10 @@ compile_output_test(templated_fixture_method_test)
 benchmark_add_test(NAME templated_fixture_method_test COMMAND templated_fixture_method_test --benchmark_min_time=0.01s)
 
 compile_output_test(user_counters_test)
-benchmark_add_test(NAME user_counters_test COMMAND user_counters_test --benchmark_min_time=0.01s)
+benchmark_add_test(NAME user_counters_test COMMAND user_counters_test --benchmark_min_time=0.2s)
 
 compile_output_test(user_counters_threads_test)
-benchmark_add_test(NAME user_counters_threads_test COMMAND user_counters_threads_test --benchmark_min_time=0.01s)
+benchmark_add_test(NAME user_counters_threads_test COMMAND user_counters_threads_test --benchmark_min_time=0.2s)
 
 compile_output_test(perf_counters_test)
 benchmark_add_test(NAME perf_counters_test COMMAND perf_counters_test --benchmark_min_time=0.01s --benchmark_perf_counters=CYCLES,INSTRUCTIONS)
@@ -205,7 +203,7 @@ compile_output_test(display_aggregates_only_test)
 benchmark_add_test(NAME display_aggregates_only_test COMMAND display_aggregates_only_test --benchmark_min_time=0.01s)
 
 compile_output_test(user_counters_tabular_test)
-benchmark_add_test(NAME user_counters_tabular_test COMMAND user_counters_tabular_test --benchmark_counters_tabular=true --benchmark_min_time=0.01s)
+benchmark_add_test(NAME user_counters_tabular_test COMMAND user_counters_tabular_test --benchmark_counters_tabular=true --benchmark_min_time=0.2s)
 
 compile_output_test(user_counters_thousands_test)
 benchmark_add_test(NAME user_counters_thousands_test COMMAND user_counters_thousands_test --benchmark_min_time=0.01s)
@@ -219,11 +217,17 @@ benchmark_add_test(NAME profiler_manager_test COMMAND profiler_manager_test --be
 compile_benchmark_test(profiler_manager_iterations_test)
 benchmark_add_test(NAME profiler_manager_iterations COMMAND profiler_manager_iterations_test)
 
+compile_benchmark_test(profiler_manager_state_test)
+benchmark_add_test(NAME profiler_manager_state COMMAND profiler_manager_state_test)
+
 compile_output_test(complexity_test)
 benchmark_add_test(NAME complexity_benchmark COMMAND complexity_test --benchmark_min_time=1000000x)
 
 compile_output_test(locale_impermeability_test)
 benchmark_add_test(NAME locale_impermeability_test COMMAND locale_impermeability_test)
+
+compile_output_test(scoped_pause_test)
+benchmark_add_test(NAME scoped_pause_test COMMAND scoped_pause_test)
 
 ###############################################################################
 # GoogleTest Unit Tests
@@ -253,11 +257,14 @@ if (BENCHMARK_ENABLE_GTEST_TESTS)
   add_gtest(statistics_gtest)
   add_gtest(string_util_gtest)
   add_gtest(perf_counters_gtest)
+  add_gtest(reporter_list_gtest)
   add_gtest(time_unit_gtest)
   add_gtest(min_time_parse_gtest)
   add_gtest(profiler_manager_gtest)
   add_gtest(benchmark_setup_teardown_cb_types_gtest)
   add_gtest(memory_results_gtest)
+  add_gtest(memory_manager_iterations_gtest)
+  add_gtest(memory_manager_ordering_gtest)
 endif(BENCHMARK_ENABLE_GTEST_TESTS)
 
 ###############################################################################
@@ -322,4 +329,17 @@ if (${CMAKE_BUILD_TYPE_LOWER} MATCHES "coverage")
       "  ctest: ${CTEST}\n"
       "  --coverage flag: ${CXX_FLAG_COVERAGE_MESSAGE}")
   endif()
+endif()
+
+if (BENCHMARK_ENABLE_RUST_BINDINGS)
+  find_program(CARGO_EXECUTABLE cargo REQUIRED)
+  add_custom_target(build_rust_bindings ALL
+    COMMAND ${CARGO_EXECUTABLE} build --tests
+    WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/bindings/rust
+    COMMENT "Building Rust bindings and tests"
+  )
+  add_test(NAME rust_bindings_tests
+    COMMAND ${CARGO_EXECUTABLE} test
+    WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/bindings/rust
+  )
 endif()

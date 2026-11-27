@@ -23,7 +23,8 @@
 #include <windows.h>
 #else
 #include <fcntl.h>
-#if !defined(BENCHMARK_OS_FUCHSIA) && !defined(BENCHMARK_OS_QURT)
+#if !defined(BENCHMARK_OS_FUCHSIA) && !defined(BENCHMARK_OS_QURT) && \
+    !defined(BENCHMARK_OS_WASI)
 #include <sys/resource.h>
 #endif
 #include <sys/time.h>
@@ -32,11 +33,6 @@
 #if defined BENCHMARK_OS_FREEBSD || defined BENCHMARK_OS_DRAGONFLY || \
     defined BENCHMARK_OS_MACOSX
 #include <sys/sysctl.h>
-#endif
-#if defined(BENCHMARK_OS_MACOSX)
-#include <mach/mach_init.h>
-#include <mach/mach_port.h>
-#include <mach/thread_act.h>
 #endif
 #if defined(BENCHMARK_OS_QURT)
 #include <qurt.h>
@@ -84,20 +80,13 @@ double MakeTime(FILETIME const& kernel_time, FILETIME const& user_time) {
           static_cast<double>(user.QuadPart)) *
          1e-7;
 }
-#elif !defined(BENCHMARK_OS_FUCHSIA) && !defined(BENCHMARK_OS_QURT)
+#elif !defined(BENCHMARK_OS_FUCHSIA) && !defined(BENCHMARK_OS_QURT) && \
+    !defined(BENCHMARK_OS_WASI)
 double MakeTime(struct rusage const& ru) {
   return (static_cast<double>(ru.ru_utime.tv_sec) +
           static_cast<double>(ru.ru_utime.tv_usec) * 1e-6 +
           static_cast<double>(ru.ru_stime.tv_sec) +
           static_cast<double>(ru.ru_stime.tv_usec) * 1e-6);
-}
-#endif
-#if defined(BENCHMARK_OS_MACOSX)
-double MakeTime(thread_basic_info_data_t const& info) {
-  return (static_cast<double>(info.user_time.seconds) +
-          static_cast<double>(info.user_time.microseconds) * 1e-6 +
-          static_cast<double>(info.system_time.seconds) +
-          static_cast<double>(info.system_time.microseconds) * 1e-6);
 }
 #endif
 #if defined(CLOCK_PROCESS_CPUTIME_ID) || defined(CLOCK_THREAD_CPUTIME_ID)
@@ -140,9 +129,15 @@ double ProcessCPUUsage() {
   // same as total time, but this is ok because there aren't long-latency
   // synchronous system calls in Emscripten.
   return emscripten_get_now() * 1e-3;
-#elif defined(CLOCK_PROCESS_CPUTIME_ID) && !defined(BENCHMARK_OS_MACOSX)
-  // FIXME We want to use clock_gettime, but its not available in MacOS 10.11.
-  // See https://github.com/google/benchmark/pull/292
+#elif defined(BENCHMARK_OS_WASI)
+  // WASI lacks CLOCK_PROCESS_CPUTIME_ID and getrusage; use monotonic clock.
+  struct timespec ts {};
+  if (clock_gettime(CLOCK_MONOTONIC, &ts) == 0) {
+    return static_cast<double>(ts.tv_sec) +
+           (static_cast<double>(ts.tv_nsec) * 1e-9);
+  }
+  DiagnoseAndExit("clock_gettime(CLOCK_MONOTONIC, ...) failed");
+#elif defined(CLOCK_PROCESS_CPUTIME_ID)
   struct timespec spec {};
   if (clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &spec) == 0) {
     return MakeTime(spec);
@@ -173,18 +168,6 @@ double ThreadCPUUsage() {
   return static_cast<double>(
              qurt_timer_timetick_to_us(qurt_sysclock_get_hw_ticks())) *
          1.0e-6;
-#elif defined(BENCHMARK_OS_MACOSX)
-  // FIXME We want to use clock_gettime, but its not available in MacOS 10.11.
-  // See https://github.com/google/benchmark/pull/292
-  mach_msg_type_number_t count = THREAD_BASIC_INFO_COUNT;
-  thread_basic_info_data_t info;
-  mach_port_t thread = pthread_mach_thread_np(pthread_self());
-  if (thread_info(thread, THREAD_BASIC_INFO,
-                  reinterpret_cast<thread_info_t>(&info),
-                  &count) == KERN_SUCCESS) {
-    return MakeTime(info);
-  }
-  DiagnoseAndExit("ThreadCPUUsage() failed when evaluating thread_info");
 #elif defined(BENCHMARK_OS_EMSCRIPTEN)
   // Emscripten doesn't support traditional threads
   return ProcessCPUUsage();
@@ -194,6 +177,9 @@ double ThreadCPUUsage() {
   return ProcessCPUUsage();
 #elif defined(BENCHMARK_OS_ZOS)
   // z/OS doesn't support CLOCK_THREAD_CPUTIME_ID.
+  return ProcessCPUUsage();
+#elif defined(BENCHMARK_OS_WASI)
+  // WASI doesn't support per-thread CPU timing; fall back to process time.
   return ProcessCPUUsage();
 #elif defined(BENCHMARK_OS_SOLARIS)
   struct rusage ru;

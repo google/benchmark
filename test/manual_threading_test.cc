@@ -6,7 +6,10 @@
 #include <thread>
 
 #include "../src/timers.h"
-#include "benchmark/benchmark.h"
+#include "benchmark/benchmark_api.h"
+#include "benchmark/counter.h"
+#include "benchmark/registration.h"
+#include "benchmark/state.h"
 
 namespace {
 

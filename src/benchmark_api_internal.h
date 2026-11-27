@@ -8,7 +8,9 @@
 #include <string>
 #include <vector>
 
-#include "benchmark/benchmark.h"
+#include "benchmark/benchmark_api.h"
+#include "benchmark/reporter.h"
+#include "benchmark/sysinfo.h"
 #include "commandlineflags.h"
 
 namespace benchmark {
@@ -75,6 +77,7 @@ class BenchmarkInstance {
   callback_function teardown_;
 };
 
+BENCHMARK_EXPORT
 bool FindBenchmarksInternal(const std::string& re,
                             std::vector<BenchmarkInstance>* benchmarks,
                             std::ostream* Err);

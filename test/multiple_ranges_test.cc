@@ -3,7 +3,10 @@
 #include <set>
 #include <vector>
 
-#include "benchmark/benchmark.h"
+#include "benchmark/benchmark_api.h"
+#include "benchmark/registration.h"
+#include "benchmark/state.h"
+#include "benchmark/utils.h"
 
 namespace {
 class MultipleRangesFixture : public ::benchmark::Fixture {

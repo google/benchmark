@@ -15,7 +15,8 @@
 #include "benchmark_register.h"
 
 #ifndef BENCHMARK_OS_WINDOWS
-#if !defined(BENCHMARK_OS_FUCHSIA) && !defined(BENCHMARK_OS_QURT)
+#if !defined(BENCHMARK_OS_FUCHSIA) && !defined(BENCHMARK_OS_QURT) && \
+    !defined(BENCHMARK_OS_WASI)
 #include <sys/resource.h>
 #endif
 #include <sys/time.h>
@@ -36,7 +37,11 @@
 #include <sstream>
 #include <thread>
 
-#include "benchmark/benchmark.h"
+#include "benchmark/benchmark_api.h"
+#include "benchmark/registration.h"
+#include "benchmark/reporter.h"
+#include "benchmark/statistics.h"
+#include "benchmark/types.h"
 #include "benchmark_api_internal.h"
 #include "check.h"
 #include "commandlineflags.h"
@@ -465,11 +470,12 @@ Benchmark* Benchmark::Threads(int t) {
   return this;
 }
 
-Benchmark* Benchmark::ThreadRange(int min_threads, int max_threads) {
+Benchmark* Benchmark::ThreadRange(int min_threads, int max_threads, int mult) {
   BM_CHECK_GT(min_threads, 0);
   BM_CHECK_GE(max_threads, min_threads);
+  BM_CHECK_GE(mult, 2);
 
-  internal::AddRange(&thread_counts_, min_threads, max_threads, 2);
+  internal::AddRange(&thread_counts_, min_threads, max_threads, mult);
   return this;
 }
 

@@ -3,7 +3,11 @@
 #include <cassert>
 #include <memory>
 
-#include "benchmark/benchmark.h"
+#include "benchmark/benchmark_api.h"
+#include "benchmark/managers.h"
+#include "benchmark/registration.h"
+#include "benchmark/state.h"
+#include "benchmark/utils.h"
 #include "output_test.h"
 
 namespace {

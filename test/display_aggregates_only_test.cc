@@ -3,7 +3,9 @@
 #include <cstdio>
 #include <string>
 
-#include "benchmark/benchmark.h"
+#include "benchmark/benchmark_api.h"
+#include "benchmark/registration.h"
+#include "benchmark/state.h"
 #include "output_test.h"
 
 // Ok this test is super ugly. We want to check what happens with the file

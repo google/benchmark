@@ -27,7 +27,8 @@
 #include <codecvt>
 #else
 #include <fcntl.h>
-#if !defined(BENCHMARK_OS_FUCHSIA) && !defined(BENCHMARK_OS_QURT)
+#if !defined(BENCHMARK_OS_FUCHSIA) && !defined(BENCHMARK_OS_QURT) && \
+    !defined(BENCHMARK_OS_WASI)
 #include <sys/resource.h>
 #endif
 #include <sys/time.h>
@@ -51,6 +52,9 @@
 #include <qurt.h>
 #endif
 #if defined(BENCHMARK_HAS_PTHREAD_AFFINITY)
+#if defined(BENCHMARK_OS_FREEBSD)
+#include <pthread_np.h>
+#endif
 #include <pthread.h>
 #endif
 
@@ -77,7 +81,9 @@
 #include <sstream>
 #include <utility>
 
-#include "benchmark/benchmark.h"
+#include "benchmark/export.h"
+#include "benchmark/sysinfo.h"
+#include "benchmark/utils.h"
 #include "check.h"
 #include "cycleclock.h"
 #include "log.h"
@@ -143,7 +149,7 @@ struct ValueUnion {
   }
 
   template <class T, int N>
-  std::array<T, N> GetAsArray() {
+  BENCHMARK_MAYBE_UNUSED std::array<T, N> GetAsArray() {
     const int arr_size = sizeof(T) * N;
     BM_CHECK_LE(arr_size, size);
     std::array<T, N> arr;
@@ -204,7 +210,8 @@ bool GetSysctl(std::string const& name, Tp* out) {
 }
 
 template <class Tp, size_t N>
-bool GetSysctl(std::string const& name, std::array<Tp, N>* out) {
+BENCHMARK_MAYBE_UNUSED bool GetSysctl(std::string const& name,
+                                      std::array<Tp, N>* out) {
   auto buff = GetSysctlImp(name);
   if (!buff) return false;
   *out = buff.GetAsArray<Tp, N>();
@@ -439,7 +446,8 @@ std::vector<CPUInfo::CacheInfo> GetCacheSizes() {
   return GetCacheSizesWindows();
 #elif defined(BENCHMARK_OS_QNX)
   return GetCacheSizesQNX();
-#elif defined(BENCHMARK_OS_QURT) || defined(__EMSCRIPTEN__)
+#elif defined(BENCHMARK_OS_QURT) || defined(BENCHMARK_OS_EMSCRIPTEN) || \
+    defined(BENCHMARK_OS_WASI)
   return std::vector<CPUInfo::CacheInfo>();
 #else
   return GetCacheSizesFromKVFS();
@@ -472,6 +480,8 @@ std::string GetSystemName() {
     str += std::to_string(arch_version_struct.arch_version);
   }
   return str;
+#elif defined(BENCHMARK_OS_WASI)
+  return std::string("wasi");
 #else
 #ifndef HOST_NAME_MAX
 #ifdef BENCHMARK_HAS_SYSCTL  // BSD/Mac doesn't have HOST_NAME_MAX defined

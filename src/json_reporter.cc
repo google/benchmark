@@ -15,6 +15,7 @@
 #include <algorithm>
 #include <cmath>
 #include <cstdint>
+#include <cstdio>
 #include <iomanip>  // for setprecision
 #include <iostream>
 #include <limits>
@@ -22,7 +23,11 @@
 #include <tuple>
 #include <vector>
 
-#include "benchmark/benchmark.h"
+#include "benchmark/benchmark_api.h"
+#include "benchmark/export.h"
+#include "benchmark/reporter.h"
+#include "benchmark/types.h"
+#include "benchmark_api_internal.h"
 #include "complexity.h"
 #include "string_util.h"
 #include "timers.h"
@@ -56,9 +61,18 @@ std::string StrEscape(const std::string& s) {
       case '"':
         tmp += "\\\"";
         break;
-      default:
-        tmp += c;
+      default: {
+        auto uc = static_cast<unsigned char>(c);
+        if (uc < 0x20) {
+          char buf[7];
+          std::snprintf(buf, sizeof(buf), "\\u%04x",
+                        static_cast<unsigned int>(uc));
+          tmp += buf;
+        } else {
+          tmp += c;
+        }
         break;
+      }
     }
   }
   return tmp;
@@ -318,6 +332,9 @@ void JSONReporter::PrintRunData(Run const& run) {
 
   if (run.memory_result.memory_iterations > 0) {
     const auto& memory_result = run.memory_result;
+    out << ",\n"
+        << indent
+        << FormatKV("memory_iterations", memory_result.memory_iterations);
     out << ",\n" << indent << FormatKV("allocs_per_iter", run.allocs_per_iter);
     out << ",\n"
         << indent << FormatKV("max_bytes_used", memory_result.max_bytes_used);
@@ -338,6 +355,26 @@ void JSONReporter::PrintRunData(Run const& run) {
     out << ",\n" << indent << FormatKV("label", run.report_label);
   }
   out << '\n';
+}
+
+void JSONReporter::List(
+    const std::vector<internal::BenchmarkInstance>& benchmarks) {
+  std::ostream& out = GetOutputStream();
+  std::string inner_indent(2, ' ');
+  std::string indent(4, ' ');
+  std::string entry_indent(6, ' ');
+
+  // Mirror the structure of the regular output so that consumers can read
+  // the names from the same "benchmarks" array in both modes.
+  out << "{\n" << inner_indent << "\"benchmarks\": [";
+  bool first = true;
+  for (const internal::BenchmarkInstance& benchmark : benchmarks) {
+    out << (first ? "\n" : ",\n") << indent << "{\n";
+    out << entry_indent << FormatKV("name", benchmark.name().str()) << "\n";
+    out << indent << "}";
+    first = false;
+  }
+  out << "\n" << inner_indent << "]\n}\n";
 }
 
 }  // end namespace benchmark

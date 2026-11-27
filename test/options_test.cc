@@ -1,7 +1,10 @@
 #include <chrono>
 #include <thread>
 
-#include "benchmark/benchmark.h"
+#include "benchmark/benchmark_api.h"
+#include "benchmark/registration.h"
+#include "benchmark/state.h"
+#include "benchmark/types.h"
 
 #if defined(NDEBUG)
 #undef NDEBUG
@@ -38,6 +41,7 @@ BENCHMARK(BM_basic)->MinWarmUpTime(0.8);
 BENCHMARK(BM_basic)->MinTime(0.1)->MinWarmUpTime(0.2);
 BENCHMARK(BM_basic)->UseRealTime();
 BENCHMARK(BM_basic)->ThreadRange(2, 4);
+BENCHMARK(BM_basic)->ThreadRange(1, 16, 4);
 BENCHMARK(BM_basic)->ThreadPerCpu();
 BENCHMARK(BM_basic)->Repetitions(3);
 BENCHMARK(BM_basic)

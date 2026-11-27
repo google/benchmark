@@ -77,6 +77,8 @@
   #define BENCHMARK_OS_NACL 1
 #elif defined(__EMSCRIPTEN__)
   #define BENCHMARK_OS_EMSCRIPTEN 1
+#elif defined(__wasi__)
+  #define BENCHMARK_OS_WASI 1
 #elif defined(__rtems__)
   #define BENCHMARK_OS_RTEMS 1
 #elif defined(__Fuchsia__)

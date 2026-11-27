@@ -1,4 +1,7 @@
-#include "benchmark/benchmark.h"
+#include "benchmark/benchmark_api.h"
+#include "benchmark/reporter.h"
+#include "benchmark/state.h"
+#include "benchmark/types.h"
 #include "gtest/gtest.h"
 
 using benchmark::Benchmark;

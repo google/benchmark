@@ -8,7 +8,10 @@
 #include <sstream>
 #include <string>
 
-#include "benchmark/benchmark.h"
+#include "benchmark/benchmark_api.h"
+#include "benchmark/registration.h"
+#include "benchmark/reporter.h"
+#include "benchmark/state.h"
 
 namespace {
 

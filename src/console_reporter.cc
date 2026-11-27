@@ -21,7 +21,9 @@
 #include <tuple>
 #include <vector>
 
-#include "benchmark/benchmark.h"
+#include "benchmark/export.h"
+#include "benchmark/reporter.h"
+#include "benchmark/types.h"
 #include "check.h"
 #include "colorprint.h"
 #include "commandlineflags.h"
@@ -137,7 +139,7 @@ void ConsoleReporter::PrintRunData(const Run& result) {
                            : IgnoreColorPrint;
   auto name_color =
       (result.report_big_o || result.report_rms) ? COLOR_BLUE : COLOR_GREEN;
-  printer(Out, name_color, "%-*s ", name_field_width_,
+  printer(Out, name_color, "%-*s ", static_cast<int>(name_field_width_),
           result.benchmark_name().c_str());
 
   if (internal::SkippedWithError == result.skipped) {
@@ -190,14 +192,16 @@ void ConsoleReporter::PrintRunData(const Run& result) {
       s = StrFormat("%.2f", 100. * c.second.value);
       unit = "%";
     } else {
-      s = HumanReadableNumber(c.second.value, c.second.oneK);
+      s = HumanReadableNumber(
+          c.second.value, c.second.oneK,
+          (c.second.flags & Counter::kStringifyExponent) != 0);
       if ((c.second.flags & Counter::kIsRate) != 0) {
         unit = (c.second.flags & Counter::kInvert) != 0 ? "s" : "/s";
       }
     }
     if ((output_options_ & OO_Tabular) != 0) {
-      printer(Out, COLOR_DEFAULT, " %*s%s", cNameLen - strlen(unit), s.c_str(),
-              unit);
+      printer(Out, COLOR_DEFAULT, " %*s%s",
+              static_cast<int>(cNameLen - strlen(unit)), s.c_str(), unit);
     } else {
       printer(Out, COLOR_DEFAULT, " %s=%s%s", c.first.c_str(), s.c_str(), unit);
     }

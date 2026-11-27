@@ -6,6 +6,9 @@ on:
   pull_request:
     branches: [ main ]
 
+permissions:
+  contents: read
+
 env:
   CMAKE_GENERATOR: Ninja
 
@@ -30,7 +33,9 @@ jobs:
         if: runner.os == 'macOS'
         run: brew install ninja
 
-      - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
 
       - name: build
         uses: threeal/cmake-action@725d1314ccf9ea922805d7e3f9d9bcbca892b406 # v2.1.0
@@ -51,7 +56,7 @@ jobs:
         run: ctest -C ${{ matrix.build_type }} -VV
 
   msvc:
-    name: ${{ matrix.os }}.${{ matrix.build_type }}.${{ matrix.lib }}.${{ matrix.msvc }}
+    name: ${{ matrix.os }}.${{ matrix.build_type }}.${{ matrix.lib }}.${{ matrix.crt }}.${{ matrix.msvc }}
     runs-on: ${{ matrix.os }}
     defaults:
         run:
@@ -60,7 +65,7 @@ jobs:
       fail-fast: false
       matrix:
         msvc:
-          - VS-17-2025
+          - VS-18-2025
           - VS-17-2022
         build_type:
           - Debug
@@ -68,31 +73,51 @@ jobs:
         lib:
           - shared
           - static
+        crt:
+          - MD
+          - MT
+        exclude:
+          # a DLL with its own static CRT can't safely share CRT objects with the exe
+          - lib: shared
+            crt: MT
         include:
-          - msvc: VS-17-2025
+          - crt: MD
+            runtime: 'MultiThreaded$<$<CONFIG:Debug>:Debug>DLL'
+          - crt: MT
+            runtime: 'MultiThreaded$<$<CONFIG:Debug>:Debug>'
+          - msvc: VS-18-2025
             os: windows-2025
-            generator: 'Visual Studio 17 2022'
+            generator: 'Visual Studio 18 2026'
           - msvc: VS-17-2022
             os: windows-2022
             generator: 'Visual Studio 17 2022'
 
     steps:
-      - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
 
-      - uses: lukka/get-cmake@9e07ecdcee1b12e5037e42f410b67f03e2f626e1 # latest
+      - uses: lukka/get-cmake@a1a8216777d3cbbf5602c73b9ddd3e98257ecdc4 # latest
 
       - name: configure cmake
         run: >
-          cmake -S . -B ${{ runner.workspace }}/_build/
+          cmake -S . -B $env:RUNNER_WORKSPACE/_build/
           -G "${{ matrix.generator }}"
           -DBENCHMARK_DOWNLOAD_DEPENDENCIES=ON
           -DBUILD_SHARED_LIBS=${{ matrix.lib == 'shared' }}
+          '-DCMAKE_MSVC_RUNTIME_LIBRARY=${{ matrix.runtime }}'
+        env:
+          RUNNER_WORKSPACE: ${{ runner.workspace }}
 
       - name: build
-        run: cmake --build ${{ runner.workspace }}/_build/ --config ${{ matrix.build_type }}
+        run: cmake --build $env:RUNNER_WORKSPACE/_build/ --config ${{ matrix.build_type }}
+        env:
+          RUNNER_WORKSPACE: ${{ runner.workspace }}
 
       - name: test
-        run: ctest --test-dir ${{ runner.workspace }}/_build/ -C ${{ matrix.build_type }} -VV
+        run: ctest --test-dir $env:RUNNER_WORKSPACE/_build/ -C ${{ matrix.build_type }} -VV
+        env:
+          RUNNER_WORKSPACE: ${{ runner.workspace }}
 
   msys2:
     name: ${{ matrix.os }}.${{ matrix.build_type }}.${{ matrix.lib }}.${{ matrix.msys2.msystem }}
@@ -117,7 +142,7 @@ jobs:
 
     steps:
       - name: setup msys2
-        uses: msys2/setup-msys2@4f806de0a5a7294ffabaff804b38a9b435a73bda # v2.30.0
+        uses: msys2/setup-msys2@3c51bf698df1e37b2261f53cb67797b97761185c # v2.34.0
         with:
           cache: false
           msystem: ${{ matrix.msys2.msystem }}
@@ -131,7 +156,9 @@ jobs:
             cmake:p
             ninja:p
 
-      - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
 
       # NOTE: we can't use cmake actions here as we need to do everything in msys2 shell.
       - name: configure cmake

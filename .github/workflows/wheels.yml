@@ -9,23 +9,27 @@ on:
 env:
   CMAKE_GENERATOR: Ninja
 
+permissions:
+  contents: read
+
 jobs:
   build_sdist:
     name: Build source distribution
     runs-on: ubuntu-latest
     steps:
       - name: Check out repo
-        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 0
+          persist-credentials: false
       - name: Install Python 3.12
-        uses: actions/setup-python@83679a892e2d95755f2dac6acb0bfd1e9ac5d548 # v6.1.0
+        uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
         with:
           python-version: "3.12"
       - run: python -m pip install build
       - name: Build sdist
         run: python -m build --sdist
-      - uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: dist-sdist
           path: dist/*.tar.gz
@@ -38,23 +42,26 @@ jobs:
         os: [ubuntu-latest, ubuntu-24.04-arm, macos-15-intel, macos-latest, windows-latest]
     steps:
       - name: Check out Google Benchmark
-        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 0
+          persist-credentials: false
 
-      - uses: actions/setup-python@83679a892e2d95755f2dac6acb0bfd1e9ac5d548 # v6.1.0
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
         name: Install Python 3.12
         with:
           python-version: "3.12"
       - name: Install the latest version of uv
-        uses: astral-sh/setup-uv@61cb8a9741eeb8a550a1b8544337180c0fc8476b # v7.2.0
+        uses: astral-sh/setup-uv@1db35dd8eee11c5894872e0b383ae6c406cf738d # v10.4.0
+        with:
+          enable-cache: false
 
       - name: Build wheels on ${{ matrix.os }} using cibuildwheel
-        uses: pypa/cibuildwheel@298ed2fb2c105540f5ed055e8a6ad78d82dd3a7e # v3.3.1
+        uses: pypa/cibuildwheel@f9b966cfadf4109556cadc5bb39ddb72d0ce664e # v4.3.5
         env:
-          CIBW_BUILD: "cp310-* cp311-* cp312-*"
+          CIBW_BUILD: "cp310-* cp314t-* cp315t-*"
           CIBW_BUILD_FRONTEND: "build[uv]"
-          CIBW_SKIP: "*-musllinux_*"
+          CIBW_SKIP: "cp313t-* *-musllinux_*"
           CIBW_ARCHS: auto64
           CIBW_BEFORE_ALL_LINUX: bash .github/install_bazel.sh
           # Grab the rootless Bazel installation inside the container.
@@ -64,7 +71,7 @@ jobs:
           MACOSX_DEPLOYMENT_TARGET: ${{ matrix.os == 'macos-15-intel' && 10.14 || 11.0 }}
 
       - name: Upload Google Benchmark ${{ matrix.os }} wheels
-        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: dist-${{ matrix.os }}
           path: wheelhouse/*.whl
@@ -76,9 +83,83 @@ jobs:
     permissions:
       id-token: write
     steps:
-      - uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
         with:
           path: dist
           pattern: dist-*
           merge-multiple: true
-      - uses: pypa/gh-action-pypi-publish@ed0c53931b1dc9bd32cbe73a98c7f6766f8a527e # release/v1
+      - name: Authenticate to Google Cloud (OSS Exit Gate)
+        uses: google-github-actions/auth@7c6bc770dae815cd3e89ee6cdf493a5fab2cc093 # v3.0.0
+        with:
+          workload_identity_provider: 'projects/305452601764/locations/global/workloadIdentityPools/builders/providers/github'
+
+      - name: Set up Cloud SDK
+        uses: google-github-actions/setup-gcloud@aa5489c8933f4cc7a4f7d45035b3b1440c9c10db # v3.0.1
+
+      - name: Clean up failed staging attempt for this exact version (if any)
+        id: exit_gate_cleanup
+        run: |
+          set -euo pipefail
+          PKG_VER=$(python3 - <<'PY'
+          import email, glob, tarfile, zipfile
+          files = sorted(glob.glob("dist/**/*.whl", recursive=True) + glob.glob("dist/**/*.tar.gz", recursive=True))
+          assert files, "No distributions found in dist/"
+          f = files[0]
+          if f.endswith(".whl"):
+            with zipfile.ZipFile(f) as zf:
+              meta = [n for n in zf.namelist() if n.endswith(".dist-info/METADATA")][0]
+              raw = zf.read(meta).decode()
+          else:
+            with tarfile.open(f) as tf:
+              info = [m for m in tf.getmembers() if m.name.endswith("/PKG-INFO") or m.name == "PKG-INFO"][0]
+              raw = tf.extractfile(info).read().decode()
+          print(email.message_from_string(raw)["Version"].strip())
+          PY
+          )
+          echo "pkg_ver=${PKG_VER}" >> "$GITHUB_OUTPUT"
+          if gcloud artifacts versions describe "${PKG_VER}" \
+            --package="google-benchmark" \
+            --project="oss-exit-gate-prod" \
+            --location="us" \
+            --repository="benchmark--pypi" >/dev/null 2>&1; then
+            gcloud artifacts versions delete "${PKG_VER}" \
+              --package="google-benchmark" \
+              --project="oss-exit-gate-prod" \
+              --location="us" \
+              --repository="benchmark--pypi" \
+              --quiet
+          fi
+
+      - name: Stage distributions to OSS Exit Gate and upload manifest
+        env:
+          PKG_VER: ${{ steps.exit_gate_cleanup.outputs.pkg_ver }}
+          RUN_ID: ${{ github.run_id }}
+          RUN_ATTEMPT: ${{ github.run_attempt }}
+        run: |
+          set -euo pipefail
+          shopt -s globstar nullglob
+          DIST_FILES=(dist/**/*.whl dist/**/*.tar.gz)
+          python3 -m pip install --upgrade twine
+          TWINE_PASSWORD="$(gcloud auth print-access-token)"
+          python3 -m twine upload \
+            --repository-url "https://us-python.pkg.dev/oss-exit-gate-prod/benchmark--pypi/" \
+            -u oauth2accesstoken \
+            -p "${TWINE_PASSWORD}" \
+            "${DIST_FILES[@]}"
+          cat <<EOF > manifest.json
+          {
+            "publish_all": false,
+            "publishing_groups": [
+              {
+                "packages": [
+                  {
+                    "name": "google-benchmark",
+                    "version": "${PKG_VER}"
+                  }
+                ]
+              }
+            ]
+          }
+          EOF
+          gcloud storage cp manifest.json \
+            "gs://oss-exit-gate-prod-projects-bucket/benchmark/pypi/manifests/manifest-${PKG_VER}-${RUN_ID}-${RUN_ATTEMPT}.json"

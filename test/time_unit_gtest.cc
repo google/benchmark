@@ -1,4 +1,5 @@
-#include "../include/benchmark/benchmark.h"
+#include "benchmark/benchmark_api.h"
+#include "benchmark/state.h"
 #include "gtest/gtest.h"
 
 namespace benchmark {

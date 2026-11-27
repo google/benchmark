@@ -14,12 +14,17 @@
 
 #include "benchmark_runner.h"
 
-#include "benchmark/benchmark.h"
+#include "benchmark/benchmark_api.h"
+#include "benchmark/managers.h"
+#include "benchmark/reporter.h"
+#include "benchmark/state.h"
+#include "benchmark/types.h"
 #include "benchmark_api_internal.h"
 #include "internal_macros.h"
 
 #ifndef BENCHMARK_OS_WINDOWS
-#if !defined(BENCHMARK_OS_FUCHSIA) && !defined(BENCHMARK_OS_QURT)
+#if !defined(BENCHMARK_OS_FUCHSIA) && !defined(BENCHMARK_OS_QURT) && \
+    !defined(BENCHMARK_OS_WASI)
 #include <sys/resource.h>
 #endif
 #include <sys/time.h>
@@ -81,7 +86,6 @@ const double kDefaultMinTime =
 BenchmarkReporter::Run CreateRunReport(
     const benchmark::internal::BenchmarkInstance& b,
     const internal::ThreadManager::Result& results,
-    IterationCount memory_iterations,
     const MemoryManager::Result& memory_result, double seconds,
     int64_t repetition_index, int64_t repeats) {
   // Create report about this benchmark run.
@@ -114,14 +118,12 @@ BenchmarkReporter::Run CreateRunReport(
     report.statistics = &b.statistics();
     report.counters = results.counters;
 
-    if (memory_iterations > 0) {
-      report.memory_result = memory_result;
-      report.allocs_per_iter =
-          memory_iterations != 0
-              ? static_cast<double>(memory_result.num_allocs) /
-                    static_cast<double>(memory_iterations)
-              : 0;
-    }
+    report.memory_result = memory_result;
+    report.allocs_per_iter =
+        memory_result.memory_iterations != 0
+            ? static_cast<double>(memory_result.num_allocs) /
+                  static_cast<double>(memory_result.memory_iterations)
+            : 0;
 
     // The CPU time is the total time taken by all thread. If we used that as
     // the denominator, we'd be calculating the rate per thread here. This is
@@ -159,7 +161,16 @@ void RunInThread(const BenchmarkInstance* b, IterationCount iters,
     results.cpu_time_used += timer.cpu_time_used();
     results.real_time_used += timer.real_time_used();
     results.manual_time_used += timer.manual_time_used();
-    results.complexity_n += st.complexity_length_n();
+    // Threads that did not call SetComplexityN() contribute nothing, so the
+    // result is independent of the order in which threads report.
+    const OptionalComplexityN thread_complexity_n = st.complexity_length_n();
+    if (thread_complexity_n.has_value()) {
+      results.complexity_n =
+          results.complexity_n.has_value()
+              ? OptionalComplexityN(results.complexity_n.value() +
+                                    thread_complexity_n.value())
+              : thread_complexity_n;
+    }
     internal::Increment(&results.counters, st.counters);
   }
   manager->NotifyThreadComplete();
@@ -286,12 +297,11 @@ BenchmarkRunner::BenchmarkRunner(
       min_time(FLAGS_benchmark_dry_run
                    ? 0
                    : ComputeMinTime(b_, parsed_benchtime_flag)),
-      min_warmup_time(
-          FLAGS_benchmark_dry_run
-              ? 0
-              : ((!IsZero(b.min_time()) && b.min_warmup_time() > 0.0)
-                     ? b.min_warmup_time()
-                     : FLAGS_benchmark_min_warmup_time)),
+      min_warmup_time(FLAGS_benchmark_dry_run
+                          ? 0
+                          : (b.min_warmup_time() > 0.0
+                                 ? b.min_warmup_time()
+                                 : FLAGS_benchmark_min_warmup_time)),
       warmup_done(FLAGS_benchmark_dry_run ? true : !(min_warmup_time > 0.0)),
       repeats(FLAGS_benchmark_dry_run
                   ? 1
@@ -457,18 +467,22 @@ void BenchmarkRunner::RunWarmUp() {
 
 MemoryManager::Result BenchmarkRunner::RunMemoryManager(
     IterationCount memory_iterations) {
-  memory_manager->Start();
   std::unique_ptr<internal::ThreadManager> manager;
   manager.reset(new internal::ThreadManager(1));
   b.Setup();
+  memory_manager->Start();
   RunInThread(&b, memory_iterations, 0, manager.get(),
-              perf_counters_measurement_ptr,
+              // memory manager doesn't use perf counters
+              /*perf_counters_measurement=*/nullptr,
               /*profiler_manager=*/nullptr);
-  manager.reset();
-  b.Teardown();
   MemoryManager::Result memory_result;
   memory_manager->Stop(memory_result);
-  memory_result.memory_iterations = memory_iterations;
+  {
+    MutexLock l(manager->GetBenchmarkMutex());
+    memory_result.memory_iterations = manager->results.iterations;
+  }
+  manager.reset();
+  b.Teardown();
   return memory_result;
 }
 
@@ -533,15 +547,16 @@ void BenchmarkRunner::DoOneRepetition() {
 
   // Produce memory measurements if requested.
   MemoryManager::Result memory_result;
-  IterationCount memory_iterations = 0;
-  if (memory_manager != nullptr) {
+  if (memory_manager != nullptr && i.results.skipped_ == internal::NotSkipped) {
     // Only run a few iterations to reduce the impact of one-time
     // allocations in benchmarks that are not properly managed.
-    memory_iterations = std::min<IterationCount>(16, iters);
+    const IterationCount memory_iterations =
+        std::min<IterationCount>(16, iters);
     memory_result = RunMemoryManager(memory_iterations);
   }
 
-  if (profiler_manager != nullptr) {
+  if (profiler_manager != nullptr &&
+      i.results.skipped_ == internal::NotSkipped) {
     // We want to externally profile the benchmark for the same number of
     // iterations because, for example, if we're tracing the benchmark then we
     // want trace data to reasonably match PMU data.
@@ -549,9 +564,8 @@ void BenchmarkRunner::DoOneRepetition() {
   }
 
   // Ok, now actually report.
-  BenchmarkReporter::Run report =
-      CreateRunReport(b, i.results, memory_iterations, memory_result, i.seconds,
-                      num_repetitions_done, repeats);
+  BenchmarkReporter::Run report = CreateRunReport(
+      b, i.results, memory_result, i.seconds, num_repetitions_done, repeats);
 
   if (reports_for_family != nullptr) {
     ++reports_for_family->num_runs_done;

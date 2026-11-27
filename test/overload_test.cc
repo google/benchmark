@@ -1,4 +1,6 @@
-#include "benchmark/benchmark.h"
+#include "benchmark/macros.h"
+#include "benchmark/registration.h"
+#include "benchmark/state.h"
 
 namespace {
 // Simulate an overloaded function name.
