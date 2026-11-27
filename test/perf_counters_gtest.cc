@@ -1,3 +1,4 @@
+#include <algorithm>
 #include <mutex>
 #include <random>
 #include <set>
@@ -396,6 +397,35 @@ TEST(PerfCountersTest, HardwareLimits) {
 
   counter.Start();
   EXPECT_TRUE(counter.Stop(measurements));
+}
+
+TEST(PerfCountersTest, MaxCountersNoPartialReplication) {
+  const std::string kUnreplicatedEvent = "PERF_COUNT_SW_TASK_CLOCK";
+  if (!HasRequiredPerfCounters({kGenericPerfEvent1, kUnreplicatedEvent})) {
+    GTEST_SKIP() << "Requested performance counters are not available.";
+  }
+  if (PerfCounters::Create({kGenericPerfEvent1}).num_counters() <= 1) {
+    GTEST_SKIP() << "Generic performance counter is not replicated.";
+  }
+  if (PerfCounters::Create({kUnreplicatedEvent}).num_counters() != 1) {
+    GTEST_SKIP() << "Expected software counter to open once.";
+  }
+  if (PerfCounters::Create(
+          std::vector<std::string>(PerfCounterValues::kMaxCounters,
+                                   kUnreplicatedEvent))
+          .num_counters() != PerfCounterValues::kMaxCounters) {
+    GTEST_SKIP() << "Could not open kMaxCounters software counters.";
+  }
+
+  std::vector<std::string> names(PerfCounterValues::kMaxCounters - 1,
+                                 kUnreplicatedEvent);
+  names.push_back(kGenericPerfEvent1);
+  names.push_back(kUnreplicatedEvent);
+  auto counters = PerfCounters::Create(names);
+  EXPECT_EQ(std::count(counters.names().begin(), counters.names().end(),
+                       kGenericPerfEvent1),
+            0);
+  EXPECT_EQ(counters.num_counters(), PerfCounterValues::kMaxCounters);
 }
 
 }  // namespace
