@@ -312,11 +312,15 @@ PerfCounters PerfCounters::Create(
     // which not all PMU drivers support (e.g. arm_pmu in Linux 6.1).
     bool opened = false;
     const std::vector<uint64_t> pmus = GetPMUTypesForEvent(attr);
+    if (num_counters + pmus.size() > PerfCounterValues::kMaxCounters) {
+      GetErrorLogInstance()
+          << "***WARNING*** Opening performance counter " << name
+          << " on each of " << pmus.size()
+          << " CPU PMUs would exceed the maximum of "
+          << PerfCounterValues::kMaxCounters << " counters. Ignoring\n";
+      continue;
+    }
     for (uint64_t pmu : pmus) {
-      // Each PMU's event is a separate counter, so check the maximum again.
-      if (num_counters == PerfCounterValues::kMaxCounters) {
-        break;
-      }
       perf_event_attr pmu_attr = attr;
       pmu_attr.config |= pmu << PERF_PMU_TYPE_SHIFT;
       if (const int open_errno = add_counter(pmu_attr, pmu, /*cpu=*/-1, name);
