@@ -51,7 +51,7 @@ namespace internal {
 // to Snapshot(). The Read() method relocates individual reads, discarding
 // the initial padding from each group leader in the values buffer such that
 // all user accesses through the [] operator are correct.
-class BENCHMARK_EXPORT PerfCounterValues {
+class PerfCounterValues {
  public:
   explicit PerfCounterValues(size_t nr_counters) : nr_counters_(nr_counters) {
     BM_CHECK_LE(nr_counters_, kMaxCounters);
@@ -81,7 +81,7 @@ class BENCHMARK_EXPORT PerfCounterValues {
   // This reading is complex and as the goal of this class is to
   // abstract away the intrincacies of the reading process, this is
   // a better place for it
-  size_t Read(const std::vector<int>& leaders);
+  BENCHMARK_EXPORT size_t Read(const std::vector<int>& leaders);
 
   // Move the padding to 2 due to the reading algorithm (1st padding plus a
   // current read padding)
